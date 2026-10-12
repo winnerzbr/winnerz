@@ -35,6 +35,8 @@ export function demoState(): State {
     profile: { id: 'demo', name: 'Heverton', initial: 'H' },
     prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas', focusIds: ['j-tlou2', 'j-astro'] },
     schemaV4: true,
+    schemaV6: true,
+    isAdmin: true,
     myGames: { infamous: { gameId: 'infamous', priority: 1, estHours: 17 }, kz2: { gameId: 'kz2', priority: 2, estHours: 9 }, dderby: { gameId: 'dderby', wontPlay: true } },
     games: Object.fromEntries(games.map((g) => [g.id, g])),
     copies: [

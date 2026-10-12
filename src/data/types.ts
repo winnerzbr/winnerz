@@ -33,6 +33,10 @@ export interface Game {
   /** 'manual' = jogo cadastrado no WinnerZ sem ficha do IGDB (ex.: vindo da planilha). */
   source?: 'igdb' | 'manual';
   createdBy?: ID;
+  /** Tempo para zerar em horas (média do IGDB): rápido, normal, completo. */
+  ttb?: { h?: number; n?: number; c?: number } | null;
+  /** AAAA-MM-DD do primeiro lançamento. */
+  releasedOn?: string;
 }
 
 /** Pilar Coleção: exemplar (posse) — separado da relação com o jogo. */
@@ -68,6 +72,11 @@ export interface MyGame {
   /** Seu gênero para o jogo (ex.: o da sua planilha). */
   genre?: string;
   note?: string;
+  /** "Não agora": o "O que jogar" não sugere até esta data (AAAA-MM-DD). */
+  notNowUntil?: string;
+  notNowReason?: string;
+  /** Minutos jogados segundo a Steam (informado pela Steam, nunca estimado). */
+  steamMinutes?: number;
 }
 
 export interface Wish {
@@ -190,6 +199,10 @@ export interface State {
   myGames: Record<ID, MyGame>;
   /** A migração 0004 já rodou? (no modo demonstração, sempre sim) */
   schemaV4: boolean;
+  /** A migração 0006 (Etapa 3 e Awards) já rodou? */
+  schemaV6?: boolean;
+  /** Administração (monta os Awards). */
+  isAdmin?: boolean;
   /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */
   loadIncomplete?: boolean;
 }

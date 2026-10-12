@@ -14,6 +14,7 @@ export function gameFromApi(r: any): Game {
     summarySource: r.summary_source ?? undefined, releases: r.releases ?? undefined, screenshots: r.screenshots ?? undefined,
     summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
   artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
+    ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined, source: r.source ?? 'igdb',
   };
 }
 
@@ -26,6 +27,15 @@ export async function searchGames(q: string, local: Game[]): Promise<{ hits: Hit
     const t = q.toLowerCase();
     return { hits: local.filter((g) => g.title.toLowerCase().includes(t)).map((g) => ({ slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g })), source: 'local' };
   }
+}
+
+/** Abre qualquer jogo do IGDB pelo slug (ex.: vindo do Explorar ou do universo de outro jogo). */
+export async function gameBySlug(slug: string): Promise<Game | null> {
+  try {
+    const r = await fetch(`/api/igdb?slug=${encodeURIComponent(slug)}&v=3`);
+    if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
+    return gameFromApi(await r.json());
+  } catch { return null; }
 }
 
 /** Busca de novo a ficha no IGDB (para fichas antigas, sem tradução ou sem vídeos). */

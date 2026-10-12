@@ -1,0 +1,123 @@
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as RKeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { navigate } from '../lib/router';
+import { useStore } from '../data/store';
+import { searchGames, type Hit } from './AddGameDialog';
+import { CoverArt } from './CoverArt';
+import { Icon } from './Icon';
+import { norm } from '../lib/importer';
+import { shortPlatform } from '../lib/platforms';
+import { track } from '../lib/track';
+
+type Item = { key: string; group: string; title: string; meta?: string; to: string; cover?: { title: string; cover: string } };
+
+const PAGES: [string, string, string][] = [
+  ['Estante', '/colecao', 'estante coleção jogos'], ['Estatísticas da coleção', '/colecao/estatisticas', 'estatisticas numeros'], ['Desejos', '/colecao/desejos', 'desejos lista'],
+  ['Importar planilha', '/colecao/importar', 'importar planilha excel csv'], ['Jornada', '/jornada', 'jornada jogando foco'], ['Histórias concluídas', '/jornada/concluidas', 'zerados concluidas historias'],
+  ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ['Preferências', '/preferencias', 'preferencias tema escala'],
+  ['WinnerZ Awards', '/eventos/awards', 'awards premio votacao eventos'],
+];
+
+export const openSearch = () => window.dispatchEvent(new Event('wz:search'));
+
+/** Busca universal (Ctrl+K ou /): jogos do seu acervo, Jornadas, momentos, páginas e o IGDB, num campo só. */
+export function CommandPalette() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const typing = /input|textarea|select/i.test((e.target as HTMLElement)?.tagName ?? '') || (e.target as HTMLElement)?.isContentEditable;
+      if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); setOpen((v) => !v); }
+      else if (e.key === '/' && !typing) { e.preventDefault(); setOpen(true); }
+    };
+    const ev = () => setOpen(true);
+    document.addEventListener('keydown', key);
+    window.addEventListener('wz:search', ev);
+    return () => { document.removeEventListener('keydown', key); window.removeEventListener('wz:search', ev); };
+  }, []);
+  if (!open) return null;
+  return createPortal(<Palette onClose={() => setOpen(false)} />, document.body);
+}
+
+function Palette({ onClose }: { onClose: () => void }) {
+  const s = useStore((x) => x);
+  const [q, setQ] = useState('');
+  const [sel, setSel] = useState(0);
+  const [remote, setRemote] = useState<Hit[]>([]);
+  const input = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  useEffect(() => { input.current?.focus(); track('busca.universal'); }, []);
+
+  useEffect(() => {
+    if (q.trim().length < 2) { setRemote([]); return; }
+    const t = setTimeout(async () => { const r = await searchGames(q.trim(), []); setRemote(r.source === 'igdb' ? r.hits.slice(0, 6) : []); }, 280);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const items = useMemo<Item[]>(() => {
+    const t = norm(q);
+    const out: Item[] = [];
+    if (!t) {
+      // Sem texto: atalhos para o que está em andamento e as páginas.
+      for (const j of s.journeys.slice(-5).reverse()) { const g = s.games[j.gameId]; if (g) out.push({ key: `j-${j.id}`, group: 'Jornadas', title: g.title, to: `/jornada/${g.slug}`, cover: g }); }
+      for (const [title, to] of PAGES.slice(0, 6)) out.push({ key: `p-${to}`, group: 'Ir para', title, to });
+      return out;
+    }
+    const has = (x?: string) => !!x && norm(x).includes(t);
+    const owned = new Set(s.copies.map((c) => c.gameId));
+    const journeyOf = new Map(s.journeys.map((j) => [j.gameId, j]));
+    const mine = Object.values(s.games).filter((g) => (owned.has(g.id) || journeyOf.has(g.id) || s.wishes.some((w) => w.gameId === g.id)) && has(g.title))
+      .sort((a, b) => Number(norm(b.title).startsWith(t)) - Number(norm(a.title).startsWith(t)) || a.title.localeCompare(b.title, 'pt-BR')).slice(0, 8);
+    for (const g of mine) {
+      const j = journeyOf.get(g.id);
+      const c = s.copies.find((x) => x.gameId === g.id);
+      out.push({ key: `g-${g.id}`, group: 'No seu acervo', title: g.title, meta: [c && shortPlatform(c.platform), j ? 'tem Jornada' : null].filter(Boolean).join(', '), to: j ? `/jornada/${g.slug}` : `/jogos/${g.slug}`, cover: g });
+    }
+    const moments = s.events.filter((e) => (e.kind === 'momento' || e.kind === 'ponto' || e.kind === 'sessao') && (has(e.title) || has(e.quote) || has(e.text))).slice(-6).reverse();
+    for (const e of moments) {
+      const j = s.journeys.find((x) => x.id === e.journeyId); const g = j && s.games[j.gameId];
+      if (g) out.push({ key: `e-${e.id}`, group: 'Momentos e recados', title: e.quote ? `“${e.quote}”` : e.title, meta: g.title, to: `/jornada/${g.slug}` });
+    }
+    for (const [title, to, words] of PAGES) if (has(title) || norm(words).includes(t)) out.push({ key: `p-${to}`, group: 'Ir para', title, to });
+    const known = new Set(mine.map((g) => g.slug));
+    for (const h of remote) if (!known.has(h.slug)) out.push({ key: `r-${h.slug}`, group: 'No IGDB', title: h.title, meta: [h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · '), to: `/jogos/${h.slug}`, cover: { title: h.title, cover: h.cover } });
+    return out;
+  }, [q, s, remote]);
+
+  useEffect(() => setSel(0), [q]);
+  useEffect(() => { list.current?.querySelector<HTMLElement>(`[data-i="${sel}"]`)?.scrollIntoView({ block: 'nearest' }); }, [sel]);
+  const go = (it?: Item) => { if (!it) return; onClose(); navigate(it.to); };
+  const key = (e: RKeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); setSel((n) => Math.min(items.length - 1, n + 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSel((n) => Math.max(0, n - 1)); }
+    else if (e.key === 'Enter') { e.preventDefault(); go(items[sel]); }
+  };
+
+  let lastGroup = '';
+  return (
+    <div className="palette-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="palette" role="dialog" aria-modal="true" aria-label="Busca">
+        <div className="palette__field">
+          <Icon name="busca" size={18} />
+          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={key} placeholder="Buscar jogo, Jornada, momento ou página" aria-label="Buscar" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-activedescendant={items[sel] ? `pal-${sel}` : undefined} />
+          <kbd>Esc</kbd>
+        </div>
+        <ul id="palette-list" ref={list} className="palette__list" role="listbox">
+          {items.map((it, i) => {
+            const head = it.group !== lastGroup ? it.group : null;
+            lastGroup = it.group;
+            return [
+              head && <li key={`h-${head}`} className="palette__group" role="presentation">{head}</li>,
+              <li key={it.key} id={`pal-${i}`} data-i={i} role="option" aria-selected={i === sel} className="palette__item" onMouseMove={() => setSel(i)} onClick={() => go(it)}>
+                {it.cover ? <span className="palette__cover"><CoverArt game={it.cover} /></span> : <span className="palette__icon"><Icon name="avancar" size={14} /></span>}
+                <span className="palette__text"><span className="palette__title">{it.title}</span>{it.meta && <span className="faint">{it.meta}</span>}</span>
+              </li>,
+            ];
+          })}
+          {q.trim().length >= 2 && items.length === 0 && <li className="palette__empty muted">Nada encontrado. O IGDB ainda pode estar respondendo…</li>}
+        </ul>
+        <div className="palette__foot faint"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> de qualquer lugar</span></div>
+      </div>
+    </div>
+  );
+}

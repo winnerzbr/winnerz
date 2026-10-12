@@ -6,6 +6,10 @@
  *   GET /api/igdb?id=119133         → ficha completa; também grava no cache "games" do Supabase
  *   POST /api/igdb {match:[{title}]} → até 10 buscas numa chamada (importador da planilha)
  *   POST /api/igdb {cache:[ids]}     → fichas leves de até 100 jogos, gravadas no cache
+ *   GET /api/igdb?slug=elden-ring    → ficha completa pelo slug do IGDB (abre qualquer jogo)
+ *   GET /api/igdb?meta=1             → listas para os filtros (gêneros, plataformas, modos)
+ *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, plataforma, época, modo e ordem
+ *   GET /api/igdb?related=119133     → universo do jogo: franquia, DLCs, remakes, parecidos
  *
  * Ids: o jogo do IGDB ganha "igdb-<número>" no WinnerZ e nunca muda, mesmo que o IGDB troque o slug.
  * Fichas antigas (id = slug) continuam com o id que já tinham.
@@ -136,8 +140,8 @@ async function cacheGames<T extends Record<string, unknown>>(input: T[]): Promis
   });
   let strip = (row: Record<string, unknown>) => row;
   let r = await send(input);
-  // Banco sem a coluna "source" (migração 0004 não rodada): tenta sem ela; depois sem as colunas da 0002.
-  if (r.status === 400) { strip = (row) => Object.fromEntries(Object.entries(row).filter(([k]) => k !== 'source')); r = await send(input.map(strip)); }
+  // Banco sem as colunas novas ("source" da 0004, "ttb" e "released_on" da 0006): tenta sem elas; depois sem as colunas da 0002.
+  if (r.status === 400) { strip = (row) => Object.fromEntries(Object.entries(row).filter(([k]) => k !== 'source' && k !== 'ttb' && k !== 'released_on')); r = await send(input.map(strip)); }
   if (r.status === 400) { const prev = strip; strip = (row) => Object.fromEntries(Object.entries(prev(row)).filter(([k]) => !NEW_COLUMNS.includes(k))); r = await send(input.map(strip)); }
   if (r.ok) return input;
   // Algum slug já usado por outro jogo (ou outro erro no lote): grava um a um e devolve só o que entrou.
@@ -187,7 +191,19 @@ async function withoutLogos(arts: any[] = []) {
   });
 }
 
-const LIGHT_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name,genres.name,artworks.*,screenshots.image_id,involved_companies.company.name,involved_companies.developer';
+const LIGHT_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,artworks.*,screenshots.image_id,involved_companies.company.name,involved_companies.developer';
+
+/** Tempo para zerar (horas), pela média de quem informou no IGDB: rápido, normal e completo. */
+async function timesToBeat(ids: number[]): Promise<Map<number, { h?: number; n?: number; c?: number }>> {
+  const out = new Map<number, { h?: number; n?: number; c?: number }>();
+  if (!ids.length) return out;
+  try {
+    const rows = await igdb('game_time_to_beats', `where game_id = (${ids.join(',')}); fields game_id,hastily,normally,completely; limit 500;`);
+    const hours = (sec?: number) => (sec ? Math.round((sec / 3600) * 2) / 2 : undefined);
+    for (const r of rows) out.set(r.game_id, { h: hours(r.hastily), n: hours(r.normally), c: hours(r.completely) });
+  } catch { /* sem tempo para zerar: segue sem */ }
+  return out;
+}
 
 const lightRow = (g: any) => ({
   igdb_id: g.id as number, slug: g.slug as string, title: g.name as string,
@@ -196,6 +212,9 @@ const lightRow = (g: any) => ({
   developer: (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name ?? null,
   platforms: (g.platforms ?? []).map((p: any) => p.name),
   genres: (g.genres ?? []).map((x: any) => x.name).join(', ') || null,
+  themes: (g.themes ?? []).map((x: any) => x.name),
+  modes: [...(g.game_modes ?? []), ...(g.player_perspectives ?? [])].map((x: any) => x.name),
+  released_on: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
   source: 'igdb',
   updated_at: new Date().toISOString(),
 });
@@ -240,9 +259,130 @@ async function cacheMany(ids: number[]) {
   if (!clean.length) return [];
   const rows = await igdb('games', `where id = (${clean.join(',')}); fields ${LIGHT_FIELDS}; limit 100;`);
   for (const r of rows) r.artworks = await withoutLogos(r.artworks);
-  const withIds = await assignIds(rows.map(lightRow));
+  const ttb = await timesToBeat(rows.map((r: any) => r.id));
+  const withIds = await assignIds(rows.map((r: any) => ({ ...lightRow(r), ttb: ttb.get(r.id) ?? null })));
   // Não apaga sinopse, vídeos etc. de fichas que já estavam completas: só envia os campos leves.
   return cacheGames(withIds);
+}
+
+/** Ficha completa (com tradução, mídia sem logotipos e tempo para zerar), gravada no cache. */
+async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fresh: boolean } | null> {
+  const [g] = await igdb('games', `where id = ${id}; fields name,slug,summary,storyline,first_release_date,cover.image_id,artworks.*,screenshots.image_id,videos.video_id,videos.name,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.date,release_dates.platform.name; limit 1;`);
+  if (!g) return null;
+  const dev = (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name;
+  const pub = (g.involved_companies ?? []).find((c: any) => c.publisher)?.company?.name;
+  g.artworks = await withoutLogos(g.artworks);
+  const backdropId = g.artworks?.[0]?.image_id ?? g.screenshots?.[0]?.image_id;
+  // A sinopse curta é melhor que o "storyline", que costuma ser longo e cheio de spoiler.
+  const original: string | null = g.summary || g.storyline || null;
+  // Ficha já traduzida e o texto original não mudou: reaproveita a tradução (economiza a cota gratuita).
+  const prev = await cachedSummary(g.id);
+  const translated = original
+    ? (prev?.summary_original === original && prev.summary ? prev.summary : await toPortuguese(original))
+    : null;
+  // Uma data por plataforma: a primeira em que o jogo saiu nela.
+  const firstByPlatform = new Map<string, number>();
+  for (const r of g.release_dates ?? []) {
+    const name = r.platform?.name; if (!name || !r.date) continue;
+    if (!firstByPlatform.has(name) || r.date < firstByPlatform.get(name)!) firstByPlatform.set(name, r.date);
+  }
+  const [ids] = await assignIds([{ igdb_id: g.id as number, slug: g.slug as string }]);
+  const game = {
+    id: ids.id, igdb_id: g.id, slug: ids.slug, title: g.name, source: 'igdb',
+    cover: image(g.cover?.image_id), backdrop: image(backdropId, 't_1080p') || null,
+    year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : null,
+    developer: dev ?? null, publisher: pub ?? null,
+    platforms: (g.platforms ?? []).map((p: any) => p.name),
+    genres: (g.genres ?? []).map((x: any) => x.name).join(', ') || null,
+    themes: (g.themes ?? []).map((x: any) => x.name),
+    modes: [...(g.game_modes ?? []), ...(g.player_perspectives ?? [])].map((x: any) => x.name),
+    summary: translated ?? original,
+    summary_original: translated ? original : null,
+    summary_source: translated ? 'Texto do IGDB, traduzido automaticamente' : 'Texto do IGDB, em inglês',
+    releases: [...firstByPlatform].sort((a, b) => a[1] - b[1]).slice(0, 8).map(([platform, date]) => ({ platform, date: fmtDate(date) })),
+    screenshots: (g.screenshots ?? []).slice(0, 16).map((s: any) => image(s.image_id, 't_screenshot_big')),
+    artworks: (g.artworks ?? []).slice(0, 8).map((s: any) => image(s.image_id, 't_screenshot_big')),
+    videos: (g.videos ?? []).filter((v: any) => v.video_id).slice(0, 8).map((v: any) => ({ id: v.video_id, name: v.name ?? '' })),
+    ttb: (await timesToBeat([g.id])).get(g.id) ?? null,
+    released_on: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
+    updated_at: new Date().toISOString(),
+  };
+  // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada.
+  const [stored = game] = await cacheGames([game]);
+  // Sem tradução (limite gratuito do dia, por exemplo), o CDN guarda por pouco tempo para tentar de novo.
+  return { game: stored, fresh: !!translated || !original };
+}
+
+/* Explorar ---------------------------------------------------------------------------- */
+const PLATFORM_NAMES = ['PlayStation 5', 'PlayStation 4', 'PlayStation 3', 'PlayStation 2', 'PlayStation', 'PlayStation Portable', 'PlayStation Vita',
+  'Nintendo Switch 2', 'Nintendo Switch', 'Wii U', 'Wii', 'Nintendo GameCube', 'Nintendo 64', 'Super Nintendo Entertainment System', 'Nintendo 3DS', 'Nintendo DS', 'Game Boy Advance',
+  'Xbox Series X|S', 'Xbox One', 'Xbox 360', 'Xbox', 'PC (Microsoft Windows)', 'Sega Mega Drive/Genesis', 'Dreamcast', 'Android', 'iOS'];
+
+async function meta() {
+  const [genres, modes, platforms, themes] = await Promise.all([
+    igdb('genres', 'fields id,name; limit 100;'),
+    igdb('game_modes', 'fields id,name; limit 50;'),
+    igdb('platforms', `fields id,name; where name = (${PLATFORM_NAMES.map((n) => `"${n}"`).join(',')}); limit 100;`),
+    igdb('themes', 'fields id,name; limit 100;'),
+  ]);
+  const order = (n: string) => PLATFORM_NAMES.indexOf(n);
+  return {
+    genres: genres.map((g: any) => ({ id: g.id, name: g.name })),
+    modes: modes.map((g: any) => ({ id: g.id, name: g.name })),
+    themes: themes.map((g: any) => ({ id: g.id, name: g.name })),
+    platforms: platforms.map((p: any) => ({ id: p.id, name: p.name })).sort((a: any, b: any) => order(a.name) - order(b.name)),
+  };
+}
+
+const ints = (v: unknown) => String(v ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0).slice(0, 10);
+
+async function explore(q: Record<string, string | string[] | undefined>) {
+  const now = Math.floor(Date.now() / 1000);
+  const where: string[] = ['cover != null', 'version_parent = null', 'parent_game = null'];
+  const genre = ints(q.genre), platform = ints(q.platform), mode = ints(q.mode), theme = ints(q.theme);
+  if (genre.length) where.push(`genres = (${genre.join(',')})`);
+  if (platform.length) where.push(`platforms = (${platform.join(',')})`);
+  if (mode.length) where.push(`game_modes = (${mode.join(',')})`);
+  if (theme.length) where.push(`themes = (${theme.join(',')})`);
+  const from = Number(q.from), to = Number(q.to);
+  if (from > 1950) where.push(`first_release_date >= ${Math.floor(Date.UTC(from, 0, 1) / 1000)}`);
+  if (to > 1950) where.push(`first_release_date < ${Math.floor(Date.UTC(to + 1, 0, 1) / 1000)}`);
+  const sort = String(q.sort ?? 'popular');
+  let order = 'total_rating_count desc';
+  if (sort === 'popular') where.push('total_rating_count > 3');
+  if (sort === 'rating') { where.push('total_rating_count >= 15'); order = 'total_rating desc'; }
+  if (sort === 'recent') { where.push(`first_release_date < ${now}`, 'first_release_date != null'); order = 'first_release_date desc'; }
+  if (sort === 'upcoming') { where.push(`first_release_date > ${now}`); order = 'first_release_date asc'; }
+  const page = Math.max(0, Math.min(20, Number(q.page) || 0));
+  const rows = await igdb('games', `fields name,slug,first_release_date,cover.image_id,platforms.name,total_rating,total_rating_count; where ${where.join(' & ')}; sort ${order}; limit 36; offset ${page * 36};`);
+  return rows.map((g: any) => ({ ...hit(g), rating: g.total_rating ? Math.round(g.total_rating) : undefined, date: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : undefined }));
+}
+
+/* Universo do jogo ---------------------------------------------------------------------- */
+async function universe(id: number) {
+  const base = 'franchises.name,franchises.games,dlcs,expansions,standalone_expansions,remakes,remasters,parent_game,similar_games,ports';
+  let rows: any[];
+  try { rows = await igdb('games', `where id = ${id}; fields ${base},collections.name,collections.games; limit 1;`); }
+  catch { rows = await igdb('games', `where id = ${id}; fields ${base}; limit 1;`); }
+  const g = rows[0];
+  if (!g) return { groups: [] };
+  const franchise = [...new Set([...(g.franchises ?? []).flatMap((f: any) => f.games ?? []), ...(g.collections ?? []).flatMap((c: any) => c.games ?? [])])].filter((x) => x !== id);
+  const plan: [string, number[]][] = [
+    ['Da mesma série', franchise.slice(0, 18)],
+    ['Expansões e DLCs', [...(g.expansions ?? []), ...(g.standalone_expansions ?? []), ...(g.dlcs ?? [])].slice(0, 12)],
+    ['Remakes e remasterizações', [...(g.remakes ?? []), ...(g.remasters ?? [])].slice(0, 8)],
+    ['Jogo original', g.parent_game ? [g.parent_game] : []],
+    ['Parecidos', (g.similar_games ?? []).slice(0, 12)],
+  ];
+  const ids = [...new Set(plan.flatMap(([, list]) => list))];
+  if (!ids.length) return { groups: [], series: g.franchises?.[0]?.name ?? g.collections?.[0]?.name ?? null };
+  const info = await igdb('games', `where id = (${ids.join(',')}); fields name,slug,first_release_date,cover.image_id,platforms.name; limit 100;`);
+  const byId = new Map(info.map((x: any) => [x.id, hit(x)]));
+  const groups = plan.map(([title, list]) => ({ title, games: list.map((x) => byId.get(x)).filter(Boolean) }))
+    .filter((gr) => gr.games.length);
+  // Série em ordem de lançamento.
+  for (const gr of groups) if (gr.title === 'Da mesma série') (gr.games as any[]).sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999));
+  return { groups, series: g.franchises?.[0]?.name ?? g.collections?.[0]?.name ?? null };
 }
 
 export default async function handler(req: Req, res: Res) {
@@ -264,52 +404,38 @@ export default async function handler(req: Req, res: Res) {
     }
 
     if (Number.isFinite(id)) {
-      const [g] = await igdb('games', `where id = ${id}; fields name,slug,summary,storyline,first_release_date,cover.image_id,artworks.*,screenshots.image_id,videos.video_id,videos.name,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.date,release_dates.platform.name; limit 1;`);
-      if (!g) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
-      const dev = (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name;
-      const pub = (g.involved_companies ?? []).find((c: any) => c.publisher)?.company?.name;
-      g.artworks = await withoutLogos(g.artworks);
-      const backdropId = g.artworks?.[0]?.image_id ?? g.screenshots?.[0]?.image_id;
-      // A sinopse curta é melhor que o "storyline", que costuma ser longo e cheio de spoiler.
-      const original: string | null = g.summary || g.storyline || null;
-      // Ficha já traduzida e o texto original não mudou: reaproveita a tradução (economiza a cota gratuita).
-      const prev = await cachedSummary(g.id);
-      const translated = original
-        ? (prev?.summary_original === original && prev.summary ? prev.summary : await toPortuguese(original))
-        : null;
-      // Uma data por plataforma: a primeira em que o jogo saiu nela.
-      const firstByPlatform = new Map<string, number>();
-      for (const r of g.release_dates ?? []) {
-        const name = r.platform?.name; if (!name || !r.date) continue;
-        if (!firstByPlatform.has(name) || r.date < firstByPlatform.get(name)!) firstByPlatform.set(name, r.date);
-      }
-      const [ids] = await assignIds([{ igdb_id: g.id as number, slug: g.slug as string }]);
-      const game = {
-        id: ids.id, igdb_id: g.id, slug: ids.slug, title: g.name, source: 'igdb',
-        cover: image(g.cover?.image_id), backdrop: image(backdropId, 't_1080p') || null,
-        year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : null,
-        developer: dev ?? null, publisher: pub ?? null,
-        platforms: (g.platforms ?? []).map((p: any) => p.name),
-        genres: (g.genres ?? []).map((x: any) => x.name).join(', ') || null,
-        themes: (g.themes ?? []).map((x: any) => x.name),
-        modes: [...(g.game_modes ?? []), ...(g.player_perspectives ?? [])].map((x: any) => x.name),
-        summary: translated ?? original,
-        summary_original: translated ? original : null,
-        summary_source: translated ? 'Texto do IGDB, traduzido automaticamente' : 'Texto do IGDB, em inglês',
-        releases: [...firstByPlatform].sort((a, b) => a[1] - b[1]).slice(0, 8).map(([platform, date]) => ({ platform, date: fmtDate(date) })),
-        screenshots: (g.screenshots ?? []).slice(0, 16).map((s: any) => image(s.image_id, 't_screenshot_big')),
-        artworks: (g.artworks ?? []).slice(0, 8).map((s: any) => image(s.image_id, 't_screenshot_big')),
-        videos: (g.videos ?? []).filter((v: any) => v.video_id).slice(0, 8).map((v: any) => ({ id: v.video_id, name: v.name ?? '' })),
-        updated_at: new Date().toISOString(),
-      };
-      // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada.
-      const [stored = game] = await cacheGames([game]);
-      // Sem tradução (limite gratuito do dia, por exemplo), cacheia por pouco tempo para tentar de novo.
-      res.setHeader('Cache-Control', translated || !original ? 's-maxage=86400' : 's-maxage=600');
-      return res.status(200).json(stored);
+      const r = await fullGame(id);
+      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
+      res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
+      return res.status(200).json(r.game);
     }
 
-    return res.status(400).json({ error: 'Use ?q= para buscar ou ?id= para a ficha' });
+    const slug = typeof req.query.slug === 'string' ? req.query.slug.replace(/[^a-z0-9-]/gi, '').slice(0, 120) : '';
+    if (slug) {
+      const [found] = await igdb('games', `where slug = "${slug}"; fields id; limit 1;`);
+      const r = found ? await fullGame(found.id) : null;
+      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
+      res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
+      return res.status(200).json(r.game);
+    }
+
+    if (req.query.meta) {
+      res.setHeader('Cache-Control', 's-maxage=604800');
+      return res.status(200).json(await meta());
+    }
+
+    if (req.query.explore) {
+      res.setHeader('Cache-Control', 's-maxage=21600');
+      return res.status(200).json(await explore(req.query));
+    }
+
+    const related = typeof req.query.related === 'string' ? Number(req.query.related) : NaN;
+    if (Number.isFinite(related)) {
+      res.setHeader('Cache-Control', 's-maxage=86400');
+      return res.status(200).json(await universe(related));
+    }
+
+    return res.status(400).json({ error: 'Use ?q=, ?id=, ?slug=, ?meta=1, ?explore=1 ou ?related=' });
   } catch (err) {
     return res.status(502).json({ error: err instanceof Error ? err.message : 'Falha ao consultar o IGDB' });
   }

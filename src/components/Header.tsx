@@ -3,6 +3,7 @@ import { Link, usePath } from '../lib/router';
 import { Icon } from './Icon';
 import { actions, useStore, openSession } from '../data/store';
 import { brand } from '../lib/theme';
+import { openSearch } from './CommandPalette';
 
 const PILLARS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', match: '/colecao' },
@@ -41,6 +42,7 @@ export function Header() {
           ))}
         </nav>
         <div className="site-header__tools">
+          <button className="icon-btn" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)" onClick={openSearch}><Icon name="busca" size={20} /></button>
           {session && (
             <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" />Sessão aberta</Link>
           )}

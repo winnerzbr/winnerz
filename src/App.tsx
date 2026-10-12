@@ -8,6 +8,7 @@ import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
 import { PastSheetHost } from './components/PastPlay';
 import { UpdateBanner } from './components/UpdateBanner';
+import { CommandPalette } from './components/CommandPalette';
 import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { Home } from './pages/Home';
@@ -18,6 +19,8 @@ import { JourneyPage } from './pages/Journey';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
 import { GamePage } from './pages/Game';
+import { GamesExplore } from './pages/GamesExplore';
+import { RadarPage } from './pages/Radar';
 import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
@@ -35,6 +38,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/colecao/importar', path)) return <ImportPage />;
   if (match('/colecao/reparar', path)) return <RepairPage />;
   if (match('/jogos', path)) return <GamesIndex />;
+  if (match('/jogos/explorar', path)) return <GamesExplore />;
+  if (match('/jogos/radar', path)) return <RadarPage />;
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
@@ -87,6 +92,7 @@ export function App() {
       )}
       {hasSession && !isSession && <SessionDock />}
       <PastSheetHost />
+      <CommandPalette />
     </>
   );
 }

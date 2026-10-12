@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, navigate } from '../lib/router';
 import { actions, useStore, getState } from '../data/store';
 import type { Game } from '../data/types';
 import { searchGames, loadGame, AddGameDialog, type Hit } from '../components/AddGameDialog';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
+import { SubNav } from '../components/SubNav';
+import { CoverArt } from '../components/CoverArt';
 
 const hitOf = (g: Game): Hit => ({ igdbId: g.igdbId, slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g });
 
@@ -24,12 +26,20 @@ export function GamesIndex() {
     return () => clearTimeout(t);
   }, [q, games]);
 
-  const list = Object.values(games).sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+  // Do seu universo: os jogos em andamento e os que chegaram por último (a coleção inteira fica na Estante).
+  const s = useStore((x) => x);
+  const list = useMemo(() => {
+    const playing = s.journeys.filter((j) => { const h = s.histories.filter((x) => x.journeyId === j.id).sort((a, b) => b.ordinal - a.ordinal)[0]; return h && (h.state === 'ativa' || h.state === 'pausada'); }).map((j) => j.gameId);
+    const recent = [...s.copies].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')).map((c) => c.gameId);
+    const wished = s.wishes.map((w) => w.gameId);
+    return [...new Set([...playing, ...wished, ...recent])].map((id) => games[id]).filter((g): g is Game => !!g).slice(0, 24);
+  }, [s, games]);
 
   return (
     <main className="page pad">
+      <SubNav pillar="jogos" />
       <h1 className="t big">Jogos</h1>
-      <p className="muted lead">Busque qualquer jogo. Fichas e capas vêm do IGDB.</p>
+      <p className="muted lead">Busque qualquer jogo, ou <Link to="/jogos/explorar">explore o catálogo</Link> por gênero, plataforma e época. Fichas e capas vêm do IGDB.</p>
       <label htmlFor="jq" className="sr-only">Buscar jogo</label>
       <input id="jq" className="field games-search" placeholder="Buscar um jogo pelo nome" value={q} onChange={(e) => setQ(e.target.value)} />
 
@@ -44,7 +54,7 @@ export function GamesIndex() {
       )}
 
       <section className="block">
-        <div className="block__head"><h2 className="t">Do seu universo</h2></div>
+        <div className="block__head"><h2 className="t">Do seu universo</h2><Link to="/colecao">A estante inteira</Link></div>
         <div className="cover-grid">
           {list.map((g) => <GameTile key={g.id} hit={hitOf(g)} onAdd={setAdding} say={say} />)}
         </div>
@@ -57,7 +67,7 @@ export function GamesIndex() {
 }
 
 /** Capa com ações rápidas: coleção, favorito e desejo, sem precisar abrir a ficha. */
-function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => void; say: (t: string) => void }) {
+export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => void; say: (t: string) => void }) {
   const s = useStore((x) => x);
   const known = hit.local ?? Object.values(s.games).find((g) => g.slug === hit.slug);
   const id = known?.id;
@@ -95,7 +105,7 @@ function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => void; say:
   return (
     <div className="cover-grid__item">
       <button className="cover-grid__cover" onClick={open} aria-busy={busy === 'open'} aria-label={`Abrir a ficha de ${hit.title}`}>
-        {hit.cover ? <img src={hit.cover} alt="" loading="lazy" /> : <span className="cover-grid__nocover">{hit.title}</span>}
+        <CoverArt game={{ title: hit.title, cover: hit.cover }} platform={hit.platforms[0]} />
         {owned && <span className="cover-grid__badge" title="Na sua coleção"><Icon name="check" size={13} /></span>}
       </button>
       <div className="quick" role="group" aria-label={`Ações rápidas para ${hit.title}`}>

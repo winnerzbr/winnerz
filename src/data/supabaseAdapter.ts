@@ -27,6 +27,9 @@ const SIGNED_FOR = 60 * 60 * 24 * 7; // links das fotos valem 7 dias
 let storageReady = false;
 /** A migração 0004 (Etapa 2) já rodou? Sem ela, as colunas novas não são enviadas. */
 let v4 = false;
+/** A migração 0006 já rodou? */
+let v6 = false;
+export function schemaV6() { return v6; }
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -82,6 +85,7 @@ const gameFromRow = (r: any): Game => ({
   summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
   artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
   source: r.source ?? 'igdb', createdBy: r.created_by ?? undefined,
+  ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined,
 });
 const historyFromRow = (r: any): History => ({
   id: r.id, journeyId: r.journey_id, ordinal: r.ordinal, title: r.title, state: r.state,
@@ -112,6 +116,8 @@ const copyFromRow = (r: any): Copy => ({
 const myGameFromRow = (r: any): MyGame => ({
   gameId: r.game_id, priority: r.priority ?? undefined, estHours: r.est_hours != null ? Number(r.est_hours) : undefined,
   wontPlay: !!r.wont_play, genre: r.genre ?? undefined, note: r.note ?? undefined,
+  notNowUntil: r.not_now_until ?? undefined, notNowReason: r.not_now_reason ?? undefined,
+  steamMinutes: r.steam_minutes ?? undefined,
 });
 export const reviewFromRow = (r: any, me: string | null): Review => {
   const name: string = r.profiles?.display_name ?? 'Jogador';
@@ -157,6 +163,7 @@ const copyToRow = (c: Copy) => ({
 const myGameToRow = (m: MyGame) => ({
   game_id: m.gameId, priority: m.priority ?? null, est_hours: m.estHours ?? null, wont_play: !!m.wontPlay,
   genre: m.genre ?? null, note: m.note ?? null, updated_at: new Date().toISOString(),
+  ...(v6 ? { not_now_until: m.notNowUntil ?? null, not_now_reason: m.notNowReason ?? null, steam_minutes: m.steamMinutes ?? null } : {}),
 });
 const reviewToRow = (r: Review) => ({
   id: r.id, game_id: r.gameId, normalized: r.rating.normalized, original_scale: r.rating.originalScale,
@@ -215,6 +222,7 @@ export const supabaseAdapter: Adapter = {
     loadIncomplete = false;
     const probe = await sb.from('my_games').select('game_id').limit(1);
     v4 = !probe.error;
+    v6 = v4 && !(await sb.from('my_games').select('not_now_until').limit(1)).error;
     const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),
@@ -248,6 +256,8 @@ export const supabaseAdapter: Adapter = {
       profile: { id: user.id, name, initial: name.slice(0, 1).toUpperCase() },
       prefs: { ...base.prefs, ...(p?.prefs ?? {}) },
       schemaV4: v4,
+      schemaV6: v6,
+      isAdmin: !!p?.is_admin,
       loadIncomplete,
       myGames: Object.fromEntries(mine.data.map((m: any) => [m.game_id, myGameFromRow(m)])),
       games: Object.fromEntries((games as any[]).map((g) => [g.id, gameFromRow(g)])),

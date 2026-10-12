@@ -16,7 +16,8 @@ import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } 
 import { SUPABASE_ON } from '../lib/env';
 import { pt, ptJoined, ptList } from '../lib/igdbPt';
 import { MediaGallery, buildMedia } from '../components/MediaGallery';
-import { refreshGame } from '../components/AddGameDialog';
+import { refreshGame, gameBySlug } from '../components/AddGameDialog';
+import { GameUniverse } from '../components/GameUniverse';
 import { Backdrop } from '../components/Backdrop';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
@@ -29,11 +30,18 @@ export function GamePage({ slug }: { slug: string }) {
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    if (game || !SUPABASE_ON) { if (!game) setMissing(true); return; }
-    import('../data/supabaseAdapter').then(async ({ fetchGameBySlug }) => {
-      const g = await fetchGameBySlug(slug);
-      if (g) actions.mergeGames([g]); else setMissing(true);
-    });
+    if (game) return;
+    let alive = true;
+    (async () => {
+      // 1) já está no banco do site; 2) senão, busca no IGDB pelo slug (qualquer jogo abre).
+      let g = SUPABASE_ON ? await import('../data/supabaseAdapter').then(({ fetchGameBySlug }) => fetchGameBySlug(slug)) : null;
+      if (!g) g = await gameBySlug(slug);
+      if (!alive) return;
+      if (!g) { setMissing(true); return; }
+      actions.mergeGames([g]);
+      if (g.slug !== slug) navigate(`/jogos/${g.slug}`, { replace: true });
+    })();
+    return () => { alive = false; };
   }, [game, slug]);
 
   if (!game) return <main className="page pad"><h1 className="t big">{missing ? 'Jogo não encontrado' : 'Carregando…'}</h1>{missing && <Link to="/jogos">Buscar outro jogo</Link>}</main>;
@@ -238,6 +246,7 @@ function GameView({ gameId }: { gameId: string }) {
           )}
         </aside>
       </div>
+      <GameUniverse game={g} />
     </main>
   );
 }

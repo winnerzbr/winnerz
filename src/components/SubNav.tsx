@@ -14,6 +14,8 @@ const SECTIONS: Record<string, { to: string; label: string }[]> = {
   ],
   jogos: [
     { to: '/jogos', label: 'Buscar' },
+    { to: '/jogos/explorar', label: 'Explorar' },
+    { to: '/jogos/radar', label: 'Radar' },
   ],
 };
 

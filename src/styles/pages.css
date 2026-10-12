@@ -96,6 +96,12 @@ a.also__item { color: inherit; }
 .journey__title > a { flex: none; }
 .journey__title p { margin: 0; font-size: 16px; }
 .journey__title h1 { font-size: clamp(52px, 6.4vw, 92px); margin-top: 4px; }
+.journey__side { display: flex; flex-wrap: wrap; gap: 20px 36px; align-items: flex-end; }
+.journey__cta { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.journey__cta .faint { margin: 0; font-size: 12px; }
+.journey__cta .btn, .cinema__play { gap: 8px; }
+.cinema__topactions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-left: auto; }
+.cinema__play { min-height: 44px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
 .journey__stats { display: flex; flex-wrap: wrap; gap: 32px; margin: 0; }
 .journey__stats dt { color: var(--muted); font-size: 13px; }
 .journey__stats dd { margin: 4px 0 0; font-size: 40px; }
@@ -508,3 +514,10 @@ a.session__back { color: #eee5d5; }
   .capsule__k { width: auto; padding-top: 0; }
 }
 @media (max-width: 640px) { .my-review__title { font-size: 34px; } .ghero__title { font-size: 56px; } }
+@media (max-width: 640px) {
+  .journey__side { width: 100%; }
+  .journey__cta { width: 100%; }
+  .journey__cta .btn { width: 100%; justify-content: center; }
+  .cinema__play { min-height: 40px; padding: 0 14px; font-size: 14px; }
+}
+.btn.now .session-pill__dot { background: #071417; }

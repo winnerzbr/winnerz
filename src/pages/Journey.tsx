@@ -90,6 +90,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
   const stickerImage = [...events].reverse().find((e) => e.image)?.image ?? game.backdrop ?? game.cover;
 
+  // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
+  const otherOpen = open && !openHere ? s.games[s.journeys.find((x) => x.id === open.journeyId)?.gameId ?? ''] : null;
+  const playCta: PlayCta = openHere
+    ? { label: 'Voltar para a sessão', now: true, onClick: () => navigate('/sessao') }
+    : otherOpen
+      ? { label: `Sessão aberta em ${otherOpen.title}`, now: true, onClick: () => navigate('/sessao'), hint: 'Finalize aquela sessão para começar uma aqui.' }
+      : { label: current.state === 'concluida' ? 'Jogar de novo' : 'Jogar agora', now: false, onClick: () => { actions.play(game.id); navigate('/sessao'); } };
+
   return (
     <main className="page journey">
       <Link to="/jornada" className="back-link">Todas as Jornadas</Link>
@@ -101,12 +109,20 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             <h1 className="t">{game.title}</h1>
           </div>
         </div>
-        <dl className="journey__stats">
-          <div><dt>Histórias</dt><dd className="t">{histories.length}</dd></div>
-          <div><dt>Sessões</dt><dd className="t">{totalSessions}</dd></div>
-          <div><dt>Momentos</dt><dd className="t">{moments}</dd></div>
-          <div><dt>Para voltar</dt><dd className="t">{waypoints.length}</dd></div>
-        </dl>
+        <div className="journey__side">
+          <dl className="journey__stats">
+            <div><dt>Histórias</dt><dd className="t">{histories.length}</dd></div>
+            <div><dt>Sessões</dt><dd className="t">{totalSessions}</dd></div>
+            <div><dt>Momentos</dt><dd className="t">{moments}</dd></div>
+            <div><dt>Para voltar</dt><dd className="t">{waypoints.length}</dd></div>
+          </dl>
+          <div className="journey__cta">
+            <button className={`btn lg ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick}>
+              {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={15} />}{playCta.label}
+            </button>
+            {playCta.hint && <p className="faint">{playCta.hint}</p>}
+          </div>
+        </div>
       </div>
 
       {current.state !== 'concluida' ? (
@@ -153,7 +169,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {visible.length === 0 ? (
         <p className="card tl-empty">Nada deste tipo nesta Jornada ainda.</p>
       ) : mode === 'cinema' ? (
-        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} />
+        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} />
       ) : (
         <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} />
       )}
@@ -219,7 +235,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 /* Modo cinema                                                       */
 /* ---------------------------------------------------------------- */
 
-function CinemaTimeline({ stops, fallback, full, onExitFull }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void }) {
+type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
+
+function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void; play: PlayCta }) {
   const real = stops.map((x, i) => (x.kind === 'gap' ? -1 : i)).filter((i) => i >= 0);
   const [sel, setSel] = useState(real[real.length - 1]);
   const [swap, setSwap] = useState(0);
@@ -279,7 +297,12 @@ function CinemaTimeline({ stops, fallback, full, onExitFull }: { stops: Stop[]; 
         <div className="cinema__hists">
           {hists.map((h) => <span key={h} className={h === cur.hist ? 'is-on' : ''}>História {h}</span>)}
         </div>
-        {full && <button className="btn cinema__glass" onClick={onExitFull}><Icon name="sairTela" size={16} />Sair da tela cheia</button>}
+        <div className="cinema__topactions">
+          <button className={`btn ${play.now ? 'now' : 'primary'} cinema__play`} onClick={play.onClick} title={play.hint}>
+            {play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{play.label}
+          </button>
+          {full && <button className="btn cinema__glass" onClick={onExitFull}><Icon name="sairTela" size={16} />Sair da tela cheia</button>}
+        </div>
       </div>
 
       <div className="cinema__text" key={swap}>

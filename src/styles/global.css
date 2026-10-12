@@ -163,12 +163,12 @@ a.btn { color: var(--ink); }
 .star svg { display: block; width: 100%; height: 100%; }
 .star path { stroke-width: 1.6; stroke-linejoin: round; }
 .star__off path { fill: var(--star-off); stroke: var(--star-off); }
-.star__on { position: absolute; inset: 0 auto 0 0; overflow: hidden; }
+.star__on { position: absolute; inset: 0 auto 0 0; overflow: hidden; transition: width 0.42s cubic-bezier(0.25, 1.25, 0.45, 1); }
 .star__on path { fill: var(--star-on); stroke: var(--star-on); }
 .star-input { display: inline-flex; align-items: center; padding: 6px 4px; margin: -6px -4px; border-radius: 10px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; line-height: 0; }
 .star-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .star-input__cell { display: inline-block; transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1); }
-.star-input .star__on path { filter: drop-shadow(0 0 6px rgba(217, 176, 128, 0.45)); }
+/* Sem filtro de brilho no caminho da estrela: o Chrome desenhava uma caixa escura atrás dela. */
 .star-input.is-preview:not(.is-dragging) .star__on { opacity: 0.85; }
 .star-input__cell.is-pop { animation: wz-star-pop 0.32s cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes wz-star-pop { 0% { transform: scale(1); } 45% { transform: scale(1.22) rotate(-6deg); } 100% { transform: scale(1); } }

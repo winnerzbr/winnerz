@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointer
 import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 import { ptVideo } from '../lib/igdbPt';
+import { actions, useStore, getState } from '../data/store';
+import { igdbSize } from '../lib/backdrop';
 
 export type MediaItem =
   | { kind: 'video'; id: string; name: string }
@@ -21,7 +23,7 @@ export function buildMedia(videos?: { id: string; name: string }[], screenshots?
 }
 
 /** Bloco da ficha: vídeo em destaque, grade de imagens e a galeria em tela cheia. */
-export function MediaGallery({ title, items }: { title: string; items: MediaItem[] }) {
+export function MediaGallery({ title, items, gameId }: { title: string; items: MediaItem[]; gameId?: string }) {
   const [open, setOpen] = useState<number | null>(null);
   if (items.length === 0) return null;
   const videos = items.filter((i) => i.kind === 'video').length;
@@ -54,7 +56,7 @@ export function MediaGallery({ title, items }: { title: string; items: MediaItem
           ))}
         </div>
       )}
-      {open !== null && createPortal(<Lightbox title={title} items={items} start={open} onClose={() => setOpen(null)} />, document.body)}
+      {open !== null && createPortal(<Lightbox title={title} items={items} start={open} onClose={() => setOpen(null)} gameId={gameId} />, document.body)}
     </section>
   );
 }
@@ -65,7 +67,7 @@ export function PhotoViewer({ container, ...props }: { title: string; items: Med
   return createPortal(<Lightbox {...props} />, container ?? document.body);
 }
 
-function Lightbox({ title, items, start, onClose }: { title: string; items: MediaItem[]; start: number; onClose: () => void }) {
+function Lightbox({ title, items, start, onClose, gameId }: { title: string; items: MediaItem[]; start: number; onClose: () => void; gameId?: string }) {
   const [i, setI] = useState(start);
   const closeBtn = useRef<HTMLButtonElement>(null);
   const strip = useRef<HTMLDivElement>(null);
@@ -73,6 +75,15 @@ function Lightbox({ title, items, start, onClose }: { title: string; items: Medi
   const n = items.length;
   const go = useCallback((d: number) => setI((x) => (x + d + n) % n), [n]);
   const cur = items[i];
+  // Escolher o fundo da página do jogo (só para imagens da ficha, não para fotos da Jornada).
+  const chosen = useStore((st) => (gameId ? st.prefs.backdrops?.[gameId] : undefined));
+  const curBg = cur.kind === 'image' ? igdbSize(cur.src, 't_1080p') : null;
+  const setBg = (url: string | null) => {
+    if (!gameId) return;
+    const all = { ...(getState().prefs.backdrops ?? {}) };
+    if (url) all[gameId] = url; else delete all[gameId];
+    actions.setPrefs({ backdrops: all });
+  };
 
   // Teclado, rolagem da página travada e foco de volta onde estava.
   useEffect(() => {
@@ -110,7 +121,12 @@ function Lightbox({ title, items, start, onClose }: { title: string; items: Medi
           <span className="t">{title}</span>
           <span className="muted">{cur.kind === 'video' ? cur.name : cur.label} · {i + 1} de {n}</span>
         </div>
-        <button ref={closeBtn} className="lightbox__close" onClick={onClose} aria-label="Fechar galeria"><Icon name="fechar" size={22} /></button>
+        <div className="lightbox__tools">
+          {gameId && curBg && (chosen === curBg
+            ? <button className="lightbox__bg is-on" onClick={() => setBg(null)} title="Voltar a escolher o fundo automaticamente"><Icon name="check" size={15} />Fundo da página <span>(desfazer)</span></button>
+            : <button className="lightbox__bg" onClick={() => setBg(curBg)}>Usar como fundo</button>)}
+          <button ref={closeBtn} className="lightbox__close" onClick={onClose} aria-label="Fechar galeria"><Icon name="fechar" size={22} /></button>
+        </div>
       </div>
 
       <div className="lightbox__stage" onPointerDown={onDown} onPointerUp={onUp} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>

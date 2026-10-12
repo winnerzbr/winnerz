@@ -64,3 +64,8 @@ export function originalLabel(r: Rating, viewer: Scale): string | null {
   const v = String(r.originalValue).replace('.', ',');
   return `Nota original: ${v}/${scaleMax(r.originalScale)}`;
 }
+
+/** Matiz da cor da nota, de vermelho (0) a verde (1), passando por laranja e amarelo. */
+export function scoreHue(fraction: number): number {
+  return Math.round(Math.max(0, Math.min(1, fraction)) * 128);
+}

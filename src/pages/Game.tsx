@@ -10,15 +10,18 @@ import { CoverArt } from '../components/CoverArt';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Stars, StarInput } from '../components/Stars';
+import { ScoreSlider, AnimatedScore } from '../components/ScoreInput';
 import { Icon } from '../components/Icon';
 import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
 import { pt, ptJoined, ptList } from '../lib/igdbPt';
 import { MediaGallery, buildMedia } from '../components/MediaGallery';
 import { refreshGame } from '../components/AddGameDialog';
+import { Backdrop } from '../components/Backdrop';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
 const refreshed = new Set<string>();
+const FRESH_KEY = 'wz.fichas.v3';
 
 export function GamePage({ slug }: { slug: string }) {
   const s = useStore((x) => x);
@@ -67,9 +70,13 @@ function GameView({ gameId }: { gameId: string }) {
 
   useEffect(() => {
     if (!g.igdbId || refreshed.has(gameId)) return;
-    const stale = g.videos === undefined || /em inglês/.test(g.summarySource ?? '');
+    // Fichas antigas: sem vídeos, em inglês, ou de antes do filtro de logotipos (atualizadas uma vez por aparelho).
+    let fresh: string[] = [];
+    try { fresh = JSON.parse(localStorage.getItem(FRESH_KEY) || '[]'); } catch { fresh = []; }
+    const stale = g.videos === undefined || /em inglês/.test(g.summarySource ?? '') || !fresh.includes(gameId);
     if (!stale) return;
     refreshed.add(gameId);
+    try { localStorage.setItem(FRESH_KEY, JSON.stringify([...fresh, gameId].slice(-2000))); } catch { /* nada */ }
     refreshGame(g.igdbId).then((fresh) => { if (fresh && fresh.id === gameId) actions.mergeGames([fresh]); });
   }, [gameId, g.igdbId, g.videos, g.summarySource]);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -88,7 +95,7 @@ function GameView({ gameId }: { gameId: string }) {
   return (
     <main>
       <section className="ghero on-photo" aria-labelledby="titulo">
-        {g.backdrop && <img className="ghero__bg kb" src={g.backdrop} alt="" />}
+        <Backdrop game={g} className="ghero__bg kb" />
         <div className="ghero__shade" aria-hidden="true" />
         <div className="ghero__fade" aria-hidden="true" />
         <div className="page ghero__row">
@@ -222,7 +229,7 @@ function GameView({ gameId }: { gameId: string }) {
               </dl>
             </section>
           )}
-          <MediaGallery title={g.title} items={media} />
+          <MediaGallery title={g.title} items={media} gameId={g.id} />
           {g.releases && g.releases.length > 0 && (
             <section aria-labelledby="lanc">
               <h2 id="lanc" className="t aside-title">Lançamentos</h2>
@@ -290,13 +297,13 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
         <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>
         {scale === 'TEN_POINT' ? (
           <div className="editor__ten">
-            <input id="nota" className="range" type="range" min={0} max={10} step={0.5} value={value} style={{ ['--p' as string]: `${value * 10}%` }} onChange={(e) => setValue(Number(e.target.value))} />
-            <span className="t">{String(value.toFixed(1)).replace('.', ',')}<span className="muted">/10</span></span>
+            <ScoreSlider id="nota" value={value} onChange={setValue} />
+            <AnimatedScore value={value} max={10} />
           </div>
         ) : (
           <div className="editor__stars">
             <StarInput value={value} onChange={setValue} labelledBy="nota-label" />
-            <span className="t">{String(value).replace('.', ',')}<span className="muted">/{max}</span></span>
+            <AnimatedScore value={value} max={max} />
           </div>
         )}
         {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre as estrelas ou clique. Dá para dar meia estrela.</p>}

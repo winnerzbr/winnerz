@@ -13,6 +13,7 @@ import { Compass, Icon } from '../components/Icon';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
 import { PhotoViewer } from '../components/MediaGallery';
+import { Backdrop } from '../components/Backdrop';
 
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
 
@@ -43,7 +44,7 @@ export function JourneyIndex() {
       <div className="jgrid">
         {list.map(({ j, g, h, n, last, note }) => (
           <article key={j.id} className="jcard on-photo">
-            <img src={g.backdrop ?? g.cover} alt="" />
+            <Backdrop game={g} />
             <div className="jcard__shade" aria-hidden="true" />
             <Link to={`/jornada/${g.slug}`} className="jcard__link" aria-label={`Abrir a Jornada de ${g.title}`} />
             {canFocus && (
@@ -55,7 +56,7 @@ export function JourneyIndex() {
               <div className="jcard__meta">{h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') ? `${h.state === 'concluida' ? 'Zerou' : h.state === 'dropada' ? 'Largou' : 'Encerrou'}, ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}${n > 1 ? `. ${n} Histórias` : ''}` : `${n > 1 ? `${n} Histórias` : 'Primeira História'}${last ? `, última sessão ${ago(last.startedAt)}` : ''}`}</div>
               <div className="t jcard__title">{g.title}</div>
               {note?.note && <div className="quote jcard__note">“{note.note}”</div>}
-              {h?.progress != null && h.state !== 'concluida' && <div className="bar bar--thin"><span style={{ width: `${h.progress}%` }} /></div>}
+              {!!h?.progress && (h.state === 'ativa' || h.state === 'pausada') && <div className="bar bar--thin"><span style={{ width: `${h.progress}%` }} /></div>}
             </div>
           </article>
         ))}
@@ -115,7 +116,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
 
   return (
     <section className="focus on-photo" aria-labelledby="em-foco">
-      <img className="focus__bg kb" src={g.backdrop ?? g.cover} alt="" />
+      <Backdrop game={g} className="focus__bg kb" />
       <div className="focus__shade" aria-hidden="true" />
       <div className="focus__grid">
         <div className="focus__main">
@@ -184,7 +185,7 @@ function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
   if (!g || !h) return null;
   return (
     <article className="focus-mini on-photo">
-      <img src={g.backdrop ?? g.cover} alt="" />
+      <Backdrop game={g} />
       <div className="focus-mini__shade" aria-hidden="true" />
       <div className="focus-mini__body">
         <span className="focus__badge"><Compass size={12} />Em foco</span>

@@ -8,6 +8,7 @@ import { PhotoViewer } from '../components/MediaGallery';
 import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebration';
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
+import { Backdrop, useBackdrop } from '../components/Backdrop';
 
 /** Reduz a foto antes de enviar: 1080 px no lado maior, JPEG ~150 KB. */
 async function shrink(file: File, max = 1080): Promise<Blob> {
@@ -147,7 +148,7 @@ export function SessionPage() {
   return (
     <main className="session">
       <div className="session__hero on-photo">
-        <img src={g.backdrop ?? g.cover} alt="" />
+        <Backdrop game={g} />
         <div className="session__shade" aria-hidden="true" />
         <div className="session__bar">
           <Link to={`/jornada/${g.slug}`} className="session__back" aria-label="Voltar para a Jornada"><Icon name="voltar" size={20} /></Link>
@@ -234,7 +235,8 @@ function Celebrated({ historyId, onClose }: { historyId: string; onClose: () => 
   const h = s.histories.find((x) => x.id === historyId)!;
   const j = s.journeys.find((x) => x.id === h.journeyId)!;
   const g = s.games[j.gameId];
-  const img = [...s.events].filter((e) => e.journeyId === j.id && e.image).sort((a, b) => b.at.localeCompare(a.at))[0]?.image ?? g.backdrop ?? g.cover;
+  const bg = useBackdrop(g);
+  const img = [...s.events].filter((e) => e.journeyId === j.id && e.image).sort((a, b) => b.at.localeCompare(a.at))[0]?.image ?? bg ?? g.cover;
   void currentHistory;
   return (
     <Celebration title="História concluída" subtitle={`${g.title}. De ${dayMonthYear(h.startedAt)} a hoje.`} onClose={onClose}>

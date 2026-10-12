@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Link } from '../lib/router';
-import { useStore, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney } from '../data/store';
+import { useStore, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
 import { ago, capitalize, dayMonthYear, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
+import { Backdrop } from '../components/Backdrop';
 
 export function Home() {
   const s = useStore((x) => x);
@@ -15,7 +16,8 @@ export function Home() {
   const wps = j ? activeWaypoints(s, j.id) : [];
   const nSessions = h ? sessionsOf(s, h.id).length : 0;
 
-  const others = s.journeys.filter((x) => x.id !== j?.id).map((x) => ({ j: x, g: s.games[x.gameId], h: currentHistory(s, x.id) })).filter((x) => x.h && x.h.state !== 'concluida').slice(0, 3);
+  // Só o que está de fato em andamento (jogando ou pausado); largados, encerrados e zerados ficam de fora.
+  const others = s.journeys.filter((x) => x.id !== j?.id).map((x) => ({ j: x, g: s.games[x.gameId], h: currentHistory(s, x.id) })).filter((x) => x.g && x.h && isOpenState(x.h.state)).slice(0, 3);
 
   const memory = useMemo(() => {
     const yearAgo = Date.now() - 300 * 86_400_000;
@@ -28,7 +30,7 @@ export function Home() {
     <main>
       {j && game && h ? (
         <section className="hero on-photo" aria-labelledby="hero-title">
-          <img className="hero__bg kb" src={game.backdrop ?? game.cover} alt="" />
+          <Backdrop game={game} className="hero__bg kb" />
           <div className="hero__shade" aria-hidden="true" />
           <div className="hero__fade" aria-hidden="true" />
           <div className="page hero__row">
@@ -82,11 +84,11 @@ export function Home() {
             <div className="also">
               {others.map(({ j: x, g, h: hh }) => (
                 <Link key={x.id} to={`/jornada/${g.slug}`} className="also__item">
-                  <span style={{ opacity: x.mood === 'pausado' ? 0.7 : 1 }} className="also__cover"><CoverArt game={g} /></span>
+                  <span style={{ opacity: hh?.state === 'pausada' ? 0.7 : 1 }} className="also__cover"><CoverArt game={g} /></span>
                   <div>
                     <div className="serif also__name">{g.title}</div>
-                    <div className="muted also__meta">{x.mood === 'pausado' ? (x.pausedNote ?? 'Pausado.') : x.mood === 'silencioso' ? 'Jogando no modo silencioso.' : `Jogando${hh?.progress != null ? `, ${hh.progress}%` : ''}.`}</div>
-                    {hh?.progress != null && x.mood !== 'pausado' && <div className="bar bar--thin" aria-hidden="true"><span style={{ width: `${hh.progress}%` }} /></div>}
+                    <div className="muted also__meta">{hh?.state === 'pausada' ? (hh.note ?? x.pausedNote ?? 'Pausado.') : x.mood === 'silencioso' ? 'Jogando no modo silencioso.' : `Jogando${hh?.progress ? `, ${hh.progress}%` : ''}.`}</div>
+                    {!!hh?.progress && hh.state !== 'pausada' && <div className="bar bar--thin" aria-hidden="true"><span style={{ width: `${hh.progress}%` }} /></div>}
                   </div>
                 </Link>
               ))}

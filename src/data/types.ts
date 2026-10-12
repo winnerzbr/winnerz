@@ -161,6 +161,8 @@ export interface Prefs {
   focusJourneyId?: ID | null;
   /** Até três Jornadas em foco; a primeira é a principal. */
   focusIds?: ID[];
+  /** Fundo escolhido pela pessoa para cada jogo ("Usar como fundo" na galeria). */
+  backdrops?: Record<ID, string>;
 }
 
 export interface Profile {

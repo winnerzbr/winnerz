@@ -1,18 +1,18 @@
-import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { starFill } from '../lib/rating';
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { starFill, scoreHue } from '../lib/rating';
+import { Burst } from './ScoreInput';
 
 /** Estrela de cinco pontas com cantos arredondados (o traço da mesma cor arredonda as pontas). */
 const STAR = 'M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z';
 
-function Star({ fill, size }: { fill: number; size: number }) {
+function Star({ fill, size, delay }: { fill: number; size: number; delay?: number }) {
   return (
     <span className="star" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" className="star__off"><path d={STAR} /></svg>
-      {fill > 0 && (
-        <span className="star__on" style={{ width: `${fill * 100}%` }}>
-          <svg viewBox="0 0 24 24" style={{ width: size, height: size }}><path d={STAR} /></svg>
-        </span>
-      )}
+      {/* Sempre presente (mesmo vazia) para o preenchimento poder animar. */}
+      <span className="star__on" style={{ width: `${fill * 100}%`, transitionDelay: delay ? `${delay}ms` : undefined }}>
+        <svg viewBox="0 0 24 24" style={{ width: size, height: size }}><path d={STAR} /></svg>
+      </span>
     </span>
   );
 }
@@ -39,6 +39,11 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
   const [dragging, setDragging] = useState(false);
   const [pop, setPop] = useState(0);
   const shown = hover ?? value;
+  // Subindo, as estrelas enchem da esquerda para a direita; descendo, esvaziam da direita para a esquerda.
+  const prev = useRef(value);
+  const [dir, setDir] = useState<1 | -1>(1);
+  useEffect(() => { if (value !== prev.current) { setDir(value > prev.current ? 1 : -1); prev.current = value; } }, [value]);
+  const live = dragging || hover !== null; // seguindo o dedo/mouse: sem atraso
 
   const fromX = (clientX: number) => {
     const r = box.current!.getBoundingClientRect();
@@ -71,19 +76,20 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
   return (
     <div
       ref={box}
-      className={`star-input${dragging ? ' is-dragging' : ''}${hover !== null ? ' is-preview' : ''}`}
+      className={`star-input${dragging ? ' is-dragging' : ''}${hover !== null ? ' is-preview' : ''}${live ? ' is-live' : ''}${value === 5 && !live ? ' is-max' : ''}`}
       role="slider" tabIndex={0}
       aria-labelledby={labelledBy}
       aria-valuemin={0} aria-valuemax={5} aria-valuenow={value} aria-valuetext={`${fmt(value)} ${value === 1 ? 'estrela' : 'estrelas'}`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={leave} onKeyDown={key}
-      style={{ gap: Math.round(size * 0.14) }}
+      style={{ gap: Math.round(size * 0.14), ['--score-h' as string]: scoreHue(shown / 5) } as CSSProperties}
     >
       {[0, 1, 2, 3, 4].map((i) => {
         const fill = Math.max(0, Math.min(1, shown - i));
         return (
           // A estrela onde a nota parou "pula" quando a nota muda (a chave nova reinicia a animação).
-          <span key={Math.ceil(value) === i + 1 ? `${i}-${pop}` : i} className={`star-input__cell${pop > 0 && Math.ceil(value) === i + 1 ? ' is-pop' : ''}`}>
-            <Star size={size} fill={fill} />
+          <span key={Math.ceil(value) === i + 1 ? `${i}-${pop}` : i} className={`star-input__cell${pop > 0 && Math.ceil(value) === i + 1 ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
+            <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 4 - i) * 55} />
+            {pop > 0 && !dragging && Math.ceil(value) === i + 1 && <Burst seed={pop} left="50%" big={value === 5} />}
           </span>
         );
       })}

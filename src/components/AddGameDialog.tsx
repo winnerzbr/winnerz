@@ -31,7 +31,7 @@ export async function searchGames(q: string, local: Game[]): Promise<{ hits: Hit
 /** Busca de novo a ficha no IGDB (para fichas antigas, sem tradução ou sem vídeos). */
 export async function refreshGame(igdbId: number): Promise<Game | null> {
   try {
-    const r = await fetch(`/api/igdb?id=${igdbId}&v=2`);
+    const r = await fetch(`/api/igdb?id=${igdbId}&v=3`);
     if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
     return gameFromApi(await r.json());
   } catch { return null; }
@@ -40,7 +40,7 @@ export async function refreshGame(igdbId: number): Promise<Game | null> {
 export async function loadGame(hit: Hit): Promise<Game | null> {
   if (hit.local) return hit.local;
   if (!hit.igdbId) return null;
-  const r = await fetch(`/api/igdb?id=${hit.igdbId}&v=2`);
+  const r = await fetch(`/api/igdb?id=${hit.igdbId}&v=3`);
   if (!r.ok) return null;
   return gameFromApi(await r.json());
 }

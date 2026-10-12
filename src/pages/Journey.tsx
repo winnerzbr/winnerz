@@ -13,6 +13,7 @@ import { EventEditSheet } from '../components/EventEditSheet';
 import { ActionToast } from '../components/Toast';
 import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
+import { useBackdrop } from '../components/Backdrop';
 
 type StopKind = EventKind | 'agora';
 interface Stop { id: string; kind: StopKind | 'gap'; hist: number; date: string; title: string; text?: string; quote?: string; image?: string; eventId?: string; resolved?: boolean }
@@ -54,6 +55,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const histories = historiesOf(s, journeyId);
   const current = currentHistory(s, journeyId)!;
   const events = eventsOf(s, journeyId);
+  const bg = useBackdrop(game);
   const open = openSession(s);
   const openHere = open && open.journeyId === journeyId ? open : null;
   const note = lastNote(s, journeyId);
@@ -90,11 +92,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     }
     if (openHere) {
       const n = sessionsOf(s, openHere.historyId).length;
-      const lastImg = [...events].reverse().find((e) => e.image)?.image ?? game.backdrop;
+      const lastImg = [...events].reverse().find((e) => e.image)?.image ?? bg;
       out.push({ id: 'agora', kind: 'agora', hist: hIndex[openHere.historyId] ?? current.ordinal, date: `hoje, ${hourMin(openHere.startedAt)}`, title: `Sessão ${n} aberta`, text: 'O caminho continua. Registre o que quiser, quando quiser.', image: lastImg });
     }
     return out;
-  }, [events, histories, openHere, s, game.backdrop, current.ordinal]);
+  }, [events, histories, openHere, s, bg, current.ordinal]);
 
   const groups = FILTERS.find((f) => f[0] === filter)![2];
   const visible = stops.filter((x) => (groups ? x.kind !== 'gap' && groups.includes(x.kind as StopKind) : true));
@@ -107,7 +109,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     setCelebrating({ ...h });
   };
 
-  const stickerImage = [...events].reverse().find((e) => e.image)?.image ?? game.backdrop ?? game.cover;
+  const stickerImage = [...events].reverse().find((e) => e.image)?.image ?? bg ?? game.cover;
 
   // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
   const ps = playStateFor(s, game.id);
@@ -213,7 +215,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {visible.length === 0 ? (
         <p className="card tl-empty">Nada deste tipo nesta Jornada ainda.</p>
       ) : mode === 'cinema' ? (
-        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} onEdit={setEditEvent} />
+        <CinemaTimeline stops={visible} fallback={bg ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} onEdit={setEditEvent} />
       ) : (
         <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} title={game.title} onEdit={setEditEvent} />
       )}

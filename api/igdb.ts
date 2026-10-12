@@ -153,13 +153,41 @@ async function cacheGames<T extends Record<string, unknown>>(input: T[]): Promis
   return out;
 }
 
+async function cachedSummary(igdbId: number): Promise<{ summary?: string; summary_original?: string } | null> {
+  const c = db();
+  if (!c) return null;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/games?select=summary,summary_original&igdb_id=eq.${igdbId}`, { headers: c.headers });
+    return r.ok ? ((await r.json()) as any[])[0] ?? null : null;
+  } catch { return null; }
+}
+
 /** Dá ao jogo o id do WinnerZ: o que já existe, ou "igdb-<número>". */
 async function assignIds<T extends { igdb_id: number; slug: string }>(rows: T[]): Promise<(T & { id: string })[]> {
   const known = await knownIds(rows.map((r) => r.igdb_id));
   return rows.map((r) => { const k = known.get(r.igdb_id); return { ...r, id: k?.id ?? `igdb-${r.igdb_id}`, slug: k?.slug ?? r.slug }; });
 }
 
-const LIGHT_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name,genres.name,artworks.image_id,screenshots.image_id,involved_companies.company.name,involved_companies.developer';
+/* Artes sem logotipos ------------------------------------------------------- */
+// O IGDB marca o tipo de cada arte (arte principal, fundo, logotipo...). Logotipo não serve de fundo nem de galeria.
+let artTypes: Map<number, string> | null = null;
+async function artworkTypes() {
+  if (artTypes) return artTypes;
+  try {
+    const rows = await igdb('artwork_types', 'fields id,name,slug; limit 100;');
+    artTypes = new Map(rows.map((r: any) => [r.id as number, `${r.slug ?? ''} ${r.name ?? ''}`.toLowerCase()]));
+  } catch { artTypes = new Map(); } // tipos indisponíveis: fica com todas as artes
+  return artTypes;
+}
+async function withoutLogos(arts: any[] = []) {
+  const types = await artworkTypes();
+  return arts.filter((a) => {
+    const t = a.artwork_type != null ? types.get(Number(a.artwork_type)) ?? '' : '';
+    return !(/logo/.test(t) && !/key.?art|arte/.test(t));
+  });
+}
+
+const LIGHT_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name,genres.name,artworks.*,screenshots.image_id,involved_companies.company.name,involved_companies.developer';
 
 const lightRow = (g: any) => ({
   igdb_id: g.id as number, slug: g.slug as string, title: g.name as string,
@@ -211,6 +239,7 @@ async function cacheMany(ids: number[]) {
   const clean = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
   if (!clean.length) return [];
   const rows = await igdb('games', `where id = (${clean.join(',')}); fields ${LIGHT_FIELDS}; limit 100;`);
+  for (const r of rows) r.artworks = await withoutLogos(r.artworks);
   const withIds = await assignIds(rows.map(lightRow));
   // Não apaga sinopse, vídeos etc. de fichas que já estavam completas: só envia os campos leves.
   return cacheGames(withIds);
@@ -235,14 +264,19 @@ export default async function handler(req: Req, res: Res) {
     }
 
     if (Number.isFinite(id)) {
-      const [g] = await igdb('games', `where id = ${id}; fields name,slug,summary,storyline,first_release_date,cover.image_id,artworks.image_id,screenshots.image_id,videos.video_id,videos.name,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.date,release_dates.platform.name; limit 1;`);
+      const [g] = await igdb('games', `where id = ${id}; fields name,slug,summary,storyline,first_release_date,cover.image_id,artworks.*,screenshots.image_id,videos.video_id,videos.name,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.date,release_dates.platform.name; limit 1;`);
       if (!g) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
       const dev = (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name;
       const pub = (g.involved_companies ?? []).find((c: any) => c.publisher)?.company?.name;
+      g.artworks = await withoutLogos(g.artworks);
       const backdropId = g.artworks?.[0]?.image_id ?? g.screenshots?.[0]?.image_id;
       // A sinopse curta é melhor que o "storyline", que costuma ser longo e cheio de spoiler.
       const original: string | null = g.summary || g.storyline || null;
-      const translated = original ? await toPortuguese(original) : null;
+      // Ficha já traduzida e o texto original não mudou: reaproveita a tradução (economiza a cota gratuita).
+      const prev = await cachedSummary(g.id);
+      const translated = original
+        ? (prev?.summary_original === original && prev.summary ? prev.summary : await toPortuguese(original))
+        : null;
       // Uma data por plataforma: a primeira em que o jogo saiu nela.
       const firstByPlatform = new Map<string, number>();
       for (const r of g.release_dates ?? []) {

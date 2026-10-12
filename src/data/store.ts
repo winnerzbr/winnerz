@@ -157,6 +157,26 @@ export function lastSession(s: State, journeyId: ID) {
   const done = s.sessions.filter((x) => x.journeyId === journeyId && x.endedAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   return done[0] ?? null;
 }
+/**
+ * Jornada em foco: a escolhida pela pessoa (se ainda estiver em andamento);
+ * senão a da sessão aberta; senão a da sessão mais recente.
+ */
+export function focusJourney(s: State): { journey: Journey; chosen: boolean } | null {
+  const chosenId = s.prefs.focusJourneyId ?? s.focusJourneyId;
+  const chosen = s.journeys.find((j) => j.id === chosenId);
+  if (chosen) {
+    const h = currentHistory(s, chosen.id);
+    if (h && h.state !== 'concluida') return { journey: chosen, chosen: true };
+  }
+  const open = openSession(s);
+  const byOpen = open && s.journeys.find((j) => j.id === open.journeyId);
+  if (byOpen) return { journey: byOpen, chosen: false };
+  const recent = [...s.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .map((x) => s.journeys.find((j) => j.id === x.journeyId))
+    .find((j) => j && currentHistory(s, j.id)?.state !== 'concluida');
+  return recent ? { journey: recent, chosen: false } : null;
+}
+
 export function eventsOf(s: State, journeyId: ID) {
   return s.events.filter((e) => e.journeyId === journeyId).sort((a, b) => a.at.localeCompare(b.at));
 }
@@ -204,17 +224,19 @@ export const actions = {
     return session;
   },
 
-  addMoment(sessionId: ID, data: { id?: ID; title?: string; quote?: string; image?: string; imagePath?: string; kind?: EventKind }): ID | null {
+  addMoment(sessionId: ID, data: { id?: ID; title?: string; text?: string; quote?: string; image?: string; imagePath?: string; kind?: EventKind }): ID | null {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return null;
     const kind = data.kind ?? 'momento';
     const id = data.id ?? uid();
     dispatch({
       type: 'event.add',
-      event: { id, journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title ?? (kind === 'ponto' ? 'Quero voltar aqui' : 'Momento guardado'), quote: data.quote, image: data.image, imagePath: data.imagePath },
+      event: { id, journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title ?? (kind === 'ponto' ? 'Quero voltar aqui' : 'Momento guardado'), text: data.text, quote: data.quote, image: data.image, imagePath: data.imagePath },
     });
     return id;
   },
+
+  setFocus(journeyId: ID | null) { dispatch({ type: 'prefs', prefs: { focusJourneyId: journeyId } }); },
 
   updateEventPhoto(eventId: ID, patch: { image?: string; imagePath?: string }) { dispatch({ type: 'event.update', eventId, patch }); },
 

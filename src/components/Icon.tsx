@@ -24,7 +24,10 @@ const paths: Record<string, ReactElement> = {
   sairTela: <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />,
   escudo: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   cadeado: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
+  mensagem: <><path d="M4 5.5h16v10H9l-5 4z" strokeLinejoin="round" /><path d="M8 9.5h8M8 12.5h5" /></>,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
+  desejo: <path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-4-6 4V4.5a1 1 0 0 1 1-1z" strokeLinejoin="round" />,
+  estante: <><path d="M4 4v16M20 4v16M4 12h16M4 20h16" /><path d="M7 12V7M10 12V8M15 20v-5M17 20v-6" /></>,
 };
 
 export function Icon({ name, size = 18, ...rest }: { name: keyof typeof paths | string; size?: number } & SVGProps<SVGSVGElement>) {

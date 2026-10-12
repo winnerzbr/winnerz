@@ -33,7 +33,7 @@ export function demoState(): State {
     ready: true,
     mode: 'demo',
     profile: { id: 'demo', name: 'Heverton', initial: 'H' },
-    prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas' },
+    prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas', focusJourneyId: 'j-tlou2' },
     games: Object.fromEntries(games.map((g) => [g.id, g])),
     copies: [
       { id: 'c1', gameId: 'astro', platform: 'PlayStation 5', kind: 'digital', items: 'Digital', origin: 'Comprei no lançamento, 2024', note: 'Comprei no dia do aniversário do PlayStation. Foi presente para mim mesmo.' },

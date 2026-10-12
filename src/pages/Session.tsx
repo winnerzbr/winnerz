@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
 import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid } from '../data/store';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
+import { PhotoViewer } from '../components/MediaGallery';
 import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebration';
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
 
@@ -22,6 +23,43 @@ async function shrink(file: File, max = 1080): Promise<Blob> {
 
 const toDataUrl = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
 
+type Draft = { kind: 'momento' | 'ponto'; blob?: Blob; preview?: string; title: string; note: string };
+
+/** Folha que sobe depois da foto (ou sem foto): tipo, nome e nota, tudo opcional. */
+function MomentSheet({ draft, onChange, onPhoto, onCancel, onSave }: { draft: Draft; onChange: (d: Draft) => void; onPhoto: () => void; onCancel: () => void; onSave: () => void }) {
+  const ponto = draft.kind === 'ponto';
+  useEffect(() => {
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onCancel(); };
+    document.addEventListener('keydown', esc);
+    return () => document.removeEventListener('keydown', esc);
+  }, [onCancel]);
+  return (
+    <div className="sheet-back" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+      <form className="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" onSubmit={(e) => { e.preventDefault(); onSave(); }}>
+        <div className="sheet__grip" aria-hidden="true" />
+        <h2 id="sheet-title" className="t sheet__title">{ponto ? 'Quero voltar aqui' : 'Guardar momento'}</h2>
+        <div className="seg sheet__kind" role="group" aria-label="Tipo">
+          <button type="button" aria-pressed={!ponto} onClick={() => onChange({ ...draft, kind: 'momento' })}><Icon name="camera" size={15} />Momento</button>
+          <button type="button" aria-pressed={ponto} onClick={() => onChange({ ...draft, kind: 'ponto' })}><Icon name="pin" size={15} />Quero voltar aqui</button>
+        </div>
+        {draft.preview ? (
+          <div className="sheet__photo"><img src={draft.preview} alt="Sua foto" /><button type="button" className="btn quiet sm" onClick={onPhoto}>Trocar foto</button></div>
+        ) : (
+          <button type="button" className="sheet__addphoto" onClick={onPhoto}><Icon name="camera" size={20} />Adicionar uma foto (opcional)</button>
+        )}
+        <label htmlFor="m-title" className="finish__label">{ponto ? 'Que lugar é esse?' : 'Dê um nome'} <span className="faint">(opcional)</span></label>
+        <input id="m-title" className="field" value={draft.title} onChange={(e) => onChange({ ...draft, title: e.target.value })} placeholder={ponto ? 'Ex.: Quarto trancado, segundo andar' : 'Ex.: A porta iluminada'} maxLength={80} />
+        <label htmlFor="m-note" className="finish__label">{ponto ? 'Por que voltar?' : 'Nota'} <span className="faint">(opcional)</span></label>
+        <textarea id="m-note" className="field" rows={3} value={draft.note} onChange={(e) => onChange({ ...draft, note: e.target.value })} placeholder={ponto ? 'Ex.: preciso da chave que fica no cofre' : 'O que você quer lembrar deste instante?'} />
+        <div className="sheet__actions">
+          <button type="submit" className="btn primary lg">{ponto ? 'Criar ponto para voltar' : 'Guardar momento'}</button>
+          <button type="button" className="btn quiet" onClick={onCancel}>Cancelar</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 const FEELINGS = ['Adorei', 'Quero continuar', 'Foi suficiente por hoje', 'Não encaixou'];
 
 export function SessionPage() {
@@ -31,6 +69,13 @@ export function SessionPage() {
   const [finishing, setFinishing] = useState(path.includes('finalizar=1'));
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
   const [celebrate, setCelebrate] = useState<{ historyId: string } | null>(null);
+  // Vindo da barra da sessão ("Momento" / "Quero voltar aqui"): abre a folha direto.
+  const [draft, setDraft] = useState<Draft | null>(() => {
+    const acao = new URLSearchParams(location.search).get('acao');
+    return acao === 'momento' || acao === 'ponto' ? { kind: acao, title: '', note: '' } : null;
+  });
+  useEffect(() => { if (location.search.includes('acao=')) navigate('/sessao', { replace: true }); }, []);
+  const [viewer, setViewer] = useState<number | null>(null);
   const photoKind = useRef<'momento' | 'ponto'>('momento');
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -60,29 +105,43 @@ export function SessionPage() {
   const here = s.events.filter((e) => e.sessionId === session.id);
   const say = (text: string) => setToast({ id: Date.now(), text });
 
+  // A foto vem primeiro (câmera abre na hora); a nota é opcional, numa folha logo em seguida.
   const onFile = async (f?: File) => {
     if (!f) return;
-    const kind = photoKind.current;
-    const done = kind === 'ponto' ? 'Ponto para voltar criado. Ele aparece na retomada.' : 'Momento guardado na sua linha do tempo.';
     let blob: Blob;
     try { blob = await shrink(f); } catch { say('Não consegui abrir essa imagem. Tente outra foto.'); return; }
+    setDraft((d) => {
+      if (d?.preview) URL.revokeObjectURL(d.preview);
+      return { kind: d?.kind ?? photoKind.current, blob, preview: URL.createObjectURL(blob), title: d?.title ?? '', note: d?.note ?? '' };
+    });
+  };
+  const pickPhoto = (kind: 'momento' | 'ponto') => { photoKind.current = kind; fileInput.current?.click(); };
+
+  const saveDraft = async (d: Draft) => {
+    setDraft(null);
+    const kind = d.kind;
+    const title = d.title.trim() || undefined;
+    const note = d.note.trim() || undefined;
+    const fields = kind === 'ponto' ? { title, text: note } : { title, quote: note };
+    const done = kind === 'ponto' ? 'Ponto para voltar criado. Ele aparece na retomada.' : 'Momento guardado na sua linha do tempo.';
+    if (!d.blob) { actions.addMoment(session.id, { ...fields, kind }); say(done); return; }
     const sb = SUPABASE_ON && s.profile ? await import('../data/supabaseAdapter') : null;
     if (sb?.photoStorageReady()) {
       // A foto aparece na hora; o envio para o Storage acontece em segundo plano.
       const id = uid();
       const path = sb.photoPath(s.profile!.id, id);
-      actions.addMoment(session.id, { id, kind, image: URL.createObjectURL(blob), imagePath: path });
+      actions.addMoment(session.id, { id, ...fields, kind, image: d.preview, imagePath: path });
       say(done);
-      sb.uploadPhoto(path, blob).catch(() => {
+      sb.uploadPhoto(path, d.blob).catch(() => {
         actions.updateEventPhoto(id, { imagePath: '', image: undefined });
         say('A foto não subiu (sem conexão?). O momento ficou guardado sem ela.');
       });
     } else {
-      actions.addMoment(session.id, { image: await toDataUrl(blob), kind });
+      actions.addMoment(session.id, { ...fields, kind, image: await toDataUrl(d.blob) });
       say(done);
     }
   };
-  const pickPhoto = (kind: 'momento' | 'ponto') => { photoKind.current = kind; fileInput.current?.click(); };
+  const herePhotos = here.filter((e) => e.image);
 
   return (
     <main className="session">
@@ -108,14 +167,16 @@ export function SessionPage() {
           <div className="tiles">
             <button className="tile" onClick={() => pickPhoto('momento')}><Icon name="camera" size={24} />Guardar momento</button>
             <button className="tile" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={24} />Quero voltar aqui</button>
-            <button className="tile" onClick={() => { actions.addMoment(session.id, { kind: 'momento' }); say('Marcado. Dá para completar depois.'); }}><Icon name="mais" size={24} />Marcar sem foto</button>
-            <button className="tile" onClick={() => setFinishing(true)}><Icon name="caneta" size={24} />Recado para a próxima vez</button>
+            <button className="tile" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={24} />Anotar sem foto</button>
+            <button className="tile" onClick={() => setFinishing(true)}><Icon name="mensagem" size={24} />Recado para a próxima vez</button>
           </div>
           {here.length > 0 && (
             <div>
               <div className="muted session__k">Nesta sessão</div>
               <div className="session__thumbs">
-                {here.map((e) => e.image ? <img key={e.id} src={e.image} alt={e.title} /> : <span key={e.id} className="session__mark">{e.kind === 'ponto' ? <Icon name="pin" /> : <Icon name="camera" />}</span>)}
+                {here.map((e) => e.image
+                  ? <button key={e.id} className="session__thumb" onClick={() => setViewer(herePhotos.indexOf(e))} aria-label={`Ver foto: ${e.title}`}><img src={e.image} alt="" />{e.kind === 'ponto' && <span className="session__thumb-pin"><Icon name="pin" size={12} /></span>}</button>
+                  : <span key={e.id} className="session__mark" title={[e.title, e.quote ?? e.text].filter(Boolean).join(': ')}>{e.kind === 'ponto' ? <Icon name="pin" /> : <Icon name="caneta" />}<span>{e.title}</span></span>)}
               </div>
             </div>
           )}
@@ -132,6 +193,8 @@ export function SessionPage() {
           onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
         />
       )}
+      {draft && <MomentSheet draft={draft} onChange={setDraft} onPhoto={() => fileInput.current?.click()} onCancel={() => { if (draft.preview) URL.revokeObjectURL(draft.preview); setDraft(null); }} onSave={() => saveDraft(draft)} />}
+      {viewer !== null && herePhotos.length > 0 && <PhotoViewer title={g.title} items={herePhotos.map((e) => ({ kind: 'image' as const, src: e.image!, label: e.title }))} start={Math.max(0, viewer)} onClose={() => setViewer(null)} />}
       {toast && <Toast key={toast.id} text={toast.text} />}
     </main>
   );

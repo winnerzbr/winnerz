@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession } from '../data/store';
+import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourney } from '../data/store';
+import { playStateFor } from '../components/PlayButton';
+import { PhotoViewer } from '../components/MediaGallery';
 import type { TimelineEvent, EventKind, History } from '../data/types';
 import { Icon, Compass } from '../components/Icon';
 import { Celebration, SealedLetter, PersonalSticker } from '../components/Celebration';
@@ -54,6 +56,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [full, setFull] = useState(false);
   const [celebrating, setCelebrating] = useState<History | null>(null);
   const [saved, setSaved] = useState(0);
+  const [wpViewer, setWpViewer] = useState<number | null>(null);
   const [progress, setProgress] = useState(current.progress ?? 0);
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
 
@@ -91,12 +94,10 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const stickerImage = [...events].reverse().find((e) => e.image)?.image ?? game.backdrop ?? game.cover;
 
   // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
-  const otherOpen = open && !openHere ? s.games[s.journeys.find((x) => x.id === open.journeyId)?.gameId ?? ''] : null;
-  const playCta: PlayCta = openHere
-    ? { label: 'Voltar para a sessão', now: true, onClick: () => navigate('/sessao') }
-    : otherOpen
-      ? { label: `Sessão aberta em ${otherOpen.title}`, now: true, onClick: () => navigate('/sessao'), hint: 'Finalize aquela sessão para começar uma aqui.' }
-      : { label: current.state === 'concluida' ? 'Jogar de novo' : 'Jogar agora', now: false, onClick: () => { actions.play(game.id); navigate('/sessao'); } };
+  const ps = playStateFor(s, game.id);
+  const playCta: PlayCta = { label: ps.label, now: ps.now, onClick: ps.go, hint: ps.hint };
+  const focus = focusJourney(s);
+  const isFocus = focus?.journey.id === journeyId;
 
   return (
     <main className="page journey">
@@ -121,6 +122,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={15} />}{playCta.label}
             </button>
             {playCta.hint && <p className="faint">{playCta.hint}</p>}
+            {current.state !== 'concluida' && (
+              <button className="btn quiet sm focus-toggle" aria-pressed={isFocus && !!focus?.chosen} onClick={() => actions.setFocus(isFocus && focus?.chosen ? null : journeyId)}>
+                <Compass size={14} />{isFocus && focus?.chosen ? 'Em foco' : 'Pôr em foco'}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -169,9 +175,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {visible.length === 0 ? (
         <p className="card tl-empty">Nada deste tipo nesta Jornada ainda.</p>
       ) : mode === 'cinema' ? (
-        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} />
+        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} />
       ) : (
-        <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} />
+        <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} title={game.title} />
       )}
 
       <div className="journey__below">
@@ -201,7 +207,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <ul>
             {waypoints.map((w) => (
               <li key={w.id}>
-                {w.image ? <img src={w.image} alt="" /> : <span className="waypoints__noimg"><Icon name="pin" /></span>}
+                {w.image ? <button className="waypoints__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="waypoints__noimg"><Icon name="pin" /></span>}
                 <div><div className="waypoints__title">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' ')}</div></div>
                 <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
               </li>
@@ -227,6 +233,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         </Celebration>
       )}
+      {wpViewer !== null && (
+        <PhotoViewer title={game.title} items={waypoints.filter((x) => x.image).map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, wpViewer)} onClose={() => setWpViewer(null)} />
+      )}
     </main>
   );
 }
@@ -237,7 +246,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
 type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
 
-function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void; play: PlayCta }) {
+function CinemaTimeline({ stops, fallback, full, onExitFull, play, title }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void; play: PlayCta; title: string }) {
+  const [viewer, setViewer] = useState<number | null>(null);
   const real = stops.map((x, i) => (x.kind === 'gap' ? -1 : i)).filter((i) => i >= 0);
   const [sel, setSel] = useState(real[real.length - 1]);
   const [swap, setSwap] = useState(0);
@@ -274,16 +284,26 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: St
     d += ` C${(a.x * 10 + dx).toFixed(1)} ${a.y.toFixed(1)},${(b.x * 10 - dx).toFixed(1)} ${b.y.toFixed(1)},${(b.x * 10).toFixed(1)} ${b.y.toFixed(1)}`;
   }
   const frac = n === 1 ? 1 : (pts[safeSel].x - pts[0].x) / (pts[n - 1].x - pts[0].x);
-  // Sem foto no acontecimento escolhido: usa a última foto antes dele, ou a arte do jogo.
-  const bg = stops.slice(0, safeSel + 1).reverse().find((x) => x.image)?.image ?? fallback;
-  const images = [...new Set([fallback, ...stops.map((x) => x.image).filter(Boolean) as string[]])];
+  // O fundo é sempre a arte do jogo; a foto do acontecimento aparece no detalhe, como uma foto revelada.
+  const photos = stops.filter((x) => x.image && x.kind !== 'agora');
+  const curPhoto = cur.kind !== 'agora' && cur.image ? cur : null;
+  // A mesma foto aparece flutuando ao lado do texto (telas largas) ou dentro do texto (celular).
+  const photoCard = (variant: string) => curPhoto && (
+    <button key={`p-${curPhoto.id}-${swap}-${variant}`} className={`cinema__photo ${variant}${curPhoto.kind === 'ponto' ? ' is-ponto' : ''}`} onClick={() => setViewer(photos.indexOf(curPhoto))} aria-label={`Ver foto em tamanho grande: ${curPhoto.title}`}>
+      <span className="cinema__photo-paper">
+        <img src={curPhoto.image} alt="" />
+        <span className="cinema__photo-cap">
+          <span className="serif">{curPhoto.kind === 'ponto' ? 'Quero voltar aqui' : curPhoto.title}</span>
+          <span>{curPhoto.date}<Icon name="telaCheia" size={13} /></span>
+        </span>
+      </span>
+    </button>
+  );
   const hists = [...new Set(stops.filter((x) => x.hist > 0).map((x) => x.hist))];
 
   return (
     <section ref={stage} className={`cinema on-photo${full ? ' is-full' : ''}`} aria-label="Linha do tempo, modo cinema">
-      {images.map((src) => (
-        <img key={src} className={src === bg ? 'cinema__bg kb' : 'cinema__bg'} src={src} alt="" loading={src === bg ? 'eager' : 'lazy'} style={{ opacity: src === bg ? 1 : 0 }} />
-      ))}
+      <img className="cinema__bg kb" src={fallback} alt="" />
       <div className="cinema__shade" aria-hidden="true" />
       <div className="cinema__floor" aria-hidden="true" />
       <svg className="cinema__topo" aria-hidden="true" viewBox="0 0 1200 600" preserveAspectRatio="none">
@@ -310,6 +330,7 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: St
         <h2 className="t">{cur.title}</h2>
         {cur.quote && <blockquote className="quote">“{cur.quote}”</blockquote>}
         {cur.text && <p>{cur.text}</p>}
+        {curPhoto && photoCard('cinema__photo--inline')}
         <div className="cinema__actions">
           <button className="btn cinema__glass cinema__arrow" aria-label="Acontecimento anterior" onClick={() => step(-1)}><Icon name="voltar" /></button>
           <button className="btn cinema__glass cinema__arrow" aria-label="Próximo acontecimento" onClick={() => step(1)}><Icon name="avancar" /></button>
@@ -319,6 +340,8 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: St
           {cur.kind === 'agora' && <Link className="btn now" to="/sessao">Abrir a sessão</Link>}
         </div>
       </div>
+
+      {curPhoto && photoCard('cinema__photo--float')}
 
       <div className="cinema__route">
         <svg aria-hidden="true" viewBox="0 0 1000 160" preserveAspectRatio="none">
@@ -334,6 +357,9 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: St
           </button>
         ))}
       </div>
+      {viewer !== null && photos.length > 0 && (
+        <PhotoViewer title={title} items={photos.map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, viewer)} onClose={() => setViewer(null)} container={full ? stage.current : null} />
+      )}
     </section>
   );
 }
@@ -342,7 +368,9 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play }: { stops: St
 /* Modo simples                                                      */
 /* ---------------------------------------------------------------- */
 
-function SimpleTimeline({ stops, histories, full, onExitFull }: { stops: Stop[]; histories: History[]; full: boolean; onExitFull: () => void }) {
+function SimpleTimeline({ stops, histories, full, onExitFull, title }: { stops: Stop[]; histories: History[]; full: boolean; onExitFull: () => void; title: string }) {
+  const [viewer, setViewer] = useState<number | null>(null);
+  const photos = stops.filter((x) => x.image && x.kind !== 'agora');
   useEffect(() => {
     if (!full) return;
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onExitFull(); };
@@ -374,12 +402,15 @@ function SimpleTimeline({ stops, histories, full, onExitFull }: { stops: Stop[];
                   {x.quote && <div className="quote simple__quote">“{x.quote}”</div>}
                   {x.text && <div className="muted simple__text">{x.text}</div>}
                 </div>
-                <div>{x.image && <img src={x.image} alt="" />}</div>
+                <div>{x.image && x.kind !== 'agora' && <button className="simple__img" onClick={() => setViewer(photos.indexOf(x))} aria-label={`Ver foto: ${x.title}`}><img src={x.image} alt="" /></button>}</div>
               </li>
             ),
           ];
         })}
       </ol>
+      {viewer !== null && photos.length > 0 && (
+        <PhotoViewer title={title} items={photos.map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, viewer)} onClose={() => setViewer(null)} />
+      )}
     </section>
   );
 }

@@ -3,7 +3,7 @@ import { actions, useStore } from '../data/store';
 import type { CopyKind, Game } from '../data/types';
 import { Icon } from './Icon';
 
-interface Hit { igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game }
+export interface Hit { igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game }
 
 /** Converte a linha do cache (formato do banco) em Game. */
 export function gameFromApi(r: any): Game {
@@ -45,13 +45,13 @@ export async function loadGame(hit: Hit): Promise<Game | null> {
   return gameFromApi(await r.json());
 }
 
-export function AddGameDialog({ onClose }: { onClose: () => void }) {
+export function AddGameDialog({ onClose, initial }: { onClose: () => void; initial?: Hit }) {
   const games = useStore((s) => s.games);
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
   const [source, setSource] = useState<'igdb' | 'local' | null>(null);
-  const [pick, setPick] = useState<Hit | null>(null);
-  const [platform, setPlatform] = useState('');
+  const [pick, setPick] = useState<Hit | null>(initial ?? null);
+  const [platform, setPlatform] = useState(initial?.platforms[0] ?? '');
   const [kind, setKind] = useState<CopyKind>('fisico');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -81,7 +81,7 @@ export function AddGameDialog({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="add-title">
-        <div className="modal__head"><h2 id="add-title" className="t" style={{ fontSize: 40 }}>Adicionar à estante</h2><button className="icon-btn" aria-label="Fechar" onClick={onClose}><Icon name="fechar" /></button></div>
+        <div className="modal__head"><h2 id="add-title" className="t" style={{ fontSize: 40 }}>{initial ? 'Adicionar à coleção' : 'Adicionar à estante'}</h2><button className="icon-btn" aria-label="Fechar" onClick={onClose}><Icon name="fechar" /></button></div>
         {!pick ? (
           <>
             <label htmlFor="add-q" className="sr-only">Nome do jogo</label>
@@ -99,7 +99,7 @@ export function AddGameDialog({ onClose }: { onClose: () => void }) {
           </>
         ) : (
           <div className="add-pick">
-            <div className="add-pick__game">{pick.cover && <img src={pick.cover} alt="" />}<div><div className="t" style={{ fontSize: 32 }}>{pick.title}</div><button className="btn quiet sm" onClick={() => setPick(null)}>Escolher outro</button></div></div>
+            <div className="add-pick__game">{pick.cover && <img src={pick.cover} alt="" />}<div><div className="t" style={{ fontSize: 32 }}>{pick.title}</div>{!initial && <button className="btn quiet sm" onClick={() => setPick(null)}>Escolher outro</button>}</div></div>
             <label htmlFor="add-plat" className="add-pick__label">Plataforma</label>
             <select id="add-plat" className="field" value={platform} onChange={(e) => setPlatform(e.target.value)}>
               {[...new Set([...pick.platforms, 'Outra plataforma'])].map((p) => <option key={p}>{p}</option>)}

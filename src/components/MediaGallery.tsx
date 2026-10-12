@@ -59,6 +59,12 @@ export function MediaGallery({ title, items }: { title: string; items: MediaItem
   );
 }
 
+/** Galeria em tela cheia por cima da página (fotos da Jornada, mídia do jogo). */
+export function PhotoViewer({ container, ...props }: { title: string; items: MediaItem[]; start: number; onClose: () => void; container?: Element | null }) {
+  // Em tela cheia, só o elemento em tela cheia aparece: a galeria precisa nascer dentro dele.
+  return createPortal(<Lightbox {...props} />, container ?? document.body);
+}
+
 function Lightbox({ title, items, start, onClose }: { title: string; items: MediaItem[]; start: number; onClose: () => void }) {
   const [i, setI] = useState(start);
   const closeBtn = useRef<HTMLButtonElement>(null);

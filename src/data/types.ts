@@ -122,6 +122,8 @@ export interface Prefs {
   black: number; // 0..100
   scale: Scale;
   motion: 'completas' | 'discretas' | 'reduzidas';
+  /** Jornada que a pessoa colocou "em foco" (fica destacada no Início e na Jornada). */
+  focusJourneyId?: ID | null;
 }
 
 export interface Profile {

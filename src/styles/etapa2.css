@@ -30,7 +30,6 @@
 .toast__btn { border: 0; background: none; color: var(--accent-ink); font: 600 14px var(--font-ui); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0 4px 6px; }
 
 /* Jornada: estados, menu e edição --------------------------------------------- */
-.journey__minor { display: flex; flex-wrap: wrap; gap: 4px; }
 .state-card { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; align-items: center; padding: 22px 26px; margin-top: 24px; }
 .state-card h2 { font-size: 34px; }
 .state-card p { margin: 6px 0 0; }
@@ -763,3 +762,99 @@ html.is-overlay, html.is-overlay body { background: transparent !important; }
 .caps__src.is-check { color: var(--accent-ink); }
 .caps__keep { display: flex; gap: 6px; align-items: center; font-size: 13px; }
 @media (max-width: 560px) { .caps__list li { grid-template-columns: 80px 1fr; } .caps__list img { width: 80px; height: 46px; } .caps__keep { grid-column: 2; } }
+
+/* ------------------------------------------------------------------ */
+/* Nova estética, entrega 3: Jornada                                    */
+/* ------------------------------------------------------------------ */
+.page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 32px; margin-bottom: 36px; }
+.page-head__text { min-width: 0; max-width: 760px; }
+.page-head__text .lead { margin-top: 16px; }
+.page-head .subnav { margin: 0; }
+@media (max-width: 760px) { .page-head { flex-direction: column-reverse; align-items: stretch; gap: 24px; margin-bottom: 28px; } }
+
+/* Uma Jornada: cabeçalho sobre a foto do jogo */
+.journey__hero { position: relative; overflow: hidden; margin-top: 24px; padding: 26px 32px 32px; border-radius: 16px; background: #07080A; box-shadow: inset 0 0 0 1px rgba(230, 233, 237, 0.08); }
+.journey__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; }
+.journey__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7, 8, 10, 0.95) 0%, rgba(7, 8, 10, 0.7) 50%, rgba(7, 8, 10, 0.35) 100%), linear-gradient(0deg, rgba(7, 8, 10, 0.85), rgba(7, 8, 10, 0) 60%); }
+.journey__hero > :not(.journey__bg):not(.journey__shade) { position: relative; }
+.journey__hero .back-link { margin-top: 0; text-decoration: none; color: var(--muted); }
+.journey__hero .back-link:hover { color: var(--ink); }
+.journey__title .kicker { margin: 0; font-size: 12px; }
+.journey__title img { border-radius: 8px; box-shadow: 0 18px 36px rgba(0, 0, 0, 0.5); }
+.journey__title h1 { color: #F2F4F6; }
+.journey__stats { gap: 0; }
+.journey__stats > div { padding-right: 26px; margin-right: 26px; border-right: 1px solid rgba(230, 233, 237, 0.14); }
+.journey__stats > div:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+.journey__stats dt { font: 400 11px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.journey__stats dd { font-size: 34px; margin-top: 10px; }
+@media (max-width: 760px) {
+  .journey__hero { padding: 18px 16px 22px; margin-left: -4px; margin-right: -4px; }
+  .journey__stats { width: 100%; justify-content: space-between; }
+  .journey__stats > div { padding-right: 0; margin-right: 0; border-right: 0; }
+  .journey__stats dd { font-size: 26px; }
+}
+
+/* Progresso */
+.progress-card { border-radius: 16px; }
+.progress-card__value .t { font-size: 60px; color: var(--now-ink); }
+.progress-card__slider label { font-weight: 600; }
+.progress-card__ends { font: 400 11px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+
+/* Onde você parou e pontos para voltar */
+.capsule h2, .waypoints h2 { font-size: 26px; }
+.capsule__row { border-radius: 16px; }
+.capsule__k { font: 400 11px/1.3 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+.capsule__k.k-you { color: var(--now-ink); }
+.capsule__note { font-size: 19px; }
+.state-card { border-radius: 16px; }
+.state-card h2 { font-size: 26px; }
+
+/* Em andamento: card em foco e os outros */
+.focus { border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(255, 178, 91, 0.3), 0 30px 80px rgba(0, 0, 0, 0.35); }
+.focus__badge, .focus-mini .focus__badge { height: 28px; padding: 0 12px; gap: 8px; background: rgba(255, 178, 91, 0.12); color: #FFB25B; box-shadow: inset 0 0 0 1px rgba(255, 178, 91, 0.4); font: 400 11px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; }
+.focus__dot { width: 7px; height: 7px; border-radius: 50%; background: #FFF3E0; box-shadow: 0 0 8px 2px rgba(255, 178, 91, 0.7); }
+.focus__kicker { font: 400 11px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.focus__progress { gap: 14px; }
+.focus__progress .hline { flex: 1; }
+.focus__note { padding-left: 0; border-left: 0; font-size: 20px; line-height: 1.4; max-width: 40ch; color: #F2F4F6; }
+.focus__note cite { font: 400 11px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: #9AA1AA; }
+.focus__trail { border-radius: 16px; }
+.focus__step + .focus__step::before { border-left: 1px solid rgba(201, 206, 212, 0.25); }
+.focus__step-kind { font: 400 10px var(--font-mono); letter-spacing: 0.12em; }
+.focus__step-date { font-family: var(--font-mono); font-size: 11px; }
+.focus__more { color: #E6E9ED; font-weight: 600; }
+.focus-mini { border-radius: 16px; }
+.jcard { border-radius: 16px; }
+.jcard__meta { font: 400 11px/1.3 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.jcard__title { font-size: 26px; }
+.jcard__note { font-size: 15px; }
+.jcard__prog { display: flex; align-items: center; gap: 12px; margin-top: 12px; max-width: 260px; }
+.jcard__prog .hline { flex: 1; }
+.jcard__prog .mono { font-size: 11px; color: #C9CED4; }
+.jindex .block__head h2 { font-size: 26px; }
+.jindex .block__head { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+
+/* Concluídas: mural de honra */
+.honor { background: radial-gradient(120% 120% at 50% 0%, rgba(226, 190, 132, 0.12), transparent 60%), var(--surface); box-shadow: inset 0 0 0 1px rgba(226, 190, 132, 0.25); border: 0; }
+.honor__plate strong { font: 700 13px/1.2 var(--font-title); font-stretch: 125%; text-transform: uppercase; }
+.honor__plate span { font: 400 11px var(--font-mono); letter-spacing: 0.06em; color: var(--gold); }
+.done-card__cover { border-radius: 8px; }
+.done-card__title { font-weight: 600; }
+
+/* Linha do tempo geral */
+.gtl .seg { margin: 0 0 8px; }
+.gtl__month { margin-top: 40px; }
+.gtl__h { font-size: 26px; }
+.gtl__card { border-radius: 16px; }
+.gtl__meta { font: 400 11px/1.3 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
+.gtl__label { color: var(--now-ink); }
+.gtl__item--colecao .gtl__label { color: var(--muted); }
+
+/* Meu ritmo */
+.rhythm__lead { font-size: clamp(22px, 2.4vw, 32px); line-height: 1.3; font-weight: 400; color: var(--ink-2); max-width: 1040px; }
+.rhythm__lead strong { color: var(--now-ink); font-weight: 600; }
+.rhythm__card { border-radius: 16px; padding: 26px; }
+.rhythm__card h2 { font: 400 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); font-size-adjust: none; margin-bottom: 22px; }
+.bars { height: 170px; gap: 10px; }
+.bars__bar { max-width: 44px; border-radius: 999px; background: linear-gradient(180deg, #FFE6C4, var(--now)); box-shadow: 0 0 16px rgba(255, 178, 91, 0.25); }
+.bars__l { font: 400 11px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }

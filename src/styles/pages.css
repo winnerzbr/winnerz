@@ -194,9 +194,10 @@ a.next-release { color: inherit; }
 .journey__title > a { flex: none; }
 .journey__title p { margin: 0; font-size: 16px; }
 .journey__title h1 { font-size: clamp(36px, 4.6vw, 68px); margin-top: 4px; }
-.journey__side { display: flex; flex-wrap: wrap; gap: 20px 36px; align-items: flex-end; }
-.journey__cta { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.journey__cta .faint { margin: 0; font-size: 12px; }
+.journey__side { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 20px 36px; align-items: center; justify-content: space-between; }
+.journey__cta { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; justify-content: flex-end; margin-left: auto; }
+.journey__cta .faint { order: 3; flex-basis: 100%; margin: 0; font-size: 12px; text-align: right; }
+.journey__minor { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .journey__cta .btn, .cinema__play { gap: 8px; }
 .cinema__topactions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-left: auto; }
 .cinema__play { min-height: 44px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); }
@@ -720,8 +721,10 @@ a.session__back-link:hover { color: var(--ink); }
 @media (max-width: 640px) { .my-review__title { font-size: 34px; } .ghero__title { font-size: 40px; } }
 @media (max-width: 640px) {
   .journey__side { width: 100%; }
-  .journey__cta { width: 100%; }
-  .journey__cta .btn { width: 100%; justify-content: center; }
+  .journey__cta { width: 100%; margin: 0; flex-direction: column; align-items: center; gap: 10px; }
+  .journey__cta .btn.lg { min-height: 46px; padding: 0 26px; font-size: 12px; }
+  .journey__cta .faint { order: 0; text-align: center; }
+  .journey__minor { flex-direction: column; gap: 6px; }
   .cinema__play { min-height: 40px; padding: 0 14px; font-size: 14px; }
 }
 .btn.now .session-pill__dot { background: #07080A; }

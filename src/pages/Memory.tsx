@@ -80,10 +80,14 @@ export function GlobalTimelinePage() {
   }
   return (
     <main className="page pad gtl">
-      <SubNav pillar="jornada" />
-      <h1 className="t big">Linha do tempo</h1>
-      <p className="muted lead">Todas as suas Jornadas e o que chegou à coleção, num fio só, do mais recente ao mais antigo.</p>
-      <div className="seg" role="group" aria-label="Mostrar">
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Linha do tempo</h1>
+          <p className="muted lead">Todas as suas Jornadas e o que chegou à coleção, num fio só, do mais recente ao mais antigo.</p>
+        </div>
+        <SubNav pillar="jornada" />
+      </header>
+      <div className="seg gtl__filter" role="group" aria-label="Mostrar">
         {([['tudo', 'Tudo'], ['jornada', 'Jornadas'], ['colecao', 'Coleção']] as const).map(([k, l]) => <button key={k} aria-pressed={kind === k} onClick={() => { setKind(k); setLimit(80); }}>{l}</button>)}
       </div>
       {!list.length && <div className="card tl-empty"><p className="muted">Nada por aqui ainda. Comece uma Jornada ou adicione um jogo à estante.</p></div>}
@@ -126,9 +130,13 @@ export function RhythmPage() {
   const light = !!s.prefs.light;
   return (
     <main className="page pad rhythm">
-      <SubNav pillar="jornada" />
-      <h1 className="t big">Meu ritmo</h1>
-      <p className="muted lead">Como você costuma jogar, pelo que você registrou. Não é meta nem placar: é só um espelho.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Meu ritmo</h1>
+          <p className="muted lead">Como você costuma jogar, pelo que você registrou. Não é meta nem placar: é só um espelho.</p>
+        </div>
+        <SubNav pillar="jornada" />
+      </header>
       {r.sessions < 3 ? (
         <div className="card tl-empty"><p className="muted">Ainda há poucas sessões registradas para mostrar um ritmo. Ele aparece aqui sozinho, com o tempo.</p></div>
       ) : (

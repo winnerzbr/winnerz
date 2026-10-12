@@ -57,7 +57,7 @@ export function JourneyIndex() {
               <div className="jcard__meta">{h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') ? `${h.state === 'concluida' ? 'Zerou' : h.state === 'dropada' ? 'Largou' : 'Encerrou'}, ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}${n > 1 ? `. ${n} Histórias` : ''}` : `${n > 1 ? `${n} Histórias` : 'Primeira História'}${last ? `, última sessão ${ago(last.startedAt)}` : ''}`}</div>
               <div className="t jcard__title">{g.title}</div>
               {note?.note && <div className="quote jcard__note">“{note.note}”</div>}
-              {!!h?.progress && (h.state === 'ativa' || h.state === 'pausada') && <div className="bar bar--thin"><span style={{ width: `${h.progress}%` }} /></div>}
+              {!!h?.progress && (h.state === 'ativa' || h.state === 'pausada') && <div className="jcard__prog"><span className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /></span><span className="mono">{h.progress}%</span></div>}
             </div>
           </article>
         ))}
@@ -67,9 +67,13 @@ export function JourneyIndex() {
 
   return (
     <main className="page pad jindex">
-      <SubNav pillar="jornada" />
-      <h1 className="t big">Jornada</h1>
-      <p className="muted lead">Toda história tem um próximo instante. O resto pode esperar.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Jornada</h1>
+          <p className="muted lead">Toda história tem um próximo instante. O resto pode esperar.</p>
+        </div>
+        <SubNav pillar="jornada" />
+      </header>
       {rows.length === 0 && (
         <div className="card tl-empty">
           <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Nenhuma Jornada ainda</p>
@@ -122,7 +126,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
       <div className="focus__grid">
         <div className="focus__main">
           <div className="focus__kicker">
-            <span className="focus__badge"><Compass size={13} />Em foco</span>
+            <span className="focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco</span>
             <span>{chosen ? 'Foco principal' : 'Sua sessão mais recente'}</span>
           </div>
           <h2 id="em-foco" className="t focus__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
@@ -133,8 +137,8 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
           </p>
           {h.progress != null && (
             <div className="focus__progress">
-              <div className="bar" aria-hidden="true"><span style={{ width: `${h.progress}%` }} /></div>
-              <span>{h.progress}%</span>
+              <div className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /><b style={{ left: `${h.progress}%` }} /></div>
+              <span className="mono">{h.progress}%</span>
             </div>
           )}
           {note?.note && <blockquote className="quote focus__note">“{note.note}”<cite>Seu recado, {ago(note.startedAt)}</cite></blockquote>}
@@ -189,7 +193,7 @@ function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
       <Backdrop game={g} />
       <div className="focus-mini__shade" aria-hidden="true" />
       <div className="focus-mini__body">
-        <span className="focus__badge"><Compass size={12} />Em foco</span>
+        <span className="focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco</span>
         <h2 className="t"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
         <p>{h.state === 'pausada' ? 'Pausado.' : `Jogando${h.progress != null ? `, ${h.progress}%` : ''}.`}{note?.note ? ` “${note.note}”` : ''}</p>
         <div className="focus-mini__actions">
@@ -216,9 +220,13 @@ export function ConcludedPage() {
   const totalHours = done.reduce((a, d) => a + (d.h.hours ?? 0), 0);
   return (
     <main className="page pad jindex">
-      <SubNav pillar="jornada" />
-      <h1 className="t big">Histórias concluídas</h1>
-      <p className="muted lead">{done.length && s.prefs.light ? 'Cada História aqui é sua, completa ou mínima.' : done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Concluídas</h1>
+          <p className="muted lead">{done.length && s.prefs.light ? 'Cada História aqui é sua, completa ou mínima.' : done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+        </div>
+        <SubNav pillar="jornada" />
+      </header>
       {done.length === 1 && <FirstBuddy />}
       {done.length > 0 && (
         <section className="honor" aria-labelledby="honra">

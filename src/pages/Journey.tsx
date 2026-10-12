@@ -44,7 +44,7 @@ export function JourneyPage({ slug }: { slug: string }) {
   if (!journey) {
     return (
       <main className="page pad">
-        <p className="muted">Minha Jornada em</p>
+        <p className="kicker">Minha Jornada em</p>
         <h1 className="t big">{game.title}</h1>
         <p className="muted">Você ainda não tem uma História com este jogo. Começar é um toque, sem formulário.</p>
         <div className="hero__actions">
@@ -140,12 +140,15 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
   return (
     <main className="page journey">
-      <Link to="/jornada" className="back-link">Todas as Jornadas</Link>
+      <header className="journey__hero on-photo">
+      {bg && <img className="journey__bg" src={bg} alt="" />}
+      <div className="journey__shade" aria-hidden="true" />
+      <Link to="/jornada" className="back-link kicker">← Todas as Jornadas</Link>
       <div className="journey__head">
         <div className="journey__title">
           <Link to={`/jogos/${game.slug}`} aria-label="Abrir a ficha do jogo"><CoverArt game={game} lazy={false} /></Link>
           <div>
-            <p className="muted">Minha Jornada em</p>
+            <p className="kicker">Minha Jornada em</p>
             <h1 className="t">{game.title}</h1>
           </div>
         </div>
@@ -173,6 +176,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         </div>
       </div>
+      </header>
 
       {isOpenState(current.state) && <Previously journeyId={journeyId} showCapsule={false} />}
       {isOpenState(current.state) && <BackBuddy journeyId={journeyId} />}

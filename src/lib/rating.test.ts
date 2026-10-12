@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalize, formatScore, average, originalLabel, starFill } from './rating.ts';
+import { normalize, formatScore, average, originalLabel, starFill } from './rating';
 
 test('normaliza nas duas escalas', () => {
   assert.equal(normalize(8.5, 'TEN_POINT').normalized, 850);

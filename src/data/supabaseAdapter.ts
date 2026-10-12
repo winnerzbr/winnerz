@@ -53,7 +53,7 @@ async function signPaths(paths: string[]): Promise<Record<string, string>> {
   if (!paths.length) return {};
   const sb = await getClient();
   const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, SIGNED_FOR);
-  return Object.fromEntries((data ?? []).filter((d) => d.signedUrl && d.path).map((d) => [d.path!, d.signedUrl]));
+  return Object.fromEntries((data ?? []).filter((d) => d.signedUrl && d.path).map((d) => [d.path!, d.signedUrl as string]));
 }
 
 /** Fotos antigas, gravadas dentro do banco, vão para o Storage uma vez, em segundo plano. */

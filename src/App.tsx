@@ -7,6 +7,8 @@ import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
 import { PastSheetHost } from './components/PastPlay';
+import { UpdateBanner } from './components/UpdateBanner';
+import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { Home } from './pages/Home';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
@@ -31,6 +33,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/colecao/desejos', path)) return <Wishes />;
   if (match('/colecao/estatisticas', path)) return <CollectionStats />;
   if (match('/colecao/importar', path)) return <ImportPage />;
+  if (match('/colecao/reparar', path)) return <RepairPage />;
   if (match('/jogos', path)) return <GamesIndex />;
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
@@ -71,6 +74,7 @@ export function App() {
         </div>
       )}
       {!isSession && <Header />}
+      <UpdateBanner />
       <ForgottenSession />
       <Routes path={path} />
       {!isSession && (

@@ -103,7 +103,7 @@ const eventFromRow = (r: any): TimelineEvent => ({
   precision: r.date_precision ?? undefined,
 });
 const copyFromRow = (r: any): Copy => ({
-  id: r.id, gameId: r.game_id, platform: r.platform, kind: r.kind, items: r.items ?? undefined,
+  id: r.id, gameId: r.game_id, createdAt: r.created_at ?? undefined, platform: r.platform, kind: r.kind, items: r.items ?? undefined,
   condition: r.condition ?? undefined, origin: r.origin ?? undefined, note: r.note ?? undefined, special: r.special,
   region: r.region ?? undefined, edition: r.edition ?? undefined, boxCondition: r.box_condition ?? undefined,
   purchasedOn: r.purchased_on ?? undefined, purchasePlace: r.purchase_place ?? undefined,
@@ -254,7 +254,7 @@ export const supabaseAdapter: Adapter = {
       copies: (copies.data ?? []).map(copyFromRow),
       wishes: (wishes.data ?? []).map((w: any) => ({ gameId: w.game_id, note: w.note ?? undefined })),
       favorites: (favs.data ?? []).map((f: any) => f.game_id),
-      journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined })),
+      journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined, createdAt: j.created_at ?? undefined })),
       histories: (histories.data ?? []).map(historyFromRow),
       sessions: (sessions.data ?? []).map(sessionFromRow),
       events: evs,
@@ -397,6 +397,13 @@ export const supabaseAdapter: Adapter = {
         }
         return;
       }
+      case 'copies.deleteMany':
+        for (let i = 0; i < a.ids.length; i += 200) check(await sb.from('copies').delete().in('id', a.ids.slice(i, i + 200)));
+        return;
+      case 'journeys.deleteMany':
+        // Histórias, sessões e acontecimentos saem juntos (on delete cascade).
+        for (let i = 0; i < a.ids.length; i += 200) check(await sb.from('journeys').delete().in('id', a.ids.slice(i, i + 200)));
+        return;
       case 'games.relinkMany': {
         // Uma função no banco (migração 0005) faz tudo de uma vez, em lotes de 200 jogos.
         for (let i = 0; i < a.pairs.length; i += 200) {

@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore, getState, commit, uid, nowIso, journeyForGame, slugify } from '../data/store';
 import { track } from '../lib/track';
+import { isOutdated } from '../lib/version';
 import type { Copy, Game, History, Journey, MyGame, Review, TimelineEvent } from '../data/types';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
@@ -102,6 +103,7 @@ export function ImportPage() {
 
   /* Busca no IGDB ---------------------------------------------------------- */
   const search = async () => {
+    if (await isOutdated()) { setError('O WinnerZ foi atualizado enquanto esta página estava aberta. Recarregue a página antes de importar.'); return; }
     cancel.current = false;
     setStep('buscando');
     const list = [...titles.entries()].filter(([k]) => !matches[k]);
@@ -146,6 +148,7 @@ export function ImportPage() {
 
   /* Gravação ---------------------------------------------------------------- */
   const save = async () => {
+    if (await isOutdated()) { setError('O WinnerZ foi atualizado enquanto esta página estava aberta. Recarregue a página antes de importar.'); return; }
     setStep('gravando'); setError('');
     try {
       let st = getState();
@@ -224,7 +227,7 @@ export function ImportPage() {
         const fin = e.items.find((i) => i.finish)?.finish;
         if (fin && !journeyForGame(st, g.id) && !journeyDone.has(g.id)) {
           journeyDone.add(g.id);
-          const j: Journey = { id: uid(), gameId: g.id, mood: fin.state === 'pausada' ? 'pausado' : 'jogando' };
+          const j: Journey = { id: uid(), gameId: g.id, mood: fin.state === 'pausada' ? 'pausado' : 'jogando', createdAt: nowIso() };
           const when = fin.when ?? { iso: nowIso(), precision: 'desconhecida' as const };
           const closed = fin.state === 'concluida' || fin.state === 'dropada';
           const h: History = {
@@ -248,7 +251,7 @@ export function ImportPage() {
       const have = new Map<string, number>();
       for (const c of st.copies) { const key = `${c.gameId}|${canonicalPlatform(c.platform)}|${c.kind}`; have.set(key, (have.get(key) ?? 0) + 1); }
       for (const [key, w] of want) {
-        for (let x = have.get(key) ?? 0; x < w.n; x++) copies.push({ id: uid(), gameId: w.gameId, platform: w.platform, kind: w.kind, ...w.detail });
+        for (let x = have.get(key) ?? 0; x < w.n; x++) copies.push({ id: uid(), gameId: w.gameId, platform: w.platform, kind: w.kind, createdAt: nowIso(), ...w.detail });
       }
       const myGames = [...myMap.values()].filter((x) => x.changed).map((x) => x.mine);
       const reviews = [...reviewMap.values()];

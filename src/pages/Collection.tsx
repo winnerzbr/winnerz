@@ -11,6 +11,7 @@ import { Sheet, ConfirmButton } from '../components/Sheet';
 import { PastButton } from '../components/PastPlay';
 import { STATE_LABEL } from '../components/JourneyManage';
 import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
+import { titleKey } from '../lib/importer';
 
 type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial';
 type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
@@ -99,6 +100,14 @@ export function Collection() {
     return () => io.disconnect();
   }, [limit, list.length]);
 
+  // Sinal barato de repetidos (mesmo nome com e sem ficha); a tela de reparo faz a conta completa.
+  const dupHint = useMemo(() => {
+    const owned = new Set(s.copies.map((c) => c.gameId));
+    const igdb = new Set<string>(), manual: string[] = [];
+    for (const id of owned) { const g = s.games[id]; if (!g) continue; if (g.source === 'manual') manual.push(titleKey(g.title)); else igdb.add(titleKey(g.title)); }
+    return manual.filter((k) => igdb.has(k)).length;
+  }, [s.copies, s.games]);
+
   const shown = list.slice(0, limit);
   const uniqueGames = new Set(s.copies.map((c) => c.gameId)).size;
   const filtered = q || platform || kind !== 'tudo' || status !== 'tudo';
@@ -126,6 +135,12 @@ export function Collection() {
         </div>
       </div>
 
+      {dupHint > 0 && (
+        <div className="card repair-banner" role="status">
+          <p><strong>Alguns jogos estão repetidos</strong> <span className="muted">(com e sem ficha do IGDB). Dá para juntar cada par em um só, sem perder nada.</span></p>
+          <Link className="btn primary sm" to="/colecao/reparar">Arrumar repetidos</Link>
+        </div>
+      )}
       {s.copies.length > 0 && <div className="cbar" role="search">
         <label htmlFor="busca" className="sr-only">Buscar na coleção</label>
         <input id="busca" className="field cbar__q" placeholder="Buscar na coleção" value={q} onChange={(e) => setQ(e.target.value)} />

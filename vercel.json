@@ -1,5 +1,19 @@
 {
   "rewrites": [
-    { "source": "/((?!api/|assets/|demo/|favicon).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!api/|assets/|demo/|favicon|version\\.json).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/version.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
   ]
 }

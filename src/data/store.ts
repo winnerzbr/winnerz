@@ -40,6 +40,8 @@ export type Action =
   | { type: 'game.create'; game: Game }
   | { type: 'game.relink'; fromId: ID; to: Game; mergeFrom?: ID; mergeInto?: ID }
   | { type: 'games.relinkMany'; pairs: { fromId: ID; to: Game }[] }
+  | { type: 'copies.deleteMany'; ids: ID[] }
+  | { type: 'journeys.deleteMany'; ids: ID[] }
   | { type: 'copy.add'; copy: Copy }
   | { type: 'copy.update'; copy: Copy }
   | { type: 'copy.delete'; copyId: ID }
@@ -199,6 +201,20 @@ function reduce(s: State, a: Action): State {
         wishes: s.wishes.some((w) => w.gameId === t) ? s.wishes.filter((w) => w.gameId !== f) : s.wishes.map(sw),
         favorites: [...new Set(s.favorites.map((g) => (g === f ? t : g)))],
         reviews: s.reviews.some((r) => r.mine && r.gameId === t) ? s.reviews.filter((r) => !(r.mine && r.gameId === f)) : s.reviews.map((r) => (r.mine ? sw(r) : r)),
+      };
+    }
+    case 'copies.deleteMany': {
+      const ids = new Set(a.ids);
+      return { ...s, copies: s.copies.filter((c) => !ids.has(c.id)) };
+    }
+    case 'journeys.deleteMany': {
+      const ids = new Set(a.ids);
+      return {
+        ...s,
+        journeys: s.journeys.filter((j) => !ids.has(j.id)),
+        histories: s.histories.filter((h) => !ids.has(h.journeyId)),
+        sessions: s.sessions.filter((x) => !ids.has(x.journeyId)),
+        events: s.events.filter((e) => !ids.has(e.journeyId)),
       };
     }
     case 'games.relinkMany':
@@ -379,7 +395,7 @@ export const actions = {
     if (!journey || !history || history.state === 'concluida' || history.state === 'encerrada') {
       const at = nowIso();
       const isNewJourney = !journey;
-      journey = journey ?? { id: uid(), gameId, mood: 'jogando' };
+      journey = journey ?? { id: uid(), gameId, mood: 'jogando', createdAt: at };
       const ordinal = isNewJourney ? 1 : nextOrdinal(state, journey.id);
       history = { id: uid(), journeyId: journey.id, ordinal, title: ordinal === 1 ? 'Primeira vez' : 'Rejogada', state: 'ativa', startedAt: at, progress: 0 };
       const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, kind: 'inicio', at, title: history.title, text: ordinal === 1 ? 'Começou sua primeira História com o jogo.' : 'Uma nova História. As anteriores continuam guardadas.' };
@@ -560,7 +576,7 @@ export const actions = {
 
   /* Coleção ------------------------------------------------------------------ */
   addCopy(copy: Omit<Copy, 'id'>) {
-    const full = { ...copy, id: uid() };
+    const full = { ...copy, id: uid(), createdAt: nowIso() };
     dispatch({ type: 'copy.add', copy: full });
     return full;
   },

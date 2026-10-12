@@ -40,6 +40,8 @@ export type CopyKind = 'fisico' | 'digital' | 'assinatura' | 'outro';
 export interface Copy {
   id: ID;
   gameId: ID;
+  /** Quando entrou na coleção (vem do banco; serve para achar repetidos de uma importação). */
+  createdAt?: string;
   platform: string;
   kind: CopyKind;
   items?: string;
@@ -98,6 +100,7 @@ export type JourneyMood = 'jogando' | 'silencioso' | 'pausado';
 export interface Journey {
   id: ID;
   gameId: ID;
+  createdAt?: string;
   mood: JourneyMood;
   pausedNote?: string;
 }

@@ -477,7 +477,8 @@ async function radar(ids: number[]): Promise<Record<number, RadarInfo>> {
   const out: Record<number, RadarInfo> = {};
   for (const g of games) {
     const st: string = g.game_status?.status ?? GAME_STATUS[g.status as number] ?? '';
-    const rows = dates.filter((r) => r.game === g.id);
+    // Datas canceladas ou retiradas do ar não contam como lançamento nem como previsão.
+    const rows = dates.filter((r) => r.game === g.id && !/cancel|offline/i.test(r.status?.name ?? ''));
     const plats = (rs: any[]) => [...new Set(rs.map((r) => r.platform?.name).filter(Boolean))] as string[];
     if (/cancel/i.test(st)) { out[g.id] = { status: 'cancelado', label: 'Cancelado', precision: 'sem-data', platforms: plats(rows) }; continue; }
     const early = (r: any) => /early|alpha|beta/i.test(r.status?.name ?? '');
@@ -491,7 +492,8 @@ async function radar(ids: number[]): Promise<Record<number, RadarInfo>> {
       return f ? `${f.r.platform?.name ? `${f.r.platform.name}: ` : ''}${f.p.precision === 'dia' ? 'em ' : f.p.precision === 'sem-data' ? '' : 'previsto para '}${f.p.label}` : undefined;
     };
     if (full.length || (!rows.length && g.first_release_date && g.first_release_date <= now && /releas/i.test(st || 'released'))) {
-      const first = full[0]?.date ?? g.first_release_date;
+      // A primeira data oficial do IGDB vale mais que uma linha solta (evento, demo, região).
+      const first = g.first_release_date && g.first_release_date <= now ? g.first_release_date : full[0]?.date;
       const p = precisionOf({ date: first });
       out[g.id] = { status: 'lancado', label: `Lançado em ${p.label}`, day: p.day, sort: p.sort, precision: 'dia', platforms: plats(full), recent: now - first < 45 * 86400, next: nextLine(future.filter((x) => !early(x.r))) };
       continue;

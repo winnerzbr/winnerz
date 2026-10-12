@@ -20,7 +20,7 @@ npm run typecheck  # checagem de tipos
 ### 1. Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
-2. Em **SQL Editor**, cole e rode os arquivos de `supabase/migrations/` em ordem (`0001_winnerz.sql`, depois `0002_midia_e_traducao.sql`). Eles criam as tabelas, as regras de acesso (RLS), a visão `review_stats` e os campos de vídeos e tradução.
+2. Em **SQL Editor**, cole e rode os arquivos de `supabase/migrations/` em ordem (`0001_winnerz.sql`, `0002_midia_e_traducao.sql`, `0003_fotos_no_storage.sql`). Eles criam as tabelas, as regras de acesso (RLS), a visão `review_stats`, os campos de vídeos e tradução e a pasta privada `momentos` do Storage, onde ficam as fotos das sessões.
 3. Em **Authentication → URL Configuration**, coloque o endereço do site (ex.: `https://winnerz.vercel.app`) em *Site URL* e em *Redirect URLs*. O login é por link no e-mail, sem senha.
 4. Em **Project Settings → API Keys**, copie a chave *Publishable* (`sb_publishable_...`) e a *Secret* (`sb_secret_...`). A *Project URL* é `https://<id-do-projeto>.supabase.co` (o id aparece no endereço do painel).
 5. O e-mail de login padrão do Supabase só envia para membros do projeto, no máximo 2 por hora. Antes de abrir o site para outras pessoas, configure um SMTP próprio em **Authentication → Emails → SMTP Settings** (ex.: Resend ou Brevo).
@@ -80,7 +80,6 @@ public/demo, public/brand   imagens da demonstração e da marca
 
 ## Próximas etapas
 
-- Fotos das sessões no **Supabase Storage** (hoje vão reduzidas direto no registro).
 - Comunidade: Lobby, comunidades w/tema, jogatinas, Jornada em dupla.
 - Eventos: álbum de figurinhas com pacotes, códigos das lives, WinnerZ Awards.
 - Livreto da Jornada para imprimir ou compartilhar.

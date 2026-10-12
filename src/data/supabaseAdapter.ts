@@ -20,6 +20,53 @@ export async function getClient(): Promise<SupabaseClient> {
   return client;
 }
 
+/* Fotos no Storage --------------------------------------------------------- */
+
+const BUCKET = 'momentos';
+const SIGNED_FOR = 60 * 60 * 24 * 7; // links das fotos valem 7 dias
+let storageReady = false;
+
+/** A migração 0003 já rodou? Sem ela, as fotos continuam indo no registro, como antes. */
+export function photoStorageReady() { return storageReady; }
+
+export function photoPath(userId: string, eventId: string) { return `${userId}/${eventId}.jpg`; }
+
+/** Envia a foto, tentando de novo duas vezes se a conexão falhar. */
+export async function uploadPhoto(path: string, blob: Blob): Promise<void> {
+  const sb = await getClient();
+  let last: unknown;
+  for (let i = 0; i < 3; i++) {
+    const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: true, cacheControl: '31536000' });
+    if (!error) return;
+    last = error;
+    await new Promise((r) => setTimeout(r, 800 * (i + 1)));
+  }
+  throw last;
+}
+
+async function signPaths(paths: string[]): Promise<Record<string, string>> {
+  if (!paths.length) return {};
+  const sb = await getClient();
+  const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, SIGNED_FOR);
+  return Object.fromEntries((data ?? []).filter((d) => d.signedUrl && d.path).map((d) => [d.path!, d.signedUrl]));
+}
+
+/** Fotos antigas, gravadas dentro do banco, vão para o Storage uma vez, em segundo plano. */
+export async function moveLegacyPhotos(events: TimelineEvent[], userId: string, onMoved: (eventId: string, imagePath: string) => void) {
+  if (!storageReady) return;
+  const sb = await getClient();
+  for (const e of events) {
+    if (e.imagePath || !e.image?.startsWith('data:')) continue;
+    try {
+      const blob = await (await fetch(e.image)).blob();
+      const path = photoPath(userId, e.id);
+      await uploadPhoto(path, blob);
+      const { error } = await sb.from('timeline_events').update({ image_path: path, image: null }).eq('id', e.id);
+      if (!error) onMoved(e.id, path);
+    } catch { /* tenta de novo na próxima visita */ }
+  }
+}
+
 /* Conversões banco ↔ app ------------------------------------------------ */
 const gameFromRow = (r: any): Game => ({
   id: r.id, slug: r.slug, igdbId: r.igdb_id ?? undefined, title: r.title, cover: r.cover ?? '',
@@ -44,7 +91,7 @@ const sessionFromRow = (r: any): Session => ({
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
   kind: r.kind, at: r.at, title: r.title, text: r.text ?? undefined, quote: r.quote ?? undefined,
-  image: r.image ?? undefined, resolved: r.resolved, dateLabel: r.date_label ?? undefined,
+  image: r.image ?? undefined, imagePath: r.image_path ?? undefined, resolved: r.resolved, dateLabel: r.date_label ?? undefined,
 });
 const copyFromRow = (r: any): Copy => ({
   id: r.id, gameId: r.game_id, platform: r.platform, kind: r.kind, items: r.items ?? undefined,
@@ -69,11 +116,17 @@ const sessionToRow = (x: Session) => ({
   id: x.id, journey_id: x.journeyId, history_id: x.historyId, started_at: x.startedAt, ended_at: x.endedAt ?? null,
   minutes: x.minutes ?? null, note: x.note ?? null, where_stopped: x.whereStopped ?? null, feeling: x.feeling ?? null,
 });
-const eventToRow = (e: TimelineEvent) => ({
-  id: e.id, journey_id: e.journeyId, history_id: e.historyId, session_id: e.sessionId ?? null, kind: e.kind,
-  at: e.at, title: e.title, text: e.text ?? null, quote: e.quote ?? null, image: e.image ?? null,
-  resolved: !!e.resolved, date_label: e.dateLabel ?? null,
-});
+const eventToRow = (e: TimelineEvent) => {
+  const row: Record<string, unknown> = {
+    id: e.id, journey_id: e.journeyId, history_id: e.historyId, session_id: e.sessionId ?? null, kind: e.kind,
+    at: e.at, title: e.title, text: e.text ?? null, quote: e.quote ?? null,
+    // Foto no Storage: o banco guarda só o caminho. Links temporários e fotos locais nunca vão para o banco.
+    image: e.imagePath || e.image?.startsWith('blob:') || e.image?.includes('/storage/v1/') ? null : e.image ?? null,
+    resolved: !!e.resolved, date_label: e.dateLabel ?? null,
+  };
+  if (e.imagePath) row.image_path = e.imagePath;
+  return row;
+};
 const journeyToRow = (j: Journey) => ({ id: j.id, game_id: j.gameId, mood: j.mood, paused_note: j.pausedNote ?? null });
 
 function check<T>(res: { data: T; error: any }): T {
@@ -105,6 +158,12 @@ export const supabaseAdapter: Adapter = {
     for (const r of [...(copies.data ?? []), ...(wishes.data ?? []), ...(favs.data ?? []), ...(journeys.data ?? []), ...(myReviews.data ?? [])]) gameIds.add(r.game_id);
     const games = gameIds.size ? check(await sb.from('games').select('*').in('id', [...gameIds])) : [];
 
+    // Fotos: confere se a migração 0003 rodou e gera os links temporários de uma vez só.
+    storageReady = !(await sb.from('timeline_events').select('image_path').limit(1)).error;
+    const evs = (events.data ?? []).map(eventFromRow);
+    const signed = await signPaths(evs.filter((e) => e.imagePath).map((e) => e.imagePath!));
+    for (const e of evs) if (e.imagePath) e.image = signed[e.imagePath];
+
     const p = profile.data;
     const name: string = p?.display_name ?? user.email?.split('@')[0] ?? 'Jogador';
     return {
@@ -118,7 +177,7 @@ export const supabaseAdapter: Adapter = {
       journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined })),
       histories: (histories.data ?? []).map(historyFromRow),
       sessions: (sessions.data ?? []).map(sessionFromRow),
-      events: (events.data ?? []).map(eventFromRow),
+      events: evs,
       reviews: (myReviews.data ?? []).map((r: any) => reviewFromRow(r, user.id)),
     };
   },
@@ -157,6 +216,9 @@ export const supabaseAdapter: Adapter = {
         return;
       case 'event.add':
         check(await sb.from('timeline_events').insert(eventToRow(a.event)));
+        return;
+      case 'event.update':
+        if (a.patch.imagePath !== undefined) check(await sb.from('timeline_events').update({ image_path: a.patch.imagePath || null, image: null }).eq('id', a.eventId));
         return;
       case 'event.resolve':
         check(await sb.from('timeline_events').update({ resolved: true }).eq('id', a.eventId));

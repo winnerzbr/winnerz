@@ -19,6 +19,7 @@ export type Action =
   | { type: 'session.finish'; session: Session; event: TimelineEvent; progress?: { historyId: ID; value: number } }
   | { type: 'event.add'; event: TimelineEvent }
   | { type: 'event.resolve'; eventId: ID }
+  | { type: 'event.update'; eventId: ID; patch: Pick<Partial<TimelineEvent>, 'image' | 'imagePath'> }
   | { type: 'progress'; historyId: ID; value: number }
   | { type: 'history.complete'; history: History; event: TimelineEvent }
   | { type: 'history.letterOpen'; historyId: ID; at: string }
@@ -87,6 +88,8 @@ function reduce(s: State, a: Action): State {
       return { ...s, events: [...s.events, a.event] };
     case 'event.resolve':
       return { ...s, events: s.events.map((e) => (e.id === a.eventId ? { ...e, resolved: true } : e)) };
+    case 'event.update':
+      return { ...s, events: s.events.map((e) => (e.id === a.eventId ? { ...e, ...a.patch } : e)) };
     case 'progress':
       return { ...s, histories: s.histories.map((h) => (h.id === a.historyId ? { ...h, progress: a.value } : h)) };
     case 'history.complete':
@@ -201,15 +204,19 @@ export const actions = {
     return session;
   },
 
-  addMoment(sessionId: ID, data: { title?: string; quote?: string; image?: string; kind?: EventKind }) {
+  addMoment(sessionId: ID, data: { id?: ID; title?: string; quote?: string; image?: string; imagePath?: string; kind?: EventKind }): ID | null {
     const ses = state.sessions.find((x) => x.id === sessionId);
-    if (!ses) return;
+    if (!ses) return null;
     const kind = data.kind ?? 'momento';
+    const id = data.id ?? uid();
     dispatch({
       type: 'event.add',
-      event: { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title ?? (kind === 'ponto' ? 'Quero voltar aqui' : 'Momento guardado'), quote: data.quote, image: data.image },
+      event: { id, journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title ?? (kind === 'ponto' ? 'Quero voltar aqui' : 'Momento guardado'), quote: data.quote, image: data.image, imagePath: data.imagePath },
     });
+    return id;
   },
+
+  updateEventPhoto(eventId: ID, patch: { image?: string; imagePath?: string }) { dispatch({ type: 'event.update', eventId, patch }); },
 
   finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number }) {
     const ses = state.sessions.find((x) => x.id === sessionId);

@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid } from '../data/store';
+import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
 import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebration';
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
 
-/** Reduz a foto antes de guardar (as fotos ficam leves no banco e no aparelho). */
-async function shrink(file: File, max = 900): Promise<string> {
+/** Reduz a foto antes de enviar: 1080 px no lado maior, JPEG ~150 KB. */
+async function shrink(file: File, max = 1080): Promise<Blob> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
@@ -15,9 +16,11 @@ async function shrink(file: File, max = 900): Promise<string> {
     const c = document.createElement('canvas');
     c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
     c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL('image/jpeg', 0.8);
+    return await new Promise<Blob>((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('foto'))), 'image/jpeg', 0.8));
   } finally { URL.revokeObjectURL(url); }
 }
+
+const toDataUrl = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
 
 const FEELINGS = ['Adorei', 'Quero continuar', 'Foi suficiente por hoje', 'Não encaixou'];
 
@@ -59,9 +62,25 @@ export function SessionPage() {
 
   const onFile = async (f?: File) => {
     if (!f) return;
-    const image = await shrink(f);
-    actions.addMoment(session.id, { image, kind: photoKind.current });
-    say(photoKind.current === 'ponto' ? 'Ponto para voltar criado. Ele aparece na retomada.' : 'Momento guardado na sua linha do tempo.');
+    const kind = photoKind.current;
+    const done = kind === 'ponto' ? 'Ponto para voltar criado. Ele aparece na retomada.' : 'Momento guardado na sua linha do tempo.';
+    let blob: Blob;
+    try { blob = await shrink(f); } catch { say('Não consegui abrir essa imagem. Tente outra foto.'); return; }
+    const sb = SUPABASE_ON && s.profile ? await import('../data/supabaseAdapter') : null;
+    if (sb?.photoStorageReady()) {
+      // A foto aparece na hora; o envio para o Storage acontece em segundo plano.
+      const id = uid();
+      const path = sb.photoPath(s.profile!.id, id);
+      actions.addMoment(session.id, { id, kind, image: URL.createObjectURL(blob), imagePath: path });
+      say(done);
+      sb.uploadPhoto(path, blob).catch(() => {
+        actions.updateEventPhoto(id, { imagePath: '', image: undefined });
+        say('A foto não subiu (sem conexão?). O momento ficou guardado sem ela.');
+      });
+    } else {
+      actions.addMoment(session.id, { image: await toDataUrl(blob), kind });
+      say(done);
+    }
   };
   const pickPhoto = (kind: 'momento' | 'ponto') => { photoKind.current = kind; fileInput.current?.click(); };
 

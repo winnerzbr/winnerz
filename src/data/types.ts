@@ -93,7 +93,10 @@ export interface TimelineEvent {
   title: string;
   text?: string;
   quote?: string;
+  /** Endereço para exibir a foto (link temporário do Storage, foto local ou da demonstração). */
   image?: string;
+  /** Onde a foto mora no Storage: momentos/<pessoa>/<momento>.jpg. */
+  imagePath?: string;
   sessionId?: ID;
   resolved?: boolean;
   dateLabel?: string; // para registros com precisão menor (ex.: "jun a ago 2020")

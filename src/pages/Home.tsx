@@ -107,7 +107,7 @@ export function Home() {
             <WeekCard />
             <section className="card aside-card">
               <h2 className="t">Sua estante</h2>
-              <p className="muted">{new Set(s.copies.map((c) => c.gameId)).size} jogos, {s.wishes.length} desejos.</p>
+              <p className="muted light-hide">{new Set(s.copies.map((c) => c.gameId)).size} jogos, {s.wishes.length} desejos.</p>
               <div className="aside-covers">
                 {s.copies.slice(-4).reverse().map((c) => s.games[c.gameId] && (
                   <Link key={c.id} to={`/jogos/${s.games[c.gameId].slug}`} aria-label={s.games[c.gameId].title}><CoverArt game={s.games[c.gameId]} platform={c.platform} /></Link>

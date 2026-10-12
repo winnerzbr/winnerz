@@ -18,6 +18,7 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
     { to: '/jogos', label: 'Buscar' },
     { to: '/jogos/explorar', label: 'Explorar' },
     { to: '/jogos/radar', label: 'Radar' },
+    { to: '/jogos/trilhas', label: 'Trilhas' },
   ],
 };
 

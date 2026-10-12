@@ -1,3 +1,4 @@
+import { Buddy, useBuddy } from '../components/Buddy';
 import { useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, eventsOf, activeWaypoints, focusJourneys } from '../data/store';
@@ -127,7 +128,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
           <h2 id="em-foco" className="t focus__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
           <p className="focus__meta">
             {h.ordinal > 1 ? `Sua ${h.ordinal}ª História, ${h.title}` : 'Primeira História'}
-            {nSessions ? `. ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'}` : ''}
+            {nSessions && !s.prefs.light ? `. ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'}` : ''}
             {wps.length ? `. ${wps.length} ${wps.length === 1 ? 'ponto' : 'pontos'} para voltar` : ''}.
           </p>
           {h.progress != null && (
@@ -217,7 +218,8 @@ export function ConcludedPage() {
     <main className="page pad jindex">
       <SubNav pillar="jornada" />
       <h1 className="t big">Histórias concluídas</h1>
-      <p className="muted lead">{done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+      <p className="muted lead">{done.length && s.prefs.light ? 'Cada História aqui é sua, completa ou mínima.' : done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+      {done.length === 1 && <FirstBuddy />}
       {done.length > 0 && (
         <section className="honor" aria-labelledby="honra">
           <h2 id="honra" className="sr-only">Mural de honra</h2>
@@ -252,4 +254,8 @@ export function ConcludedPage() {
       ))}
     </main>
   );
+}
+
+function FirstBuddy() {
+  return <Buddy line={useBuddy('primeiro-zerado', true)} className="buddy--card" />;
 }

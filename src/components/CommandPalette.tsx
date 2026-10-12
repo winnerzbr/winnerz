@@ -14,7 +14,7 @@ type Item = { key: string; group: string; title: string; meta?: string; to: stri
 const PAGES: [string, string, string][] = [
   ['Estante', '/colecao', 'estante coleção jogos'], ['Estatísticas da coleção', '/colecao/estatisticas', 'estatisticas numeros'], ['Desejos', '/colecao/desejos', 'desejos lista'],
   ['Importar planilha', '/colecao/importar', 'importar planilha excel csv'], ['Importar da Steam', '/colecao/steam', 'importar steam pc horas'], ['Jornada', '/jornada', 'jornada jogando foco'], ['Histórias concluídas', '/jornada/concluidas', 'zerados concluidas historias'], ['Linha do tempo geral', '/jornada/linha-do-tempo', 'linha do tempo tudo historico'], ['Meu ritmo', '/jornada/ritmo', 'ritmo semana estatisticas jornada'],
-  ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ['Preferências', '/preferencias', 'preferencias tema escala'],
+  ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ['Trilhas', '/jogos/trilhas', 'trilhas sequencia saga ordem'], ['Preferências', '/preferencias', 'preferencias tema escala'],
   ['WinnerZ Awards', '/eventos/awards', 'awards premio votacao eventos'],
 ];
 

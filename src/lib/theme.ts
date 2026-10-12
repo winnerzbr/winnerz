@@ -28,6 +28,7 @@ export function applyPrefs(p: Prefs) {
   const root = document.documentElement;
   root.dataset.theme = p.theme;
   root.dataset.motion = p.motion;
+  root.dataset.light = p.light ? '1' : '0';
   if (p.theme === 'escuro') {
     const tk = darkTokens(p.black);
     for (const k of DARK_KEYS) root.style.setProperty(k, tk[k]);

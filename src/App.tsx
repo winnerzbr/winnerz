@@ -6,6 +6,8 @@ import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
 import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
+import { TrailsPage, TrailPage } from './pages/Trails';
+import { OverlayPage } from './pages/Overlay';
 import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
@@ -50,6 +52,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jogos', path)) return <GamesIndex />;
   if (match('/jogos/explorar', path)) return <GamesExplore />;
   if (match('/jogos/radar', path)) return <RadarPage />;
+  if (match('/jogos/trilhas', path)) return <TrailsPage />;
+  if ((m = match('/jogos/trilhas/:slug', path))) return <TrailPage slug={m.slug} />;
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
@@ -82,6 +86,10 @@ export function App() {
   useEffect(() => { if (!ready) return; const t = setTimeout(() => { void backfillGameFacts(); }, 5000); return () => clearTimeout(t); }, [ready]);
 
   const isSession = path.startsWith('/sessao');
+
+  // Overlay do OBS: só o cartão, fundo transparente, sem menu (não espera os seus dados carregarem).
+  const ovl = match('/overlay/:k', path);
+  if (ovl) return <OverlayPage k={ovl.k} />;
 
   if (!ready) {
     return <div className="boot" aria-busy="true"><img src={brand(prefs.theme).mark} alt="WinnerZ" height={36} /></div>;

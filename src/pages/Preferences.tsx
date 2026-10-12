@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
 import { Stars } from '../components/Stars';
@@ -89,6 +90,14 @@ export function Preferences() {
         </div>
       </section>
 
+      <section aria-labelledby="leve" className="prefs__section">
+        <h2 id="leve" className="t">Modo leve</h2>
+        <label className="motion" data-on={!!prefs.light}>
+          <input type="checkbox" checked={!!prefs.light} onChange={(e) => actions.setPrefs({ light: e.target.checked })} />
+          <span><strong>Esconder contadores e números</strong><span className="muted">Sem total de sessões, horas, jogos na estante ou quantos você zerou. Fica a história, sem placar. As estatísticas da coleção continuam lá, só se você abrir.</span></span>
+        </label>
+      </section>
+
       <section aria-labelledby="tom" className="prefs__section">
         <h2 id="tom" className="t">Tom das celebrações</h2>
         <p className="muted">Como o WinnerZ comemora com você. A festa grande fica só para quando você zera; os outros marcos ganham uma mensagem curta.</p>
@@ -102,6 +111,8 @@ export function Preferences() {
         </div>
       </section>
 
+      <OverlaySettings />
+
       <section className="prefs__section">
         <h2 className="t">Conta</h2>
         {SUPABASE_ON ? (
@@ -111,5 +122,36 @@ export function Preferences() {
         )}
       </section>
     </main>
+  );
+}
+
+/** Overlay de live: endereço assinado para a fonte de navegador do OBS. */
+function OverlaySettings() {
+  const mode = useStore((x) => x.mode);
+  const [url, setUrl] = useState('');
+  const [state, setState] = useState<'idle' | 'busy' | 'error'>('idle');
+  const make = async () => {
+    setState('busy');
+    try {
+      const { accessToken } = await import('../data/supabaseAdapter');
+      const r = await fetch('/api/overlay', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ link: true }) });
+      if (!r.ok) throw new Error();
+      setUrl(`${location.origin}${(await r.json()).path}`); setState('idle');
+    } catch { setState('error'); }
+  };
+  return (
+    <section aria-labelledby="ovl-h" className="prefs__section">
+      <h2 id="ovl-h" className="t">Overlay de live</h2>
+      <p className="muted">Uma fonte de navegador para o OBS com o jogo em foco, a sessão aberta e o último momento guardado. Fundo transparente; atualiza sozinho. <a href="/overlay/demo" target="_blank" rel="noreferrer">Ver como fica</a>.</p>
+      {mode !== 'supabase' ? <p className="faint">Disponível com conta.</p> : !url ? (
+        <button className="btn ghost" disabled={state === 'busy'} onClick={() => void make()}>{state === 'busy' ? 'Gerando…' : 'Gerar endereço para o OBS'}</button>
+      ) : (
+        <div className="radar__links">
+          <div className="radar__url"><input className="field" readOnly value={url} onFocus={(e) => e.currentTarget.select()} aria-label="Endereço do overlay" /><button className="btn quiet sm" onClick={() => void navigator.clipboard?.writeText(url)}>Copiar</button></div>
+          <p className="faint">No OBS: Fontes → + → Navegador → cole o endereço. Tamanho sugerido: 900 × 220. Quem tiver este endereço vê o jogo e o último momento, então não mostre na tela.</p>
+        </div>
+      )}
+      {state === 'error' && <p className="awards__error">Não consegui gerar agora. Tente de novo.</p>}
+    </section>
   );
 }

@@ -20,4 +20,35 @@ alter table public.ai_usage enable row level security;
 drop policy if exists "ai usage own read" on public.ai_usage;
 create policy "ai usage own read" on public.ai_usage for select to authenticated using (user_id = auth.uid());
 
+
+-- Trilhas: sequências de jogos com um fio, montadas pela administração (precisa da 0006, que cria is_admin()).
+create table if not exists public.trails (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  title text not null,
+  intro text,
+  published boolean not null default false,
+  position integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create table if not exists public.trail_items (
+  id uuid primary key default gen_random_uuid(),
+  trail_id uuid not null references public.trails (id) on delete cascade,
+  game_id text not null references public.games (id),
+  note text,
+  position integer not null default 0,
+  unique (trail_id, game_id)
+);
+alter table public.trails enable row level security;
+alter table public.trail_items enable row level security;
+drop policy if exists "trails read" on public.trails;
+create policy "trails read" on public.trails for select using (published or public.is_admin());
+drop policy if exists "trails admin" on public.trails;
+create policy "trails admin" on public.trails for all to authenticated using (public.is_admin()) with check (public.is_admin());
+drop policy if exists "trail items read" on public.trail_items;
+create policy "trail items read" on public.trail_items for select
+  using (exists (select 1 from public.trails t where t.id = trail_id and (t.published or public.is_admin())));
+drop policy if exists "trail items admin" on public.trail_items;
+create policy "trail items admin" on public.trail_items for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
 notify pgrst, 'reload schema';

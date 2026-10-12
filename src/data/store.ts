@@ -544,6 +544,15 @@ export const actions = {
     return id;
   },
 
+  /** Momento de antes (ex.: de uma captura de tela), na data em que aconteceu, sem sessão. */
+  addPastMoment(historyId: ID, data: { id?: ID; at: string; title?: string; text?: string; image?: string; imagePath?: string; precision?: DatePrecision }): ID | null {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return null;
+    const id = data.id ?? uid();
+    dispatch({ type: 'event.add', event: { id, journeyId: h.journeyId, historyId, kind: 'momento', at: data.at, precision: data.precision ?? 'dia', title: data.title || 'Captura de tela', text: data.text, image: data.image, imagePath: data.imagePath } });
+    return id;
+  },
+
   /* Foco ----------------------------------------------------------------- */
   /** Põe em foco. Retorna false quando já há três jogos em foco. */
   addFocus(journeyId: ID): boolean {

@@ -11,6 +11,7 @@ import { localDay } from '../lib/dates';
 import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
+import { Buddy, useBuddy } from './Buddy';
 
 export type Idea = {
   game: Game;
@@ -164,15 +165,12 @@ function shuffle<T>(a: T[], seed = 1): T[] {
   return x.slice(0, 40);
 }
 
-const buddyLines = [
-  'Eu tentei jogar isso uma vez. Fiquei preso no menu de pausa. Você vai se sair melhor.',
-  'Bip. Escolhi com a minha hélice. Ela sempre aponta pro norte. Ou pro sul. Varia.',
-  'Eu dirijo como jogo: com muita confiança e nenhum resultado.',
-  'Me escondi numa caixa de papelão pra pensar nessa dica. Ninguém me achou por dois dias.',
-  'Jogar junto é ótimo. Eu jogo junto comigo mesmo toda quinta.',
-];
-
 /** "O que jogar hoje?": uma ideia por vez, por dois caminhos, com o porquê à vista. */
+/** O mascote só aparece depois de três "Outra ideia" seguidos (e no máximo uma vez por dia). */
+function IndecisoBuddy() {
+  return <Buddy line={useBuddy('indeciso', true)} />;
+}
+
 export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJourneyId?: string; headingId?: string }) {
   const s = useStore((x) => x);
   const [path, setPath] = useState<'alcance' | 'descobrir'>('alcance');
@@ -266,10 +264,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
         <p className="what__empty">{empty ?? <>Nada por enquanto, e tudo bem. <Link to="/colecao">Adicione jogos à estante</Link> para receber ideias.</>}</p>
       )}
       {notice && <p className="what__notice muted" role="status">{notice}</p>}
-      <div className="buddy">
-        <img src="/brand/iamiguinho-icon.webp" alt="" />
-        <p><span className="buddy__name">IAmiguinho</span> <span className="buddy__tag">mascote</span>{buddyLines[(mood + alt) % buddyLines.length]}</p>
-      </div>
+      {alt >= 3 && <IndecisoBuddy />}
     </section>
   );
 }

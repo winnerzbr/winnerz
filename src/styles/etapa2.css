@@ -691,3 +691,75 @@
 .honor__plate span { color: var(--muted); }
 .honor__note { text-align: center; margin: 22px 0 0; font-size: 13px; }
 @media (max-width: 640px) { .honor__shelf { grid-template-columns: repeat(3, minmax(0, 1fr)); } .honor__shelf li:nth-child(n + 4) { display: none; } }
+
+/* ---- Etapa 4D: Modo leve --------------------------------------------------- */
+html[data-light='1'] .light-hide { display: none !important; }
+.buddy--pop { animation: wz-fade-up 0.5s both; position: relative; }
+.buddy__close { margin-left: auto; align-self: flex-start; background: none; border: 0; color: var(--faint); font-size: 18px; cursor: pointer; }
+.buddy--card { margin: 0 0 18px; padding: 14px 16px; border: 1px solid color-mix(in srgb, var(--ai) 35%, var(--line)); border-radius: 12px; background: var(--surface); }
+
+/* ---- Etapa 4D: Trilhas ------------------------------------------------------ */
+.trails__list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 14px; }
+.trail-card { display: flex; gap: 22px; align-items: center; padding: 18px 20px; color: var(--ink); text-decoration: none; flex-wrap: wrap; }
+.trail-card:hover { border-color: var(--line-2); }
+.trail-card__covers { display: flex; flex: none; }
+.trail-card__covers > span { width: 64px; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; margin-right: -18px; box-shadow: 0 8px 18px var(--shadow); border: 2px solid var(--surface); }
+.trail-card__covers > span.is-done { border-color: #c9a174; }
+.trail-card__covers img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trail-card__text { display: grid; gap: 4px; flex: 1 1 280px; padding-left: 18px; }
+.trail-card__text strong { font-size: 30px; }
+.trail__next { margin: 14px 0 0; font-size: 16px; }
+.trail__items { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 10px; counter-reset: none; }
+.trail__item { display: grid; grid-template-columns: 40px 72px 1fr auto; gap: 16px; align-items: center; padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.trail__item.is-next { border-color: var(--accent); }
+.trail__item.is-done { opacity: 0.85; }
+.trail__n { font-size: 32px; color: var(--faint); text-align: center; }
+.trail__item.is-done .trail__n { color: var(--accent-ink); }
+.trail__cover { display: block; width: 72px; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; }
+.trail__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trail__title { font-weight: 600; font-size: 17px; color: var(--ink); text-decoration: none; }
+.trail__text p { margin: 4px 0 0; font-size: 14px; }
+.trail__tag { padding: 3px 9px; border-radius: 999px; font: 600 12px var(--font-ui); border: 1px solid var(--line-2); color: var(--muted); }
+.trail__tag--done { color: #14110d; background: #c9a174; border-color: #c9a174; }
+.trail__edit { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.trail__edit .field { flex: 1 1 240px; min-width: 0; height: 34px; font-size: 13px; }
+.trail-editor { padding: 18px; display: grid; gap: 10px; margin: 10px 0; }
+.trail-editor label { display: grid; gap: 4px; }
+.trail-add { margin-top: 16px; padding: 16px; }
+@media (max-width: 560px) {
+  .trail__item { grid-template-columns: 28px 56px 1fr; }
+  .trail__tag { grid-column: 3; justify-self: start; }
+  .trail__cover { width: 56px; }
+  .trail__n { font-size: 24px; }
+}
+
+/* ---- Overlay de live (OBS) --------------------------------------------------- */
+html.is-overlay, html.is-overlay body { background: transparent !important; }
+.ovl { padding: 16px; font-family: var(--font-ui); color: #eee5d5; }
+.ovl--err { padding: 16px; color: #e58b6b; font: 600 16px var(--font-ui); }
+.ovl__card { display: inline-flex; align-items: center; gap: 18px; padding: 14px 20px 14px 14px; border-radius: 18px; background: rgba(13, 11, 10, 0.86); border: 1px solid rgba(227, 191, 138, 0.35); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45); max-width: 880px; animation: wz-fade-up 0.6s both; }
+.ovl__cover { width: 96px; height: 128px; object-fit: cover; border-radius: 10px; flex: none; }
+.ovl__info { display: grid; gap: 4px; min-width: 200px; }
+.ovl__k { display: inline-flex; gap: 8px; align-items: center; font: 700 12px var(--font-ui); letter-spacing: 0.14em; text-transform: uppercase; color: #c9a174; }
+.ovl__dot { width: 9px; height: 9px; border-radius: 50%; background: #46d9f2; box-shadow: 0 0 10px #46d9f2; animation: ovl-pulse 1.6s ease-in-out infinite; }
+@keyframes ovl-pulse { 50% { opacity: 0.35; } }
+.ovl__title { font: 44px/1 var(--font-title); letter-spacing: 0.01em; }
+.ovl__sub { color: #cfc6b6; font-size: 15px; }
+.ovl__moment { display: flex; gap: 12px; align-items: center; padding-left: 18px; border-left: 1px solid rgba(255, 255, 255, 0.12); max-width: 320px; }
+.ovl__moment img { width: 132px; height: 76px; object-fit: cover; border-radius: 8px; flex: none; }
+.ovl__moment > span { display: grid; gap: 4px; }
+.ovl__mt { font-size: 16px; font-weight: 600; line-height: 1.25; }
+.ovl__logo { width: 52px; opacity: 0.9; margin-left: 4px; }
+
+/* ---- Capturas de tela -------------------------------------------------------- */
+.tl-toolbar__right { display: flex; gap: 8px; flex-wrap: wrap; }
+.caps__list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; max-height: 52vh; overflow-y: auto; }
+.caps__list li { display: grid; grid-template-columns: 120px 1fr auto; gap: 12px; align-items: center; padding: 8px; border-radius: 10px; background: var(--surface-2); }
+.caps__list li.is-off { opacity: 0.45; }
+.caps__list img { width: 120px; height: 68px; object-fit: cover; border-radius: 6px; }
+.caps__fields { display: grid; gap: 4px; min-width: 0; }
+.caps__fields .field { height: 34px; font-size: 13px; }
+.caps__src { font-size: 12px; }
+.caps__src.is-check { color: var(--accent-ink); }
+.caps__keep { display: flex; gap: 6px; align-items: center; font-size: 13px; }
+@media (max-width: 560px) { .caps__list li { grid-template-columns: 80px 1fr; } .caps__list img { width: 80px; height: 46px; } .caps__keep { grid-column: 2; } }

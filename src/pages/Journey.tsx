@@ -3,6 +3,9 @@ import { ShareCardButton } from '../components/ShareCard';
 import { say as toneLine } from '../lib/tone';
 import { ConfirmButton } from '../components/Sheet';
 import { Previously, CapsuleSheet, CAPSULE_FIELDS } from '../components/Retomada';
+import { Buddy, useBuddy } from '../components/Buddy';
+import { CaptureImportSheet } from '../components/CaptureImport';
+import { recapFor } from '../lib/recap';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
@@ -79,6 +82,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [progress, setProgress] = useState(current.progress ?? 0);
   const [menu, setMenu] = useState(false);
   const [capsuleOpen, setCapsuleOpen] = useState(false);
+  const [captures, setCaptures] = useState(false);
   const [editHist, setEditHist] = useState<string | null>(null);
   const [editEvent, setEditEvent] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
@@ -146,11 +150,12 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         </div>
         <div className="journey__side">
-          <dl className="journey__stats">
+          <dl className="journey__stats light-hide">
             <div><dt>Histórias</dt><dd className="t">{histories.length}</dd></div>
             <div><dt>Sessões</dt><dd className="t">{totalSessions}</dd></div>
-            <div><dt>Momentos</dt><dd className="t">{moments}</dd></div>
-            <div><dt>Para voltar</dt><dd className="t">{waypoints.length}</dd></div>
+            {/* A tela se adapta ao que você registra: contadores zerados não aparecem. */}
+            {moments > 0 && <div><dt>Momentos</dt><dd className="t">{moments}</dd></div>}
+            {waypoints.length > 0 && <div><dt>Para voltar</dt><dd className="t">{waypoints.length}</dd></div>}
           </dl>
           <div className="journey__cta">
             <button className={`btn lg ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick}>
@@ -170,6 +175,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       </div>
 
       {isOpenState(current.state) && <Previously journeyId={journeyId} showCapsule={false} />}
+      {isOpenState(current.state) && <BackBuddy journeyId={journeyId} />}
 
       {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
         <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
@@ -227,8 +233,12 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             {FILTERS.map(([id, label]) => <button key={id} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}
           </div>
         </div>
-        <button className="btn ghost" onClick={() => setFull(true)}><Icon name="telaCheia" size={16} />Tela cheia</button>
+        <div className="tl-toolbar__right">
+          <button className="btn ghost" onClick={() => setCaptures(true)}><Icon name="camera" size={16} />Capturas de tela</button>
+          <button className="btn ghost" onClick={() => setFull(true)}><Icon name="telaCheia" size={16} />Tela cheia</button>
+        </div>
       </div>
+      {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
 
       {visible.length === 0 ? (
         <p className="card tl-empty">Nada deste tipo nesta Jornada ainda.</p>
@@ -488,4 +498,11 @@ function SimpleTimeline({ stops, histories, full, onExitFull, title, onEdit }: {
       )}
     </section>
   );
+}
+
+/** Depois de um mês longe do jogo, o mascote dá as boas-vindas (no máximo uma vez por semana por jogo). */
+function BackBuddy({ journeyId }: { journeyId: string }) {
+  const s = useStore((x) => x);
+  const r = recapFor(s, journeyId);
+  return <Buddy line={useBuddy('voltou', (r?.daysAway ?? 0) >= 30, journeyId)} className="buddy--card" />;
 }

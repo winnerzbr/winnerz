@@ -36,6 +36,7 @@ let v4 = false;
 /** A migração 0006 já rodou? */
 let v6 = false;
 export function schemaV6() { return v6; }
+let v8 = false;
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -99,12 +100,12 @@ const historyFromRow = (r: any): History => ({
   mode: r.mode ?? undefined,
   letter: r.letter_text ? { text: r.letter_text, openedAt: r.letter_opened_at ?? undefined } : undefined,
   startedPrecision: r.started_precision ?? undefined, completedPrecision: r.completed_precision ?? undefined,
-  hours: r.hours != null ? Number(r.hours) : undefined, note: r.note ?? undefined,
+  hours: r.hours != null ? Number(r.hours) : undefined, note: r.note ?? undefined, capsule: r.capsule ?? undefined,
 });
 const sessionFromRow = (r: any): Session => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, startedAt: r.started_at,
   endedAt: r.ended_at ?? undefined, minutes: r.minutes ?? undefined, note: r.note ?? undefined,
-  whereStopped: r.where_stopped ?? undefined, feeling: r.feeling ?? undefined,
+  whereStopped: r.where_stopped ?? undefined, feeling: r.feeling ?? undefined, companions: r.companions?.length ? r.companions : undefined,
 });
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
@@ -140,10 +141,12 @@ const historyToRow = (h: History) => ({
   started_at: h.startedAt, completed_at: h.completedAt ?? null, progress: h.progress ?? null, mode: h.mode ?? null,
   letter_text: h.letter?.text ?? null, letter_opened_at: h.letter?.openedAt ?? null,
   ...(v4 ? { started_precision: h.startedPrecision ?? 'dia', completed_precision: h.completedPrecision ?? 'dia', hours: h.hours ?? null, note: h.note ?? null } : {}),
+  ...(v8 ? { capsule: h.capsule ?? null } : {}),
 });
 const sessionToRow = (x: Session) => ({
   id: x.id, journey_id: x.journeyId, history_id: x.historyId, started_at: x.startedAt, ended_at: x.endedAt ?? null,
   minutes: x.minutes ?? null, note: x.note ?? null, where_stopped: x.whereStopped ?? null, feeling: x.feeling ?? null,
+  ...(v8 ? { companions: x.companions?.length ? x.companions : null } : {}),
 });
 const eventToRow = (e: TimelineEvent) => {
   const row: Record<string, unknown> = {
@@ -229,6 +232,7 @@ export const supabaseAdapter: Adapter = {
     const probe = await sb.from('my_games').select('game_id').limit(1);
     v4 = !probe.error;
     v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
+    v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
     const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),
@@ -263,6 +267,7 @@ export const supabaseAdapter: Adapter = {
       prefs: { ...base.prefs, ...(p?.prefs ?? {}) },
       schemaV4: v4,
       schemaV6: v6,
+      schemaV8: v8,
       isAdmin: !!p?.is_admin,
       loadIncomplete,
       myGames: Object.fromEntries(mine.data.map((m: any) => [m.game_id, myGameFromRow(m)])),

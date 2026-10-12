@@ -105,6 +105,18 @@ export interface History {
   hours?: number;
   /** Um recado sobre o estado (ex.: por que largou). */
   note?: string;
+  /** Cápsula de Retomada: o que você precisa saber para voltar. */
+  capsule?: Capsule;
+}
+
+/** Cápsula de Retomada. Tudo opcional. `ai` = partiu de uma sugestão da IA que você confirmou. */
+export interface Capsule {
+  where?: string;
+  doing?: string;
+  next?: string;
+  remember?: string;
+  ai?: boolean;
+  updatedAt?: string;
 }
 
 export type JourneyMood = 'jogando' | 'silencioso' | 'pausado';
@@ -126,6 +138,8 @@ export interface Session {
   note?: string; // recado para a próxima vez
   whereStopped?: string;
   feeling?: string;
+  /** Com quem você jogou (nomes livres). */
+  companions?: string[];
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';
@@ -203,6 +217,8 @@ export interface State {
   schemaV4: boolean;
   /** A migração 0006 (Etapa 3 e Awards) já rodou? */
   schemaV6?: boolean;
+  /** A migração 0008 (Etapa 4: Cápsula, companhia, uso da IA) já rodou? */
+  schemaV8?: boolean;
   /** Administração (monta os Awards). */
   isAdmin?: boolean;
   /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */

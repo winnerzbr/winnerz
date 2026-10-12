@@ -10,21 +10,9 @@ import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebr
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop, useBackdrop } from '../components/Backdrop';
-
-/** Reduz a foto antes de enviar: 1080 px no lado maior, JPEG ~150 KB. */
-async function shrink(file: File, max = 1080): Promise<Blob> {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
-    const k = Math.min(1, max / Math.max(img.width, img.height));
-    const c = document.createElement('canvas');
-    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-    c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-    return await new Promise<Blob>((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('foto'))), 'image/jpeg', 0.8));
-  } finally { URL.revokeObjectURL(url); }
-}
-
-const toDataUrl = (b: Blob) => new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(b); });
+import { shrink, toDataUrl } from '../lib/image';
+import { Previously, CapsuleSheet } from '../components/Retomada';
+import { recapFor, wantsRecap } from '../lib/recap';
 
 type Draft = { kind: 'momento' | 'ponto'; blob?: Blob; preview?: string; title: string; note: string };
 
@@ -79,6 +67,7 @@ export function SessionPage() {
   });
   useEffect(() => { if (location.search.includes('acao=')) navigate('/sessao', { replace: true }); }, []);
   const [viewer, setViewer] = useState<number | null>(null);
+  const [capsuleOpen, setCapsuleOpen] = useState(false);
   const photoKind = useRef<'momento' | 'ponto'>('momento');
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -105,6 +94,7 @@ export function SessionPage() {
   const h = s.histories.find((x) => x.id === session.historyId)!;
   const n = sessionsOf(s, h.id).findIndex((x) => x.id === session.id) + 1;
   const prevNote = lastNote(s, j.id);
+  const recap = recapFor(s, j.id);
   const here = s.events.filter((e) => e.sessionId === session.id);
   const say = (text: string) => setToast({ id: Date.now(), text });
 
@@ -163,7 +153,7 @@ export function SessionPage() {
 
       {!finishing ? (
         <div className="session__body">
-          {prevNote?.note && (
+          {recap && wantsRecap(recap) ? <Previously journeyId={j.id} always onEditCapsule={() => setCapsuleOpen(true)} /> : prevNote?.note && (
             <div className="session__note"><div className="session__note-k">Seu recado de {longDay(prevNote.startedAt).split(',')[0]}</div><div className="quote">“{prevNote.note}”</div></div>
           )}
           <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
@@ -172,6 +162,7 @@ export function SessionPage() {
             <button className="tile" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={24} />Quero voltar aqui</button>
             <button className="tile" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={24} />Anotar sem foto</button>
             <button className="tile" onClick={() => setFinishing(true)}><Icon name="mensagem" size={24} />Recado para a próxima vez</button>
+            <button className="tile" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={24} />Cápsula de Retomada</button>
           </div>
           {here.length > 0 && (
             <div>
@@ -196,6 +187,7 @@ export function SessionPage() {
           onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
         />
       )}
+      {capsuleOpen && <CapsuleSheet historyId={h.id} gameTitle={g.title} onClose={() => setCapsuleOpen(false)} />}
       {draft && <MomentSheet draft={draft} onChange={setDraft} onPhoto={() => fileInput.current?.click()} onCancel={() => { if (draft.preview) URL.revokeObjectURL(draft.preview); setDraft(null); }} onSave={() => saveDraft(draft)} />}
       {viewer !== null && herePhotos.length > 0 && <PhotoViewer title={g.title} items={herePhotos.map((e) => ({ kind: 'image' as const, src: e.image!, label: e.title }))} start={Math.max(0, viewer)} onClose={() => setViewer(null)} />}
       {toast && <Toast key={toast.id} text={toast.text} />}

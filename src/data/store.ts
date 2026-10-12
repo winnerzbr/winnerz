@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule } from './types';
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
 
@@ -329,6 +329,9 @@ export function closedBy(s: State, e: TimelineEvent): History | null {
   return end?.id === e.id ? h : null;
 }
 
+/** A migração 0008 (Etapa 4) já rodou? No modo demonstração, sempre. */
+export const hasV8 = (s: State) => s.mode === 'demo' || !!s.schemaV8;
+
 export const MAX_FOCUS = 3;
 
 /**
@@ -496,6 +499,16 @@ export const actions = {
       const start = eventsOf(state, h.journeyId).find((e) => e.historyId === historyId && e.kind === 'inicio');
       if (start) dispatch({ type: 'event.update', eventId: start.id, patch: { at: patch.startedAt ?? start.at, precision: patch.startedPrecision ?? start.precision } });
     }
+  },
+
+  /** Guarda a Cápsula de Retomada da História (campos vazios saem). */
+  setCapsule(historyId: ID, capsule: Capsule) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const clean = Object.fromEntries(Object.entries(capsule).filter(([k, v]) => k === 'ai' ? v : typeof v === 'string' ? v.trim() : v != null).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])) as Capsule;
+    const empty = !clean.where && !clean.doing && !clean.next && !clean.remember;
+    track(capsule.ai ? 'retomada.capsula-ia' : 'retomada.capsula');
+    dispatch({ type: 'history.update', history: { ...h, capsule: empty ? undefined : { ...clean, updatedAt: nowIso() } } });
   },
 
   deleteHistory(historyId: ID) {

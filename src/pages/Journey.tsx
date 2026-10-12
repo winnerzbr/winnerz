@@ -1,8 +1,9 @@
 import { ConfirmButton } from '../components/Sheet';
+import { Previously, CapsuleSheet, CAPSULE_FIELDS } from '../components/Retomada';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys } from '../data/store';
+import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys, isOpenState } from '../data/store';
 import { playStateFor } from '../components/PlayButton';
 import { PhotoViewer } from '../components/MediaGallery';
 import type { TimelineEvent, EventKind, History } from '../data/types';
@@ -74,6 +75,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [wpViewer, setWpViewer] = useState<number | null>(null);
   const [progress, setProgress] = useState(current.progress ?? 0);
   const [menu, setMenu] = useState(false);
+  const [capsuleOpen, setCapsuleOpen] = useState(false);
   const [editHist, setEditHist] = useState<string | null>(null);
   const [editEvent, setEditEvent] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
@@ -160,6 +162,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         </div>
       </div>
 
+      {isOpenState(current.state) && <Previously journeyId={journeyId} showCapsule={false} />}
+
       {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
         <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
           <div>
@@ -172,6 +176,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         </section>
       )}
+
+      {capsuleOpen && <CapsuleSheet historyId={current.id} gameTitle={game.title} onClose={() => setCapsuleOpen(false)} />}
 
       {current.state === 'dropada' || current.state === 'encerrada' ? null : current.state !== 'concluida' ? (
         <section className="card progress-card" aria-labelledby="prog-label">
@@ -227,9 +233,15 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
       <div className="journey__below">
         <section aria-labelledby="capsula" className="capsule">
-          <h2 id="capsula" className="t">Onde você parou</h2>
-          <p className="muted">Montado com o que você registrou. Nada aqui foi inventado.</p>
+          <div className="capsule__top">
+            <h2 id="capsula" className="t">Onde você parou</h2>
+            {current.state !== 'concluida' && <button className="btn ghost sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula de Retomada'}</button>}
+          </div>
+          <p className="muted">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
           <div className="capsule__rows">
+            {current.capsule && CAPSULE_FIELDS.map((f) => current.capsule![f.key] && (
+              <div key={f.key} className="capsule__row"><div className="capsule__k k-you">{f.label}</div><div>{current.capsule![f.key]}</div></div>
+            ))}
             {note?.note ? (
               <div className="capsule__row"><div className="capsule__k k-you">Você escreveu</div><div className="quote capsule__note">{note.note}</div></div>
             ) : (

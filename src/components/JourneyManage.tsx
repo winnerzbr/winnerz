@@ -1,6 +1,7 @@
+import { say as toneLine } from '../lib/tone';
 import { useState } from 'react';
 import { navigate } from '../lib/router';
-import { actions, useStore, historiesOf, currentHistory } from '../data/store';
+import { getState, actions, useStore, historiesOf, currentHistory } from '../data/store';
 import type { History } from '../data/types';
 import { Sheet, ConfirmButton } from './Sheet';
 import { DateField, type WhenValue } from './DateField';
@@ -100,13 +101,13 @@ export function JourneyMenu({ journeyId, onClose, onEditHistory, onStateChanged 
           )}
           {cur.state === 'pausada' && (
             <>
-              <button className="jstate" onClick={() => set('ativa', 'De volta à História.')}><strong>Retomar</strong><span>Volta para Jogando agora.</span></button>
+              <button className="jstate" onClick={() => set('ativa', toneLine('retomou', getState().prefs.tone))}><strong>Retomar</strong><span>Volta para Jogando agora.</span></button>
               <button className="jstate" onClick={() => set('dropada', 'Largado, sem culpa.')}><strong>Largar</strong><span>Não vou continuar por agora.</span></button>
               <button className="jstate" onClick={() => set('encerrada', 'Encerrado do seu jeito.')}><strong>Encerrar sem zerar</strong><span>Terminei do meu jeito.</span></button>
             </>
           )}
           {(cur.state === 'dropada' || cur.state === 'encerrada') && (
-            <button className="jstate" onClick={() => set('ativa', 'De volta à História.')}><strong>Retomar esta História</strong><span>Continua de onde parou.</span></button>
+            <button className="jstate" onClick={() => set('ativa', toneLine('retomou', getState().prefs.tone))}><strong>Retomar esta História</strong><span>Continua de onde parou.</span></button>
           )}
           {cur.state === 'concluida' && <p className="muted">História zerada. Para jogar de novo, toque em Jogar de novo: uma nova História começa e esta fica guardada.</p>}
         </div>

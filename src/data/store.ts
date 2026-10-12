@@ -332,6 +332,13 @@ export function closedBy(s: State, e: TimelineEvent): History | null {
 /** A migração 0008 (Etapa 4) já rodou? No modo demonstração, sempre. */
 export const hasV8 = (s: State) => s.mode === 'demo' || !!s.schemaV8;
 
+/** Nomes de quem já jogou com você, dos mais frequentes aos menos (para sugerir na sessão). */
+export function knownCompanions(s: State): string[] {
+  const n = new Map<string, number>();
+  for (const x of s.sessions) for (const c of x.companions ?? []) n.set(c, (n.get(c) ?? 0) + 1);
+  return [...n].sort((a, b) => b[1] - a[1]).map(([k]) => k).slice(0, 12);
+}
+
 export const MAX_FOCUS = 3;
 
 /**
@@ -593,13 +600,16 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[] }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
     const n = sessionsOf(state, ses.historyId).findIndex((x) => x.id === sessionId) + 1;
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes: data.minutes };
-    const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text: done.whereStopped ? `Parou em: ${done.whereStopped}.` : undefined };
+    const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes: data.minutes, companions: companions.length ? companions : undefined };
+    const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
+    const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText].filter(Boolean).join(' ') || undefined;
+    const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text };
     dispatch({ type: 'session.finish', session: done, event, progress: data.progress != null ? { historyId: ses.historyId, value: data.progress } : undefined });
   },
 

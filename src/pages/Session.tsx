@@ -1,7 +1,8 @@
+import { ShareCardButton } from '../components/ShareCard';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions } from '../data/store';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -11,6 +12,8 @@ import { dayMonthYear, hourMin, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop, useBackdrop } from '../components/Backdrop';
 import { shrink, toDataUrl } from '../lib/image';
+import { say as toneLine } from '../lib/tone';
+import { celebrateSmall } from '../components/MiniCelebration';
 import { Previously, CapsuleSheet } from '../components/Retomada';
 import { recapFor, wantsRecap } from '../lib/recap';
 
@@ -116,7 +119,7 @@ export function SessionPage() {
     const title = d.title.trim() || undefined;
     const note = d.note.trim() || undefined;
     const fields = kind === 'ponto' ? { title, text: note } : { title, quote: note };
-    const done = kind === 'ponto' ? 'Ponto para voltar criado. Ele aparece na retomada.' : 'Momento guardado na sua linha do tempo.';
+    const done = toneLine(kind === 'ponto' ? 'ponto' : 'momento', s.prefs.tone, Date.now());
     if (!d.blob) { actions.addMoment(session.id, { ...fields, kind }); say(done); return; }
     const sb = SUPABASE_ON && s.profile ? await import('../data/supabaseAdapter') : null;
     if (sb?.photoStorageReady()) {
@@ -183,7 +186,18 @@ export function SessionPage() {
         <FinishForm
           progress={h.progress ?? 0}
           onCancel={() => setFinishing(false)}
-          onFinish={(data) => { actions.finishSession(session.id, data); navigate(`/jornada/${g.slug}`); }}
+          companions={knownCompanions(s)}
+          onFinish={(data) => {
+            // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
+            const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
+            const before = h.progress ?? 0, after = data.progress ?? before;
+            actions.finishSession(session.id, data);
+            const tone = s.prefs.tone;
+            if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
+            else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
+            else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
+            navigate(`/jornada/${g.slug}`);
+          }}
           onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
         />
       )}
@@ -195,7 +209,11 @@ export function SessionPage() {
   );
 }
 
-function FinishForm({ progress, onFinish, onZerei, onCancel }: { progress: number; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number }) => void; onZerei: (d: { note?: string }) => void; onCancel: () => void }) {
+function FinishForm({ progress, companions: known, onFinish, onZerei, onCancel }: { progress: number; companions: string[]; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number; companions?: string[] }) => void; onZerei: (d: { note?: string; companions?: string[] }) => void; onCancel: () => void }) {
+  const [withWho, setWithWho] = useState<string[]>([]);
+  const [who, setWho] = useState('');
+  const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
+  const toggleWho = (name: string) => setWithWho(withWho.includes(name) ? withWho.filter((x) => x !== name) : [...withWho, name]);
   const [p, setP] = useState(progress);
   const [where, setWhere] = useState('');
   const [note, setNote] = useState('');
@@ -214,9 +232,17 @@ function FinishForm({ progress, onFinish, onZerei, onCancel }: { progress: numbe
       <div className="chips" role="group" aria-label="Como foi hoje">
         {FEELINGS.map((f) => <button key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
       </div>
-      <button className="finish__zerei" onClick={() => onZerei({ note: note || undefined })}>Zerei a campanha nesta sessão</button>
+      <div className="finish__label">Com quem você jogou? <span className="faint">(opcional)</span></div>
+      <div className="chips who" role="group" aria-label="Com quem você jogou">
+        {[...new Set([...known, ...withWho])].map((c) => <button key={c} className="chip" aria-pressed={withWho.includes(c)} onClick={() => toggleWho(c)}>{c}</button>)}
+        <form className="who__add" onSubmit={(e) => { e.preventDefault(); addWho(who); }}>
+          <input className="field" value={who} onChange={(e) => setWho(e.target.value)} placeholder="Um nome (ex.: Ana)" aria-label="Adicionar pessoa" maxLength={40} />
+          <button className="btn ghost sm" disabled={!who.trim()}>Adicionar</button>
+        </form>
+      </div>
+      <button className="finish__zerei" onClick={() => onZerei({ note: note || undefined, companions: withWho })}>Zerei a campanha nesta sessão</button>
       <div className="finish__actions">
-        <button className="btn primary lg" onClick={() => onFinish({ note, whereStopped: where, feeling: feel, progress: p !== progress ? p : undefined })}>Salvar e finalizar</button>
+        <button className="btn primary lg" onClick={() => onFinish({ note, whereStopped: where, feeling: feel, progress: p !== progress ? p : undefined, companions: withWho })}>Salvar e finalizar</button>
         <button className="btn quiet" onClick={() => onFinish({})}>Finalizar sem adicionar nada</button>
       </div>
     </div>
@@ -232,12 +258,12 @@ function Celebrated({ historyId, onClose }: { historyId: string; onClose: () => 
   const img = [...s.events].filter((e) => e.journeyId === j.id && e.image).sort((a, b) => b.at.localeCompare(a.at))[0]?.image ?? bg ?? g.cover;
   void currentHistory;
   return (
-    <Celebration title="História concluída" subtitle={`${g.title}. De ${dayMonthYear(h.startedAt)} a hoje.`} onClose={onClose}>
+    <Celebration title={toneLine('zerou', s.prefs.tone)} subtitle={`${g.title}. De ${dayMonthYear(h.startedAt)} a hoje. ${toneLine('zerouSub', s.prefs.tone)}`} onClose={onClose}>
       <div className="celebration__gifts">
         <PersonalSticker image={img} title={h.ordinal > 1 ? `Fim da ${h.title}` : 'Primeira vez'} />
         {h.letter && <SealedLetter text={h.letter.text} date={dayMonthYear(h.startedAt)} opened={false} onOpen={() => actions.openLetter(h.id)} />}
       </div>
-      <div className="celebration__actions"><Link className="btn primary lg" to={`/jogos/${g.slug}#analise`}>{s.reviews.some((r) => r.gameId === g.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link></div>
+      <div className="celebration__actions"><Link className="btn primary lg" to={`/jogos/${g.slug}#analise`}>{s.reviews.some((r) => r.gameId === g.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link><ShareCardButton game={g} history={h} /></div>
       <WhatNext game={g} />
     </Celebration>
   );

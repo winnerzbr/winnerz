@@ -1,3 +1,4 @@
+import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
 import { Stars } from '../components/Stars';
 import { darkTokens } from '../lib/theme';
@@ -83,6 +84,19 @@ export function Preferences() {
             <label key={id} className="motion" data-on={prefs.motion === id}>
               <input type="radio" name="mov" checked={prefs.motion === id} onChange={() => actions.setPrefs({ motion: id })} />
               <span><strong>{label}</strong><span className="muted">{desc}</span></span>
+            </label>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="tom" className="prefs__section">
+        <h2 id="tom" className="t">Tom das celebrações</h2>
+        <p className="muted">Como o WinnerZ comemora com você. A festa grande fica só para quando você zera; os outros marcos ganham uma mensagem curta.</p>
+        <div role="radiogroup" aria-labelledby="tom" className="motions">
+          {TONES.map((t) => (
+            <label key={t.id} className="motion" data-on={(prefs.tone ?? 'encorajadora') === t.id}>
+              <input type="radio" name="tom" checked={(prefs.tone ?? 'encorajadora') === t.id} onChange={() => actions.setPrefs({ tone: t.id })} />
+              <span><strong>{t.label}</strong><span className="muted">{t.desc} Ex.: “{t.sample}”</span></span>
             </label>
           ))}
         </div>

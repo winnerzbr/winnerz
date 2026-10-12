@@ -4,6 +4,7 @@ import { useStore, openSession } from './data/store';
 import { applyPrefs, brand } from './lib/theme';
 import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
+import { MiniCelebrationHost } from './components/MiniCelebration';
 import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
@@ -104,6 +105,7 @@ export function App() {
       )}
       {hasSession && !isSession && <SessionDock />}
       <PastSheetHost />
+      <MiniCelebrationHost />
       <CommandPalette />
     </>
   );

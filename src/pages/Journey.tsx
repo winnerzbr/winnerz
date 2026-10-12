@@ -1,3 +1,6 @@
+import { celebrateSmall } from '../components/MiniCelebration';
+import { ShareCardButton } from '../components/ShareCard';
+import { say as toneLine } from '../lib/tone';
 import { ConfirmButton } from '../components/Sheet';
 import { Previously, CapsuleSheet, CAPSULE_FIELDS } from '../components/Retomada';
 import { WhatNext } from '../components/WhatNext';
@@ -105,7 +108,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const groups = FILTERS.find((f) => f[0] === filter)![2];
   const visible = stops.filter((x) => (groups ? x.kind !== 'gap' && groups.includes(x.kind as StopKind) : true));
 
-  const commitProgress = (v: number) => { actions.setProgress(current.id, v); setSaved((n) => n + 1); };
+  const commitProgress = (v: number) => {
+    const before = current.progress ?? 0;
+    actions.setProgress(current.id, v); setSaved((n) => n + 1);
+    if (before < 50 && v >= 50 && v < 100) celebrateSmall('Metade do caminho', toneLine('metade', s.prefs.tone));
+  };
 
   const zerei = () => {
     const h = current;
@@ -171,7 +178,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             {current.note ? <p className="quote">“{current.note}”</p> : <p className="muted">{current.state === 'pausada' ? 'Sem pressa. Ele espera.' : 'Sem julgamento. Dá para retomar quando quiser.'}</p>}
           </div>
           <div className="state-card__actions">
-            <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'ativa'); stateChanged(current.id, 'De volta à História.'); }}>Retomar</button>
+            <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'ativa'); stateChanged(current.id, toneLine('retomou', s.prefs.tone)); }}>Retomar</button>
             <button className="btn quiet sm" onClick={() => setNoteFor(current.id)}>{current.note ? 'Editar recado' : 'Escrever por quê'}</button>
           </div>
         </section>
@@ -275,8 +282,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
       {celebrating && (
         <Celebration
-          title="História concluída"
-          subtitle={`${game.title}${celebrating.ordinal > 1 ? `, sua ${celebrating.title}` : ''}. De ${dayMonthYear(celebrating.startedAt)} a hoje.${histories.length > 1 ? ' As outras Histórias continuam guardadas ao lado.' : ''}`}
+          title={toneLine('zerou', s.prefs.tone)}
+          subtitle={`${game.title}${celebrating.ordinal > 1 ? `, sua ${celebrating.title}` : ''}. De ${dayMonthYear(celebrating.startedAt)} a hoje. ${toneLine('zerouSub', s.prefs.tone)}`}
           onClose={() => setCelebrating(null)}
         >
           <div className="celebration__gifts">
@@ -287,6 +294,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
           <div className="celebration__actions">
             <Link className="btn primary lg" to={`/jogos/${game.slug}#analise`} onClick={() => setCelebrating(null)}>{s.reviews.some((r) => r.gameId === game.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link>
+            <ShareCardButton game={game} history={celebrating} />
           </div>
           <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>

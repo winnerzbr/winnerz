@@ -188,7 +188,13 @@ export interface Prefs {
   focusIds?: ID[];
   /** Fundo escolhido pela pessoa para cada jogo ("Usar como fundo" na galeria). */
   backdrops?: Record<ID, string>;
+  /** Tom das celebrações e mensagens. */
+  tone?: Tone;
+  /** Modo leve: esconde contadores e números (sessões, horas, porcentagens). */
+  light?: boolean;
 }
+
+export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';
 
 export interface Profile {
   id: ID;

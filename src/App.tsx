@@ -27,6 +27,8 @@ import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
 import { ComingSoon } from './pages/ComingSoon';
+import { EventsIndex, AwardsPage } from './pages/Awards';
+import { AwardsAdminPage } from './pages/AwardsAdmin';
 
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
@@ -48,7 +50,9 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/sessao', path)) return <SessionPage />;
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <ComingSoon pillar="Comunidade" />;
-  if (match('/eventos', path)) return <ComingSoon pillar="Eventos" />;
+  if (match('/eventos', path)) return <EventsIndex />;
+  if (match('/eventos/awards', path)) return <AwardsPage />;
+  if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   return (
     <main className="page" style={{ padding: '96px 32px' }}>
       <h1 className="t" style={{ fontSize: 72 }}>Página não encontrada</h1>

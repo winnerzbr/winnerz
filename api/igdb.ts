@@ -6,6 +6,7 @@
  *   GET /api/igdb?id=119133         → ficha completa; também grava no cache "games" do Supabase
  *   POST /api/igdb {match:[{title}]} → até 10 buscas numa chamada (importador da planilha)
  *   POST /api/igdb {cache:[ids]}     → fichas leves de até 100 jogos, gravadas no cache
+ *   POST /api/igdb {facts:[ids]}     → só tempo para zerar, data, temas e modos de fichas que já existem
  *   GET /api/igdb?slug=elden-ring    → ficha completa pelo slug do IGDB (abre qualquer jogo)
  *   GET /api/igdb?meta=1             → listas para os filtros (gêneros, plataformas, modos)
  *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, plataforma, época, modo e ordem
@@ -258,6 +259,34 @@ async function matchMany(items: { title: string }[]) {
 }
 
 /** Importador: fichas leves (sem sinopse), gravadas no cache. A ficha completa vem quando a página do jogo abre. */
+/**
+ * Só os fatos que o DNA e o "O que jogar" usam (tempo para zerar, data, temas, modos), gravados por cima
+ * das fichas que já existem. Não mexe em capa, título, gêneros nem no resto.
+ */
+async function factsMany(ids: number[]) {
+  const clean = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
+  const c = db();
+  if (!clean.length) return [];
+  const rows = await igdb('games', `where id = (${clean.join(',')}); fields id,first_release_date,themes.name,game_modes.name,player_perspectives.name; limit 100;`);
+  const ttb = await timesToBeat(rows.map((r: any) => r.id));
+  const out = rows.map((g: any) => ({
+    igdb_id: g.id as number,
+    ttb: ttb.get(g.id) ?? null,
+    released_on: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
+    themes: (g.themes ?? []).map((x: any) => x.name),
+    modes: [...(g.game_modes ?? []), ...(g.player_perspectives ?? [])].map((x: any) => x.name),
+  }));
+  if (c) {
+    for (let i = 0; i < out.length; i += 10) {
+      await Promise.all(out.slice(i, i + 10).map((r: any) => {
+        const { igdb_id, ...patch } = r;
+        return fetch(`${c.url}/rest/v1/games?igdb_id=eq.${igdb_id}`, { method: 'PATCH', headers: { ...c.headers, Prefer: 'return=minimal' }, body: JSON.stringify(patch) }).catch(() => null);
+      }));
+    }
+  }
+  return out;
+}
+
 async function cacheMany(ids: number[]) {
   const clean = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
   if (!clean.length) return [];
@@ -438,7 +467,12 @@ async function radar(ids: number[]): Promise<Record<number, RadarInfo>> {
   let games: any[];
   try { games = await igdb('games', `where id = (${clean.join(',')}); fields id,first_release_date,game_status.status; limit 100;`); }
   catch { games = await igdb('games', `where id = (${clean.join(',')}); fields id,first_release_date,status; limit 100;`); }
-  const dates: any[] = await igdb('release_dates', `where game = (${clean.join(',')}); fields *,status.name,platform.name; limit 500;`);
+  // Jogos lançados têm muitas datas (uma por região e plataforma): lotes de 20 jogos para não passar do limite de 500 linhas.
+  const dates: any[] = [];
+  for (let i = 0; i < clean.length; i += 20) {
+    if (i) await sleep(260);
+    dates.push(...(await igdb('release_dates', `where game = (${clean.slice(i, i + 20).join(',')}); fields *,status.name,platform.name; sort date asc; limit 500;`)));
+  }
   const now = Date.now() / 1000;
   const out: Record<number, RadarInfo> = {};
   for (const g of games) {
@@ -574,7 +608,7 @@ async function steamLibrary(input: string): Promise<{ steamId: string; games: St
 export default async function handler(req: Req, res: Res) {
   try {
     if (req.method === 'POST') {
-      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; radarLink?: boolean; steam?: string };
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; facts?: number[]; radarLink?: boolean; steam?: string };
       if (body.radarLink || typeof body.steam === 'string') {
         const user = await requireUser(req);
         if (!user) return res.status(401).json({ error: 'Entre na sua conta para usar isto.' });
@@ -584,6 +618,7 @@ export default async function handler(req: Req, res: Res) {
       }
       if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match));
       if (Array.isArray(body.cache)) return res.status(200).json(await cacheMany(body.cache));
+      if (Array.isArray(body.facts)) return res.status(200).json(await factsMany(body.facts));
       return res.status(400).json({ error: 'Envie {match:[...]} ou {cache:[...]}' });
     }
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';

@@ -42,15 +42,16 @@ export function RadarPage() {
   const cands = useMemo(() => wishCandidates(s, today), [s, today]);
   const [info, setInfo] = useState<Record<number, RadarInfo>>({});
   const [loading, setLoading] = useState(false);
+  const canTrack = s.schemaV6 || s.mode === 'demo';
   const ids = [...games, ...cands].map((g) => g.igdbId).filter((x): x is number => !!x);
   const idKey = ids.join(',');
 
   useEffect(() => {
-    if (!ids.length) return;
+    if (!ids.length) { setLoading(false); return; }
     let alive = true;
     setLoading(true);
     loadRadar(ids).then((r) => { if (alive) { setInfo(r); setLoading(false); } });
-    return () => { alive = false; };
+    return () => { alive = false; setLoading(false); };
   }, [idKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { track('jogos.radar'); }, []);
@@ -95,7 +96,7 @@ export function RadarPage() {
                   <Link to={`/jogos/${g.slug}`} className="radar__title">{g.title}</Link>
                   <span className="muted">{(g.igdbId && info[g.igdbId]?.label) || 'Data ainda não conferida'}</span>
                 </div>
-                <button className="btn ghost sm" onClick={() => actions.toggleRadar(g.id)}>Acompanhar</button>
+                <button className="btn ghost sm" disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(g.id)}>Acompanhar</button>
               </li>
             ))}
           </ul>

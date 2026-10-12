@@ -5,7 +5,6 @@
  */
 import { getState, actions } from '../data/store';
 import type { Game } from '../data/types';
-import { gameFromApi } from '../components/AddGameDialog';
 
 const KEY = 'wz.fatos.v1';
 const MONTH = 30 * 24 * 3600 * 1000;
@@ -28,16 +27,16 @@ export async function backfillGameFacts() {
     const need = Object.values(s.games).filter((g) => mine.has(g.id) && g.igdbId && g.ttb == null && !(t[g.igdbId] && now - t[g.igdbId] < MONTH)).map((g) => g.igdbId!);
     for (let i = 0; i < need.length; i += 100) {
       const batch = need.slice(i, i + 100);
-      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cache: batch }) });
+      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts: batch }) });
       if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) break;
       const rows: any[] = await r.json();
       const st = getState();
       const byIgdb = new Map(Object.values(st.games).filter((g) => g.igdbId).map((g) => [g.igdbId!, g]));
       const merged: Game[] = [];
       for (const row of rows) {
-        const fresh = gameFromApi(row), old = byIgdb.get(fresh.igdbId!);
-        // Só os fatos leves: a sinopse, os vídeos e o resto da ficha de antes continuam.
-        if (old) merged.push({ ...old, ttb: fresh.ttb ?? old.ttb, modes: fresh.modes ?? old.modes, themes: fresh.themes ?? old.themes, releasedOn: fresh.releasedOn ?? old.releasedOn, genres: old.genres ?? fresh.genres });
+        const old = byIgdb.get(row.igdb_id);
+        // Só os fatos: capa, título, gêneros, sinopse e o resto da ficha continuam como estavam.
+        if (old) merged.push({ ...old, ttb: row.ttb ?? null, modes: row.modes ?? old.modes, themes: row.themes ?? old.themes, releasedOn: row.released_on ?? old.releasedOn });
       }
       if (merged.length) actions.mergeGames(merged);
       for (const id of batch) t[id] = now;

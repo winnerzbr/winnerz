@@ -12,6 +12,82 @@ alter table public.my_games add column if not exists steam_minutes integer check
 -- Radar: acompanhar um jogo (lançamento, data, adiamento). Não é posse nem desejo.
 alter table public.my_games add column if not exists on_radar boolean not null default false;
 
+-- Ligar jogos em lote (0005) passa a levar também os campos novos de my_games.
+create or replace function public.relink_games(pairs jsonb) returns integer
+language plpgsql security invoker set search_path = public as $$
+declare
+  me uuid := auth.uid();
+  p record;
+  jf uuid;
+  jt uuid;
+  base integer;
+  n integer := 0;
+begin
+  if me is null then raise exception 'precisa estar logado'; end if;
+  for p in select * from jsonb_to_recordset(pairs) as x(src text, dst text) loop
+    if p.src is null or p.dst is null or p.src = p.dst then continue; end if;
+    if not exists (select 1 from games where id = p.dst) then continue; end if;
+
+    update copies set game_id = p.dst where user_id = me and game_id = p.src;
+
+    -- Jornada: se as duas existem, as Histórias da antiga vão para a nova, numeradas depois das dela.
+    select id into jf from journeys where user_id = me and game_id = p.src;
+    select id into jt from journeys where user_id = me and game_id = p.dst;
+    if jf is not null and jt is not null then
+      select coalesce(max(ordinal), 0) into base from histories where journey_id = jt;
+      update histories set journey_id = jt, ordinal = ordinal + base where journey_id = jf;
+      update sessions set journey_id = jt where journey_id = jf;
+      update timeline_events set journey_id = jt where journey_id = jf;
+      delete from journeys where id = jf;
+    elsif jf is not null then
+      update journeys set game_id = p.dst where id = jf;
+    end if;
+
+    -- Desejo, favorito e nota: se já existem na ficha nova, fica a da ficha nova.
+    update wishes set game_id = p.dst where user_id = me and game_id = p.src
+      and not exists (select 1 from wishes w where w.user_id = me and w.game_id = p.dst);
+    delete from wishes where user_id = me and game_id = p.src;
+    update favorites set game_id = p.dst where user_id = me and game_id = p.src
+      and not exists (select 1 from favorites f where f.user_id = me and f.game_id = p.dst);
+    delete from favorites where user_id = me and game_id = p.src;
+    update reviews set game_id = p.dst where user_id = me and game_id = p.src
+      and not exists (select 1 from reviews r where r.user_id = me and r.game_id = p.dst);
+    delete from reviews where user_id = me and game_id = p.src;
+
+    -- Prioridade, tempo estimado etc.: junta os dois, preferindo o que já estava na ficha nova.
+    insert into my_games (user_id, game_id, priority, est_hours, wont_play, genre, note, not_now_until, not_now_reason, steam_minutes, on_radar, updated_at)
+      select me, p.dst, priority, est_hours, wont_play, genre, note, not_now_until, not_now_reason, steam_minutes, on_radar, now() from my_games where user_id = me and game_id = p.src
+    on conflict (user_id, game_id) do update set
+      priority = coalesce(my_games.priority, excluded.priority),
+      est_hours = coalesce(my_games.est_hours, excluded.est_hours),
+      wont_play = my_games.wont_play or excluded.wont_play,
+      genre = coalesce(my_games.genre, excluded.genre),
+      note = coalesce(my_games.note, excluded.note),
+      not_now_until = coalesce(my_games.not_now_until, excluded.not_now_until),
+      not_now_reason = coalesce(my_games.not_now_reason, excluded.not_now_reason),
+      steam_minutes = coalesce(my_games.steam_minutes, excluded.steam_minutes),
+      on_radar = my_games.on_radar or excluded.on_radar,
+      updated_at = now();
+    delete from my_games where user_id = me and game_id = p.src;
+
+    -- O jogo sem ficha sai, se ninguém mais o usa (se algo ainda apontar para ele, fica).
+    begin
+    delete from games g where g.id = p.src and g.source = 'manual' and g.created_by = me
+      and not exists (select 1 from copies where game_id = p.src)
+      and not exists (select 1 from journeys where game_id = p.src)
+      and not exists (select 1 from wishes where game_id = p.src)
+      and not exists (select 1 from favorites where game_id = p.src)
+      and not exists (select 1 from reviews where game_id = p.src)
+      and not exists (select 1 from my_games where game_id = p.src);
+    exception when foreign_key_violation then null;
+    end;
+    n := n + 1;
+  end loop;
+  return n;
+end $$;
+
+grant execute on function public.relink_games(jsonb) to authenticated;
+
 -- Administração (só quem tiver is_admin = true monta os Awards) --------------------------------
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 create or replace function public.is_admin() returns boolean
@@ -93,7 +169,8 @@ create policy "award nominees admin" on public.award_nominees for all to authent
 create or replace function public.award_voting_open(cat uuid) returns boolean
 language sql stable security definer set search_path = public as $$
   select exists (select 1 from award_categories c join awards a on a.id = c.award_id
-    where c.id = cat and a.published and a.voting_opens <= now() and (a.voting_closes is null or a.voting_closes > now()));
+    where c.id = cat and a.published and a.voting_opens <= now() and (a.voting_closes is null or a.voting_closes > now())
+      and (a.results_at is null or a.results_at > now()));
 $$;
 drop policy if exists "votes own read" on public.award_votes;
 create policy "votes own read" on public.award_votes for select to authenticated using (user_id = auth.uid());

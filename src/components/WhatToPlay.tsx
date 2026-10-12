@@ -48,7 +48,7 @@ function notNow(s: State, gameId: ID, today: string) {
 }
 
 /** "Entre o que já está ao meu alcance": o que está em andamento, pausado ou na estante. */
-export function ideasFor(s: State, mood: number, focusId?: string, today = localDay()): Idea[] {
+export function ideasFor(s: State, mood: number, focusId?: string, today = localDay(), seed = 1): Idea[] {
   const started = new Set(s.journeys.map((j) => j.gameId));
   const mine = (g: ID) => s.myGames[g] ?? { gameId: g };
   const dnaOf = new Map<ID, Dna>();
@@ -103,13 +103,13 @@ export function ideasFor(s: State, mood: number, focusId?: string, today = local
     case NIGHT: list = [...ideas(paused), ...longFirst.slice(0, 60).map(fresh), ...ideas(going)]; break;
     case LIGHT: list = [...ideas(going.filter((a) => fit('light')(a.gameId))), ...owned.filter(fit('light')).slice(0, 40).map(fresh), ...ideas(paused.filter((a) => fit('light')(a.gameId)))]; break;
     case TOGETHER: return [...ideas(going.filter((a) => fit('together')(a.gameId))), ...ideas(paused.filter((a) => fit('together')(a.gameId))), ...owned.filter(fit('together')).slice(0, 40).map(fresh)];
-    default: list = shuffle([...owned.map(fresh), ...ideas(paused)]);
+    default: list = shuffle([...owned.map(fresh), ...ideas(paused)], seed);
   }
   return list.length ? list : [...ideas(going), ...ideas(paused), ...owned.slice(0, 60).map(fresh)];
 }
 
 /** "Quero descobrir algo", parte que não precisa de internet: os Desejos já lançados. */
-export function wishIdeas(s: State, mood: number, today = localDay()): Idea[] {
+export function wishIdeas(s: State, mood: number, today = localDay(), seed = 1): Idea[] {
   const owned = new Set(s.copies.map((c) => c.gameId));
   const started = new Set(s.journeys.map((j) => j.gameId));
   const year = Number(today.slice(0, 4));
@@ -125,7 +125,7 @@ export function wishIdeas(s: State, mood: number, today = localDay()): Idea[] {
     const why = ['Está nos seus Desejos.', moodReason(mood, d)].filter((x): x is string => !!x);
     out.push({ game: g, meta: `${g.year ?? ''}${g.platforms.length ? `${g.year ? ', ' : ''}${g.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}.${hoursLine(d)}`, why, cta: 'Ver a ficha', action: 'open', known: true });
   }
-  return mood === SURPRISE ? shuffle(out) : out;
+  return mood === SURPRISE ? shuffle(out, seed) : out;
 }
 
 type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number };
@@ -152,12 +152,15 @@ async function catalogIdeas(s: State, mood: number): Promise<Idea[]> {
     meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
     why, cta: 'Ver a ficha', action: 'open', known: false,
   }));
-  return mood === SURPRISE ? shuffle(list) : list;
+  return mood === SURPRISE ? shuffle(list, Math.random()) : list;
 }
 
-function shuffle<T>(a: T[]): T[] {
+/** Embaralha sempre igual para a mesma semente: a ideia não troca sozinha quando algo na página atualiza. */
+function shuffle<T>(a: T[], seed = 1): T[] {
   const x = [...a];
-  for (let i = x.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [x[i], x[k]] = [x[k], x[i]]; }
+  let t = Math.floor(seed * 2 ** 31) || 1;
+  const rnd = () => { t = (t + 0x6d2b79f5) | 0; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; };
+  for (let i = x.length - 1; i > 0; i--) { const k = Math.floor(rnd() * (i + 1)); [x[i], x[k]] = [x[k], x[i]]; }
   return x.slice(0, 40);
 }
 
@@ -174,6 +177,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const s = useStore((x) => x);
   const [path, setPath] = useState<'alcance' | 'descobrir'>('alcance');
   const [mood, setMood] = useState(0);
+  const [seed, setSeed] = useState(() => Math.random());
   const [alt, setAlt] = useState(0);
   const [skipped, setSkipped] = useState<string[]>([]);
   const [asking, setAsking] = useState(false);
@@ -190,9 +194,9 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   }, [path, catKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ideas = useMemo(() => {
-    const base = path === 'alcance' ? ideasFor(s, mood, excludeJourneyId) : [...wishIdeas(s, mood), ...(catalog?.key === catKey ? catalog.items : [])];
+    const base = path === 'alcance' ? ideasFor(s, mood, excludeJourneyId, localDay(), seed) : [...wishIdeas(s, mood, localDay(), seed), ...(catalog?.key === catKey ? catalog.items : [])];
     return base.filter((i) => !skipped.includes(i.game.id));
-  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey]);
+  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed]);
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
   const play = (gameId: string) => playStateFor(s, gameId).go();
 
@@ -203,6 +207,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
     setSkipped([...skipped, id]); setAsking(false);
     if (kind === 'nunca') { actions.setMyGame(id, { wontPlay: true }); setNotice(`${idea.game.title} marcado como “não vou jogar”. Dá para desfazer na ficha do jogo.`); }
     else if (kind === 'conheco') setNotice('Certo, não sugiro de novo nesta visita.');
+    else if (idea.known && !(s.schemaV6 || s.mode === 'demo')) setNotice('Certo, fica de fora nesta visita.');
     else if (idea.known) {
       const until = localDay(kind === 'hoje' ? 1 : 21);
       actions.setMyGame(id, { notNowUntil: until, notNowReason: kind });
@@ -224,7 +229,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
       </div>
       <div role="group" aria-label="Como está seu dia (opcional)" className="chips">
         {MOODS.map((l, i) => (
-          <button key={l} className="chip" aria-pressed={mood === i} onClick={() => { setMood(i); reset(); }}>{l}</button>
+          <button key={l} className="chip" aria-pressed={mood === i} onClick={() => { setMood(i); setSeed(Math.random()); reset(); }}>{l}</button>
         ))}
       </div>
       {idea ? (

@@ -19,8 +19,9 @@ export function RadarNotice() {
     return () => { alive = false; };
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   const today = localDay();
+  // A data do IGDB é meia-noite UTC: à noite, em Brasília, "lançado" pode ainda ser amanhã. Vale o dia daqui.
   const soon = games.map((g) => ({ g, i: info[g.igdbId!] }))
-    .filter(({ i }) => i?.day && ((i.status === 'previsto' && daysUntil(i.day, today) <= 7) || (i.status === 'lancado' && daysUntil(i.day, today) >= -1)))
+    .filter(({ i }) => i?.day && (i.status === 'previsto' || i.status === 'lancado') && daysUntil(i.day, today) <= 7 && daysUntil(i.day, today) >= (i.status === 'lancado' ? -1 : 0))
     .sort((a, b) => a.i!.day!.localeCompare(b.i!.day!));
   if (!soon.length) return null;
   return (
@@ -28,12 +29,12 @@ export function RadarNotice() {
       <h2 id="radar-home" className="t">No seu Radar</h2>
       <ul>
         {soon.slice(0, 3).map(({ g, i }) => {
-          const w = whenSoon(i!.day!, today);
+          const n = daysUntil(i!.day!, today), w = whenSoon(i!.day!, today);
           return (
             <li key={g.id}>
               <Link to={`/jogos/${g.slug}`} className="radar-home__item">
                 <span className="radar-note__cover"><CoverArt game={g} /></span>
-                <span><strong>{g.title}</strong><span className="muted">{i!.status === 'lancado' ? `Saiu ${w || 'agora'}.` : `Sai ${w ? (w === 'hoje' || w === 'amanhã' ? w : `${/sábado|domingo/.test(w) ? 'no' : 'na'} ${w}`) : i!.label.replace(/^Sai em /, 'em ')}.`}</span></span>
+                <span><strong>{g.title}</strong><span className="muted">{n < 0 ? 'Saiu ontem.' : n === 0 ? (i!.status === 'lancado' ? 'Saiu hoje.' : 'Sai hoje.') : `Sai ${w ? (w === 'hoje' || w === 'amanhã' ? w : `${/sábado|domingo/.test(w) ? 'no' : 'na'} ${w}`) : i!.label.replace(/^Sai em /, 'em ')}.`}</span></span>
               </Link>
             </li>
           );

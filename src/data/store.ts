@@ -181,7 +181,12 @@ function reduce(s: State, a: Action): State {
       const f = a.fromId, t = a.to.id;
       const sw = <T extends { gameId: ID }>(x: T): T => (x.gameId === f ? { ...x, gameId: t } : x);
       const myGames = { ...s.myGames };
-      if (myGames[f]) { myGames[t] = { ...myGames[f], ...myGames[t], gameId: t }; delete myGames[f]; }
+      if (myGames[f]) {
+        // Junta os dois, preferindo o que já estava na ficha nova; campo vazio de um lado não apaga o do outro.
+        const keep = Object.fromEntries(Object.entries(myGames[t] ?? {}).filter(([, v]) => v !== undefined && v !== null));
+        myGames[t] = { ...myGames[f], ...keep, wontPlay: myGames[f].wontPlay || myGames[t]?.wontPlay || undefined, onRadar: myGames[f].onRadar || myGames[t]?.onRadar || undefined, gameId: t };
+        delete myGames[f];
+      }
       // Se os dois jogos já tinham Jornada, as Histórias do antigo passam para a Jornada do novo.
       const jf = s.journeys.find((j) => j.gameId === f), jt = s.journeys.find((j) => j.gameId === t);
       let journeys = s.journeys.map(sw), histories = s.histories, sessions = s.sessions, events = s.events;

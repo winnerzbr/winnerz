@@ -84,9 +84,17 @@ export function AwardsAdminPage() {
 
 function EditionForm({ award, onSave }: { award: Award; onSave: (a: Award) => void }) {
   const [a, setA] = useState(award);
-  const set = (p: Partial<Award>) => setA({ ...a, ...p });
+  const [bad, setBad] = useState('');
+  const set = (p: Partial<Award>) => { setA({ ...a, ...p }); setBad(''); };
+  const check = () => {
+    const t = (x?: string) => (x ? Date.parse(x) : NaN);
+    if (a.votingOpens && a.votingCloses && t(a.votingCloses) <= t(a.votingOpens)) return 'A votação precisa fechar depois de abrir.';
+    if (a.resultsAt && a.votingCloses && t(a.resultsAt) < t(a.votingCloses)) return 'O resultado precisa aparecer depois que a votação fecha.';
+    if (a.published && !a.votingOpens) return 'Para publicar, marque quando a votação abre.';
+    return '';
+  };
   return (
-    <form className="card awards-admin__form" onSubmit={(e) => { e.preventDefault(); onSave(a); }}>
+    <form className="card awards-admin__form" onSubmit={(e) => { e.preventDefault(); const m = check(); if (m) setBad(m); else onSave(a); }}>
       <div className="awards-admin__grid">
         <label><span>Título</span><input className="field" value={a.title} onChange={(e) => set({ title: e.target.value })} required /></label>
         <label><span>Ano</span><input className="field" type="number" value={a.year} onChange={(e) => set({ year: Number(e.target.value) })} required /></label>
@@ -96,6 +104,7 @@ function EditionForm({ award, onSave }: { award: Award; onSave: (a: Award) => vo
         <label><span>Resultado aparece</span><input className="field" type="datetime-local" value={toLocal(a.resultsAt)} onChange={(e) => set({ resultsAt: fromLocal(e.target.value) })} /></label>
         <label className="awards-admin__check"><input type="checkbox" checked={a.published} onChange={(e) => set({ published: e.target.checked })} /> Publicada (todos veem a página)</label>
       </div>
+      {bad && <p className="awards__error" role="alert">{bad}</p>}
       <button className="btn primary">Gravar a edição</button>
     </form>
   );

@@ -16,7 +16,7 @@ const s: any = {
     { id: 's2', journeyId: 'jb', historyId: 'hb', startedAt: '2026-10-07T13:00:00Z', endedAt: '2026-10-07T14:00:00Z' },
     { id: 's3', journeyId: 'jb', historyId: 'hb', startedAt: '2026-09-01T13:00:00Z', endedAt: '2026-09-01T14:00:00Z', minutes: 60 },
   ],
-  events: [{ id: 'e1', journeyId: 'jb', historyId: 'hb', kind: 'momento', at: '2026-10-10T23:30:00Z', title: 'Vista' }],
+  events: [{ id: 'e1', journeyId: 'jb', historyId: 'hb', kind: 'momento', at: '2026-10-10T23:30:00Z', title: 'Vista' }, { id: 'e0', journeyId: 'ja', historyId: 'ha', kind: 'marco', at: '2026-10-12T14:00:00Z', title: 'Zerou', precision: 'desconhecida' }],
   copies: [
     ...Array.from({ length: 5 }, (_, i) => ({ id: 'c' + i, gameId: i % 2 ? 'a' : 'b', platform: 'PS5', kind: 'fisico', createdAt: '2026-10-01T10:00:30Z' })),
     { id: 'cx', gameId: 'a', platform: 'PC', kind: 'digital', createdAt: '2026-10-02T10:00:00Z', purchasedOn: '2020-05-01' },
@@ -59,4 +59,5 @@ test('linha do tempo geral: importação vira um registro e a data da compra val
   const cx = t.find((x) => x.id === 'copy-cx')!;
   assert.ok(cx.at.startsWith('2020-05-01'));
   assert.equal(t[0].id, 'e1');
+  assert.equal(t.at(-1)!.id, 'e0');
 });

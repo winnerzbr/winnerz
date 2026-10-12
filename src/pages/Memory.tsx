@@ -74,7 +74,7 @@ export function GlobalTimelinePage() {
   for (const it of shown) {
     const d = new Date(it.at);
     const raw = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
-    const key = raw.charAt(0).toUpperCase() + raw.slice(1);
+    const key = it.precision === 'desconhecida' ? 'Sem data' : it.precision === 'ano' ? String(d.getFullYear()) : raw.charAt(0).toUpperCase() + raw.slice(1);
     const last = groups.at(-1);
     if (last?.key === key) last.items.push(it); else groups.push({ key, items: [it] });
   }

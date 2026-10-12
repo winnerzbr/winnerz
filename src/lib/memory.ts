@@ -194,5 +194,7 @@ export function globalTimeline(s: State): GlobalItem[] {
       items.push({ id: `batch-${k}`, at: cs[0].createdAt!, kind: 'colecao', label: 'Importação', title: `${cs.length} jogos entraram na coleção`, text: 'De uma vez, pela importação.', game: covers[0], to: '/colecao' });
     }
   }
-  return items.sort((a, b) => b.at.localeCompare(a.at));
+  // Registros sem data (ex.: "zerou" da planilha sem data) vão para o fim, sem fingir que foram hoje.
+  const undated = (x: GlobalItem) => x.precision === 'desconhecida';
+  return items.sort((a, b) => Number(undated(a)) - Number(undated(b)) || b.at.localeCompare(a.at));
 }

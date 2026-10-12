@@ -192,6 +192,8 @@ export interface Prefs {
   tone?: Tone;
   /** Modo leve: esconde contadores e números (sessões, horas, porcentagens). */
   light?: boolean;
+  /** Segredo do endereço do overlay (trocar invalida o endereço antigo). */
+  overlayNonce?: string;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

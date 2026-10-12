@@ -29,6 +29,8 @@ async function requireUser(req: Req): Promise<string | null> {
   return ((await r.json()) as { id?: string }).id ?? null;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function sign(text: string): Promise<string> {
   const secret = process.env.RADAR_SECRET || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const enc = new TextEncoder();
@@ -37,14 +39,18 @@ async function sign(text: string): Promise<string> {
   return [...mac.slice(0, 16)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** Valor seguro dentro de um filtro do PostgREST. */
+const q = (v: string) => encodeURIComponent(v);
+
 async function get(path: string): Promise<any[]> {
   const c = db()!;
   const r = await fetch(`${c.url}/rest/v1/${path}`, { headers: c.headers });
   return r.ok ? ((await r.json()) as any[]) : [];
 }
 
-async function signedPhoto(path?: string | null): Promise<string | null> {
-  if (!path) return null;
+/** Só assina foto da própria pessoa (momentos/<id da pessoa>/...), nunca caminho com "..". */
+async function signedPhoto(user: string, path?: string | null): Promise<string | null> {
+  if (!path || !path.startsWith(`${user}/`) || path.split('/').some((p) => p === '..' || p === '.' || !p)) return null;
   const c = db()!;
   const r = await fetch(`${c.url}/storage/v1/object/sign/momentos/${path.split('/').map(encodeURIComponent).join('/')}`, { method: 'POST', headers: c.headers, body: JSON.stringify({ expiresIn: 3600 }) });
   if (!r.ok) return null;
@@ -60,26 +66,41 @@ export default async function handler(req: Req, res: Res) {
     if (req.method === 'POST') {
       const user = await requireUser(req);
       if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
-      return res.status(200).json({ path: `/overlay/${user}.${await sign(user)}` });
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { rotate?: boolean };
+      // Um "segredo do link" guardado no perfil: gerar de novo invalida o endereço antigo.
+      const [p] = await get(`profiles?select=prefs&id=eq.${q(user)}`);
+      let nonce: string = p?.prefs?.overlayNonce ?? '';
+      if (!nonce || body.rotate) {
+        nonce = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, '0')).join('');
+        const c = db()!;
+        await fetch(`${c.url}/rest/v1/profiles?id=eq.${q(user)}`, { method: 'PATCH', headers: { ...c.headers, Prefer: 'return=minimal' }, body: JSON.stringify({ prefs: { ...(p?.prefs ?? {}), overlayNonce: nonce } }) });
+      }
+      return res.status(200).json({ path: `/overlay/${user}.${nonce}.${await sign(`${user}.${nonce}`)}` });
     }
     const k = typeof req.query.k === 'string' ? req.query.k : '';
-    const [user, sig] = k.split('.');
-    if (!user || !/^[0-9a-f-]{36}$/i.test(user) || sig !== (await sign(user))) return res.status(403).json({ error: 'Endereço do overlay inválido.' });
+    const [user, nonce, sig] = k.split('.');
+    if (!user || !UUID.test(user) || !nonce || !/^[0-9a-f]{16}$/.test(nonce) || sig !== (await sign(`${user}.${nonce}`))) return res.status(403).json({ error: 'Endereço do overlay inválido.' });
 
-    const [profile] = await get(`profiles?select=prefs&id=eq.${user}`);
-    const [open] = await get(`sessions?select=id,journey_id,history_id,started_at&user_id=eq.${user}&ended_at=is.null&order=started_at.desc&limit=1`);
-    const focus: string[] = profile?.prefs?.focusIds ?? (profile?.prefs?.focusJourneyId ? [profile.prefs.focusJourneyId] : []);
-    const journeyId: string | undefined = open?.journey_id ?? focus[0];
-    if (!journeyId) return res.status(200).json({ game: null, session: null, moment: null });
-    const [journey] = await get(`journeys?select=id,game_id&id=eq.${journeyId}&user_id=eq.${user}`);
-    if (!journey) return res.status(200).json({ game: null, session: null, moment: null });
-    const [game] = await get(`games?select=title,cover,slug&id=eq.${encodeURIComponent(journey.game_id)}`);
-    const sessions = await get(`sessions?select=id&journey_id=eq.${journeyId}&user_id=eq.${user}`);
-    const [moment] = await get(`timeline_events?select=title,quote,text,image_path,at,kind&journey_id=eq.${journeyId}&user_id=eq.${user}&kind=in.(momento,ponto)&order=at.desc&limit=1`);
+    const [profile] = await get(`profiles?select=prefs&id=eq.${q(user)}`);
+    if (profile?.prefs?.overlayNonce !== nonce) return res.status(403).json({ error: 'Este endereço foi trocado. Gere o novo nas Preferências.' });
+    const [open] = await get(`sessions?select=journey_id,started_at&user_id=eq.${q(user)}&ended_at=is.null&order=started_at.desc&limit=1`);
+    const prefs = profile?.prefs ?? {};
+    const focus: unknown[] = Array.isArray(prefs.focusIds) ? prefs.focusIds : prefs.focusJourneyId ? [prefs.focusJourneyId] : [];
+    // Nada do que vem das preferências entra num filtro sem conferir: só um id no formato certo.
+    const candidate = [open?.journey_id, ...focus].find((x): x is string => typeof x === 'string' && UUID.test(x));
+    const empty = { game: null, session: null, moment: null };
+    if (!candidate) return res.status(200).json(empty);
+    const [journey] = await get(`journeys?select=id,game_id&id=eq.${q(candidate)}&user_id=eq.${q(user)}`);
+    if (!journey) return res.status(200).json(empty);
+    const jid = String(journey.id);
+    const [game] = await get(`games?select=title,cover&id=eq.${q(String(journey.game_id))}`);
+    const sessions = open && open.journey_id === jid ? await get(`sessions?select=id&journey_id=eq.${q(jid)}&user_id=eq.${q(user)}`) : [];
+    const [moment] = await get(`timeline_events?select=title,image_path,kind&journey_id=eq.${q(jid)}&user_id=eq.${q(user)}&kind=in.(momento,ponto)&order=at.desc&limit=1`);
+    // Só o que aparece na tela da live: sem notas, sem datas.
     return res.status(200).json({
       game: game ? { title: game.title, cover: game.cover } : null,
-      session: open ? { startedAt: open.started_at, number: sessions.length } : null,
-      moment: moment ? { title: moment.title, text: moment.quote ?? moment.text ?? null, at: moment.at, image: await signedPhoto(moment.image_path), kind: moment.kind } : null,
+      session: open && open.journey_id === jid ? { startedAt: open.started_at, number: sessions.length } : null,
+      moment: moment ? { title: moment.title, image: await signedPhoto(user, moment.image_path), kind: moment.kind } : null,
     });
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });

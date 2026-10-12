@@ -10,6 +10,8 @@ import { track } from '../lib/track';
 type Row = { key: string; file: File; url: string; when: string; source: 'nome' | 'foto' | 'arquivo'; title: string; keep: boolean };
 const SOURCE: Record<Row['source'], string> = { nome: 'pelo nome do arquivo', foto: 'pelos dados da foto', arquivo: 'pela data do arquivo (confira)' };
 const MAX = 40;
+/** No modo demonstração, as fotos ficam no próprio navegador, que tem pouco espaço. */
+const MAX_DEMO = 6;
 
 /** "datetime-local" no horário de quem usa. */
 const toLocal = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -24,11 +26,14 @@ export function CaptureImportSheet({ journeyId, gameTitle, onClose }: { journeyI
   const [busy, setBusy] = useState<string>('');
   const [done, setDone] = useState(0);
   const input = useRef<HTMLInputElement>(null);
-  useEffect(() => () => rows.forEach((r) => URL.revokeObjectURL(r.url)), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const live = useRef<Row[]>([]);
+  live.current = rows;
+  useEffect(() => () => live.current.forEach((r) => URL.revokeObjectURL(r.url)), []);
+  const max = s.mode === 'demo' ? MAX_DEMO : MAX;
 
   const pick = async (files: FileList | null) => {
     if (!files?.length) return;
-    const list = [...files].filter((f) => f.type.startsWith('image/')).slice(0, MAX - rows.length);
+    const list = [...files].filter((f) => f.type.startsWith('image/')).slice(0, max - rows.length);
     const next: Row[] = [];
     for (const f of list) {
       const d = await captureDate(f);
@@ -46,8 +51,10 @@ export function CaptureImportSheet({ journeyId, gameTitle, onClose }: { journeyI
     for (const r of chosen) {
       setBusy(`Guardando ${n + 1} de ${chosen.length}…`);
       try {
-        const blob = await shrink(r.file);
-        const at = new Date(r.when).toISOString();
+        const blob = await shrink(r.file, s.mode === 'demo' ? 720 : 1080);
+        const when = new Date(r.when);
+        if (Number.isNaN(when.getTime())) continue;
+        const at = when.toISOString();
         // Cada captura vai para a História em que ela aconteceu (a última que já tinha começado naquela data).
         const hs = s.histories.filter((h) => h.journeyId === journeyId).sort((a, b) => a.ordinal - b.ordinal);
         const historyId = ([...hs].reverse().find((h) => h.startedPrecision === 'desconhecida' || h.startedAt <= at) ?? hs[0])?.id;
@@ -78,7 +85,7 @@ export function CaptureImportSheet({ journeyId, gameTitle, onClose }: { journeyI
         <>
           <p className="muted">Escolha várias capturas de uma vez (do console, da Steam ou do celular). Cada uma vira um momento na data em que foi tirada. Confira as datas antes de guardar; nome e nota são opcionais.</p>
           <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => { void pick(e.target.files); e.target.value = ''; }} />
-          <button className="btn ghost" onClick={() => input.current?.click()} disabled={rows.length >= MAX}>{rows.length ? 'Adicionar mais capturas' : 'Escolher capturas'}</button>
+          <button className="btn ghost" onClick={() => input.current?.click()} disabled={rows.length >= max}>{rows.length ? 'Adicionar mais capturas' : 'Escolher capturas'}</button>
           {rows.length > 0 && (
             <ul className="caps__list">
               {rows.map((r) => (
@@ -94,7 +101,7 @@ export function CaptureImportSheet({ journeyId, gameTitle, onClose }: { journeyI
               ))}
             </ul>
           )}
-          {rows.length >= MAX && <p className="faint">Até {MAX} por vez. Guarde estas e importe o resto depois.</p>}
+          {rows.length >= max && <p className="faint">Até {max} por vez{s.mode === 'demo' ? ' no modo demonstração' : ''}. Guarde estas e importe o resto depois.</p>}
           <div className="sheet__actions">
             <button className="btn primary lg" disabled={!chosen.length || !!busy} onClick={() => void save()}>{busy || (chosen.length ? `Guardar ${chosen.length} ${chosen.length === 1 ? 'momento' : 'momentos'}` : 'Guardar')}</button>
             <button className="btn quiet" onClick={onClose}>Cancelar</button>

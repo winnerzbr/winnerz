@@ -2,7 +2,7 @@ import { ShareCardButton } from '../components/ShareCard';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8 } from '../data/store';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -187,6 +187,7 @@ export function SessionPage() {
           progress={h.progress ?? 0}
           onCancel={() => setFinishing(false)}
           companions={knownCompanions(s)}
+          canWho={hasV8(s)}
           onFinish={(data) => {
             // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
             const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
@@ -209,7 +210,7 @@ export function SessionPage() {
   );
 }
 
-function FinishForm({ progress, companions: known, onFinish, onZerei, onCancel }: { progress: number; companions: string[]; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number; companions?: string[] }) => void; onZerei: (d: { note?: string; companions?: string[] }) => void; onCancel: () => void }) {
+function FinishForm({ progress, companions: known, canWho, onFinish, onZerei, onCancel }: { progress: number; companions: string[]; canWho: boolean; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number; companions?: string[] }) => void; onZerei: (d: { note?: string; companions?: string[] }) => void; onCancel: () => void }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
   const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
@@ -232,6 +233,7 @@ function FinishForm({ progress, companions: known, onFinish, onZerei, onCancel }
       <div className="chips" role="group" aria-label="Como foi hoje">
         {FEELINGS.map((f) => <button key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
       </div>
+      {canWho && <>
       <div className="finish__label">Com quem você jogou? <span className="faint">(opcional)</span></div>
       <div className="chips who" role="group" aria-label="Com quem você jogou">
         {[...new Set([...known, ...withWho])].map((c) => <button key={c} className="chip" aria-pressed={withWho.includes(c)} onClick={() => toggleWho(c)}>{c}</button>)}
@@ -240,6 +242,7 @@ function FinishForm({ progress, companions: known, onFinish, onZerei, onCancel }
           <button className="btn ghost sm" disabled={!who.trim()}>Adicionar</button>
         </form>
       </div>
+      </>}
       <button className="finish__zerei" onClick={() => onZerei({ note: note || undefined, companions: withWho })}>Zerei a campanha nesta sessão</button>
       <div className="finish__actions">
         <button className="btn primary lg" onClick={() => onFinish({ note, whereStopped: where, feeling: feel, progress: p !== progress ? p : undefined, companions: withWho })}>Salvar e finalizar</button>

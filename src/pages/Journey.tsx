@@ -304,7 +304,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
           <div className="celebration__actions">
             <Link className="btn primary lg" to={`/jogos/${game.slug}#analise`} onClick={() => setCelebrating(null)}>{s.reviews.some((r) => r.gameId === game.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link>
-            <ShareCardButton game={game} history={celebrating} />
+            <ShareCardButton game={game} history={s.histories.find((x) => x.id === celebrating.id) ?? celebrating} />
           </div>
           <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>

@@ -130,13 +130,16 @@ function OverlaySettings() {
   const mode = useStore((x) => x.mode);
   const [url, setUrl] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'error'>('idle');
-  const make = async () => {
+  const make = async (rotate = false) => {
     setState('busy');
     try {
       const { accessToken } = await import('../data/supabaseAdapter');
-      const r = await fetch('/api/overlay', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ link: true }) });
+      const r = await fetch('/api/overlay', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ link: true, rotate }) });
       if (!r.ok) throw new Error();
-      setUrl(`${location.origin}${(await r.json()).path}`); setState('idle');
+      const path: string = (await r.json()).path;
+      // Guarda o segredo também aqui, para a próxima mudança de preferência não apagá-lo.
+      actions.setPrefs({ overlayNonce: path.split('.')[1] });
+      setUrl(`${location.origin}${path}`); setState('idle');
     } catch { setState('error'); }
   };
   return (
@@ -144,11 +147,11 @@ function OverlaySettings() {
       <h2 id="ovl-h" className="t">Overlay de live</h2>
       <p className="muted">Uma fonte de navegador para o OBS com o jogo em foco, a sessão aberta e o último momento guardado. Fundo transparente; atualiza sozinho. <a href="/overlay/demo" target="_blank" rel="noreferrer">Ver como fica</a>.</p>
       {mode !== 'supabase' ? <p className="faint">Disponível com conta.</p> : !url ? (
-        <button className="btn ghost" disabled={state === 'busy'} onClick={() => void make()}>{state === 'busy' ? 'Gerando…' : 'Gerar endereço para o OBS'}</button>
+        <button className="btn ghost" disabled={state === 'busy'} onClick={() => void make()}>{state === 'busy' ? 'Gerando…' : 'Mostrar o endereço para o OBS'}</button>
       ) : (
         <div className="radar__links">
           <div className="radar__url"><input className="field" readOnly value={url} onFocus={(e) => e.currentTarget.select()} aria-label="Endereço do overlay" /><button className="btn quiet sm" onClick={() => void navigator.clipboard?.writeText(url)}>Copiar</button></div>
-          <p className="faint">No OBS: Fontes → + → Navegador → cole o endereço. Tamanho sugerido: 900 × 220. Quem tiver este endereço vê o jogo e o último momento, então não mostre na tela.</p>
+          <p className="faint">No OBS: Fontes → + → Navegador → cole o endereço. Tamanho sugerido: 900 × 220. Quem tiver este endereço vê o jogo e o último momento, então não mostre na tela. Vazou? <button className="linklike" onClick={() => void make(true)}>Gerar um endereço novo</button> (o antigo para de funcionar).</p>
         </div>
       )}
       {state === 'error' && <p className="awards__error">Não consegui gerar agora. Tente de novo.</p>}

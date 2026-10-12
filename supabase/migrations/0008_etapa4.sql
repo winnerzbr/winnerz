@@ -20,6 +20,23 @@ alter table public.ai_usage enable row level security;
 drop policy if exists "ai usage own read" on public.ai_usage;
 create policy "ai usage own read" on public.ai_usage for select to authenticated using (user_id = auth.uid());
 
+-- Reserva um uso da IA de uma vez só (sem corrida entre pedidos simultâneos). Devolve o novo total, ou -1 se passou do limite.
+-- Só o servidor (chave secreta) chama; ninguém mais executa.
+create or replace function public.ai_reserve(p_user uuid, p_month text, p_limit integer) returns integer
+language sql security definer set search_path = public as $$
+  insert into ai_usage (user_id, month, uses, updated_at) select p_user, p_month, 1, now() where p_limit > 0
+  on conflict (user_id, month) do update set uses = ai_usage.uses + 1, updated_at = now() where ai_usage.uses < p_limit
+  returning uses;
+$$;
+create or replace function public.ai_refund(p_user uuid, p_month text) returns void
+language sql security definer set search_path = public as $$
+  update ai_usage set uses = greatest(0, uses - 1), updated_at = now() where user_id = p_user and month = p_month;
+$$;
+revoke execute on function public.ai_reserve(uuid, text, integer) from public, anon, authenticated;
+revoke execute on function public.ai_refund(uuid, text) from public, anon, authenticated;
+grant execute on function public.ai_reserve(uuid, text, integer) to service_role;
+grant execute on function public.ai_refund(uuid, text) to service_role;
+
 
 -- Trilhas: sequências de jogos com um fio, montadas pela administração (precisa da 0006, que cria is_admin()).
 create table if not exists public.trails (

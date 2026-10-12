@@ -5,6 +5,7 @@ import { Sheet } from './Sheet';
 import { useBackdrop } from './Backdrop';
 import { formatScore, scaleMax } from '../lib/rating';
 import { track } from '../lib/track';
+import { whenLabel } from '../lib/dates';
 
 const W = 1080, H = 1350;
 const MONTHS = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.'];
@@ -59,7 +60,11 @@ async function draw(canvas: HTMLCanvasElement, o: { game: Game; history: History
   ctx.fillStyle = '#eee5d5'; ctx.font = '112px "Bebas Neue", Impact, sans-serif';
   for (const line of wrap(ctx, o.game.title, W - 140).slice(0, 2)) { ctx.fillText(line, W / 2, y); y += 104; }
   ctx.fillStyle = '#cfc6b6'; ctx.font = '500 34px "Schibsted Grotesk", sans-serif';
-  const dates = o.history.startedPrecision === 'desconhecida' || !o.history.completedAt ? (o.history.completedAt ? `Zerado em ${short(o.history.completedAt)}` : '') : `De ${short(o.history.startedAt)} a ${short(o.history.completedAt)}`;
+  // Datas com a precisão que você informou (nada de dia exato onde só há mês ou ano).
+  const lbl = (iso: string, p?: History['startedPrecision']) => (!p || p === 'dia' ? short(iso) : whenLabel(iso, p));
+  const end = o.history.completedAt ?? new Date().toISOString();
+  const endP = o.history.completedAt ? o.history.completedPrecision : 'dia';
+  const dates = endP === 'desconhecida' ? '' : o.history.startedPrecision === 'desconhecida' ? `Zerado em ${lbl(end, endP)}` : `De ${lbl(o.history.startedAt, o.history.startedPrecision)} a ${lbl(end, endP)}`;
   y += 4;
   if (dates) { ctx.fillText(dates, W / 2, y); y += 52; }
   if (o.rating) { ctx.fillStyle = '#e3bf8a'; ctx.fillText(o.rating, W / 2, y); y += 52; }

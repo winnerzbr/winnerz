@@ -15,7 +15,7 @@ type Req = { method?: string; body?: unknown; headers?: Record<string, string | 
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
 
 const MODEL = () => process.env.ANTHROPIC_MODEL || 'claude-haiku-5-5';
-const LIMIT = () => Math.max(0, Number(process.env.AI_MONTHLY_LIMIT ?? 30) || 30);
+const LIMIT = () => { const n = Number(process.env.AI_MONTHLY_LIMIT ?? 30); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 30; };
 
 function db() {
   const url = process.env.SUPABASE_URL;
@@ -36,7 +36,8 @@ async function requireUser(req: Req): Promise<string | null> {
   return ((await r.json()) as { id?: string }).id ?? null;
 }
 
-const month = () => new Date().toISOString().slice(0, 7);
+/** Mês no horário de Brasília (o limite vira junto com o calendário da pessoa). */
+const month = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
 
 async function usage(user: string): Promise<number> {
   const c = db()!;
@@ -46,12 +47,17 @@ async function usage(user: string): Promise<number> {
   return rows[0]?.uses ?? 0;
 }
 
-async function addUse(user: string, uses: number) {
+/** Reserva um uso antes de chamar a IA (de uma vez só, sem corrida). Devolve o total, ou -1 se passou do limite. */
+async function reserve(user: string): Promise<number> {
   const c = db()!;
-  await fetch(`${c.url}/rest/v1/ai_usage?on_conflict=user_id,month`, {
-    method: 'POST', headers: { ...c.headers, Prefer: 'resolution=merge-duplicates,return=minimal' },
-    body: JSON.stringify({ user_id: user, month: month(), uses: uses + 1, updated_at: new Date().toISOString() }),
-  });
+  const r = await fetch(`${c.url}/rest/v1/rpc/ai_reserve`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month(), p_limit: LIMIT() }) });
+  if (!r.ok) throw new Error('Falta rodar a migração 0008 no Supabase.');
+  const v = await r.json();
+  return typeof v === 'number' ? v : -1;
+}
+async function refund(user: string) {
+  const c = db()!;
+  await fetch(`${c.url}/rest/v1/rpc/ai_refund`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month() }) }).catch(() => null);
 }
 
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : '');
@@ -82,8 +88,8 @@ export default async function handler(req: Req, res: Res) {
     const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 
-    const used = await usage(user);
-    if (used >= LIMIT()) return res.status(429).json({ error: `Você já usou as ${LIMIT()} sugestões deste mês. A Cápsula continua funcionando sem a IA.`, used, limit: LIMIT() });
+    const used = await reserve(user);
+    if (used < 0) return res.status(429).json({ error: `Você já usou as ${LIMIT()} sugestões deste mês. A Cápsula continua funcionando sem a IA.`, used: LIMIT(), limit: LIMIT() });
 
     const text = [
       `Jogo: ${clip(body.game, 120) || 'não informado'}.`,
@@ -91,15 +97,19 @@ export default async function handler(req: Req, res: Res) {
       body.context ? `O que ela já tinha registrado antes (pode estar desatualizado): ${clip(body.context, 600)}` : '',
     ].filter(Boolean).join('\n');
 
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({
-        model: MODEL(), max_tokens: 600, system: SYSTEM,
-        messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text }] }],
-      }),
-    });
+    let r: Response;
+    try {
+      r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: MODEL(), max_tokens: 600, system: SYSTEM,
+          messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text }] }],
+        }),
+      });
+    } catch { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
     if (!r.ok) {
+      await refund(user);
       const detail = await r.text().catch(() => '');
       console.error('anthropic', r.status, detail.slice(0, 300));
       return res.status(502).json({ error: r.status === 429 || r.status === 529 ? 'A IA está ocupada agora. Tente de novo em instantes.' : 'A IA não respondeu agora. Tente de novo.' });
@@ -108,13 +118,12 @@ export default async function handler(req: Req, res: Res) {
     const raw = (out.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join('');
     const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
     let parsed: Record<string, unknown> = {};
-    try { parsed = JSON.parse(json); } catch { return res.status(502).json({ error: 'Não consegui entender a resposta da IA. Tente outra foto.' }); }
-    await addUse(user, used);
+    try { parsed = JSON.parse(json); } catch { await refund(user); return res.status(502).json({ error: 'Não consegui entender a resposta da IA. Tente outra foto.' }); }
     return res.status(200).json({
       suggestion: { where: clip(parsed.where, 160), doing: clip(parsed.doing, 160), next: clip(parsed.next, 160), remember: clip(parsed.remember, 160) },
       seen: clip(parsed.seen, 200),
       confidence: ['alta', 'media', 'baixa'].includes(String(parsed.confidence)) ? parsed.confidence : 'baixa',
-      used: used + 1, limit: LIMIT(),
+      used, limit: LIMIT(),
     });
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });

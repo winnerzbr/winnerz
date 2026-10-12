@@ -329,7 +329,7 @@ a.cover-grid__item { color: var(--ink); }
 .ratings__v .t { font-size: 72px; line-height: 0.85; }
 .ratings__mine { color: #d9b587; }
 .ratings__n { font-size: 13px; margin-top: 8px; }
-.ratings .stars .off { color: #5a5249; }
+.ratings { --star-off: rgba(238, 229, 213, 0.18); --star-on: #d9b080; }
 .game-body { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; padding-top: 36px; }
 .game-main { flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 56px; }
 .my-review { padding: 32px; }
@@ -345,12 +345,9 @@ a.cover-grid__item { color: var(--ink); }
 .editor__score > label { font-weight: 600; font-size: 14px; }
 .editor__ten { display: flex; gap: 18px; align-items: center; max-width: 520px; }
 .editor__ten .t, .editor__stars .t { font-size: 40px; flex: none; }
-.editor__stars { display: flex; align-items: center; gap: 0; }
-.editor__stars .t { margin-left: 16px; }
-.half { width: 18px; height: 36px; border: 0; padding: 0; cursor: pointer; background: var(--line-2); }
-.half.is-on { background: var(--accent); }
-.half--l { clip-path: polygon(100% 4%, 100% 77%, 70% 95%, 76% 62%, 52% 40%, 84% 37%); }
-.half--r { clip-path: polygon(0 4%, 16% 37%, 48% 40%, 24% 62%, 30% 95%, 0 77%); margin-right: 6px; }
+.editor__stars { display: flex; align-items: center; gap: 0; margin-top: 8px; }
+.editor__stars .t { margin-left: 20px; }
+.editor__hint { font-size: 12px; margin: 8px 0 0; }
 .editor__label { font-size: 14px; font-weight: 500; margin-top: 10px; }
 .editor__actions { display: flex; gap: 10px; margin-top: 12px; }
 .community-reviews .block__head h2 { font-size: 44px; }

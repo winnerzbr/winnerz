@@ -3,7 +3,7 @@ import { Link, navigate } from '../lib/router';
 import { actions, dispatch, useStore, journeyForGame, currentHistory, historiesOf, openSession } from '../data/store';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
-import { Stars } from '../components/Stars';
+import { Stars, StarInput } from '../components/Stars';
 import { Icon } from '../components/Icon';
 import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
@@ -247,7 +247,12 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
 function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: string; existing: Review | null; viewerScale: Scale; onDone: () => void }) {
   // Editar uma análise antiga mantém a escala original para não arredondar (regra do documento de escalas).
   const scale: Scale = existing?.rating.originalScale ?? viewerScale;
-  const [value, setValue] = useState<number>(existing ? toScale(existing.rating.normalized, scale) : scale === 'TEN_POINT' ? 8 : 4);
+  // A nota fica guardada em 0..1000 enquanto se escreve; trocar a escala no meio só muda a exibição.
+  const [norm, setNorm] = useState<number>(existing ? existing.rating.normalized : 800);
+  const step = scale === 'TEN_POINT' ? 50 : 100; // meio ponto ou meia estrela
+  const snapped = Math.round(norm / step) * step;
+  const value = toScale(snapped, scale);
+  const setValue = (v: number) => setNorm(normalize(v, scale).normalized);
   const [title, setTitle] = useState(existing?.title ?? '');
   const [text, setText] = useState(existing?.text ?? '');
   const max = scaleMax(scale);
@@ -260,20 +265,19 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
         <p className="muted" style={{ fontSize: 14 }}>Sua nota original foi dada {scale === 'TEN_POINT' ? 'de 0 a 10' : 'em estrelas'}. Para não arredondar, ela continua sendo editada nessa escala.</p>
       )}
       <div className="editor__score">
-        <label htmlFor="nota">Nota</label>
+        <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>
         {scale === 'TEN_POINT' ? (
           <div className="editor__ten">
             <input id="nota" className="range" type="range" min={0} max={10} step={0.5} value={value} style={{ ['--p' as string]: `${value * 10}%` }} onChange={(e) => setValue(Number(e.target.value))} />
             <span className="t">{String(value.toFixed(1)).replace('.', ',')}<span className="muted">/10</span></span>
           </div>
         ) : (
-          <div className="editor__stars" role="radiogroup" aria-labelledby="nota">
-            {Array.from({ length: 10 }, (_, i) => (i + 1) / 2).map((v) => (
-              <button key={v} role="radio" aria-checked={value === v} aria-label={`${String(v).replace('.', ',')} estrelas`} className={`half ${v % 1 ? 'half--l' : 'half--r'}${value >= v ? ' is-on' : ''}`} onClick={() => setValue(v)} />
-            ))}
+          <div className="editor__stars">
+            <StarInput value={value} onChange={setValue} labelledBy="nota-label" />
             <span className="t">{String(value).replace('.', ',')}<span className="muted">/{max}</span></span>
           </div>
         )}
+        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre as estrelas ou clique. Dá para dar meia estrela.</p>}
       </div>
       <label htmlFor="rev-title" className="editor__label">Título (opcional)</label>
       <input id="rev-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Em uma frase, como foi?" />

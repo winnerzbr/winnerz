@@ -65,7 +65,9 @@ export function Collection() {
         </nav>
 
         <div className="shelves">
-          {shelves.length === 0 && <p className="card tl-empty">Nada aqui com esse filtro. <button className="btn quiet sm" onClick={() => { setCut('tudo'); setQ(''); }}>Ver tudo</button></p>}
+          {shelves.length === 0 && (s.copies.length === 0
+            ? <div className="card tl-empty"><p className="t" style={{ fontSize: 30, color: "var(--ink)" }}>Sua estante está vazia</p><p className="muted">Comece pelo jogo que está na sua mesa agora. Capas e fichas vêm do IGDB.</p><button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button></div>
+            : <p className="card tl-empty">Nada aqui com esse filtro. <button className="btn quiet sm" onClick={() => { setCut('tudo'); setQ(''); }}>Ver tudo</button></p>)}
           {shelves.map(([platform, list]) => (
             <section key={platform} aria-label={platform} className="shelf">
               <div className="shelf__head"><h2 className="t">{platform}</h2><span className="faint">{list.length} {list.length === 1 ? 'jogo' : 'jogos'}</span></div>

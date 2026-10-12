@@ -16,16 +16,16 @@ const games: Game[] = [
     releases: [{ platform: 'PlayStation 4', date: '19 de junho de 2020' }, { platform: 'PlayStation 5, atualização', date: '19 de maio de 2021' }],
     screenshots: [img('scene-tlou-field'), img('scene-tlou-forest'), img('scene-tlou-guitar'), img('scene-tlou-fire')],
   },
-  { id: 'astro', slug: 'astro-bot', igdbId: 255342, title: 'Astro Bot', cover: img('cover-astro'), backdrop: img('scene-astro-sky'), year: 2024, developer: 'Team Asobi', publisher: 'Sony Interactive Entertainment', platforms: ['PlayStation 5'], genres: 'Plataforma e aventura', screenshots: [img('scene-astro-tree'), img('scene-astro-kratos')] },
-  { id: 'p5r', slug: 'persona-5-royal', title: 'Persona 5 Royal', cover: img('cover-p5r'), year: 2019, developer: 'Atlus', platforms: ['PlayStation 4'], genres: 'RPG e aventura' },
+  { id: 'astro', slug: 'astro-bot', igdbId: 255342, title: 'Astro Bot', cover: img('cover-astro'), backdrop: img('scene-astro-sky'), year: 2024, developer: 'Team Asobi', publisher: 'Sony Interactive Entertainment', platforms: ['PlayStation 5'], genres: 'Plataforma e aventura', modes: ['Single player', 'Third person'], themes: ['Action'], ttb: { h: 11, n: 13, c: 21 }, releasedOn: '2024-09-06', screenshots: [img('scene-astro-tree'), img('scene-astro-kratos')] },
+  { id: 'p5r', slug: 'persona-5-royal', title: 'Persona 5 Royal', cover: img('cover-p5r'), year: 2019, developer: 'Atlus', platforms: ['PlayStation 4'], genres: 'RPG e aventura', modes: ['Single player', 'Third person'], themes: ['Fantasy', 'Drama'], ttb: { h: 90, n: 110, c: 160 } },
   { id: 'yakuza', slug: 'yakuza-kiwami', title: 'Yakuza Kiwami', cover: img('cover-yakuza'), backdrop: img('scene-yakuza-street'), year: 2016, developer: 'Ryu Ga Gotoku Studio', platforms: ['PlayStation 4'], genres: 'Ação e RPG' },
   { id: 'infamous', slug: 'infamous', title: 'Infamous', cover: img('cover-infamous'), backdrop: img('scene-infamous-city'), year: 2009, developer: 'Sucker Punch', platforms: ['PlayStation 3'], genres: 'Ação e plataforma' },
-  { id: 'kz2', slug: 'killzone-2', title: 'Killzone 2', cover: img('cover-kz2'), backdrop: img('scene-kz2'), year: 2009, developer: 'Guerrilla Games', platforms: ['PlayStation 3'], genres: 'Tiro em primeira pessoa' },
+  { id: 'kz2', slug: 'killzone-2', title: 'Killzone 2', cover: img('cover-kz2'), backdrop: img('scene-kz2'), year: 2009, developer: 'Guerrilla Games', platforms: ['PlayStation 3'], genres: 'Tiro em primeira pessoa', modes: ['Single player', 'Multiplayer', 'First person'], themes: ['Science fiction', 'Warfare'], ttb: { h: 8, n: 9, c: 14 } },
   { id: 'mgs2', slug: 'metal-gear-solid-2-sons-of-liberty', title: 'Metal Gear Solid 2', cover: img('cover-mgs2'), year: 2001, developer: 'Konami', platforms: ['PlayStation 2'], genres: 'Ação e furtividade' },
-  { id: 'dderby', slug: 'destruction-derby', title: 'Destruction Derby', cover: img('cover-dderby'), backdrop: img('scene-dderby'), year: 1995, developer: 'Reflections', platforms: ['PlayStation'], genres: 'Corrida' },
+  { id: 'dderby', slug: 'destruction-derby', title: 'Destruction Derby', cover: img('cover-dderby'), backdrop: img('scene-dderby'), year: 1995, developer: 'Reflections', platforms: ['PlayStation'], genres: 'Corrida', modes: ['Single player', 'Multiplayer', 'Split screen'], ttb: { n: 5 } },
   { id: 'nfs', slug: 'the-need-for-speed', title: 'Need for Speed', cover: img('cover-nfs'), backdrop: img('scene-nfs'), year: 1994, developer: 'Electronic Arts', platforms: ['PlayStation'], genres: 'Corrida' },
   { id: 'gta6', slug: 'grand-theft-auto-vi', title: 'Grand Theft Auto VI', cover: img('cover-gta6'), backdrop: img('scene-gta6-city'), year: 2026, developer: 'Rockstar Games', platforms: ['PlayStation 5', 'Xbox Series X|S'], genres: 'Ação e mundo aberto' },
-  { id: 'elden', slug: 'elden-ring', title: 'Elden Ring', cover: img('cover-elden'), year: 2022, developer: 'FromSoftware', platforms: ['PlayStation 5', 'PC'], genres: 'RPG de ação' },
+  { id: 'elden', slug: 'elden-ring', title: 'Elden Ring', cover: img('cover-elden'), year: 2022, developer: 'FromSoftware', platforms: ['PlayStation 5', 'PC'], genres: 'RPG de ação', modes: ['Single player', 'Multiplayer', 'Co-operative', 'Third person'], themes: ['Action', 'Fantasy', 'Open world'], ttb: { h: 50, n: 60, c: 100 } },
 ];
 
 export function demoState(): State {

@@ -18,6 +18,7 @@ import { pt, ptJoined, ptList } from '../lib/igdbPt';
 import { MediaGallery, buildMedia } from '../components/MediaGallery';
 import { refreshGame, gameBySlug } from '../components/AddGameDialog';
 import { GameUniverse } from '../components/GameUniverse';
+import { GameDna } from '../components/GameDna';
 import { Backdrop } from '../components/Backdrop';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
@@ -219,6 +220,7 @@ function GameView({ gameId }: { gameId: string }) {
             </div>
             {g.source === 'manual' && <LinkToIgdb game={g} />}
           </section>
+          <GameDna game={g} />
           {(g.summary || g.themes?.length || g.modes?.length) && (
             <section aria-labelledby="sobre">
               <h2 id="sobre" className="t aside-title">Sobre o jogo</h2>

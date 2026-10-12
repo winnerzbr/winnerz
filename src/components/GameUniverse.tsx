@@ -1,12 +1,40 @@
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import type { Game } from '../data/types';
+import type { Game, State } from '../data/types';
 import type { Hit } from './AddGameDialog';
 import { CoverArt } from './CoverArt';
 
-type Universe = { groups: { title: string; games: Hit[] }[]; series?: string | null };
+export type Universe = { groups: { title: string; games: Hit[] }[]; series?: string | null };
 const cache = new Map<number, Universe>();
+
+export function cachedUniverse(id: number) { return cache.get(id) ?? null; }
+
+export async function fetchUniverse(id: number): Promise<Universe | null> {
+  if (cache.has(id)) return cache.get(id)!;
+  try {
+    const r = await fetch(`/api/igdb?related=${id}`);
+    if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
+    const j: Universe = await r.json();
+    cache.set(id, j);
+    return j;
+  } catch { return null; }
+}
+
+/** O jogo do IGDB já é seu? Pelo número do IGDB; na falta dele, pelo endereço. */
+export function ownedGame(s: State, h: Pick<Hit, 'slug' | 'igdbId'>): Game | undefined {
+  const all = Object.values(s.games);
+  return (h.igdbId ? all.find((x) => x.igdbId === h.igdbId) : undefined) ?? all.find((x) => x.slug === h.slug);
+}
+
+export function relationTag(s: State, h: Pick<Hit, 'slug' | 'igdbId'>): 'Zerado' | 'Na estante' | 'Desejo' | null {
+  const g = ownedGame(s, h);
+  if (!g) return null;
+  if (s.journeys.some((j) => j.gameId === g.id && s.histories.some((x) => x.journeyId === j.id && x.state === 'concluida'))) return 'Zerado';
+  if (s.copies.some((c) => c.gameId === g.id)) return 'Na estante';
+  if (s.wishes.some((w) => w.gameId === g.id)) return 'Desejo';
+  return null;
+}
 
 /** Universo do jogo: série, expansões, remakes e parecidos (do IGDB). Marca o que já é seu. */
 export function GameUniverse({ game }: { game: Game }) {
@@ -14,24 +42,13 @@ export function GameUniverse({ game }: { game: Game }) {
   const [u, setU] = useState<Universe | null>(id ? cache.get(id) ?? null : null);
   const s = useStore((x) => x);
   useEffect(() => {
-    if (!id || cache.has(id)) return;
+    if (!id) return;
     let alive = true;
-    fetch(`/api/igdb?related=${id}`)
-      .then((r) => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : null))
-      .then((j: Universe | null) => { if (j && alive) { cache.set(id, j); setU(j); } })
-      .catch(() => {});
+    fetchUniverse(id).then((j) => { if (j && alive) setU(j); });
     return () => { alive = false; };
   }, [id]);
   if (!u || !u.groups?.length) return null;
 
-  const mine = (slug: string) => {
-    const g = Object.values(s.games).find((x) => x.slug === slug);
-    if (!g) return null;
-    if (s.journeys.some((j) => j.gameId === g.id && s.histories.some((h) => h.journeyId === j.id && h.state === 'concluida'))) return 'Zerado';
-    if (s.copies.some((c) => c.gameId === g.id)) return 'Na estante';
-    if (s.wishes.some((w) => w.gameId === g.id)) return 'Desejo';
-    return null;
-  };
 
   return (
     <section className="page universe" aria-labelledby="universo">
@@ -41,7 +58,7 @@ export function GameUniverse({ game }: { game: Game }) {
           <h3 className="universe__h">{gr.title}</h3>
           <ul className="universe__row">
             {gr.games.map((h) => {
-              const tag = mine(h.slug);
+              const tag = relationTag(s, h);
               return (
                 <li key={h.slug}>
                   <Link to={`/jogos/${h.slug}`} className="universe__item">

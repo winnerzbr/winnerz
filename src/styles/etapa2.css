@@ -365,3 +365,39 @@
 .palette__empty { padding: 14px 10px; }
 .palette__foot { display: flex; gap: 16px; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; flex-wrap: wrap; }
 @media (max-width: 640px) { .palette-back { padding-top: 12px; } .palette__foot { display: none; } }
+
+/* ---- Etapa 3B: DNA de experiência ---------------------------------------- */
+.dna__list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 14px; }
+.dna__item { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; }
+.dna__ic { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--accent-ink); font-size: 14px; }
+.dna__label { font-weight: 600; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.dna__detail { font-size: 14px; line-height: 1.45; margin-top: 2px; }
+.dna__note { font-size: 13px; margin-top: 12px; }
+.prov { display: inline-block; padding: 1px 7px; border-radius: 999px; font: 600 10.5px var(--font-ui); letter-spacing: 0.02em; border: 1px solid var(--line-2); color: var(--muted); }
+.prov--inferido { border-style: dashed; }
+.prov--voce { color: var(--accent-ink); border-color: var(--accent-ink); }
+
+/* ---- Etapa 3B: O que jogar, dois caminhos -------------------------------- */
+.what__paths { display: flex; flex-wrap: wrap; gap: 4px; margin: 16px 0 14px; border-bottom: 1px solid var(--line); }
+.what__paths button { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; padding: 10px 4px; margin-right: 18px; color: var(--muted); font: 500 15px var(--font-ui); cursor: pointer; }
+.what__paths button[aria-selected='true'] { color: var(--ink); border-bottom-color: var(--accent); }
+.what__why ul { margin: 6px 0 0; padding-left: 18px; }
+.what__why li + li { margin-top: 4px; }
+.what__later { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 22px; }
+.what__later > span { width: 100%; font-size: 14px; }
+.what__notice { margin-top: 14px; font-size: 14px; }
+@media (max-width: 560px) {
+  .what__paths button { margin-right: 10px; font-size: 14px; }
+}
+
+/* ---- Etapa 3B: E agora? (na celebração) ---------------------------------- */
+.whatnext { margin-top: 34px; width: min(640px, 100%); text-align: left; animation: wz-fade-up 0.8s 1.8s both; }
+.whatnext__h { font-size: 30px; color: #eee5d5; text-align: center; }
+.whatnext__list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.whatnext__item { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; padding: 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.06); color: #eee5d5; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.08); }
+.whatnext__item:hover { background: rgba(255, 255, 255, 0.11); }
+.whatnext__cover { width: 54px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 5px; }
+.whatnext__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.whatnext__cover .cover-art__title { font-size: 9px; }
+.whatnext__text { display: grid; gap: 3px; font-size: 14px; line-height: 1.35; }
+.whatnext__text span { color: #bdb4a6; }

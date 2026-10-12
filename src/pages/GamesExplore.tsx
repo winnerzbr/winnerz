@@ -7,9 +7,8 @@ import { GameTile } from './GamesIndex';
 import { pt } from '../lib/igdbPt';
 import { shortPlatform } from '../lib/platforms';
 import { track } from '../lib/track';
+import { loadMeta, cachedMeta, type Meta } from '../lib/igdbMeta';
 
-type Opt = { id: number; name: string };
-type Meta = { genres: Opt[]; platforms: Opt[]; modes: Opt[]; themes: Opt[] };
 type Found = Hit & { rating?: number; date?: string };
 
 const SORTS: [string, string][] = [['popular', 'Mais populares'], ['rating', 'Mais bem avaliados'], ['recent', 'Lançados há pouco'], ['upcoming', 'Em breve']];
@@ -19,23 +18,12 @@ const ERAS: [string, string, number?, number?][] = [
   ['2010', 'Anos 2010', 2010, 2019], ['2000', 'Anos 2000', 2000, 2009], ['1990', 'Anos 1990', 1990, 1999], ['classico', 'Até 1989', 1970, 1989],
 ];
 
-let metaCache: Meta | null = null;
-async function loadMeta(): Promise<Meta | null> {
-  if (metaCache) return metaCache;
-  try {
-    const r = await fetch('/api/igdb?meta=1');
-    if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
-    metaCache = await r.json();
-    return metaCache;
-  } catch { return null; }
-}
-
 /** Explorar: o catálogo do IGDB por gênero, plataforma, época, modo e ordem. Os filtros ficam no endereço. */
 export function GamesExplore() {
   const path = usePath();
   const params = useMemo(() => new URLSearchParams(path.split('?')[1] ?? ''), [path]);
   const f = { genre: params.get('genero') ?? '', platform: params.get('plataforma') ?? '', mode: params.get('modo') ?? '', era: params.get('epoca') ?? '', sort: params.get('ordem') ?? 'popular' };
-  const [meta, setMeta] = useState<Meta | null>(metaCache);
+  const [meta, setMeta] = useState<Meta | null>(cachedMeta());
   const [items, setItems] = useState<Found[]>([]);
   const [page, setPage] = useState(0);
   const [state, setState] = useState<'idle' | 'loading' | 'error' | 'end'>('idle');

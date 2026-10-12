@@ -1,3 +1,4 @@
+import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
 import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys } from '../data/store';
@@ -271,6 +272,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <div className="celebration__actions">
             <Link className="btn primary lg" to={`/jogos/${game.slug}#analise`} onClick={() => setCelebrating(null)}>{s.reviews.some((r) => r.gameId === game.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link>
           </div>
+          <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>
       )}
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}

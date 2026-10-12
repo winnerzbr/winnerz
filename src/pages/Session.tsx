@@ -1,3 +1,4 @@
+import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
 import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid } from '../data/store';
@@ -245,6 +246,7 @@ function Celebrated({ historyId, onClose }: { historyId: string; onClose: () => 
         {h.letter && <SealedLetter text={h.letter.text} date={dayMonthYear(h.startedAt)} opened={false} onOpen={() => actions.openLetter(h.id)} />}
       </div>
       <div className="celebration__actions"><Link className="btn primary lg" to={`/jogos/${g.slug}#analise`}>{s.reviews.some((r) => r.gameId === g.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link></div>
+      <WhatNext game={g} />
     </Celebration>
   );
 }

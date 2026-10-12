@@ -3,6 +3,7 @@ import { usePath, match, Link } from './lib/router';
 import { useStore, openSession } from './data/store';
 import { applyPrefs, brand } from './lib/theme';
 import { resetDemo } from './data/demoAdapter';
+import { backfillGameFacts } from './lib/backfill';
 import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
@@ -64,6 +65,9 @@ export function App() {
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
   // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo.
   useEffect(() => { track(`pagina.${path.split('?')[0].split('/')[1] || 'inicio'}`); }, [path]);
+
+  // Completa tempo para zerar, modos e temas do acervo em segundo plano (DNA e "O que jogar").
+  useEffect(() => { if (!ready) return; const t = setTimeout(() => { void backfillGameFacts(); }, 5000); return () => clearTimeout(t); }, [ready]);
 
   const isSession = path.startsWith('/sessao');
 

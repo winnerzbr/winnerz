@@ -80,3 +80,9 @@ function parseLooseDateRaw(v: unknown): { y: number; m?: number; d?: number; pre
   if ((m = s.match(/^(\d{4})$/))) return { y: +m[1], precision: 'ano' };
   return null;
 }
+
+/** AAAA-MM-DD no fuso de quem usa, daqui a `plusDays` dias. */
+export function localDay(plusDays = 0, from = new Date()): string {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + plusDays);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}

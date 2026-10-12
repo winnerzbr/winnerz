@@ -184,6 +184,19 @@ const manualGameToRow = (g: Game) => ({
 });
 
 /**
+ * Perfil de quem entrou. Desde a migração 0009 as preferências são privadas e vêm pela
+ * função my_prefs(); num banco sem a 0009, lê a linha inteira como antes.
+ */
+async function loadProfile(sb: SupabaseClient, uid: string): Promise<{ data: any; error: any }> {
+  const [row, prefs] = await Promise.all([
+    sb.from('profiles').select('display_name, is_admin').eq('id', uid).maybeSingle(),
+    sb.rpc('my_prefs'),
+  ]);
+  if (!row.error && !prefs.error) return { data: row.data ? { ...row.data, prefs: prefs.data ?? {} } : null, error: null };
+  return sb.from('profiles').select('*').eq('id', uid).maybeSingle();
+}
+
+/**
  * O Supabase devolve no máximo 1000 linhas por pedido; coleções grandes vêm em páginas
  * (ordenadas por um campo único, para nenhuma linha pular ou repetir entre páginas).
  * Uma página que falha é tentada de novo; se falhar de novo, a carga é marcada como incompleta.
@@ -234,7 +247,7 @@ export const supabaseAdapter: Adapter = {
     v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
     v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
     const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
-      sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      loadProfile(sb, user.id),
       selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),
       selectAll(() => sb.from('wishes').select('*').order('created_at').order('game_id')),
       selectAll(() => sb.from('favorites').select('*').order('created_at').order('game_id')),

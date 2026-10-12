@@ -8,7 +8,14 @@ import { getState } from './store';
 import { getClient } from './supabaseAdapter';
 import type { Game } from './types';
 
-export type Award = { id: string; year: number; title: string; intro?: string; votingOpens?: string; votingCloses?: string; resultsAt?: string; published: boolean };
+export type Award = {
+  id: string; year: number; title: string; intro?: string; votingOpens?: string; votingCloses?: string;
+  /** Quando o resultado chega para a administração (para gravar o vídeo da revelação). Antes disso, ninguém vê. */
+  resultsAt?: string;
+  /** Quando o resultado aparece para todo mundo no site (depois do vídeo). Vazio = junto com o de cima. */
+  publicResultsAt?: string;
+  published: boolean;
+};
 export type AwardGame = { id: string; slug: string; title: string; cover: string; year?: number };
 export type Nominee = { id: string; categoryId: string; gameId: string; game: AwardGame; position: number };
 export type Category = { id: string; awardId: string; name: string; description?: string; position: number; nominees: Nominee[] };
@@ -23,13 +30,22 @@ export type AwardFull = {
 };
 
 export type Phase = 'rascunho' | 'antes' | 'aberta' | 'apurando' | 'resultado';
+const at = (x?: string) => (x ? Date.parse(x) : NaN);
+/** Quando o resultado fica público: a data pública, ou a da administração se não houver. */
+export const publicAt = (a: Award) => a.publicResultsAt ?? a.resultsAt;
+
+/** Fase para o público. */
 export function phaseOf(a: Award, now = Date.now()): Phase {
   if (!a.published) return 'rascunho';
-  const t = (x?: string) => (x ? Date.parse(x) : NaN);
-  if (a.resultsAt && t(a.resultsAt) <= now) return 'resultado';
-  if (!a.votingOpens || t(a.votingOpens) > now) return 'antes';
-  if (!a.votingCloses || t(a.votingCloses) > now) return 'aberta';
+  if (publicAt(a) && at(publicAt(a)) <= now) return 'resultado';
+  if (!a.votingOpens || at(a.votingOpens) > now) return 'antes';
+  if ((!a.votingCloses || at(a.votingCloses) > now) && !(a.resultsAt && at(a.resultsAt) <= now)) return 'aberta';
   return 'apurando';
+}
+
+/** A administração vê o resultado (na apresentação) só a partir da data marcada; nunca antes. */
+export function adminResultsOpen(a: Award, now = Date.now()) {
+  return a.published && !!a.resultsAt && at(a.resultsAt) <= now;
 }
 
 export interface AwardsApi {
@@ -49,7 +65,7 @@ const gameOf = (g: Pick<Game, 'id' | 'slug' | 'title' | 'cover' | 'year'>): Awar
 
 const awardFromRow = (r: any): Award => ({
   id: r.id, year: r.year, title: r.title, intro: r.intro ?? undefined, published: !!r.published,
-  votingOpens: r.voting_opens ?? undefined, votingCloses: r.voting_closes ?? undefined, resultsAt: r.results_at ?? undefined,
+  votingOpens: r.voting_opens ?? undefined, votingCloses: r.voting_closes ?? undefined, resultsAt: r.results_at ?? undefined, publicResultsAt: r.public_results_at ?? undefined,
 });
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => { if (r.error) throw new Error(r.error.message); return r.data; };
 
@@ -67,7 +83,7 @@ const supabaseApi: AwardsApi = {
     const me = getState().profile;
     const votes = me && ids.length ? (ok(await sb.from('award_votes').select('category_id,nominee_id').in('category_id', ids)) as any[]) : [];
     const voters = Number((await sb.rpc('award_voters', { p_award: id })).data ?? 0);
-    const revealed = phaseOf(award) === 'resultado';
+    const revealed = phaseOf(award) === 'resultado' || (getState().isAdmin && adminResultsOpen(award));
     let results: Record<string, number> | null = null;
     if (revealed && award.published) {
       const rows = ok(await sb.rpc('award_results', { p_award: id })) as any[];
@@ -89,7 +105,7 @@ const supabaseApi: AwardsApi = {
   },
   async saveAward(a) {
     const sb = await getClient();
-    const row = { year: a.year, title: a.title, intro: a.intro ?? null, voting_opens: a.votingOpens ?? null, voting_closes: a.votingCloses ?? null, results_at: a.resultsAt ?? null, published: !!a.published };
+    const row = { year: a.year, title: a.title, intro: a.intro ?? null, voting_opens: a.votingOpens ?? null, voting_closes: a.votingCloses ?? null, results_at: a.resultsAt ?? null, public_results_at: a.publicResultsAt ?? null, published: !!a.published };
     const r = a.id ? await sb.from('awards').update(row).eq('id', a.id).select().single() : await sb.from('awards').insert(row).select().single();
     return awardFromRow(ok(r));
   },
@@ -136,7 +152,7 @@ const demoApi: AwardsApi = {
     const categories = db.categories.filter((c) => c.awardId === id).sort((a, b) => a.position - b.position).map((c) => ({
       ...c, nominees: db.nominees.filter((n) => n.categoryId === c.id && games[n.gameId]).sort((a, b) => a.position - b.position).map((n) => ({ ...n, game: gameOf(games[n.gameId]) })),
     }));
-    const revealed = phaseOf(award) === 'resultado';
+    const revealed = phaseOf(award) === 'resultado' || adminResultsOpen(award);
     const results = revealed ? Object.fromEntries(db.nominees.map((n) => [n.id, (db.others[n.id] ?? 0) + (Object.values(db.votes).includes(n.id) ? 1 : 0)])) : null;
     return { award, categories, myVotes: Object.fromEntries(Object.entries(db.votes).filter(([c]) => categories.some((x) => x.id === c))), voters: 42 + (Object.keys(db.votes).length ? 1 : 0), results };
   },

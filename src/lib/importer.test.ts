@@ -100,3 +100,29 @@ test('datas impossíveis são ignoradas, sem quebrar a importação', () => {
   assert.equal(parseLooseDate('29/02/2020')?.precision, 'dia');
   assert.equal(whenLabel('não é data', 'dia'), 'data não informada');
 });
+
+test('modelo de aba única: lista com detalhes da cópia e conclusão na mesma linha', () => {
+  const unica = { name: 'Minha coleção', rows: [
+    ['Nome do jogo', 'Plataforma', 'Formato', 'Status', 'Prioridade', 'Tempo estimado para zerar', 'Gênero', 'Data em que zerou', 'Horas jogadas', 'Nota', 'Comentários', 'Região', 'Edição', 'Condição da mídia', 'Condição da caixa', 'Itens inclusos', 'Data da compra', 'Local da compra', 'Valor pago', 'Valor atual'],
+    ['Hades', 'Switch', 'Físico', 'Zerado', null, null, 'Roguelike', '10/05/2021', 32, 9.5, 'Viciante', 'US', null, 'Ótimo', 'Ótimo', 'Manual', '01/02/2021', 'Loja Y', 'R$ 199,90', 150],
+    ['Outlast', 'PC', 'Digital', 'Dropado', null, null, null, '2019', 3, null, null],
+    ['Crysis 2', 'PS3', 'Físico', 'Não iniciado', 'Alta', 9],
+    ['Celeste', 'PC', 'Digital', null, null, null, null, '2020'],
+  ] };
+  const plan = planSheet(unica);
+  assert.equal(plan.role, 'lista');
+  const { items } = buildItems([unica], [plan]);
+  const hades = items.find((i) => i.title === 'Hades')!;
+  assert.equal(hades.kind, 'fisico');
+  assert.equal(hades.finish?.state, 'concluida');
+  assert.equal(hades.finish?.hours, 32);
+  assert.ok(hades.finish?.when?.iso.startsWith('2021-05-10'));
+  assert.equal(hades.rating, 9.5);
+  assert.equal(hades.detail?.pricePaid, 199.9);
+  assert.equal(hades.detail?.purchasedOn, '2021-02-01');
+  const outlast = items.find((i) => i.title === 'Outlast')!;
+  assert.equal(outlast.finish?.state, 'dropada');
+  assert.equal(outlast.finish?.when?.precision, 'ano');
+  assert.equal(items.find((i) => i.title === 'Crysis 2')!.priority, 1);
+  assert.equal(items.find((i) => i.title === 'Celeste')!.finish?.state, 'concluida');
+});

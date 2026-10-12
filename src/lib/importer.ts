@@ -81,6 +81,8 @@ export function mapHeader(row: Cell[]): Partial<Record<Field, number>> {
 
 function guessRole(map: Partial<Record<Field, number>>, n: number): Role {
   if (map.title == null || n === 0) return 'ignorar';
+  // Aba única (como o modelo do WinnerZ): tem formato ou status, então é a lista, mesmo com colunas de detalhes e de zerados.
+  if (map.format != null || map.status != null) return 'lista';
   const detail = ['region', 'edition', 'boxCondition', 'purchasedOn', 'purchasePlace', 'pricePaid'].filter((f) => map[f as Field] != null).length;
   if (detail >= 2) return 'detalhes';
   if ((map.date != null || map.rating != null || map.hours != null) && map.format == null && map.status == null) return 'zerados';
@@ -190,8 +192,22 @@ export function buildItems(sheets: Sheet[], plans: SheetPlan[]): { items: Item[]
           if (st.wontPlay) it.wontPlay = true;
           if (st.finish && !it.finish) it.finish = { state: st.finish };
         }
-        if (role === 'detalhes') {
-          it.kind = it.kind ?? 'fisico';
+        // Numa aba única, a lista também traz detalhes da cópia e a conclusão (data, horas, nota).
+        const hasDetail = role === 'detalhes' || (role === 'lista' && (['region', 'edition', 'condition', 'boxCondition', 'items', 'purchasedOn', 'purchasePlace', 'pricePaid', 'priceNow'] as Field[]).some((f) => str(get(row, f)) != null));
+        const rowState = role === 'lista' ? parseStatus(get(row, 'status')).finish : undefined;
+        const finishedHere = role === 'zerados' || (role === 'lista' && (rowState == null || rowState === 'concluida')
+          && (str(get(row, 'date')) != null || (rowState === 'concluida' && (str(get(row, 'hours')) != null || str(get(row, 'rating')) != null))));
+        // Largado com data: a data vira "quando parou".
+        if (role === 'lista' && rowState === 'dropada' && it.finish?.state === 'dropada') {
+          const when = parseLooseDate(get(row, 'date'));
+          if (when) it.finish = { ...it.finish, when, hours: num(get(row, 'hours')) ?? it.finish.hours };
+        }
+        if (role === 'lista' && !finishedHere) {
+          it.rating = parseRating(get(row, 'rating')) ?? it.rating;
+          it.comment = str(get(row, 'comment')) ?? it.comment;
+        }
+        if (hasDetail) {
+          if (role === 'detalhes') it.kind = it.kind ?? 'fisico';
           it.genre = it.genre ?? str(get(row, 'genre'));
           const d: CopyDetail = {
             region: str(get(row, 'region')), edition: str(get(row, 'edition')), condition: str(get(row, 'condition')),
@@ -203,7 +219,7 @@ export function buildItems(sheets: Sheet[], plans: SheetPlan[]): { items: Item[]
           const clean = Object.fromEntries(Object.entries(d).filter(([, v]) => v != null)) as CopyDetail;
           if (Object.keys(clean).length) it.detail = { ...it.detail, ...clean };
         }
-        if (role === 'zerados') {
+        if (finishedHere) {
           it.genre = it.genre ?? str(get(row, 'genre'));
           const when = parseLooseDate(get(row, 'date')) ?? undefined;
           it.finish = { state: 'concluida', when: when ?? it.finish?.when, hours: num(get(row, 'hours')) ?? it.finish?.hours };

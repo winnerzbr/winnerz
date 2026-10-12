@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore, actions } from '../data/store';
-import { awardsApi, canAdmin, type Award, type AwardFull, type Category } from '../data/awards';
+import { awardsApi, canAdmin, adminResultsOpen, type Award, type AwardFull, type Category } from '../data/awards';
 import { searchGames, loadGame, type Hit } from '../components/AddGameDialog';
 import { CoverArt } from '../components/CoverArt';
 import { ConfirmButton } from '../components/Sheet';
+import { fmtWhen } from './Awards';
 
 /** datetime-local ⇄ ISO, sempre no horário de Brasília. */
 const toLocal = (iso?: string) => {
@@ -69,6 +70,13 @@ export function AwardsAdminPage() {
       {error && <p className="awards__error" role="alert">{error}</p>}
       {notice && <p className="muted" role="status">{notice}</p>}
       {awards?.length === 0 && <p className="muted">Nenhuma edição ainda. Rode a migração 0006 (ela cria a edição de 2026 com as categorias) ou crie uma nova.</p>}
+      {full && (
+        <section className="card awards-admin__reveal" aria-label="Revelação">
+          {adminResultsOpen(full.award)
+            ? <><p><strong>O resultado já chegou para você.</strong> {full.award.publicResultsAt && Date.parse(full.award.publicResultsAt) > Date.now() ? `O público vê em ${fmtWhen(full.award.publicResultsAt, true)}.` : 'O público também já vê.'}</p><Link className="btn primary" to="/eventos/awards/revelar">Abrir a apresentação da revelação</Link></>
+            : <p><strong>Resultado trancado.</strong> {full.award.resultsAt ? `Ninguém vê a contagem até ${fmtWhen(full.award.resultsAt, true)}, nem você.` : 'Marque quando o resultado chega para você.'} Esta tela nunca mostra votos.</p>}
+        </section>
+      )}
       {full && <EditionForm key={full.award.id} award={full.award} onSave={(a) => run(async () => { await awardsApi().saveAward(a); await loadList(); }, 'Edição gravada.')} />}
       {full && (
         <section className="awards-admin__cats" aria-labelledby="cats-h">
@@ -90,6 +98,8 @@ function EditionForm({ award, onSave }: { award: Award; onSave: (a: Award) => vo
     const t = (x?: string) => (x ? Date.parse(x) : NaN);
     if (a.votingOpens && a.votingCloses && t(a.votingCloses) <= t(a.votingOpens)) return 'A votação precisa fechar depois de abrir.';
     if (a.resultsAt && a.votingCloses && t(a.resultsAt) < t(a.votingCloses)) return 'O resultado precisa aparecer depois que a votação fecha.';
+    if (a.publicResultsAt && a.resultsAt && t(a.publicResultsAt) < t(a.resultsAt)) return 'O resultado público precisa vir depois de o resultado chegar para você.';
+    if (a.publicResultsAt && !a.resultsAt) return 'Marque também quando o resultado chega para você.';
     if (a.published && !a.votingOpens) return 'Para publicar, marque quando a votação abre.';
     return '';
   };
@@ -101,7 +111,9 @@ function EditionForm({ award, onSave }: { award: Award; onSave: (a: Award) => vo
         <label className="awards-admin__wide"><span>Apresentação</span><textarea className="field" rows={2} value={a.intro ?? ''} onChange={(e) => set({ intro: e.target.value || undefined })} /></label>
         <label><span>Votação abre (Brasília)</span><input className="field" type="datetime-local" value={toLocal(a.votingOpens)} onChange={(e) => set({ votingOpens: fromLocal(e.target.value) })} /></label>
         <label><span>Votação fecha</span><input className="field" type="datetime-local" value={toLocal(a.votingCloses)} onChange={(e) => set({ votingCloses: fromLocal(e.target.value) })} /></label>
-        <label><span>Resultado aparece</span><input className="field" type="datetime-local" value={toLocal(a.resultsAt)} onChange={(e) => set({ resultsAt: fromLocal(e.target.value) })} /></label>
+        <label><span>Resultado chega para você</span><input className="field" type="datetime-local" value={toLocal(a.resultsAt)} onChange={(e) => set({ resultsAt: fromLocal(e.target.value) })} /></label>
+        <label><span>Resultado público no site</span><input className="field" type="datetime-local" value={toLocal(a.publicResultsAt)} onChange={(e) => set({ publicResultsAt: fromLocal(e.target.value) })} /></label>
+        <p className="faint awards-admin__wide">Até “Resultado chega para você”, ninguém vê a contagem, nem a administração: o site não mostra antes. A partir dela, só você vê, na apresentação da revelação, para gravar o vídeo. O público vê no site a partir do “Resultado público” (em branco = na mesma hora). A votação fecha, no máximo, quando o resultado chega para você.</p>
         <label className="awards-admin__check"><input type="checkbox" checked={a.published} onChange={(e) => set({ published: e.target.checked })} /> Publicada (todos veem a página)</label>
       </div>
       {bad && <p className="awards__error" role="alert">{bad}</p>}

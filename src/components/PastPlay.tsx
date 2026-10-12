@@ -19,20 +19,23 @@ export function PastSheetHost() {
   return p ? <PastDetailsSheet key={p.historyId} historyId={p.historyId} ongoing={p.ongoing} onClose={() => setPending(null)} /> : null;
 }
 
+/** Registra "Já zerei" e abre a folha de detalhes (quando, como terminou, horas). Usado também pelo menu "Mais ações". */
+export function recordPastNow(gameId: string): string {
+  const st = getState();
+  const j = journeyForGame(st, gameId);
+  const cur = j ? currentHistory(st, j.id) : null;
+  const ongoing = !!cur && isOpenState(cur.state);
+  const id = actions.recordPast(gameId);
+  setPending({ historyId: id, ongoing });
+  return id;
+}
+
 /**
  * "Já zerei": um toque registra. Depois, se a pessoa quiser, diz quando, como terminou e quantas horas.
  * Se o jogo está em andamento, é a História atual que termina.
  */
 export function PastButton({ gameId, className = 'btn ghost', label = 'Já zerei', onDone }: { gameId: string; className?: string; label?: string; onDone?: (historyId: string) => void }) {
-  const tap = () => {
-    const st = getState();
-    const j = journeyForGame(st, gameId);
-    const cur = j ? currentHistory(st, j.id) : null;
-    const ongoing = !!cur && isOpenState(cur.state);
-    const id = actions.recordPast(gameId);
-    setPending({ historyId: id, ongoing });
-    onDone?.(id);
-  };
+  const tap = () => onDone?.(recordPastNow(gameId));
   return <button type="button" className={className} onClick={tap}><Icon name="check" size={15} />{label}</button>;
 }
 

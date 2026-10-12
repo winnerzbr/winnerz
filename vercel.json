@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!api/|assets/|demo/|favicon|version\\.json).*)",
+      "source": "/((?!api/|assets/|demo/|modelos/|favicon|version\\.json).*)",
       "destination": "/index.html"
     }
   ],

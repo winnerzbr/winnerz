@@ -24,7 +24,7 @@ const games: Game[] = [
   { id: 'mgs2', slug: 'metal-gear-solid-2-sons-of-liberty', title: 'Metal Gear Solid 2', cover: img('cover-mgs2'), year: 2001, developer: 'Konami', platforms: ['PlayStation 2'], genres: 'Ação e furtividade' },
   { id: 'dderby', slug: 'destruction-derby', title: 'Destruction Derby', cover: img('cover-dderby'), backdrop: img('scene-dderby'), year: 1995, developer: 'Reflections', platforms: ['PlayStation'], genres: 'Corrida', modes: ['Single player', 'Multiplayer', 'Split screen'], ttb: { n: 5 } },
   { id: 'nfs', slug: 'the-need-for-speed', title: 'Need for Speed', cover: img('cover-nfs'), backdrop: img('scene-nfs'), year: 1994, developer: 'Electronic Arts', platforms: ['PlayStation'], genres: 'Corrida' },
-  { id: 'gta6', slug: 'grand-theft-auto-vi', title: 'Grand Theft Auto VI', cover: img('cover-gta6'), backdrop: img('scene-gta6-city'), year: 2026, developer: 'Rockstar Games', platforms: ['PlayStation 5', 'Xbox Series X|S'], genres: 'Ação e mundo aberto' },
+  { id: 'gta6', slug: 'grand-theft-auto-vi', igdbId: 52189, releasedOn: '2026-11-19', title: 'Grand Theft Auto VI', cover: img('cover-gta6'), backdrop: img('scene-gta6-city'), year: 2026, developer: 'Rockstar Games', platforms: ['PlayStation 5', 'Xbox Series X|S'], genres: 'Ação e mundo aberto' },
   { id: 'elden', slug: 'elden-ring', title: 'Elden Ring', cover: img('cover-elden'), year: 2022, developer: 'FromSoftware', platforms: ['PlayStation 5', 'PC'], genres: 'RPG de ação', modes: ['Single player', 'Multiplayer', 'Co-operative', 'Third person'], themes: ['Action', 'Fantasy', 'Open world'], ttb: { h: 50, n: 60, c: 100 } },
 ];
 

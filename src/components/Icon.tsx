@@ -28,6 +28,8 @@ const paths: Record<string, ReactElement> = {
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
   desejo: <path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-4-6 4V4.5a1 1 0 0 1 1-1z" strokeLinejoin="round" />,
   estante: <><path d="M4 4v16M20 4v16M4 12h16M4 20h16" /><path d="M7 12V7M10 12V8M15 20v-5M17 20v-6" /></>,
+  radar: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><path d="M12 12l5.5-5.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></>,
+  maisAcoes: <><circle cx="5.5" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18.5" cy="12" r="1.4" fill="currentColor" /></>,
 };
 
 export function Icon({ name, size = 18, ...rest }: { name: keyof typeof paths | string; size?: number } & SVGProps<SVGSVGElement>) {

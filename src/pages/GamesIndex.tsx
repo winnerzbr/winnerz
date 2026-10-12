@@ -7,6 +7,8 @@ import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
+import { MoreActions } from '../components/MoreActions';
+import { recordPastNow } from '../components/PastPlay';
 
 const hitOf = (g: Game): Hit => ({ igdbId: g.igdbId, slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g });
 
@@ -74,6 +76,9 @@ export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => voi
   const owned = !!id && s.copies.some((c) => c.gameId === id);
   const fav = !!id && s.favorites.includes(id);
   const wished = !!id && s.wishes.some((w) => w.gameId === id);
+  const onRadar = !!id && !!s.myGames[id]?.onRadar;
+  const wontPlay = !!id && !!s.myGames[id]?.wontPlay;
+  const canTrack = s.schemaV6 || s.mode === 'demo';
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState(0);
 
@@ -120,6 +125,13 @@ export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => voi
         <button className={`quick__btn${wished ? ' is-on' : ''}`} aria-pressed={wished} title={wished ? 'Nos seus desejos' : 'Colocar nos desejos'} aria-label={wished ? 'Tirar dos desejos' : 'Colocar nos desejos'} onClick={wish} aria-busy={busy === 'wish'}>
           <Icon name="desejo" size={17} fill={wished ? 'currentColor' : 'none'} />
         </button>
+        <MoreActions label={`Mais ações para ${hit.title}`} items={[
+          { key: 'radar', icon: 'radar', on: onRadar, label: onRadar ? 'No Radar (deixar de acompanhar)' : 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006',
+            onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const on = actions.toggleRadar(gid); say(on ? 'Acompanhando no Radar.' : 'Fora do Radar.'); } },
+          { key: 'zerei', icon: 'check', label: 'Já zerei', onSelect: async () => { const gid = await ensure('more'); if (gid) recordPastNow(gid); } },
+          { key: 'nao', icon: 'fechar', on: wontPlay, label: wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const v = actions.toggleWontPlay(gid); say(v ? 'Marcado como “não vou jogar”.' : 'Desmarcado.'); } },
+          { key: 'ficha', icon: 'avancar', label: 'Abrir a ficha', onSelect: open },
+        ]} />
       </div>
       <button className="cover-grid__title linkish" onClick={open}>{hit.title}</button>
       <span className="faint cover-grid__year">{[hit.year, hit.platforms.slice(0, 2).join(', ')].filter(Boolean).join(' · ')}</span>

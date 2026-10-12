@@ -20,6 +20,8 @@ import { refreshGame, gameBySlug } from '../components/AddGameDialog';
 import { GameUniverse } from '../components/GameUniverse';
 import { GameDna } from '../components/GameDna';
 import { RadarToggle } from '../components/RadarToggle';
+import { MoreActions } from '../components/MoreActions';
+import { localDay } from '../lib/dates';
 import { Backdrop } from '../components/Backdrop';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
@@ -68,6 +70,9 @@ function GameView({ gameId }: { gameId: string }) {
   const [editing, setEditing] = useState(false);
   const progressOf = h && h.state !== 'concluida' ? h.progress : null;
   const mine2 = myGame(s, gameId);
+  const today = localDay();
+  const upcoming = g ? (g.releasedOn ? g.releasedOn > today : g.year == null || g.year >= Number(today.slice(0, 4))) : false;
+  const canTrack = s.schemaV6 || s.mode === 'demo';
 
   // Análises públicas vêm do banco quando o Supabase está ligado.
   useEffect(() => {
@@ -125,8 +130,19 @@ function GameView({ gameId }: { gameId: string }) {
               ) : (
                 <button className="btn ghost lg" aria-pressed={wished} onClick={() => actions.toggleWish(gameId)}>{wished ? 'Nos seus desejos' : 'Desejar'}</button>
               )}
+              {g.igdbId && (upcoming || mine2.onRadar) && (
+                <button className={`btn ghost lg${mine2.onRadar ? ' is-radar' : ''}`} aria-pressed={!!mine2.onRadar} disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(gameId)}>
+                  <Icon name="radar" size={16} />{mine2.onRadar ? 'No Radar' : 'Acompanhar no Radar'}
+                </button>
+              )}
               <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost lg" />
-              <a className="btn ghost lg" href="#analise">{mine ? 'Editar sua análise' : 'Escrever análise'}</a>
+              <MoreActions className="btn ghost lg" showLabel label="Mais ações" align="left" items={[
+                { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' }); } },
+                ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006', onSelect: () => { actions.toggleRadar(gameId); } }] : []),
+                ...(mine2.onRadar ? [{ key: 'verradar', icon: 'radar', label: 'Ver o Radar', onSelect: () => navigate('/jogos/radar') }] : []),
+                ...(!h || h.state !== 'ativa' ? [{ key: 'nao', icon: 'fechar', on: !!mine2.wontPlay, label: mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: () => { actions.toggleWontPlay(gameId); } }] : []),
+                { key: 'link', icon: 'avancar', label: 'Copiar o link da ficha', onSelect: () => { void navigator.clipboard?.writeText(location.origin + '/jogos/' + g.slug); } },
+              ]} />
             </div>
           </div>
           <div className="ratings" role="region" aria-label="Notas">

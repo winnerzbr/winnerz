@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, canAdmin, phaseOf, type Award, type AwardFull, type Category, type Phase } from '../data/awards';
+import { awardsApi, canAdmin, phaseOf, publicAt, type Award, type AwardFull, type Category, type Phase } from '../data/awards';
 import { CoverArt } from '../components/CoverArt';
 import { track } from '../lib/track';
 
@@ -13,7 +13,7 @@ function phaseLine(a: Award, p: Phase): string {
     case 'rascunho': return 'Rascunho: só a administração vê esta edição.';
     case 'antes': return a.votingOpens ? `A votação abre em ${fmtWhen(a.votingOpens, true)}.` : 'A data da votação ainda vai ser anunciada.';
     case 'aberta': return a.votingCloses ? `Votação aberta até ${fmtWhen(a.votingCloses, true)}.` : 'Votação aberta.';
-    case 'apurando': return a.resultsAt ? `Votação encerrada. O resultado sai em ${fmtWhen(a.resultsAt, true)}.` : 'Votação encerrada. O resultado sai em breve.';
+    case 'apurando': return publicAt(a) ? `Votação encerrada. O resultado sai em ${fmtWhen(publicAt(a), true)}.` : 'Votação encerrada. O resultado sai em breve.';
     case 'resultado': return 'Resultado.';
   }
 }
@@ -95,7 +95,7 @@ export function AwardsPage() {
           ? <p className="muted">Um voto por categoria. Toque no jogo para votar; toque de novo para tirar o voto. Dá para mudar até o fim da votação. Você votou em {voted} de {withNominees.length}.</p>
           : <p><Link className="btn primary" to="/entrar">Entre para votar</Link> <span className="muted">Uma conta, um voto por categoria.</span></p>)}
         {phase === 'apurando' && <p className="muted">Ninguém vê a contagem antes da revelação, nem a administração do site muda votos.</p>}
-        {canAdmin() && <Link className="btn ghost sm" to="/eventos/awards/admin">Montar a edição</Link>}
+        {canAdmin() && <div className="awards__admin"><Link className="btn ghost sm" to="/eventos/awards/admin">Montar a edição</Link><Link className="btn ghost sm" to="/eventos/awards/revelar">Apresentação da revelação</Link></div>}
         {error && <p className="awards__error" role="alert">{error}</p>}
       </header>
 

@@ -18,13 +18,11 @@ export function RadarToggle({ game, on }: { game: Game; on: boolean }) {
     return () => { alive = false; };
   }, [game.igdbId, on, upcoming]);
   const soon = info?.day && info.status === 'previsto' ? whenSoon(info.day, today) : '';
+  if (!on && !(info && info.status !== 'lancado')) return null;
   return (
     <div className="radar-toggle">
       {info && info.status !== 'lancado' && <p className="radar-toggle__when"><span className="muted">Lançamento</span> {info.label}{soon && ` (${soon})`}</p>}
-      <button className="btn quiet sm" aria-pressed={on} disabled={!v6} title={v6 ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(game.id)}>
-        {on ? '◉ No Radar (deixar de acompanhar)' : '◎ Acompanhar no Radar'}
-      </button>
-      {on && <Link to="/jogos/radar" className="radar-toggle__link">Ver o Radar</Link>}
+      {on && <p className="radar-toggle__when"><span className="muted">No seu Radar.</span> <Link to="/jogos/radar" className="radar-toggle__link">Ver o Radar</Link> <button className="linklike" disabled={!v6} onClick={() => actions.toggleRadar(game.id)}>Deixar de acompanhar</button></p>}
     </div>
   );
 }

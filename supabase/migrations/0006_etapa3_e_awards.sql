@@ -116,6 +116,7 @@ create table if not exists public.awards (
   voting_opens timestamptz,
   voting_closes timestamptz,
   results_at timestamptz,
+  public_results_at timestamptz,
   published boolean not null default false,
   created_at timestamptz not null default now()
 );
@@ -142,6 +143,7 @@ create table if not exists public.award_votes (
   primary key (user_id, category_id)
 );
 
+alter table public.awards add column if not exists public_results_at timestamptz;
 alter table public.awards enable row level security;
 alter table public.award_categories enable row level security;
 alter table public.award_nominees enable row level security;
@@ -186,7 +188,8 @@ create policy "votes own change" on public.award_votes for update to authenticat
 drop policy if exists "votes own delete" on public.award_votes;
 create policy "votes own delete" on public.award_votes for delete to authenticated using (user_id = auth.uid() and public.award_voting_open(category_id));
 
--- Resultado: contagem por indicado, só depois da data de revelação (para todos, administração inclusive). Nunca mostra quem votou em quê.
+-- Resultado: ninguém vê antes de results_at (nem a administração); a administração vê a partir dele (para gravar a revelação)
+-- e o público a partir de public_results_at (ou results_at, se vazio). Nunca mostra quem votou em quê.
 create or replace function public.award_results(p_award uuid)
 returns table (category_id uuid, nominee_id uuid, votes integer)
 language sql stable security definer set search_path = public as $$
@@ -196,6 +199,7 @@ language sql stable security definer set search_path = public as $$
   join awards a on a.id = c.award_id
   left join award_votes v on v.nominee_id = n.id
   where a.id = p_award and a.published and a.results_at is not null and a.results_at <= now()
+    and (public.is_admin() or coalesce(a.public_results_at, a.results_at) <= now())
   group by n.category_id, n.id;
 $$;
 grant execute on function public.award_results(uuid) to anon, authenticated;

@@ -15,7 +15,7 @@ import { normalize } from '../lib/rating';
 type Step = 'arquivo' | 'abas' | 'resumo' | 'buscando' | 'revisar' | 'gravando' | 'pronto' | 'falhou';
 const ROLES: [Role, string][] = [['lista', 'Lista de jogos (coleção)'], ['zerados', 'Jogos zerados'], ['detalhes', 'Detalhes das cópias'], ['ignorar', 'Ignorar esta aba']];
 const FIELDS_BY_ROLE: Record<Role, Field[]> = {
-  lista: ['title', 'platform', 'format', 'status', 'priority', 'estHours', 'genre'],
+  lista: ['title', 'platform', 'format', 'status', 'priority', 'estHours', 'genre', 'date', 'hours', 'rating', 'comment', 'region', 'edition', 'condition', 'boxCondition', 'items', 'purchasedOn', 'purchasePlace', 'pricePaid', 'priceNow'],
   zerados: ['title', 'platform', 'date', 'hours', 'rating', 'comment', 'genre'],
   detalhes: ['title', 'platform', 'region', 'edition', 'condition', 'boxCondition', 'items', 'purchasedOn', 'purchasePlace', 'pricePaid', 'priceNow'],
   ignorar: [],
@@ -280,6 +280,15 @@ export function ImportPage() {
           <input ref={input} type="file" accept=".xlsx,.csv,.tsv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) open(f); e.target.value = ''; }} />
           <button className="btn primary lg" onClick={() => input.current?.click()}>Escolher arquivo</button>
           <p className="faint">O arquivo é lido aqui no seu navegador. Só os dados dos jogos vão para a sua conta.</p>
+        </section>
+      )}
+      {step === 'arquivo' && (
+        <section className="card template-card" aria-labelledby="modelo-h">
+          <div>
+            <h2 id="modelo-h" className="t">Ainda não tem planilha?</h2>
+            <p className="muted">Baixe o modelo do WinnerZ, preencha uma linha por cópia e importe aqui. Só o nome do jogo é obrigatório; plataforma, formato e situação já vêm com listas para escolher, e a aba “Como preencher” explica cada coluna.</p>
+          </div>
+          <a className="btn ghost" href="/modelos/winnerz-modelo-colecao.xlsx" download="WinnerZ - modelo da coleção.xlsx" onClick={() => track('importar.modelo')}>Baixar o modelo (.xlsx)</a>
         </section>
       )}
 

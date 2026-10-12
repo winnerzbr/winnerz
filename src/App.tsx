@@ -29,6 +29,7 @@ import { Login } from './pages/Login';
 import { ComingSoon } from './pages/ComingSoon';
 import { EventsIndex, AwardsPage } from './pages/Awards';
 import { AwardsAdminPage } from './pages/AwardsAdmin';
+import { AwardsRevealPage } from './pages/AwardsReveal';
 
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
@@ -53,6 +54,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos', path)) return <EventsIndex />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
+  if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
   return (
     <main className="page" style={{ padding: '96px 32px' }}>
       <h1 className="t" style={{ fontSize: 72 }}>Página não encontrada</h1>

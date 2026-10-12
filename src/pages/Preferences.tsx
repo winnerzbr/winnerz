@@ -25,12 +25,18 @@ export function Preferences() {
 
   return (
     <main className="page pad prefs">
-      <p className="muted">Preferências{profile ? ` de ${profile.name}` : ''}</p>
-      <h1 className="t big">Aparência e notas</h1>
-      <p className="muted lead">Vale para todos os seus aparelhos. A página muda na hora para você ver o resultado.</p>
-
-      <section aria-labelledby="tema" className="prefs__section">
-        <h2 id="tema" className="t">Tema</h2>
+      <aside className="prefs__aside">
+        <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
+        <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
+        <nav className="prefs__nav" aria-label="Seções das preferências">
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#conta">Conta</a>
+        </nav>
+      </aside>
+      <div className="prefs__main">
+      <section aria-labelledby="tema" className="prefs__section prefs__section--first">
+        <h2 id="tema" className="t">Aparência e notas</h2>
+        <p className="muted prefs__p">Vale para todos os seus aparelhos. A página muda na hora para você ver o resultado.</p>
+        <h3 className="prefs__sub">Tema</h3>
         <div className="themes">
           <button className="theme-card" aria-pressed={prefs.theme === 'escuro'} onClick={() => actions.setPrefs({ theme: 'escuro' })}>
             <span className="theme-card__mini" aria-hidden="true" style={{ background: preview['--bg'] }}>
@@ -42,7 +48,7 @@ export function Preferences() {
           <button className="theme-card" aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>
             <span className="theme-card__mini theme-card__mini--light" aria-hidden="true">
               <span style={{ background: '#0B0D10', width: '50%' }} /><span style={{ background: '#C5CAD0', width: '70%' }} />
-              <span className="theme-card__blocks"><i style={{ background: '#FFFDF9' }} /><i style={{ background: '#FFFDF9' }} /><b /></span>
+              <span className="theme-card__blocks"><i style={{ background: '#FFFFFF' }} /><i style={{ background: '#FFFFFF' }} /><b /></span>
             </span>
             Claro
           </button>
@@ -56,8 +62,8 @@ export function Preferences() {
         )}
       </section>
 
-      <section aria-labelledby="notas" className="prefs__section">
-        <h2 id="notas" className="t">Escala das notas</h2>
+      <section aria-labelledby="notas" className="prefs__section prefs__section--sub">
+        <h3 id="notas" className="prefs__sub">Escala das notas</h3>
         <p className="muted prefs__p">A nota pertence a quem avaliou; a escala pertence a quem está vendo. Nada é arredondado: uma nota 8,5 aparece como 4,25 estrelas, com a estrela preenchida na medida certa.</p>
         <div className="seg" role="group" aria-label="Escala das notas">
           <button aria-pressed={prefs.scale === 'TEN_POINT'} onClick={() => actions.setPrefs({ scale: 'TEN_POINT' })}>De 0 a 10</button>
@@ -92,8 +98,8 @@ export function Preferences() {
 
       <section aria-labelledby="leve" className="prefs__section">
         <h2 id="leve" className="t">Modo leve</h2>
-        <label className="motion" data-on={!!prefs.light}>
-          <input type="checkbox" checked={!!prefs.light} onChange={(e) => actions.setPrefs({ light: e.target.checked })} />
+        <label className="motion motion--switch" data-on={!!prefs.light}>
+          <input type="checkbox" role="switch" className="switch" checked={!!prefs.light} onChange={(e) => actions.setPrefs({ light: e.target.checked })} />
           <span><strong>Esconder contadores e números</strong><span className="muted">Sem total de sessões, horas, jogos na estante ou quantos você zerou. Fica a história, sem placar. As estatísticas da coleção continuam lá, só se você abrir.</span></span>
         </label>
       </section>
@@ -113,14 +119,15 @@ export function Preferences() {
 
       <OverlaySettings />
 
-      <section className="prefs__section">
-        <h2 className="t">Conta</h2>
+      <section className="prefs__section" aria-labelledby="conta">
+        <h2 id="conta" className="t">Conta</h2>
         {SUPABASE_ON ? (
           profile ? <button className="btn ghost" onClick={signOut}>Sair da conta</button> : <a className="btn primary" href="/entrar">Entrar</a>
         ) : (
           <p className="muted prefs__p">Você está no modo demonstração: tudo fica neste navegador. <button className="btn quiet sm" onClick={resetDemo}>Recomeçar a demonstração</button></p>
         )}
       </section>
+      </div>
     </main>
   );
 }

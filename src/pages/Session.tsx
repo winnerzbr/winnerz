@@ -11,6 +11,7 @@ import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebr
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop, useBackdrop } from '../components/Backdrop';
+import { BrandMark } from '../components/Brand';
 import { shrink, toDataUrl } from '../lib/image';
 import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
@@ -73,6 +74,8 @@ export function SessionPage() {
   const [capsuleOpen, setCapsuleOpen] = useState(false);
   const photoKind = useRef<'momento' | 'ponto'>('momento');
   const fileInput = useRef<HTMLInputElement>(null);
+  // No celular o fim da sessão fica abaixo do palco: leva até ele.
+  useEffect(() => { if (finishing && window.innerWidth < 1100) document.querySelector('.session__aside')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [finishing]);
 
   // Depois de zerar a sessão fecha; a celebração continua na tela.
   if (celebrate) return <Celebrated historyId={celebrate.historyId} onClose={() => { const h = s.histories.find((x) => x.id === celebrate.historyId); const j = h && s.journeys.find((x) => x.id === h.journeyId); navigate(j ? `/jornada/${s.games[j.gameId].slug}` : '/'); }} />;
@@ -140,67 +143,74 @@ export function SessionPage() {
   const herePhotos = here.filter((e) => e.image);
 
   return (
-    <main className="session">
-      <div className="session__hero on-photo">
-        <Backdrop game={g} />
+    <main className={`session${finishing ? ' is-finishing' : ''}`}>
+      <section className="session__stage on-photo">
+        <Backdrop game={g} className="session__bg" />
         <div className="session__shade" aria-hidden="true" />
-        <div className="session__bar">
-          <Link to={`/jornada/${g.slug}`} className="session__back" aria-label="Voltar para a Jornada"><Icon name="voltar" size={20} /></Link>
-          <span className="session__live"><span className="session-pill__dot" aria-hidden="true" />Sessão aberta desde {hourMin(session.startedAt)}</span>
-        </div>
-        <div className="session__title">
-          <div className="muted">Sessão {n}{h.ordinal > 1 ? `, sua ${h.title}` : ''}</div>
-          <h1 className="t">{g.title}</h1>
-        </div>
-      </div>
-
-      {!finishing ? (
-        <div className="session__body">
-          {recap && wantsRecap(recap) ? <Previously journeyId={j.id} always onEditCapsule={() => setCapsuleOpen(true)} /> : prevNote?.note && (
-            <div className="session__note"><div className="session__note-k">Seu recado de {longDay(prevNote.startedAt).split(',')[0]}</div><div className="quote">“{prevNote.note}”</div></div>
-          )}
+        <header className="session__bar">
+          <Link to={`/jornada/${g.slug}`} className="session__back-link"><Icon name="voltar" size={18} />Voltar à Jornada</Link>
+          <BrandMark width={44} className="session__brand" />
+          <span className="session__live"><span className="session-pill__dot" aria-hidden="true" />Sessão aberta</span>
+        </header>
+        <div className="session__center">
+          <span className="session__cover"><CoverArt game={g} /></span>
+          <span className="kicker">{h.ordinal > 1 ? `${h.title} · ` : ''}Sessão {n}</span>
+          <h1 className="t session__name">{g.title}</h1>
+          <Elapsed since={session.startedAt} />
+          {h.progress != null && <div className="hline session__line" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /><b style={{ left: `${h.progress}%` }} /></div>}
+          <p className="session__hint">Começou às {hourMin(session.startedAt)}. Jogue à vontade: o WinnerZ não precisa ficar aberto.</p>
           <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
-          <div className="tiles">
-            <button className="tile" onClick={() => pickPhoto('momento')}><Icon name="camera" size={24} />Guardar momento</button>
-            <button className="tile" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={24} />Quero voltar aqui</button>
-            <button className="tile" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={24} />Anotar sem foto</button>
-            <button className="tile" onClick={() => setFinishing(true)}><Icon name="mensagem" size={24} />Recado para a próxima vez</button>
-            <button className="tile" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={24} />Cápsula de Retomada</button>
+          <div className="session__main-actions">
+            <button className="btn primary lg" onClick={() => pickPhoto('momento')}><Icon name="camera" size={20} />Guardar momento</button>
+            <button className="btn ghost lg" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
           </div>
-          {here.length > 0 && (
-            <div>
-              <div className="muted session__k">Nesta sessão</div>
-              <div className="session__thumbs">
-                {here.map((e) => e.image
-                  ? <button key={e.id} className="session__thumb" onClick={() => setViewer(herePhotos.indexOf(e))} aria-label={`Ver foto: ${e.title}`}><img src={e.image} alt="" />{e.kind === 'ponto' && <span className="session__thumb-pin"><Icon name="pin" size={12} /></span>}</button>
-                  : <span key={e.id} className="session__mark" title={[e.title, e.quote ?? e.text].filter(Boolean).join(': ')}>{e.kind === 'ponto' ? <Icon name="pin" /> : <Icon name="caneta" />}<span>{e.title}</span></span>)}
-              </div>
-            </div>
-          )}
-          <div className="session__end">
-            <button className="btn session__finish" onClick={() => setFinishing(true)}>Finalizar sessão</button>
-            <p className="faint">Pode fechar o site. A sessão fica aberta até você finalizar.</p>
+          <div className="session__more">
+            <button className="btn quiet sm" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={16} />Anotar sem foto</button>
+            <button className="btn quiet sm" onClick={() => setFinishing(true)}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
+            <button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={16} />Cápsula de Retomada</button>
           </div>
         </div>
-      ) : (
-        <FinishForm
-          progress={h.progress ?? 0}
-          onCancel={() => setFinishing(false)}
-          companions={knownCompanions(s)}
-          canWho={hasV8(s)}
-          onFinish={(data) => {
-            // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
-            const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
-            const before = h.progress ?? 0, after = data.progress ?? before;
-            actions.finishSession(session.id, data);
-            const tone = s.prefs.tone;
-            if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
-            else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
-            else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
-            navigate(`/jornada/${g.slug}`);
-          }}
-          onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
-        />
+        <div className="session__foot">
+          {recap && wantsRecap(recap) ? <div className="session__recap"><Previously journeyId={j.id} always onEditCapsule={() => setCapsuleOpen(true)} /></div> : prevNote?.note && (
+            <div className="session__note"><div className="kicker kicker--now">Seu recado de {longDay(prevNote.startedAt).split(',')[0]}</div><div className="quote">“{prevNote.note}”</div></div>
+          )}
+          <div className="session__foot-row">
+            {here.length > 0 ? (
+              <div className="session__here">
+                <div className="kicker session__k">Nesta sessão</div>
+                <div className="session__thumbs">
+                  {here.map((e) => e.image
+                    ? <button key={e.id} className="session__thumb" onClick={() => setViewer(herePhotos.indexOf(e))} aria-label={`Ver foto: ${e.title}`}><img src={e.image} alt="" />{e.kind === 'ponto' && <span className="session__thumb-pin"><Icon name="pin" size={12} /></span>}</button>
+                    : <span key={e.id} className="session__mark" title={[e.title, e.quote ?? e.text].filter(Boolean).join(': ')}>{e.kind === 'ponto' ? <Icon name="pin" /> : <Icon name="caneta" />}<span>{e.title}</span></span>)}
+                </div>
+              </div>
+            ) : <span />}
+            {!finishing && <button className="btn now lg session__finish" onClick={() => setFinishing(true)}>Finalizar sessão</button>}
+          </div>
+        </div>
+      </section>
+
+      {finishing && (
+        <aside className="session__aside" aria-label="Fim da sessão">
+          <FinishForm
+            progress={h.progress ?? 0}
+            onCancel={() => setFinishing(false)}
+            companions={knownCompanions(s)}
+            canWho={hasV8(s)}
+            onFinish={(data) => {
+              // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
+              const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
+              const before = h.progress ?? 0, after = data.progress ?? before;
+              actions.finishSession(session.id, data);
+              const tone = s.prefs.tone;
+              if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
+              else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
+              else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
+              navigate(`/jornada/${g.slug}`);
+            }}
+            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
+          />
+        </aside>
       )}
       {capsuleOpen && <CapsuleSheet historyId={h.id} gameTitle={g.title} onClose={() => setCapsuleOpen(false)} />}
       {draft && <MomentSheet draft={draft} onChange={setDraft} onPhoto={() => fileInput.current?.click()} onCancel={() => { if (draft.preview) URL.revokeObjectURL(draft.preview); setDraft(null); }} onSave={() => saveDraft(draft)} />}
@@ -208,6 +218,16 @@ export function SessionPage() {
       {toast && <Toast key={toast.id} text={toast.text} />}
     </main>
   );
+}
+
+/** Tempo desde o começo da sessão, contando ao vivo. */
+function Elapsed({ since }: { since: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const sec = Math.max(0, Math.floor((now - new Date(since).getTime()) / 1000));
+  const p = (n: number) => String(n).padStart(2, '0');
+  const txt = `${p(Math.floor(sec / 3600))}:${p(Math.floor((sec % 3600) / 60))}:${p(sec % 60)}`;
+  return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
 function FinishForm({ progress, companions: known, canWho, onFinish, onZerei, onCancel }: { progress: number; companions: string[]; canWho: boolean; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number; companions?: string[] }) => void; onZerei: (d: { note?: string; companions?: string[] }) => void; onCancel: () => void }) {
@@ -222,7 +242,7 @@ function FinishForm({ progress, companions: known, canWho, onFinish, onZerei, on
   return (
     <div className="finish">
       <div className="finish__head"><h2 className="t">Fim da sessão</h2><button className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
-      <p className="muted">Tudo aqui é opcional.</p>
+      <p className="kicker">Tudo aqui é opcional</p>
       <label htmlFor="prog-f" className="finish__label"><span>Seu progresso</span><span className="t">{p}%</span></label>
       <input id="prog-f" className="range" type="range" min={0} max={100} value={p} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setP(Number(e.target.value))} />
       <label htmlFor="parei" className="finish__label">Onde você parou?</label>

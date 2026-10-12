@@ -1,0 +1,263 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, navigate } from '../lib/router';
+import { actions, dispatch, useStore, journeyForGame, currentHistory, historiesOf, openSession } from '../data/store';
+import type { Review } from '../data/types';
+import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
+import { Stars } from '../components/Stars';
+import { Icon } from '../components/Icon';
+import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
+import { SUPABASE_ON } from '../lib/env';
+
+export function GamePage({ slug }: { slug: string }) {
+  const s = useStore((x) => x);
+  const game = Object.values(s.games).find((g) => g.slug === slug);
+  const [missing, setMissing] = useState(false);
+
+  useEffect(() => {
+    if (game || !SUPABASE_ON) { if (!game) setMissing(true); return; }
+    import('../data/supabaseAdapter').then(async ({ fetchGameBySlug }) => {
+      const g = await fetchGameBySlug(slug);
+      if (g) actions.mergeGames([g]); else setMissing(true);
+    });
+  }, [game, slug]);
+
+  if (!game) return <main className="page pad"><h1 className="t big">{missing ? 'Jogo não encontrado' : 'Carregando…'}</h1>{missing && <Link to="/jogos">Buscar outro jogo</Link>}</main>;
+  return <GameView gameId={game.id} />;
+}
+
+function GameView({ gameId }: { gameId: string }) {
+  const s = useStore((x) => x);
+  const g = s.games[gameId];
+  const scale = s.prefs.scale;
+  const { fav, burst, toggle } = useFavorite(gameId);
+  const owned = s.copies.filter((c) => c.gameId === gameId);
+  const wished = s.wishes.some((w) => w.gameId === gameId);
+  const j = journeyForGame(s, gameId);
+  const h = j ? currentHistory(s, j.id) : null;
+  const nHist = j ? historiesOf(s, j.id).length : 0;
+  const reviews = s.reviews.filter((r) => r.gameId === gameId);
+  const mine = reviews.find((r) => r.mine) ?? null;
+  const others = reviews.filter((r) => !r.mine);
+  const stats = s.reviewStats[gameId];
+  const [revealed, setRevealed] = useState<string[]>([]);
+  const [editing, setEditing] = useState(false);
+  const progressOf = h && h.state !== 'concluida' ? h.progress : null;
+
+  // Análises públicas vêm do banco quando o Supabase está ligado.
+  useEffect(() => {
+    if (!SUPABASE_ON) return;
+    import('../data/supabaseAdapter').then(async ({ fetchReviews }) => {
+      const r = await fetchReviews(gameId, s.profile?.id ?? null);
+      dispatch({ type: 'reviews.merge', gameId, reviews: r.reviews, stats: r.stats });
+    });
+  }, [gameId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const avg = stats?.avg ?? (reviews.length ? reviews.reduce((a, r) => a + r.rating.normalized, 0) / reviews.length : null);
+  const count = stats?.count ?? reviews.length;
+  const dist = useMemo(() => {
+    const d10 = stats?.dist10 ?? Array.from({ length: 10 }, (_, i) => reviews.filter((r) => Math.min(9, Math.floor(r.rating.normalized / 100)) === i).length);
+    return scale === 'TEN_POINT' ? d10 : [0, 1, 2, 3, 4].map((i) => d10[i * 2] + d10[i * 2 + 1]);
+  }, [stats, reviews, scale]);
+  const maxD = Math.max(1, ...dist);
+  const setScale = (sc: Scale) => actions.setPrefs({ scale: sc });
+  const play = () => { actions.play(gameId); navigate('/sessao'); };
+
+  return (
+    <main>
+      <section className="ghero on-photo" aria-labelledby="titulo">
+        {g.backdrop && <img className="ghero__bg kb" src={g.backdrop} alt="" />}
+        <div className="ghero__shade" aria-hidden="true" />
+        <div className="ghero__fade" aria-hidden="true" />
+        <div className="page ghero__row">
+          <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={240} height={320} burst={burst} />
+          <div className="ghero__info">
+            <div className="muted">{[g.developer, g.year].filter(Boolean).join(', ')}{g.publisher && g.publisher !== g.developer ? `. Publicado pela ${g.publisher}.` : '.'}</div>
+            <h1 id="titulo" className="t ghero__title">{g.title}</h1>
+            <div className="ghero__chips">
+              {g.platforms.slice(0, 4).map((p) => <span key={p} className="ghero__chip">{p}</span>)}
+              {g.genres && <span className="muted">{g.genres}</span>}
+            </div>
+            <div className="ghero__actions">
+              <button className="btn primary lg" onClick={play}><Icon name="play" size={15} />{openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && h?.state !== 'concluida' ? 'Continuar Jornada' : j ? 'Jogar de novo' : 'Jogar agora'}</button>
+              {owned.length ? (
+                <Link className="btn ghost lg" to="/colecao"><Icon name="check" size={16} />Na sua coleção</Link>
+              ) : (
+                <button className="btn ghost lg" aria-pressed={wished} onClick={() => actions.toggleWish(gameId)}>{wished ? 'Nos seus desejos' : 'Desejar'}</button>
+              )}
+              <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost lg" />
+              <a className="btn ghost lg" href="#analise">{mine ? 'Editar sua análise' : 'Escrever análise'}</a>
+            </div>
+          </div>
+          <div className="ratings" role="region" aria-label="Notas">
+            <div className="ratings__head">
+              <span className="muted">Ver notas em</span>
+              <div className="seg seg--glass" role="group" aria-label="Escala das notas">
+                <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
+                <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>5 estrelas</button>
+              </div>
+            </div>
+            <div className="ratings__cols">
+              <div>
+                <div className="muted ratings__k">Média da comunidade</div>
+                {avg != null ? (
+                  <>
+                    <div className="ratings__v"><span className="t">{formatScore(avg, scale, { average: true })}</span><span className="muted">/{scaleMax(scale)}</span></div>
+                    {scale === 'FIVE_STAR' && <Stars normalized={avg} />}
+                    <div className="muted ratings__n">{count.toLocaleString('pt-BR')} {count === 1 ? 'análise' : 'análises'}</div>
+                  </>
+                ) : <div className="muted ratings__n">Ainda sem análises.</div>}
+              </div>
+              <div className="ratings__sep" />
+              <div>
+                <div className="muted ratings__k">Sua nota</div>
+                {mine ? (
+                  <>
+                    <div className="ratings__v"><span className="t ratings__mine">{formatScore(mine.rating.normalized, scale)}</span><span className="muted">/{scaleMax(scale)}</span></div>
+                    {scale === 'FIVE_STAR' && <Stars normalized={mine.rating.normalized} />}
+                    <div className="muted ratings__n">{originalLabel(mine.rating, scale) ?? 'Na sua análise'}</div>
+                  </>
+                ) : <div className="muted ratings__n">Você ainda não avaliou.</div>}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="page game-body">
+        <div className="game-main">
+          <section id="analise" className="card my-review" aria-labelledby="sua">
+            {mine && !editing ? (
+              <>
+                <div className="my-review__top"><span className="my-review__k">Sua análise</span><span className="muted">{mine.context ?? `Escrita em ${new Date(mine.writtenAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`}</span></div>
+                <h2 id="sua" className="t my-review__title">{mine.title || 'Sem título'}</h2>
+                <div className="my-review__score"><span className="t">{formatScore(mine.rating.normalized, scale)}/{scaleMax(scale)}</span>{scale === 'FIVE_STAR' && <Stars normalized={mine.rating.normalized} size={20} />}</div>
+                {mine.text && <p className="my-review__text">{mine.text}</p>}
+                <div className="my-review__actions"><button className="btn ghost sm" onClick={() => setEditing(true)}>Editar</button></div>
+              </>
+            ) : (
+              <ReviewEditor gameId={gameId} existing={mine} viewerScale={scale} onDone={() => setEditing(false)} />
+            )}
+          </section>
+
+          <section aria-labelledby="comunidade" className="community-reviews">
+            <div className="block__head"><h2 id="comunidade" className="t">Análises da comunidade</h2></div>
+            {count > 0 && (
+              <figure className="dist">
+                <div className="dist__bars" aria-hidden="true">
+                  {dist.map((v, i) => (
+                    <div key={i} className="dist__col"><div className="dist__bar" style={{ height: `${Math.round((v / maxD) * 100)}%` }} /><div className="faint">{scale === 'TEN_POINT' ? i + 1 : `${i + 1}★`}</div></div>
+                  ))}
+                </div>
+                <figcaption className="muted">Distribuição das {count.toLocaleString('pt-BR')} notas. As médias usam a nota original de cada pessoa, sem arredondar.</figcaption>
+              </figure>
+            )}
+            {others.length === 0 && <p className="muted">Ninguém além de você escreveu sobre este jogo ainda.</p>}
+            <div className="reviews">
+              {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
+            </div>
+          </section>
+        </div>
+
+        <aside className="game-aside">
+          <section className="card relation" aria-labelledby="relacao">
+            <h2 id="relacao" className="t">Sua relação com este jogo</h2>
+            <ul>
+              <li><span className="relation__ic">✦</span><div>{j ? <Link to={`/jornada/${g.slug}`}><strong>Jornada</strong></Link> : <strong>Jornada</strong>}<div className="muted">{j ? `${nHist} ${nHist === 1 ? 'História' : 'Histórias'}. ${h?.state === 'concluida' ? 'Última concluída.' : `Em andamento${h?.progress != null ? `, ${h.progress}%` : ''}.`}` : 'Ainda não começou. Jogar cria a primeira História.'}</div></div></li>
+              <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : 'Cópia digital'} de ${c.platform}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>
+            </ul>
+          </section>
+          {g.summary && (
+            <section aria-labelledby="sobre">
+              <h2 id="sobre" className="t aside-title">Sobre o jogo</h2>
+              <p className="about">{g.summary}</p>
+              {g.summarySource && <div className="faint" style={{ fontSize: 12 }}>{g.summarySource}</div>}
+            </section>
+          )}
+          {g.screenshots && g.screenshots.length > 0 && (
+            <section aria-labelledby="midia">
+              <h2 id="midia" className="t aside-title">Imagens</h2>
+              <div className="shots">{g.screenshots.slice(0, 4).map((src) => <img key={src} src={src} alt="" />)}</div>
+            </section>
+          )}
+          {g.releases && g.releases.length > 0 && (
+            <section aria-labelledby="lanc">
+              <h2 id="lanc" className="t aside-title">Lançamentos</h2>
+              <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date}><dt className="muted">{r.platform}</dt><dd>{r.date}</dd></div>)}</dl>
+            </section>
+          )}
+        </aside>
+      </div>
+    </main>
+  );
+}
+
+function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: Scale; locked: boolean; reveal: () => void; progress: number | null }) {
+  const orig = originalLabel(r.rating, scale);
+  return (
+    <article className="review">
+      <div className="review__head">
+        <span className="review__avatar" style={{ background: r.author.color }} aria-hidden="true">{r.author.initial}</span>
+        <div className="review__who"><div className="review__name">{r.author.name}</div>{r.context && <div className="muted">{r.context}</div>}</div>
+        <div className="review__score">
+          <div className="t">{formatScore(r.rating.normalized, scale)}<span className="muted">/{scaleMax(scale)}</span></div>
+          {scale === 'FIVE_STAR' && <Stars normalized={r.rating.normalized} size={14} />}
+          <div className="faint review__orig">{orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}</div>
+        </div>
+      </div>
+      {locked ? (
+        <div className="spoiler">
+          <Icon name="escudo" size={24} />
+          <div><strong>Protegida contra spoiler</strong><div className="muted">Fala do final.{progress != null ? ` Você está em ${progress}% da sua História.` : ''}</div></div>
+          <button className="btn ghost sm" onClick={reveal}>Mostrar mesmo assim</button>
+        </div>
+      ) : (
+        <>
+          {r.title && <h3 className="t review__title">{r.title}</h3>}
+          <p className="review__text">{r.text}</p>
+        </>
+      )}
+      {r.useful != null && <div className="faint review__useful">{r.useful} pessoas acharam útil</div>}
+    </article>
+  );
+}
+
+/** Editor de análise. Respeita a escala: a nota é dada na escala de quem escreve. */
+function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: string; existing: Review | null; viewerScale: Scale; onDone: () => void }) {
+  // Editar uma análise antiga mantém a escala original para não arredondar (regra do documento de escalas).
+  const scale: Scale = existing?.rating.originalScale ?? viewerScale;
+  const [value, setValue] = useState<number>(existing ? toScale(existing.rating.normalized, scale) : scale === 'TEN_POINT' ? 8 : 4);
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [text, setText] = useState(existing?.text ?? '');
+  const max = scaleMax(scale);
+  const save = () => { actions.saveReview(gameId, normalize(value, scale), title.trim(), text.trim(), existing?.id); onDone(); };
+
+  return (
+    <div className="editor">
+      <h2 className="t my-review__title">{existing ? 'Editar sua análise' : 'Sua análise'}</h2>
+      {existing && existing.rating.originalScale !== viewerScale && (
+        <p className="muted" style={{ fontSize: 14 }}>Sua nota original foi dada {scale === 'TEN_POINT' ? 'de 0 a 10' : 'em estrelas'}. Para não arredondar, ela continua sendo editada nessa escala.</p>
+      )}
+      <div className="editor__score">
+        <label htmlFor="nota">Nota</label>
+        {scale === 'TEN_POINT' ? (
+          <div className="editor__ten">
+            <input id="nota" className="range" type="range" min={0} max={10} step={0.5} value={value} style={{ ['--p' as string]: `${value * 10}%` }} onChange={(e) => setValue(Number(e.target.value))} />
+            <span className="t">{String(value.toFixed(1)).replace('.', ',')}<span className="muted">/10</span></span>
+          </div>
+        ) : (
+          <div className="editor__stars" role="radiogroup" aria-labelledby="nota">
+            {Array.from({ length: 10 }, (_, i) => (i + 1) / 2).map((v) => (
+              <button key={v} role="radio" aria-checked={value === v} aria-label={`${String(v).replace('.', ',')} estrelas`} className={`half ${v % 1 ? 'half--l' : 'half--r'}${value >= v ? ' is-on' : ''}`} onClick={() => setValue(v)} />
+            ))}
+            <span className="t">{String(value).replace('.', ',')}<span className="muted">/{max}</span></span>
+          </div>
+        )}
+      </div>
+      <label htmlFor="rev-title" className="editor__label">Título (opcional)</label>
+      <input id="rev-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Em uma frase, como foi?" />
+      <label htmlFor="rev-text" className="editor__label">Texto (opcional)</label>
+      <textarea id="rev-text" className="field" rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="Sem spoilers aqui fora, por favor." />
+      <div className="editor__actions"><button className="btn primary" onClick={save}>Salvar análise</button>{existing && <button className="btn quiet" onClick={onDone}>Cancelar</button>}</div>
+    </div>
+  );
+}

@@ -178,12 +178,42 @@ const hit = (g: any) => ({
   cover: image(g.cover?.image_id), platforms: (g.platforms ?? []).map((p: any) => p.name),
 });
 
-/** Importador: até 10 títulos por chamada, numa consulta só ao IGDB. */
-async function matchMany(items: { title: string }[]) {
+const sleep = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
+const SEARCH_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name';
+
+/** Uma busca, com nova tentativa se o IGDB pedir calma (429). */
+async function searchOne(title: string) {
+  for (let i = 0; i < 3; i++) {
+    try { return await igdb('games', `search "${title}"; fields ${SEARCH_FIELDS}; limit 6;`); }
+    catch (e) { if (i === 2 || !/429/.test(String(e))) throw e; await sleep(600 * (i + 1)); }
+  }
+  return [];
+}
+
+/**
+ * Importador: até 10 títulos por chamada. Tenta tudo numa consulta só (multiquery);
+ * se o IGDB não devolver resultados por ali, busca um a um, no máximo 4 por segundo (limite do IGDB).
+ */
+async function matchMany(items: { title: string }[], debug = false) {
   const list = items.slice(0, 10).map((x) => String(x.title ?? '').replace(/["\\]/g, '').slice(0, 120));
-  const body = list.map((t, i) => `query games "${i}" { search "${t}"; fields name,slug,first_release_date,cover.image_id,platforms.name; limit 6; };`).join('\n');
-  const res = await igdb('multiquery', body);
-  return list.map((title, i) => ({ title, candidates: ((res.find((r: any) => r.name === String(i))?.result ?? []) as any[]).map(hit) }));
+  let results: any[][] = list.map(() => []);
+  let raw: unknown = null;
+  try {
+    const body = list.map((t, i) => `query games "${i}" { search "${t}"; fields ${SEARCH_FIELDS}; limit 6; };`).join('\n');
+    const res = await igdb('multiquery', body);
+    raw = debug ? res : null;
+    results = list.map((_, i) => ((res.find((r: any) => String(r.name) === String(i))?.result ?? []) as any[]));
+  } catch (e) { raw = debug ? String(e) : null; }
+  if (results.every((r) => !r.length)) {
+    results = [];
+    for (let i = 0; i < list.length; i++) {
+      const t0 = Date.now();
+      results.push(await searchOne(list[i]).catch(() => []));
+      await sleep(Math.max(0, 260 - (Date.now() - t0)));
+    }
+  }
+  const out = list.map((title, i) => ({ title, candidates: results[i].map(hit) }));
+  return debug ? { out, raw } : out;
 }
 
 /** Importador: fichas leves (sem sinopse), gravadas no cache. A ficha completa vem quando a página do jogo abre. */
@@ -199,8 +229,8 @@ async function cacheMany(ids: number[]) {
 export default async function handler(req: Req, res: Res) {
   try {
     if (req.method === 'POST') {
-      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[] };
-      if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match));
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; debug?: boolean };
+      if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match, !!body.debug));
       if (Array.isArray(body.cache)) return res.status(200).json(await cacheMany(body.cache));
       return res.status(400).json({ error: 'Envie {match:[...]} ou {cache:[...]}' });
     }

@@ -20,7 +20,7 @@ npm run typecheck  # checagem de tipos
 ### 1. Supabase
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
-2. Em **SQL Editor**, cole e rode o arquivo `supabase/migrations/0001_winnerz.sql`. Ele cria as tabelas, as regras de acesso (RLS) e a visão `review_stats`.
+2. Em **SQL Editor**, cole e rode os arquivos de `supabase/migrations/` em ordem (`0001_winnerz.sql`, depois `0002_midia_e_traducao.sql`). Eles criam as tabelas, as regras de acesso (RLS), a visão `review_stats` e os campos de vídeos e tradução.
 3. Em **Authentication → URL Configuration**, coloque o endereço do site (ex.: `https://winnerz.vercel.app`) em *Site URL* e em *Redirect URLs*. O login é por link no e-mail, sem senha.
 4. Em **Project Settings → API Keys**, copie a chave *Publishable* (`sb_publishable_...`) e a *Secret* (`sb_secret_...`). A *Project URL* é `https://<id-do-projeto>.supabase.co` (o id aparece no endereço do painel).
 5. O e-mail de login padrão do Supabase só envia para membros do projeto, no máximo 2 por hora. Antes de abrir o site para outras pessoas, configure um SMTP próprio em **Authentication → Emails → SMTP Settings** (ex.: Resend ou Brevo).
@@ -43,6 +43,10 @@ npm run typecheck  # checagem de tipos
 | `SUPABASE_SECRET_KEY` | chave *Secret* | função `/api/igdb` (guarda as fichas dos jogos) |
 | `TWITCH_CLIENT_ID` | Client ID da Twitch | função `/api/igdb` |
 | `TWITCH_CLIENT_SECRET` | Client Secret da Twitch | função `/api/igdb` |
+| `DEEPL_API_KEY` *(opcional)* | chave da API gratuita da DeepL | tradução das sinopses (melhor qualidade) |
+| `TRANSLATE_EMAIL` *(opcional)* | um e-mail seu | aumenta o limite diário da tradução gratuita (MyMemory) |
+
+As sinopses do IGDB são traduzidas para o português uma única vez, quando a ficha é aberta pela primeira vez, e ficam guardadas no banco. Sem `DEEPL_API_KEY`, a tradução usa o MyMemory, gratuito e sem cadastro. Gêneros, temas e modos de jogo são traduzidos por dicionário no próprio site.
 
 > Nunca coloque o prefixo `VITE_` na chave *Secret* nem no segredo da Twitch: tudo que começa com `VITE_` vai para o navegador.
 

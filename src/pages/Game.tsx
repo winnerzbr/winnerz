@@ -7,6 +7,12 @@ import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
 import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
+import { pt, ptJoined, ptList } from '../lib/igdbPt';
+import { MediaGallery, buildMedia } from '../components/MediaGallery';
+import { refreshGame } from '../components/AddGameDialog';
+
+/** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
+const refreshed = new Set<string>();
 
 export function GamePage({ slug }: { slug: string }) {
   const s = useStore((x) => x);
@@ -52,6 +58,16 @@ function GameView({ gameId }: { gameId: string }) {
     });
   }, [gameId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!g.igdbId || refreshed.has(gameId)) return;
+    const stale = g.videos === undefined || /em inglês/.test(g.summarySource ?? '');
+    if (!stale) return;
+    refreshed.add(gameId);
+    refreshGame(g.igdbId).then((fresh) => { if (fresh && fresh.id === gameId) actions.mergeGames([fresh]); });
+  }, [gameId, g.igdbId, g.videos, g.summarySource]);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const media = useMemo(() => buildMedia(g.videos, g.screenshots, g.artworks), [g.videos, g.screenshots, g.artworks]);
+
   const avg = stats?.avg ?? (reviews.length ? reviews.reduce((a, r) => a + r.rating.normalized, 0) / reviews.length : null);
   const count = stats?.count ?? reviews.length;
   const dist = useMemo(() => {
@@ -74,8 +90,8 @@ function GameView({ gameId }: { gameId: string }) {
             <div className="muted">{[g.developer, g.year].filter(Boolean).join(', ')}{g.publisher && g.publisher !== g.developer ? `. Publicado pela ${g.publisher}.` : '.'}</div>
             <h1 id="titulo" className="t ghero__title">{g.title}</h1>
             <div className="ghero__chips">
-              {g.platforms.slice(0, 4).map((p) => <span key={p} className="ghero__chip">{p}</span>)}
-              {g.genres && <span className="muted">{g.genres}</span>}
+              {g.platforms.slice(0, 4).map((p) => <span key={p} className="ghero__chip">{pt(p)}</span>)}
+              {g.genres && <span className="muted">{ptJoined(g.genres)}</span>}
             </div>
             <div className="ghero__actions">
               <button className="btn primary lg" onClick={play}><Icon name="play" size={15} />{openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && h?.state !== 'concluida' ? 'Continuar Jornada' : j ? 'Jogar de novo' : 'Jogar agora'}</button>
@@ -166,23 +182,29 @@ function GameView({ gameId }: { gameId: string }) {
               <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : 'Cópia digital'} de ${c.platform}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>
             </ul>
           </section>
-          {g.summary && (
+          {(g.summary || g.themes?.length || g.modes?.length) && (
             <section aria-labelledby="sobre">
               <h2 id="sobre" className="t aside-title">Sobre o jogo</h2>
-              <p className="about">{g.summary}</p>
-              {g.summarySource && <div className="faint" style={{ fontSize: 12 }}>{g.summarySource}</div>}
+              {g.summary && <p className="about" lang={showOriginal ? 'en' : 'pt-BR'}>{showOriginal && g.summaryOriginal ? g.summaryOriginal : g.summary}</p>}
+              {g.summarySource && (
+                <div className="about__src faint">
+                  {showOriginal ? 'Texto original do IGDB' : g.summarySource}
+                  {g.summaryOriginal && <button className="linklike" onClick={() => setShowOriginal((v) => !v)}>{showOriginal ? 'Ver em português' : 'Ver original'}</button>}
+                </div>
+              )}
+              <dl className="facts">
+                {g.genres && <div><dt>Gêneros</dt><dd>{ptJoined(g.genres)}</dd></div>}
+                {g.themes && g.themes.length > 0 && <div><dt>Temas</dt><dd>{ptList(g.themes).join(', ')}</dd></div>}
+                {g.modes && g.modes.length > 0 && <div><dt>Como se joga</dt><dd>{ptList(g.modes).join(', ')}</dd></div>}
+                {g.platforms.length > 0 && <div><dt>Plataformas</dt><dd>{ptList(g.platforms).join(', ')}</dd></div>}
+              </dl>
             </section>
           )}
-          {g.screenshots && g.screenshots.length > 0 && (
-            <section aria-labelledby="midia">
-              <h2 id="midia" className="t aside-title">Imagens</h2>
-              <div className="shots">{g.screenshots.slice(0, 4).map((src) => <img key={src} src={src} alt="" />)}</div>
-            </section>
-          )}
+          <MediaGallery title={g.title} items={media} />
           {g.releases && g.releases.length > 0 && (
             <section aria-labelledby="lanc">
               <h2 id="lanc" className="t aside-title">Lançamentos</h2>
-              <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date}><dt className="muted">{r.platform}</dt><dd>{r.date}</dd></div>)}</dl>
+              <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date}><dt className="muted">{pt(r.platform)}</dt><dd>{r.date}</dd></div>)}</dl>
             </section>
           )}
         </aside>

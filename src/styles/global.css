@@ -161,6 +161,7 @@ a.btn { color: var(--ink); }
 
 /* Movimento */
 @keyframes wz-fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes wz-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes wz-kb { from { transform: scale(1.08); } to { transform: scale(1); } }
 @keyframes wz-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 @keyframes wz-ring { 0% { box-shadow: 0 0 0 0 rgba(70, 217, 242, 0.6); } 70% { box-shadow: 0 0 0 14px rgba(70, 217, 242, 0); } 100% { box-shadow: 0 0 0 0 rgba(70, 217, 242, 0); } }

@@ -17,8 +17,16 @@ export interface Game {
   genres?: string;
   summary?: string;
   summarySource?: string;
+  /** Sinopse original do IGDB, quando a de cima foi traduzida. */
+  summaryOriginal?: string;
+  themes?: string[];
+  /** Modos de jogo e perspectivas (nomes do IGDB). */
+  modes?: string[];
   releases?: { platform: string; date: string }[];
   screenshots?: string[];
+  artworks?: string[];
+  /** Vídeos do YouTube listados no IGDB. Ausente = ficha antiga, ainda sem mídia. */
+  videos?: { id: string; name: string }[];
 }
 
 /** Pilar Coleção: exemplar (posse) — separado da relação com o jogo. */

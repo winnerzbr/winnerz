@@ -27,6 +27,8 @@ const gameFromRow = (r: any): Game => ({
   publisher: r.publisher ?? undefined, platforms: r.platforms ?? [], genres: r.genres ?? undefined,
   summary: r.summary ?? undefined, summarySource: r.summary_source ?? undefined,
   releases: r.releases ?? undefined, screenshots: r.screenshots ?? undefined,
+  summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
+  artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
 });
 const historyFromRow = (r: any): History => ({
   id: r.id, journeyId: r.journey_id, ordinal: r.ordinal, title: r.title, state: r.state,

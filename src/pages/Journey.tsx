@@ -1,3 +1,4 @@
+import { ConfirmButton } from '../components/Sheet';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
@@ -196,7 +197,10 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         <section className="card progress-card">
           <div className="progress-card__value"><Compass size={40} color="var(--accent)" /></div>
           <div className="progress-card__slider"><strong>{current.title}: História concluída em {current.completedAt ? dayMonthYear(current.completedAt) : ''}.</strong><p className="muted">Nada é obrigatório agora. Se quiser, comece outra História: esta continua guardada.</p></div>
-          <div className="progress-card__actions"><button className="btn ghost" onClick={() => { actions.play(game.id); navigate('/sessao'); }}>Jogar de novo</button></div>
+          <div className="progress-card__actions">
+            <button className="btn ghost" onClick={() => { actions.play(game.id); navigate('/sessao'); }}>Jogar de novo</button>
+            <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
+          </div>
         </section>
       )}
 

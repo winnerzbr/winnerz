@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { actions, useStore } from '../data/store';
+import { actions, useStore, closedBy } from '../data/store';
 import { Sheet, ConfirmButton } from './Sheet';
 import { DateField, type WhenValue } from './DateField';
 
@@ -8,6 +8,8 @@ const NAMES: Record<string, string> = { inicio: 'início', sessao: 'sessão', mo
 /** Corrigir ou apagar um acontecimento da linha do tempo. */
 export function EventEditSheet({ eventId, onClose }: { eventId: string; onClose: () => void }) {
   const e = useStore((s) => s.events.find((x) => x.id === eventId));
+  const closing = useStore((s) => { const ev = s.events.find((x) => x.id === eventId); return ev ? closedBy(s, ev) : null; });
+  const closingAlone = useStore((s) => !!closing && !s.sessions.some((x) => x.historyId === closing.id) && !s.events.some((x) => x.historyId === closing.id && x.id !== eventId));
   // Momento e sessão guardam a nota como citação; os demais, como texto.
   const quoteFirst = e?.kind === 'momento' || e?.kind === 'sessao';
   const [title, setTitle] = useState(e?.title ?? '');
@@ -52,7 +54,8 @@ export function EventEditSheet({ eventId, onClose }: { eventId: string; onClose:
       </div>
       {e.kind !== 'inicio' && (
         <div className="sheet__danger">
-          <ConfirmButton label={`Apagar este ${NAMES[e.kind] ?? 'acontecimento'}`} confirm="Toque de novo para apagar" onConfirm={() => { actions.deleteEvent(eventId); onClose(); }} />
+          {closing && <p className="muted ev-undo">{closingAlone ? 'Este registro é tudo o que há nesta História: apagar tira a História (e o jogo sai de “zerados”).' : 'Apagar este marco desfaz o fim: a História volta a ficar em andamento e sai de “zerados”. Sessões e momentos continuam.'}</p>}
+          <ConfirmButton label={closing ? 'Apagar e desfazer o fim' : `Apagar este ${NAMES[e.kind] ?? 'acontecimento'}`} confirm="Toque de novo para apagar" onConfirm={() => { actions.deleteEvent(eventId); onClose(); }} />
         </div>
       )}
     </Sheet>

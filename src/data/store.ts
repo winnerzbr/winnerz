@@ -317,6 +317,18 @@ export function myGame(s: State, gameId: ID): MyGame {
   return s.myGames[gameId] ?? { gameId };
 }
 
+/** A História que este marco fechou, se ele for o marco de fim atual dela (o último "Zerou", "Largou" ou "Encerrou"). */
+export function closedBy(s: State, e: TimelineEvent): History | null {
+  if (e.kind !== 'marco' || !e.historyId) return null;
+  const h = s.histories.find((x) => x.id === e.historyId);
+  if (!h || !isClosedState(h.state)) return null;
+  // Só a História atual (a mais recente) volta a ficar em andamento; as anteriores ficam como estão.
+  if (currentHistory(s, h.journeyId)?.id !== h.id) return null;
+  const word = h.state === 'concluida' ? /^Zerou/ : h.state === 'encerrada' ? /^Encerrou/ : /^Largou/;
+  const end = s.events.filter((x) => x.historyId === h.id && x.kind === 'marco' && word.test(x.title)).sort((a, b) => a.at.localeCompare(b.at)).at(-1);
+  return end?.id === e.id ? h : null;
+}
+
 export const MAX_FOCUS = 3;
 
 /**
@@ -541,7 +553,31 @@ export const actions = {
   updateEvent(eventId: ID, patch: EventPatch) { track('jornada.editar'); dispatch({ type: 'event.update', eventId, patch }); },
   deleteEvent(eventId: ID) {
     const e = state.events.find((x) => x.id === eventId);
-    if (e) dispatch({ type: 'event.delete', eventId, imagePath: e.imagePath });
+    if (!e) return;
+    // Apagar o marco que fechou a História ("Zerou", "Largou", "Encerrou") desfaz o fechamento.
+    const h = closedBy(state, e);
+    if (h) return actions.reopenHistory(h.id);
+    dispatch({ type: 'event.delete', eventId, imagePath: e.imagePath });
+  },
+
+  /**
+   * Desfaz o fim de uma História (ex.: zerou só para testar): o marco de fim sai e ela volta a ficar em andamento,
+   * com sessões e momentos. Se ela era só o registro do "Já zerei", sem mais nada, a História inteira sai.
+   */
+  reopenHistory(historyId: ID) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h || !isClosedState(h.state)) return;
+    const end = state.events.find((x) => x.historyId === h.id && closedBy(state, x));
+    const hasLife = state.sessions.some((x) => x.historyId === h.id) || state.events.some((x) => x.historyId === h.id && x.id !== end?.id);
+    track('jornada.desfazer-fim');
+    if (!hasLife) return actions.deleteHistory(h.id);
+    if (end) dispatch({ type: 'event.delete', eventId: end.id, imagePath: end.imagePath });
+    const j = state.journeys.find((x) => x.id === h.journeyId);
+    dispatch({
+      type: 'history.update',
+      history: { ...h, state: 'ativa', completedAt: undefined, completedPrecision: undefined, progress: h.state === 'concluida' && h.progress === 100 ? undefined : h.progress },
+      journey: j ? { ...j, mood: 'jogando', pausedNote: undefined } : undefined,
+    });
   },
 
   finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string }) {

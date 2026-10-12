@@ -218,6 +218,22 @@ export function ConcludedPage() {
       <SubNav pillar="jornada" />
       <h1 className="t big">Histórias concluídas</h1>
       <p className="muted lead">{done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+      {done.length > 0 && (
+        <section className="honor" aria-labelledby="honra">
+          <h2 id="honra" className="sr-only">Mural de honra</h2>
+          <ul className="honor__shelf">
+            {[...done].sort((a, b) => (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? '')).slice(0, 5).map(({ h, g, review }, i) => (
+              <li key={h.id} style={{ animationDelay: `${i * 0.08}s` }}>
+                <Link to={`/jornada/${g!.slug}`} className="honor__item">
+                  <span className="honor__cover"><CoverArt game={g!} /></span>
+                  <span className="honor__plate"><strong>{g!.title}</strong><span>{whenLabel(h.completedAt, h.completedPrecision, { short: true })}{review && !s.prefs.light ? ` · ${formatScore(review.rating.normalized, s.prefs.scale)}` : ''}</span></span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="faint honor__note">Completa ou mínima, toda História concluída tem lugar aqui.</p>
+        </section>
+      )}
       {years.map((y) => (
         <section key={String(y)} className="block" aria-labelledby={`ano-${y}`}>
           <div className="block__head"><h2 id={`ano-${y}`} className="t">{y ?? 'Sem data'}</h2><span className="muted">{done.filter((d) => d.year === y).length}</span></div>

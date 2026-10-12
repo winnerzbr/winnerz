@@ -4,6 +4,7 @@ import { useStore, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJ
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
 import { RadarNotice } from '../components/RadarNotice';
+import { WeekCard, AnniversaryCard } from './Memory';
 import { ago, capitalize, dayMonthYear, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop } from '../components/Backdrop';
@@ -102,6 +103,8 @@ export function Home() {
 
           <aside className="home-aside" aria-label="Sua estante">
             <RadarNotice />
+            <AnniversaryCard />
+            <WeekCard />
             <section className="card aside-card">
               <h2 className="t">Sua estante</h2>
               <p className="muted">{new Set(s.copies.map((c) => c.gameId)).size} jogos, {s.wishes.length} desejos.</p>

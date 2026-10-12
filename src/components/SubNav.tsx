@@ -10,7 +10,9 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
   ],
   jornada: [
     { to: '/jornada', label: 'Em andamento' },
-    { to: '/jornada/concluidas', label: 'Histórias concluídas' },
+    { to: '/jornada/concluidas', label: 'Concluídas' },
+    { to: '/jornada/linha-do-tempo', label: 'Linha do tempo' },
+    { to: '/jornada/ritmo', label: 'Meu ritmo' },
   ],
   jogos: [
     { to: '/jogos', label: 'Buscar' },

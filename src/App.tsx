@@ -5,6 +5,7 @@ import { applyPrefs, brand } from './lib/theme';
 import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
+import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
 import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
@@ -37,6 +38,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/', path)) return <Home />;
   if (match('/jornada', path)) return <JourneyIndex />;
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
+  if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
+  if (match('/jornada/ritmo', path)) return <RhythmPage />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;
   if (match('/colecao/desejos', path)) return <Wishes />;

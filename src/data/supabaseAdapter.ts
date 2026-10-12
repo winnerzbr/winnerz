@@ -397,6 +397,15 @@ export const supabaseAdapter: Adapter = {
         }
         return;
       }
+      case 'games.relinkMany': {
+        // Uma função no banco (migração 0005) faz tudo de uma vez, em lotes de 200 jogos.
+        for (let i = 0; i < a.pairs.length; i += 200) {
+          const pairs = a.pairs.slice(i, i + 200).map((p) => ({ src: p.fromId, dst: p.to.id }));
+          const { error } = await sb.rpc('relink_games', { pairs });
+          if (error) throw new Error(/relink_games|PGRST202|function/i.test(error.message ?? '') ? 'Rode a migração 0005 no Supabase (SQL Editor) para ligar os jogos às fichas.' : error.message);
+        }
+        return;
+      }
       case 'import.bulk': {
         const d = a.data;
         const manual = d.games.filter((g) => g.source === 'manual');

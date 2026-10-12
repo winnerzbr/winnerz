@@ -39,6 +39,7 @@ export type Action =
   | { type: 'games.merge'; games: Game[] }
   | { type: 'game.create'; game: Game }
   | { type: 'game.relink'; fromId: ID; to: Game; mergeFrom?: ID; mergeInto?: ID }
+  | { type: 'games.relinkMany'; pairs: { fromId: ID; to: Game }[] }
   | { type: 'copy.add'; copy: Copy }
   | { type: 'copy.update'; copy: Copy }
   | { type: 'copy.delete'; copyId: ID }
@@ -200,6 +201,8 @@ function reduce(s: State, a: Action): State {
         reviews: s.reviews.some((r) => r.mine && r.gameId === t) ? s.reviews.filter((r) => !(r.mine && r.gameId === f)) : s.reviews.map((r) => (r.mine ? sw(r) : r)),
       };
     }
+    case 'games.relinkMany':
+      return a.pairs.reduce((acc, p) => reduce(acc, { type: 'game.relink', fromId: p.fromId, to: p.to }), s);
     case 'copy.update':
       return { ...s, copies: s.copies.map((c) => (c.id === a.copy.id ? a.copy : c)) };
     case 'copy.delete':

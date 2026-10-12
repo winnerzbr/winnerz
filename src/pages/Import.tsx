@@ -50,7 +50,7 @@ export function ImportPage() {
   const [mergeDups, setMergeDups] = useState(true);
   const [matches, setMatches] = useState<Record<string, Match>>({});
   const [progress, setProgress] = useState({ done: 0, total: 0, label: '' });
-  const [result, setResult] = useState<{ copies: number; games: number; finished: number; manual: number; reviews: number } | null>(null);
+  const [result, setResult] = useState<{ copies: number; games: number; finished: number; manual: number; reviews: number; linked: number } | null>(null);
   const cancel = useRef(false);
   const blocked = !!s.loadIncomplete || (s.mode === 'supabase' && !s.schemaV4);
   const input = useRef<HTMLInputElement>(null);
@@ -148,7 +148,7 @@ export function ImportPage() {
   const save = async () => {
     setStep('gravando'); setError('');
     try {
-      const st = getState();
+      let st = getState();
       const chosen = new Map<string, number>(); // titleKey → igdbId
       for (const [k, m] of Object.entries(matches)) if (m.chosen) chosen.set(k, m.chosen);
       // Fichas do IGDB: as que já estão no site são reaproveitadas; as outras vêm em lotes de 100.
@@ -162,6 +162,20 @@ export function ImportPage() {
           for (const r of rows) { const g = gameFromApi(r); fetched.push(g); byIgdb.set(g.igdbId!, g); }
         } catch { /* esses ficam como jogos sem ficha */ }
         setProgress((p) => ({ ...p, done: Math.min(need.length, i + 100) }));
+      }
+
+      // Jogos que entraram antes sem ficha e agora acharam a ficha: tudo deles passa para a ficha (sem duplicar).
+      const relink: { fromId: string; to: Game }[] = [];
+      for (const g0 of Object.values(st.games)) {
+        if (g0.source !== 'manual') continue;
+        const id = chosen.get(titleKey(g0.title));
+        const to = id ? byIgdb.get(id) : undefined;
+        if (to && to.id !== g0.id && !relink.some((r) => r.fromId === g0.id)) relink.push({ fromId: g0.id, to });
+      }
+      if (relink.length) {
+        setProgress({ done: 0, total: 1, label: `Ligando ${relink.length} jogos às fichas do IGDB` });
+        await commit({ type: 'games.relinkMany', pairs: relink });
+        st = getState();
       }
 
       setProgress({ done: 0, total: 1, label: 'Gravando na sua coleção' });
@@ -240,7 +254,7 @@ export function ImportPage() {
       const reviews = [...reviewMap.values()];
       // Fichas do IGDB já gravadas pela função; aqui entram só as dos jogos sem ficha (e as do IGDB vão para a tela).
       await commit({ type: 'import.bulk', data: { games: newGames, copies, myGames, journeys, histories, events, reviews } });
-      setResult({ copies: copies.length, games: titles.size, finished, manual: newGames.filter((g) => g.source === 'manual').length, reviews: reviews.length });
+      setResult({ copies: copies.length, games: titles.size, finished, manual: newGames.filter((g) => g.source === 'manual').length, reviews: reviews.length, linked: relink.length });
       setStep('pronto');
       track('importar.concluido');
     } catch (e) {
@@ -324,7 +338,7 @@ export function ImportPage() {
             <button className="btn ghost" disabled={blocked} onClick={() => setStep('revisar')}>Importar sem buscar no IGDB</button>
             <button className="btn quiet" onClick={() => setStep('abas')}>Voltar</button>
           </div>
-          <p className="faint">A busca leva cerca de um minuto para cada 300 jogos. Depois você revisa os casos duvidosos.</p>
+          <p className="faint">A busca leva alguns minutos (cerca de 5 para 900 jogos); deixe esta página aberta. Depois você revisa os casos duvidosos.</p>
         </section>
       )}
 
@@ -350,6 +364,7 @@ export function ImportPage() {
       {step === 'pronto' && result && (
         <section className="card import-done">
           <p className="t">Pronto. Sua coleção chegou.</p>
+          {result.linked > 0 && <p className="muted">{result.linked.toLocaleString('pt-BR')} jogos que tinham entrado sem ficha agora estão ligados ao IGDB, com capa.</p>}
           <p className="muted">{result.copies.toLocaleString('pt-BR')} cópias novas de {result.games.toLocaleString('pt-BR')} jogos, {result.finished} zerados na Jornada{result.reviews ? `, ${result.reviews} notas` : ''}.{result.manual ? ` ${result.manual} jogos ficaram sem ficha do IGDB; dá para ligar cada um na página do jogo.` : ''}</p>
           <div className="import__actions">
             <Link className="btn primary lg" to="/colecao">Ver a estante</Link>

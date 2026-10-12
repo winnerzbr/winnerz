@@ -1,156 +1,323 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, journeyForGame, currentHistory } from '../data/store';
-import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
+import { actions, useStore, journeyForGame, currentHistory, myGame, historiesOf } from '../data/store';
+import type { Copy, CopyKind, State } from '../data/types';
+import { FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Icon } from '../components/Icon';
 import { AddGameDialog } from '../components/AddGameDialog';
+import { SubNav } from '../components/SubNav';
+import { CoverArt } from '../components/CoverArt';
+import { Sheet, ConfirmButton } from '../components/Sheet';
+import { PastButton } from '../components/PastPlay';
+import { STATE_LABEL } from '../components/JourneyManage';
+import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 
-const PLATFORM_ORDER = ['PlayStation 5', 'Xbox Series X|S', 'Nintendo Switch 2', 'Nintendo Switch', 'PC', 'PlayStation 4', 'Xbox One', 'PlayStation 3', 'Xbox 360', 'PlayStation 2', 'PlayStation'];
+type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial';
+type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
+const STATUS: [Status, string][] = [
+  ['tudo', 'Tudo'], ['nunca', 'Nunca joguei'], ['prioridade', 'Prioridade alta'], ['jogando', 'Jogando ou pausados'],
+  ['zerados', 'Zerados'], ['largados', 'Largados ou encerrados'], ['naovou', 'Não vou jogar'], ['favoritos', 'Favoritos'], ['especial', 'Especial para mim'],
+];
+const SORTS: [Sort, string][] = [['az', 'A a Z'], ['plataforma', 'Plataforma'], ['prioridade', 'Prioridade'], ['curtos', 'Mais curtos primeiro'], ['recentes', 'Adicionados por último']];
+const PAGE = 48;
+
+const VIEW_KEY = 'wz.colecao.view';
+function loadView(): { sort: Sort; group: boolean } {
+  try { return { sort: 'az', group: false, ...JSON.parse(localStorage.getItem(VIEW_KEY) || '{}') }; } catch { return { sort: 'az', group: false }; }
+}
+
+/** Situação do jogo para filtros e selos. */
+function situation(s: State, gameId: string) {
+  const j = journeyForGame(s, gameId);
+  const h = j ? currentHistory(s, j.id) : null;
+  const zerou = j ? historiesOf(s, j.id).some((x) => x.state === 'concluida') : false;
+  return { j, h, zerou, open: h?.state === 'ativa' || h?.state === 'pausada', left: h?.state === 'dropada' || h?.state === 'encerrada' };
+}
 
 export function Collection() {
   const s = useStore((x) => x);
-  const [sel, setSel] = useState<string | null>(null);
-  const [cut, setCut] = useState<'tudo' | 'fisico' | 'digital' | 'nunca' | 'favoritos' | 'especial'>('tudo');
   const [q, setQ] = useState('');
+  const [platform, setPlatform] = useState('');
+  const [kind, setKind] = useState<'tudo' | CopyKind>('tudo');
+  const [status, setStatus] = useState<Status>('tudo');
+  const [view, setView] = useState(loadView);
   const [adding, setAdding] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
+  const [limit, setLimit] = useState(PAGE);
+  const sentinel = useRef<HTMLDivElement>(null);
 
-  const copies = useMemo(() => s.copies.filter((c) => {
-    const g = s.games[c.gameId];
-    if (!g) return false;
-    if (q && !g.title.toLowerCase().includes(q.toLowerCase())) return false;
-    if (cut === 'fisico') return c.kind === 'fisico';
-    if (cut === 'digital') return c.kind === 'digital';
-    if (cut === 'nunca') return !journeyForGame(s, c.gameId);
-    if (cut === 'favoritos') return s.favorites.includes(c.gameId);
-    if (cut === 'especial') return !!c.special;
-    return true;
-  }), [s, q, cut]);
+  useEffect(() => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(view)); } catch { /* nada */ } }, [view]);
+  useEffect(() => setLimit(PAGE), [q, platform, kind, status, view]);
 
-  const shelves = useMemo(() => {
-    const by: Record<string, typeof copies> = {};
-    for (const c of copies) (by[c.platform] ??= []).push(c);
-    return Object.entries(by).sort((a, b) => {
-      const ia = PLATFORM_ORDER.indexOf(a[0]); const ib = PLATFORM_ORDER.indexOf(b[0]);
-      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  const platforms = useMemo(() => {
+    const n: Record<string, number> = {};
+    for (const c of s.copies) { const p = canonicalPlatform(c.platform); n[p] = (n[p] ?? 0) + 1; }
+    return Object.entries(n).sort((a, b) => platformRank(a[0]) - platformRank(b[0]) || a[0].localeCompare(b[0]));
+  }, [s.copies]);
+
+  const list = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    const out = s.copies.filter((c) => {
+      const g = s.games[c.gameId];
+      if (!g) return false;
+      if (t && !g.title.toLowerCase().includes(t)) return false;
+      if (platform && canonicalPlatform(c.platform) !== platform) return false;
+      if (kind !== 'tudo' && c.kind !== kind) return false;
+      if (status === 'tudo') return true;
+      const m = myGame(s, c.gameId);
+      const st = situation(s, c.gameId);
+      switch (status) {
+        case 'nunca': return !st.j && !m.wontPlay;
+        case 'prioridade': return m.priority === 1 && !st.zerou;
+        case 'jogando': return st.open;
+        case 'zerados': return st.zerou;
+        case 'largados': return st.left;
+        case 'naovou': return !!m.wontPlay;
+        case 'favoritos': return s.favorites.includes(c.gameId);
+        case 'especial': return !!c.special;
+      }
+      return true;
     });
-  }, [copies]);
+    const title = (c: Copy) => s.games[c.gameId].title;
+    const by: Record<Sort, (a: Copy, b: Copy) => number> = {
+      az: (a, b) => title(a).localeCompare(title(b), 'pt-BR'),
+      plataforma: (a, b) => platformRank(a.platform) - platformRank(b.platform) || title(a).localeCompare(title(b), 'pt-BR'),
+      prioridade: (a, b) => (myGame(s, a.gameId).priority ?? 4) - (myGame(s, b.gameId).priority ?? 4) || title(a).localeCompare(title(b), 'pt-BR'),
+      curtos: (a, b) => (myGame(s, a.gameId).estHours ?? 999) - (myGame(s, b.gameId).estHours ?? 999) || title(a).localeCompare(title(b), 'pt-BR'),
+      recentes: () => 0,
+    };
+    if (view.sort === 'recentes') return out.reverse();
+    return out.sort(view.group ? (a, b) => platformRank(a.platform) - platformRank(b.platform) || by[view.sort](a, b) : by[view.sort]);
+  }, [s, q, platform, kind, status, view]);
 
-  const selected = s.copies.find((c) => c.id === sel) ?? copies[0] ?? null;
+  // Rolagem infinita: mais capas aparecem quando o fim da grade chega perto da tela.
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || limit >= list.length) return;
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) setLimit((n) => n + PAGE); }, { rootMargin: '800px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [limit, list.length]);
+
+  const shown = list.slice(0, limit);
   const uniqueGames = new Set(s.copies.map((c) => c.gameId)).size;
-  const count = (fn: (c: (typeof s.copies)[number]) => boolean) => s.copies.filter(fn).length;
+  const filtered = q || platform || kind !== 'tudo' || status !== 'tudo';
+
+  // Agrupado por plataforma: um título antes da primeira capa de cada plataforma.
+  const cells: ({ type: 'head'; platform: string; n: number } | { type: 'copy'; c: Copy })[] = [];
+  let lastP = '';
+  for (const c of shown) {
+    const p = canonicalPlatform(c.platform);
+    if (view.group && p !== lastP) { cells.push({ type: 'head', platform: p, n: list.filter((x) => canonicalPlatform(x.platform) === p).length }); lastP = p; }
+    cells.push({ type: 'copy', c });
+  }
 
   return (
     <main className="page pad collection">
+      <SubNav pillar="colecao" />
       <div className="collection__head">
         <div>
           <h1 className="t big">Sua estante</h1>
-          <p className="muted lead">{uniqueGames} {uniqueGames === 1 ? 'jogo' : 'jogos'} em {new Set(s.copies.map((c) => c.platform)).size} plataformas, mais {s.wishes.length} desejos.</p>
+          <p className="muted lead">{!uniqueGames ? 'Nenhum jogo ainda.' : <>{uniqueGames} {uniqueGames === 1 ? 'jogo' : 'jogos'} em {platforms.length} {platforms.length === 1 ? 'plataforma' : 'plataformas'}{s.wishes.length ? `, mais ${s.wishes.length} desejos` : ''}.</>}</p>
         </div>
         <div className="collection__tools">
-          <label htmlFor="busca" className="sr-only">Buscar na coleção</label>
-          <input id="busca" className="field" placeholder="Buscar na coleção" value={q} onChange={(e) => setQ(e.target.value)} style={{ width: 240 }} />
           <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar jogo</button>
+          <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
         </div>
       </div>
 
-      <div className="collection__body">
-        <nav className="cuts" aria-label="Recortes da coleção">
-          <div className="cuts__group">Automáticas</div>
-          {([
-            ['tudo', 'Tudo', s.copies.length], ['fisico', 'Mídia física', count((c) => c.kind === 'fisico')], ['digital', 'Digital', count((c) => c.kind === 'digital')],
-            ['nunca', 'Nunca joguei', count((c) => !journeyForGame(s, c.gameId))], ['favoritos', 'Favoritos', count((c) => s.favorites.includes(c.gameId))], ['especial', 'Especial para mim', count((c) => !!c.special)],
-          ] as const).map(([id, label, n]) => (
-            <button key={id} aria-current={cut === id} onClick={() => setCut(id)}>{label}<span>{n}</span></button>
-          ))}
-        </nav>
-
-        <div className="shelves">
-          {shelves.length === 0 && (s.copies.length === 0
-            ? <div className="card tl-empty"><p className="t" style={{ fontSize: 30, color: "var(--ink)" }}>Sua estante está vazia</p><p className="muted">Comece pelo jogo que está na sua mesa agora. Capas e fichas vêm do IGDB.</p><button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button></div>
-            : <p className="card tl-empty">Nada aqui com esse filtro. <button className="btn quiet sm" onClick={() => { setCut('tudo'); setQ(''); }}>Ver tudo</button></p>)}
-          {shelves.map(([platform, list]) => (
-            <section key={platform} aria-label={platform} className="shelf">
-              <div className="shelf__head"><h2 className="t">{platform}</h2><span className="faint">{list.length} {list.length === 1 ? 'jogo' : 'jogos'}</span></div>
-              <div className="shelf__row">
-                {list.map((c) => {
-                  const g = s.games[c.gameId];
-                  const j = journeyForGame(s, c.gameId);
-                  return (
-                    <button key={c.id} className="shelf__cover" aria-pressed={selected?.id === c.id} aria-label={`${g.title}${s.favorites.includes(g.id) ? ', favorito' : ''}`} onClick={() => setSel(c.id)}>
-                      <img src={g.cover} alt="" />
-                      {j && <span className="shelf__badge shelf__badge--j" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24"><path d="M12 2.5l2.4 7.1 7.1 2.4-7.1 2.4-2.4 7.1-2.4-7.1L2.5 12l7.1-2.4z" fill="#C9A174" /></svg></span>}
-                      {s.favorites.includes(g.id) && <span className="shelf__badge shelf__badge--f" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="#E3BF8A"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" /></svg></span>}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="shelf__ledge" aria-hidden="true" />
-            </section>
-          ))}
-
-          {s.wishes.length > 0 && (
-            <section className="wishes" aria-labelledby="desejos">
-              <div className="shelf__head"><h2 id="desejos" className="t">Desejos</h2><span className="faint">Ainda não são seus. Nenhuma pressa.</span></div>
-              <div className="wishes__row">
-                {s.wishes.map((w) => s.games[w.gameId] && (
-                  <Link key={w.gameId} to={`/jogos/${s.games[w.gameId].slug}`} className="wishes__item">
-                    <img src={s.games[w.gameId].cover} alt="" />
-                    <div><div className="serif" style={{ fontSize: 24 }}>{s.games[w.gameId].title}</div>{w.note && <div className="muted" style={{ fontSize: 14, marginTop: 4 }}>{w.note}</div>}</div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+      {s.copies.length > 0 && <div className="cbar" role="search">
+        <label htmlFor="busca" className="sr-only">Buscar na coleção</label>
+        <input id="busca" className="field cbar__q" placeholder="Buscar na coleção" value={q} onChange={(e) => setQ(e.target.value)} />
+        <label className="cbar__sel"><span className="sr-only">Plataforma</span>
+          <select className="field" value={platform} onChange={(e) => setPlatform(e.target.value)}>
+            <option value="">Todas as plataformas</option>
+            {platforms.map(([p, n]) => <option key={p} value={p}>{shortPlatform(p)} ({n})</option>)}
+          </select>
+        </label>
+        <label className="cbar__sel"><span className="sr-only">Situação</span>
+          <select className="field" value={status} onChange={(e) => setStatus(e.target.value as Status)}>
+            {STATUS.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
+          </select>
+        </label>
+        <div className="seg" role="group" aria-label="Formato">
+          {([['tudo', 'Tudo'], ['fisico', 'Físico'], ['digital', 'Digital']] as const).map(([k, l]) => <button key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}
         </div>
+        <label className="cbar__sel"><span className="sr-only">Ordenar</span>
+          <select className="field" value={view.sort} onChange={(e) => setView({ ...view, sort: e.target.value as Sort })}>
+            {SORTS.map(([id, l]) => <option key={id} value={id}>Ordem: {l}</option>)}
+          </select>
+        </label>
+        <button className="btn ghost sm" aria-pressed={view.group} onClick={() => setView({ ...view, group: !view.group })}>Separar por plataforma</button>
+      </div>}
+      {filtered && <p className="muted cbar__count">{list.length} {list.length === 1 ? 'cópia' : 'cópias'} com esses filtros. <button className="linklike" onClick={() => { setQ(''); setPlatform(''); setKind('tudo'); setStatus('tudo'); }}>Limpar filtros</button></p>}
 
-        {selected && <CopyPanel key={selected.id} copyId={selected.id} />}
-      </div>
+      {s.copies.length === 0 ? (
+        <div className="card tl-empty">
+          <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Sua estante está vazia</p>
+          <p className="muted">Comece pelo jogo que está na sua mesa agora, ou traga sua planilha inteira de uma vez.</p>
+          <div className="hero__actions">
+            <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button>
+            <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
+          </div>
+        </div>
+      ) : list.length === 0 ? (
+        <p className="card tl-empty">Nada aqui com esses filtros.</p>
+      ) : (
+        <div className="cgrid">
+          {cells.map((cell) => cell.type === 'head' ? (
+            <h2 key={`h-${cell.platform}`} className="cgrid__head t">{shortPlatform(cell.platform)} <span className="faint">{cell.n}</span></h2>
+          ) : (
+            <CopyTile key={cell.c.id} s={s} c={cell.c} onOpen={() => setOpen(cell.c.id)} />
+          ))}
+          <div ref={sentinel} className="cgrid__sentinel" aria-hidden="true" />
+        </div>
+      )}
+      {limit < list.length && <p className="faint cgrid__more">Mostrando {limit} de {list.length}. Role para ver mais.</p>}
+
+      {open && <CopySheet copyId={open} onClose={() => setOpen(null)} />}
       {adding && <AddGameDialog onClose={() => setAdding(false)} />}
     </main>
   );
 }
 
-function CopyPanel({ copyId }: { copyId: string }) {
-  const s = useStore((x) => x);
-  const c = s.copies.find((x) => x.id === copyId)!;
+function CopyTile({ s, c, onOpen }: { s: State; c: Copy; onOpen: () => void }) {
   const g = s.games[c.gameId];
-  const j = journeyForGame(s, g.id);
-  const h = j ? currentHistory(s, j.id) : null;
-  const { fav, burst, toggle } = useFavorite(g.id);
-  const kind = c.kind === 'fisico' ? 'Exemplar físico' : c.kind === 'digital' ? 'Cópia digital' : c.kind === 'assinatura' ? 'Pelo serviço de assinatura' : 'Exemplar';
-  const journeyText = !j ? 'Nenhuma Jornada com este jogo ainda. Ter não obriga a jogar.'
-    : h?.state === 'concluida' ? 'História concluída. Dá para jogar de novo quando quiser.'
-    : j.mood === 'pausado' ? (j.pausedNote ?? 'Pausado, sem pressa.')
-    : `Jornada em andamento${h?.progress != null ? `, ${h.progress}%` : ''}.`;
+  const st = situation(s, c.gameId);
+  const m = myGame(s, c.gameId);
+  const fav = s.favorites.includes(g.id);
+  const badge = st.zerou ? 'Zerado' : st.h?.state === 'ativa' ? 'Jogando' : st.h?.state === 'pausada' ? 'Pausado' : st.left ? 'Largado' : m.wontPlay ? 'Não vou jogar' : null;
+  return (
+    <button className={`ctile${m.wontPlay ? ' is-muted' : ''}`} onClick={onOpen} aria-label={`${g.title}, ${shortPlatform(c.platform)}${badge ? `, ${badge.toLowerCase()}` : ''}${fav ? ', favorito' : ''}`}>
+      <span className="ctile__cover"><CoverArt game={g} platform={c.platform} /></span>
+      {badge && <span className={`ctile__badge ctile__badge--${st.zerou ? 'ok' : st.open ? 'now' : 'off'}`} aria-hidden="true">{badge}</span>}
+      {fav && <span className="ctile__fav" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" /></svg></span>}
+      <span className="ctile__meta" aria-hidden="true"><span className="ctile__title">{g.title}</span><span className="ctile__plat">{shortPlatform(c.platform)}{c.kind === 'digital' ? ', digital' : ''}</span></span>
+    </button>
+  );
+}
+
+const money = (n?: number) => (n == null ? '' : n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+const dateBr = (d?: string) => (d ? new Date(`${d}T12:00:00-03:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
+
+/** A cópia aberta: tudo sobre o exemplar, a relação com o jogo e a edição da ficha. */
+function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void }) {
+  const s = useStore((x) => x);
+  const c = s.copies.find((x) => x.id === copyId);
+  const [editing, setEditing] = useState(false);
+  const fav = useFavorite(c?.gameId ?? '');
+  if (!c) return null;
+  const g = s.games[c.gameId];
+  const st = situation(s, c.gameId);
+  const m = myGame(s, c.gameId);
+  const kindLabel = c.kind === 'fisico' ? 'Mídia física' : c.kind === 'digital' ? 'Digital' : c.kind === 'assinatura' ? 'Pelo serviço de assinatura' : 'Outro';
+  const rows: [string, string | undefined][] = [
+    ['Região', c.region], ['Edição', c.edition], ['Condição da mídia', c.condition], ['Caixa e encarte', c.boxCondition],
+    ['Itens inclusos', c.items], ['Comprado em', dateBr(c.purchasedOn)], ['Onde comprou', c.purchasePlace],
+    ['Valor pago', money(c.pricePaid)], ['Valor atual (estimado)', money(c.priceNow)], ['Como chegou', c.origin],
+  ];
+  const journeyText = !st.j ? (m.wontPlay ? 'Marcado como “não vou jogar”. Ter não obriga a jogar.' : 'Nenhuma Jornada com este jogo ainda. Ter não obriga a jogar.')
+    : `${STATE_LABEL[st.h!.state]}${st.h?.state === 'ativa' && st.h.progress != null ? `, ${st.h.progress}%` : ''}.${st.zerou && st.h?.state !== 'concluida' ? ' Já zerou antes.' : ''}`;
 
   return (
-    <aside className="copy-panel card" aria-labelledby="exemplar">
-      <div className="copy-panel__top">
-        <FavoriteCover src={g.cover} alt="" width={96} height={128} burst={burst} radius={5} />
-        <div style={{ minWidth: 0 }}>
-          <h2 id="exemplar" className="t">{g.title}</h2>
-          <div className="muted" style={{ fontSize: 14, marginTop: 6 }}>{kind}, {c.platform}</div>
-          {c.special && <div className="copy-panel__special"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.4 7.1 7.1 2.4-7.1 2.4-2.4 7.1-2.4-7.1L2.5 12l7.1-2.4z" /></svg>Especial para mim</div>}
+    <Sheet title={g.title} onClose={onClose} labelId="copia" wide>
+      {!editing ? (
+        <div className="csheet">
+          <div className="csheet__top">
+            <span className="csheet__cover"><CoverArt game={g} platform={c.platform} lazy={false} /></span>
+            <div>
+              <div className="muted">{kindLabel}, {shortPlatform(c.platform)}</div>
+              {c.special && <div className="copy-panel__special"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5l2.4 7.1 7.1 2.4-7.1 2.4-2.4 7.1-2.4-7.1L2.5 12l7.1-2.4z" /></svg>Especial para mim</div>}
+              <p className="csheet__journey">{journeyText}</p>
+              <div className="csheet__actions">
+                {st.j ? <Link className="btn primary sm" to={`/jornada/${g.slug}`} onClick={onClose}>Abrir a Jornada</Link>
+                  : <button className="btn primary sm" onClick={() => { actions.play(g.id); onClose(); navigate('/sessao'); }}><Icon name="play" size={13} />Começar a jogar</button>}
+                {!st.zerou && <PastButton gameId={g.id} className="btn ghost sm" />}
+                <FavoriteButton fav={fav.fav} burst={fav.burst} onClick={fav.toggle} labels={['Favoritar', 'Favorito']} className="btn ghost sm" />
+              </div>
+            </div>
+          </div>
+
+          <div className="relation__mine">
+            <div className="relation__row">
+              <span className="muted">Prioridade</span>
+              <div className="chips chips--sm" role="group" aria-label="Prioridade">
+                {([1, 2, 3] as const).map((p) => <button key={p} className="chip" aria-pressed={m.priority === p} onClick={() => actions.setMyGame(g.id, { priority: m.priority === p ? undefined : p })}>{p === 1 ? 'Alta' : p === 2 ? 'Média' : 'Baixa'}</button>)}
+              </div>
+            </div>
+            {m.estHours != null && <div className="relation__row"><span className="muted">Tempo estimado para zerar</span><span>{String(m.estHours).replace('.', ',')} h</span></div>}
+            {m.genre && <div className="relation__row"><span className="muted">Seu gênero</span><span>{m.genre}</span></div>}
+            {!st.open && <button className="btn quiet sm" aria-pressed={!!m.wontPlay} onClick={() => actions.toggleWontPlay(g.id)}>{m.wontPlay ? 'Não vou jogar (desfazer)' : 'Não vou jogar'}</button>}
+          </div>
+
+          {rows.some(([, v]) => v) ? (
+            <dl className="csheet__dl">{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
+          ) : <p className="faint">A ficha deste exemplar está em branco. Região, edição, condição e compra são opcionais.</p>}
+          {c.note && <div className="copy-panel__note"><div className="faint"><Icon name="cadeado" size={12} /> Nota só sua</div><p className="quote">“{c.note}”</p></div>}
+
+          <div className="sheet__actions">
+            <button className="btn ghost" onClick={() => setEditing(true)}>Editar ficha do exemplar</button>
+            <Link className="btn quiet" to={`/jogos/${g.slug}`} onClick={onClose}>Abrir a ficha do jogo</Link>
+          </div>
         </div>
-      </div>
-      <FavoriteButton fav={fav} burst={burst} onClick={toggle} labels={['Favoritar este jogo', 'Favorito']} className="btn ghost copy-panel__fav" />
-      <dl className="copy-panel__dl">
-        {c.items && <><dt>Itens</dt><dd>{c.items}</dd></>}
-        {c.condition && <><dt>Estado</dt><dd>{c.condition}</dd></>}
-        {c.origin && <><dt>Como chegou</dt><dd>{c.origin}</dd></>}
-      </dl>
-      {c.note && (
-        <div className="copy-panel__note">
-          <div className="faint"><Icon name="cadeado" size={12} /> Nota só sua</div>
-          <p className="quote">“{c.note}”</p>
-        </div>
+      ) : (
+        <CopyForm copy={c} onDone={() => setEditing(false)} onDeleted={onClose} />
       )}
-      <p className="muted" style={{ fontSize: 14, lineHeight: 1.5 }}>{journeyText}</p>
-      <div className="copy-panel__actions">
-        {j ? <Link className="btn primary" to={`/jornada/${g.slug}`}>Abrir a Jornada</Link>
-          : <button className="btn primary" onClick={() => { actions.play(g.id); navigate('/sessao'); }}><Icon name="play" size={14} />Começar a jogar</button>}
-        <Link className="btn ghost" to={`/jogos/${g.slug}`}>Abrir a ficha do jogo</Link>
+    </Sheet>
+  );
+}
+
+const CONDITIONS = ['Lacrado', 'Novo', 'Muito bom', 'Bom', 'Regular', 'Ruim'];
+
+function CopyForm({ copy, onDone, onDeleted }: { copy: Copy; onDone: () => void; onDeleted: () => void }) {
+  const g = useStore((s) => s.games[copy.gameId]);
+  const [f, setF] = useState({
+    platform: copy.platform, kind: copy.kind, region: copy.region ?? '', edition: copy.edition ?? '', condition: copy.condition ?? '',
+    boxCondition: copy.boxCondition ?? '', items: copy.items ?? '', purchasedOn: copy.purchasedOn ?? '', purchasePlace: copy.purchasePlace ?? '',
+    pricePaid: copy.pricePaid != null ? String(copy.pricePaid).replace('.', ',') : '', priceNow: copy.priceNow != null ? String(copy.priceNow).replace('.', ',') : '',
+    origin: copy.origin ?? '', note: copy.note ?? '', special: !!copy.special,
+  });
+  const set = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value });
+  const num = (v: string) => { const n = Number(v.replace(/\./g, '').replace(',', '.')); return v.trim() && isFinite(n) ? n : undefined; };
+  const txt = (v: string) => v.trim() || undefined;
+  const save = () => {
+    actions.updateCopy(copy.id, {
+      platform: f.platform, kind: f.kind, region: txt(f.region), edition: txt(f.edition), condition: txt(f.condition), boxCondition: txt(f.boxCondition),
+      items: txt(f.items), purchasedOn: txt(f.purchasedOn), purchasePlace: txt(f.purchasePlace), pricePaid: num(f.pricePaid), priceNow: num(f.priceNow),
+      origin: txt(f.origin), note: txt(f.note), special: f.special,
+    });
+    onDone();
+  };
+  const plats = [...new Set([canonicalPlatform(copy.platform), ...(g?.platforms ?? []).map(canonicalPlatform)])];
+  return (
+    <form className="cform" onSubmit={(e) => { e.preventDefault(); save(); }}>
+      <p className="muted sheet__lead">Tudo é opcional. Preencha só o que você sabe.</p>
+      <div className="cform__grid">
+        <label>Plataforma<select className="field" value={canonicalPlatform(f.platform)} onChange={set('platform')}>{plats.map((p) => <option key={p} value={p}>{shortPlatform(p)}</option>)}</select></label>
+        <label>Formato<select className="field" value={f.kind} onChange={set('kind')}><option value="fisico">Mídia física</option><option value="digital">Digital</option><option value="assinatura">Assinatura</option><option value="outro">Outro</option></select></label>
+        <label>Região<input className="field" value={f.region} onChange={set('region')} placeholder="Ex.: BR, US, JP" list="regions" /></label>
+        <label>Edição<input className="field" value={f.edition} onChange={set('edition')} placeholder="Ex.: Greatest Hits" /></label>
+        <label>Condição da mídia<input className="field" value={f.condition} onChange={set('condition')} list="conds" /></label>
+        <label>Caixa e encarte<input className="field" value={f.boxCondition} onChange={set('boxCondition')} list="conds" /></label>
+        <label className="cform__wide">Itens inclusos<input className="field" value={f.items} onChange={set('items')} placeholder="Ex.: caixa, disco, manual, pôster" /></label>
+        <label>Data da compra<input className="field" type="date" value={f.purchasedOn} onChange={set('purchasedOn')} /></label>
+        <label>Onde comprou<input className="field" value={f.purchasePlace} onChange={set('purchasePlace')} /></label>
+        <label>Valor pago (R$)<input className="field" inputMode="decimal" value={f.pricePaid} onChange={set('pricePaid')} /></label>
+        <label>Valor atual estimado (R$)<input className="field" inputMode="decimal" value={f.priceNow} onChange={set('priceNow')} /></label>
+        <label className="cform__wide">Como chegou<input className="field" value={f.origin} onChange={set('origin')} placeholder="Ex.: presente do meu irmão, 2009" /></label>
+        <label className="cform__wide">Nota só sua<textarea className="field" rows={2} value={f.note} onChange={set('note')} /></label>
       </div>
-    </aside>
+      <label className="cform__check"><input type="checkbox" checked={f.special} onChange={(e) => setF({ ...f, special: e.target.checked })} /> Especial para mim</label>
+      <datalist id="conds">{CONDITIONS.map((c) => <option key={c} value={c} />)}</datalist>
+      <datalist id="regions">{['BR', 'US', 'EU', 'JP', 'Asia'].map((c) => <option key={c} value={c} />)}</datalist>
+      <div className="sheet__actions">
+        <button type="submit" className="btn primary lg">Salvar</button>
+        <button type="button" className="btn quiet" onClick={onDone}>Cancelar</button>
+      </div>
+      <div className="sheet__danger">
+        <ConfirmButton label="Tirar este exemplar da coleção" confirm="Toque de novo para tirar" onConfirm={() => { actions.deleteCopy(copy.id); onDeleted(); }} />
+        <p className="faint">A Jornada e as notas do jogo continuam.</p>
+      </div>
+    </form>
   );
 }

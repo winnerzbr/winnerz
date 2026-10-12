@@ -33,7 +33,9 @@ export function demoState(): State {
     ready: true,
     mode: 'demo',
     profile: { id: 'demo', name: 'Heverton', initial: 'H' },
-    prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas', focusJourneyId: 'j-tlou2' },
+    prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas', focusIds: ['j-tlou2', 'j-astro'] },
+    schemaV4: true,
+    myGames: { infamous: { gameId: 'infamous', priority: 1, estHours: 17 }, kz2: { gameId: 'kz2', priority: 2, estHours: 9 }, dderby: { gameId: 'dderby', wontPlay: true } },
     games: Object.fromEntries(games.map((g) => [g.id, g])),
     copies: [
       { id: 'c1', gameId: 'astro', platform: 'PlayStation 5', kind: 'digital', items: 'Digital', origin: 'Comprei no lançamento, 2024', note: 'Comprei no dia do aniversário do PlayStation. Foi presente para mim mesmo.' },

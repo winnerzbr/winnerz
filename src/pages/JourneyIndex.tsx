@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { Link } from '../lib/router';
-import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, eventsOf, activeWaypoints, focusJourney } from '../data/store';
+import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, eventsOf, activeWaypoints, focusJourneys } from '../data/store';
 import type { State, Journey, TimelineEvent } from '../data/types';
-import { ago, shortDate } from '../lib/format';
+import { ago } from '../lib/format';
+import { whenLabel, partsOf } from '../lib/dates';
+import { SubNav } from '../components/SubNav';
+import { CoverArt } from '../components/CoverArt';
+import { formatScore } from '../lib/rating';
+import { ActionToast } from '../components/Toast';
+import { eventDate } from './Journey';
 import { Compass, Icon } from '../components/Icon';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
@@ -18,11 +24,18 @@ function rowFor(s: State, j: Journey) {
 
 export function JourneyIndex() {
   const s = useStore((x) => x);
-  const focus = focusJourney(s);
+  const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  const focus = focusJourneys(s);
+  const principal = focus[0] ?? null;
+  const secondary = focus.slice(1);
+  const inFocus = new Set(focus.map((f) => f.journey.id));
   const rows = s.journeys.map((j) => rowFor(s, j)).filter((r) => r.g);
-  const going = rows.filter((r) => r.h && r.h.state === 'ativa' && r.j.mood !== 'pausado' && r.j.id !== focus?.journey.id);
-  const paused = rows.filter((r) => r.h && (r.h.state === 'pausada' || r.j.mood === 'pausado') && r.j.id !== focus?.journey.id);
-  const done = rows.filter((r) => r.h && r.h.state === 'concluida');
+  const going = rows.filter((r) => r.h && r.h.state === 'ativa' && !inFocus.has(r.j.id));
+  const paused = rows.filter((r) => r.h && r.h.state === 'pausada' && !inFocus.has(r.j.id));
+  const done = rows.filter((r) => r.h && r.h.state === 'concluida')
+    .sort((a, b) => (b.h!.completedAt ?? '').localeCompare(a.h!.completedAt ?? ''));
+  const left = rows.filter((r) => r.h && (r.h.state === 'dropada' || r.h.state === 'encerrada'));
+  const putInFocus = (id: string) => { if (!actions.addFocus(id)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em foco. Tire um deles para pôr outro.' }); };
 
   const Group = ({ title, list, hint, canFocus }: { title: string; list: typeof rows; hint?: string; canFocus?: boolean }) => list.length ? (
     <section className="block">
@@ -34,12 +47,12 @@ export function JourneyIndex() {
             <div className="jcard__shade" aria-hidden="true" />
             <Link to={`/jornada/${g.slug}`} className="jcard__link" aria-label={`Abrir a Jornada de ${g.title}`} />
             {canFocus && (
-              <button className="jcard__focus" onClick={() => actions.setFocus(j.id)} title="Destacar esta Jornada aqui e no Início">
+              <button className="jcard__focus" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">
                 <Compass size={13} />Pôr em foco
               </button>
             )}
             <div className="jcard__body">
-              <div className="jcard__meta">{n > 1 ? `${n} Histórias` : 'Primeira História'}{last ? `, última sessão ${ago(last.startedAt)}` : ''}</div>
+              <div className="jcard__meta">{h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') ? `${h.state === 'concluida' ? 'Zerou' : h.state === 'dropada' ? 'Largou' : 'Encerrou'}, ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}${n > 1 ? `. ${n} Histórias` : ''}` : `${n > 1 ? `${n} Histórias` : 'Primeira História'}${last ? `, última sessão ${ago(last.startedAt)}` : ''}`}</div>
               <div className="t jcard__title">{g.title}</div>
               {note?.note && <div className="quote jcard__note">“{note.note}”</div>}
               {h?.progress != null && h.state !== 'concluida' && <div className="bar bar--thin"><span style={{ width: `${h.progress}%` }} /></div>}
@@ -52,6 +65,7 @@ export function JourneyIndex() {
 
   return (
     <main className="page pad jindex">
+      <SubNav pillar="jornada" />
       <h1 className="t big">Jornada</h1>
       <p className="muted lead">Toda história tem um próximo instante. O resto pode esperar.</p>
       {rows.length === 0 && (
@@ -62,18 +76,26 @@ export function JourneyIndex() {
         </div>
       )}
 
-      {focus && <FocusCard s={s} journey={focus.journey} chosen={focus.chosen} />}
+      {principal && <FocusCard s={s} journey={principal.journey} chosen={principal.chosen} />}
+      {secondary.length > 0 && (
+        <div className="focus-minis" aria-label="Também em foco">
+          {secondary.map((f) => <FocusMini key={f.journey.id} s={s} journeyId={f.journey.id} />)}
+        </div>
+      )}
 
       <Group title="Jogando agora" list={going} canFocus />
 
       {rows.length > 0 && (
         <section className="block jindex__what">
-          <WhatToPlay excludeJourneyId={focus?.journey.id} headingId="oqj-jornada" />
+          <WhatToPlay excludeJourneyId={principal?.journey.id} headingId="oqj-jornada" />
         </section>
       )}
 
       <Group title="Pausados" list={paused} hint="Sem pressa. Eles esperam." canFocus />
-      <Group title="Histórias concluídas" list={done} />
+      <Group title="Zerados recentemente" list={done.slice(0, 6)} hint={done.length > 6 ? `${done.length} ao todo` : undefined} />
+      {done.length > 6 && <p className="jindex__more"><Link className="btn ghost" to="/jornada/concluidas">Ver todas as Histórias concluídas</Link></p>}
+      <Group title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
+      {toast && <ActionToast key={toast.id} text={toast.text} onDone={() => setToast(null)} />}
     </main>
   );
 }
@@ -99,7 +121,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
         <div className="focus__main">
           <div className="focus__kicker">
             <span className="focus__badge"><Compass size={13} />Em foco</span>
-            <span>{chosen ? 'Escolhido por você' : 'Sua sessão mais recente'}</span>
+            <span>{chosen ? 'Foco principal' : 'Sua sessão mais recente'}</span>
           </div>
           <h2 id="em-foco" className="t focus__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
           <p className="focus__meta">
@@ -117,7 +139,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
           <div className="focus__actions">
             <PlayButton gameId={g.id} />
             <Link className="btn ghost lg" to={`/jornada/${g.slug}`}>Abrir linha do tempo</Link>
-            {chosen && <button className="btn quiet" onClick={() => actions.setFocus(null)}>Tirar do foco</button>}
+            {chosen && <button className="btn quiet" onClick={() => actions.removeFocus(journey.id)}>Tirar do foco</button>}
           </div>
         </div>
 
@@ -136,7 +158,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
               {recent.map((e: TimelineEvent) => (
                 <li key={e.id} className={`focus__step k-${e.kind}`}>
                   <span className={`dot dot--${e.kind}`} aria-hidden="true" />
-                  <span className="focus__step-date">{e.dateLabel ?? shortDate(e.at)}</span>
+                  <span className="focus__step-date">{eventDate(e)}</span>
                   <span className="focus__step-title">{e.title}</span>
                   <span className="focus__step-kind">{KIND[e.kind]}</span>
                 </li>
@@ -150,5 +172,67 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
         <PhotoViewer title={g.title} items={photos.map((e) => ({ kind: 'image' as const, src: e.image!, label: e.title }))} start={viewer} onClose={() => setViewer(null)} />
       )}
     </section>
+  );
+}
+
+/** Os outros jogos em foco: menores, ao lado do principal. */
+function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
+  const j = s.journeys.find((x) => x.id === journeyId)!;
+  const g = s.games[j.gameId];
+  const h = currentHistory(s, j.id);
+  const note = lastNote(s, j.id);
+  if (!g || !h) return null;
+  return (
+    <article className="focus-mini on-photo">
+      <img src={g.backdrop ?? g.cover} alt="" />
+      <div className="focus-mini__shade" aria-hidden="true" />
+      <div className="focus-mini__body">
+        <span className="focus__badge"><Compass size={12} />Em foco</span>
+        <h2 className="t"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
+        <p>{h.state === 'pausada' ? 'Pausado.' : `Jogando${h.progress != null ? `, ${h.progress}%` : ''}.`}{note?.note ? ` “${note.note}”` : ''}</p>
+        <div className="focus-mini__actions">
+          <PlayButton gameId={g.id} className="btn sm" />
+          <button className="btn quiet sm" onClick={() => actions.makePrincipal(j.id)}>Tornar principal</button>
+          <button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)}>Tirar do foco</button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/** Histórias concluídas: tudo o que você zerou, do mais recente ao mais antigo, agrupado por ano. */
+export function ConcludedPage() {
+  const s = useStore((x) => x);
+  const done = s.histories.filter((h) => h.state === 'concluida').map((h) => {
+    const j = s.journeys.find((x) => x.id === h.journeyId);
+    const g = j ? s.games[j.gameId] : undefined;
+    const known = h.completedAt && h.completedPrecision !== 'desconhecida';
+    return { h, g, year: known ? partsOf(h.completedAt!).y : null, review: g ? s.reviews.find((r) => r.mine && r.gameId === g.id) : undefined };
+  }).filter((x) => x.g)
+    .sort((a, b) => (b.year ?? -1) - (a.year ?? -1) || (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? ''));
+  const years = [...new Set(done.map((d) => d.year))];
+  const totalHours = done.reduce((a, d) => a + (d.h.hours ?? 0), 0);
+  return (
+    <main className="page pad jindex">
+      <SubNav pillar="jornada" />
+      <h1 className="t big">Histórias concluídas</h1>
+      <p className="muted lead">{done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+      {years.map((y) => (
+        <section key={String(y)} className="block" aria-labelledby={`ano-${y}`}>
+          <div className="block__head"><h2 id={`ano-${y}`} className="t">{y ?? 'Sem data'}</h2><span className="muted">{done.filter((d) => d.year === y).length}</span></div>
+          <ul className="done-grid">
+            {done.filter((d) => d.year === y).map(({ h, g, review }) => (
+              <li key={h.id}>
+                <Link to={`/jornada/${g!.slug}`} className="done-card">
+                  <span className="done-card__cover"><CoverArt game={g!} /></span>
+                  <span className="done-card__title">{g!.title}</span>
+                  <span className="muted done-card__meta">{h.ordinal > 1 ? `${h.ordinal}ª vez, ` : ''}{whenLabel(h.completedAt, h.completedPrecision, { short: true })}{h.hours ? `, ${String(h.hours).replace('.', ',')} h` : ''}{review ? `, nota ${formatScore(review.rating.normalized, s.prefs.scale)}` : ''}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </main>
   );
 }

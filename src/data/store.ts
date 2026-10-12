@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision } from './types';
 import type { Rating } from '../lib/rating';
+import { track } from '../lib/track';
 
 /**
  * Store único do app. Todas as telas leem daqui e chamam as ações daqui.
@@ -9,24 +10,43 @@ import type { Rating } from '../lib/rating';
  *  - modo Supabase: tabelas do banco (ver supabaseAdapter.ts).
  */
 
+export type ImportPayload = {
+  games: Game[]; copies: Copy[]; myGames: MyGame[]; journeys: Journey[]; histories: History[]; events: TimelineEvent[]; reviews: Review[];
+};
+
 export type Action =
   | { type: 'prefs'; prefs: Partial<Prefs> }
   | { type: 'favorite'; gameId: ID; value: boolean }
   | { type: 'wish'; gameId: ID; value: boolean }
   | { type: 'journey.create'; journey: Journey; history: History; event: TimelineEvent }
+  | { type: 'journey.update'; journey: Journey }
+  | { type: 'journey.delete'; journeyId: ID; imagePaths: string[] }
   | { type: 'history.create'; history: History; event: TimelineEvent }
+  | { type: 'history.update'; history: History; event?: TimelineEvent; journey?: Journey }
+  | { type: 'history.delete'; historyId: ID; imagePaths: string[] }
   | { type: 'session.start'; session: Session }
   | { type: 'session.finish'; session: Session; event: TimelineEvent; progress?: { historyId: ID; value: number } }
+  | { type: 'session.update'; session: Session }
+  | { type: 'session.delete'; sessionId: ID }
   | { type: 'event.add'; event: TimelineEvent }
   | { type: 'event.resolve'; eventId: ID }
-  | { type: 'event.update'; eventId: ID; patch: Pick<Partial<TimelineEvent>, 'image' | 'imagePath'> }
+  | { type: 'event.update'; eventId: ID; patch: EventPatch }
+  | { type: 'event.delete'; eventId: ID; imagePath?: string }
   | { type: 'progress'; historyId: ID; value: number }
   | { type: 'history.complete'; history: History; event: TimelineEvent }
   | { type: 'history.letterOpen'; historyId: ID; at: string }
   | { type: 'review.save'; review: Review }
   | { type: 'games.merge'; games: Game[] }
+  | { type: 'game.create'; game: Game }
+  | { type: 'game.relink'; fromId: ID; to: Game; mergeFrom?: ID; mergeInto?: ID }
   | { type: 'copy.add'; copy: Copy }
+  | { type: 'copy.update'; copy: Copy }
+  | { type: 'copy.delete'; copyId: ID }
+  | { type: 'mygame.set'; mine: MyGame }
+  | { type: 'import.bulk'; data: ImportPayload }
   | { type: 'reviews.merge'; gameId: ID; reviews: Review[]; stats?: State['reviewStats'][string] };
+
+export type EventPatch = Partial<Pick<TimelineEvent, 'image' | 'imagePath' | 'title' | 'text' | 'quote' | 'at' | 'precision' | 'dateLabel'>>;
 
 export interface Adapter {
   load(): Promise<State>;
@@ -42,7 +62,7 @@ export function emptyState(): State {
     ready: false, mode: 'demo', profile: null,
     prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas' },
     games: {}, copies: [], wishes: [], favorites: [], journeys: [], histories: [],
-    sessions: [], events: [], reviews: [], reviewStats: {},
+    sessions: [], events: [], reviews: [], reviewStats: {}, myGames: {}, schemaV4: false,
   };
 }
 
@@ -90,6 +110,7 @@ function reduce(s: State, a: Action): State {
       return { ...s, events: s.events.map((e) => (e.id === a.eventId ? { ...e, resolved: true } : e)) };
     case 'event.update':
       return { ...s, events: s.events.map((e) => (e.id === a.eventId ? { ...e, ...a.patch } : e)) };
+
     case 'progress':
       return { ...s, histories: s.histories.map((h) => (h.id === a.historyId ? { ...h, progress: a.value } : h)) };
     case 'history.complete':
@@ -113,6 +134,92 @@ function reduce(s: State, a: Action): State {
         reviews: [...s.reviews.filter((r) => r.gameId !== a.gameId || r.mine), ...a.reviews.filter((r) => !r.mine)],
         reviewStats: a.stats ? { ...s.reviewStats, [a.gameId]: a.stats } : s.reviewStats,
       };
+    case 'journey.update':
+      return { ...s, journeys: s.journeys.map((j) => (j.id === a.journey.id ? a.journey : j)) };
+    case 'journey.delete': {
+      const focusIds = (s.prefs.focusIds ?? []).filter((id) => id !== a.journeyId);
+      return {
+        ...s,
+        prefs: { ...s.prefs, focusIds, focusJourneyId: s.prefs.focusJourneyId === a.journeyId ? null : s.prefs.focusJourneyId },
+        journeys: s.journeys.filter((j) => j.id !== a.journeyId),
+        histories: s.histories.filter((h) => h.journeyId !== a.journeyId),
+        sessions: s.sessions.filter((x) => x.journeyId !== a.journeyId),
+        events: s.events.filter((e) => e.journeyId !== a.journeyId),
+      };
+    }
+    case 'history.update':
+      return {
+        ...s,
+        histories: s.histories.map((h) => (h.id === a.history.id ? a.history : h)),
+        journeys: a.journey ? s.journeys.map((j) => (j.id === a.journey!.id ? a.journey! : j)) : s.journeys,
+        events: a.event ? [...s.events, a.event] : s.events,
+      };
+    case 'history.delete':
+      return {
+        ...s,
+        histories: s.histories.filter((h) => h.id !== a.historyId),
+        sessions: s.sessions.filter((x) => x.historyId !== a.historyId),
+        events: s.events.filter((e) => e.historyId !== a.historyId),
+      };
+    case 'session.update':
+      return { ...s, sessions: s.sessions.map((x) => (x.id === a.session.id ? a.session : x)) };
+    case 'session.delete':
+      return {
+        ...s,
+        sessions: s.sessions.filter((x) => x.id !== a.sessionId),
+        // O resumo da sessão sai junto; momentos e pontos guardados nela ficam.
+        events: s.events.filter((e) => !(e.sessionId === a.sessionId && e.kind === 'sessao')).map((e) => (e.sessionId === a.sessionId ? { ...e, sessionId: undefined } : e)),
+      };
+    case 'event.delete':
+      return { ...s, events: s.events.filter((e) => e.id !== a.eventId) };
+    case 'game.create':
+      return { ...s, games: { ...s.games, [a.game.id]: a.game } };
+    case 'game.relink': {
+      const f = a.fromId, t = a.to.id;
+      const sw = <T extends { gameId: ID }>(x: T): T => (x.gameId === f ? { ...x, gameId: t } : x);
+      const myGames = { ...s.myGames };
+      if (myGames[f]) { myGames[t] = { ...myGames[f], ...myGames[t], gameId: t }; delete myGames[f]; }
+      // Se os dois jogos já tinham Jornada, as Histórias do antigo passam para a Jornada do novo.
+      const jf = s.journeys.find((j) => j.gameId === f), jt = s.journeys.find((j) => j.gameId === t);
+      let journeys = s.journeys.map(sw), histories = s.histories, sessions = s.sessions, events = s.events;
+      if (jf && jt) {
+        const base = Math.max(0, ...s.histories.filter((h) => h.journeyId === jt.id).map((h) => h.ordinal));
+        const moved = s.histories.filter((h) => h.journeyId === jf.id).sort((x, y) => x.ordinal - y.ordinal);
+        histories = s.histories.map((h) => { const i = moved.findIndex((m) => m.id === h.id); return i < 0 ? h : { ...h, journeyId: jt.id, ordinal: base + i + 1 }; });
+        sessions = s.sessions.map((x) => (x.journeyId === jf.id ? { ...x, journeyId: jt.id } : x));
+        events = s.events.map((e) => (e.journeyId === jf.id ? { ...e, journeyId: jt.id } : e));
+        journeys = s.journeys.filter((j) => j.id !== jf.id);
+      }
+      const games = { ...s.games, [t]: a.to };
+      delete games[f];
+      return {
+        ...s, games, myGames, journeys, histories, sessions, events,
+        copies: s.copies.map(sw),
+        wishes: s.wishes.some((w) => w.gameId === t) ? s.wishes.filter((w) => w.gameId !== f) : s.wishes.map(sw),
+        favorites: [...new Set(s.favorites.map((g) => (g === f ? t : g)))],
+        reviews: s.reviews.some((r) => r.mine && r.gameId === t) ? s.reviews.filter((r) => !(r.mine && r.gameId === f)) : s.reviews.map((r) => (r.mine ? sw(r) : r)),
+      };
+    }
+    case 'copy.update':
+      return { ...s, copies: s.copies.map((c) => (c.id === a.copy.id ? a.copy : c)) };
+    case 'copy.delete':
+      return { ...s, copies: s.copies.filter((c) => c.id !== a.copyId) };
+    case 'mygame.set':
+      return { ...s, myGames: { ...s.myGames, [a.mine.gameId]: a.mine } };
+    case 'import.bulk': {
+      const d = a.data;
+      const myGames = { ...s.myGames };
+      for (const m of d.myGames) myGames[m.gameId] = { ...myGames[m.gameId], ...m };
+      return {
+        ...s, myGames,
+        games: { ...s.games, ...Object.fromEntries(d.games.map((g) => [g.id, g])) },
+        copies: [...s.copies, ...d.copies],
+        journeys: [...s.journeys, ...d.journeys],
+        histories: [...s.histories, ...d.histories],
+        events: [...s.events, ...d.events],
+        reviews: [...s.reviews.filter((r) => !d.reviews.some((x) => x.id === r.id)), ...d.reviews],
+      };
+    }
   }
 }
 
@@ -124,6 +231,22 @@ export function dispatch(a: Action) {
     // a próxima carga reconcilia com o servidor.
     console.error('[WinnerZ] Não foi possível salvar:', err);
   });
+}
+
+/** Como dispatch, mas espera a gravação terminar e repassa o erro (usado na importação). */
+export async function commit(a: Action) {
+  const before = state;
+  state = reduce(state, a);
+  emit();
+  try {
+    await adapter?.persist(a, state);
+  } catch (err) {
+    // Não deixa na tela o que não chegou ao banco: volta ao estado anterior e repassa o erro.
+    // (Partes já gravadas são reconhecidas na próxima tentativa, porque a página é recarregada do banco.)
+    state = before;
+    emit();
+    throw err;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -157,24 +280,50 @@ export function lastSession(s: State, journeyId: ID) {
   const done = s.sessions.filter((x) => x.journeyId === journeyId && x.endedAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   return done[0] ?? null;
 }
+/** História que ainda conta como "em andamento" (jogando ou pausada). */
+export const isOpenState = (st?: HistoryState) => st === 'ativa' || st === 'pausada';
+/** História que terminou de algum jeito (zerou, encerrou ou largou). */
+export const isClosedState = (st?: HistoryState) => st === 'concluida' || st === 'encerrada' || st === 'dropada';
+
+export function nextOrdinal(s: State, journeyId: ID) {
+  return Math.max(0, ...s.histories.filter((h) => h.journeyId === journeyId).map((h) => h.ordinal)) + 1;
+}
+
+export function myGame(s: State, gameId: ID): MyGame {
+  return s.myGames[gameId] ?? { gameId };
+}
+
+export const MAX_FOCUS = 3;
+
 /**
- * Jornada em foco: a escolhida pela pessoa (se ainda estiver em andamento);
- * senão a da sessão aberta; senão a da sessão mais recente.
+ * Jornadas em foco (até três, a primeira é a principal), escolhidas pela pessoa.
+ * Sem escolha, o foco é a Jornada da sessão aberta, ou a da sessão mais recente.
  */
-export function focusJourney(s: State): { journey: Journey; chosen: boolean } | null {
-  const chosenId = s.prefs.focusJourneyId ?? s.focusJourneyId;
-  const chosen = s.journeys.find((j) => j.id === chosenId);
-  if (chosen) {
-    const h = currentHistory(s, chosen.id);
-    if (h && h.state !== 'concluida') return { journey: chosen, chosen: true };
-  }
+export function focusJourneys(s: State): { journey: Journey; chosen: boolean }[] {
+  const ids = s.prefs.focusIds ?? (s.prefs.focusJourneyId ? [s.prefs.focusJourneyId] : s.prefs.focusJourneyId === null ? [] : s.focusJourneyId ? [s.focusJourneyId] : []);
+  const chosen = ids.map((id) => s.journeys.find((j) => j.id === id))
+    .filter((j): j is Journey => !!j && isOpenState(currentHistory(s, j.id)?.state))
+    .slice(0, MAX_FOCUS).map((journey) => ({ journey, chosen: true }));
+  if (chosen.length) return chosen;
   const open = openSession(s);
   const byOpen = open && s.journeys.find((j) => j.id === open.journeyId);
-  if (byOpen) return { journey: byOpen, chosen: false };
+  if (byOpen) return [{ journey: byOpen, chosen: false }];
   const recent = [...s.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
     .map((x) => s.journeys.find((j) => j.id === x.journeyId))
-    .find((j) => j && currentHistory(s, j.id)?.state !== 'concluida');
-  return recent ? { journey: recent, chosen: false } : null;
+    .find((j) => j && isOpenState(currentHistory(s, j.id)?.state));
+  return recent ? [{ journey: recent, chosen: false }] : [];
+}
+
+/** A Jornada principal em foco (Início, botão de jogar). */
+export function focusJourney(s: State): { journey: Journey; chosen: boolean } | null {
+  return focusJourneys(s)[0] ?? null;
+}
+
+/** Sessão aberta há tanto tempo que provavelmente foi esquecida. */
+export const FORGOTTEN_AFTER_H = 5;
+export function forgottenSession(s: State, now = Date.now()) {
+  const o = openSession(s);
+  return o && now - new Date(o.startedAt).getTime() > FORGOTTEN_AFTER_H * 3_600_000 ? o : null;
 }
 
 export function eventsOf(s: State, journeyId: ID) {
@@ -187,6 +336,13 @@ export function activeWaypoints(s: State, journeyId: ID) {
 /* ------------------------------------------------------------------ */
 /* Ações de alto nível                                                 */
 /* ------------------------------------------------------------------ */
+
+const STATE_EVENT: Record<string, { title: string; text: (note?: string) => string }> = {
+  pausada: { title: 'Pausou', text: (n) => n || 'Uma pausa, sem pressa.' },
+  dropada: { title: 'Largou', text: (n) => n || 'Não encaixou agora. Sem culpa.' },
+  encerrada: { title: 'Encerrou', text: (n) => n || 'Terminou do seu jeito, sem zerar.' },
+  ativa: { title: 'Retomou', text: (n) => n || 'De volta à História.' },
+};
 
 export const actions = {
   setPrefs(prefs: Partial<Prefs>) { dispatch({ type: 'prefs', prefs }); },
@@ -203,17 +359,25 @@ export const actions = {
     return value;
   },
 
-  /** "Jogar": cria a Jornada e a primeira História se ainda não existirem. Sem formulário. */
+  /**
+   * "Jogar": cria a Jornada e a primeira História se ainda não existirem. Sem formulário.
+   * História pausada ou largada é retomada; zerada ou encerrada abre uma História nova.
+   */
   play(gameId: ID): Session {
+    track('jornada.jogar');
     const existing = openSession(state);
     if (existing) return existing; // nunca troca a sessão aberta silenciosamente
     let journey = journeyForGame(state, gameId);
     let history = journey ? currentHistory(state, journey.id) : null;
+    if (journey && history && (history.state === 'pausada' || history.state === 'dropada')) {
+      actions.setHistoryState(history.id, 'ativa');
+      history = state.histories.find((h) => h.id === history!.id)!;
+    }
     if (!journey || !history || history.state === 'concluida' || history.state === 'encerrada') {
       const at = nowIso();
       const isNewJourney = !journey;
       journey = journey ?? { id: uid(), gameId, mood: 'jogando' };
-      const ordinal = isNewJourney ? 1 : historiesOf(state, journey.id).length + 1;
+      const ordinal = isNewJourney ? 1 : nextOrdinal(state, journey.id);
       history = { id: uid(), journeyId: journey.id, ordinal, title: ordinal === 1 ? 'Primeira vez' : 'Rejogada', state: 'ativa', startedAt: at, progress: 0 };
       const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, kind: 'inicio', at, title: history.title, text: ordinal === 1 ? 'Começou sua primeira História com o jogo.' : 'Uma nova História. As anteriores continuam guardadas.' };
       if (isNewJourney) dispatch({ type: 'journey.create', journey, history, event });
@@ -222,6 +386,94 @@ export const actions = {
     const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: nowIso() };
     dispatch({ type: 'session.start', session });
     return session;
+  },
+
+  /** Pausar, largar, encerrar ou retomar. Um toque; o recado é opcional. */
+  setHistoryState(historyId: ID, next: 'ativa' | 'pausada' | 'dropada' | 'encerrada', note?: string) {
+    track(`jornada.estado.${next}`);
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h || h.state === next) return;
+    const j = state.journeys.find((x) => x.id === h.journeyId)!;
+    const at = nowIso();
+    const meta = STATE_EVENT[next];
+    const event: TimelineEvent = { id: uid(), journeyId: h.journeyId, historyId, kind: 'marco', at, title: meta.title, text: meta.text(note?.trim()) };
+    const closing = next === 'encerrada' || next === 'dropada';
+    const history: History = { ...h, state: next, note: note?.trim() || (next === 'ativa' ? undefined : h.note), completedAt: closing ? at : next === 'ativa' ? undefined : h.completedAt, completedPrecision: closing ? 'dia' : h.completedPrecision };
+    const journey: Journey = { ...j, mood: next === 'pausada' ? 'pausado' : 'jogando', pausedNote: next === 'pausada' ? note?.trim() || undefined : undefined };
+    // Uma sessão aberta deste jogo é fechada junto quando a História para.
+    const open = openSession(state);
+    if (open && open.historyId === historyId && next !== 'ativa') actions.finishSession(open.id, {});
+    dispatch({ type: 'history.update', history, event, journey });
+    if (next !== 'ativa' && next !== 'pausada') {
+      const ids = (state.prefs.focusIds ?? []).filter((id) => id !== j.id);
+      if (ids.length !== (state.prefs.focusIds ?? []).length) dispatch({ type: 'prefs', prefs: { focusIds: ids } });
+    }
+  },
+
+  /**
+   * "Já zerei" (ou "joguei antes"): registra uma História do passado sem abrir sessão.
+   * Se há uma História em andamento, é ela que termina agora.
+   */
+  recordPast(gameId: ID, opts: { state?: 'concluida' | 'encerrada' | 'dropada'; when?: { iso: string; precision: DatePrecision }; hours?: number } = {}): ID {
+    const finalState = opts.state ?? 'concluida';
+    track('jornada.ja-zerei');
+    let journey = journeyForGame(state, gameId);
+    const cur = journey ? currentHistory(state, journey.id) : null;
+    if (cur && isOpenState(cur.state) && !opts.when) {
+      if (finalState === 'concluida') actions.completeHistory(cur.id);
+      else actions.setHistoryState(cur.id, finalState);
+      if (opts.hours != null) actions.updateHistory(cur.id, { hours: opts.hours });
+      return cur.id;
+    }
+    const when = opts.when ?? { iso: nowIso(), precision: 'desconhecida' as DatePrecision };
+    const isNewJourney = !journey;
+    journey = journey ?? { id: uid(), gameId, mood: 'jogando' };
+    const ordinal = isNewJourney ? 1 : nextOrdinal(state, journey.id);
+    const title = ordinal === 1 ? 'Primeira vez' : 'Outra vez';
+    const history: History = {
+      id: uid(), journeyId: journey.id, ordinal, title, state: finalState,
+      startedAt: when.iso, startedPrecision: 'desconhecida', completedAt: when.iso, completedPrecision: when.precision,
+      progress: finalState === 'concluida' ? 100 : undefined, hours: opts.hours,
+    };
+    const word = finalState === 'concluida' ? (ordinal > 1 ? 'Zerou de novo' : 'Zerou') : finalState === 'encerrada' ? 'Encerrou' : 'Largou';
+    const event: TimelineEvent = {
+      id: uid(), journeyId: journey.id, historyId: history.id, kind: 'marco', at: when.iso, precision: when.precision, title: word,
+      text: `Registrado depois${opts.hours ? `, ${String(opts.hours).replace('.', ',')} horas informadas` : ''}.`,
+    };
+    if (isNewJourney) dispatch({ type: 'journey.create', journey, history, event });
+    else dispatch({ type: 'history.create', history, event });
+    return history.id;
+  },
+
+  /** Corrige uma História: título, datas, horas, recado. O marco de conclusão acompanha a data. */
+  updateHistory(historyId: ID, patch: Partial<Pick<History, 'title' | 'startedAt' | 'startedPrecision' | 'completedAt' | 'completedPrecision' | 'hours' | 'note' | 'mode' | 'state' | 'progress'>>) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    dispatch({ type: 'history.update', history: { ...h, ...patch } });
+    if (patch.completedAt || patch.completedPrecision) {
+      // O marco que corresponde ao estado atual (um "Largou" antigo, de antes de retomar, fica onde está).
+      const word = (patch.state ?? h.state) === 'concluida' ? /^Zerou/ : (patch.state ?? h.state) === 'encerrada' ? /^Encerrou/ : /^Largou/;
+      const end = [...eventsOf(state, h.journeyId)].reverse().find((e) => e.historyId === historyId && e.kind === 'marco' && word.test(e.title));
+      if (end) dispatch({ type: 'event.update', eventId: end.id, patch: { at: patch.completedAt ?? end.at, precision: patch.completedPrecision ?? end.precision } });
+    }
+    if (patch.startedAt || patch.startedPrecision) {
+      const start = eventsOf(state, h.journeyId).find((e) => e.historyId === historyId && e.kind === 'inicio');
+      if (start) dispatch({ type: 'event.update', eventId: start.id, patch: { at: patch.startedAt ?? start.at, precision: patch.startedPrecision ?? start.precision } });
+    }
+  },
+
+  deleteHistory(historyId: ID) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const imagePaths = state.events.filter((e) => e.historyId === historyId && e.imagePath).map((e) => e.imagePath!);
+    const remaining = state.histories.filter((x) => x.journeyId === h.journeyId && x.id !== historyId);
+    if (!remaining.length) return actions.deleteJourney(h.journeyId);
+    dispatch({ type: 'history.delete', historyId, imagePaths });
+  },
+
+  deleteJourney(journeyId: ID) {
+    const imagePaths = state.events.filter((e) => e.journeyId === journeyId && e.imagePath).map((e) => e.imagePath!);
+    dispatch({ type: 'journey.delete', journeyId, imagePaths });
   },
 
   addMoment(sessionId: ID, data: { id?: ID; title?: string; text?: string; quote?: string; image?: string; imagePath?: string; kind?: EventKind }): ID | null {
@@ -236,19 +488,55 @@ export const actions = {
     return id;
   },
 
-  setFocus(journeyId: ID | null) { dispatch({ type: 'prefs', prefs: { focusJourneyId: journeyId } }); },
+  /* Foco ----------------------------------------------------------------- */
+  /** Põe em foco. Retorna false quando já há três jogos em foco. */
+  addFocus(journeyId: ID): boolean {
+    track('jornada.foco');
+    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id);
+    if (ids.includes(journeyId)) return true;
+    if (ids.length >= MAX_FOCUS) return false;
+    dispatch({ type: 'prefs', prefs: { focusIds: [...ids, journeyId], focusJourneyId: null } });
+    return true;
+  },
+  removeFocus(journeyId: ID) {
+    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id).filter((id) => id !== journeyId);
+    dispatch({ type: 'prefs', prefs: { focusIds: ids, focusJourneyId: null } });
+  },
+  makePrincipal(journeyId: ID) {
+    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id).filter((id) => id !== journeyId);
+    dispatch({ type: 'prefs', prefs: { focusIds: [journeyId, ...ids].slice(0, MAX_FOCUS), focusJourneyId: null } });
+  },
+  /** Compatibilidade: definir (ou limpar) o foco principal. */
+  setFocus(journeyId: ID | null) {
+    if (journeyId) actions.makePrincipal(journeyId);
+    else dispatch({ type: 'prefs', prefs: { focusIds: [], focusJourneyId: null } });
+  },
 
+  /* Acontecimentos e sessões ------------------------------------------------ */
   updateEventPhoto(eventId: ID, patch: { image?: string; imagePath?: string }) { dispatch({ type: 'event.update', eventId, patch }); },
+  updateEvent(eventId: ID, patch: EventPatch) { track('jornada.editar'); dispatch({ type: 'event.update', eventId, patch }); },
+  deleteEvent(eventId: ID) {
+    const e = state.events.find((x) => x.id === eventId);
+    if (e) dispatch({ type: 'event.delete', eventId, imagePath: e.imagePath });
+  },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
-    const at = nowIso();
+    const at = data.endedAt ?? nowIso();
     const n = sessionsOf(state, ses.historyId).findIndex((x) => x.id === sessionId) + 1;
     const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes: data.minutes };
     const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text: done.whereStopped ? `Parou em: ${done.whereStopped}.` : undefined };
     dispatch({ type: 'session.finish', session: done, event, progress: data.progress != null ? { historyId: ses.historyId, value: data.progress } : undefined });
   },
+
+  updateSession(sessionId: ID, patch: Partial<Pick<Session, 'minutes' | 'note' | 'whereStopped' | 'feeling'>>) {
+    const ses = state.sessions.find((x) => x.id === sessionId);
+    if (ses) dispatch({ type: 'session.update', session: { ...ses, ...patch } });
+  },
+
+  /** Apaga a sessão (ex.: aberta sem querer). Momentos guardados nela ficam na linha do tempo. */
+  deleteSession(sessionId: ID) { track('sessao.apagar'); dispatch({ type: 'session.delete', sessionId }); },
 
   setProgress(historyId: ID, value: number) {
     dispatch({ type: 'progress', historyId, value: Math.max(0, Math.min(100, Math.round(value))) });
@@ -262,24 +550,67 @@ export const actions = {
     if (!h || h.state === 'concluida') return;
     const at = nowIso();
     const event: TimelineEvent = { id: uid(), journeyId: h.journeyId, historyId, kind: 'marco', at, title: h.ordinal > 1 ? 'Zerou de novo' : 'Zerou', text: h.ordinal > 1 ? `História ${h.ordinal} concluída. As anteriores continuam guardadas.` : 'Primeira História concluída.' };
-    dispatch({ type: 'history.complete', history: { ...h, state: 'concluida', completedAt: at, progress: 100 }, event });
+    dispatch({ type: 'history.complete', history: { ...h, state: 'concluida', completedAt: at, completedPrecision: 'dia', progress: 100 }, event });
+    const j = state.journeys.find((x) => x.id === h.journeyId);
+    if (j && (state.prefs.focusIds ?? []).includes(j.id)) dispatch({ type: 'prefs', prefs: { focusIds: (state.prefs.focusIds ?? []).filter((id) => id !== j.id) } });
   },
 
+  /* Coleção ------------------------------------------------------------------ */
   addCopy(copy: Omit<Copy, 'id'>) {
-    dispatch({ type: 'copy.add', copy: { ...copy, id: uid() } });
+    const full = { ...copy, id: uid() };
+    dispatch({ type: 'copy.add', copy: full });
+    return full;
+  },
+  updateCopy(copyId: ID, patch: Partial<Omit<Copy, 'id' | 'gameId'>>) {
+    const c = state.copies.find((x) => x.id === copyId);
+    if (c) { track('colecao.editar-copia'); dispatch({ type: 'copy.update', copy: { ...c, ...patch } }); }
+  },
+  deleteCopy(copyId: ID) { dispatch({ type: 'copy.delete', copyId }); },
+
+  setMyGame(gameId: ID, patch: Partial<Omit<MyGame, 'gameId'>>) {
+    dispatch({ type: 'mygame.set', mine: { ...myGame(state, gameId), ...patch, gameId } });
+  },
+  toggleWontPlay(gameId: ID) {
+    const value = !myGame(state, gameId).wontPlay;
+    track('colecao.nao-vou-jogar');
+    actions.setMyGame(gameId, { wontPlay: value });
+    return value;
   },
 
+  /* Jogos ----------------------------------------------------------------------- */
   mergeGames(games: Game[]) { dispatch({ type: 'games.merge', games }); },
+
+  /** Jogo sem ficha do IGDB (ex.: vindo da planilha). Pode ser ligado ao IGDB depois. */
+  createManualGame(title: string, extra: Partial<Game> = {}): Game {
+    const id = `wz-${uid().replace(/-/g, '').slice(0, 12)}`;
+    const game: Game = { platforms: [], cover: '', ...extra, id, slug: `${slugify(title) || 'jogo'}-${id.slice(3, 9)}`, title: title.trim(), source: 'manual', createdBy: state.profile?.id };
+    dispatch({ type: 'game.create', game });
+    return game;
+  },
+
+  /** Liga um jogo cadastrado à mão à ficha do IGDB: tudo o que era dele passa para a ficha. */
+  relinkGame(fromId: ID, to: Game) {
+    if (fromId === to.id) return;
+    track('jogos.ligar-igdb');
+    const jf = journeyForGame(state, fromId), jt = journeyForGame(state, to.id);
+    dispatch({ type: 'game.relink', fromId, to, mergeFrom: jf && jt ? jf.id : undefined, mergeInto: jf && jt ? jt.id : undefined });
+  },
+
+  importBulk(data: ImportPayload) { dispatch({ type: 'import.bulk', data }); },
 
   openLetter(historyId: ID) { dispatch({ type: 'history.letterOpen', historyId, at: nowIso() }); },
 
   saveReview(gameId: ID, rating: Rating, title: string, text: string, existingId?: ID) {
     const me = state.profile;
     const review: Review = {
-      id: existingId ?? uid(), gameId, mine: true,
+      id: existingId ?? state.reviews.find((r) => r.mine && r.gameId === gameId)?.id ?? uid(), gameId, mine: true,
       author: { name: me?.name ?? 'Você', initial: me?.initial ?? 'V', color: '#5A4630' },
       rating, title, text, writtenAt: nowIso(),
     };
     dispatch({ type: 'review.save', review });
   },
 };
+
+export function slugify(t: string) {
+  return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+}

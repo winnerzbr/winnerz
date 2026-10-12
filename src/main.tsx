@@ -6,6 +6,7 @@ import { SUPABASE_ON } from './lib/env';
 import './styles/global.css';
 import './styles/components.css';
 import './styles/pages.css';
+import './styles/etapa2.css';
 
 
 async function boot() {

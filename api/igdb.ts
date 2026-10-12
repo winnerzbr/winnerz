@@ -4,6 +4,11 @@
  *
  *   GET /api/igdb?q=elden           → busca (até 12 resultados)
  *   GET /api/igdb?id=119133         → ficha completa; também grava no cache "games" do Supabase
+ *   POST /api/igdb {match:[{title}]} → até 10 buscas de uma vez (importador da planilha)
+ *   POST /api/igdb {cache:[ids]}     → fichas leves de até 100 jogos, gravadas no cache
+ *
+ * Ids: o jogo do IGDB ganha "igdb-<número>" no WinnerZ e nunca muda, mesmo que o IGDB troque o slug.
+ * Fichas antigas (id = slug) continuam com o id que já tinham.
  *
  * A sinopse é traduzida para o português uma vez, aqui, e fica guardada no banco.
  *   - DEEPL_API_KEY (opcional, melhor qualidade; o plano gratuito da DeepL dá 500 mil caracteres/mês)
@@ -11,7 +16,7 @@
  * Gêneros, temas e modos são traduzidos por dicionário no site (src/lib/igdbPt.ts).
  */
 
-type Req = { query: Record<string, string | string[] | undefined>; method?: string };
+type Req = { query: Record<string, string | string[] | undefined>; method?: string; body?: unknown };
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
 
 let token: { value: string; expires: number } | null = null;
@@ -100,23 +105,105 @@ async function toPortuguese(text: string): Promise<string | null> {
 
 const NEW_COLUMNS = ['summary_original', 'artworks', 'videos', 'themes', 'modes'];
 
-async function cacheGame(row: Record<string, unknown>) {
+function db() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return;
-  const send = (body: Record<string, unknown>) => fetch(`${url}/rest/v1/games?on_conflict=id`, {
-    method: 'POST',
-    // Chaves novas (sb_secret_...) vão só no cabeçalho apikey; a antiga service_role também aceita Bearer.
-    headers: { apikey: key, ...(key.startsWith('sb_') ? {} : { Authorization: `Bearer ${key}` }), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-    body: JSON.stringify(body),
+  if (!url || !key) return null;
+  // Chaves novas (sb_secret_...) vão só no cabeçalho apikey; a antiga service_role também aceita Bearer.
+  const headers: Record<string, string> = { apikey: key, ...(key.startsWith('sb_') ? {} : { Authorization: `Bearer ${key}` }), 'Content-Type': 'application/json' };
+  return { url, headers };
+}
+
+/** Ids já usados no WinnerZ para estes jogos do IGDB (fichas antigas usam o slug como id). */
+async function knownIds(igdbIds: number[]): Promise<Map<number, { id: string; slug: string }>> {
+  const c = db();
+  const out = new Map<number, { id: string; slug: string }>();
+  if (!c || !igdbIds.length) return out;
+  const r = await fetch(`${c.url}/rest/v1/games?select=id,slug,igdb_id&igdb_id=in.(${igdbIds.join(',')})`, { headers: c.headers });
+  if (r.ok) for (const g of (await r.json()) as any[]) out.set(g.igdb_id, { id: g.id, slug: g.slug });
+  return out;
+}
+
+/**
+ * Grava no cache e devolve só as linhas que ficaram gravadas (o slug pode ganhar o número do IGDB).
+ * Sem banco configurado (ambiente local), devolve tudo como veio.
+ */
+async function cacheGames<T extends Record<string, unknown>>(input: T[]): Promise<T[]> {
+  const c = db();
+  if (!c || !input.length) return input;
+  const send = (body: Record<string, unknown>[]) => fetch(`${c.url}/rest/v1/games?on_conflict=id`, {
+    method: 'POST', headers: { ...c.headers, Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(body),
   });
-  const r = await send(row);
-  // Banco ainda sem as colunas novas (migração 0002 não rodada): guarda o que der.
-  if (r.status === 400) await send(Object.fromEntries(Object.entries(row).filter(([k]) => !NEW_COLUMNS.includes(k))));
+  let strip = (row: Record<string, unknown>) => row;
+  let r = await send(input);
+  // Banco sem a coluna "source" (migração 0004 não rodada): tenta sem ela; depois sem as colunas da 0002.
+  if (r.status === 400) { strip = (row) => Object.fromEntries(Object.entries(row).filter(([k]) => k !== 'source')); r = await send(input.map(strip)); }
+  if (r.status === 400) { const prev = strip; strip = (row) => Object.fromEntries(Object.entries(prev(row)).filter(([k]) => !NEW_COLUMNS.includes(k))); r = await send(input.map(strip)); }
+  if (r.ok) return input;
+  // Algum slug já usado por outro jogo (ou outro erro no lote): grava um a um e devolve só o que entrou.
+  const out: T[] = [];
+  for (const row of input) {
+    const one = await send([strip(row)]);
+    if (one.ok) { out.push(row); continue; }
+    if (one.status === 409) {
+      const slug = `${row.slug}-${row.igdb_id}`;
+      if ((await send([strip({ ...row, slug })])).ok) out.push({ ...row, slug });
+    }
+  }
+  return out;
+}
+
+/** Dá ao jogo o id do WinnerZ: o que já existe, ou "igdb-<número>". */
+async function assignIds<T extends { igdb_id: number; slug: string }>(rows: T[]): Promise<(T & { id: string })[]> {
+  const known = await knownIds(rows.map((r) => r.igdb_id));
+  return rows.map((r) => { const k = known.get(r.igdb_id); return { ...r, id: k?.id ?? `igdb-${r.igdb_id}`, slug: k?.slug ?? r.slug }; });
+}
+
+const LIGHT_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name,genres.name,artworks.image_id,screenshots.image_id,involved_companies.company.name,involved_companies.developer';
+
+const lightRow = (g: any) => ({
+  igdb_id: g.id as number, slug: g.slug as string, title: g.name as string,
+  cover: image(g.cover?.image_id), backdrop: image(g.artworks?.[0]?.image_id ?? g.screenshots?.[0]?.image_id, 't_1080p') || null,
+  year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : null,
+  developer: (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name ?? null,
+  platforms: (g.platforms ?? []).map((p: any) => p.name),
+  genres: (g.genres ?? []).map((x: any) => x.name).join(', ') || null,
+  source: 'igdb',
+  updated_at: new Date().toISOString(),
+});
+
+const hit = (g: any) => ({
+  igdbId: g.id, slug: g.slug, title: g.name,
+  year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : undefined,
+  cover: image(g.cover?.image_id), platforms: (g.platforms ?? []).map((p: any) => p.name),
+});
+
+/** Importador: até 10 títulos por chamada, numa consulta só ao IGDB. */
+async function matchMany(items: { title: string }[]) {
+  const list = items.slice(0, 10).map((x) => String(x.title ?? '').replace(/["\\]/g, '').slice(0, 120));
+  const body = list.map((t, i) => `query games "${i}" { search "${t}"; fields name,slug,first_release_date,cover.image_id,platforms.name; limit 6; };`).join('\n');
+  const res = await igdb('multiquery', body);
+  return list.map((title, i) => ({ title, candidates: ((res.find((r: any) => r.name === String(i))?.result ?? []) as any[]).map(hit) }));
+}
+
+/** Importador: fichas leves (sem sinopse), gravadas no cache. A ficha completa vem quando a página do jogo abre. */
+async function cacheMany(ids: number[]) {
+  const clean = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
+  if (!clean.length) return [];
+  const rows = await igdb('games', `where id = (${clean.join(',')}); fields ${LIGHT_FIELDS}; limit 100;`);
+  const withIds = await assignIds(rows.map(lightRow));
+  // Não apaga sinopse, vídeos etc. de fichas que já estavam completas: só envia os campos leves.
+  return cacheGames(withIds);
 }
 
 export default async function handler(req: Req, res: Res) {
   try {
+    if (req.method === 'POST') {
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[] };
+      if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match));
+      if (Array.isArray(body.cache)) return res.status(200).json(await cacheMany(body.cache));
+      return res.status(400).json({ error: 'Envie {match:[...]} ou {cache:[...]}' });
+    }
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     const id = typeof req.query.id === 'string' ? Number(req.query.id) : NaN;
 
@@ -124,11 +211,7 @@ export default async function handler(req: Req, res: Res) {
       const safe = q.replace(/"/g, '');
       const rows = await igdb('games', `search "${safe}"; fields name,slug,first_release_date,cover.image_id,platforms.name; limit 12;`);
       res.setHeader('Cache-Control', 's-maxage=3600');
-      return res.status(200).json(rows.map((g) => ({
-        igdbId: g.id, slug: g.slug, title: g.name,
-        year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : undefined,
-        cover: image(g.cover?.image_id), platforms: (g.platforms ?? []).map((p: any) => p.name),
-      })));
+      return res.status(200).json(rows.map(hit));
     }
 
     if (Number.isFinite(id)) {
@@ -146,8 +229,9 @@ export default async function handler(req: Req, res: Res) {
         const name = r.platform?.name; if (!name || !r.date) continue;
         if (!firstByPlatform.has(name) || r.date < firstByPlatform.get(name)!) firstByPlatform.set(name, r.date);
       }
+      const [ids] = await assignIds([{ igdb_id: g.id as number, slug: g.slug as string }]);
       const game = {
-        id: g.slug, igdb_id: g.id, slug: g.slug, title: g.name,
+        id: ids.id, igdb_id: g.id, slug: ids.slug, title: g.name, source: 'igdb',
         cover: image(g.cover?.image_id), backdrop: image(backdropId, 't_1080p') || null,
         year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : null,
         developer: dev ?? null, publisher: pub ?? null,
@@ -164,10 +248,11 @@ export default async function handler(req: Req, res: Res) {
         videos: (g.videos ?? []).filter((v: any) => v.video_id).slice(0, 8).map((v: any) => ({ id: v.video_id, name: v.name ?? '' })),
         updated_at: new Date().toISOString(),
       };
-      await cacheGame(game);
+      // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada.
+      const [stored = game] = await cacheGames([game]);
       // Sem tradução (limite gratuito do dia, por exemplo), cacheia por pouco tempo para tentar de novo.
       res.setHeader('Cache-Control', translated || !original ? 's-maxage=86400' : 's-maxage=600');
-      return res.status(200).json(game);
+      return res.status(200).json(stored);
     }
 
     return res.status(400).json({ error: 'Use ?q= para buscar ou ?id= para a ficha' });

@@ -4,6 +4,7 @@ import { useStore, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJ
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
 import { ago, capitalize, dayMonthYear, longDay } from '../lib/format';
+import { CoverArt } from '../components/CoverArt';
 
 export function Home() {
   const s = useStore((x) => x);
@@ -81,7 +82,7 @@ export function Home() {
             <div className="also">
               {others.map(({ j: x, g, h: hh }) => (
                 <Link key={x.id} to={`/jornada/${g.slug}`} className="also__item">
-                  <img src={g.cover} alt="" style={{ opacity: x.mood === 'pausado' ? 0.7 : 1 }} />
+                  <span style={{ opacity: x.mood === 'pausado' ? 0.7 : 1 }} className="also__cover"><CoverArt game={g} /></span>
                   <div>
                     <div className="serif also__name">{g.title}</div>
                     <div className="muted also__meta">{x.mood === 'pausado' ? (x.pausedNote ?? 'Pausado.') : x.mood === 'silencioso' ? 'Jogando no modo silencioso.' : `Jogando${hh?.progress != null ? `, ${hh.progress}%` : ''}.`}</div>
@@ -102,14 +103,14 @@ export function Home() {
               <p className="muted">{new Set(s.copies.map((c) => c.gameId)).size} jogos, {s.wishes.length} desejos.</p>
               <div className="aside-covers">
                 {s.copies.slice(-4).reverse().map((c) => s.games[c.gameId] && (
-                  <Link key={c.id} to={`/jogos/${s.games[c.gameId].slug}`}><img src={s.games[c.gameId].cover} alt={s.games[c.gameId].title} /></Link>
+                  <Link key={c.id} to={`/jogos/${s.games[c.gameId].slug}`} aria-label={s.games[c.gameId].title}><CoverArt game={s.games[c.gameId]} platform={c.platform} /></Link>
                 ))}
               </div>
               <Link to="/colecao" className="btn ghost sm">Abrir a estante</Link>
             </section>
             {s.wishes[0] && s.games[s.wishes[0].gameId] && (
               <section className="card aside-card aside-wish">
-                <img src={s.games[s.wishes[0].gameId].cover} alt="" />
+                <CoverArt game={s.games[s.wishes[0].gameId]} />
                 <div>
                   <div className="muted" style={{ fontSize: 13 }}>Nos seus desejos</div>
                   <h2 className="t" style={{ fontSize: 30 }}>{s.games[s.wishes[0].gameId].title}</h2>

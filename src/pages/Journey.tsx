@@ -1,15 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourney } from '../data/store';
+import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys } from '../data/store';
 import { playStateFor } from '../components/PlayButton';
 import { PhotoViewer } from '../components/MediaGallery';
 import type { TimelineEvent, EventKind, History } from '../data/types';
 import { Icon, Compass } from '../components/Icon';
 import { Celebration, SealedLetter, PersonalSticker } from '../components/Celebration';
-import { dayMonth, dayMonthYear, gapLabel, hourMin, longDay, shortDate } from '../lib/format';
+import { dayMonth, dayMonthYear, gapLabel, hourMin, longDay } from '../lib/format';
+import { whenLabel, comparable } from '../lib/dates';
+import { JourneyMenu, HistoryEditSheet, StateNoteSheet, STATE_LABEL } from '../components/JourneyManage';
+import { EventEditSheet } from '../components/EventEditSheet';
+import { ActionToast } from '../components/Toast';
+import { PastButton } from '../components/PastPlay';
+import { CoverArt } from '../components/CoverArt';
 
 type StopKind = EventKind | 'agora';
 interface Stop { id: string; kind: StopKind | 'gap'; hist: number; date: string; title: string; text?: string; quote?: string; image?: string; eventId?: string; resolved?: boolean }
+
+export const eventDate = (e: TimelineEvent, short = true) => e.dateLabel ?? whenLabel(e.at, e.precision, { short });
 
 const LABELS: Record<string, string> = { inicio: 'Início de História', sessao: 'Sessão', momento: 'Momento guardado', ponto: 'Quero voltar aqui', marco: 'Marco', carta: 'Carta para o futuro', agora: 'Agora' };
 const FILTERS: [string, string, StopKind[] | null][] = [
@@ -29,7 +37,10 @@ export function JourneyPage({ slug }: { slug: string }) {
         <p className="muted">Minha Jornada em</p>
         <h1 className="t big">{game.title}</h1>
         <p className="muted">Você ainda não tem uma História com este jogo. Começar é um toque, sem formulário.</p>
-        <button className="btn primary lg" onClick={() => { actions.play(game.id); navigate('/sessao'); }}><Icon name="play" size={16} />Jogar agora</button>
+        <div className="hero__actions">
+          <button className="btn primary lg" onClick={() => { actions.play(game.id); navigate('/sessao'); }}><Icon name="play" size={16} />Jogar agora</button>
+          <PastButton gameId={game.id} className="btn ghost lg" />
+        </div>
       </main>
     );
   }
@@ -58,6 +69,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [saved, setSaved] = useState(0);
   const [wpViewer, setWpViewer] = useState<number | null>(null);
   const [progress, setProgress] = useState(current.progress ?? 0);
+  const [menu, setMenu] = useState(false);
+  const [editHist, setEditHist] = useState<string | null>(null);
+  const [editEvent, setEditEvent] = useState<string | null>(null);
+  const [noteFor, setNoteFor] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ id: number; text: string; historyId?: string } | null>(null);
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
 
   const stops: Stop[] = useMemo(() => {
@@ -65,11 +81,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     const out: Stop[] = [];
     let prev: TimelineEvent | null = null;
     for (const e of events) {
-      if (prev) {
+      if (prev && comparable(prev.precision) && comparable(e.precision)) {
         const gap = gapLabel(prev.at, e.at);
         if (gap) out.push({ id: `gap-${e.id}`, kind: 'gap', hist: 0, date: '', title: gap });
       }
-      out.push({ id: e.id, eventId: e.id, kind: e.kind, hist: hIndex[e.historyId] ?? 1, date: e.dateLabel ?? shortDate(e.at), title: e.title, text: e.text, quote: e.quote, image: e.image, resolved: e.resolved });
+      out.push({ id: e.id, eventId: e.id, kind: e.kind, hist: hIndex[e.historyId] ?? 1, date: eventDate(e), title: e.title, text: e.text, quote: e.quote, image: e.image, resolved: e.resolved });
       prev = e;
     }
     if (openHere) {
@@ -96,15 +112,21 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
   const ps = playStateFor(s, game.id);
   const playCta: PlayCta = { label: ps.label, now: ps.now, onClick: ps.go, hint: ps.hint };
-  const focus = focusJourney(s);
-  const isFocus = focus?.journey.id === journeyId;
+  const chosenFocus = focusJourneys(s).filter((f) => f.chosen).map((f) => f.journey.id);
+  const isFocus = chosenFocus.includes(journeyId);
+  const toggleFocus = () => {
+    if (isFocus) { actions.removeFocus(journeyId); return; }
+    if (!actions.addFocus(journeyId)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em foco. Tire um deles para pôr este.' });
+  };
+  const stateChanged = (historyId: string, text: string) => setToast({ id: Date.now(), text, historyId: /De volta/.test(text) ? undefined : historyId });
+  const openState = current.state === 'ativa' || current.state === 'pausada';
 
   return (
     <main className="page journey">
       <Link to="/jornada" className="back-link">Todas as Jornadas</Link>
       <div className="journey__head">
         <div className="journey__title">
-          <Link to={`/jogos/${game.slug}`}><img src={game.cover} alt="Abrir a ficha do jogo" /></Link>
+          <Link to={`/jogos/${game.slug}`} aria-label="Abrir a ficha do jogo"><CoverArt game={game} lazy={false} /></Link>
           <div>
             <p className="muted">Minha Jornada em</p>
             <h1 className="t">{game.title}</h1>
@@ -122,16 +144,32 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={15} />}{playCta.label}
             </button>
             {playCta.hint && <p className="faint">{playCta.hint}</p>}
-            {current.state !== 'concluida' && (
-              <button className="btn quiet sm focus-toggle" aria-pressed={isFocus && !!focus?.chosen} onClick={() => actions.setFocus(isFocus && focus?.chosen ? null : journeyId)}>
-                <Compass size={14} />{isFocus && focus?.chosen ? 'Em foco' : 'Pôr em foco'}
-              </button>
-            )}
+            <div className="journey__minor">
+              {openState && (
+                <button className="btn quiet sm focus-toggle" aria-pressed={isFocus} onClick={toggleFocus}>
+                  <Compass size={14} />{isFocus ? (chosenFocus[0] === journeyId ? 'Foco principal' : 'Em foco') : 'Pôr em foco'}
+                </button>
+              )}
+              <button className="btn quiet sm" onClick={() => setMenu(true)} aria-haspopup="dialog">Mais opções</button>
+            </div>
           </div>
         </div>
       </div>
 
-      {current.state !== 'concluida' ? (
+      {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
+        <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
+          <div>
+            <h2 id="state-h" className="t">{STATE_LABEL[current.state]}{current.completedAt && current.state !== 'pausada' ? `, ${whenLabel(current.completedAt, current.completedPrecision)}` : ''}</h2>
+            {current.note ? <p className="quote">“{current.note}”</p> : <p className="muted">{current.state === 'pausada' ? 'Sem pressa. Ele espera.' : 'Sem julgamento. Dá para retomar quando quiser.'}</p>}
+          </div>
+          <div className="state-card__actions">
+            <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'ativa'); stateChanged(current.id, 'De volta à História.'); }}>Retomar</button>
+            <button className="btn quiet sm" onClick={() => setNoteFor(current.id)}>{current.note ? 'Editar recado' : 'Escrever por quê'}</button>
+          </div>
+        </section>
+      )}
+
+      {current.state === 'dropada' || current.state === 'encerrada' ? null : current.state !== 'concluida' ? (
         <section className="card progress-card" aria-labelledby="prog-label">
           <div className="progress-card__value">
             <div className="t">{progress}%</div>
@@ -175,9 +213,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {visible.length === 0 ? (
         <p className="card tl-empty">Nada deste tipo nesta Jornada ainda.</p>
       ) : mode === 'cinema' ? (
-        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} />
+        <CinemaTimeline stops={visible} fallback={game.backdrop ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} onEdit={setEditEvent} />
       ) : (
-        <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} title={game.title} />
+        <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} title={game.title} onEdit={setEditEvent} />
       )}
 
       <div className="journey__below">
@@ -233,6 +271,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         </Celebration>
       )}
+      {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
+      {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}
+      {editEvent && <EventEditSheet eventId={editEvent} onClose={() => setEditEvent(null)} />}
+      {noteFor && <StateNoteSheet historyId={noteFor} onClose={() => setNoteFor(null)} />}
+      {toast && <ActionToast key={toast.id} text={toast.text} action={toast.historyId ? 'Escrever por quê' : undefined} onAction={() => setNoteFor(toast.historyId!)} onDone={() => setToast(null)} />}
       {wpViewer !== null && (
         <PhotoViewer title={game.title} items={waypoints.filter((x) => x.image).map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, wpViewer)} onClose={() => setWpViewer(null)} />
       )}
@@ -246,7 +289,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
 type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
 
-function CinemaTimeline({ stops, fallback, full, onExitFull, play, title }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void; play: PlayCta; title: string }) {
+function CinemaTimeline({ stops, fallback, full, onExitFull, play, title, onEdit }: { stops: Stop[]; fallback: string; full: boolean; onExitFull: () => void; play: PlayCta; title: string; onEdit: (eventId: string) => void }) {
   const [viewer, setViewer] = useState<number | null>(null);
   const real = stops.map((x, i) => (x.kind === 'gap' ? -1 : i)).filter((i) => i >= 0);
   const [sel, setSel] = useState(real[real.length - 1]);
@@ -338,6 +381,7 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play, title }: { st
           {cur.kind === 'ponto' && cur.resolved && <span className="cinema__tag">Resolvido</span>}
           {cur.kind === 'carta' && <span className="cinema__tag">Lacrada até você zerar</span>}
           {cur.kind === 'agora' && <Link className="btn now" to="/sessao">Abrir a sessão</Link>}
+          {cur.eventId && cur.kind !== 'carta' && !full && <button className="btn cinema__glass cinema__edit" onClick={() => onEdit(cur.eventId!)}>Editar</button>}
         </div>
       </div>
 
@@ -368,7 +412,7 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play, title }: { st
 /* Modo simples                                                      */
 /* ---------------------------------------------------------------- */
 
-function SimpleTimeline({ stops, histories, full, onExitFull, title }: { stops: Stop[]; histories: History[]; full: boolean; onExitFull: () => void; title: string }) {
+function SimpleTimeline({ stops, histories, full, onExitFull, title, onEdit }: { stops: Stop[]; histories: History[]; full: boolean; onExitFull: () => void; title: string; onEdit: (eventId: string) => void }) {
   const [viewer, setViewer] = useState<number | null>(null);
   const photos = stops.filter((x) => x.image && x.kind !== 'agora');
   useEffect(() => {
@@ -388,7 +432,7 @@ function SimpleTimeline({ stops, histories, full, onExitFull, title }: { stops: 
           if (x.kind !== 'gap') last = x.hist;
           return [
             head && (
-              <li key={`h-${head.id}`} className="simple__head"><span className="t">História {head.ordinal}, {head.title}</span><span className="muted">{head.state === 'concluida' ? 'concluída' : 'em andamento'}</span></li>
+              <li key={`h-${head.id}`} className="simple__head"><span className="t">História {head.ordinal}, {head.title}</span><span className="muted">{STATE_LABEL[head.state].toLowerCase()}</span></li>
             ),
             x.kind === 'gap' ? (
               <li key={x.id} className="simple__gap serif">{x.title}</li>
@@ -402,7 +446,10 @@ function SimpleTimeline({ stops, histories, full, onExitFull, title }: { stops: 
                   {x.quote && <div className="quote simple__quote">“{x.quote}”</div>}
                   {x.text && <div className="muted simple__text">{x.text}</div>}
                 </div>
-                <div>{x.image && x.kind !== 'agora' && <button className="simple__img" onClick={() => setViewer(photos.indexOf(x))} aria-label={`Ver foto: ${x.title}`}><img src={x.image} alt="" /></button>}</div>
+                <div className="simple__side">
+                  {x.image && x.kind !== 'agora' && <button className="simple__img" onClick={() => setViewer(photos.indexOf(x))} aria-label={`Ver foto: ${x.title}`}><img src={x.image} alt="" /></button>}
+                  {x.eventId && x.kind !== 'carta' && !full && <button className="btn quiet sm simple__edit" onClick={() => onEdit(x.eventId!)} aria-label={`Editar: ${x.title}`}>Editar</button>}
+                </div>
               </li>
             ),
           ];

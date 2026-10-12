@@ -5,8 +5,13 @@ import { applyPrefs, brand } from './lib/theme';
 import { resetDemo } from './data/demoAdapter';
 import { Header } from './components/Header';
 import { SessionDock } from './components/SessionDock';
+import { ForgottenSession } from './components/ForgottenSession';
+import { PastSheetHost } from './components/PastPlay';
+import { track } from './lib/track';
 import { Home } from './pages/Home';
-import { JourneyIndex } from './pages/JourneyIndex';
+import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
+import { CollectionStats, Wishes } from './pages/CollectionStats';
+import { ImportPage } from './pages/Import';
 import { JourneyPage } from './pages/Journey';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
@@ -20,8 +25,12 @@ function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
   if (match('/jornada', path)) return <JourneyIndex />;
+  if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;
+  if (match('/colecao/desejos', path)) return <Wishes />;
+  if (match('/colecao/estatisticas', path)) return <CollectionStats />;
+  if (match('/colecao/importar', path)) return <ImportPage />;
   if (match('/jogos', path)) return <GamesIndex />;
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
@@ -45,6 +54,8 @@ export function App() {
   const hasSession = useStore((s) => Boolean(openSession(s)));
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
+  // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo.
+  useEffect(() => { track(`pagina.${path.split('?')[0].split('/')[1] || 'inicio'}`); }, [path]);
 
   const isSession = path.startsWith('/sessao');
 
@@ -60,6 +71,7 @@ export function App() {
         </div>
       )}
       {!isSession && <Header />}
+      <ForgottenSession />
       <Routes path={path} />
       {!isSession && (
         <footer className="site-footer">
@@ -70,6 +82,7 @@ export function App() {
         </footer>
       )}
       {hasSession && !isSession && <SessionDock />}
+      <PastSheetHost />
     </>
   );
 }

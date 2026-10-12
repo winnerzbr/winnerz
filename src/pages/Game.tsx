@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, dispatch, useStore, journeyForGame, currentHistory, historiesOf, openSession } from '../data/store';
+import { actions, dispatch, useStore, journeyForGame, currentHistory, historiesOf, openSession, myGame } from '../data/store';
+import { PastButton } from '../components/PastPlay';
+import { STATE_LABEL } from '../components/JourneyManage';
+import { whenLabel } from '../lib/dates';
+import { shortPlatform } from '../lib/platforms';
+import { LinkToIgdb } from '../components/LinkToIgdb';
+import { CoverArt } from '../components/CoverArt';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Stars, StarInput } from '../components/Stars';
@@ -48,6 +54,7 @@ function GameView({ gameId }: { gameId: string }) {
   const [revealed, setRevealed] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
   const progressOf = h && h.state !== 'concluida' ? h.progress : null;
+  const mine2 = myGame(s, gameId);
 
   // Análises públicas vêm do banco quando o Supabase está ligado.
   useEffect(() => {
@@ -85,7 +92,7 @@ function GameView({ gameId }: { gameId: string }) {
         <div className="ghero__shade" aria-hidden="true" />
         <div className="ghero__fade" aria-hidden="true" />
         <div className="page ghero__row">
-          <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={240} height={320} burst={burst} />
+          {g.cover ? <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={240} height={320} burst={burst} /> : <CoverArt game={g} className="ghero__cover-art" />}
           <div className="ghero__info">
             <div className="muted">{[g.developer, g.year].filter(Boolean).join(', ')}{g.publisher && g.publisher !== g.developer ? `. Publicado pela ${g.publisher}.` : '.'}</div>
             <h1 id="titulo" className="t ghero__title">{g.title}</h1>
@@ -94,7 +101,8 @@ function GameView({ gameId }: { gameId: string }) {
               {g.genres && <span className="muted">{ptJoined(g.genres)}</span>}
             </div>
             <div className="ghero__actions">
-              <button className="btn primary lg" onClick={play}><Icon name="play" size={15} />{openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && h?.state !== 'concluida' ? 'Continuar Jornada' : j ? 'Jogar de novo' : 'Jogar agora'}</button>
+              <button className="btn primary lg" onClick={play}><Icon name="play" size={15} />{openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && (h?.state === 'ativa' || h?.state === 'pausada') ? 'Continuar Jornada' : j && h?.state !== 'concluida' && h?.state !== 'encerrada' ? 'Retomar' : j ? 'Jogar de novo' : 'Jogar agora'}</button>
+              {h?.state !== 'concluida' && <PastButton gameId={gameId} className="btn ghost lg" />}
               {owned.length ? (
                 <Link className="btn ghost lg" to="/colecao"><Icon name="check" size={16} />Na sua coleção</Link>
               ) : (
@@ -178,9 +186,23 @@ function GameView({ gameId }: { gameId: string }) {
           <section className="card relation" aria-labelledby="relacao">
             <h2 id="relacao" className="t">Sua relação com este jogo</h2>
             <ul>
-              <li><span className="relation__ic">✦</span><div>{j ? <Link to={`/jornada/${g.slug}`}><strong>Jornada</strong></Link> : <strong>Jornada</strong>}<div className="muted">{j ? `${nHist} ${nHist === 1 ? 'História' : 'Histórias'}. ${h?.state === 'concluida' ? 'Última concluída.' : `Em andamento${h?.progress != null ? `, ${h.progress}%` : ''}.`}` : 'Ainda não começou. Jogar cria a primeira História.'}</div></div></li>
-              <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : 'Cópia digital'} de ${c.platform}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>
+              <li><span className="relation__ic">✦</span><div>{j ? <Link to={`/jornada/${g.slug}`}><strong>Jornada</strong></Link> : <strong>Jornada</strong>}<div className="muted">{j && h ? `${nHist} ${nHist === 1 ? 'História' : 'Histórias'}. ${STATE_LABEL[h.state]}${h.state === 'ativa' && h.progress != null ? `, ${h.progress}%` : ''}${h.completedAt && h.state !== 'ativa' && h.state !== 'pausada' ? `, ${whenLabel(h.completedAt, h.completedPrecision)}` : ''}${h.hours ? `, ${String(h.hours).replace('.', ',')} h informadas` : ''}.` : mine2.wontPlay ? 'Marcado como “não vou jogar”.' : 'Ainda não começou. Jogar cria a primeira História.'}</div></div></li>
+              <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : c.kind === 'digital' ? 'Cópia digital' : 'Assinatura'} de ${shortPlatform(c.platform)}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>
             </ul>
+            <div className="relation__mine">
+              <div className="relation__row">
+                <span className="muted">Prioridade</span>
+                <div className="chips chips--sm" role="group" aria-label="Prioridade">
+                  {([1, 2, 3] as const).map((p) => <button key={p} className="chip" aria-pressed={mine2.priority === p} onClick={() => actions.setMyGame(gameId, { priority: mine2.priority === p ? undefined : p })}>{p === 1 ? 'Alta' : p === 2 ? 'Média' : 'Baixa'}</button>)}
+                </div>
+              </div>
+              {mine2.estHours != null && <div className="relation__row"><span className="muted">Tempo estimado</span><span>{String(mine2.estHours).replace('.', ',')} h</span></div>}
+              {mine2.genre && <div className="relation__row"><span className="muted">Seu gênero</span><span>{mine2.genre}</span></div>}
+              {(!h || h.state !== 'ativa') && (
+                <button className="btn quiet sm" aria-pressed={!!mine2.wontPlay} onClick={() => actions.toggleWontPlay(gameId)}>{mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar'}</button>
+              )}
+            </div>
+            {g.source === 'manual' && <LinkToIgdb game={g} />}
           </section>
           {(g.summary || g.themes?.length || g.modes?.length) && (
             <section aria-labelledby="sobre">

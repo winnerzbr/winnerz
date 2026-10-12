@@ -7,6 +7,7 @@ import { Toast } from '../components/Toast';
 import { PhotoViewer } from '../components/MediaGallery';
 import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebration';
 import { dayMonthYear, hourMin, longDay } from '../lib/format';
+import { CoverArt } from '../components/CoverArt';
 
 /** Reduz a foto antes de enviar: 1080 px no lado maior, JPEG ~150 KB. */
 async function shrink(file: File, max = 1080): Promise<Blob> {
@@ -90,7 +91,7 @@ export function SessionPage() {
         <p className="muted">Escolha um jogo para começar. Você pode também só jogar: o WinnerZ não precisa estar aberto.</p>
         <div className="session__pick">
           {s.journeys.map((j) => s.games[j.gameId] && (
-            <button key={j.id} onClick={() => actions.play(j.gameId)}><img src={s.games[j.gameId].cover} alt="" /><span>{s.games[j.gameId].title}</span></button>
+            <button key={j.id} onClick={() => actions.play(j.gameId)}><CoverArt game={s.games[j.gameId]} /><span>{s.games[j.gameId].title}</span></button>
           ))}
         </div>
       </main>

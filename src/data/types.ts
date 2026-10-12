@@ -1,4 +1,7 @@
 import type { Rating, Scale } from '../lib/rating';
+import type { DatePrecision } from '../lib/dates';
+
+export type { DatePrecision };
 
 export type ID = string;
 
@@ -27,6 +30,9 @@ export interface Game {
   artworks?: string[];
   /** Vídeos do YouTube listados no IGDB. Ausente = ficha antiga, ainda sem mídia. */
   videos?: { id: string; name: string }[];
+  /** 'manual' = jogo cadastrado no WinnerZ sem ficha do IGDB (ex.: vindo da planilha). */
+  source?: 'igdb' | 'manual';
+  createdBy?: ID;
 }
 
 /** Pilar Coleção: exemplar (posse) — separado da relação com o jogo. */
@@ -41,6 +47,25 @@ export interface Copy {
   origin?: string;
   note?: string;
   special?: boolean;
+  region?: string;
+  edition?: string;
+  boxCondition?: string;
+  /** AAAA-MM-DD */
+  purchasedOn?: string;
+  purchasePlace?: string;
+  pricePaid?: number;
+  priceNow?: number;
+}
+
+/** Seus dados sobre um jogo, com ou sem cópia: prioridade, tempo estimado, "não vou jogar". */
+export interface MyGame {
+  gameId: ID;
+  priority?: 1 | 2 | 3;
+  estHours?: number;
+  wontPlay?: boolean;
+  /** Seu gênero para o jogo (ex.: o da sua planilha). */
+  genre?: string;
+  note?: string;
 }
 
 export interface Wish {
@@ -61,6 +86,12 @@ export interface History {
   progress?: number; // 0..100, sempre informado pelo usuário
   mode?: string; // ex.: "Implacável"
   letter?: { text: string; openedAt?: string };
+  startedPrecision?: DatePrecision;
+  completedPrecision?: DatePrecision;
+  /** Horas informadas pela pessoa para esta História. Nunca calculadas pelo site. */
+  hours?: number;
+  /** Um recado sobre o estado (ex.: por que largou). */
+  note?: string;
 }
 
 export type JourneyMood = 'jogando' | 'silencioso' | 'pausado';
@@ -100,6 +131,7 @@ export interface TimelineEvent {
   sessionId?: ID;
   resolved?: boolean;
   dateLabel?: string; // para registros com precisão menor (ex.: "jun a ago 2020")
+  precision?: DatePrecision;
 }
 
 /** Pilar Jogos: análises */
@@ -122,8 +154,10 @@ export interface Prefs {
   black: number; // 0..100
   scale: Scale;
   motion: 'completas' | 'discretas' | 'reduzidas';
-  /** Jornada que a pessoa colocou "em foco" (fica destacada no Início e na Jornada). */
+  /** Jornada que a pessoa colocou "em foco" (versão antiga, um só jogo). */
   focusJourneyId?: ID | null;
+  /** Até três Jornadas em foco; a primeira é a principal. */
+  focusIds?: ID[];
 }
 
 export interface Profile {
@@ -148,4 +182,9 @@ export interface State {
   reviews: Review[];
   reviewStats: Record<ID, { count: number; avg: number; dist10: number[] }>;
   focusJourneyId?: ID;
+  myGames: Record<ID, MyGame>;
+  /** A migração 0004 já rodou? (no modo demonstração, sempre sim) */
+  schemaV4: boolean;
+  /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */
+  loadIncomplete?: boolean;
 }

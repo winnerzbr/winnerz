@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Adapter, Action } from './store';
 import { emptyState } from './store';
-import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey } from './types';
+import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame } from './types';
 import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
 
 /**
@@ -25,6 +25,11 @@ export async function getClient(): Promise<SupabaseClient> {
 const BUCKET = 'momentos';
 const SIGNED_FOR = 60 * 60 * 24 * 7; // links das fotos valem 7 dias
 let storageReady = false;
+/** A migração 0004 (Etapa 2) já rodou? Sem ela, as colunas novas não são enviadas. */
+let v4 = false;
+/** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
+let loadIncomplete = false;
+export function schemaV4() { return v4; }
 
 /** A migração 0003 já rodou? Sem ela, as fotos continuam indo no registro, como antes. */
 export function photoStorageReady() { return storageReady; }
@@ -76,12 +81,15 @@ const gameFromRow = (r: any): Game => ({
   releases: r.releases ?? undefined, screenshots: r.screenshots ?? undefined,
   summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
   artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
+  source: r.source ?? 'igdb', createdBy: r.created_by ?? undefined,
 });
 const historyFromRow = (r: any): History => ({
   id: r.id, journeyId: r.journey_id, ordinal: r.ordinal, title: r.title, state: r.state,
   startedAt: r.started_at, completedAt: r.completed_at ?? undefined, progress: r.progress ?? undefined,
   mode: r.mode ?? undefined,
   letter: r.letter_text ? { text: r.letter_text, openedAt: r.letter_opened_at ?? undefined } : undefined,
+  startedPrecision: r.started_precision ?? undefined, completedPrecision: r.completed_precision ?? undefined,
+  hours: r.hours != null ? Number(r.hours) : undefined, note: r.note ?? undefined,
 });
 const sessionFromRow = (r: any): Session => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, startedAt: r.started_at,
@@ -92,10 +100,18 @@ const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
   kind: r.kind, at: r.at, title: r.title, text: r.text ?? undefined, quote: r.quote ?? undefined,
   image: r.image ?? undefined, imagePath: r.image_path ?? undefined, resolved: r.resolved, dateLabel: r.date_label ?? undefined,
+  precision: r.date_precision ?? undefined,
 });
 const copyFromRow = (r: any): Copy => ({
   id: r.id, gameId: r.game_id, platform: r.platform, kind: r.kind, items: r.items ?? undefined,
   condition: r.condition ?? undefined, origin: r.origin ?? undefined, note: r.note ?? undefined, special: r.special,
+  region: r.region ?? undefined, edition: r.edition ?? undefined, boxCondition: r.box_condition ?? undefined,
+  purchasedOn: r.purchased_on ?? undefined, purchasePlace: r.purchase_place ?? undefined,
+  pricePaid: r.price_paid != null ? Number(r.price_paid) : undefined, priceNow: r.price_now != null ? Number(r.price_now) : undefined,
+});
+const myGameFromRow = (r: any): MyGame => ({
+  gameId: r.game_id, priority: r.priority ?? undefined, estHours: r.est_hours != null ? Number(r.est_hours) : undefined,
+  wontPlay: !!r.wont_play, genre: r.genre ?? undefined, note: r.note ?? undefined,
 });
 export const reviewFromRow = (r: any, me: string | null): Review => {
   const name: string = r.profiles?.display_name ?? 'Jogador';
@@ -111,6 +127,7 @@ const historyToRow = (h: History) => ({
   id: h.id, journey_id: h.journeyId, ordinal: h.ordinal, title: h.title, state: h.state,
   started_at: h.startedAt, completed_at: h.completedAt ?? null, progress: h.progress ?? null, mode: h.mode ?? null,
   letter_text: h.letter?.text ?? null, letter_opened_at: h.letter?.openedAt ?? null,
+  ...(v4 ? { started_precision: h.startedPrecision ?? 'dia', completed_precision: h.completedPrecision ?? 'dia', hours: h.hours ?? null, note: h.note ?? null } : {}),
 });
 const sessionToRow = (x: Session) => ({
   id: x.id, journey_id: x.journeyId, history_id: x.historyId, started_at: x.startedAt, ended_at: x.endedAt ?? null,
@@ -125,9 +142,62 @@ const eventToRow = (e: TimelineEvent) => {
     resolved: !!e.resolved, date_label: e.dateLabel ?? null,
   };
   if (e.imagePath) row.image_path = e.imagePath;
+  if (v4) row.date_precision = e.precision ?? 'dia';
   return row;
 };
 const journeyToRow = (j: Journey) => ({ id: j.id, game_id: j.gameId, mood: j.mood, paused_note: j.pausedNote ?? null });
+const copyToRow = (c: Copy) => ({
+  id: c.id, game_id: c.gameId, platform: c.platform, kind: c.kind, items: c.items ?? null, condition: c.condition ?? null,
+  origin: c.origin ?? null, note: c.note ?? null, special: !!c.special,
+  ...(v4 ? {
+    region: c.region ?? null, edition: c.edition ?? null, box_condition: c.boxCondition ?? null, purchased_on: c.purchasedOn ?? null,
+    purchase_place: c.purchasePlace ?? null, price_paid: c.pricePaid ?? null, price_now: c.priceNow ?? null,
+  } : {}),
+});
+const myGameToRow = (m: MyGame) => ({
+  game_id: m.gameId, priority: m.priority ?? null, est_hours: m.estHours ?? null, wont_play: !!m.wontPlay,
+  genre: m.genre ?? null, note: m.note ?? null, updated_at: new Date().toISOString(),
+});
+const reviewToRow = (r: Review) => ({
+  id: r.id, game_id: r.gameId, normalized: r.rating.normalized, original_scale: r.rating.originalScale,
+  original_value: r.rating.originalValue, title: r.title, text: r.text, spoiler: !!r.spoiler, updated_at: new Date().toISOString(),
+});
+const manualGameToRow = (g: Game) => ({
+  id: g.id, slug: g.slug, title: g.title, cover: g.cover || null, year: g.year ?? null, platforms: g.platforms,
+  genres: g.genres ?? null, source: 'manual', created_by: g.createdBy ?? null, igdb_id: null,
+});
+
+/**
+ * O Supabase devolve no máximo 1000 linhas por pedido; coleções grandes vêm em páginas
+ * (ordenadas por um campo único, para nenhuma linha pular ou repetir entre páginas).
+ * Uma página que falha é tentada de novo; se falhar de novo, a carga é marcada como incompleta.
+ */
+async function selectAll(build: () => any, page = 1000): Promise<{ data: any[]; error: any }> {
+  const out: any[] = [];
+  for (let from = 0; ; from += page) {
+    let { data, error } = await build().range(from, from + page - 1);
+    if (error) ({ data, error } = await build().range(from, from + page - 1));
+    if (error) { loadIncomplete = true; return { data: out, error }; }
+    out.push(...(data ?? []));
+    if (!data || data.length < page) return { data: out, error: null };
+  }
+}
+
+/** Grava muitas linhas em lotes, para importações grandes. */
+async function insertMany(table: string, rows: Record<string, unknown>[], opts: { upsert?: string } = {}) {
+  const sb = await getClient();
+  for (let i = 0; i < rows.length; i += 400) {
+    const chunk = rows.slice(i, i + 400);
+    const q = opts.upsert ? sb.from(table).upsert(chunk, { onConflict: opts.upsert }) : sb.from(table).insert(chunk);
+    check(await q);
+  }
+}
+
+async function removePhotos(paths: string[]) {
+  if (!paths.length || !storageReady) return;
+  const sb = await getClient();
+  await sb.storage.from(BUCKET).remove(paths).catch(() => {});
+}
 
 function check<T>(res: { data: T; error: any }): T {
   if (res.error) throw res.error;
@@ -142,21 +212,28 @@ export const supabaseAdapter: Adapter = {
     const user = auth.user;
     if (!user) return base;
 
-    const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews] = await Promise.all([
+    loadIncomplete = false;
+    const probe = await sb.from('my_games').select('game_id').limit(1);
+    v4 = !probe.error;
+    const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-      sb.from('copies').select('*'),
-      sb.from('wishes').select('*'),
-      sb.from('favorites').select('*'),
-      sb.from('journeys').select('*'),
-      sb.from('histories').select('*'),
-      sb.from('sessions').select('*'),
-      sb.from('timeline_events').select('*').order('at'),
-      sb.from('reviews').select('*, profiles(display_name)').eq('user_id', user.id),
+      selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),
+      selectAll(() => sb.from('wishes').select('*').order('created_at').order('game_id')),
+      selectAll(() => sb.from('favorites').select('*').order('created_at').order('game_id')),
+      selectAll(() => sb.from('journeys').select('*').order('created_at').order('id')),
+      selectAll(() => sb.from('histories').select('*').order('id')),
+      selectAll(() => sb.from('sessions').select('*').order('started_at').order('id')),
+      selectAll(() => sb.from('timeline_events').select('*').order('at').order('id')),
+      selectAll(() => sb.from('reviews').select('*, profiles(display_name)').eq('user_id', user.id).order('created_at').order('id')),
+      v4 ? selectAll(() => sb.from('my_games').select('*').order('game_id')) : Promise.resolve({ data: [], error: null }),
     ]);
 
     const gameIds = new Set<string>();
-    for (const r of [...(copies.data ?? []), ...(wishes.data ?? []), ...(favs.data ?? []), ...(journeys.data ?? []), ...(myReviews.data ?? [])]) gameIds.add(r.game_id);
-    const games = gameIds.size ? check(await sb.from('games').select('*').in('id', [...gameIds])) : [];
+    for (const r of [...copies.data, ...wishes.data, ...favs.data, ...journeys.data, ...myReviews.data, ...mine.data]) gameIds.add(r.game_id);
+    // Muitos ids não cabem num endereço só: busca em grupos.
+    const ids = [...gameIds];
+    const games: any[] = [];
+    for (let i = 0; i < ids.length; i += 150) games.push(...(check(await sb.from('games').select('*').in('id', ids.slice(i, i + 150))) as any[]));
 
     // Fotos: confere se a migração 0003 rodou e gera os links temporários de uma vez só.
     storageReady = !(await sb.from('timeline_events').select('image_path').limit(1)).error;
@@ -170,6 +247,9 @@ export const supabaseAdapter: Adapter = {
       ...base,
       profile: { id: user.id, name, initial: name.slice(0, 1).toUpperCase() },
       prefs: { ...base.prefs, ...(p?.prefs ?? {}) },
+      schemaV4: v4,
+      loadIncomplete,
+      myGames: Object.fromEntries(mine.data.map((m: any) => [m.game_id, myGameFromRow(m)])),
       games: Object.fromEntries((games as any[]).map((g) => [g.id, gameFromRow(g)])),
       copies: (copies.data ?? []).map(copyFromRow),
       wishes: (wishes.data ?? []).map((w: any) => ({ gameId: w.game_id, note: w.note ?? undefined })),
@@ -217,9 +297,18 @@ export const supabaseAdapter: Adapter = {
       case 'event.add':
         check(await sb.from('timeline_events').insert(eventToRow(a.event)));
         return;
-      case 'event.update':
-        if (a.patch.imagePath !== undefined) check(await sb.from('timeline_events').update({ image_path: a.patch.imagePath || null, image: null }).eq('id', a.eventId));
+      case 'event.update': {
+        const p = a.patch, row: Record<string, unknown> = {};
+        if (p.imagePath !== undefined) { row.image_path = p.imagePath || null; row.image = null; }
+        if ('title' in p) row.title = p.title;
+        if ('text' in p) row.text = p.text ?? null;
+        if ('quote' in p) row.quote = p.quote ?? null;
+        if ('at' in p) row.at = p.at;
+        if ('dateLabel' in p) row.date_label = p.dateLabel ?? null;
+        if ('precision' in p && v4) row.date_precision = p.precision ?? 'dia';
+        if (Object.keys(row).length) check(await sb.from('timeline_events').update(row).eq('id', a.eventId));
         return;
+      }
       case 'event.resolve':
         check(await sb.from('timeline_events').update({ resolved: true }).eq('id', a.eventId));
         return;
@@ -234,18 +323,91 @@ export const supabaseAdapter: Adapter = {
       case 'history.letterOpen':
         check(await sb.from('histories').update({ letter_opened_at: a.at }).eq('id', a.historyId));
         return;
-      case 'review.save': {
-        const r = a.review;
-        check(await sb.from('reviews').upsert({
-          id: r.id, game_id: r.gameId, normalized: r.rating.normalized, original_scale: r.rating.originalScale,
-          original_value: r.rating.originalValue, title: r.title, text: r.text, spoiler: !!r.spoiler,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id,game_id' }));
+      case 'review.save':
+        check(await sb.from('reviews').upsert(reviewToRow(a.review), { onConflict: 'user_id,game_id' }));
+        return;
+      case 'copy.add':
+        check(await sb.from('copies').insert(copyToRow(a.copy)));
+        return;
+      case 'copy.update':
+        check(await sb.from('copies').update(copyToRow(a.copy)).eq('id', a.copy.id));
+        return;
+      case 'copy.delete':
+        check(await sb.from('copies').delete().eq('id', a.copyId));
+        return;
+      case 'mygame.set':
+        if (!v4) return;
+        check(await sb.from('my_games').upsert(myGameToRow(a.mine), { onConflict: 'user_id,game_id' }));
+        return;
+      case 'journey.update':
+        check(await sb.from('journeys').update(journeyToRow(a.journey)).eq('id', a.journey.id));
+        return;
+      case 'journey.delete':
+        // Histórias, sessões e acontecimentos saem juntos (on delete cascade).
+        check(await sb.from('journeys').delete().eq('id', a.journeyId));
+        await removePhotos(a.imagePaths);
+        return;
+      case 'history.update':
+        check(await sb.from('histories').update(historyToRow(a.history)).eq('id', a.history.id));
+        if (a.journey) check(await sb.from('journeys').update(journeyToRow(a.journey)).eq('id', a.journey.id));
+        if (a.event) check(await sb.from('timeline_events').insert(eventToRow(a.event)));
+        return;
+      case 'history.delete':
+        check(await sb.from('histories').delete().eq('id', a.historyId));
+        await removePhotos(a.imagePaths);
+        return;
+      case 'session.update':
+        check(await sb.from('sessions').update(sessionToRow(a.session)).eq('id', a.session.id));
+        return;
+      case 'session.delete':
+        check(await sb.from('timeline_events').delete().eq('session_id', a.sessionId).eq('kind', 'sessao'));
+        check(await sb.from('sessions').delete().eq('id', a.sessionId));
+        return;
+      case 'event.delete':
+        check(await sb.from('timeline_events').delete().eq('id', a.eventId));
+        if (a.imagePath) await removePhotos([a.imagePath]);
+        return;
+      case 'game.create':
+        if (!v4) throw new Error('Rode a migração 0004 para cadastrar jogos sem ficha do IGDB.');
+        check(await sb.from('games').insert(manualGameToRow(a.game)));
+        return;
+      case 'game.relink': {
+        const f = a.fromId, t = a.to.id;
+        if (a.mergeFrom && a.mergeInto) {
+          // Os dois jogos tinham Jornada: as Histórias da antiga passam para a do jogo novo.
+          for (const h of next.histories.filter((x) => x.journeyId === a.mergeInto)) check(await sb.from('histories').update({ journey_id: h.journeyId, ordinal: h.ordinal }).eq('id', h.id));
+          check(await sb.from('sessions').update({ journey_id: a.mergeInto }).eq('journey_id', a.mergeFrom));
+          check(await sb.from('timeline_events').update({ journey_id: a.mergeInto }).eq('journey_id', a.mergeFrom));
+          check(await sb.from('journeys').delete().eq('id', a.mergeFrom));
+        } else {
+          check(await sb.from('journeys').update({ game_id: t }).eq('game_id', f));
+        }
+        check(await sb.from('copies').update({ game_id: t }).eq('game_id', f));
+        await sb.from('wishes').update({ game_id: t }).eq('game_id', f);
+        await sb.from('wishes').delete().eq('game_id', f);
+        await sb.from('favorites').update({ game_id: t }).eq('game_id', f);
+        await sb.from('favorites').delete().eq('game_id', f);
+        await sb.from('reviews').update({ game_id: t }).eq('game_id', f).eq('user_id', next.profile?.id ?? '');
+        await sb.from('reviews').delete().eq('game_id', f).eq('user_id', next.profile?.id ?? '');
+        if (v4) {
+          const m = next.myGames[t];
+          if (m) check(await sb.from('my_games').upsert(myGameToRow(m), { onConflict: 'user_id,game_id' }));
+          await sb.from('my_games').delete().eq('game_id', f);
+          await sb.from('games').delete().eq('id', f).eq('source', 'manual');
+        }
         return;
       }
-      case 'copy.add': {
-        const c = a.copy;
-        check(await sb.from('copies').insert({ id: c.id, game_id: c.gameId, platform: c.platform, kind: c.kind, items: c.items ?? null, condition: c.condition ?? null, origin: c.origin ?? null, note: c.note ?? null, special: !!c.special }));
+      case 'import.bulk': {
+        const d = a.data;
+        const manual = d.games.filter((g) => g.source === 'manual');
+        if (manual.length && !v4) throw new Error('Rode a migração 0004 antes de importar a planilha.');
+        await insertMany('games', manual.map(manualGameToRow));
+        await insertMany('copies', d.copies.map(copyToRow));
+        if (v4) await insertMany('my_games', d.myGames.map(myGameToRow), { upsert: 'user_id,game_id' });
+        await insertMany('journeys', d.journeys.map(journeyToRow));
+        await insertMany('histories', d.histories.map(historyToRow));
+        await insertMany('timeline_events', d.events.map(eventToRow));
+        await insertMany('reviews', d.reviews.map(reviewToRow), { upsert: 'user_id,game_id' });
         return;
       }
       case 'games.merge':

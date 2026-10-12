@@ -61,7 +61,7 @@
 .focus-mini > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .focus-mini__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 8, 10, 0.15), rgba(7, 8, 10, 0.92) 70%); }
 .focus-mini__body { position: relative; padding: 20px 22px; display: grid; gap: 6px; justify-items: start; }
-.focus-mini h2 { font-size: 40px; }
+.focus-mini h2 { font-size: 30px; }
 .focus-mini h2 a { color: inherit; text-decoration: none; }
 .focus-mini p { margin: 0; color: #C9CED4; font-size: 14px; }
 .focus-mini__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }

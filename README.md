@@ -22,7 +22,8 @@ npm run typecheck  # checagem de tipos
 1. Crie um projeto em [supabase.com](https://supabase.com).
 2. Em **SQL Editor**, cole e rode o arquivo `supabase/migrations/0001_winnerz.sql`. Ele cria as tabelas, as regras de acesso (RLS) e a visão `review_stats`.
 3. Em **Authentication → URL Configuration**, coloque o endereço do site (ex.: `https://winnerz.vercel.app`) em *Site URL* e em *Redirect URLs*. O login é por link no e-mail, sem senha.
-4. Em **Project Settings → API**, copie a *Project URL*, a chave `anon` e a chave `service_role`.
+4. Em **Project Settings → API Keys**, copie a chave *Publishable* (`sb_publishable_...`) e a *Secret* (`sb_secret_...`). A *Project URL* é `https://<id-do-projeto>.supabase.co` (o id aparece no endereço do painel).
+5. O e-mail de login padrão do Supabase só envia para membros do projeto, no máximo 2 por hora. Antes de abrir o site para outras pessoas, configure um SMTP próprio em **Authentication → Emails → SMTP Settings** (ex.: Resend ou Brevo).
 
 ### 2. IGDB (fichas e capas dos jogos)
 
@@ -37,15 +38,21 @@ npm run typecheck  # checagem de tipos
 | Variável | Valor | Onde é usada |
 |---|---|---|
 | `VITE_SUPABASE_URL` | Project URL | navegador |
-| `VITE_SUPABASE_ANON_KEY` | chave `anon` | navegador |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | chave *Publishable* | navegador |
 | `SUPABASE_URL` | Project URL | função `/api/igdb` |
-| `SUPABASE_SERVICE_ROLE_KEY` | chave `service_role` | função `/api/igdb` (guarda as fichas dos jogos) |
+| `SUPABASE_SECRET_KEY` | chave *Secret* | função `/api/igdb` (guarda as fichas dos jogos) |
 | `TWITCH_CLIENT_ID` | Client ID da Twitch | função `/api/igdb` |
 | `TWITCH_CLIENT_SECRET` | Client Secret da Twitch | função `/api/igdb` |
 
-> Nunca coloque o prefixo `VITE_` na chave `service_role` nem no segredo da Twitch: tudo que começa com `VITE_` vai para o navegador.
+> Nunca coloque o prefixo `VITE_` na chave *Secret* nem no segredo da Twitch: tudo que começa com `VITE_` vai para o navegador.
 
 3. Faça o deploy. A busca de jogos passa a consultar o IGDB, e cada jogo aberto fica guardado na tabela `games`.
+
+### 4. Domínio (winnerz.com.br, DNS no Registro.br)
+
+1. No Vercel: **Settings → Domains → Add Domain** → `www.winnerz.com.br`, aceitando o redirecionamento de `winnerz.com.br` para o `www`.
+2. No Registro.br: **Domínios → winnerz.com.br → DNS → Editar Zona**. Troque o `www` (CNAME) pelo valor que o Vercel mostrar e crie um registro **A** sem nome com o IP que o Vercel mostrar. **Salvar**.
+3. No Supabase, **Authentication → URL Configuration**: *Site URL* `https://www.winnerz.com.br` e, em *Redirect URLs*, `https://www.winnerz.com.br/**`.
 
 ## Como está organizado
 

@@ -38,11 +38,12 @@ const fmtDate = (unix?: number) => (unix ? new Date(unix * 1000).toLocaleDateStr
 
 async function cacheGame(row: Record<string, unknown>) {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return;
   await fetch(`${url}/rest/v1/games?on_conflict=id`, {
     method: 'POST',
-    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+    // Chaves novas (sb_secret_...) vão só no cabeçalho apikey; a antiga service_role também aceita Bearer.
+    headers: { apikey: key, ...(key.startsWith('sb_') ? {} : { Authorization: `Bearer ${key}` }), 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
     body: JSON.stringify(row),
   });
 }

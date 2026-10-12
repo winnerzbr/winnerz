@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Adapter, Action } from './store';
 import { emptyState } from './store';
 import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey } from './types';
+import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
 
 /**
  * Modo Supabase: lê e grava nas tabelas definidas em supabase/migrations.
@@ -13,7 +14,7 @@ let client: SupabaseClient | null = null;
 export async function getClient(): Promise<SupabaseClient> {
   if (client) return client;
   const { createClient } = await import('@supabase/supabase-js');
-  client = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, {
+  client = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
   return client;

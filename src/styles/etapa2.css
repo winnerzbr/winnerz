@@ -401,3 +401,51 @@
 .whatnext__cover .cover-art__title { font-size: 9px; }
 .whatnext__text { display: grid; gap: 3px; font-size: 14px; line-height: 1.35; }
 .whatnext__text span { color: #bdb4a6; }
+
+/* ---- Etapa 3C: Radar ------------------------------------------------------ */
+.radar__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.radar__row { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; padding: 10px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); }
+.radar__cover { display: block; width: 56px; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 5px; }
+.radar__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.radar__cover .cover-art__title { font-size: 9px; }
+.radar__info { display: grid; gap: 3px; min-width: 0; font-size: 14px; }
+.radar__title { font-weight: 600; font-size: 16px; color: var(--ink); text-decoration: none; }
+.radar__when strong { color: var(--now-ink); font-weight: 600; }
+.radar__when--dia { color: var(--ink-2); }
+.radar__cal { margin-top: 36px; padding: 28px; }
+.radar__cal h2 { font-size: 36px; }
+.radar__cal > p { max-width: 70ch; margin: 8px 0 16px; }
+.radar__links { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.radar__url { display: flex; gap: 8px; width: 100%; max-width: 720px; }
+.radar__url .field { flex: 1; min-width: 0; font-size: 13px; }
+.radar__links .faint { width: 100%; font-size: 13px; margin: 0; }
+.radar-toggle { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.radar-toggle__when { width: 100%; margin: 0; font-size: 14px; }
+.radar-toggle__link { font-size: 14px; }
+.radar-note { border-left: 3px solid var(--now); padding: 14px 18px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.radar-note__cover { width: 40px; aspect-ratio: 3 / 4; border-radius: 4px; overflow: hidden; flex: none; }
+.radar-note__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 560px) {
+  .radar__row { grid-template-columns: 48px 1fr; }
+  .radar__row > .btn { grid-column: 2; justify-self: start; }
+  .radar__cover { width: 48px; }
+}
+.radar-home { border-left: 3px solid var(--now); }
+.radar-home ul { list-style: none; margin: 10px 0 14px; padding: 0; display: grid; gap: 10px; }
+.radar-home__item { display: flex; gap: 12px; align-items: center; color: var(--ink); text-decoration: none; }
+.radar-home__item > span:last-child { display: grid; gap: 2px; font-size: 14px; }
+
+/* ---- Etapa 3C: Importar da Steam ------------------------------------------ */
+.steam__form { padding: 28px; max-width: 760px; }
+.steam__label { font-size: 32px; display: block; }
+.steam__form > p { margin: 8px 0 16px; }
+.steam__row { display: flex; gap: 10px; flex-wrap: wrap; }
+.steam__row .field { flex: 1 1 280px; min-width: 0; }
+.steam__error { color: #e58b6b; margin-top: 12px; }
+.steam__opts { display: grid; gap: 10px; margin: 22px 0; }
+.steam__opts label { display: flex; gap: 10px; align-items: flex-start; }
+.steam__opts input { margin-top: 4px; accent-color: var(--accent); }
+.steam__list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px 24px; }
+.steam__list li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.steam__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.steam__list .muted { flex: none; }

@@ -16,6 +16,7 @@ import { Home } from './pages/Home';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
 import { CollectionStats, Wishes } from './pages/CollectionStats';
 import { ImportPage } from './pages/Import';
+import { SteamImportPage } from './pages/SteamImport';
 import { JourneyPage } from './pages/Journey';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
@@ -37,6 +38,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/colecao/desejos', path)) return <Wishes />;
   if (match('/colecao/estatisticas', path)) return <CollectionStats />;
   if (match('/colecao/importar', path)) return <ImportPage />;
+  if (match('/colecao/steam', path)) return <SteamImportPage />;
   if (match('/colecao/reparar', path)) return <RepairPage />;
   if (match('/jogos', path)) return <GamesIndex />;
   if (match('/jogos/explorar', path)) return <GamesExplore />;

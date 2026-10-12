@@ -20,6 +20,12 @@ export async function getClient(): Promise<SupabaseClient> {
   return client;
 }
 
+/** Token da sessão atual, para as funções do servidor conferirem quem é (calendário do Radar, Steam). */
+export async function accessToken(): Promise<string | null> {
+  const sb = await getClient();
+  return (await sb.auth.getSession()).data.session?.access_token ?? null;
+}
+
 /* Fotos no Storage --------------------------------------------------------- */
 
 const BUCKET = 'momentos';
@@ -117,7 +123,7 @@ const myGameFromRow = (r: any): MyGame => ({
   gameId: r.game_id, priority: r.priority ?? undefined, estHours: r.est_hours != null ? Number(r.est_hours) : undefined,
   wontPlay: !!r.wont_play, genre: r.genre ?? undefined, note: r.note ?? undefined,
   notNowUntil: r.not_now_until ?? undefined, notNowReason: r.not_now_reason ?? undefined,
-  steamMinutes: r.steam_minutes ?? undefined,
+  steamMinutes: r.steam_minutes ?? undefined, onRadar: r.on_radar || undefined,
 });
 export const reviewFromRow = (r: any, me: string | null): Review => {
   const name: string = r.profiles?.display_name ?? 'Jogador';
@@ -163,7 +169,7 @@ const copyToRow = (c: Copy) => ({
 const myGameToRow = (m: MyGame) => ({
   game_id: m.gameId, priority: m.priority ?? null, est_hours: m.estHours ?? null, wont_play: !!m.wontPlay,
   genre: m.genre ?? null, note: m.note ?? null, updated_at: new Date().toISOString(),
-  ...(v6 ? { not_now_until: m.notNowUntil ?? null, not_now_reason: m.notNowReason ?? null, steam_minutes: m.steamMinutes ?? null } : {}),
+  ...(v6 ? { not_now_until: m.notNowUntil ?? null, not_now_reason: m.notNowReason ?? null, steam_minutes: m.steamMinutes ?? null, on_radar: !!m.onRadar } : {}),
 });
 const reviewToRow = (r: Review) => ({
   id: r.id, game_id: r.gameId, normalized: r.rating.normalized, original_scale: r.rating.originalScale,
@@ -222,7 +228,7 @@ export const supabaseAdapter: Adapter = {
     loadIncomplete = false;
     const probe = await sb.from('my_games').select('game_id').limit(1);
     v4 = !probe.error;
-    v6 = v4 && !(await sb.from('my_games').select('not_now_until').limit(1)).error;
+    v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
     const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
       sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),

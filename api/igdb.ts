@@ -10,6 +10,10 @@
  *   GET /api/igdb?meta=1             → listas para os filtros (gêneros, plataformas, modos)
  *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, plataforma, época, modo e ordem
  *   GET /api/igdb?related=119133     → universo do jogo: franquia, DLCs, remakes, parecidos
+ *   GET /api/igdb?radar=1,2,3        → Radar: próxima data de cada jogo, com a precisão real (dia, mês, trimestre, ano)
+ *   POST /api/igdb {radarLink:true}  → (com login) endereço assinado do calendário do Radar
+ *   GET /api/igdb?ics=<id>&sig=...   → o calendário (.ics) com as datas confirmadas do seu Radar
+ *   POST /api/igdb {steam:"perfil"}  → (com login) jogos da sua conta Steam, com horas e ficha do IGDB
  *
  * Ids: o jogo do IGDB ganha "igdb-<número>" no WinnerZ e nunca muda, mesmo que o IGDB troque o slug.
  * Fichas antigas (id = slug) continuam com o id que já tinham.
@@ -20,8 +24,8 @@
  * Gêneros, temas e modos são traduzidos por dicionário no site (src/lib/igdbPt.ts).
  */
 
-type Req = { query: Record<string, string | string[] | undefined>; method?: string; body?: unknown };
-type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
+type Req = { query: Record<string, string | string[] | undefined>; method?: string; body?: unknown; headers?: Record<string, string | string[] | undefined> };
+type Res = { status: (n: number) => Res; json: (b: unknown) => void; send: (b: string) => void; setHeader: (k: string, v: string) => void };
 
 let token: { value: string; expires: number } | null = null;
 
@@ -385,10 +389,199 @@ async function universe(id: number) {
   return { groups, series: g.franchises?.[0]?.name ?? g.collections?.[0]?.name ?? null };
 }
 
+
+/* ---- Radar ------------------------------------------------------------------------------- */
+
+type RadarInfo = {
+  status: 'sem-data' | 'previsto' | 'acesso-antecipado' | 'lancado' | 'cancelado';
+  /** Frase pronta, em português, com a precisão real da data. */
+  label: string;
+  /** AAAA-MM-DD só quando o dia é confirmado. */
+  day?: string;
+  /** Para ordenar: o começo do período previsto (mês, trimestre ou ano). */
+  sort?: string;
+  precision: 'dia' | 'mes' | 'trimestre' | 'ano' | 'sem-data';
+  platforms: string[];
+  /** Lançado nos últimos 45 dias. */
+  recent?: boolean;
+  /** Próxima novidade depois do lançamento (ex.: nova plataforma). */
+  next?: string;
+};
+
+const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const isoDay = (unix: number) => new Date(unix * 1000).toISOString().slice(0, 10);
+
+/** Precisão pelo texto do IGDB ("Q4 2026", "2026", "TBD", "Nov 2026", "Nov 19, 2026"), que é o mais estável. */
+function precisionOf(r: any): { precision: RadarInfo['precision']; label: string; sort?: string; day?: string } {
+  const human = String(r.human ?? '').trim();
+  const code = typeof r.date_format === 'number' ? r.date_format : typeof r.category === 'number' ? r.category : undefined;
+  const y = r.y ?? (r.date ? new Date(r.date * 1000).getUTCFullYear() : undefined);
+  const q = /^Q([1-4])\s+(\d{4})$/i.exec(human) ?? (code != null && code >= 3 && code <= 6 && y ? [, String(code - 2), String(y)] : null);
+  if (/^TBD$/i.test(human) || code === 7 || (!r.date && !y)) return { precision: 'sem-data', label: 'Sem data anunciada' };
+  if (q) return { precision: 'trimestre', label: `${q[1]}º trimestre de ${q[2]}`, sort: `${q[2]}-${String((Number(q[1]) - 1) * 3 + 1).padStart(2, '0')}-01` };
+  if (/^\d{4}$/.test(human) || code === 2) return { precision: 'ano', label: `${y}`, sort: `${y}-01-01` };
+  if (/^[A-Za-z]{3,}\s+\d{4}$/.test(human) || code === 1 || !r.date) {
+    const m = r.m ? r.m - 1 : r.date ? new Date(r.date * 1000).getUTCMonth() : null;
+    if (m == null) return { precision: 'ano', label: `${y}`, sort: `${y}-01-01` };
+    return { precision: 'mes', label: `${MONTHS[m]} de ${y}`, sort: `${y}-${String(m + 1).padStart(2, '0')}-01` };
+  }
+  const day = isoDay(r.date);
+  const d = new Date(r.date * 1000);
+  return { precision: 'dia', label: `${d.getUTCDate()} de ${MONTHS[d.getUTCMonth()]} de ${d.getUTCFullYear()}`, sort: day, day };
+}
+
+const GAME_STATUS: Record<number, string> = { 0: 'Released', 2: 'Alpha', 3: 'Beta', 4: 'Early Access', 5: 'Offline', 6: 'Cancelled', 7: 'Rumored', 8: 'Delisted' };
+
+async function radar(ids: number[]): Promise<Record<number, RadarInfo>> {
+  const clean = [...new Set(ids.filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
+  if (!clean.length) return {};
+  let games: any[];
+  try { games = await igdb('games', `where id = (${clean.join(',')}); fields id,first_release_date,game_status.status; limit 100;`); }
+  catch { games = await igdb('games', `where id = (${clean.join(',')}); fields id,first_release_date,status; limit 100;`); }
+  const dates: any[] = await igdb('release_dates', `where game = (${clean.join(',')}); fields *,status.name,platform.name; limit 500;`);
+  const now = Date.now() / 1000;
+  const out: Record<number, RadarInfo> = {};
+  for (const g of games) {
+    const st: string = g.game_status?.status ?? GAME_STATUS[g.status as number] ?? '';
+    const rows = dates.filter((r) => r.game === g.id);
+    const plats = (rs: any[]) => [...new Set(rs.map((r) => r.platform?.name).filter(Boolean))] as string[];
+    if (/cancel/i.test(st)) { out[g.id] = { status: 'cancelado', label: 'Cancelado', precision: 'sem-data', platforms: plats(rows) }; continue; }
+    const early = (r: any) => /early|alpha|beta/i.test(r.status?.name ?? '');
+    const past = rows.filter((r) => r.date && r.date <= now && precisionOf(r).precision === 'dia');
+    const future = rows.filter((r) => !(r.date && r.date <= now && precisionOf(r).precision === 'dia'))
+      .map((r) => ({ r, p: precisionOf(r) }))
+      .sort((a, b) => (a.p.sort ?? '9999').localeCompare(b.p.sort ?? '9999'));
+    const full = past.filter((r) => !early(r)).sort((a, b) => a.date - b.date);
+    const nextLine = (xs: typeof future) => {
+      const f = xs[0];
+      return f ? `${f.r.platform?.name ? `${f.r.platform.name}: ` : ''}${f.p.precision === 'dia' ? 'em ' : f.p.precision === 'sem-data' ? '' : 'previsto para '}${f.p.label}` : undefined;
+    };
+    if (full.length || (!rows.length && g.first_release_date && g.first_release_date <= now && /releas/i.test(st || 'released'))) {
+      const first = full[0]?.date ?? g.first_release_date;
+      const p = precisionOf({ date: first });
+      out[g.id] = { status: 'lancado', label: `Lançado em ${p.label}`, day: p.day, sort: p.sort, precision: 'dia', platforms: plats(full), recent: now - first < 45 * 86400, next: nextLine(future.filter((x) => !early(x.r))) };
+      continue;
+    }
+    const ea = past.filter(early).sort((a, b) => a.date - b.date)[0];
+    const fullFuture = future.filter((x) => !early(x.r));
+    if (ea) {
+      out[g.id] = { status: 'acesso-antecipado', label: `Em acesso antecipado desde ${precisionOf(ea).label}`, precision: 'dia', day: precisionOf(ea).day, sort: precisionOf(ea).sort, platforms: plats([ea]), next: fullFuture[0] ? `Versão completa: ${fullFuture[0].p.label}` : undefined };
+      continue;
+    }
+    const f = fullFuture[0] ?? future[0];
+    if (!f || f.p.precision === 'sem-data') { out[g.id] = { status: 'sem-data', label: 'Anunciado, sem data', precision: 'sem-data', platforms: plats(rows) }; continue; }
+    const same = future.filter((x) => x.p.sort === f.p.sort && x.p.precision === f.p.precision);
+    out[g.id] = { status: 'previsto', label: f.p.precision === 'dia' ? `Sai em ${f.p.label}` : `Previsto para ${f.p.label}`, day: f.p.day, sort: f.p.sort, precision: f.p.precision, platforms: plats(same.map((x) => x.r)) };
+  }
+  return out;
+}
+
+/* ---- Login (para o calendário e a Steam) ------------------------------------------------- */
+
+const header = (req: Req, k: string) => { const v = req.headers?.[k] ?? req.headers?.[k.toLowerCase()]; return Array.isArray(v) ? v[0] : v; };
+
+/** Confere o login do Supabase no servidor e devolve o id da pessoa. */
+async function requireUser(req: Req): Promise<string | null> {
+  const c = db();
+  const token = (header(req, 'authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!c || !token) return null;
+  const r = await fetch(`${c.url}/auth/v1/user`, { headers: { apikey: c.headers.apikey, Authorization: `Bearer ${token}` } });
+  if (!r.ok) return null;
+  const u = (await r.json()) as { id?: string };
+  return u.id ?? null;
+}
+
+async function sign(text: string): Promise<string> {
+  const secret = process.env.RADAR_SECRET || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!secret) throw new Error('Calendário indisponível: falta configurar o banco no servidor.');
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, enc.encode(`radar:${text}`)));
+  return [...mac.slice(0, 16)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+const icsText = (t: string) => t.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
+/** Linhas de no máximo 75 bytes, como pede o formato iCalendar. */
+function fold(line: string): string {
+  const out: string[] = [];
+  let cur = '';
+  for (const ch of line) {
+    if (new TextEncoder().encode(cur + ch).length > 74) { out.push(cur); cur = ' ' + ch; } else cur += ch;
+  }
+  out.push(cur);
+  return out.join('\r\n');
+}
+
+/** Calendário do Radar: só datas com dia confirmado viram evento (dia inteiro). */
+async function radarCalendar(userId: string, origin: string): Promise<string> {
+  const c = db();
+  if (!c) throw new Error('Banco não configurado');
+  const r = await fetch(`${c.url}/rest/v1/my_games?select=game_id,games(igdb_id,title,slug)&user_id=eq.${encodeURIComponent(userId)}&on_radar=is.true&limit=500`, { headers: c.headers });
+  const rows = r.ok ? ((await r.json()) as any[]) : [];
+  const games = rows.map((x) => x.games).filter((g) => g?.igdb_id);
+  const info: Record<number, RadarInfo> = {};
+  for (let i = 0; i < games.length; i += 100) Object.assign(info, await radar(games.slice(i, i + 100).map((g) => g.igdb_id)));
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//WinnerZ//Radar//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Radar do WinnerZ', 'X-WR-TIMEZONE:America/Sao_Paulo', 'REFRESH-INTERVAL;VALUE=DURATION:PT12H', 'X-PUBLISHED-TTL:PT12H'];
+  for (const g of games) {
+    const x = info[g.igdb_id];
+    if (!x?.day || (x.status !== 'previsto' && !(x.status === 'lancado' && x.recent))) continue;
+    const d = x.day.replace(/-/g, '');
+    const end = new Date(Date.parse(x.day + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10).replace(/-/g, '');
+    lines.push('BEGIN:VEVENT', `UID:${g.igdb_id}-${d}@winnerz.com.br`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${end}`,
+      fold(`SUMMARY:${icsText(`Lançamento: ${g.title}`)}`),
+      fold(`DESCRIPTION:${icsText(`${x.platforms.length ? `${x.platforms.join(', ')}. ` : ''}Data do IGDB; pode mudar. ${origin}/jogos/${g.slug}`)}`),
+      `URL:${origin}/jogos/${g.slug}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
+  }
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+
+/* ---- Steam ------------------------------------------------------------------------------- */
+
+type SteamGame = { appid: number; name: string; minutes: number; lastPlayed?: string; igdbId?: number };
+
+async function steamLibrary(input: string): Promise<{ steamId: string; games: SteamGame[] } | { error: string }> {
+  const key = process.env.STEAM_API_KEY;
+  if (!key) return { error: 'A chave da Steam ainda não foi configurada no servidor (STEAM_API_KEY).' };
+  const raw = input.trim().replace(/\/+$/, '');
+  let steamId = /^\d{17}$/.test(raw) ? raw : /\/profiles\/(\d{17})/.exec(raw)?.[1];
+  if (!steamId) {
+    const vanity = /\/id\/([^/?#]+)/.exec(raw)?.[1] ?? (/^[\w-]{2,32}$/.test(raw) ? raw : '');
+    if (!vanity) return { error: 'Não reconheci esse perfil. Cole o endereço do seu perfil da Steam.' };
+    const v = await fetch(`https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=${key}&vanityurl=${encodeURIComponent(vanity)}`).then((r) => r.json()).catch(() => null) as any;
+    steamId = v?.response?.success === 1 ? v.response.steamid : undefined;
+    if (!steamId) return { error: 'Não achei esse perfil na Steam. Confira o endereço.' };
+  }
+  const o = await fetch(`https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/?key=${key}&steamid=${steamId}&include_appinfo=1&include_played_free_games=1&format=json`).then((r) => r.json()).catch(() => null) as any;
+  const list: any[] | undefined = o?.response?.games;
+  if (!list) return { error: 'A Steam não mostrou os jogos deste perfil. Deixe "Detalhes do jogo" como público nas configurações de privacidade da Steam e tente de novo.' };
+  const games: SteamGame[] = list.map((g) => ({ appid: g.appid, name: g.name ?? `App ${g.appid}`, minutes: g.playtime_forever ?? 0, lastPlayed: g.rtime_last_played ? isoDay(g.rtime_last_played) : undefined }));
+  // Ficha do IGDB pelo número da Steam (mais seguro que comparar nomes).
+  const byApp = new Map<string, number>();
+  for (let i = 0; i < games.length; i += 400) {
+    const uids = games.slice(i, i + 400).map((g) => `"${g.appid}"`).join(',');
+    let rows: any[];
+    try { rows = await igdb('external_games', `where uid = (${uids}) & external_game_source = 1; fields game,uid; limit 500;`); }
+    catch { rows = await igdb('external_games', `where uid = (${uids}) & category = 1; fields game,uid; limit 500;`); }
+    for (const r of rows) if (r.game && !byApp.has(r.uid)) byApp.set(String(r.uid), r.game);
+    await sleep(260);
+  }
+  for (const g of games) g.igdbId = byApp.get(String(g.appid));
+  return { steamId, games };
+}
+
 export default async function handler(req: Req, res: Res) {
   try {
     if (req.method === 'POST') {
-      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[] };
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; radarLink?: boolean; steam?: string };
+      if (body.radarLink || typeof body.steam === 'string') {
+        const user = await requireUser(req);
+        if (!user) return res.status(401).json({ error: 'Entre na sua conta para usar isto.' });
+        if (body.radarLink) return res.status(200).json({ path: `/api/igdb?ics=${user}&sig=${await sign(user)}` });
+        const r = await steamLibrary(String(body.steam).slice(0, 200));
+        return res.status('error' in r ? 400 : 200).json(r);
+      }
       if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match));
       if (Array.isArray(body.cache)) return res.status(200).json(await cacheMany(body.cache));
       return res.status(400).json({ error: 'Envie {match:[...]} ou {cache:[...]}' });
@@ -435,7 +628,22 @@ export default async function handler(req: Req, res: Res) {
       return res.status(200).json(await universe(related));
     }
 
-    return res.status(400).json({ error: 'Use ?q=, ?id=, ?slug=, ?meta=1, ?explore=1 ou ?related=' });
+    if (typeof req.query.radar === 'string') {
+      res.setHeader('Cache-Control', 's-maxage=21600');
+      return res.status(200).json(await radar(req.query.radar.split(',').map(Number)));
+    }
+
+    if (typeof req.query.ics === 'string' && typeof req.query.sig === 'string') {
+      const user = req.query.ics.replace(/[^0-9a-f-]/gi, '');
+      if (!user || req.query.sig !== (await sign(user))) return res.status(403).json({ error: 'Endereço do calendário inválido' });
+      const host = header(req, 'host') ?? 'winnerz.com.br';
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', 'inline; filename="radar-winnerz.ics"');
+      res.setHeader('Cache-Control', 'private, max-age=3600');
+      return res.status(200).send(await radarCalendar(user, `https://${host}`));
+    }
+
+    return res.status(400).json({ error: 'Use ?q=, ?id=, ?slug=, ?meta=1, ?explore=1, ?related= ou ?radar=' });
   } catch (err) {
     return res.status(502).json({ error: err instanceof Error ? err.message : 'Falha ao consultar o IGDB' });
   }

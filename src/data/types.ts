@@ -77,6 +77,8 @@ export interface MyGame {
   notNowReason?: string;
   /** Minutos jogados segundo a Steam (informado pela Steam, nunca estimado). */
   steamMinutes?: number;
+  /** Acompanhando no Radar (lançamento, data, adiamento). Não é posse nem desejo. */
+  onRadar?: boolean;
 }
 
 export interface Wish {

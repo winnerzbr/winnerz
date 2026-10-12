@@ -589,6 +589,12 @@ export const actions = {
   setMyGame(gameId: ID, patch: Partial<Omit<MyGame, 'gameId'>>) {
     dispatch({ type: 'mygame.set', mine: { ...myGame(state, gameId), ...patch, gameId } });
   },
+  toggleRadar(gameId: ID) {
+    const value = !myGame(state, gameId).onRadar;
+    track(value ? 'radar.acompanhar' : 'radar.deixar');
+    actions.setMyGame(gameId, { onRadar: value || undefined });
+    return value;
+  },
   toggleWontPlay(gameId: ID) {
     const value = !myGame(state, gameId).wontPlay;
     track('colecao.nao-vou-jogar');

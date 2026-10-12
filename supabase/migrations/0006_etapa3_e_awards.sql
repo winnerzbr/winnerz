@@ -9,6 +9,8 @@ alter table public.games add column if not exists released_on date;
 alter table public.my_games add column if not exists not_now_until date;
 alter table public.my_games add column if not exists not_now_reason text;
 alter table public.my_games add column if not exists steam_minutes integer check (steam_minutes is null or steam_minutes >= 0);
+-- Radar: acompanhar um jogo (lançamento, data, adiamento). Não é posse nem desejo.
+alter table public.my_games add column if not exists on_radar boolean not null default false;
 
 -- Administração (só quem tiver is_admin = true monta os Awards) --------------------------------
 alter table public.profiles add column if not exists is_admin boolean not null default false;

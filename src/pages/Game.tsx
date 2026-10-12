@@ -19,6 +19,7 @@ import { MediaGallery, buildMedia } from '../components/MediaGallery';
 import { refreshGame, gameBySlug } from '../components/AddGameDialog';
 import { GameUniverse } from '../components/GameUniverse';
 import { GameDna } from '../components/GameDna';
+import { RadarToggle } from '../components/RadarToggle';
 import { Backdrop } from '../components/Backdrop';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
@@ -212,6 +213,7 @@ function GameView({ gameId }: { gameId: string }) {
                   {([1, 2, 3] as const).map((p) => <button key={p} className="chip" aria-pressed={mine2.priority === p} onClick={() => actions.setMyGame(gameId, { priority: mine2.priority === p ? undefined : p })}>{p === 1 ? 'Alta' : p === 2 ? 'Média' : 'Baixa'}</button>)}
                 </div>
               </div>
+              {mine2.steamMinutes != null && mine2.steamMinutes > 0 && <div className="relation__row"><span className="muted">Tempo na Steam</span><span>{mine2.steamMinutes < 60 ? `${mine2.steamMinutes} min` : `${(Math.round(mine2.steamMinutes / 6) / 10).toLocaleString('pt-BR')} h`} <span className="prov">Informado pela Steam</span></span></div>}
               {mine2.estHours != null && <div className="relation__row"><span className="muted">Tempo estimado</span><span>{String(mine2.estHours).replace('.', ',')} h</span></div>}
               {mine2.genre && <div className="relation__row"><span className="muted">Seu gênero</span><span>{mine2.genre}</span></div>}
               {(!h || h.state !== 'ativa') && (
@@ -219,6 +221,7 @@ function GameView({ gameId }: { gameId: string }) {
               )}
             </div>
             {g.source === 'manual' && <LinkToIgdb game={g} />}
+            {g.igdbId && <RadarToggle game={g} on={!!mine2.onRadar} />}
           </section>
           <GameDna game={g} />
           {(g.summary || g.themes?.length || g.modes?.length) && (

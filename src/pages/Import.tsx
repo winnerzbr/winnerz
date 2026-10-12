@@ -270,7 +270,7 @@ export function ImportPage() {
     <main className="page pad importer">
       <SubNav pillar="colecao" />
       <h1 className="t big">Importar planilha</h1>
-      <p className="muted lead">Traga sua coleção de uma vez. Você confere tudo antes de gravar, e pode importar de novo depois: o que já está no site não duplica.</p>
+      <p className="muted lead">Traga sua coleção de uma vez. Você confere tudo antes de gravar, e pode importar de novo depois: o que já está no site não duplica. Jogos de PC? Também dá para <Link to="/colecao/steam">importar da Steam</Link>.</p>
       {error && <p className="card import-error" role="alert">{error}</p>}
 
       {step === 'arquivo' && (

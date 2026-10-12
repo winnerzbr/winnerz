@@ -61,7 +61,7 @@ export function OverlayPage({ k }: { k: string }) {
             <span><span className="ovl__k">{d.moment.kind === 'ponto' ? 'Quero voltar aqui' : 'Último momento'}</span><span className="ovl__mt">{d.moment.title}</span></span>
           </div>
         )}
-        <img className="ovl__logo" src="/brand/logo-mark.webp" alt="WinnerZ" />
+        <img className="ovl__logo" src="/brand/forjado.svg" alt="WinnerZ" />
       </div>
     </div>
   );

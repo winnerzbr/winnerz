@@ -38,28 +38,31 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, max: number): string[
 async function draw(canvas: HTMLCanvasElement, o: { game: Game; history: History; bg?: string; phrase: string; rating?: string; kicker: string }) {
   const ctx = canvas.getContext('2d')!;
   canvas.width = W; canvas.height = H;
-  await Promise.all([document.fonts?.load('120px "Bebas Neue"'), document.fonts?.load('40px "Instrument Serif"'), document.fonts?.load('600 30px "Schibsted Grotesk"')].map((p) => p?.catch(() => null)));
-  const [bg, cv, logo] = await Promise.all([load(o.bg), load(o.game.cover), load('/brand/logo.webp')]);
-  ctx.fillStyle = '#0d0b0a'; ctx.fillRect(0, 0, W, H);
+  await Promise.all([document.fonts?.load('800 expanded 64px "Archivo"'), document.fonts?.load('400 40px "Archivo"'), document.fonts?.load('500 28px "IBM Plex Mono"')].map((p) => p?.catch(() => null)));
+  const [bg, cv, logo] = await Promise.all([load(o.bg), load(o.game.cover), load('/brand/forjado.svg')]);
+  ctx.fillStyle = '#07080A'; ctx.fillRect(0, 0, W, H);
   if (bg) { ctx.globalAlpha = 0.55; cover(ctx, bg, 0, 0, W, H); ctx.globalAlpha = 1; }
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, 'rgba(13,11,10,0.35)'); g.addColorStop(0.55, 'rgba(13,11,10,0.75)'); g.addColorStop(1, 'rgba(13,11,10,0.97)');
+  g.addColorStop(0, 'rgba(7,8,10,0.35)'); g.addColorStop(0.55, 'rgba(7,8,10,0.75)'); g.addColorStop(1, 'rgba(7,8,10,0.97)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   // Capa
   const cw = 380, ch = 507, cx = (W - cw) / 2, cy = 110;
   ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 24;
-  ctx.fillStyle = '#22201c'; ctx.fillRect(cx, cy, cw, ch); ctx.restore();
+  ctx.fillStyle = '#14171B'; ctx.fillRect(cx, cy, cw, ch); ctx.restore();
   if (cv) cover(ctx, cv, cx, cy, cw, ch);
-  ctx.strokeStyle = '#e3bf8a'; ctx.lineWidth = 6; ctx.strokeRect(cx - 3, cy - 3, cw + 6, ch + 6);
+  ctx.strokeStyle = '#E2BE84'; ctx.lineWidth = 6; ctx.strokeRect(cx - 3, cy - 3, cw + 6, ch + 6);
   // Textos
   ctx.textAlign = 'center';
   let y = cy + ch + 92;
-  ctx.fillStyle = '#c9a174'; ctx.font = '600 28px "Schibsted Grotesk", sans-serif';
+  ctx.fillStyle = '#FFB25B'; ctx.font = '500 26px "IBM Plex Mono", monospace';
   ctx.fillText(o.kicker.toUpperCase().split('').join(' '), W / 2, y);
-  y += 104;
-  ctx.fillStyle = '#eee5d5'; ctx.font = '112px "Bebas Neue", Impact, sans-serif';
-  for (const line of wrap(ctx, o.game.title, W - 140).slice(0, 2)) { ctx.fillText(line, W / 2, y); y += 104; }
-  ctx.fillStyle = '#cfc6b6'; ctx.font = '500 34px "Schibsted Grotesk", sans-serif';
+  y += 96;
+  ctx.fillStyle = '#F2F4F6'; ctx.font = '800 expanded 64px "Archivo", sans-serif';
+  (ctx as CanvasRenderingContext2D & { fontStretch?: string }).fontStretch = 'expanded';
+  for (const line of wrap(ctx, o.game.title.toUpperCase(), W - 140).slice(0, 2)) { ctx.fillText(line, W / 2, y); y += 72; }
+  (ctx as CanvasRenderingContext2D & { fontStretch?: string }).fontStretch = 'normal';
+  y += 16;
+  ctx.fillStyle = '#C9CED4'; ctx.font = '400 32px "Archivo", sans-serif';
   // Datas com a precisão que você informou (nada de dia exato onde só há mês ou ano).
   const lbl = (iso: string, p?: History['startedPrecision']) => (!p || p === 'dia' ? short(iso) : whenLabel(iso, p));
   const end = o.history.completedAt ?? new Date().toISOString();
@@ -67,15 +70,15 @@ async function draw(canvas: HTMLCanvasElement, o: { game: Game; history: History
   const dates = endP === 'desconhecida' ? '' : o.history.startedPrecision === 'desconhecida' ? `Zerado em ${lbl(end, endP)}` : `De ${lbl(o.history.startedAt, o.history.startedPrecision)} a ${lbl(end, endP)}`;
   y += 4;
   if (dates) { ctx.fillText(dates, W / 2, y); y += 52; }
-  if (o.rating) { ctx.fillStyle = '#e3bf8a'; ctx.fillText(o.rating, W / 2, y); y += 52; }
+  if (o.rating) { ctx.fillStyle = '#E2BE84'; ctx.fillText(o.rating, W / 2, y); y += 52; }
   if (o.phrase.trim()) {
-    ctx.fillStyle = '#eee5d5'; ctx.font = 'italic 44px "Instrument Serif", Georgia, serif';
+    ctx.fillStyle = '#E6E9ED'; ctx.font = '400 40px "Archivo", sans-serif';
     y += 18;
     for (const line of wrap(ctx, `“${o.phrase.trim()}”`, W - 200).slice(0, 3)) { ctx.fillText(line, W / 2, y); y += 54; }
   }
   // Rodapé
-  if (logo) { const lw = 170, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, H - lh - 70, lw, lh); }
-  ctx.fillStyle = '#a39a8c'; ctx.font = '500 24px "Schibsted Grotesk", sans-serif';
+  if (logo) { const lw = 140, lh = lw * (logo.height / logo.width); ctx.drawImage(logo, (W - lw) / 2, H - lh - 70, lw, lh); }
+  ctx.fillStyle = '#9AA1AA'; ctx.font = '500 22px "IBM Plex Mono", monospace';
   ctx.fillText('winnerz.com.br', W / 2, H - 40);
 }
 

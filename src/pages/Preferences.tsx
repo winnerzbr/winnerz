@@ -34,14 +34,14 @@ export function Preferences() {
         <div className="themes">
           <button className="theme-card" aria-pressed={prefs.theme === 'escuro'} onClick={() => actions.setPrefs({ theme: 'escuro' })}>
             <span className="theme-card__mini" aria-hidden="true" style={{ background: preview['--bg'] }}>
-              <span style={{ background: '#EEE5D5', width: '50%' }} /><span style={{ background: '#5A544C', width: '70%' }} />
+              <span style={{ background: '#E6E9ED', width: '50%' }} /><span style={{ background: '#474D55', width: '70%' }} />
               <span className="theme-card__blocks"><i style={{ background: preview['--surface'] }} /><i style={{ background: preview['--surface'] }} /><b /></span>
             </span>
             Escuro
           </button>
           <button className="theme-card" aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>
             <span className="theme-card__mini theme-card__mini--light" aria-hidden="true">
-              <span style={{ background: '#1C1813', width: '50%' }} /><span style={{ background: '#C8BCA8', width: '70%' }} />
+              <span style={{ background: '#0B0D10', width: '50%' }} /><span style={{ background: '#C5CAD0', width: '70%' }} />
               <span className="theme-card__blocks"><i style={{ background: '#FFFDF9' }} /><i style={{ background: '#FFFDF9' }} /><b /></span>
             </span>
             Claro

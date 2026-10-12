@@ -1,7 +1,8 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePath, match, Link } from './lib/router';
 import { useStore, openSession } from './data/store';
-import { applyPrefs, brand } from './lib/theme';
+import { applyPrefs } from './lib/theme';
+import { BrandMark } from './components/Brand';
 import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
@@ -92,7 +93,7 @@ export function App() {
   if (ovl) return <OverlayPage k={ovl.k} />;
 
   if (!ready) {
-    return <div className="boot" aria-busy="true"><img src={brand(prefs.theme).mark} alt="WinnerZ" height={36} /></div>;
+    return <div className="boot" aria-busy="true"><BrandMark width={64} title="WinnerZ" /></div>;
   }
 
   return (
@@ -109,7 +110,7 @@ export function App() {
       {!isSession && (
         <footer className="site-footer">
           <div className="page">
-            <img src={brand(prefs.theme).full} alt="WinnerZ" />
+            <BrandMark width={56} title="WinnerZ" />
             <p>Onde jogos viram histórias.</p>
           </div>
         </footer>

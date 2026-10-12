@@ -7,18 +7,18 @@ export function mix(a: string, b: string, t: number) {
   return '#' + [0, 1, 2].map((i) => Math.round(hx(a, i) + (hx(b, i) - hx(a, i)) * t).toString(16).padStart(2, '0')).join('');
 }
 
-/** Tokens do tema escuro conforme a intensidade do preto (0 = grafite, 100 = preto absoluto). */
+/** Tokens do tema escuro conforme a intensidade do preto (0 = grafite, 100 = preto absoluto). Em 70%: a Noite #07080A. */
 export function darkTokens(black: number): Record<string, string> {
   const t = Math.max(0, Math.min(100, black)) / 100;
-  const bg = mix('#2a2622', '#000000', t);
+  const bg = mix('#1b1e22', '#000000', t);
   return {
     '--bg': bg,
     '--bg-rgb': [0, 1, 2].map((i) => hx(bg, i)).join(', '),
-    '--surface': mix('#34302b', '#0f0e0d', t),
-    '--surface-2': mix('#3e3934', '#171513', t),
-    '--line': mix('#46413b', '#1a1816', t),
-    '--line-2': mix('#5a544c', '#302c27', t),
-    '--field': mix('#2e2a26', '#0a0908', t),
+    '--surface': mix('#24282d', '#050608', t),
+    '--surface-2': mix('#2d3237', '#0b0d10', t),
+    '--line': mix('#33383e', '#111316', t),
+    '--line-2': mix('#454b52', '#222529', t),
+    '--field': mix('#202328', '#050608', t),
   };
 }
 
@@ -35,11 +35,12 @@ export function applyPrefs(p: Prefs) {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', tk['--bg']);
   } else {
     for (const k of DARK_KEYS) root.style.removeProperty(k);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f3eee5');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#f3f4f6');
   }
 }
 
+/** Arquivos da marca (Forjado) para quem precisa de imagem: cartão para compartilhar, overlay. */
 export const brand = (theme: Prefs['theme']) => ({
-  mark: theme === 'claro' ? '/brand/logo-mark-dark.webp' : '/brand/logo-mark.webp',
-  full: theme === 'claro' ? '/brand/logo-dark.webp' : '/brand/logo.webp',
+  mark: theme === 'claro' ? '/brand/forjado-dark.svg' : '/brand/forjado-flat.svg',
+  forged: '/brand/forjado.svg',
 });

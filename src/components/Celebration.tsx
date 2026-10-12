@@ -27,7 +27,7 @@ export function Celebration({ title, subtitle, onClose, children }: { title: str
       <div className="celebration__inner">
         <div className="celebration__burst">
           <svg className="celebration__rays fx-heavy" viewBox="0 0 340 340" aria-hidden="true">
-            <g stroke="#E3BF8A" strokeWidth="1.2" strokeLinecap="round">
+            <g stroke="#E2BE84" strokeWidth="1.2" strokeLinecap="round">
               {Array.from({ length: 12 }, (_, i) => {
                 const a = (i / 12) * Math.PI * 2;
                 return <line key={i} x1="170" y1="170" x2={170 + Math.cos(a) * 160} y2={170 + Math.sin(a) * 160} />;
@@ -37,7 +37,7 @@ export function Celebration({ title, subtitle, onClose, children }: { title: str
           {parts.map((p, i) => (
             <span key={i} className="celebration__part fx-heavy" aria-hidden="true" style={{ ['--dx' as string]: `${p.dx}px`, ['--dy' as string]: `${p.dy}px`, animationDelay: `${p.d}s` }} />
           ))}
-          <Compass className="celebration__star" size={140} color="#E3BF8A" />
+          <Compass className="celebration__star" size={140} color="#E2BE84" />
         </div>
         <div className="celebration__text">
           <h2 id="cel-title" className="t">{title}</h2>

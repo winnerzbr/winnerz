@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, usePath } from '../lib/router';
 import { Icon } from './Icon';
 import { actions, useStore, openSession } from '../data/store';
-import { brand } from '../lib/theme';
+import { BrandLockup } from './Brand';
 import { openSearch } from './CommandPalette';
 
 const PILLARS = [
@@ -33,7 +33,7 @@ export function Header() {
   return (
     <header className="site-header">
       <div className="page site-header__row">
-        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><img src={brand(prefs.theme).mark} alt="" height={26} /></Link>
+        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandLockup /></Link>
         <nav className="pillars" aria-label="Pilares">
           {PILLARS.map((p) => (
             <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) ? 'page' : undefined}>
@@ -42,9 +42,9 @@ export function Header() {
           ))}
         </nav>
         <div className="site-header__tools">
-          <button className="icon-btn" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)" onClick={openSearch}><Icon name="busca" size={20} /></button>
+          <button className="search-pill" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)" onClick={openSearch}><Icon name="busca" size={18} /><span className="search-pill__label">Buscar</span><kbd className="search-pill__kbd">Ctrl K</kbd></button>
           {session && (
-            <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" />Sessão aberta</Link>
+            <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" /><span className="session-pill__label">Sessão aberta</span></Link>
           )}
           <div className="appearance" ref={pop}>
             <button className="icon-btn" aria-label="Aparência" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="tema" size={20} /></button>

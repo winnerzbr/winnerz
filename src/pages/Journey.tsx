@@ -388,7 +388,7 @@ function CinemaTimeline({ stops, fallback, full, onExitFull, play, title, onEdit
       <div className="cinema__shade" aria-hidden="true" />
       <div className="cinema__floor" aria-hidden="true" />
       <svg className="cinema__topo" aria-hidden="true" viewBox="0 0 1200 600" preserveAspectRatio="none">
-        <g fill="none" stroke="#C9A174" strokeWidth="1"><path d="M0 120 C 200 80, 360 170, 600 130 S 980 60, 1200 110" /><path d="M0 160 C 220 120, 380 210, 620 170 S 1000 100, 1200 150" /><path d="M0 200 C 240 160, 400 250, 640 210 S 1020 140, 1200 190" /><ellipse cx="930" cy="260" rx="140" ry="50" /><ellipse cx="930" cy="260" rx="90" ry="30" /></g>
+        <g fill="none" stroke="#FFB25B" strokeWidth="1"><path d="M0 120 C 200 80, 360 170, 600 130 S 980 60, 1200 110" /><path d="M0 160 C 220 120, 380 210, 620 170 S 1000 100, 1200 150" /><path d="M0 200 C 240 160, 400 250, 640 210 S 1020 140, 1200 190" /><ellipse cx="930" cy="260" rx="140" ry="50" /><ellipse cx="930" cy="260" rx="90" ry="30" /></g>
       </svg>
       {Array.from({ length: 14 }, (_, i) => (
         <span key={i} className="cinema__dust fx-heavy" aria-hidden="true" style={{ left: `${(i * 37) % 100}%`, top: `${30 + ((i * 23) % 60)}%`, animationDuration: `${6 + (i % 5) * 1.7}s`, animationDelay: `${i * 0.6}s` }} />

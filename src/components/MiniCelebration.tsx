@@ -25,7 +25,7 @@ export function MiniCelebrationHost() {
   if (!m) return null;
   return (
     <div className="mini-cel" role="status" key={m.id}>
-      <span className="mini-cel__badge" aria-hidden="true"><Compass size={30} color="#E3BF8A" /></span>
+      <span className="mini-cel__badge" aria-hidden="true"><Compass size={30} color="#E2BE84" /></span>
       <span className="mini-cel__text"><span className="mini-cel__k">Figurinha do caminho</span><strong>{m.title}</strong><span>{m.text}</span></span>
       <button className="mini-cel__close" aria-label="Fechar" onClick={() => { current = null; emit(); }}>×</button>
     </div>

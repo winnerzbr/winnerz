@@ -4,7 +4,7 @@ import { actions, useStore, journeyForGame, currentHistory, myGame, historiesOf,
 import type { Copy, CopyKind, State } from '../data/types';
 import { FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Icon } from '../components/Icon';
-import { AddGameDialog } from '../components/AddGameDialog';
+import { AddGameDialog, type AddMode } from '../components/AddGameDialog';
 import { GameSwap } from '../components/GameSwap';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
@@ -45,7 +45,7 @@ export function Collection() {
   const [kind, setKind] = useState<'tudo' | CopyKind>('tudo');
   const [status, setStatus] = useState<Status>('tudo');
   const [view, setView] = useState(loadView);
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState<AddMode | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE);
@@ -138,7 +138,8 @@ export function Collection() {
           <div className="collection__tools">
             <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
             <button className="btn ghost" onClick={() => download(new Blob([collectionCsv(s)], { type: 'text/csv;charset=utf-8' }), `winnerz-colecao-${new Date().toISOString().slice(0, 10)}.csv`)} disabled={!s.copies.length}>Exportar planilha</button>
-            <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar jogo</button>
+            <button className="btn ghost collection__cam" onClick={() => setAdding('codigo')}><Icon name="camera" size={16} />Pela câmera</button>
+            <button className="btn primary" onClick={() => setAdding('nome')}><Icon name="mais" size={16} />Adicionar jogo</button>
           </div>
           <SubNav pillar="colecao" />
         </div>
@@ -222,7 +223,7 @@ export function Collection() {
           <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Sua estante está vazia</p>
           <p className="muted">Comece pelo jogo que está na sua mesa agora, ou traga sua planilha inteira de uma vez.</p>
           <div className="hero__actions">
-            <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button>
+            <button className="btn primary" onClick={() => setAdding('nome')}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button>
             <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
           </div>
         </div>
@@ -244,7 +245,7 @@ export function Collection() {
       </div>
 
       {open && <CopySheet copyId={open} onClose={() => setOpen(null)} />}
-      {adding && <AddGameDialog onClose={() => setAdding(false)} />}
+      {adding && <AddGameDialog mode={adding} onClose={() => setAdding(null)} />}
     </main>
   );
 }

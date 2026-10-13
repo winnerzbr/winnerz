@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { actions, useStore } from '../data/store';
 import type { CopyKind, Game } from '../data/types';
 import { Icon } from './Icon';
+import { BarcodeScan, ConfirmList, PhotoRead, foundFromPhoto, resolveAll, resolveFound, type Found } from './CameraAdd';
 
 export interface Hit { igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game }
 
@@ -55,8 +56,14 @@ export async function loadGame(hit: Hit): Promise<Game | null> {
   return gameFromApi(await r.json());
 }
 
-export function AddGameDialog({ onClose, initial }: { onClose: () => void; initial?: Hit }) {
+export type AddMode = 'nome' | 'codigo' | 'foto';
+
+export function AddGameDialog({ onClose, initial, mode: startMode = 'nome' }: { onClose: () => void; initial?: Hit; mode?: AddMode }) {
   const games = useStore((s) => s.games);
+  const online = useStore((s) => s.mode === 'supabase' && !!s.profile);
+  const [mode, setMode] = useState<AddMode>(initial ? 'nome' : startMode);
+  const [found, setFound] = useState<Found[]>([]);
+  const [lastCode, setLastCode] = useState('');
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
   const [source, setSource] = useState<'igdb' | 'local' | null>(null);
@@ -67,7 +74,8 @@ export function AddGameDialog({ onClose, initial }: { onClose: () => void; initi
   const [error, setError] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { input.current?.focus(); const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); document.addEventListener('keydown', esc); return () => document.removeEventListener('keydown', esc); }, [onClose]);
+  useEffect(() => { if (mode === 'nome') input.current?.focus(); }, [mode]);
+  useEffect(() => { const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose(); document.addEventListener('keydown', esc); return () => document.removeEventListener('keydown', esc); }, [onClose]);
 
   useEffect(() => {
     if (q.trim().length < 2) { setHits([]); return; }
@@ -88,11 +96,43 @@ export function AddGameDialog({ onClose, initial }: { onClose: () => void; initi
     onClose();
   };
 
+  const upd = (f: Found) => setFound((l) => l.map((x) => (x.key === f.key ? f : x)));
+  const onCode = (code: string) => {
+    setLastCode(code);
+    if (found.some((x) => x.barcode === code && x.from === 'codigo')) return;
+    const f: Found = { key: `c${code}`, from: 'codigo', read: code, barcode: code, hits: [], chosen: null, platform: '', kind: 'fisico', include: false, searching: true };
+    setFound((l) => [f, ...l]);
+    resolveFound(f, Object.values(games), online).then(upd);
+  };
+  const onGames = (list: { title: string; platform: string; barcode: string; confidence: string }[]) => {
+    const fs = list.map(foundFromPhoto);
+    setFound((l) => [...fs, ...l]);
+    resolveAll(fs, Object.values(games), online, upd);
+  };
+  const wide = mode !== 'nome' && !pick;
+
   return (
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="modal" role="dialog" aria-modal="true" aria-labelledby="add-title">
+      <div className={`modal${wide ? ' modal--wide' : ''}`} role="dialog" aria-modal="true" aria-labelledby="add-title">
         <div className="modal__head"><h2 id="add-title" className="t" style={{ fontSize: 40 }}>{initial ? 'Adicionar à coleção' : 'Adicionar à estante'}</h2><button className="icon-btn" aria-label="Fechar" onClick={onClose}><Icon name="fechar" /></button></div>
-        {!pick ? (
+        {!pick && !initial && (
+          <div className="seg addmode" role="tablist" aria-label="Como adicionar">
+            {([['nome', 'Pelo nome', 'buscar'], ['codigo', 'Código de barras', 'camera'], ['foto', 'Foto das capas', 'camera']] as const).map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={mode === k} aria-pressed={mode === k} onClick={() => setMode(k)}>{l}</button>
+            ))}
+          </div>
+        )}
+        {mode === 'codigo' && !pick ? (
+          <div className="camadd">
+            <BarcodeScan onCode={onCode} last={lastCode} />
+            <ConfirmList items={found} setItems={setFound} online={online} onDone={() => onClose()} />
+          </div>
+        ) : mode === 'foto' && !pick ? (
+          <div className="camadd">
+            <PhotoRead online={online} onGames={onGames} />
+            <ConfirmList items={found} setItems={setFound} online={online} onDone={() => onClose()} />
+          </div>
+        ) : !pick ? (
           <>
             <label htmlFor="add-q" className="sr-only">Nome do jogo</label>
             <input id="add-q" ref={input} className="field" placeholder="Digite o nome do jogo" value={q} onChange={(e) => setQ(e.target.value)} style={{ marginTop: 16 }} />

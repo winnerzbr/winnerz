@@ -2047,3 +2047,22 @@ a.gev { color: var(--ink); }
 @keyframes teaser-breath { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 @keyframes teaser-sun { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 :root[data-motion='reduzidas'] .teaser__glow, :root[data-motion='reduzidas'] .teaser__horizon span { animation: none; }
+
+/* Início: os nomes na linha do horizonte não passam por cima da capa vizinha */
+.hz__item:not(.hz__item--today) > .hz__label { width: 100%; max-width: 100%; box-sizing: border-box; }
+.hz__text { flex: 1 1 0; min-width: 0; align-items: stretch; }
+.hz__item--next .hz__text { text-align: right; }
+.hz__title, .hz__sub, .hz__date { display: block; max-width: 100%; min-width: 0; }
+.hz__date { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 600px) { .hz__title { display: -webkit-box; } }
+
+/* Buscar: capas maiores em "Do seu universo" */
+.uv__cover { width: 72px; height: 96px; }
+.uv__title { font-size: 18px; }
+.uv__link { gap: 20px; padding-top: 12px; padding-bottom: 12px; }
+@media (max-width: 760px) { .uv__cover { width: 60px; height: 80px; } .uv__title { font-size: 16px; } }
+
+/* O que jogar hoje: capa do jogo sugerido maior */
+.home-cols .what__cover img { width: 112px; height: 150px; }
+.jindex__aside .what__cover img { width: 100px; height: 134px; }
+.what__cover img { border-radius: 10px; }

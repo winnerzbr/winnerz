@@ -162,6 +162,29 @@ async function cacheGames<T extends Record<string, unknown>>(input: T[]): Promis
   return out;
 }
 
+/**
+ * Correções aceitas pela administração (migração 0021): o banco já grava a ficha com elas,
+ * mas a resposta daqui é montada a partir do IGDB, então aplica de novo antes de devolver.
+ */
+async function withFixes<T extends Record<string, unknown>>(rows: T[]): Promise<T[]> {
+  const c = db();
+  const ids = rows.map((r) => r.id).filter((x): x is string => typeof x === 'string');
+  if (!c || !ids.length) return rows;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/games?select=id,fixes&fixes=not.is.null&id=in.(${ids.map((x) => `"${x.replace(/"/g, '')}"`).join(',')})`, { headers: c.headers });
+    if (!r.ok) return rows; // banco sem a 0021: segue sem correções
+    const by = new Map(((await r.json()) as { id: string; fixes: Record<string, { v: unknown }> | null }[]).map((x) => [x.id, x.fixes]));
+    return rows.map((row) => {
+      const fx = by.get(row.id as string);
+      if (!fx || !Object.keys(fx).length) return row;
+      const out: Record<string, unknown> = { ...row, fixes: fx };
+      for (const [k, f] of Object.entries(fx)) if (f && 'v' in f && k in FIXABLE) out[k] = f.v;
+      return out as T;
+    });
+  } catch { return rows; }
+}
+const FIXABLE: Record<string, true> = { title: true, year: true, developer: true, publisher: true, platforms: true, summary: true, summary_source: true, cover: true };
+
 async function cachedSummary(igdbId: number): Promise<{ summary?: string; summary_original?: string } | null> {
   const c = db();
   if (!c) return null;
@@ -325,7 +348,7 @@ async function cacheMany(ids: number[]) {
   const ttb = await timesToBeat(rows.map((r: any) => r.id));
   const withIds = await assignIds(rows.map((r: any) => ({ ...lightRow(r), ttb: ttb.get(r.id) ?? null })));
   // Não apaga sinopse, vídeos etc. de fichas que já estavam completas: só envia os campos leves.
-  return cacheGames(withIds);
+  return withFixes(await cacheGames(withIds));
 }
 
 /** Ficha completa (com tradução, mídia sem logotipos e tempo para zerar), gravada no cache. */
@@ -371,7 +394,7 @@ async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fr
     updated_at: new Date().toISOString(),
   };
   // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada.
-  const [stored = game] = await cacheGames([game]);
+  const [stored = game] = await withFixes(await cacheGames([game]));
   // Sem tradução (limite gratuito do dia, por exemplo), o CDN guarda por pouco tempo para tentar de novo.
   return { game: stored, fresh: !!translated || !original };
 }

@@ -39,7 +39,11 @@ export interface Game {
   releasedOn?: string;
   /** Quando a ficha foi atualizada pela última vez a partir da fonte (para manter os dados em dia). */
   updatedAt?: string;
+  /** Correções aceitas pela administração (nome da coluna no banco → valor corrigido e o que o IGDB dizia). */
+  fixes?: GameFixes;
 }
+
+export type GameFixes = Record<string, { v: unknown; was?: unknown; at?: string }>;
 
 /** Pilar Coleção: exemplar (posse) — separado da relação com o jogo. */
 export type CopyKind = 'fisico' | 'digital' | 'assinatura' | 'outro';

@@ -108,13 +108,14 @@ const TABS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
   { to: '/jogos', label: 'Jogos', icon: 'jogos', on: (p: string) => p.startsWith('/jogos') },
 ];
-const MORE = ['/comunidade', '/eventos', '/preferencias', '/entrar'];
+const MORE = ['/comunidade', '/eventos', '/preferencias', '/entrar', '/studio'];
 
 /** No celular, os pilares ficam numa barra fixa embaixo; Comunidade, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {
   const path = usePath();
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
+  const isAdmin = useStore((s) => !!s.isAdmin);
   const [more, setMore] = useState(false);
   const moreOn = MORE.some((m) => path.startsWith(m));
 
@@ -137,6 +138,7 @@ export function TabBar() {
           <nav className="moremenu" aria-label="Mais seções">
             <Link to="/comunidade" className="moremenu__item" aria-current={path.startsWith('/comunidade') ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>Em breve</small></span></Link>
             <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
+            {isAdmin && <Link to="/studio/correcoes" className="moremenu__item" aria-current={path.startsWith('/studio') ? 'page' : undefined}><Icon name="caneta" size={20} /><span><b>Correções</b><small>Fila do "Algo errado nesta ficha?" e qualidade dos dados</small></span></Link>}
             {profile
               ? <Link to="/preferencias" className="moremenu__item" aria-current={path.startsWith('/preferencias') ? 'page' : undefined}><span className={`avatar moremenu__avatar${profile.avatar ? ' avatar--img' : ''}`}>{profile.avatar ? <img src={profile.avatar} alt="" /> : profile.initial}</span><span><b>Preferências</b><small>Conta, privacidade e ajustes</small></span></Link>
               : <Link to="/entrar" className="moremenu__item"><Icon name="cadeado" size={20} /><span><b>Entrar</b><small>Guarde sua Jornada em qualquer aparelho</small></span></Link>}

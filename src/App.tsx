@@ -47,6 +47,7 @@ import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
 import { AwardsAdminPage } from './pages/AwardsAdmin';
+import { StudioFixesPage } from './pages/StudioFixes';
 import { AwardsRevealPage } from './pages/AwardsReveal';
 
 function Routes({ path }: { path: string }): ReactNode {
@@ -84,6 +85,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
+  if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} vitrine={m.id} />;

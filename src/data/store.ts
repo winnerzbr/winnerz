@@ -1,3 +1,4 @@
+import { keepFixes } from '../lib/fixes';
 import { useSyncExternalStore } from 'react';
 import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom } from './types';
 import type { Rating } from '../lib/rating';
@@ -155,7 +156,8 @@ function reduce(s: State, a: Action): State {
     case 'review.save':
       return { ...s, reviews: [...s.reviews.filter((r) => r.id !== a.review.id), a.review] };
     case 'games.merge':
-      return { ...s, games: { ...s.games, ...Object.fromEntries(a.games.map((g) => [g.id, g])) } };
+      // Uma ficha que chega do IGDB (às vezes de um cache antigo) não desfaz as correções aceitas.
+      return { ...s, games: { ...s.games, ...Object.fromEntries(a.games.map((g) => [g.id, keepFixes(s.games[g.id], g)])) } };
     case 'copy.add':
       return { ...s, copies: [...s.copies, a.copy] };
     case 'reviews.merge':

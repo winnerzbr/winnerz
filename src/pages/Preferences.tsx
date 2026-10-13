@@ -19,6 +19,7 @@ const SAMPLES = [
 export function Preferences() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
+  const isAdmin = useStore((s) => !!s.isAdmin);
   const preview = darkTokens(prefs.black);
   const white = prefs.white ?? WHITE_DEFAULT;
   const lightPreview = lightTokens(white);
@@ -142,6 +143,15 @@ export function Preferences() {
         <p className="muted prefs__p">O que guardamos, por quê e o que você pode fazer: <Link to="/privacidade">Privacidade</Link>. De onde vêm as informações dos jogos: <Link to="/sobre">Sobre o WinnerZ</Link>.</p>
       </section>
 
+      {isAdmin && (
+        <section className="prefs__section" aria-labelledby="adm">
+          <h2 id="adm" className="t">Administração</h2>
+          <div className="prefs__admin">
+            <Link className="btn ghost" to="/studio/correcoes">Correções e qualidade dos dados</Link>
+            <Link className="btn ghost" to="/eventos/awards/admin">Montar o WinnerZ Awards</Link>
+          </div>
+        </section>
+      )}
       <section className="prefs__section" aria-labelledby="conta">
         <h2 id="conta" className="t">Conta</h2>
         {SUPABASE_ON ? (

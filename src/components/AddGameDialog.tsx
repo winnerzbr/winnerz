@@ -15,7 +15,7 @@ export function gameFromApi(r: any): Game {
     summarySource: r.summary_source ?? undefined, releases: r.releases ?? undefined, screenshots: r.screenshots ?? undefined,
     summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
   artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
-    ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined, source: r.source ?? 'igdb', updatedAt: r.updated_at ?? undefined,
+    ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined, source: r.source ?? 'igdb', updatedAt: r.updated_at ?? undefined, fixes: r.fixes ?? undefined,
   };
 }
 

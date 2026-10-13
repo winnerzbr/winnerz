@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FixSheet } from '../components/FixSheet';
+import { fixedFields, fixLabel } from '../lib/fixes';
 import { Link, navigate } from '../lib/router';
 import { actions, dispatch, useStore, journeyForGame, currentHistory, historiesOf, openSession, myGame } from '../data/store';
 import { PastButton } from '../components/PastPlay';
@@ -101,6 +103,8 @@ function GameView({ gameId }: { gameId: string }) {
     refreshGame(g.igdbId).then((fresh) => { if (fresh && fresh.id === gameId) actions.mergeGames([fresh]); });
   }, [gameId, g.igdbId, g.videos, g.summarySource, g.updatedAt]);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [fixOpen, setFixOpen] = useState(false);
+  const fixed = fixedFields(g);
   const media = useMemo(() => buildMedia(g.videos, g.screenshots, g.artworks), [g.videos, g.screenshots, g.artworks]);
 
   const avg = stats?.avg ?? (reviews.length ? reviews.reduce((a, r) => a + r.rating.normalized, 0) / reviews.length : null);
@@ -299,8 +303,15 @@ function GameView({ gameId }: { gameId: string }) {
               <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date} className="kv"><dt className="muted">{pt(r.platform)}</dt><dd className="mono kv__v">{r.date}</dd></div>)}</dl>
             </section>
           )}
+          {g.source !== 'manual' && (
+            <div className="gfix">
+              {fixed.size > 0 && <p className="faint gfix__ok">Revisado pela comunidade: {[...fixed].map((k) => fixLabel(k).toLowerCase()).join(', ')}.</p>}
+              <button className="linklike gfix__btn" onClick={() => setFixOpen(true)}>Algo errado nesta ficha?</button>
+            </div>
+          )}
         </aside>
       </div>
+      {fixOpen && <FixSheet game={g} onClose={() => setFixOpen(false)} />}
     </main>
   );
 }

@@ -95,7 +95,7 @@ const gameFromRow = (r: any): Game => ({
   summaryOriginal: r.summary_original ?? undefined, themes: r.themes ?? undefined, modes: r.modes ?? undefined,
   artworks: r.artworks ?? undefined, videos: r.videos ?? undefined,
   source: r.source ?? 'igdb', createdBy: r.created_by ?? undefined,
-  ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined,
+  ttb: r.ttb ?? undefined, releasedOn: r.released_on ?? undefined, fixes: r.fixes ?? undefined,
 });
 const historyFromRow = (r: any): History => ({
   id: r.id, journeyId: r.journey_id, ordinal: r.ordinal, title: r.title, state: r.state,

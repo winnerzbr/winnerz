@@ -2614,3 +2614,79 @@ a.gev { color: var(--ink); }
 .nick__hint.is-ok { color: #8fd19e; }
 .nick__hint.is-bad { color: #e08a7a; }
 .nick__box .btn.lg { width: 100%; margin-top: 4px; }
+.pfs__check { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+.pfs__check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--now); flex: none; }
+.pfs__check span { display: flex; flex-direction: column; gap: 4px; }
+.pfs__check small { color: var(--muted); font-size: 13px; line-height: 1.45; }
+.pfs__links { gap: 10px; }
+.pfs__link { display: flex; gap: 8px; align-items: center; }
+.pfs__link .field { flex: 1; min-width: 0; font-weight: 400; }
+.pfs__ltag { font: 400 11px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--now-ink); min-width: 64px; }
+.pfs__add { align-self: flex-start; }
+.jshare { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; padding: 6px 2px; }
+.jshare input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--now); flex: none; }
+.jshare > span { display: flex; flex-direction: column; gap: 4px; }
+.jshare > span > span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+/* Etapa 5 · 3: a Jornada em público */
+.pph__links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.pp-live { position: relative; display: flex; align-items: center; gap: 16px; margin-top: 40px; padding: 16px 20px; border-radius: 16px; background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); color: var(--ink); text-decoration: none; }
+.pp-live__dot { position: absolute; right: 20px; top: 20px; width: 10px; height: 10px; border-radius: 50%; background: var(--live); box-shadow: 0 0 12px var(--live); animation: wz-pulse 1.8s ease-in-out infinite; }
+.pp-live__cover { width: 48px; height: 64px; border-radius: 6px; overflow: hidden; flex: none; }
+.pp-live__cover img, .pp-live__cover .cover-art { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pp-live__text { display: flex; flex-direction: column; gap: 4px; }
+.pp-live__text b { font-size: 18px; }
+.pp-show { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 16px; }
+.pp-show__card { position: relative; display: flex; align-items: flex-end; min-height: 240px; border-radius: 16px; overflow: hidden; background: #07080A; color: #E6E9ED; text-decoration: none; }
+.pp-show__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 1.2s cubic-bezier(.2, .8, .2, 1); }
+.pp-show__card:hover .pp-show__bg { transform: scale(1.05); }
+.pp-show__shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(7, 8, 10, .95), rgba(7, 8, 10, .1) 70%); }
+.pp-show__text { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 22px; }
+.pp-show__text .kicker { color: #FFB25B; }
+.pp-show__text b.t { font-size: 32px; line-height: .9; }
+.pp-show__meta { font-size: 13px; color: #C9CED4; }
+
+.pjh { position: relative; overflow: hidden; background: #07080A; color: #E6E9ED; }
+.pjh__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(.55) saturate(.9); }
+.pjh__shade { position: absolute; inset: 0; background: linear-gradient(0deg, var(--bg) 0%, rgba(7, 8, 10, .45) 55%, rgba(7, 8, 10, .75) 100%); }
+.pjh__inner { position: relative; display: flex; flex-direction: column; gap: 14px; padding-top: 96px; padding-bottom: 48px; }
+.pjh__back { color: #C9CED4; text-decoration: none; align-self: flex-start; }
+.pjh__back:hover { color: #FFB25B; }
+.pjh__title { font-size: clamp(44px, 6.5vw, 96px); line-height: .88; max-width: 16ch; }
+.pjh__meta { margin: 0; color: #C9CED4; }
+.pjh__stats { display: flex; gap: 32px; margin: 10px 0 0; }
+.pjh__stats div { display: flex; flex-direction: column-reverse; gap: 6px; }
+.pjh__stats dt { font: 400 11px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: #9AA1AA; }
+.pjh__stats dd { margin: 0; font-size: 36px; line-height: .9; }
+.pj__body { max-width: 860px; padding-bottom: 40px; }
+.pj__hist { padding-top: 48px; }
+.pj__hhead { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.pj__hhead h2 { font-size: 30px; line-height: 1; }
+.pjt { list-style: none; margin: 0; padding: 0 0 0 30px; position: relative; }
+.pjt::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, var(--now), var(--line-2) 30%, var(--line)); }
+.pjt__item { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 0 0 34px; }
+.pjt__mk { position: absolute; left: -29px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 2px var(--ink-2); }
+.pjt__item--momento .pjt__mk { box-shadow: inset 0 0 0 2px var(--now); }
+.pjt__item--marco .pjt__mk, .pjt__item--inicio .pjt__mk { border-radius: 2px; transform: rotate(45deg); box-shadow: inset 0 0 0 2px #E2BE84; }
+.pjt__item--sess .pjt__mk { width: 8px; height: 8px; left: -27px; top: 5px; background: var(--line-2); box-shadow: none; }
+.pjt__date { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.pjt__item--momento .pjt__date { color: var(--now-ink); }
+.pjt__title { margin: 0; font-size: 20px; font-weight: 600; }
+.pjt__sess { color: var(--muted); font-size: 14px; }
+.pjt__item--sess { padding-bottom: 26px; }
+.pjt__quote { margin: 0; font-family: var(--font-serif); font-size: 19px; line-height: 1.5; color: var(--ink); }
+.pjt__text { margin: 0; color: var(--ink-2); line-height: 1.55; }
+.pjt__photo { padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; max-width: 640px; margin-top: 4px; }
+.pjt__photo img { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover; transition: transform .6s; }
+.pjt__photo:hover img { transform: scale(1.02); }
+.pj__foot { margin-top: 20px; font-size: 13px; }
+.pj-lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(5, 6, 8, .94); display: grid; place-items: center; padding: 24px; cursor: zoom-out; }
+.pj-lightbox img { max-width: 100%; max-height: 88vh; border-radius: 8px; }
+.pj-lightbox__x { position: absolute; top: 16px; right: 16px; color: #E6E9ED; }
+@media (max-width: 760px) {
+  .pjh__inner { padding-top: 56px; padding-bottom: 32px; }
+  .pjh__stats { gap: 22px; }
+  .pjh__stats dd { font-size: 28px; }
+  .pp-show__card { min-height: 200px; }
+  .pp-show__text b.t { font-size: 26px; }
+}

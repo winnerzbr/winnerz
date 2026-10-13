@@ -126,6 +126,8 @@ export interface Journey {
   createdAt?: string;
   mood: JourneyMood;
   pausedNote?: string;
+  /** Mostrada no perfil público (vitrine). Só aparece para quem pode ver o pilar Jornada. */
+  shared?: boolean;
 }
 
 export interface Session {

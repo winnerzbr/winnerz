@@ -17,6 +17,7 @@ export type ImportPayload = {
 export type Action =
   | { type: 'prefs'; prefs: Partial<Prefs> }
   | { type: 'profile.name'; name: string }
+  | { type: 'journey.share'; journeyId: ID; shared: boolean }
   | { type: 'favorite'; gameId: ID; value: boolean }
   | { type: 'wish'; gameId: ID; value: boolean }
   | { type: 'journey.create'; journey: Journey; history: History; event: TimelineEvent }
@@ -91,6 +92,8 @@ export async function initStore(a: Adapter) {
 
 function reduce(s: State, a: Action): State {
   switch (a.type) {
+    case 'journey.share':
+      return { ...s, journeys: s.journeys.map((j) => (j.id === a.journeyId ? { ...j, shared: a.shared } : j)) };
     case 'profile.name':
       return s.profile ? { ...s, profile: { ...s.profile, name: a.name, initial: a.name.slice(0, 1).toUpperCase() } } : s;
     case 'prefs':
@@ -397,6 +400,8 @@ export const actions = {
   setPrefs(prefs: Partial<Prefs>) { dispatch({ type: 'prefs', prefs }); },
   /** O nome no site é o @ escolhido (já gravado no banco pela função do perfil). */
   setProfileName(name: string) { dispatch({ type: 'profile.name', name }); },
+  /** Mostrar (ou esconder) uma Jornada no perfil público. */
+  shareJourney(journeyId: ID, shared: boolean) { dispatch({ type: 'journey.share', journeyId, shared }); },
 
   toggleFavorite(gameId: ID) {
     const value = !state.favorites.includes(gameId);

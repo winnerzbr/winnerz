@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
-import { profileApi, type PublicProfile } from '../data/profileApi';
+import { linkLabel, profileApi, type PublicProfile } from '../data/profileApi';
 import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
@@ -64,6 +64,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
             <h1 className="t pph__name">{data.name}</h1>
             {data.bio && <p className="pph__bio">{data.bio}</p>}
             <p className="pph__since">No WinnerZ desde {since(data.since)}</p>
+            {!!data.links?.length && <div className="pph__links">{data.links.map((l) => <a key={l.url} className="btn ghost sm" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>)}</div>}
           </div>
           <dl className="pph__stats">
             {j && <><div><dt>Jornadas</dt><dd className="t">{j.journeys}</dd></div><div><dt>Zerados</dt><dd className="t">{j.finished}</dd></div></>}
@@ -74,6 +75,33 @@ export function PublicProfilePage({ handle }: { handle: string }) {
       </section>
 
       <div className="page pp__body">
+        {data.live && (
+          <Link to={`/jogos/${data.live.slug}`} className="pp-live">
+            <span className="pp-live__dot" aria-hidden="true" />
+            <span className="pp-live__cover"><CoverArt game={{ title: data.live.title, cover: data.live.cover ?? '' }} /></span>
+            <span className="pp-live__text"><span className="kicker kicker--now">Jogando agora</span><b>{data.live.title}</b><span className="muted">Sessão aberta desde {new Date(data.live.since).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}</span></span>
+          </Link>
+        )}
+
+        {!!data.showcase?.length && (
+          <section className="pp__sec" aria-labelledby="pp-s">
+            <h2 id="pp-s" className="t pp__h">Jornadas em destaque</h2>
+            <ul className="pp-show">
+              {data.showcase.map((g) => (
+                <li key={g.slug}><Link to={`/@${data.handle.toLowerCase()}/${g.slug}${key ? `?k=${key}` : ''}`} className="pp-show__card on-photo">
+                  {(g.backdrop || g.cover) && <img className="pp-show__bg" src={g.backdrop || g.cover!} alt="" loading="lazy" />}
+                  <span className="pp-show__shade" aria-hidden="true" />
+                  <span className="pp-show__text">
+                    <span className="kicker">{g.finished ? 'Zerado' : 'Em andamento'}{g.stories > 1 ? ` · ${g.stories} Histórias` : ''}</span>
+                    <b className="t">{g.title}</b>
+                    <span className="pp-show__meta">{g.moments} {g.moments === 1 ? 'momento guardado' : 'momentos guardados'} · Ver a linha do tempo →</span>
+                  </span>
+                </Link></li>
+              ))}
+            </ul>
+          </section>
+        )}
+
         {j && (
           <section className="pp__sec" aria-labelledby="pp-j">
             <h2 id="pp-j" className="t pp__h">Jornada</h2>

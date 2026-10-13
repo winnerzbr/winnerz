@@ -113,6 +113,14 @@ export function JourneyMenu({ journeyId, onClose, onEditHistory, onStateChanged 
         </div>
       </section>
 
+      <section className="jmenu__group" aria-labelledby="jmenu-share">
+        <h3 id="jmenu-share" className="jmenu__h">No seu perfil</h3>
+        <label className="jshare">
+          <input type="checkbox" checked={!!journey.shared} onChange={(e) => actions.shareJourney(journey.id, e.target.checked)} />
+          <span><strong>Mostrar esta Jornada no meu perfil</strong><span>Aparece para quem pode ver a sua Jornada (escolha em Preferências): o início, as sessões, os momentos com foto e os marcos. Recados, pontos para voltar e cartas continuam só seus.</span></span>
+        </label>
+      </section>
+
       <section className="jmenu__group" aria-labelledby="jmenu-hist">
         <h3 id="jmenu-hist" className="jmenu__h">Histórias</h3>
         <ul className="jmenu__hists">

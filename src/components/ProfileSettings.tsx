@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore } from '../data/store';
-import { HANDLE_RE, PILLARS, profileApi, profileUrl, visOf, type MyProfile, type Pillar, type Visibility } from '../data/profileApi';
+import { HANDLE_RE, PILLARS, linkLabel, profileApi, profileUrl, visOf, type MyProfile, type MyVisibility, type ProfileLink } from '../data/profileApi';
 
-const OPTS: { v: Visibility; label: string }[] = [
+const OPTS: { v: 'privado' | 'link' | 'publico'; label: string }[] = [
   { v: 'privado', label: 'Só você' },
   { v: 'link', label: 'Quem tem o link' },
   { v: 'publico', label: 'Todo mundo' },
@@ -16,7 +16,8 @@ export function ProfileSettings() {
   const [mine, setMine] = useState<MyProfile | null>(null);
   const [handle, setHandle] = useState('');
   const [bio, setBio] = useState('');
-  const [vis, setVis] = useState<Partial<Record<Pillar, Visibility>>>({});
+  const [vis, setVis] = useState<MyVisibility>({});
+  const [links, setLinks] = useState<ProfileLink[]>([]);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok?: string; err?: string }>({});
   const [copied, setCopied] = useState(false);
@@ -24,7 +25,7 @@ export function ProfileSettings() {
   useEffect(() => {
     if (mode === 'supabase' && !profile) return;
     profileApi.mine().then((p) => {
-      setMine(p); setHandle(p?.handle ?? ''); setBio(p?.bio ?? ''); setVis(p?.visibility ?? {});
+      setMine(p); setHandle(p?.handle ?? ''); setBio(p?.bio ?? ''); setVis(p?.visibility ?? {}); setLinks(p?.links ?? []);
     }).catch((e) => setMsg({ err: e instanceof Error ? e.message : 'Não consegui carregar o perfil.' }));
   }, [mode, profile]);
 
@@ -32,7 +33,10 @@ export function ProfileSettings() {
 
   const h = handle.trim();
   const badHandle = !!h && !HANDLE_RE.test(h);
-  const dirty = !!mine && (h !== (mine.handle ?? '') || bio.trim() !== (mine.bio ?? '') || PILLARS.some((p) => (vis[p.key] ?? 'privado') !== visOf(mine, p.key)));
+  const cleanLinks = links.filter((l) => l.url.trim());
+  const badLink = cleanLinks.some((l) => !/^https:\/\/\S{3,200}$/.test(l.url.trim()));
+  const linksDirty = !!mine && JSON.stringify(cleanLinks.map((l) => l.url.trim())) !== JSON.stringify((mine.links ?? []).map((l) => l.url));
+  const dirty = !!mine && (h !== (mine.handle ?? '') || bio.trim() !== (mine.bio ?? '') || (vis.aoVivo ?? 'nao') !== (mine.visibility?.aoVivo ?? 'nao') || linksDirty || PILLARS.some((p) => (vis[p.key] ?? 'privado') !== visOf(mine, p.key)));
   const savedOpen = !!mine && PILLARS.some((p) => visOf(mine, p.key) !== 'privado');
   const usesLink = !!mine && PILLARS.some((p) => visOf(mine, p.key) === 'link');
   const url = mine && savedOpen ? profileUrl(mine) : null;
@@ -41,8 +45,9 @@ export function ProfileSettings() {
     if (!h) { setMsg({ err: 'Escolha o seu @.' }); return; }
     setBusy(true); setMsg({});
     try {
-      const p = await profileApi.save(h, bio, Object.fromEntries(PILLARS.map((x) => [x.key, vis[x.key] ?? 'privado'])));
-      setMine(p); setHandle(p.handle ?? ''); setBio(p.bio ?? ''); setVis(p.visibility ?? {});
+      let p = await profileApi.save(h, bio, { ...Object.fromEntries(PILLARS.map((x) => [x.key, vis[x.key] ?? 'privado'])), aoVivo: vis.aoVivo ?? 'nao' });
+      if (linksDirty) p = await profileApi.setLinks(cleanLinks);
+      setMine(p); setHandle(p.handle ?? ''); setBio(p.bio ?? ''); setVis(p.visibility ?? {}); setLinks(p.links ?? []);
       if (p.handle) actions.setProfileName(p.handle);
       setMsg({ ok: 'Perfil gravado.' });
     } catch (e) { setMsg({ err: e instanceof Error ? e.message : 'Não deu certo.' }); }
@@ -83,8 +88,26 @@ export function ProfileSettings() {
         ))}
       </div>
 
+      <label className="pfs__check">
+        <input type="checkbox" checked={vis.aoVivo === 'sim'} onChange={(e) => setVis((x) => ({ ...x, aoVivo: e.target.checked ? 'sim' : 'nao' }))} />
+        <span><b>Mostrar quando estou jogando</b><small>Com uma sessão aberta, o perfil mostra "Jogando agora" com o jogo e desde quando. Bom para quem acompanha as lives. Só aparece para quem pode ver a sua Jornada.</small></span>
+      </label>
+
+      <div className="pfs__field pfs__links">
+        <span>Links do canal</span>
+        {links.map((l, i) => (
+          <span key={i} className="pfs__link">
+            <input className="field" value={l.url} placeholder="https://youtube.com/@seucanal" onChange={(e) => setLinks((x) => x.map((y, k) => (k === i ? { ...y, url: e.target.value } : y)))} aria-label={`Link ${i + 1}`} />
+            <span className="pfs__ltag">{l.url.trim() ? linkLabel({ url: l.url.trim() }) : ''}</span>
+            <button className="btn quiet sm" onClick={() => setLinks((x) => x.filter((_, k) => k !== i))} aria-label="Tirar link">Tirar</button>
+          </span>
+        ))}
+        {links.length < 6 && <button className="btn ghost sm pfs__add" onClick={() => setLinks((x) => [...x, { url: '' }])}>Adicionar link</button>}
+        {badLink && <small className="pfs__err">Os links precisam começar com https://</small>}
+      </div>
+
       <div className="acct__row">
-        <button className="btn primary" onClick={save} disabled={busy || !dirty || badHandle}>{busy ? 'Gravando…' : 'Gravar perfil'}</button>
+        <button className="btn primary" onClick={save} disabled={busy || !dirty || badHandle || badLink}>{busy ? 'Gravando…' : 'Gravar perfil'}</button>
       </div>
       {msg.err && <p className="awards__error" role="alert">{msg.err}</p>}
       {msg.ok && <p className="acct__note" role="status">{msg.ok}</p>}

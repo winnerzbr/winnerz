@@ -14,7 +14,19 @@ export const PILLARS: { key: Pillar; label: string; hint: string }[] = [
   { key: 'notas', label: 'Notas e análises', hint: 'Suas notas e os textos das análises. Análises com spoiler aparecem sem o texto.' },
 ];
 
-export type MyProfile = { handle: string | null; bio: string | null; visibility: Partial<Record<Pillar, Visibility>>; shareKey: string };
+export type ProfileLink = { url: string; label?: string };
+export type MyVisibility = Partial<Record<Pillar, Visibility>> & { aoVivo?: 'sim' | 'nao' };
+export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[] };
+
+/** Nome do serviço pelo endereço (para o botão do link). */
+export function linkLabel(l: ProfileLink): string {
+  if (l.label) return l.label;
+  try {
+    const host = new URL(l.url).hostname.replace(/^www\./, '');
+    const known: Record<string, string> = { 'youtube.com': 'YouTube', 'youtu.be': 'YouTube', 'twitch.tv': 'Twitch', 'instagram.com': 'Instagram', 'x.com': 'X', 'twitter.com': 'X', 'tiktok.com': 'TikTok', 'discord.gg': 'Discord', 'discord.com': 'Discord', 'kick.com': 'Kick', 'facebook.com': 'Facebook', 'threads.net': 'Threads', 'bsky.app': 'Bluesky' };
+    return known[host] ?? host;
+  } catch { return 'Link'; }
+}
 
 export type PublicProfile = {
   name: string; handle: string; bio: string | null; since: string; onlyLink: boolean;
@@ -25,6 +37,16 @@ export type PublicProfile = {
   };
   colecao?: { count: number; platforms: { platform: string; n: number }[]; items: { title: string; slug: string; cover: string | null; platform: string }[] };
   notas?: { title: string; slug: string; cover: string | null; normalized: number; originalScale: 'TEN_POINT' | 'FIVE_STAR'; originalValue: number; reviewTitle: string; text: string; spoiler: boolean; at: string }[];
+  links?: ProfileLink[];
+  showcase?: { title: string; slug: string; cover: string | null; backdrop: string | null; stories: number; moments: number; finished: boolean; lastAt: string | null }[];
+  live?: { title: string; slug: string; cover: string | null; since: string };
+};
+
+export type PublicJourney = {
+  name: string; handle: string;
+  game: { title: string; slug: string; cover: string | null; backdrop: string | null; year?: number | null; developer?: string | null };
+  histories: { id: string; ordinal: number; title: string; state: string; startedAt: string; startedPrecision: DatePrecision; completedAt: string | null; completedPrecision: DatePrecision; progress: number | null }[];
+  events: { id: string; historyId: string; kind: 'inicio' | 'sessao' | 'momento' | 'marco'; at: string; dateLabel?: string | null; title: string; text?: string | null; quote?: string | null; image?: string }[];
 };
 
 /** O @: 3 a 24 letras sem acento, números ou _. Guarda as maiúsculas escolhidas; é único sem diferenciá-las. */
@@ -41,6 +63,7 @@ function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
   const key = Object.keys(MSG).find((k) => m.includes(k));
   if (key) return new Error(MSG[key]);
+  if (/set_my_links|public_profile_v2|public_journey/i.test(m)) return new Error('Para isso, rode a migração 0013 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_handle|handle_available/i.test(m)) return new Error('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).');
   if (/my_profile|set_my_profile|public_profile|rotate_share_key|function|schema cache/i.test(m)) return new Error('Para usar o perfil, rode a migração 0011 no Supabase (SQL Editor → colar → Run).');
   return new Error(m || 'Não deu certo. Tente de novo.');
@@ -62,7 +85,7 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
   const show = (k: Pillar) => visOf(me, k) === 'publico' || (visOf(me, k) === 'link' && key === me.shareKey);
   if (!show('jornada') && !show('colecao') && !show('notas')) return null;
   const gameOfJ = (jid: string) => { const j = s.journeys.find((x) => x.id === jid); return j ? s.games[j.gameId] : undefined; };
-  const out: PublicProfile = { name: s.profile?.name ?? 'Você', handle: me.handle, bio: me.bio, since: '2026-01-01T12:00:00Z', onlyLink: !(['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(me, k) === 'publico') };
+  const out: PublicProfile = { name: me.handle, handle: me.handle, bio: me.bio, since: '2026-01-01T12:00:00Z', onlyLink: !(['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(me, k) === 'publico') };
   if (show('jornada')) {
     const hs = s.histories;
     out.jornada = {
@@ -82,6 +105,18 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
       items: s.copies.map((c) => ({ c, g: s.games[c.gameId] })).filter((x) => x.g).slice(0, 60).map(({ c, g }) => ({ title: g.title, slug: g.slug, cover: g.cover, platform: c.platform })),
     };
   }
+  out.links = me.links ?? [];
+  if (show('jornada')) {
+    out.showcase = s.journeys.filter((j) => j.shared && s.games[j.gameId]).map((j) => {
+      const g = s.games[j.gameId], evs = s.events.filter((e) => e.journeyId === j.id);
+      return { title: g.title, slug: g.slug, cover: g.cover, backdrop: g.backdrop ?? null, stories: s.histories.filter((h) => h.journeyId === j.id).length,
+        moments: evs.filter((e) => e.kind === 'momento').length, finished: s.histories.some((h) => h.journeyId === j.id && h.state === 'concluida'),
+        lastAt: evs.map((e) => e.at).sort().pop() ?? null };
+    });
+    const open = s.sessions.find((x) => !x.endedAt);
+    const oj = open && s.journeys.find((j) => j.id === open.journeyId);
+    if (me.visibility.aoVivo === 'sim' && open && oj && s.games[oj.gameId]) out.live = { title: s.games[oj.gameId].title, slug: s.games[oj.gameId].slug, cover: s.games[oj.gameId].cover, since: open.startedAt };
+  }
   if (show('notas')) {
     out.notas = s.reviews.filter((r) => r.mine && s.games[r.gameId]).map((r) => ({
       title: s.games[r.gameId].title, slug: s.games[r.gameId].slug, cover: s.games[r.gameId].cover, normalized: r.rating.normalized,
@@ -89,6 +124,27 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
     }));
   }
   return out;
+}
+
+function demoJourney(handle: string, key: string | null | undefined, slug: string): PublicJourney | null {
+  const me = demoGet();
+  if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return null;
+  if (!(visOf(me, 'jornada') === 'publico' || (visOf(me, 'jornada') === 'link' && key === me.shareKey))) return null;
+  const s = getState();
+  const g = Object.values(s.games).find((x) => x.slug === slug);
+  const j = g && s.journeys.find((x) => x.gameId === g.id && x.shared);
+  if (!g || !j) return null;
+  const hs = s.histories.filter((h) => h.journeyId === j.id).sort((a, b) => a.ordinal - b.ordinal);
+  return {
+    name: me.handle, handle: me.handle,
+    game: { title: g.title, slug: g.slug, cover: g.cover, backdrop: g.backdrop ?? null, year: g.year ?? null, developer: g.developer ?? null },
+    histories: hs.map((h) => ({ id: h.id, ordinal: h.ordinal, title: h.title, state: h.state, startedAt: h.startedAt, startedPrecision: h.startedPrecision ?? 'dia', completedAt: h.completedAt ?? null, completedPrecision: h.completedPrecision ?? 'dia', progress: h.progress ?? null })),
+    events: s.events.filter((e) => e.journeyId === j.id && ['inicio', 'sessao', 'momento', 'marco'].includes(e.kind)).sort((a, b) => a.at.localeCompare(b.at)).map((e) => ({
+      id: e.id, historyId: e.historyId, kind: e.kind as PublicJourney['events'][number]['kind'], at: e.at, dateLabel: e.dateLabel ?? null,
+      title: e.kind === 'sessao' ? 'Sessão' : e.title, text: e.kind === 'sessao' ? null : e.text ?? null, quote: e.kind === 'momento' ? e.quote ?? null : null,
+      image: e.kind === 'sessao' ? undefined : e.image,
+    })),
+  };
 }
 
 /* ---- API ---- */
@@ -102,7 +158,7 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 
 export const profileApi = {
   async mine(): Promise<MyProfile> { return supa() ? rpc<MyProfile>('my_profile') : demoGet(); },
-  async save(handle: string, bio: string, visibility: Partial<Record<Pillar, Visibility>>): Promise<MyProfile> {
+  async save(handle: string, bio: string, visibility: MyVisibility): Promise<MyProfile> {
     const h = handle.trim();
     if (!h) throw new Error(MSG.handle_required);
     if (!HANDLE_RE.test(h)) throw new Error(MSG.handle_format);
@@ -126,8 +182,22 @@ export const profileApi = {
     const next = { ...demoGet(), shareKey: rid() }; demoSet(next); return next;
   },
   async publicOf(handle: string, key?: string | null): Promise<PublicProfile | null> {
-    if (supa()) return rpc<PublicProfile | null>('public_profile', { p_handle: handle, p_key: key ?? null });
-    return demoPublic(handle, key);
+    if (!supa()) return demoPublic(handle, key);
+    try { return await rpc<PublicProfile | null>('public_profile_v2', { p_handle: handle, p_key: key ?? null }); }
+    catch { return rpc<PublicProfile | null>('public_profile', { p_handle: handle, p_key: key ?? null }); }
+  },
+  async journeyOf(handle: string, key: string | null | undefined, slug: string): Promise<PublicJourney | null> {
+    if (!supa()) return demoJourney(handle, key, slug);
+    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&j=${encodeURIComponent(slug)}${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+    if (r.status === 404) return null;
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.error || 'Não consegui carregar a Jornada.');
+    return body as PublicJourney;
+  },
+  async setLinks(links: ProfileLink[]): Promise<MyProfile> {
+    const clean = links.map((l) => ({ url: l.url.trim(), label: l.label?.trim() || undefined })).filter((l) => /^https:\/\/\S{3,200}$/.test(l.url)).slice(0, 6);
+    if (supa()) return rpc<MyProfile>('set_my_links', { p_links: clean });
+    const next = { ...demoGet(), links: clean }; demoSet(next); return next;
   },
 };
 

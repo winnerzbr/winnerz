@@ -21,7 +21,12 @@ export const PILLARS: { key: Pillar; label: string; hint: string }[] = [
 export type ProfileLink = { url: string; label?: string };
 export type MyVisibility = Partial<Record<Pillar, Visibility>> & { aoVivo?: 'sim' | 'nao' };
 /** O topo do perfil (Palco): o jogo que te definiu, os três da vida e o ano em que começou a jogar. */
-export type ProfileStage = { defining?: { game: string; text?: string }; top?: { game: string; quote?: string }[]; since?: number };
+/** Imagem do topo: arte de um jogo (url do IGDB) ou imagem enviada (caminho no bucket), e a altura do enquadramento (0 a 100). */
+export type StageCover = { url?: string; path?: string; y?: number };
+export type ProfileStage = { defining?: { game: string; text?: string }; top?: { game: string; quote?: string }[]; since?: number; cover?: StageCover };
+
+/** O endereço da imagem do topo (ou null para usar a arte do jogo que te definiu). */
+export const coverSrc = (c?: StageCover | null): string | null => (c?.url ? c.url : c?.path ? avatarUrl(c.path) : null);
 export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[]; stage?: ProfileStage; avatar?: string | null };
 
 
@@ -29,6 +34,7 @@ export type PublicStage = {
   defining?: { title: string; slug: string; cover: string | null; backdrop: string | null; year?: number | null; text?: string | null };
   top: { title: string; slug: string; cover: string | null; quote?: string | null }[];
   since?: number | null;
+  cover?: StageCover | null;
 };
 
 /** Nome do serviço pelo endereço (para o botão do link). */
@@ -156,6 +162,7 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
     defining: def ? { title: def.title, slug: def.slug, cover: def.cover, backdrop: def.backdrop ?? def.artworks?.[0] ?? null, year: def.year ?? null, text: me.stage?.defining?.text || null } : undefined,
     top: (me.stage?.top ?? []).map((t) => ({ g: gOf(t.game), quote: t.quote })).filter((x) => x.g).slice(0, 3).map(({ g, quote }) => ({ title: g!.title, slug: g!.slug, cover: g!.cover, quote: quote || null })),
     since: me.stage?.since ?? null,
+    cover: me.stage?.cover ?? null,
   };
   if (show('jornada')) {
     out.jornada!.paused = s.histories.filter((h) => h.state === 'pausada').map((h) => ({ h, g: gameOfJ(h.journeyId) })).filter((x) => x.g)
@@ -314,9 +321,30 @@ export const profileApi = {
       defining: stage.defining?.game ? { game: stage.defining.game, text: (stage.defining.text ?? '').trim().slice(0, 600) } : undefined,
       top: (stage.top ?? []).filter((t) => t.game).slice(0, 3).map((t) => ({ game: t.game, quote: (t.quote ?? '').trim().slice(0, 140) })),
       since: stage.since && stage.since >= 1970 && stage.since <= new Date().getFullYear() ? stage.since : undefined,
+      cover: stage.cover && (stage.cover.url || stage.cover.path || stage.cover.y != null)
+        ? { url: stage.cover.url || undefined, path: stage.cover.url ? undefined : stage.cover.path || undefined, y: Math.max(0, Math.min(100, Math.round(stage.cover.y ?? 30))) } : undefined,
     };
-    if (supa()) return rpc<MyProfile>('set_my_stage', { p_stage: clean });
+    if (supa()) {
+      const old = (await this.mine())?.stage?.cover?.path;
+      const p = await rpc<MyProfile>('set_my_stage', { p_stage: clean });
+      if (old && old !== p?.stage?.cover?.path) {
+        const { getClient } = await import('./supabaseAdapter');
+        await (await getClient()).storage.from('avatares').remove([old]).catch(() => {});
+      }
+      return p;
+    }
     const next = { ...demoGet(), stage: clean }; demoSet(next); return next;
+  },
+  /** Envia a imagem do topo do perfil e devolve onde ela ficou (caminho no bucket, ou a imagem no modo demonstração). */
+  async uploadCover(blob: Blob): Promise<StageCover> {
+    if (!supa()) return { url: await new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(blob); }) };
+    const uid = getState().profile?.id;
+    if (!uid) throw new Error('Entre na sua conta para enviar a imagem.');
+    const { getClient } = await import('./supabaseAdapter');
+    const path = `${uid}/capa-${Date.now().toString(36)}.${blob.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
+    const { error } = await (await getClient()).storage.from('avatares').upload(path, blob, { contentType: blob.type, upsert: true, cacheControl: '31536000' });
+    if (error) throw friendly(error);
+    return { path };
   },
   /** Troca a foto do perfil (ou tira, com null). Grava na hora; a foto antiga é apagada. */
   async setAvatar(blob: Blob | null): Promise<MyProfile> {

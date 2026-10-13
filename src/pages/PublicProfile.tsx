@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
-import { avatarUrl, linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
+import { avatarUrl, coverSrc, linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
 import { Cabinet, type ShelfItem } from '../components/Showcase';
 import { MuseumTour } from '../components/MuseumTour';
 import { publicExhibit } from './PublicMuseum';
@@ -167,11 +167,12 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 /** O topo: a arte do jogo que definiu a pessoa, o avatar com aro dourado, o nome grande e a frase. */
 function Hero({ data, owner, onShare, copied }: { data: PublicProfile; owner: boolean; onShare: () => void; copied: boolean }) {
   const st = data.stage, def = st?.defining;
-  const art = def?.backdrop || data.showcase?.find((s) => s.backdrop)?.backdrop || null;
+  const art = coverSrc(st?.cover) || def?.backdrop || data.showcase?.find((s) => s.backdrop)?.backdrop || null;
+  const artY = st?.cover?.y ?? 28;
   const links = data.links ?? [];
   return (
     <section className={`pd-hero on-photo${art ? '' : ' pd-hero--plain'}`}>
-      {art && <img className="pd-hero__bg" src={art} alt="" />}
+      {art && <img className="pd-hero__bg" src={art} alt="" style={{ objectPosition: `50% ${artY}%` }} />}
       <span className="pd-hero__shade" aria-hidden="true" />
       <span className="pd-hero__flare" aria-hidden="true" />
       {def && (

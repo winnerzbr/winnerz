@@ -7,6 +7,7 @@ import { ConfirmButton } from '../components/Sheet';
 import { Icon } from '../components/Icon';
 import { PiecePicker } from '../components/PiecePicker';
 import { ExhibitView, RoomView } from '../components/MuseumView';
+import { MuseumTour } from '../components/MuseumTour';
 import { ROOM_MODELS, exhibitOf, roomExhibits, suggestedRooms } from '../lib/museum';
 import { shrink, toDataUrl } from '../lib/image';
 
@@ -28,9 +29,15 @@ export function MuseumPage() {
   const suggestion = useMemo(() => (rooms.length ? [] : suggestedRooms(s)), [rooms.length, s]);
   const [editing, setEditing] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [tour, setTour] = useState(false);
   const museum = s.museum ?? {};
   const pieces = rooms.reduce((n, r) => n + roomExhibits(s, r).length, 0);
   useEffect(() => { document.title = 'Museu · WinnerZ'; }, []);
+  useEffect(() => {
+    if (!tour) return;
+    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [tour]);
 
   const keepSuggestion = () => {
     suggestion.forEach((r, i) => actions.saveRoom({ title: r.title, text: r.text, pieces: r.pieces, position: i }));
@@ -75,6 +82,7 @@ export function MuseumPage() {
           </>
         )}
         <div className="museum__actions">
+          {rooms.length > 0 && !editing && pieces > 0 && <button className="btn primary" onClick={() => setTour(true)}>Fazer a visita guiada</button>}
           {rooms.length > 0 && (editing ? <button className="btn primary" onClick={() => { setEditing(false); setAdding(false); }}>Pronto</button> : <button className="btn ghost" onClick={() => setEditing(true)}>Editar o museu</button>)}
           {!rooms.length && suggestion.length > 0 && <button className="btn primary" onClick={keepSuggestion}>Guardar este museu</button>}
           {!rooms.length && <button className="btn ghost" onClick={() => newRoom('livre')}>Começar do zero</button>}
@@ -87,6 +95,13 @@ export function MuseumPage() {
         </div>
         {museum.shared && rooms.length > 0 && <p className="faint vitrine__hint">Aberto para quem pode ver a sua Coleção (<Link to="/preferencias#perfil">Perfil e privacidade</Link>). As plaquinhas, fotos e momentos das salas aparecem como estão aqui; preços, estado e notas dos exemplares, nunca.</p>}
       </header>
+
+      {tour && (
+        <div className="mtour-overlay" role="dialog" aria-modal="true" aria-label="Visita guiada do seu museu">
+          <MuseumTour title={museum.title || 'Meu museu'} intro={museum.intro} owner={s.profile?.name ?? 'você'} onClose={() => setTour(false)}
+            rooms={rooms.map((r) => ({ title: r.title, text: r.text, exhibits: roomExhibits(s, r) }))} />
+        </div>
+      )}
 
       {rooms.length === 0 && suggestion.length === 0 && (
         <div className="card tl-empty"><p className="muted">Quando a coleção tiver jogos especiais, presentes, consoles ou momentos com foto, o museu se monta sozinho. Ou comece do zero, uma sala de cada vez.</p></div>

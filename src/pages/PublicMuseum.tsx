@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { profileApi, type PublicMuseum, type PublicMuseumPiece } from '../data/profileApi';
 import { ExhibitView, RoomView } from '../components/MuseumView';
+import { MuseumTour } from '../components/MuseumTour';
 import type { Exhibit } from '../lib/museum';
 import { shortPlatform } from '../lib/platforms';
 
@@ -23,6 +24,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
   const key = new URLSearchParams(location.search).get('k');
   const [data, setData] = useState<PublicMuseum | null | undefined>(undefined);
   const [error, setError] = useState('');
+  const [list, setList] = useState(false);
   useEffect(() => {
     setData(undefined);
     profileApi.museumOf(handle, key).then(setData).catch((e) => { setError(e instanceof Error ? e.message : 'Não consegui carregar.'); setData(null); });
@@ -38,9 +40,17 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
       <Link className="btn ghost" to={back}>Ver o perfil</Link>
     </main>
   );
+  if (!list) {
+    return (
+      <main className="pmuseum-tour">
+        <MuseumTour title={data.title || `O museu de ${data.name}`} intro={data.intro} owner={data.handle} back={back} onList={() => { setList(true); scrollTo(0, 0); }}
+          rooms={data.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(exhibit).filter((x): x is Exhibit => !!x) }))} />
+      </main>
+    );
+  }
   return (
     <main className="page pad museum pmuseum">
-      <Link to={back} className="kicker vitrine__back">← @{data.handle}</Link>
+      <span className="pmuseum__nav"><Link to={back} className="kicker vitrine__back">← @{data.handle}</Link><button className="btn ghost sm" onClick={() => { setList(false); scrollTo(0, 0); }}>Fazer a visita guiada</button></span>
       <header className="museum__hero">
         <span className="kicker">Museu pessoal de @{data.handle}</span>
         <h1 className="t museum__title">{data.title || `O museu de ${data.name}`}</h1>

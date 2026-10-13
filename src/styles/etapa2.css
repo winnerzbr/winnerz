@@ -1911,7 +1911,8 @@ a.gev { color: var(--ink); }
 .gal__title { font-size: 22px; line-height: 0.8; color: #F2F4F6; margin-right: 8px; }
 .gal__frames { position: relative; width: 100%; height: var(--fh); flex: none; perspective: 1500px; z-index: 20; touch-action: pan-y; }
 .gal__fr { position: absolute; left: 50%; top: 0; width: var(--fw); height: var(--fh); margin-left: calc(var(--fw) / -2); padding: 0; border: 0; border-radius: 16px; background: none; cursor: pointer; color: inherit; text-align: left; transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s, filter 0.6s; filter: brightness(0.55); -webkit-box-reflect: below 10px linear-gradient(transparent 70%, rgba(255, 255, 255, 0.14)); }
-.gal__fr.is-on { filter: none; cursor: zoom-in; }
+.gal__fr.is-on { filter: none; cursor: default; }
+.gal__fr.is-on.has-photo { cursor: zoom-in; }
 .gal__fr:focus-visible { outline: 2px solid var(--now); outline-offset: 6px; }
 .gal__in { position: absolute; inset: 0; display: block; border-radius: 16px; overflow: hidden; box-shadow: 0 40px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 243, 224, 0.14); background: #0D0F12; }
 .gal__fr.is-on .gal__in { box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 214, 160, 0.35), 0 0 60px rgba(255, 178, 91, 0.15); }

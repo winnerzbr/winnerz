@@ -450,7 +450,7 @@ function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, toda
           const hidden = ad > 3;
           const onCenter = d === 0;
           return (
-            <button key={x.id} className={`gal__fr${onCenter ? ' is-on' : ''}${x.kind === 'ponto' && !x.resolved ? ' is-back' : ''}`}
+            <button key={x.id} className={`gal__fr${onCenter ? ' is-on' : ''}${x.image && x.kind !== 'agora' ? ' has-photo' : ''}${x.kind === 'ponto' && !x.resolved ? ' is-back' : ''}`}
               tabIndex={hidden ? -1 : 0}
               aria-label={`${KIND_LONG[x.kind] ?? x.kind}, ${x.date}: ${x.title}${onCenter && x.image ? '. Abrir a foto.' : ''}`}
               style={{ transform: `translateX(calc(var(--fw) * ${k.toFixed(3)})) rotateY(${rot}deg) scale(${sc.toFixed(3)})`, zIndex: 20 - ad, opacity: hidden ? 0 : onCenter ? 1 : Math.max(0, 0.85 - (ad - 1) * 0.2), pointerEvents: hidden ? 'none' : undefined }}

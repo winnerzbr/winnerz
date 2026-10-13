@@ -43,6 +43,7 @@ export function Collection() {
   const [status, setStatus] = useState<Status>('tudo');
   const [view, setView] = useState(loadView);
   const [adding, setAdding] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -123,17 +124,19 @@ export function Collection() {
 
   return (
     <main className="page pad collection">
-      <SubNav pillar="colecao" />
-      <div className="collection__head">
-        <div>
-          <h1 className="t big">Sua estante</h1>
-          <p className="muted lead">{!uniqueGames ? 'Nenhum jogo ainda.' : <>{uniqueGames} {uniqueGames === 1 ? 'jogo' : 'jogos'} em {platforms.length} {platforms.length === 1 ? 'plataforma' : 'plataformas'}{s.wishes.length ? `, mais ${s.wishes.length} desejos` : ''}.</>}</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Coleção</h1>
+          <p className="muted lead">{!uniqueGames ? 'Nenhum jogo ainda.' : <><span className="lead__strong">{uniqueGames} {uniqueGames === 1 ? 'jogo' : 'jogos'}</span> em {platforms.length} {platforms.length === 1 ? 'plataforma' : 'plataformas'}{s.wishes.length ? `, mais ${s.wishes.length} ${s.wishes.length === 1 ? 'desejo' : 'desejos'}` : ''}.</>}</p>
         </div>
-        <div className="collection__tools">
-          <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar jogo</button>
-          <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
+        <div className="page-head__side">
+          <div className="collection__tools">
+            <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
+            <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar jogo</button>
+          </div>
+          <SubNav pillar="colecao" />
         </div>
-      </div>
+      </header>
 
       {dupHint > 0 && (
         <div className="card repair-banner" role="status">
@@ -141,32 +144,53 @@ export function Collection() {
           <Link className="btn primary sm" to="/colecao/reparar">Arrumar repetidos</Link>
         </div>
       )}
-      {s.copies.length > 0 && <div className="cbar" role="search">
-        <label htmlFor="busca" className="sr-only">Buscar na coleção</label>
-        <input id="busca" className="field cbar__q" placeholder="Buscar na coleção" value={q} onChange={(e) => setQ(e.target.value)} />
-        <label className="cbar__sel"><span className="sr-only">Plataforma</span>
-          <select className="field" value={platform} onChange={(e) => setPlatform(e.target.value)}>
-            <option value="">Todas as plataformas</option>
-            {platforms.map(([p, n]) => <option key={p} value={p}>{shortPlatform(p)} ({n})</option>)}
-          </select>
-        </label>
-        <label className="cbar__sel"><span className="sr-only">Situação</span>
-          <select className="field" value={status} onChange={(e) => setStatus(e.target.value as Status)}>
-            {STATUS.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
-          </select>
-        </label>
-        <div className="seg" role="group" aria-label="Formato">
-          {([['tudo', 'Tudo'], ['fisico', 'Físico'], ['digital', 'Digital']] as const).map(([k, l]) => <button key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}
-        </div>
-        <label className="cbar__sel"><span className="sr-only">Ordenar</span>
-          <select className="field" value={view.sort} onChange={(e) => setView({ ...view, sort: e.target.value as Sort })}>
-            {SORTS.map(([id, l]) => <option key={id} value={id}>Ordem: {l}</option>)}
-          </select>
-        </label>
-        <button className="btn ghost sm" aria-pressed={view.group} onClick={() => setView({ ...view, group: !view.group })}>Separar por plataforma</button>
-      </div>}
-      {filtered && <p className="muted cbar__count">{list.length} {list.length === 1 ? 'cópia' : 'cópias'} com esses filtros. <button className="linklike" onClick={() => { setQ(''); setPlatform(''); setKind('tudo'); setStatus('tudo'); }}>Limpar filtros</button></p>}
 
+      <div className={`collection__body${s.copies.length ? '' : ' is-empty'}`}>
+      {s.copies.length > 0 && (
+        <aside className={`cfilters${showFilters ? ' is-open' : ''}`} role="search" aria-label="Filtros da estante">
+          <div className="cfilters__top">
+            <div className="cfilters__q">
+              <Icon name="busca" size={16} />
+              <label htmlFor="busca" className="sr-only">Buscar na estante</label>
+              <input id="busca" className="field" placeholder="Buscar na estante" value={q} onChange={(e) => setQ(e.target.value)} />
+            </div>
+            <button className={`icon-btn cfilters__toggle${filtered ? ' has-dot' : ''}`} aria-expanded={showFilters} aria-controls="cfilters-body" aria-label="Filtros e ordem" onClick={() => setShowFilters(!showFilters)}><Icon name="filtro" size={18} /></button>
+          </div>
+          <div className="cfilters__body" id="cfilters-body">
+            <div className="cfilters__group">
+              <span className="kicker">Plataforma</span>
+              <div className="cfilters__chips" role="group" aria-label="Plataforma">
+                {platforms.map(([p, n]) => <button key={p} className="chip" aria-pressed={platform === p} onClick={() => setPlatform(platform === p ? '' : p)}>{shortPlatform(p)} <small>{n}</small></button>)}
+              </div>
+            </div>
+            <div className="cfilters__group">
+              <span className="kicker">Situação</span>
+              <div className="cfilters__chips" role="group" aria-label="Situação">
+                {STATUS.filter(([id]) => id !== 'tudo').map(([id, l]) => <button key={id} className="chip" aria-pressed={status === id} onClick={() => setStatus(status === id ? 'tudo' : id)}>{l}</button>)}
+              </div>
+            </div>
+            <div className="cfilters__group">
+              <span className="kicker">Formato</span>
+              <div className="seg" role="group" aria-label="Formato">
+                {([['tudo', 'Tudo'], ['fisico', 'Físico'], ['digital', 'Digital']] as const).map(([k, l]) => <button key={k} aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}
+              </div>
+            </div>
+            <div className="cfilters__group">
+              <label className="kicker" htmlFor="ordem">Ordem</label>
+              <select id="ordem" className="field" value={view.sort} onChange={(e) => setView({ ...view, sort: e.target.value as Sort })}>
+                {SORTS.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
+              </select>
+            </div>
+            <label className="cfilters__switch">
+              <span>Separar por plataforma</span>
+              <input type="checkbox" role="switch" className="switch" checked={view.group} onChange={() => setView({ ...view, group: !view.group })} />
+            </label>
+            {filtered && <p className="muted cbar__count">{list.length} {list.length === 1 ? 'cópia' : 'cópias'} com esses filtros. <button className="linklike" onClick={() => { setQ(''); setPlatform(''); setKind('tudo'); setStatus('tudo'); }}>Limpar filtros</button></p>}
+          </div>
+        </aside>
+      )}
+
+      <div className="collection__main">
       {s.copies.length === 0 ? (
         <div className="card tl-empty">
           <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Sua estante está vazia</p>
@@ -189,6 +213,8 @@ export function Collection() {
         </div>
       )}
       {limit < list.length && <p className="faint cgrid__more">Mostrando {limit} de {list.length}. Role para ver mais.</p>}
+      </div>
+      </div>
 
       {open && <CopySheet copyId={open} onClose={() => setOpen(null)} />}
       {adding && <AddGameDialog onClose={() => setAdding(false)} />}
@@ -207,7 +233,7 @@ function CopyTile({ s, c, onOpen }: { s: State; c: Copy; onOpen: () => void }) {
       <span className="ctile__cover"><CoverArt game={g} platform={c.platform} /></span>
       {badge && <span className={`ctile__badge ctile__badge--${st.zerou ? 'ok' : st.open ? 'now' : 'off'}`} aria-hidden="true">{badge}</span>}
       {fav && <span className="ctile__fav" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" /></svg></span>}
-      <span className="ctile__meta" aria-hidden="true"><span className="ctile__title">{g.title}</span><span className="ctile__plat">{shortPlatform(c.platform)}{c.kind === 'digital' ? ', digital' : ''}</span></span>
+      <span className="ctile__meta" aria-hidden="true"><span className="ctile__title">{g.title}</span><span className="ctile__plat">{shortPlatform(c.platform)} · {c.kind === 'digital' ? 'digital' : c.kind === 'fisico' ? 'físico' : c.kind === 'assinatura' ? 'assinatura' : 'outro'}</span></span>
     </button>
   );
 }

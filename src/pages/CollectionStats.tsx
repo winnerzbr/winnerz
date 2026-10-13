@@ -7,6 +7,7 @@ import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms
 import { pt } from '../lib/igdbPt';
 import { partsOf } from '../lib/dates';
 import { CoverArt } from '../components/CoverArt';
+import { Backdrop } from '../components/Backdrop';
 
 type Row = { label: string; n: number; to?: string };
 
@@ -22,7 +23,7 @@ function BarList({ title, rows, unit = 'jogos', note, sorted = true }: { title: 
       {note && <p className="faint stat-card__note">{note}</p>}
       <ul className="barlist">
         {list.map((r) => (
-          <li key={r.label} title={`${r.label}: ${r.n} ${unit} (${Math.round((r.n / Math.max(1, total)) * 100)}%)`}>
+          <li key={r.label} className={r.n === max && list.filter((x) => x.n === max).length === 1 ? 'is-top' : undefined} title={`${r.label}: ${r.n} ${unit} (${Math.round((r.n / Math.max(1, total)) * 100)}%)`}>
             <span className="barlist__label">{r.label}</span>
             <span className="barlist__track" aria-hidden="true"><span className="barlist__bar" style={{ width: `${(r.n / max) * 100}%` }} /></span>
             <span className="barlist__n">{r.n.toLocaleString('pt-BR')}</span>
@@ -78,9 +79,13 @@ export function CollectionStats() {
 
   return (
     <main className="page pad stats">
-      <SubNav pillar="colecao" />
-      <h1 className="t big">Estatísticas</h1>
-      <p className="muted lead">Contadas a partir do que você registrou. Nada estimado pelo site.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Estatísticas</h1>
+          <p className="muted lead">Contadas a partir do que você registrou. Nada estimado pelo site.</p>
+        </div>
+        <SubNav pillar="colecao" />
+      </header>
       {k.copies === 0 ? (
         <div className="card tl-empty"><p className="muted">Sem jogos na coleção ainda. <Link to="/colecao/importar">Importe sua planilha</Link> ou adicione o primeiro jogo.</p></div>
       ) : (
@@ -113,19 +118,39 @@ export function Wishes() {
   const list = s.wishes.filter((w) => s.games[w.gameId]);
   return (
     <main className="page pad">
-      <SubNav pillar="colecao" />
-      <h1 className="t big">Desejos</h1>
-      <p className="muted lead">Ainda não são seus. Nenhuma pressa.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Desejos</h1>
+          <p className="muted lead">Ainda não são seus. Nenhuma pressa.</p>
+        </div>
+        <SubNav pillar="colecao" />
+      </header>
       {list.length === 0 ? (
         <div className="card tl-empty"><p className="muted">Nada na lista. Em qualquer ficha de jogo, toque em Desejar.</p><Link className="btn ghost" to="/jogos">Buscar um jogo</Link></div>
       ) : (
-        <div className="wishes__row">
+        <div className="wish-cards">
           {list.map((w) => {
             const g = s.games[w.gameId];
+            const rel = g.releasedOn ? new Date(`${g.releasedOn.slice(0, 10)}T12:00:00-03:00`) : null;
+            const days = rel ? Math.ceil((rel.getTime() - Date.now()) / 86_400_000) : null;
+            const future = days != null && days > 0;
             return (
-              <Link key={w.gameId} to={`/jogos/${g.slug}`} className="wishes__item">
-                <CoverArt game={g} />
-                <div><div className="serif" style={{ fontSize: 24 }}>{g.title}</div><div className="muted" style={{ fontSize: 14, marginTop: 4 }}>{w.note ?? [g.year, g.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(', ')}</div></div>
+              <Link key={w.gameId} to={`/jogos/${g.slug}`} className={`wish-card on-photo${future ? ' is-soon' : ''}`}>
+                <Backdrop game={g} className="wish-card__bg" />
+                <span className="wish-card__shade" aria-hidden="true" />
+                <span className="wish-card__body">
+                  <span className="wish-card__top">
+                    <span className={`kicker${future ? ' kicker--now' : ''}`}>{future ? `Lança em ${rel!.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' })}` : 'Desejo'}</span>
+                    {future && <span className="wish-card__days"><span className="t">{days}</span><span className="kicker">{days === 1 ? 'dia' : 'dias'}</span></span>}
+                  </span>
+                  <span className="wish-card__main">
+                    <span className="wish-card__cover"><CoverArt game={g} /></span>
+                    <span className="wish-card__text">
+                      <span className="t wish-card__title">{g.title}</span>
+                      <span className="wish-card__meta">{w.note ?? [g.year, g.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · ')}</span>
+                    </span>
+                  </span>
+                </span>
               </Link>
             );
           })}

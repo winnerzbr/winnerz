@@ -53,8 +53,12 @@ export function RepairPage() {
 
   return (
     <main className="page pad importer">
-      <SubNav pillar="colecao" />
-      <h1 className="t big">Arrumar repetidos</h1>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Arrumar repetidos</h1>
+        </div>
+        <SubNav pillar="colecao" />
+      </header>
       {step === 'pronto' ? (
         <section className="card import-done">
           <p className="t">Pronto. Cada jogo aparece uma vez.</p>

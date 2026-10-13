@@ -102,9 +102,13 @@ export function SteamImportPage() {
 
   return (
     <main className="page pad importer steam">
-      <SubNav pillar="colecao" />
-      <h1 className="t big">Importar da Steam</h1>
-      <p className="muted lead">Os jogos da sua conta entram na estante como cópias digitais de PC. O tempo jogado fica guardado como “Informado pela Steam”. Nenhuma Jornada é criada: horas não dizem se você zerou, e isso é você quem conta.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Importar da Steam</h1>
+          <p className="muted lead">Os jogos da sua conta entram na estante como cópias digitais de PC. O tempo jogado fica guardado como “Informado pela Steam”. Nenhuma Jornada é criada: horas não dizem se você zerou, e isso é você quem conta.</p>
+        </div>
+        <SubNav pillar="colecao" />
+      </header>
 
       {step === 'pronto' ? (
         <section className="card import-done">

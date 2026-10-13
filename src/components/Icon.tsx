@@ -18,6 +18,7 @@ const paths: Record<string, ReactElement> = {
   coracao: <path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" />,
   check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
   mais: <path d="M12 5v14M5 12h14" />,
+  filtro: <><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></>,
   voltar: <path d="M15 5l-7 7 7 7" />,
   avancar: <path d="M9 5l7 7-7 7" />,
   telaCheia: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,

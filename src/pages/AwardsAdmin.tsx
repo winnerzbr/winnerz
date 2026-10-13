@@ -34,9 +34,9 @@ export function AwardsAdminPage() {
   useEffect(() => { loadList().catch((e) => setError(String(e?.message ?? e))); }, [loadList]);
   useEffect(() => { reload().catch((e) => setError(String(e?.message ?? e))); }, [reload]);
 
-  const run = async (fn: () => Promise<unknown>, ok?: string) => {
+  const run = async (fn: () => Promise<unknown>, ok?: string): Promise<boolean> => {
     setError(''); setNotice('');
-    try { await fn(); await reload(); if (ok) setNotice(ok); } catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível gravar.'); }
+    try { await fn(); await reload(); if (ok) setNotice(ok); return true; } catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível gravar.'); return false; }
   };
 
   if (!canAdmin()) return (
@@ -123,7 +123,7 @@ function EditionForm({ award, onSave }: { award: Award; onSave: (a: Award) => vo
   );
 }
 
-type Run = (fn: () => Promise<unknown>, ok?: string) => Promise<void>;
+type Run = (fn: () => Promise<unknown>, ok?: string) => Promise<boolean>;
 
 function NewCategory({ awardId, position, run }: { awardId: string; position: number; run: Run }) {
   const [name, setName] = useState('');
@@ -185,6 +185,15 @@ function NomineeArtEditor({ n, run, onDone }: { n: Nominee; run: Run; onDone: ()
   const [art, setArt] = useState(nomineeArt(n));
   const [focus, setFocus] = useState(n.focus || '50% 50%');
   const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const save = async (a: string | null, f: string | null, ok: string) => {
+    setBusy(true); setMsg('');
+    let err = '';
+    const done = await run(() => awardsApi().setNomineeArt(n.id, a, f).catch((e) => { err = e instanceof Error ? e.message : String(e); throw e; }), ok);
+    setBusy(false);
+    if (done) onDone(); else setMsg(err || 'Não consegui gravar a arte.');
+  };
   const list = [...new Set([art, ...choices])].filter(Boolean);
   const pickPoint = (e: MouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -219,8 +228,9 @@ function NomineeArtEditor({ n, run, onDone }: { n: Nominee; run: Run; onDone: ()
         </div>
       </div>
       <div className="awards-admin__row">
-        <button className="btn primary sm" onClick={() => run(() => awardsApi().setNomineeArt(n.id, art, focus), 'Arte gravada.').then(onDone)}>Gravar arte</button>
-        {(n.art || n.focus) && <button className="btn ghost sm" onClick={() => run(() => awardsApi().setNomineeArt(n.id, null, null), 'Voltou para a arte automática.').then(onDone)}>Voltar ao automático</button>}
+        <button className="btn primary sm" disabled={busy} onClick={() => save(art, focus, 'Arte gravada.')}>{busy ? 'Gravando…' : 'Gravar arte'}</button>
+        {(n.art || n.focus) && <button className="btn ghost sm" disabled={busy} onClick={() => save(null, null, 'Voltou para a arte automática.')}>Voltar ao automático</button>}
+        {msg && <p className="awards__error" role="alert" style={{ margin: 0, flexBasis: '100%' }}>{msg}</p>}
       </div>
     </div>
   );

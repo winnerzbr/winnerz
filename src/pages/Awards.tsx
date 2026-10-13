@@ -331,9 +331,10 @@ export function AwardsPage() {
                         <span className="scene__vt" aria-hidden="true">{showResult ? `${pct}% · ` : ''}{n.game.title}</span>
                         {on && (
                           <span className="scene__ttl" key={`${n.id}-${tag}`}>
-                            <span className="kicker kicker--now">{tag} · {c.name}</span>
+                            <span className="scene__tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>{tag}<span className="scene__tagcat"> · {c.name}</span></span>
                             <span className="scene__nm">{n.game.title}</span>
-                            <span className="scene__sub">{[sub, showResult ? `${pct}% dos votos` : '', !showResult && isMine && voting ? 'Toque de novo para tirar o voto' : ''].filter(Boolean).join(' · ')}</span>
+                            {(sub || showResult) && <span className="scene__sub">{[sub, showResult ? `${pct}% dos votos` : ''].filter(Boolean).join(' · ')}</span>}
+                            {!showResult && isMine && voting && <span className="scene__hint">Toque de novo para tirar o voto</span>}
                           </span>
                         )}
                       </>

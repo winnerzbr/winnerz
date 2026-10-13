@@ -2395,3 +2395,17 @@ a.gev { color: var(--ink); }
 .artpick__band { width: 150px; height: 26px; }
 .artpick__wide { width: 230px; height: 150px; filter: none; }
 @media (max-width: 900px) { .artpick__stage { grid-template-columns: 1fr; } .artpick__previews { flex-wrap: wrap; } }
+
+/* Cena do Awards: título do voto legível sobre qualquer arte */
+.scene__p.on .scene__shade { background: linear-gradient(0deg, rgba(0, 0, 0, .94) 0%, rgba(0, 0, 0, .72) 32%, rgba(0, 0, 0, .25) 58%, rgba(0, 0, 0, 0) 75%); }
+.scene__ttl { gap: 12px; }
+.scene__tag { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px 7px 11px; border-radius: 999px; background: #FFB25B; color: #07080A; font: 600 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; box-shadow: 0 0 24px rgba(255, 178, 91, .45), 0 4px 14px rgba(0, 0, 0, .5); animation: rise .6s cubic-bezier(.2, .8, .2, 1) .2s both; max-width: 100%; }
+.scene__tagcat { font-weight: 500; opacity: .8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.scene__sub { font-size: 13px; letter-spacing: .12em; color: #E6E9ED; text-shadow: 0 1px 10px rgba(0, 0, 0, .95); }
+.scene__hint { font: 400 13px var(--font-ui); color: #C9CED4; text-shadow: 0 1px 10px rgba(0, 0, 0, .95); animation: rise .6s cubic-bezier(.2, .8, .2, 1) .8s both; }
+@media (max-width: 760px) {
+  .scene__tag { font-size: 11px; padding: 6px 12px 6px 10px; }
+  .scene__tagcat { display: none; }
+  .scene__sub { font-size: 12px; letter-spacing: .1em; }
+  .scene__hint { font-size: 13px; }
+}

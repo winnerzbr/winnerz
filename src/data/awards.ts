@@ -137,9 +137,10 @@ const supabaseApi: AwardsApi = {
   async deleteNominee(id) { const sb = await getClient(); ok(await sb.from('award_nominees').delete().eq('id', id)); },
   async setNomineeArt(id, art, focus) {
     const sb = await getClient();
-    const r = await sb.from('award_nominees').update({ art, focus }).eq('id', id);
-    if (r.error && /column|art|focus/i.test(r.error.message)) throw new Error('Para guardar a arte dos indicados, rode a migração 0010 no Supabase (SQL Editor).');
-    ok(r);
+    const r = await sb.from('award_nominees').update({ art, focus }).eq('id', id).select('id');
+    if (r.error && /column|schema cache|art|focus/i.test(r.error.message)) throw new Error('O banco ainda não tem onde guardar a arte. Rode a migração 0010 no Supabase (SQL Editor → colar → Run) e tente de novo.');
+    const rows = ok(r) as unknown[] | null;
+    if (!rows || rows.length === 0) throw new Error('O banco não deixou gravar a arte deste indicado. Confira se você entrou com a conta de administração.');
   },
 };
 

@@ -7,3 +7,6 @@
 
 alter table public.award_nominees add column if not exists art text;
 alter table public.award_nominees add column if not exists focus text;
+
+-- Avisa a API do Supabase das colunas novas na hora.
+notify pgrst, 'reload schema';

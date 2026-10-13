@@ -18,7 +18,15 @@ export const PILLARS: { key: Pillar; label: string; hint: string }[] = [
 
 export type ProfileLink = { url: string; label?: string };
 export type MyVisibility = Partial<Record<Pillar, Visibility>> & { aoVivo?: 'sim' | 'nao' };
-export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[] };
+/** O topo do perfil (Palco): o jogo que te definiu, os três da vida e o ano em que começou a jogar. */
+export type ProfileStage = { defining?: { game: string; text?: string }; top?: { game: string; quote?: string }[]; since?: number };
+export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[]; stage?: ProfileStage };
+
+export type PublicStage = {
+  defining?: { title: string; slug: string; cover: string | null; backdrop: string | null; year?: number | null; text?: string | null };
+  top: { title: string; slug: string; cover: string | null; quote?: string | null }[];
+  since?: number | null;
+};
 
 /** Nome do serviço pelo endereço (para o botão do link). */
 export function linkLabel(l: ProfileLink): string {
@@ -36,6 +44,8 @@ export type PublicProfile = {
     playing: { title: string; slug: string; cover: string | null; progress: number | null; startedAt: string; startedPrecision: DatePrecision; ordinal: number }[];
     completed: { title: string; slug: string; cover: string | null; completedAt: string | null; completedPrecision: DatePrecision; ordinal: number }[];
     journeys: number; finished: number;
+    /** Pausados (o "Próximo da fila"), migração 0016. */
+    paused?: { title: string; slug: string; cover: string | null; progress: number | null; ordinal: number }[];
   };
   colecao?: { count: number; platforms: { platform: string; n: number }[]; items: { title: string; slug: string; cover: string | null; platform: string }[] };
   notas?: { title: string; slug: string; cover: string | null; normalized: number; originalScale: 'TEN_POINT' | 'FIVE_STAR'; originalValue: number; reviewTitle: string; text: string; spoiler: boolean; at: string }[];
@@ -46,6 +56,10 @@ export type PublicProfile = {
   vitrines?: { id: string; title: string; description: string | null; items: PublicPiece[] }[];
   /** Museu aberto no perfil. */
   museu?: { title: string | null; rooms: number } | null;
+  /** O Palco (migração 0016). */
+  stage?: PublicStage;
+  /** Mural de cenas: fotos dos momentos das Jornadas mostradas no perfil. */
+  mural?: { image?: string; title: string; at: string; game: string; slug: string }[];
 };
 
 /** Peça como o público vê: capa, título e plataforma, ou o console. Nada da ficha do exemplar. */
@@ -84,6 +98,7 @@ function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
   const key = Object.keys(MSG).find((k) => m.includes(k));
   if (key) return new Error(MSG[key]);
+  if (/set_my_stage|public_profile_v4/i.test(m)) return new Error('Para isso, rode a migração 0016 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_links|public_profile_v2|public_journey/i.test(m)) return new Error('Para isso, rode a migração 0013 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_handle|handle_available/i.test(m)) return new Error('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).');
   if (/my_profile|set_my_profile|public_profile|rotate_share_key|function|schema cache/i.test(m)) return new Error('Para usar o perfil, rode a migração 0011 no Supabase (SQL Editor → colar → Run).');
@@ -127,7 +142,20 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
     };
   }
   out.links = me.links ?? [];
+  const gOf = (id?: string) => (id ? s.games[id] : undefined);
+  const def = gOf(me.stage?.defining?.game);
+  out.stage = {
+    defining: def ? { title: def.title, slug: def.slug, cover: def.cover, backdrop: def.backdrop ?? def.artworks?.[0] ?? null, year: def.year ?? null, text: me.stage?.defining?.text || null } : undefined,
+    top: (me.stage?.top ?? []).map((t) => ({ g: gOf(t.game), quote: t.quote })).filter((x) => x.g).slice(0, 3).map(({ g, quote }) => ({ title: g!.title, slug: g!.slug, cover: g!.cover, quote: quote || null })),
+    since: me.stage?.since ?? null,
+  };
   if (show('jornada')) {
+    out.jornada!.paused = s.histories.filter((h) => h.state === 'pausada').map((h) => ({ h, g: gameOfJ(h.journeyId) })).filter((x) => x.g)
+      .sort((a, b) => b.h.startedAt.localeCompare(a.h.startedAt)).slice(0, 6)
+      .map(({ h, g }) => ({ title: g!.title, slug: g!.slug, cover: g!.cover, progress: h.progress ?? null, ordinal: h.ordinal }));
+    const sharedJ = new Set(s.journeys.filter((j) => j.shared).map((j) => j.id));
+    out.mural = s.events.filter((e) => e.kind === 'momento' && e.image && sharedJ.has(e.journeyId)).sort((a, b) => b.at.localeCompare(a.at)).slice(0, 9)
+      .map((e) => { const g = gameOfJ(e.journeyId)!; return { image: e.image, title: e.title, at: e.at, game: g.title, slug: g.slug }; });
     out.showcase = s.journeys.filter((j) => j.shared && s.games[j.gameId]).map((j) => {
       const g = s.games[j.gameId], evs = s.events.filter((e) => e.journeyId === j.id);
       return { title: g.title, slug: g.slug, cover: g.cover, backdrop: g.backdrop ?? null, stories: s.histories.filter((h) => h.journeyId === j.id).length,
@@ -233,6 +261,12 @@ export const profileApi = {
   },
   async publicOf(handle: string, key?: string | null): Promise<PublicProfile | null> {
     if (!supa()) return demoPublic(handle, key);
+    // O perfil completo vem pelo servidor, que assina as fotos do mural (migração 0016). Sem ela, cai para as versões antigas.
+    try {
+      const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&p=1${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+      if (r.status === 404) return null;
+      if (r.ok) return (await r.json()) as PublicProfile;
+    } catch { /* tenta direto no banco */ }
     const args = { p_handle: handle, p_key: key ?? null };
     try { return await rpc<PublicProfile | null>('public_profile_v3', args); } catch { /* sem a 0015 */ }
     try { return await rpc<PublicProfile | null>('public_profile_v2', args); }
@@ -253,6 +287,15 @@ export const profileApi = {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || 'Não consegui carregar o Museu.');
     return body as PublicMuseum;
+  },
+  async setStage(stage: ProfileStage): Promise<MyProfile> {
+    const clean: ProfileStage = {
+      defining: stage.defining?.game ? { game: stage.defining.game, text: (stage.defining.text ?? '').trim().slice(0, 600) } : undefined,
+      top: (stage.top ?? []).filter((t) => t.game).slice(0, 3).map((t) => ({ game: t.game, quote: (t.quote ?? '').trim().slice(0, 140) })),
+      since: stage.since && stage.since >= 1970 && stage.since <= new Date().getFullYear() ? stage.since : undefined,
+    };
+    if (supa()) return rpc<MyProfile>('set_my_stage', { p_stage: clean });
+    const next = { ...demoGet(), stage: clean }; demoSet(next); return next;
   },
   async setLinks(links: ProfileLink[]): Promise<MyProfile> {
     const clean = links.map((l) => ({ url: l.url.trim(), label: l.label?.trim() || undefined })).filter((l) => /^https:\/\/\S{3,200}$/.test(l.url)).slice(0, 6);

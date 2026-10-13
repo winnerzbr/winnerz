@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore } from '../data/store';
-import { HANDLE_RE, PILLARS, linkLabel, profileApi, profileUrl, visOf, type MyProfile, type MyVisibility, type ProfileLink } from '../data/profileApi';
+import { HANDLE_RE, PILLARS, linkLabel, profileApi, profileUrl, visOf, type MyProfile, type MyVisibility, type ProfileLink, type ProfileStage } from '../data/profileApi';
+import { StageSettings, stageKey } from './StageSettings';
 
 const OPTS: { v: 'privado' | 'link' | 'publico'; label: string }[] = [
   { v: 'privado', label: 'Só você' },
@@ -18,6 +19,7 @@ export function ProfileSettings() {
   const [bio, setBio] = useState('');
   const [vis, setVis] = useState<MyVisibility>({});
   const [links, setLinks] = useState<ProfileLink[]>([]);
+  const [stage, setStage] = useState<ProfileStage>({});
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok?: string; err?: string }>({});
   const [copied, setCopied] = useState(false);
@@ -25,7 +27,7 @@ export function ProfileSettings() {
   useEffect(() => {
     if (mode === 'supabase' && !profile) return;
     profileApi.mine().then((p) => {
-      setMine(p); setHandle(p?.handle ?? ''); setBio(p?.bio ?? ''); setVis(p?.visibility ?? {}); setLinks(p?.links ?? []);
+      setMine(p); setHandle(p?.handle ?? ''); setBio(p?.bio ?? ''); setVis(p?.visibility ?? {}); setLinks(p?.links ?? []); setStage(p?.stage ?? {});
     }).catch((e) => setMsg({ err: e instanceof Error ? e.message : 'Não consegui carregar o perfil.' }));
   }, [mode, profile]);
 
@@ -36,7 +38,8 @@ export function ProfileSettings() {
   const cleanLinks = links.filter((l) => l.url.trim());
   const badLink = cleanLinks.some((l) => !/^https:\/\/\S{3,200}$/.test(l.url.trim()));
   const linksDirty = !!mine && JSON.stringify(cleanLinks.map((l) => l.url.trim())) !== JSON.stringify((mine.links ?? []).map((l) => l.url));
-  const dirty = !!mine && (h !== (mine.handle ?? '') || bio.trim() !== (mine.bio ?? '') || (vis.aoVivo ?? 'nao') !== (mine.visibility?.aoVivo ?? 'nao') || linksDirty || PILLARS.some((p) => (vis[p.key] ?? 'privado') !== visOf(mine, p.key)));
+  const stageDirty = !!mine && stageKey(stage) !== stageKey(mine.stage);
+  const dirty = !!mine && (stageDirty || h !== (mine.handle ?? '') || bio.trim() !== (mine.bio ?? '') || (vis.aoVivo ?? 'nao') !== (mine.visibility?.aoVivo ?? 'nao') || linksDirty || PILLARS.some((p) => (vis[p.key] ?? 'privado') !== visOf(mine, p.key)));
   const savedOpen = !!mine && PILLARS.some((p) => visOf(mine, p.key) !== 'privado');
   const usesLink = !!mine && PILLARS.some((p) => visOf(mine, p.key) === 'link');
   const url = mine && savedOpen ? profileUrl(mine) : null;
@@ -47,7 +50,8 @@ export function ProfileSettings() {
     try {
       let p = await profileApi.save(h, bio, { ...Object.fromEntries(PILLARS.map((x) => [x.key, vis[x.key] ?? 'privado'])), aoVivo: vis.aoVivo ?? 'nao' });
       if (linksDirty) p = await profileApi.setLinks(cleanLinks);
-      setMine(p); setHandle(p.handle ?? ''); setBio(p.bio ?? ''); setVis(p.visibility ?? {}); setLinks(p.links ?? []);
+      if (stageDirty) p = await profileApi.setStage(stage);
+      setMine(p); setHandle(p.handle ?? ''); setBio(p.bio ?? ''); setVis(p.visibility ?? {}); setLinks(p.links ?? []); setStage(p.stage ?? {});
       if (p.handle) actions.setProfileName(p.handle);
       setMsg({ ok: 'Perfil gravado.' });
     } catch (e) { setMsg({ err: e instanceof Error ? e.message : 'Não deu certo.' }); }
@@ -75,7 +79,10 @@ export function ProfileSettings() {
       <label className="pfs__field">
         <span>Apresentação <small className="faint">{bio.length}/160</small></span>
         <textarea className="field pfs__bio" value={bio} maxLength={160} rows={2} onChange={(e) => setBio(e.target.value)} placeholder="Uma linha sobre você e seus jogos." />
+        <small className="faint">Aparece como a sua frase, logo abaixo do nome.</small>
       </label>
+
+      <StageSettings stage={stage} onChange={setStage} />
 
       <div className="pfs__pillars">
         {PILLARS.map((p) => (

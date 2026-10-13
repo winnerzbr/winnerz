@@ -3,6 +3,7 @@
  *
  *   GET /api/perfil?h=<@>&j=<jogo>&k=<código do link, opcional>
  *   GET /api/perfil?h=<@>&museu=1&k=<código do link, opcional>   → o Museu aberto no perfil (migração 0015)
+ *   GET /api/perfil?h=<@>&p=1&k=<código do link, opcional>       → o perfil inteiro, com o mural de cenas (migração 0016)
  *
  * Quem decide o que pode ser visto é a função public_journey do banco (migração 0013): ela só devolve a Jornada
  * se a pessoa marcou "Mostrar no meu perfil" e se quem pede pode ver o pilar Jornada. Aqui só assinamos os
@@ -41,6 +42,20 @@ export default async function handler(req: Req, res: Res) {
   if (!c) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   if (req.method && req.method !== 'GET') return res.status(405).json({ error: 'Método não aceito.' });
   const h = one(req.query?.h).slice(0, 40), j = one(req.query?.j).slice(0, 120), k = one(req.query?.k).slice(0, 64);
+  if (h && one(req.query?.p) === '1') {
+    try {
+      const r = await fetch(`${c.url}/rest/v1/rpc/public_profile_v4`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null }) });
+      if (!r.ok) return res.status(r.status === 404 ? 501 : 502).json({ error: 'Para o perfil novo, rode a migração 0016 no Supabase.' });
+      const data = (await r.json()) as { mural?: Ev[] } | null;
+      res.setHeader('Cache-Control', 'private, max-age=60');
+      if (!data) return res.status(404).json({ error: 'not_found' });
+      await signAll(c, data.mural ?? []);
+      if (data.mural) data.mural = data.mural.filter((e) => e.image);
+      return res.status(200).json(data);
+    } catch {
+      return res.status(500).json({ error: 'Não consegui carregar o perfil.' });
+    }
+  }
   if (h && one(req.query?.museu) === '1') {
     try {
       const r = await fetch(`${c.url}/rest/v1/rpc/public_museum`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null }) });

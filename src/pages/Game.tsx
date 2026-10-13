@@ -122,6 +122,7 @@ function GameView({ gameId }: { gameId: string }) {
       <section className="ghero on-photo" aria-labelledby="titulo">
         <Backdrop game={g} className="ghero__bg kb" />
         <div className="ghero__shade" aria-hidden="true" />
+        <div className="ghero__fade" aria-hidden="true" />
         <div className="page ghero__row">
           {g.cover ? <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={210} height={280} burst={burst} /> : <CoverArt game={g} className="ghero__cover-art" />}
           <div className="ghero__info">

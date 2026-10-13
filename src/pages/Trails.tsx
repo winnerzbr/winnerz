@@ -149,6 +149,7 @@ export function TrailPage({ slug }: { slug: string }) {
       <section className="trail-hero on-photo">
         {heroGame && <Backdrop game={heroGame} className="trail-hero__bg" />}
         <div className="trail-hero__shade" aria-hidden="true" />
+        <div className="trail-hero__fade" aria-hidden="true" />
         <div className="page trail-hero__row">
           <div className="trail-hero__text">
             <Link to="/jogos/trilhas" className="kicker trail__back">← Trilhas</Link>

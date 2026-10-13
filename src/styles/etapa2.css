@@ -1204,7 +1204,7 @@ a.trail__title { color: var(--ink); }
 /* Ficha do jogo ----------------------------------------------------- */
 .ghero { min-height: 600px; display: flex; flex-direction: column; }
 .ghero__shade { background: linear-gradient(90deg, rgba(7, 8, 10, 0.96) 0%, rgba(7, 8, 10, 0.7) 45%, rgba(7, 8, 10, 0.1) 80%), linear-gradient(0deg, var(--bg) 0%, rgba(7, 8, 10, 0) 45%), linear-gradient(180deg, rgba(7, 8, 10, 0.7), rgba(7, 8, 10, 0) 22%); }
-.ghero__fade { display: none; }
+.ghero__fade, .trail-hero__fade { display: block; position: absolute; left: 0; right: 0; bottom: -1px; height: 55%; background: linear-gradient(0deg, var(--bg) 0%, rgba(var(--bg-rgb), 0.85) 25%, rgba(var(--bg-rgb), 0) 100%); pointer-events: none; }
 .ghero__row { flex: 1; width: 100%; gap: 36px; align-items: flex-end; padding-top: 56px; padding-bottom: 48px; }
 .ghero__row > .fav-cover, .ghero__cover-art { flex: none; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6); border-radius: 8px; }
 .ghero__cover-art { width: 210px; height: 280px; }

@@ -45,9 +45,13 @@ export function TrailsPage() {
   };
   return (
     <main className="page pad trails">
-      <SubNav pillar="jogos" />
-      <h1 className="t big">Trilhas</h1>
-      <p className="muted lead">Jogos em sequência, com um fio que liga um ao outro. Siga no seu ritmo: o que você já jogou aparece marcado.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Trilhas</h1>
+          <p className="muted lead">Jogos em sequência, com um fio que liga um ao outro. Siga no seu ritmo: o que você já jogou aparece marcado.</p>
+        </div>
+        <SubNav pillar="jogos" />
+      </header>
       {admin && <button className="btn ghost sm" onClick={() => void create()}>Nova trilha</button>}
       {error && <p className="awards__error" role="alert">{error}</p>}
       {list && !list.length && !error && <div className="card tl-empty"><p className="muted">As primeiras trilhas estão sendo montadas.</p></div>}
@@ -84,14 +88,24 @@ export function TrailPage({ slug }: { slug: string }) {
   const nextUp = t.items.find((i) => statusOf(s, i.game) !== 'Zerado');
   return (
     <main className="page pad trail">
-      <SubNav pillar="jogos" />
-      <Link to="/jogos/trilhas" className="faint">← Trilhas</Link>
+      <header className="page-head">
+        <div className="page-head__text">
+          <Link to="/jogos/trilhas" className="kicker trail__back">← Trilhas</Link>
+          {!(editing && admin) && <h1 className="t big">{t.title}</h1>}
+          {!(editing && admin) && t.intro && <p className="muted lead">{t.intro}</p>}
+        </div>
+        <SubNav pillar="jogos" />
+      </header>
       {editing && admin ? <TrailEditor trail={t} onSaved={reload} onDone={() => setEditing(false)} /> : (
         <>
-          <h1 className="t big">{t.title}</h1>
-          {t.intro && <p className="muted lead">{t.intro}</p>}
-          {admin && <button className="btn ghost sm" onClick={() => setEditing(true)}>Editar trilha</button>}
-          {nextUp && <p className="trail__next">Próximo no seu caminho: <Link to={`/jogos/${nextUp.game.slug}`}>{nextUp.game.title}</Link></p>}
+          {admin && <button className="btn ghost sm trail__edit" onClick={() => setEditing(true)}>Editar trilha</button>}
+          {nextUp && (
+            <Link to={`/jogos/${nextUp.game.slug}`} className="trail-next on-photo">
+              <span className="trail-next__cover"><CoverArt game={nextUp.game} /></span>
+              <span className="trail-next__text"><span className="kicker kicker--now">Próximo no seu caminho</span><span className="t trail-next__title">{nextUp.game.title}</span>{nextUp.game.year && <span className="muted">{nextUp.game.year}</span>}</span>
+              <span className="trail-next__go" aria-hidden="true">→</span>
+            </Link>
+          )}
         </>
       )}
       <ol className="trail__items">

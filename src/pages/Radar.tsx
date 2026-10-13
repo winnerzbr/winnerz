@@ -67,9 +67,13 @@ export function RadarPage() {
 
   return (
     <main className="page pad radar">
-      <SubNav pillar="jogos" />
-      <h1 className="t big">Radar</h1>
-      <p className="muted lead">Os lançamentos que você acompanha. Acompanhar não é ter nem querer comprar: é só não perder a data. As datas vêm do IGDB e mostram a precisão real; data prevista pode mudar.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Radar</h1>
+          <p className="muted lead">Os lançamentos que você acompanha. Acompanhar não é ter nem querer comprar: é só não perder a data. As datas vêm do IGDB e mostram a precisão real; data prevista pode mudar.</p>
+        </div>
+        <SubNav pillar="jogos" />
+      </header>
 
       {games.length === 0 ? (
         <div className="card tl-empty">

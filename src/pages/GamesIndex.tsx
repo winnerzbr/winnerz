@@ -39,9 +39,13 @@ export function GamesIndex() {
 
   return (
     <main className="page pad">
-      <SubNav pillar="jogos" />
-      <h1 className="t big">Jogos</h1>
-      <p className="muted lead">Busque qualquer jogo, ou <Link to="/jogos/explorar">explore o catálogo</Link> por gênero, plataforma e época. Fichas e capas vêm do IGDB.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Jogos</h1>
+          <p className="muted lead">Busque qualquer jogo, ou <Link to="/jogos/explorar">explore o catálogo</Link> por gênero, plataforma e época. Fichas e capas vêm do IGDB.</p>
+        </div>
+        <SubNav pillar="jogos" />
+      </header>
       <label htmlFor="jq" className="sr-only">Buscar jogo</label>
       <input id="jq" className="field games-search" placeholder="Buscar um jogo pelo nome" value={q} onChange={(e) => setQ(e.target.value)} />
 

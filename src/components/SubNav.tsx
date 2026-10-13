@@ -18,7 +18,7 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
     { to: '/jogos', label: 'Buscar' },
     { to: '/jogos/explorar', label: 'Explorar' },
     { to: '/jogos/radar', label: 'Radar' },
-    { to: '/jogos/trilhas', label: 'Trilhas' },
+    { to: '/jogos/trilhas', label: 'Trilhas', also: ['/jogos/trilhas/'] },
   ],
 };
 
@@ -28,7 +28,7 @@ export function SubNav({ pillar }: { pillar: keyof typeof SECTIONS }) {
   if (!items || items.length < 2) return null;
   return (
     <nav className="subnav" aria-label="Seções">
-      {items.map((i) => <Link key={i.to} to={i.to} aria-current={path === i.to || i.also?.includes(path) ? 'page' : undefined}>{i.label}</Link>)}
+      {items.map((i) => <Link key={i.to} to={i.to} aria-current={path === i.to || i.also?.some((a) => (a.endsWith('/') ? path.startsWith(a) : path === a)) ? 'page' : undefined}>{i.label}</Link>)}
     </nav>
   );
 }

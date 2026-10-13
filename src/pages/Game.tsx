@@ -217,7 +217,7 @@ function GameView({ gameId }: { gameId: string }) {
 
         <aside className="game-aside">
           <section className="card relation" aria-labelledby="relacao">
-            <h2 id="relacao" className="t">Sua relação com este jogo</h2>
+            <h2 id="relacao" className="t aside-title aside-title--now">Sua relação com este jogo</h2>
             <ul>
               <li><span className="relation__ic">✦</span><div>{j ? <Link to={`/jornada/${g.slug}`}><strong>Jornada</strong></Link> : <strong>Jornada</strong>}<div className="muted">{j && h ? `${nHist} ${nHist === 1 ? 'História' : 'Histórias'}. ${STATE_LABEL[h.state]}${h.state === 'ativa' && h.progress != null ? `, ${h.progress}%` : ''}${h.completedAt && h.state !== 'ativa' && h.state !== 'pausada' ? `, ${whenLabel(h.completedAt, h.completedPrecision)}` : ''}${h.hours ? `, ${String(h.hours).replace('.', ',')} h informadas` : ''}.` : mine2.wontPlay ? 'Marcado como “não vou jogar”.' : 'Ainda não começou. Jogar cria a primeira História.'}</div></div></li>
               <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : c.kind === 'digital' ? 'Cópia digital' : 'Assinatura'} de ${shortPlatform(c.platform)}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>

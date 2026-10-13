@@ -68,9 +68,13 @@ export function GamesExplore() {
 
   return (
     <main className="page pad explore">
-      <SubNav pillar="jogos" />
-      <h1 className="t big">Explorar</h1>
-      <p className="muted lead">O catálogo inteiro do IGDB. Filtre pelo que você quer jogar; os filtros ficam no endereço, dá para salvar ou mandar para alguém.</p>
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Explorar</h1>
+          <p className="muted lead">O catálogo inteiro do IGDB. Filtre pelo que você quer jogar; os filtros ficam no endereço, dá para salvar ou mandar para alguém.</p>
+        </div>
+        <SubNav pillar="jogos" />
+      </header>
 
       <div className="cbar explore__bar">
         <label className="cbar__sel"><span className="sr-only">Gênero</span>

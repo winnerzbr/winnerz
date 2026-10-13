@@ -1,13 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from '../lib/router';
-import { useStore, myGame, journeyForGame, historiesOf } from '../data/store';
-import type { State } from '../data/types';
+import { actions, useStore, getState, myGame, journeyForGame, historiesOf } from '../data/store';
+import type { CopyKind, State } from '../data/types';
 import { SubNav } from '../components/SubNav';
 import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 import { pt } from '../lib/igdbPt';
 import { partsOf } from '../lib/dates';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop } from '../components/Backdrop';
+import { Sheet, ConfirmButton } from '../components/Sheet';
 
 type Row = { label: string; n: number; to?: string };
 
@@ -116,6 +117,7 @@ export function CollectionStats() {
 export function Wishes() {
   const s = useStore((x) => x);
   const list = s.wishes.filter((w) => s.games[w.gameId]);
+  const [owning, setOwning] = useState<string | null>(null);
   return (
     <main className="page pad">
       <header className="page-head">
@@ -135,10 +137,11 @@ export function Wishes() {
             const days = rel ? Math.ceil((rel.getTime() - Date.now()) / 86_400_000) : null;
             const future = days != null && days > 0;
             return (
-              <Link key={w.gameId} to={`/jogos/${g.slug}`} className={`wish-card on-photo${future ? ' is-soon' : ''}`}>
+              <article key={w.gameId} className={`wish-card on-photo${future ? ' is-soon' : ''}`}>
                 <Backdrop game={g} className="wish-card__bg" />
                 <span className="wish-card__shade" aria-hidden="true" />
-                <span className="wish-card__body">
+                <Link to={`/jogos/${g.slug}`} className="wish-card__link" aria-label={`Abrir a ficha de ${g.title}`} />
+                <div className="wish-card__body">
                   <span className="wish-card__top">
                     <span className={`kicker${future ? ' kicker--now' : ''}`}>{future ? `Lança em ${rel!.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' })}` : 'Desejo'}</span>
                     {future && <span className="wish-card__days"><span className="t">{days}</span><span className="kicker">{days === 1 ? 'dia' : 'dias'}</span></span>}
@@ -150,12 +153,46 @@ export function Wishes() {
                       <span className="wish-card__meta">{w.note ?? [g.year, g.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · ')}</span>
                     </span>
                   </span>
-                </span>
-              </Link>
+                  <div className="wish-card__actions">
+                    <button className="btn primary sm" onClick={() => setOwning(g.id)}>Já é meu</button>
+                    <Link className="btn ghost sm" to={`/jogos/${g.slug}`}>Ver ficha</Link>
+                    <ConfirmButton className="btn quiet sm" label="Remover" confirm="Toque de novo para remover" onConfirm={() => actions.toggleWish(g.id)} />
+                  </div>
+                </div>
+              </article>
             );
           })}
         </div>
       )}
+      {owning && s.games[owning] && <OwnedSheet gameId={owning} onClose={() => setOwning(null)} />}
     </main>
+  );
+}
+
+/** "Já é meu": vira uma cópia na estante e sai dos Desejos. */
+function OwnedSheet({ gameId, onClose }: { gameId: string; onClose: () => void }) {
+  const g = useStore((x) => x.games[gameId]);
+  const plats = [...new Set([...(g?.platforms ?? []), 'Outra plataforma'])];
+  const [platform, setPlatform] = useState(plats[0]);
+  const [kind, setKind] = useState<CopyKind>('fisico');
+  if (!g) return null;
+  const save = () => {
+    actions.addCopy({ gameId, platform, kind });
+    if (getState().wishes.some((w) => w.gameId === gameId)) actions.toggleWish(gameId);
+    onClose();
+  };
+  return (
+    <Sheet title={`${g.title} já é seu`} onClose={onClose} labelId="ja-e-meu">
+      <p className="muted" style={{ margin: '0 0 8px' }}>Entra na sua estante e sai dos Desejos.</p>
+      <label htmlFor="own-plat" className="finish__label">Plataforma</label>
+      <select id="own-plat" className="field" value={platform} onChange={(e) => setPlatform(e.target.value)}>
+        {plats.map((p) => <option key={p} value={p}>{shortPlatform(p)}</option>)}
+      </select>
+      <div className="finish__label">Formato</div>
+      <div className="seg" role="group" aria-label="Formato">
+        {([['fisico', 'Mídia física'], ['digital', 'Digital'], ['assinatura', 'Assinatura']] as const).map(([k, l]) => <button key={k} type="button" aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}
+      </div>
+      <div className="sheet__actions"><button className="btn primary lg" onClick={save}>Guardar na estante</button><button className="btn quiet" onClick={onClose}>Cancelar</button></div>
+    </Sheet>
   );
 }

@@ -967,3 +967,99 @@ a.wish-card { color: inherit; }
 .import-sheet, .import-dups, .import-progress, .import-done, .import-error { border-radius: 16px; }
 .import-progress .t, .import-done .t { font-size: 30px; }
 .import-conf { font: 400 10px var(--font-mono); letter-spacing: 0.12em; }
+.wish-card { min-height: 420px; }
+.wish-card__link { position: absolute; inset: 0; z-index: 1; border-radius: 16px; }
+.wish-card__link:focus-visible { outline: 2px solid var(--now); outline-offset: -2px; }
+.wish-card__body { pointer-events: none; z-index: 2; }
+.wish-card__actions { display: flex; flex-wrap: wrap; gap: 8px; pointer-events: auto; }
+.wish-card__actions .btn.ghost { border-color: rgba(230, 233, 237, 0.3); color: #E6E9ED; }
+.wish-card__actions .btn.quiet { color: #A9B0B8; }
+
+/* ------------------------------------------------------------------ */
+/* Nova estética, entrega 5: Jogos                                      */
+/* ------------------------------------------------------------------ */
+/* Buscar */
+.games-search { min-height: 64px; font-size: 18px; padding-left: 58px; max-width: 760px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='%239AA1AA' stroke-width='1.8'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-4-4'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 22px 50%; }
+.cover-grid { gap: 32px 18px; }
+.cover-grid__cover { border-radius: 8px; }
+.cover-grid__badge { border-radius: 999px; }
+.quick__btn { border-radius: 999px; }
+.block__head h2 { font-size: 26px; }
+
+/* Explorar */
+.explore__bar .field, .explore__bar select { border-radius: 999px; }
+.explore__meta { font: 400 11px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.explore__skeleton { border-radius: 8px; }
+
+/* Radar */
+.radar__row { border-radius: 16px; }
+.radar__cover { border-radius: 8px; }
+.radar__when { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+.radar__cal { border-radius: 16px; }
+.radar__cal h2 { font-size: 26px; }
+.radar-note { border-left: 0; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--now-line); }
+
+/* Trilhas */
+.trail-card { border-radius: 16px; padding: 22px 24px; }
+.trail-card__covers > span { border-radius: 8px; }
+.trail-card__text strong { font-size: 24px; }
+.trail-card__text .faint { font: 400 11px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.trail__back { display: inline-block; margin-bottom: 14px; text-decoration: none; }
+.trail__edit { margin: 0 0 16px; }
+.trail-next { display: flex; align-items: center; gap: 20px; max-width: 640px; padding: 18px 22px 18px 18px; border-radius: 16px; background: radial-gradient(120% 140% at 0% 100%, rgba(255, 178, 91, 0.14), transparent 60%), #0D0F12; box-shadow: inset 0 0 0 1px rgba(255, 178, 91, 0.35); text-decoration: none; color: inherit; margin-bottom: 8px; }
+a.trail-next { color: inherit; }
+.trail-next__cover { width: 72px; flex: none; aspect-ratio: 3 / 4; border-radius: 8px; overflow: hidden; box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45); }
+.trail-next__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trail-next__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.trail-next__title { font-size: 28px; line-height: 0.8; color: #F2F4F6; }
+.trail-next__go { font-size: 22px; color: var(--now-ink); }
+.trail__items { position: relative; gap: 0; margin-top: 28px; }
+.trail__item { position: relative; grid-template-columns: 44px 64px 1fr auto; padding: 16px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: none; }
+.trail__item::before { content: ''; position: absolute; left: 21px; top: 0; bottom: 0; width: 2px; background: var(--line-2); z-index: 0; }
+.trail__item:first-child::before { top: 50%; }
+.trail__item:last-child::before { bottom: 50%; }
+.trail__item.is-done::before { background: var(--gold); }
+.trail__n { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); box-shadow: inset 0 0 0 1.5px var(--line-2); font: 500 14px var(--font-mono); color: var(--muted); font-size-adjust: none; text-transform: none; line-height: 1; padding: 0; }
+.trail__item.is-done .trail__n { color: var(--gold); box-shadow: inset 0 0 0 1.5px var(--gold); }
+.trail__item.is-next { border-color: var(--line); background: linear-gradient(90deg, rgba(255, 178, 91, 0.07), transparent 70%); }
+.trail__item.is-next .trail__n { background: var(--now-hi); color: #07080A; box-shadow: 0 0 22px 6px rgba(255, 178, 91, 0.5); }
+.trail__cover { width: 64px; border-radius: 8px; }
+.trail__title { font: 700 17px/1.15 var(--font-title); font-stretch: 125%; text-transform: uppercase; }
+.trail__tag { font: 400 10px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; }
+
+/* Ficha do jogo */
+.ghero__info > .muted { font-size: 16px; color: var(--ink-2); }
+.ghero__chip { font-size: 13px; padding: 7px 14px; background: rgba(7, 8, 10, 0.4); }
+.ghero__actions { gap: 8px; }
+.ghero__actions .btn.lg { min-height: 48px; padding: 0 20px; font-size: 12px; }
+.ghero__actions .btn.primary.lg { padding: 0 26px; }
+.ratings { border-radius: 16px; background: rgba(13, 15, 18, 0.78); }
+.ratings__k, .ratings__n { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.ratings__mine { color: var(--now-ink); }
+.my-review { border-radius: 16px; background: linear-gradient(135deg, rgba(255, 178, 91, 0.06), var(--surface) 55%); }
+.my-review__k { font: 400 11px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--now-ink); }
+.my-review__title { font-size: 32px; }
+.my-review__score .t { color: var(--now-ink); }
+.community-reviews .block__head h2 { font-size: 26px; }
+.dist__bars { gap: 8px; }
+.dist__bar { border-radius: 999px; background: rgba(201, 206, 212, 0.28); opacity: 1; }
+.dist__col:last-child .dist__bar, .dist__col:nth-last-child(2) .dist__bar { background: linear-gradient(180deg, #FFE6C4, var(--now)); }
+.dist__col { font-family: var(--font-mono); font-size: 11px; color: var(--faint); }
+.review { padding: 24px; margin-top: 14px; border: 0; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.reviews { border-top: 0; }
+.review__avatar { background: var(--surface-2) !important; color: var(--ink) !important; }
+.review__score .t { color: var(--ink); }
+.review__title { font-size: 22px; }
+.aside-title { font: 400 12px/1 var(--font-mono) !important; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); font-size-adjust: none !important; margin-bottom: 14px; }
+.relation__mine { border-radius: 16px; box-shadow: inset 0 0 0 1px var(--now-line); background: var(--surface); }
+.universe__h { font: 400 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint); }
+.universe__cover { border-radius: 8px; }
+.universe__tag { font: 400 9px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.dna__ic { background: var(--now-bg); color: var(--now-ink); }
+@media (max-width: 640px) {
+  .ghero__actions .btn.lg { flex: 1 1 auto; }
+  .trail__item { grid-template-columns: 44px 52px 1fr; }
+  .trail__item .trail__tag { grid-column: 3; justify-self: start; }
+  .trail-next__title { font-size: 22px; }
+}
+.aside-title--now { color: var(--now-ink); }

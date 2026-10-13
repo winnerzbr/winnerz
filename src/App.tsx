@@ -39,6 +39,7 @@ import { PublicJourneyPage } from './pages/PublicJourney';
 import { HardwarePage } from './pages/Hardware';
 import { TrashPage } from './pages/Trash';
 import { ShowcasesPage, ShowcasePage } from './pages/Showcases';
+import { MuseumPage } from './pages/Museum';
 import { DeletionBanner } from './components/AccountData';
 import { NickGate } from './components/NickGate';
 import { PrivateTeaser } from './pages/PrivateTeaser';
@@ -59,6 +60,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/colecao/consoles', path)) return <HardwarePage />;
   if (match('/colecao/lixeira', path)) return <TrashPage />;
   if (match('/colecao/vitrines', path)) return <ShowcasesPage />;
+  if (match('/colecao/museu', path)) return <MuseumPage />;
   if ((m = match('/colecao/vitrines/:id', path))) return <ShowcasePage id={m.id} />;
   if (match('/colecao/desejos', path)) return <Wishes />;
   if (match('/colecao/estatisticas', path)) return <CollectionStats />;

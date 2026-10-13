@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { starFill, scoreHue } from '../lib/rating';
-import { Burst } from './ScoreInput';
 
 /** Estrela de cinco pontas com cantos arredondados (o traço da mesma cor arredonda as pontas). */
 const STAR = 'M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z';
@@ -89,10 +88,21 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
           // A estrela onde a nota parou "pula" quando a nota muda (a chave nova reinicia a animação).
           <span key={Math.ceil(value) === i + 1 ? `${i}-${pop}` : i} className={`star-input__cell${pop > 0 && Math.ceil(value) === i + 1 ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
             <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 4 - i) * 55} />
-            {pop > 0 && !dragging && Math.ceil(value) === i + 1 && <Burst seed={pop} left="50%" big={value === 5} k={value / 5} />}
+            {pop > 0 && !dragging && Math.ceil(value) === i + 1 && <StarPulse seed={pop} size={size} k={value / 5} big={value === 5} />}
           </span>
         );
       })}
     </div>
+  );
+}
+
+/** Pulso no formato da estrela onde a nota parou: quanto maior a nota, maior, mais forte e mais brilhante. */
+function StarPulse({ seed, size, k, big }: { seed: number; size: number; k: number; big?: boolean }) {
+  return (
+    <span key={seed} className="star-pulse" style={{ ['--k' as string]: k, width: size, height: size } as CSSProperties} aria-hidden="true">
+      {(big ? [0, 1] : [0]).map((n) => (
+        <svg key={n} viewBox="0 0 24 24" style={{ ['--n' as string]: n } as CSSProperties}><path d={STAR} /></svg>
+      ))}
+    </span>
   );
 }

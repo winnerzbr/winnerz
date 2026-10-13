@@ -331,24 +331,27 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
 
 /** Editor de análise. Respeita a escala: a nota é dada na escala de quem escreve. */
 function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: string; existing: Review | null; viewerScale: Scale; onDone: () => void }) {
-  // Editar uma análise antiga mantém a escala original para não arredondar (regra do documento de escalas).
-  const scale: Scale = existing?.rating.originalScale ?? viewerScale;
+  // A nota é dada na escala escolhida no cartão das notas (0 a 10 ou estrelas), também ao editar.
+  const scale: Scale = viewerScale;
   // A nota fica guardada em 0..1000 enquanto se escreve; trocar a escala no meio só muda a exibição.
   const [norm, setNorm] = useState<number>(existing ? existing.rating.normalized : 800);
+  // Sem mexer na nota, a original fica como estava (trocar de escala não arredonda nada ao salvar).
+  const [touched, setTouched] = useState(false);
   const step = scale === 'TEN_POINT' ? 50 : 100; // meio ponto ou meia estrela
   const snapped = Math.round(norm / step) * step;
   const value = toScale(snapped, scale);
-  const setValue = (v: number) => setNorm(normalize(v, scale).normalized);
+  const setValue = (v: number) => { setTouched(true); setNorm(normalize(v, scale).normalized); };
   const [title, setTitle] = useState(existing?.title ?? '');
   const [text, setText] = useState(existing?.text ?? '');
   const max = scaleMax(scale);
-  const save = () => { actions.saveReview(gameId, normalize(value, scale), title.trim(), text.trim(), existing?.id); onDone(); };
+  const save = () => { actions.saveReview(gameId, existing && !touched ? existing.rating : normalize(value, scale), title.trim(), text.trim(), existing?.id); onDone(); };
+  const rounded = !!existing && !touched && existing.rating.originalScale !== scale && normalize(value, scale).normalized !== existing.rating.normalized;
 
   return (
     <div className="editor">
       <h2 className="t my-review__title">{existing ? 'Editar sua análise' : 'Sua análise'}</h2>
-      {existing && existing.rating.originalScale !== viewerScale && (
-        <p className="muted" style={{ fontSize: 14 }}>Sua nota original foi dada {scale === 'TEN_POINT' ? 'de 0 a 10' : 'em estrelas'}. Para não arredondar, ela continua sendo editada nessa escala.</p>
+      {rounded && existing && (
+        <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'Em estrelas, ela aparece arredondada para a meia estrela mais próxima' : 'De 0 a 10, ela aparece arredondada para o meio ponto mais próximo'}; só muda se você mexer na nota.</p>
       )}
       <div className="editor__score">
         <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>

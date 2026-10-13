@@ -1993,3 +1993,44 @@ a.gev { color: var(--ink); }
   .gal__mk.is-on .mono { display: block; }
   .gal.is-full { --fw: 86vw; }
 }
+
+/* Cinema: barra de cima estável, botão de sair só com ícone, tela cheia no celular */
+.gal__top { justify-content: flex-start; flex-wrap: nowrap; }
+.gal__count { flex: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.gal__title { flex: 1 1 auto; min-width: 0; margin: 0; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gal__play { flex: none; margin-left: auto; }
+.gal__title + .gal__play { margin-left: 0; }
+.gal__exit { order: 9; flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; color: #F2F4F6; background: rgba(7, 8, 10, 0.45); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(230, 233, 237, 0.3); transition: background 0.2s; }
+.gal__exit:hover { background: rgba(230, 233, 237, 0.14); }
+.gal.is-full { height: 100vh; height: 100dvh; }
+.gal.is-full .gal__ruler { bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+
+@media (max-width: 760px) {
+  .gal.is-full { --fw: 88vw; padding-top: 0; justify-content: center; padding-bottom: 96px; }
+  .gal.is-full .gal__top { left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); gap: 10px; }
+  .gal.is-full .gal__exit { order: -1; }
+  .gal.is-full .gal__count { display: none; }
+  .gal.is-full .gal__title { text-align: left; font-size: 16px; }
+  .gal.is-full .gal__cap { margin-top: 28px; }
+  .gal.is-full .gal__ruler { left: 26px; right: 38px; }
+  .gal__count-h { display: none; }
+}
+
+/* Celular deitado (ou janela baixa) em tela cheia: quadro à esquerda, legenda à direita, régua embaixo */
+@media (orientation: landscape) and (max-height: 520px) {
+  .gal.is-full { --fw: min(54vw, calc((100dvh - 148px) / 0.5633)); display: grid; grid-template-columns: 60% 40%; grid-template-rows: minmax(0, 1fr); align-items: center; padding: 50px 0 78px; justify-content: stretch; }
+  .gal.is-full .gal__frames { grid-column: 1; grid-row: 1; width: 100%; align-self: center; clip-path: inset(-60px 0 -60px -100vw); }
+  .gal.is-full .gal__fr { -webkit-box-reflect: unset; }
+  .gal.is-full .gal__cap { grid-column: 2; grid-row: 1; width: auto; margin: 0; padding-right: max(24px, env(safe-area-inset-right, 0px)); align-items: flex-start; text-align: left; gap: 8px; }
+  .gal.is-full .gal__actions { justify-content: flex-start; }
+  .gal.is-full .gal__title2 { font-size: 26px; }
+  .gal.is-full .gal__quote { font-size: 15px; }
+  .gal.is-full .gal__top { top: 8px; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); }
+  .gal.is-full .gal__exit { order: -1; }
+  .gal.is-full .gal__count { display: none; }
+  .gal.is-full .gal__title { text-align: left; font-size: 16px; }
+  .gal.is-full .gal__arrow { display: none; }
+  .gal.is-full .gal__ruler { left: max(40px, env(safe-area-inset-left, 0px)); right: max(52px, env(safe-area-inset-right, 0px)); bottom: calc(4px + env(safe-area-inset-bottom, 0px)); }
+  .gal.is-full .gal__big { font-size: 26px; }
+  .gal.is-full .gal__ph { padding: 18px; }
+}

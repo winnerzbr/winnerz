@@ -354,7 +354,7 @@ function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, toda
       out.push({ ...x, gap });
       gap = undefined;
     }
-    if (today) out.push({ id: 'hoje', kind: 'agora', hist: out.at(-1)?.hist ?? 1, date: 'Hoje', title: today.open ? 'Agora' : 'Hoje', text: today.open ? `Sessão ${today.n} aberta. Registre o que quiser, quando quiser.` : `Sessão ${today.n} espera.`, today });
+    if (today) out.push({ id: 'hoje', kind: 'agora', hist: out.at(-1)?.hist ?? 1, date: 'Hoje', title: today.open ? `Sessão ${today.n} aberta` : `Sessão ${today.n} espera`, text: today.open ? 'Registre o que quiser, quando quiser.' : 'Quando você quiser.', today });
     return out;
   }, [stops, today]);
   const last = items.length - 1;
@@ -402,8 +402,8 @@ function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, toda
     if (x.image && x.kind !== 'agora') return <img src={x.image} alt="" draggable={false} />;
     if (x.kind === 'agora') return (
       <span className="gal__ph gal__ph--today">
-        <span className="kicker kicker--now">{x.today?.open ? 'Sessão aberta' : 'Próxima sessão'}</span>
-        <span className="t gal__big">{x.title}</span>
+        <span className="kicker kicker--now">{x.today?.open ? 'Agora' : 'Próxima sessão'}</span>
+        <span className="t gal__big">Sessão {x.today?.n}</span>
         <span className="muted">{x.text}</span>
       </span>
     );
@@ -433,12 +433,10 @@ function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, toda
       ))}
 
       <div className="gal__top">
-        <span className="mono gal__count">{String(sel + 1).padStart(2, '0')} / {items.length}{cur.kind !== 'agora' ? ` · História ${cur.hist}` : ''}</span>
-        <div className="gal__topactions">
-          {full && <span className="t gal__title">{title}</span>}
-          <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={play.onClick} title={play.hint}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>
-          {full && <button className="btn ghost sm" onClick={onExitFull}><Icon name="sairTela" size={15} />Sair da tela cheia</button>}
-        </div>
+        {full && <button className="gal__exit" onClick={onExitFull} aria-label="Sair da tela cheia" title="Sair da tela cheia"><Icon name="sairTela" size={18} /></button>}
+        <span className="mono gal__count">{String(sel + 1).padStart(2, '0')} / {items.length}<span className="gal__count-h">{cur.kind !== 'agora' ? ` · História ${cur.hist}` : ' · Hoje'}</span></span>
+        {full && <span className="t gal__title">{title}</span>}
+        <button className={`btn sm gal__play ${play.now ? 'now' : 'primary'}`} onClick={play.onClick} title={play.hint}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}<span className="gal__play-l">{play.label}</span></button>
       </div>
 
       <div className="gal__frames"

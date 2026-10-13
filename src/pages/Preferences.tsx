@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
 import { Stars } from '../components/Stars';
-import { darkTokens } from '../lib/theme';
+import { darkTokens, lightTokens, WHITE_DEFAULT } from '../lib/theme';
 import { formatScore, normalize, scaleMax } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
@@ -20,6 +20,8 @@ export function Preferences() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
   const preview = darkTokens(prefs.black);
+  const white = prefs.white ?? WHITE_DEFAULT;
+  const lightPreview = lightTokens(white);
 
   const signOut = async () => {
     const { getClient } = await import('../data/supabaseAdapter');
@@ -49,9 +51,9 @@ export function Preferences() {
             Escuro
           </button>
           <button className="theme-card" aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>
-            <span className="theme-card__mini theme-card__mini--light" aria-hidden="true">
-              <span style={{ background: '#0B0D10', width: '50%' }} /><span style={{ background: '#C5CAD0', width: '70%' }} />
-              <span className="theme-card__blocks"><i style={{ background: '#FFFFFF' }} /><i style={{ background: '#FFFFFF' }} /><b /></span>
+            <span className="theme-card__mini theme-card__mini--light" aria-hidden="true" style={{ background: lightPreview['--bg'] }}>
+              <span style={{ background: '#0B0D10', width: '50%' }} /><span style={{ background: lightPreview['--line-2'], width: '70%' }} />
+              <span className="theme-card__blocks"><i style={{ background: lightPreview['--surface'] }} /><i style={{ background: lightPreview['--surface'] }} /><b /></span>
             </span>
             Claro
           </button>
@@ -61,6 +63,13 @@ export function Preferences() {
             <label htmlFor="preto" className="black-card__label">Intensidade do preto <span className="t">{prefs.black}%</span></label>
             <input id="preto" className="range lg" type="range" min={0} max={100} value={prefs.black} style={{ ['--p' as string]: `${prefs.black}%` }} onChange={(e) => actions.setPrefs({ black: Number(e.target.value) })} />
             <div className="black-card__ends"><span>Grafite, mais suave</span><span>Preto absoluto, ideal para telas OLED</span></div>
+          </div>
+        )}
+        {prefs.theme === 'claro' && (
+          <div className="card black-card">
+            <label htmlFor="branco" className="black-card__label">Intensidade do branco <span className="t">{white}%</span></label>
+            <input id="branco" className="range lg" type="range" min={0} max={100} value={white} style={{ ['--p' as string]: `${white}%` }} onChange={(e) => actions.setPrefs({ white: Number(e.target.value) })} />
+            <div className="black-card__ends"><span>Cinza suave, menos brilho</span><span>Branco puro, mais contraste</span></div>
           </div>
         )}
       </section>

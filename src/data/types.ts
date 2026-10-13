@@ -261,6 +261,8 @@ export interface Review {
 export interface Prefs {
   theme: 'escuro' | 'claro';
   black: number; // 0..100
+  /** Intensidade do branco no tema claro (0 = cinza suave, 100 = branco puro). */
+  white?: number;
   scale: Scale;
   motion: 'completas' | 'discretas' | 'reduzidas';
   /** Jornada que a pessoa colocou "em foco" (versão antiga, um só jogo). */

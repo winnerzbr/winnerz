@@ -65,6 +65,15 @@ export function Header() {
                     <div className="appearance__ends"><span>Grafite</span><span>Preto absoluto</span></div>
                   </>
                 )}
+                {prefs.theme === 'claro' && (
+                  <>
+                    <label htmlFor="branco-header" className="appearance__label">Intensidade do branco <span>{prefs.white ?? 70}%</span></label>
+                    <input id="branco-header" className="range" type="range" min={0} max={100} value={prefs.white ?? 70}
+                      style={{ ['--p' as string]: `${prefs.white ?? 70}%` }}
+                      onChange={(e) => actions.setPrefs({ white: Number(e.target.value) })} />
+                    <div className="appearance__ends"><span>Cinza suave</span><span>Branco puro</span></div>
+                  </>
+                )}
                 <Link to="/preferencias" onClick={() => setOpen(false)} className="appearance__more">Mais preferências</Link>
               </div>
             )}
@@ -144,6 +153,14 @@ export function TabBar() {
                 <input id="preto-mais" className="range" type="range" min={0} max={100} value={prefs.black}
                   style={{ ['--p' as string]: `${prefs.black}%` }}
                   onChange={(e) => actions.setPrefs({ black: Number(e.target.value) })} />
+              </>
+            )}
+            {prefs.theme === 'claro' && (
+              <>
+                <label htmlFor="branco-mais" className="appearance__label">Intensidade do branco <span>{prefs.white ?? 70}%</span></label>
+                <input id="branco-mais" className="range" type="range" min={0} max={100} value={prefs.white ?? 70}
+                  style={{ ['--p' as string]: `${prefs.white ?? 70}%` }}
+                  onChange={(e) => actions.setPrefs({ white: Number(e.target.value) })} />
               </>
             )}
           </div>

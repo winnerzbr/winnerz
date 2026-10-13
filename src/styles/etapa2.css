@@ -2725,3 +2725,19 @@ a.gev { color: var(--ink); }
 .trash__acts { display: flex; gap: 6px; flex-wrap: wrap; }
 .trash__empty { margin-top: 24px; }
 @media (max-width: 600px) { .trash__acts { width: 100%; padding-left: 62px; } }
+
+/* Trocar o jogo do catálogo (exemplar ligado ao jogo errado) */
+.gswap { display: grid; gap: 10px; }
+.gswap__lead { margin: 0; font-size: 14px; line-height: 1.5; }
+.gswap__hits { margin-top: 2px; }
+.gswap__hits button[aria-current] { opacity: .6; cursor: default; }
+.gswap__tag { display: inline-block; margin-top: 5px; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-ink); }
+.gswap__tag--cur { background: var(--surface-2); color: var(--muted, inherit); }
+.gswap__err { margin: 0; color: var(--danger, #c0392b); font-size: 14px; }
+.gswap__choices { display: grid; gap: 8px; }
+.gswap__choice { display: grid; gap: 3px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font: inherit; }
+.gswap__choice:hover, .gswap__choice:focus-visible { border-color: var(--accent); }
+.gswap__choice .muted { font-size: 13.5px; line-height: 1.45; }
+.gswap__ask { margin: 12px 0 0; font-size: 13.5px; }
+.gswap__link { border: 0; background: none; padding: 0; font: inherit; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.gswap__ok { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 14px; }

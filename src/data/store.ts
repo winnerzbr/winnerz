@@ -212,7 +212,8 @@ function reduce(s: State, a: Action): State {
         journeys = s.journeys.filter((j) => j.id !== jf.id);
       }
       const games = { ...s.games, [t]: a.to };
-      delete games[f];
+      // Ficha feita à mão some; ficha do IGDB continua no catálogo (só deixa de ser sua).
+      if (s.games[f]?.source === 'manual') delete games[f];
       return {
         ...s, games, myGames, journeys, histories, sessions, events,
         copies: s.copies.map(sw),
@@ -703,6 +704,13 @@ export const actions = {
     if (c) { track('colecao.editar-copia'); dispatch({ type: 'copy.update', copy: { ...c, ...patch } }); }
   },
   deleteCopy(copyId: ID) { dispatch({ type: 'copy.delete', copyId }); },
+  /** Exemplar ligado ao jogo errado do catálogo: passa só ele para o jogo certo. */
+  moveCopy(copyId: ID, to: Game) {
+    const c = state.copies.find((x) => x.id === copyId);
+    if (!c || c.gameId === to.id) return;
+    track('colecao.trocar-jogo');
+    dispatch({ type: 'copy.update', copy: { ...c, gameId: to.id } });
+  },
   addHardware(hw: Omit<Hardware, 'id' | 'createdAt'>) {
     const full: Hardware = { ...hw, id: uid(), createdAt: new Date().toISOString() };
     track('colecao.console');
@@ -742,7 +750,7 @@ export const actions = {
     return game;
   },
 
-  /** Liga um jogo cadastrado à mão à ficha do IGDB: tudo o que era dele passa para a ficha. */
+  /** Troca um jogo pela ficha certa (manual → IGDB, ou IGDB errado → IGDB certo): tudo o que era dele passa para a ficha. */
   relinkGame(fromId: ID, to: Game) {
     if (fromId === to.id) return;
     track('jogos.ligar-igdb');

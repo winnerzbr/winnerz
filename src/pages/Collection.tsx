@@ -5,6 +5,7 @@ import type { Copy, CopyKind, State } from '../data/types';
 import { FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Icon } from '../components/Icon';
 import { AddGameDialog } from '../components/AddGameDialog';
+import { GameSwap } from '../components/GameSwap';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
 import { Sheet, ConfirmButton } from '../components/Sheet';
@@ -249,9 +250,12 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
   const s = useStore((x) => x);
   const c = s.copies.find((x) => x.id === copyId);
   const [editing, setEditing] = useState(false);
+  const [swapping, setSwapping] = useState(false);
+  const [swapped, setSwapped] = useState('');
   const fav = useFavorite(c?.gameId ?? '');
   if (!c) return null;
   const g = s.games[c.gameId];
+  if (!g) return null;
   const st = situation(s, c.gameId);
   const m = myGame(s, c.gameId);
   const kindLabel = c.kind === 'fisico' ? 'Mídia física' : c.kind === 'digital' ? 'Digital' : c.kind === 'assinatura' ? 'Pelo serviço de assinatura' : 'Outro';
@@ -265,7 +269,10 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
 
   return (
     <Sheet title={g.title} onClose={onClose} labelId="copia" wide>
-      {!editing ? (
+      {swapping ? (
+        <GameSwap game={g} copy={c} onCancel={() => setSwapping(false)}
+          onDone={(ng, scope) => { setSwapping(false); setSwapped(scope === 'copia' ? `Pronto: este exemplar agora é ${ng.title}.` : `Pronto: tudo o que era deste jogo agora é ${ng.title}.`); }} />
+      ) : !editing ? (
         <div className="csheet">
           <div className="csheet__top">
             <span className="csheet__cover"><CoverArt game={g} platform={c.platform} lazy={false} /></span>
@@ -299,10 +306,12 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
           ) : <p className="faint">A ficha deste exemplar está em branco. Região, edição, condição e compra são opcionais.</p>}
           {c.note && <div className="copy-panel__note"><div className="faint"><Icon name="cadeado" size={12} /> Nota só sua</div><p className="quote">“{c.note}”</p></div>}
 
+          {swapped && <p className="gswap__ok" role="status">{swapped}</p>}
           <div className="sheet__actions">
             <button className="btn ghost" onClick={() => setEditing(true)}>Editar ficha do exemplar</button>
             <Link className="btn quiet" to={`/jogos/${g.slug}`} onClick={onClose}>Abrir a ficha do jogo</Link>
           </div>
+          <p className="gswap__ask faint">Não é este jogo? <button className="gswap__link" onClick={() => { setSwapped(''); setSwapping(true); }}>Trocar pelo jogo certo do catálogo</button></p>
         </div>
       ) : (
         <CopyForm copy={c} onDone={() => setEditing(false)} onDeleted={onClose} />

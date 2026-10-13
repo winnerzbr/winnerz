@@ -6,6 +6,7 @@ import { STATE_LABEL } from '../components/JourneyManage';
 import { whenLabel } from '../lib/dates';
 import { shortPlatform } from '../lib/platforms';
 import { LinkToIgdb } from '../components/LinkToIgdb';
+import { GameSwapOnPage } from '../components/GameSwap';
 import { CoverArt } from '../components/CoverArt';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
@@ -264,7 +265,7 @@ function GameView({ gameId }: { gameId: string }) {
             {(!h || h.state !== 'ativa') && (
               <button className="btn quiet sm relation__wont" aria-pressed={!!mine2.wontPlay} onClick={() => actions.toggleWontPlay(gameId)}>{mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar'}</button>
             )}
-            {g.source === 'manual' && <LinkToIgdb game={g} />}
+            {g.source === 'manual' ? <LinkToIgdb game={g} /> : <GameSwapOnPage key={g.id} game={g} />}
             {g.igdbId && <RadarToggle game={g} on={!!mine2.onRadar} />}
           </section>
           <GameDna game={g} />

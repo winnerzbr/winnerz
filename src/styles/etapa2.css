@@ -2068,5 +2068,5 @@ a.gev { color: var(--ink); }
 .what__cover img { border-radius: 10px; }
 
 /* Início: hero um pouco mais baixo, texto mais perto do topo */
-.hero__row { min-height: 530px; padding-top: 80px; }
+.hero__row { min-height: 510px; padding-top: 80px; }
 @media (max-width: 760px) { .hero__row { min-height: 0; padding-top: 56px; } }

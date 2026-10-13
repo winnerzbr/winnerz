@@ -233,6 +233,32 @@ const hit = (g: any) => ({
 const sleep = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
 const SEARCH_FIELDS = 'name,slug,first_release_date,cover.image_id,platforms.name';
 
+/**
+ * A busca do IGDB ("search") favorece títulos longos e populares: nomes curtos e comuns ("Black", "Burnout")
+ * às vezes nem aparecem entre os primeiros. Por isso cada busca vem acompanhada de uma consulta pelo nome
+ * exato (sem diferenciar maiúsculas), ordenada pelos mais conhecidos. Até 10 títulos numa só chamada (multiquery).
+ */
+async function exactMany(titles: string[]): Promise<any[][]> {
+  if (!titles.length) return [];
+  const body = titles.map((t, i) => `query games "e${i}" { where name ~ "${t}"; fields ${SEARCH_FIELDS}; sort total_rating_count desc; limit 8; };`).join('\n');
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await igdb('multiquery', body);
+      return titles.map((_, j) => r.find((x: any) => x.name === `e${j}`)?.result ?? []);
+    } catch (e) { if (i === 2 || !/429/.test(String(e))) break; await sleep(600 * (i + 1)); }
+  }
+  return titles.map(() => []);
+}
+
+/** Junta listas de jogos sem repetir (a primeira lista vem antes). */
+function mergeRows(...lists: any[][]) {
+  const seen = new Set<number>();
+  return lists.flat().filter((g) => g && !seen.has(g.id) && (seen.add(g.id), true));
+}
+
+/** Texto seguro para a consulta do IGDB (sem aspas nem barra invertida). */
+const cleanTitle = (t: string) => t.replace(/["\\]/g, '').trim().slice(0, 120);
+
 /** Uma busca, com nova tentativa se o IGDB pedir calma (429). */
 async function searchOne(title: string) {
   for (let i = 0; i < 3; i++) {
@@ -247,12 +273,16 @@ async function searchOne(title: string) {
  * no máximo 4 por segundo, que é o limite do IGDB.
  */
 async function matchMany(items: { title: string }[]) {
-  const list = items.slice(0, 10).map((x) => String(x.title ?? '').replace(/["\\]/g, '').slice(0, 120));
+  const list = items.slice(0, 10).map((x) => cleanTitle(String(x.title ?? '')));
   const out: { title: string; candidates: ReturnType<typeof hit>[] }[] = [];
+  const exact = await exactMany(list.filter(Boolean));
+  let e = 0;
+  await sleep(260);
   for (const title of list) {
     const t0 = Date.now();
+    const same = title ? exact[e++] ?? [] : [];
     const rows = await searchOne(title).catch(() => [] as any[]);
-    out.push({ title, candidates: rows.map(hit) });
+    out.push({ title, candidates: mergeRows(same, rows).map(hit) });
     await sleep(Math.max(0, 260 - (Date.now() - t0)));
   }
   return out;
@@ -627,8 +657,17 @@ export default async function handler(req: Req, res: Res) {
     const id = typeof req.query.id === 'string' ? Number(req.query.id) : NaN;
 
     if (q) {
-      const safe = q.replace(/"/g, '');
-      const rows = await igdb('games', `search "${safe}"; fields name,slug,first_release_date,cover.image_id,platforms.name; limit 12;`);
+      // Também aceita o endereço da página no IGDB (igdb.com/games/black) ou o número do jogo ("id 5749").
+      const ref = /igdb\.com\/games\/([a-z0-9-]+)/i.exec(q)?.[1];
+      const idq = /^(?:igdb\s*)?id\s*[:#]?\s*(\d{1,8})$/i.exec(q)?.[1];
+      let rows: any[];
+      if (ref || idq) {
+        rows = await igdb('games', `where ${ref ? `slug = "${ref.toLowerCase()}"` : `id = ${Number(idq)}`}; fields ${SEARCH_FIELDS}; limit 1;`);
+      } else {
+        const safe = cleanTitle(q) || '-';
+        const [[same], found] = await Promise.all([exactMany([safe]), igdb('games', `search "${safe}"; fields ${SEARCH_FIELDS}; limit 15;`)]);
+        rows = mergeRows(same ?? [], found).slice(0, 20);
+      }
       res.setHeader('Cache-Control', 's-maxage=3600');
       return res.status(200).json(rows.map(hit));
     }

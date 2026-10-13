@@ -2741,3 +2741,4 @@ a.gev { color: var(--ink); }
 .gswap__ask { margin: 12px 0 0; font-size: 13.5px; }
 .gswap__link { border: 0; background: none; padding: 0; font: inherit; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .gswap__ok { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 14px; }
+.gswap__tip { margin: 0; font-size: 12.5px; line-height: 1.45; }

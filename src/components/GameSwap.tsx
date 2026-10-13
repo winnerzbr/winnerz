@@ -104,8 +104,9 @@ export function GameSwap({ game, copy, onDone, onCancel }: { game: Game; copy?: 
             </button></li>
           );
         })}
-        {searched && !hits.length && <li className="muted" style={{ padding: 12 }}>Nada encontrado com esse nome. Tente outra grafia ou acrescente o ano.</li>}
+        {searched && !hits.length && <li className="muted" style={{ padding: 12 }}>Nada encontrado com esse nome. Tente outra grafia, ou cole o endereço da página do jogo no IGDB.</li>}
       </ul>
+      <p className="faint gswap__tip">Não achou? Cole aqui o endereço da página do jogo no IGDB (igdb.com/games/…) ou escreva “id” e o número do IGDB ID.</p>
       {err && <p role="alert" className="gswap__err">{err}</p>}
       <button className="btn quiet sm" onClick={onCancel}>Cancelar</button>
     </div>

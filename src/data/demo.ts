@@ -12,7 +12,7 @@ const games: Game[] = [
     developer: 'Naughty Dog', publisher: 'Sony Interactive Entertainment',
     platforms: ['PlayStation 4', 'PlayStation 5'], genres: 'Ação, aventura e tiro em terceira pessoa',
     summary: 'Cinco anos depois de sua perigosa jornada pelos Estados Unidos pós-pandemia, Ellie e Joel se estabeleceram em Jackson, Wyoming. Quando um evento violento interrompe essa paz, Ellie embarca em uma jornada implacável para fazer justiça.',
-    summarySource: 'Texto do IGDB, traduzido para o português',
+    summarySource: 'Traduzido automaticamente',
     releases: [{ platform: 'PlayStation 4', date: '19 de junho de 2020' }, { platform: 'PlayStation 5, atualização', date: '19 de maio de 2021' }],
     screenshots: [img('scene-tlou-field'), img('scene-tlou-forest'), img('scene-tlou-guitar'), img('scene-tlou-fire')],
   },

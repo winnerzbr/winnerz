@@ -143,7 +143,7 @@ export function Collection() {
 
       {dupHint > 0 && (
         <div className="card repair-banner" role="status">
-          <p><strong>Alguns jogos estão repetidos</strong> <span className="muted">(com e sem ficha do IGDB). Dá para juntar cada par em um só, sem perder nada.</span></p>
+          <p><strong>Alguns jogos estão repetidos</strong> <span className="muted">(com e sem ficha do catálogo). Dá para juntar cada par em um só, sem perder nada.</span></p>
           <Link className="btn primary sm" to="/colecao/reparar">Arrumar repetidos</Link>
         </div>
       )}

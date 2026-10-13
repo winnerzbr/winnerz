@@ -17,7 +17,7 @@ export function GameDna({ game }: { game: Game }) {
           <li key={t.key} className="dna__item">
             <span className="dna__ic" aria-hidden="true">{ICON[t.key]}</span>
             <div>
-              <div className="dna__label">{t.label} <span className={`prov prov--${t.source}`} title={t.source === 'inferido' ? 'Deduzido pelo WinnerZ a partir de gênero, tema e modo' : t.source === 'igdb' ? 'Dado da ficha do IGDB' : 'Informado por você'}>{PROVENANCE_LABEL[t.source]}</span></div>
+              <div className="dna__label">{t.label} {t.source !== 'igdb' && <span className={`prov prov--${t.source}`} title={t.source === 'inferido' ? 'Deduzido pelo WinnerZ a partir de gênero, tema e modo' : 'Informado por você'}>{PROVENANCE_LABEL[t.source]}</span>}</div>
               <div className="muted dna__detail">{t.detail}</div>
             </div>
           </li>

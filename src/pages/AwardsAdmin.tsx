@@ -82,7 +82,7 @@ export function AwardsAdminPage() {
       {full && (
         <section className="awards-admin__cats" aria-labelledby="cats-h">
           <h2 id="cats-h" className="t">Categorias e indicados</h2>
-          <p className="muted">Os indicados são jogos do IGDB. A ordem das categorias segue o número de cada uma.</p>
+          <p className="muted">Os indicados são jogos do catálogo. A ordem das categorias segue o número de cada uma.</p>
           {full.categories.map((c) => <CategoryEditor key={c.id} cat={c} year={full.award.year} run={run} />)}
           <NewCategory awardId={full.award.id} position={(full.categories.at(-1)?.position ?? 0) + 1} run={run} />
         </section>
@@ -210,7 +210,7 @@ function NomineeArtEditor({ n, run, onDone }: { n: Nominee; run: Run; onDone: ()
             <img src={igdbSize(u, 't_screenshot_med')} alt="" loading="lazy" />
           </button>
         ))}
-        {list.length === 0 && <span className="muted">Este jogo não tem artes nem capturas no IGDB. Cole o endereço de uma imagem abaixo.</span>}
+        {list.length === 0 && <span className="muted">Este jogo não tem artes nem capturas no catálogo. Cole o endereço de uma imagem abaixo.</span>}
       </div>
       <div className="artpick__url">
         <input className="field" placeholder="Ou cole o endereço de outra imagem (https://…)" value={url} onChange={(e) => setUrl(e.target.value)} aria-label="Endereço de outra imagem" />
@@ -253,14 +253,14 @@ function NomineePicker({ cat, year, run }: { cat: Category; year: number; run: R
     try {
       const r = await fetch(`/api/igdb?explore=1&sort=rating&from=${year}&to=${year}&page=0`);
       setHits(r.ok && (r.headers.get('content-type') ?? '').includes('json') ? ((await r.json()) as Hit[]).slice(0, 12) : []);
-      setLabel(`Mais bem avaliados de ${year} no IGDB`);
+      setLabel(`Mais bem avaliados de ${year}`);
     } finally { setBusy(''); }
   };
   const add = async (h: Hit) => {
     setBusy(h.slug);
     await run(async () => {
       const g = h.local ?? Object.values(games).find((x) => x.igdbId && x.igdbId === h.igdbId) ?? (await loadGame(h));
-      if (!g) throw new Error('Não consegui carregar a ficha deste jogo no IGDB.');
+      if (!g) throw new Error('Não consegui carregar a ficha deste jogo.');
       actions.mergeGames([g]);
       await awardsApi().addNominee(cat.id, g, cat.nominees.length);
     }, `${h.title} indicado.`);
@@ -270,7 +270,7 @@ function NomineePicker({ cat, year, run }: { cat: Category; year: number; run: R
   return (
     <div className="awards-admin__pick">
       <div className="awards-admin__row">
-        <input className="field" placeholder="Buscar jogo no IGDB para indicar" value={q} onChange={(e) => setQ(e.target.value)} aria-label={`Buscar indicado para ${cat.name}`} />
+        <input className="field" placeholder="Buscar jogo no catálogo para indicar" value={q} onChange={(e) => setQ(e.target.value)} aria-label={`Buscar indicado para ${cat.name}`} />
         <button className="btn ghost sm" onClick={suggest} disabled={busy === 'sugestoes'}>{busy === 'sugestoes' ? 'Buscando…' : `Sugestões de ${year}`}</button>
       </div>
       {hits.length > 0 && <p className="faint">{label}</p>}

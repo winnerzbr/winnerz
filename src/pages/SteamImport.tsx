@@ -62,7 +62,7 @@ export function SteamImportPage() {
       const need = [...new Set(plan.matched.map((g) => g.igdbId!))].filter((id) => !known.has(id));
       const fresh: Game[] = [];
       for (let i = 0; i < need.length; i += 100) {
-        setProgress(`Trazendo fichas do IGDB (${Math.min(need.length, i + 100)} de ${need.length})`);
+        setProgress(`Trazendo fichas do catálogo (${Math.min(need.length, i + 100)} de ${need.length})`);
         const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cache: need.slice(i, i + 100) }) });
         if (r.ok) for (const row of (await r.json()) as any[]) { const g = gameFromApi(row); fresh.push(g); known.set(g.igdbId!, g); }
       }
@@ -113,7 +113,7 @@ export function SteamImportPage() {
       {step === 'pronto' ? (
         <section className="card import-done">
           <p className="t">Pronto.</p>
-          <p className="muted">{done.copies} {done.copies === 1 ? 'jogo entrou' : 'jogos entraram'} na estante como PC (Steam){done.manual ? `, ${done.manual} deles sem ficha do IGDB` : ''}. {done.hours} {done.hours === 1 ? 'jogo ganhou' : 'jogos ganharam'} as horas da Steam. Dá para importar de novo quando quiser: o que já está lá não se repete, e as horas se atualizam.</p>
+          <p className="muted">{done.copies} {done.copies === 1 ? 'jogo entrou' : 'jogos entraram'} na estante como PC (Steam){done.manual ? `, ${done.manual} deles sem ficha do catálogo` : ''}. {done.hours} {done.hours === 1 ? 'jogo ganhou' : 'jogos ganharam'} as horas da Steam. Dá para importar de novo quando quiser: o que já está lá não se repete, e as horas se atualizam.</p>
           <div className="import__actions"><Link className="btn primary lg" to="/colecao">Ver a estante</Link></div>
         </section>
       ) : blocked ? (
@@ -132,14 +132,14 @@ export function SteamImportPage() {
         <section aria-labelledby="steam-h">
           <h2 id="steam-h" className="t import__h">{lib.length} jogos na sua Steam</h2>
           <div className="kpis">
-            <div className="kpi"><span className="kpi__n t">{plan.matched.length.toLocaleString('pt-BR')}</span><span className="kpi__l">com ficha do IGDB</span></div>
+            <div className="kpi"><span className="kpi__n t">{plan.matched.length.toLocaleString('pt-BR')}</span><span className="kpi__l">com ficha do catálogo</span></div>
             <div className="kpi"><span className="kpi__n t">{plan.already.length.toLocaleString('pt-BR')}</span><span className="kpi__l">já na estante como PC</span></div>
             <div className="kpi"><span className="kpi__n t">{plan.withHours.length.toLocaleString('pt-BR')}</span><span className="kpi__l">com tempo jogado</span></div>
           </div>
           <div className="steam__opts">
             <label><input type="checkbox" checked={opts.add} onChange={(e) => setOpts({ ...opts, add: e.target.checked })} /> Adicionar à estante os {plan.toAdd} que ainda não estão lá como PC</label>
             <label><input type="checkbox" checked={opts.hours} onChange={(e) => setOpts({ ...opts, hours: e.target.checked })} /> Guardar o tempo jogado (Informado pela Steam)</label>
-            {plan.unmatchedNew.length > 0 && <label><input type="checkbox" checked={opts.unmatched} onChange={(e) => setOpts({ ...opts, unmatched: e.target.checked })} /> Incluir também os {plan.unmatchedNew.length} sem ficha do IGDB (entram como jogos sem ficha; dá para ligar depois)</label>}
+            {plan.unmatchedNew.length > 0 && <label><input type="checkbox" checked={opts.unmatched} onChange={(e) => setOpts({ ...opts, unmatched: e.target.checked })} /> Incluir também os {plan.unmatchedNew.length} sem ficha do catálogo (entram como jogos sem ficha; dá para ligar depois)</label>}
           </div>
           <ul className="steam__list">
             {lib.slice(0, 40).map((g) => {
@@ -147,7 +147,7 @@ export function SteamImportPage() {
               return (
                 <li key={g.appid}>
                   <span className="steam__name">{g.name}</span>
-                  <span className="muted">{g.minutes ? fmtH(g.minutes) : 'Não jogado'}{!g.igdbId ? ' · sem ficha do IGDB' : x && onPc(x.id) ? ' · já na estante' : ''}</span>
+                  <span className="muted">{g.minutes ? fmtH(g.minutes) : 'Não jogado'}{!g.igdbId ? ' · sem ficha do catálogo' : x && onPc(x.id) ? ' · já na estante' : ''}</span>
                 </li>
               );
             })}

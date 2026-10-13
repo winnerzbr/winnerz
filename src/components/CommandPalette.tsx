@@ -79,7 +79,7 @@ function Palette({ onClose }: { onClose: () => void }) {
     }
     for (const [title, to, words] of PAGES) if (has(title) || norm(words).includes(t)) out.push({ key: `p-${to}`, group: 'Ir para', title, to });
     const known = new Set(mine.map((g) => g.slug));
-    for (const h of remote) if (!known.has(h.slug)) out.push({ key: `r-${h.slug}`, group: 'No IGDB', title: h.title, meta: [h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · '), to: `/jogos/${h.slug}`, cover: { title: h.title, cover: h.cover } });
+    for (const h of remote) if (!known.has(h.slug)) out.push({ key: `r-${h.slug}`, group: 'No catálogo', title: h.title, meta: [h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · '), to: `/jogos/${h.slug}`, cover: { title: h.title, cover: h.cover } });
     return out;
   }, [q, s, remote]);
 
@@ -114,7 +114,7 @@ function Palette({ onClose }: { onClose: () => void }) {
               </li>,
             ];
           })}
-          {q.trim().length >= 2 && items.length === 0 && <li className="palette__empty muted">Nada encontrado. O IGDB ainda pode estar respondendo…</li>}
+          {q.trim().length >= 2 && items.length === 0 && <li className="palette__empty muted">Nada encontrado. O catálogo ainda pode estar respondendo…</li>}
         </ul>
         <div className="palette__foot faint"><span><kbd>↑</kbd><kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span><span><kbd>Ctrl</kbd>+<kbd>K</kbd> de qualquer lugar</span></div>
       </div>

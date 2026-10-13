@@ -58,7 +58,7 @@ export function GameUniverse({ game, part }: { game: Game; part: 'aside' | 'next
     if (!similar.length) return null;
     return (
       <section className="universe-next" aria-labelledby="depois">
-        <div className="sec-head"><h2 id="depois" className="t sec-title">O que vem depois</h2><span className="kicker">Parecidos, pelo IGDB</span></div>
+        <div className="sec-head"><h2 id="depois" className="t sec-title">O que vem depois</h2><span className="kicker">Jogos semelhantes</span></div>
         <ul className="universe-next__grid">
           {similar.map((h) => {
             const tag = relationTag(s, h);

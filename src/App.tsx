@@ -33,6 +33,7 @@ import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
 import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
+import { AboutPage } from './pages/About';
 import { PublicProfilePage } from './pages/PublicProfile';
 import { PublicJourneyPage } from './pages/PublicJourney';
 import { HardwarePage } from './pages/Hardware';
@@ -72,6 +73,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/privacidade', path)) return <PrivacyPage />;
+  if (match('/sobre', path)) return <AboutPage />;
   if (match('/eventos', path)) return <EventsIndex />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
@@ -116,6 +118,7 @@ export function App() {
   // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
   if (SITE_PRIVATE && mode === 'supabase' && !isAdmin) {
     if (match('/privacidade', path)) return <PrivacyPage standalone />;
+    if (match('/sobre', path)) return <AboutPage standalone />;
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 
@@ -135,7 +138,7 @@ export function App() {
         <footer className="site-footer">
           <div className="page">
             <BrandMark width={56} title="WinnerZ" />
-            <p>Onde jogos viram histórias. <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
+            <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
           </div>
         </footer>
       )}

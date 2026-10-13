@@ -280,7 +280,7 @@ function AddToTrail({ trail, onSaved }: { trail: Trail; onSaved: () => Promise<v
   };
   return (
     <div className="card trail-add">
-      <input className="field" placeholder="Adicionar jogo à trilha (busca no IGDB)" value={q} onChange={(e) => setQ(e.target.value)} />
+      <input className="field" placeholder="Adicionar jogo à trilha (busca no catálogo)" value={q} onChange={(e) => setQ(e.target.value)} />
       <ul className="awards-admin__hits">
         {hits.map((h) => (
           <li key={h.slug}><button className="awards-admin__hit" disabled={!!busy} onClick={() => void add(h)}><span className="awards-admin__cover"><CoverArt game={h} /></span><span>{h.title}{h.year ? ` (${h.year})` : ''}</span><span className="faint">{busy === h.slug ? 'Adicionando…' : 'Adicionar'}</span></button></li>

@@ -38,7 +38,7 @@ function durationTrait(h: number, source: Provenance, g: Game): Trait {
   const range = source === 'igdb' && t ? [t.h != null && `rápido ${fmtHours(t.h)}`, t.c != null && `completo ${fmtHours(t.c)}`].filter(Boolean).join(', ') : '';
   const detail = source === 'voce'
     ? `Cerca de ${fmtHours(h)} para zerar, pela sua estimativa.`
-    : `Cerca de ${fmtHours(h)} para zerar, pela média de quem informou no IGDB${range ? ` (${range})` : ''}.`;
+    : `Cerca de ${fmtHours(h)} para zerar, pela média de quem já jogou${range ? ` (${range})` : ''}.`;
   return { key: 'duracao', label, detail, source };
 }
 
@@ -67,16 +67,16 @@ export function gameDna(g: Game, s: State | null = null): Dna {
 
   if (together) {
     const ways = [coop && 'cooperativo', split && 'na mesma tela', online && 'online ou em partidas'].filter(Boolean).join(', ');
-    traits.push({ key: 'junto', label: 'Dá para jogar junto', detail: `Modos informados no IGDB: ${ways || 'multijogador'}.`, source: 'igdb' });
+    traits.push({ key: 'junto', label: 'Dá para jogar junto', detail: `Possui modo ${ways || 'multijogador'}.`, source: 'igdb' });
   } else if (solo) {
-    traits.push({ key: 'sozinho', label: 'Para jogar sozinho', detail: 'O IGDB informa só o modo de um jogador.', source: 'igdb' });
+    traits.push({ key: 'sozinho', label: 'Para jogar sozinho', detail: 'Só tem o modo de um jogador.', source: 'igdb' });
   }
   if (story) traits.push({ key: 'historia', label: 'Puxado pela história', detail: 'Gênero e temas indicam uma narrativa contínua. Um recado ao parar ajuda a voltar.', source: 'inferido' });
   if (shortSessions) traits.push({ key: 'curtas', label: 'Bom em sessões curtas', detail: 'Partidas, fases ou corridas que começam e terminam rápido. Dá para parar a qualquer hora.', source: 'inferido' });
   if (relearn) traits.push({ key: 'reaprender', label: 'Pode pedir para reaprender', detail: 'Tem muitos sistemas e comandos. Depois de uma pausa longa, reserve um começo mais calmo.', source: 'inferido' });
   else if (shortSessions || any(b, ['platform', 'plataforma', 'shooter', ' tiro'])) traits.push({ key: 'retomar', label: 'Fácil de retomar', detail: 'Os comandos costumam voltar rápido, mesmo depois de meses parado.', source: 'inferido' });
   if (open || sandbox) traits.push({ key: 'aberto', label: open ? 'Mundo aberto' : 'Sem caminho fixo', detail: open ? 'Você escolhe o que fazer e quando. Fácil se perder, no bom e no mau sentido.' : 'Sandbox: o jogo é o que você constrói.', source: 'igdb' });
-  if (horror) traits.push({ key: 'terror', label: 'Clima de terror', detail: 'Tema informado no IGDB. Talvez não seja para antes de dormir.', source: 'igdb' });
+  if (horror) traits.push({ key: 'terror', label: 'Clima de terror', detail: 'Jogo com tema de terror. Talvez não seja para antes de dormir.', source: 'igdb' });
 
   const { hours, source } = hoursToBeat(s, g);
   if (hours != null) traits.push(durationTrait(hours, source!, g));

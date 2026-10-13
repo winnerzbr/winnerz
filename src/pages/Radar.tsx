@@ -32,7 +32,7 @@ const GROUPS: { key: string; title: string; test: (r: Row, today: string) => boo
   { key: 'semdata', title: 'Anunciados, sem data', test: (r) => r.info?.status === 'sem-data' },
   { key: 'lancados', title: 'Já lançados', test: (r) => r.info?.status === 'lancado' },
   { key: 'cancelados', title: 'Cancelados', test: (r) => r.info?.status === 'cancelado' },
-  { key: 'outros', title: 'Sem informação do IGDB', test: () => true },
+  { key: 'outros', title: 'Sem data informada', test: () => true },
 ];
 
 /** Radar: os lançamentos que você acompanha, com a precisão real de cada data. */
@@ -71,13 +71,13 @@ export function RadarPage() {
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Radar</h1>
-          <p className="muted lead">Os lançamentos que você quer acompanhar, numa linha só. Acompanhar não é ter nem querer comprar: é só não perder a data. As datas vêm do IGDB com a precisão real, e data prevista pode mudar.</p>
+          <p className="muted lead">Os lançamentos que você quer acompanhar, numa linha só. Acompanhar não é ter nem querer comprar: é só não perder a data. As datas aparecem com a precisão que se conhece, e data prevista pode mudar.</p>
         </div>
         <SubNav pillar="jogos" />
       </header>
 
       <Horizon rows={rows} today={today} />
-      {loading && <p className="muted radar__loading" role="status">Conferindo as datas no IGDB…</p>}
+      {loading && <p className="muted radar__loading" role="status">Conferindo as datas…</p>}
 
       <div className="radar__cols">
         <div className="radar__main">
@@ -208,7 +208,7 @@ function RadarRow({ row, today }: { row: Row; today: string }) {
       <Link to={`/jogos/${g.slug}`} className="rcard__cover"><CoverArt game={g} /></Link>
       <div className="rcard__info">
         <Link to={`/jogos/${g.slug}`} className="t rcard__title">{g.title}</Link>
-        <span className={`mono radar__when radar__when--${info?.precision ?? 'sem-data'}`}>{info ? info.label : g.igdbId ? 'Conferindo…' : 'Jogo sem ficha do IGDB: sem datas automáticas'}{soon && <strong> ({soon})</strong>}</span>
+        <span className={`mono radar__when radar__when--${info?.precision ?? 'sem-data'}`}>{info ? info.label : g.igdbId ? 'Conferindo…' : 'Jogo sem ficha do catálogo: sem datas automáticas'}{soon && <strong> ({soon})</strong>}</span>
         {info && (info.platforms.length > 0 || info.next) && <span className="muted">{[info.platforms.slice(0, 4).map(shortPlatform).join(', '), info.next].filter(Boolean).join('. ')}</span>}
       </div>
       <button className="btn quiet sm rcard__btn" onClick={() => actions.toggleRadar(g.id)} aria-label={`Deixar de acompanhar ${g.title}`}>Deixar</button>

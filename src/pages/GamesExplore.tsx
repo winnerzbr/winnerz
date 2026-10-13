@@ -118,7 +118,7 @@ export function GamesExplore() {
       </div>
 
       {state === 'error' && items.length === 0 ? (
-        <p className="card tl-empty">Não consegui falar com o IGDB agora. <button className="linklike" onClick={() => setPage(0)}>Tentar de novo</button></p>
+        <p className="card tl-empty">Não consegui carregar o catálogo agora. <button className="linklike" onClick={() => setPage(0)}>Tentar de novo</button></p>
       ) : (
         <div className="cover-grid explore__grid">
           {items.map((h) => (
@@ -140,7 +140,7 @@ export function GamesExplore() {
 function pillOf(h: Found, sort: string): { big: string; small: string; dim?: boolean } | undefined {
   const future = h.date && h.date > new Date().toISOString().slice(0, 10);
   if ((sort === 'upcoming' || future) && h.date) return { big: new Date(`${h.date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', ''), small: 'Em breve' };
-  if (h.rating) return { big: (h.rating / 10).toFixed(1).replace('.', ','), small: 'IGDB' };
+  if (h.rating) return { big: (h.rating / 10).toFixed(1).replace('.', ','), small: 'Nota' };
   return undefined;
 }
 

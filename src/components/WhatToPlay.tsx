@@ -30,7 +30,7 @@ const SHORT = 0, NIGHT = 1, LIGHT = 2, TOGETHER = 3, SURPRISE = 4;
 
 function hoursLine(d: Dna) {
   if (d.hours == null) return '';
-  return ` Cerca de ${fmtHours(d.hours)} para zerar${d.hoursSource === 'voce' ? ', pela sua estimativa' : ', pela média do IGDB'}.`;
+  return ` Cerca de ${fmtHours(d.hours)} para zerar${d.hoursSource === 'voce' ? ', pela sua estimativa' : ', pela média de quem já jogou'}.`;
 }
 
 /** A razão que pesa para o momento escolhido, a partir do DNA do jogo. */
@@ -145,8 +145,8 @@ async function catalogIdeas(s: State, mood: number): Promise<Idea[]> {
   const rows: Found[] = await r.json();
   const known = new Set(Object.values(s.games).map((g) => g.igdbId).filter(Boolean));
   const why = [
-    genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados dele no IGDB.` : 'Entre os mais populares do IGDB.',
-    coop ? 'Tem modo cooperativo, segundo o IGDB.' : null,
+    genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados dele.` : 'Entre os mais populares.',
+    coop ? 'Possui modo cooperativo.' : null,
   ].filter((x): x is string => !!x);
   const list = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
     game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
@@ -215,8 +215,8 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   };
 
   const empty = path === 'descobrir'
-    ? catalog?.state === 'loading' ? 'Procurando no catálogo do IGDB…' : catalog?.state === 'error' ? 'O catálogo do IGDB não respondeu agora. Seus Desejos continuam aqui quando houver algum lançado.' : 'Nada novo por aqui agora.'
-    : mood === TOGETHER ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador informado no IGDB.' : null;
+    ? catalog?.state === 'loading' ? 'Procurando no catálogo…' : catalog?.state === 'error' ? 'O catálogo não respondeu agora. Seus Desejos continuam aqui quando houver algum lançado.' : 'Nada novo por aqui agora.'
+    : mood === TOGETHER ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador.' : null;
 
   return (
     <section aria-labelledby={headingId} className="card what">

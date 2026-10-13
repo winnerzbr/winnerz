@@ -29,6 +29,9 @@ import { Backdrop } from '../components/Backdrop';
 const refreshed = new Set<string>();
 const FRESH_KEY = 'wz.fichas.v3';
 
+/** Origem da sinopse, sem nomear a fonte (que fica na página Sobre). */
+const summaryLabel = (src: string) => (/traduzid/i.test(src) ? 'Traduzido automaticamente' : /ingl/i.test(src) ? 'Texto original, em inglês' : src.replace(/\s*do IGDB,?/i, '').trim());
+
 export function GamePage({ slug }: { slug: string }) {
   const s = useStore((x) => x);
   const game = Object.values(s.games).find((g) => g.slug === slug);
@@ -275,7 +278,7 @@ function GameView({ gameId }: { gameId: string }) {
               {g.summary && <p className="about" lang={showOriginal ? 'en' : 'pt-BR'}>{showOriginal && g.summaryOriginal ? g.summaryOriginal : g.summary}</p>}
               {g.summarySource && (
                 <div className="about__src faint">
-                  {showOriginal ? 'Texto original do IGDB' : g.summarySource}
+                  {showOriginal ? 'Texto original, em inglês' : summaryLabel(g.summarySource)}
                   {g.summaryOriginal && <button className="linklike" onClick={() => setShowOriginal((v) => !v)}>{showOriginal ? 'Ver em português' : 'Ver original'}</button>}
                 </div>
               )}

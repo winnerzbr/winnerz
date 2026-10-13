@@ -130,7 +130,7 @@ export function Preferences() {
       <section className="prefs__section" aria-labelledby="dados">
         <h2 id="dados" className="t">Seus dados</h2>
         <ExportData />
-        <p className="muted prefs__p">O que guardamos, por quê e o que você pode fazer: <Link to="/privacidade">Privacidade</Link>.</p>
+        <p className="muted prefs__p">O que guardamos, por quê e o que você pode fazer: <Link to="/privacidade">Privacidade</Link>. De onde vêm as informações dos jogos: <Link to="/sobre">Sobre o WinnerZ</Link>.</p>
       </section>
 
       <section className="prefs__section" aria-labelledby="conta">

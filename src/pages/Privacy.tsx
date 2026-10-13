@@ -55,7 +55,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
         <ul>
           <li><b>Supabase</b> guarda o banco de dados, o login e as fotos.</li>
           <li><b>Vercel</b> hospeda o site.</li>
-          <li><b>IGDB</b> fornece as informações públicas dos jogos (capas, datas, estúdios). Não recebe nada seu.</li>
+          <li><b>IGDB</b> fornece as informações públicas dos jogos (capas, datas, estúdios). Não recebe nada seu. Mais em <Link to="/sobre">Sobre</Link>.</li>
           <li><b>Retomada Inteligente:</b> quando você pede para a IA ler uma foto da tela, a imagem vai para a Anthropic (Claude), que lê e devolve a sugestão. O WinnerZ não guarda essa foto; ela só vira registro se você confirmar.</li>
           <li><b>Importar da Steam:</b> quando você pede, lemos a lista de jogos e horas do seu perfil público da Steam.</li>
         </ul>

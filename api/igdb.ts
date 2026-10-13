@@ -48,7 +48,7 @@ async function igdb(endpoint: string, body: string) {
     headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${await getToken()}`, 'Content-Type': 'text/plain' },
     body,
   });
-  if (!r.ok) throw new Error(`IGDB respondeu ${r.status}`);
+  if (!r.ok) throw new Error(`O catálogo respondeu ${r.status}`);
   return r.json() as Promise<any[]>;
 }
 
@@ -361,7 +361,7 @@ async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fr
     modes: [...(g.game_modes ?? []), ...(g.player_perspectives ?? [])].map((x: any) => x.name),
     summary: translated ?? original,
     summary_original: translated ? original : null,
-    summary_source: translated ? 'Texto do IGDB, traduzido automaticamente' : 'Texto do IGDB, em inglês',
+    summary_source: translated ? 'Traduzido automaticamente' : 'Texto original, em inglês',
     releases: [...firstByPlatform].sort((a, b) => a[1] - b[1]).slice(0, 8).map(([platform, date]) => ({ platform, date: fmtDate(date) })),
     screenshots: (g.screenshots ?? []).slice(0, 16).map((s: any) => image(s.image_id, 't_screenshot_big')),
     artworks: (g.artworks ?? []).slice(0, 8).map((s: any) => image(s.image_id, 't_screenshot_big')),
@@ -596,7 +596,7 @@ async function radarCalendar(userId: string, origin: string): Promise<string> {
     const end = new Date(Date.parse(x.day + 'T00:00:00Z') + 86400000).toISOString().slice(0, 10).replace(/-/g, '');
     lines.push('BEGIN:VEVENT', `UID:${g.igdb_id}-${d}@winnerz.com.br`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${end}`,
       fold(`SUMMARY:${icsText(`Lançamento: ${g.title}`)}`),
-      fold(`DESCRIPTION:${icsText(`${x.platforms.length ? `${x.platforms.join(', ')}. ` : ''}Data do IGDB; pode mudar. ${origin}/jogos/${g.slug}`)}`),
+      fold(`DESCRIPTION:${icsText(`${x.platforms.length ? `${x.platforms.join(', ')}. ` : ''}Data prevista; pode mudar. ${origin}/jogos/${g.slug}`)}`),
       `URL:${origin}/jogos/${g.slug}`, 'TRANSP:TRANSPARENT', 'END:VEVENT');
   }
   lines.push('END:VCALENDAR');
@@ -674,7 +674,7 @@ export default async function handler(req: Req, res: Res) {
 
     if (Number.isFinite(id)) {
       const r = await fullGame(id);
-      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
+      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
       res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
       return res.status(200).json(r.game);
     }
@@ -683,7 +683,7 @@ export default async function handler(req: Req, res: Res) {
     if (slug) {
       const [found] = await igdb('games', `where slug = "${slug}"; fields id; limit 1;`);
       const r = found ? await fullGame(found.id) : null;
-      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no IGDB' });
+      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
       res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
       return res.status(200).json(r.game);
     }
@@ -721,6 +721,6 @@ export default async function handler(req: Req, res: Res) {
 
     return res.status(400).json({ error: 'Use ?q=, ?id=, ?slug=, ?meta=1, ?explore=1, ?related= ou ?radar=' });
   } catch (err) {
-    return res.status(502).json({ error: err instanceof Error ? err.message : 'Falha ao consultar o IGDB' });
+    return res.status(502).json({ error: err instanceof Error ? err.message : 'Falha ao consultar o catálogo' });
   }
 }

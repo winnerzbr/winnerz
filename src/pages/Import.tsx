@@ -26,7 +26,7 @@ async function post(body: unknown, tries = 3): Promise<any> {
   for (let i = 0; ; i++) {
     try {
       const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) throw new Error(`IGDB indisponível (${r.status})`);
+      if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) throw new Error(`Catálogo indisponível (${r.status})`);
       return await r.json();
     } catch (e) {
       if (i >= tries - 1) throw e;
@@ -109,7 +109,7 @@ export function ImportPage() {
     const list = [...titles.entries()].filter(([k]) => !matches[k]);
     const out: Record<string, Match> = { ...matches };
     let done = 0, failed = 0;
-    setProgress({ done: 0, total: list.length, label: 'Procurando as fichas no IGDB' });
+    setProgress({ done: 0, total: list.length, label: 'Procurando as fichas no catálogo' });
     const batches: (typeof list)[] = [];
     for (let i = 0; i < list.length; i += 10) batches.push(list.slice(i, i + 10));
     await pool(batches, 2, async (batch) => {
@@ -141,7 +141,7 @@ export function ImportPage() {
       }, () => cancel.current);
     }
     setMatches(out);
-    if (failed === list.length && list.length) setError('A busca no IGDB não respondeu. Você pode tentar de novo depois, ou importar agora sem as fichas (dá para ligar cada jogo ao IGDB mais tarde).');
+    if (failed === list.length && list.length) setError('A busca no catálogo não respondeu. Você pode tentar de novo depois, ou importar agora sem as fichas (dá para ligar cada jogo à ficha mais tarde).');
     setStep('revisar');
     track('importar.busca');
   };
@@ -176,7 +176,7 @@ export function ImportPage() {
         if (to && to.id !== g0.id && !relink.some((r) => r.fromId === g0.id)) relink.push({ fromId: g0.id, to });
       }
       if (relink.length) {
-        setProgress({ done: 0, total: 1, label: `Ligando ${relink.length} jogos às fichas do IGDB` });
+        setProgress({ done: 0, total: 1, label: `Ligando ${relink.length} jogos às fichas do catálogo` });
         await commit({ type: 'games.relinkMany', pairs: relink });
         st = getState();
       }
@@ -350,8 +350,8 @@ export function ImportPage() {
           )}
           {counts.already > 0 && <p className="muted">Sua coleção já tem {counts.already} cópias. O que já existe não será duplicado.</p>}
           <div className="import__actions">
-            <button className="btn primary lg" disabled={blocked} onClick={search}>Procurar capas e fichas no IGDB</button>
-            <button className="btn ghost" disabled={blocked} onClick={() => setStep('revisar')}>Importar sem buscar no IGDB</button>
+            <button className="btn primary lg" disabled={blocked} onClick={search}>Procurar capas e fichas no catálogo</button>
+            <button className="btn ghost" disabled={blocked} onClick={() => setStep('revisar')}>Importar sem buscar no catálogo</button>
             <button className="btn quiet" onClick={() => setStep('abas')}>Voltar</button>
           </div>
           <p className="faint">A busca leva alguns minutos (cerca de 5 para 900 jogos); deixe esta página aberta. Depois você revisa os casos duvidosos.</p>
@@ -380,8 +380,8 @@ export function ImportPage() {
       {step === 'pronto' && result && (
         <section className="card import-done">
           <p className="t">Pronto. Sua coleção chegou.</p>
-          {result.linked > 0 && <p className="muted">{result.linked.toLocaleString('pt-BR')} jogos que tinham entrado sem ficha agora estão ligados ao IGDB, com capa.</p>}
-          <p className="muted">{result.copies.toLocaleString('pt-BR')} cópias novas de {result.games.toLocaleString('pt-BR')} jogos, {result.finished} zerados na Jornada{result.reviews ? `, ${result.reviews} notas` : ''}.{result.manual ? ` ${result.manual} jogos ficaram sem ficha do IGDB; dá para ligar cada um na página do jogo.` : ''}</p>
+          {result.linked > 0 && <p className="muted">{result.linked.toLocaleString('pt-BR')} jogos que tinham entrado sem ficha agora estão ligados ao catálogo, com capa.</p>}
+          <p className="muted">{result.copies.toLocaleString('pt-BR')} cópias novas de {result.games.toLocaleString('pt-BR')} jogos, {result.finished} zerados na Jornada{result.reviews ? `, ${result.reviews} notas` : ''}.{result.manual ? ` ${result.manual} jogos ficaram sem ficha do catálogo; dá para ligar cada um na página do jogo.` : ''}</p>
           <div className="import__actions">
             <Link className="btn primary lg" to="/colecao">Ver a estante</Link>
             <Link className="btn ghost" to="/colecao/estatisticas">Ver as estatísticas</Link>
@@ -420,7 +420,7 @@ function Review({ titles, matches, setMatches, onSave, onBack, blocked }: { titl
       {searched ? (
         <p className="muted">{groups.casados.length} jogos casaram com certeza. {groups.revisar.length ? `${groups.revisar.length} precisam de uma olhada rápida.` : ''} {groups.sem.length ? `${groups.sem.length} ficam sem ficha por enquanto (com capa de texto); dá para ligar depois.` : ''}</p>
       ) : (
-        <p className="muted">Sem a busca, todos os {titles.size} jogos entram sem ficha do IGDB, com capas de texto. Dá para ligar cada um à ficha depois, na página do jogo.</p>
+        <p className="muted">Sem a busca, todos os {titles.size} jogos entram sem ficha do catálogo, com capas de texto. Dá para ligar cada um à ficha depois, na página do jogo.</p>
       )}
       {searched && (
         <div className="seg import-tabs" role="tablist">
@@ -442,7 +442,7 @@ function Review({ titles, matches, setMatches, onSave, onBack, blocked }: { titl
                     <span className={`import-conf import-conf--${m.confidence}`}>{CONF_LABEL[m.confidence]}</span>
                     <label className="sr-only" htmlFor={`pick-${k}`}>Ficha para {e.title}</label>
                     <select id={`pick-${k}`} className="field" value={m.chosen ?? ''} onChange={(ev) => choose(k, ev.target.value ? Number(ev.target.value) : null)}>
-                      <option value="">Sem ficha do IGDB</option>
+                      <option value="">Sem ficha do catálogo</option>
                       {m.candidates.map((x) => <option key={x.igdbId} value={x.igdbId}>{x.title}{x.year ? ` (${x.year})` : ''}{x.platforms.length ? `, ${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}</option>)}
                     </select>
                   </div>

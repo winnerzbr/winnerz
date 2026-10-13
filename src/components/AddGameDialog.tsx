@@ -82,7 +82,7 @@ export function AddGameDialog({ onClose, initial }: { onClose: () => void; initi
     if (!pick) return;
     setBusy(true); setError('');
     const g = await loadGame(pick);
-    if (!g) { setBusy(false); setError('Não foi possível carregar este jogo do IGDB agora. Tente de novo em instantes.'); return; }
+    if (!g) { setBusy(false); setError('Não foi possível carregar este jogo agora. Tente de novo em instantes.'); return; }
     actions.mergeGames([g]);
     actions.addCopy({ gameId: g.id, platform: platform || g.platforms[0] || 'Outra plataforma', kind });
     onClose();
@@ -96,7 +96,7 @@ export function AddGameDialog({ onClose, initial }: { onClose: () => void; initi
           <>
             <label htmlFor="add-q" className="sr-only">Nome do jogo</label>
             <input id="add-q" ref={input} className="field" placeholder="Digite o nome do jogo" value={q} onChange={(e) => setQ(e.target.value)} style={{ marginTop: 16 }} />
-            {source === 'local' && <p className="faint" style={{ fontSize: 13 }}>Na demonstração a busca usa só o catálogo de exemplo. Publicado, ela consulta o IGDB.</p>}
+            {source === 'local' && <p className="faint" style={{ fontSize: 13 }}>Na demonstração a busca usa só o catálogo de exemplo. Publicado, ela consulta o catálogo completo.</p>}
             <ul className="hits">
               {hits.map((h) => (
                 <li key={h.slug}><button onClick={() => { setPick(h); setPlatform(h.platforms[0] ?? ''); }}>

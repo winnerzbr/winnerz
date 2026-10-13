@@ -98,7 +98,7 @@ export function GamesIndex() {
             <input id="jq" className="field" placeholder="Busque qualquer jogo…" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} />
             <button className="btn primary" type="submit">Buscar jogo</button>
           </form>
-          <p className="kicker ghub__note">Fichas e capas vêm do IGDB · <Link to="/jogos/explorar">Ou explore por gênero e época</Link></p>
+          <p className="kicker ghub__note"><Link to="/jogos/explorar">Ou explore por gênero e época</Link></p>
         </div>
       </section>
 

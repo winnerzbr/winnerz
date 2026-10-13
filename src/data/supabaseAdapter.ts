@@ -456,7 +456,7 @@ export const supabaseAdapter: Adapter = {
         if (a.imagePath) await removePhotos([a.imagePath]);
         return;
       case 'game.create':
-        if (!v4) throw new Error('Rode a migração 0004 para cadastrar jogos sem ficha do IGDB.');
+        if (!v4) throw new Error('Rode a migração 0004 para cadastrar jogos sem ficha do catálogo.');
         check(await sb.from('games').insert(manualGameToRow(a.game)));
         return;
       case 'game.relink': {

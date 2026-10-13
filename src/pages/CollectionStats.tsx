@@ -103,7 +103,7 @@ export function CollectionStats() {
           </div>
           <div className="stats__grid">
             <BarList title="Por plataforma" rows={k.byPlatform} unit="cópias" sorted={false} />
-            <BarList title="Por gênero" rows={k.byGenre} sorted={false} note="Seu gênero quando veio da planilha; senão, o primeiro do IGDB." />
+            <BarList title="Por gênero" rows={k.byGenre} sorted={false} note="Seu gênero quando veio da planilha; senão, o primeiro da ficha do jogo." />
             <BarList title="Nunca jogados, por duração" rows={k.byDuration} sorted={false} note="Pelo tempo estimado para zerar que você informou." />
             <BarList title="Nunca jogados, por prioridade" rows={k.byPriority} sorted={false} />
             <BarList title="Zerados por ano" rows={k.byYear} unit="Histórias" sorted={false} />

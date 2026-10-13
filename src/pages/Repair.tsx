@@ -62,7 +62,7 @@ export function RepairPage() {
       {step === 'pronto' ? (
         <section className="card import-done">
           <p className="t">Pronto. Cada jogo aparece uma vez.</p>
-          <p className="muted">{done.pairs} jogos ligados à ficha do IGDB{done.wrong ? `, ${done.wrong} mantidos como da planilha (dá para procurar a ficha certa na página de cada um)` : ''}, {done.copies} cópias repetidas retiradas{done.journeys ? `, ${done.journeys} Jornadas repetidas retiradas` : ''}. Suas cópias, Jornadas e notas continuam.</p>
+          <p className="muted">{done.pairs} jogos ligados à ficha do catálogo{done.wrong ? `, ${done.wrong} mantidos como da planilha (dá para procurar a ficha certa na página de cada um)` : ''}, {done.copies} cópias repetidas retiradas{done.journeys ? `, ${done.journeys} Jornadas repetidas retiradas` : ''}. Suas cópias, Jornadas e notas continuam.</p>
           <div className="import__actions"><Link className="btn primary lg" to="/colecao">Ver a estante</Link></div>
         </section>
       ) : step === 'falhou' || step === 'velho' ? (
@@ -75,7 +75,7 @@ export function RepairPage() {
         <div className="card tl-empty"><p className="muted">Nenhum repetido encontrado. Cada jogo aparece uma vez na estante.</p><Link className="btn ghost" to="/colecao">Ver a estante</Link></div>
       ) : (
         <section aria-labelledby="rep-h">
-          <p className="muted lead">Achei {pairs.length} jogos que estão duas vezes na estante: um da planilha, sem ficha, e outro com a ficha do IGDB. Para cada par, escolha: juntar na ficha do IGDB, ou marcar “Ficha errada” quando a ficha encontrada for de outro jogo (aí fica só o da planilha, e você procura a ficha certa depois). Os que pedem conferência aparecem primeiro.</p>
+          <p className="muted lead">Achei {pairs.length} jogos que estão duas vezes na estante: um da planilha, sem ficha, e outro com a ficha do catálogo. Para cada par, escolha: juntar na ficha do catálogo, ou marcar “Ficha errada” quando a ficha encontrada for de outro jogo (aí fica só o da planilha, e você procura a ficha certa depois). Os que pedem conferência aparecem primeiro.</p>
           <h2 id="rep-h" className="t import__h">{chosen.length} para juntar{wrong.length ? `, ${wrong.length} com ficha errada` : ''}{undecided ? `, ${undecided} para você decidir` : ''}</h2>
           <p className="muted">Saem {copies} cópias repetidas{journeys ? ` e ${journeys} Jornadas repetidas (sem sessões)` : ''}. Nada do que você escreveu é apagado. Os pares sem decisão ficam como estão.</p>
           {undecided > 0 && <div className="import__actions"><button className="btn ghost sm" onClick={() => setChoice(Object.fromEntries(pairs.map((p) => [p.manual.id, ch(p) === 'nada' ? 'juntar' : ch(p)])))}>Juntar todos os que faltam decidir</button></div>}

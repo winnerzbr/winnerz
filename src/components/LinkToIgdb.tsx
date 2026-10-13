@@ -34,14 +34,14 @@ export function LinkToIgdb({ game }: { game: Game }) {
   if (!open) {
     return (
       <div className="link-igdb">
-        <p className="muted">Este jogo veio sem ficha do IGDB, por isso não tem capa nem informações.</p>
-        <button className="btn ghost sm" onClick={() => setOpen(true)}>Procurar a ficha no IGDB</button>
+        <p className="muted">Este jogo ainda não está ligado ao catálogo, por isso não tem capa nem informações.</p>
+        <button className="btn ghost sm" onClick={() => setOpen(true)}>Procurar a ficha no catálogo</button>
       </div>
     );
   }
   return (
     <div className="link-igdb">
-      <label htmlFor="link-q" className="finish__label">Procurar no IGDB</label>
+      <label htmlFor="link-q" className="finish__label">Procurar no catálogo</label>
       <input id="link-q" className="field" value={q} onChange={(e) => setQ(e.target.value)} />
       <ul className="hits">
         {hits.map((h) => (

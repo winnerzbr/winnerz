@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, canAdmin, adminResultsOpen, type AwardFull } from '../data/awards';
-import { CoverArt } from '../components/CoverArt';
+import { awardsApi, canAdmin, adminResultsOpen, nomineeArt, type AwardFull } from '../data/awards';
 import { fmtWhen, fmtDay, Countdown } from './Awards';
 import { BrandMark } from '../components/Brand';
 
@@ -30,7 +29,17 @@ export function AwardsRevealPage() {
   const cats = useMemo(() => (full?.categories ?? []).filter((c) => c.nominees.length), [full]);
   const open = !!full && adminResultsOpen(full.award) && !!full.results;
   const cat = cats[Math.min(i, Math.max(0, cats.length - 1))];
-  const reveal = useCallback(() => cat && setShown((x) => ({ ...x, [cat.id]: true })), [cat]);
+  // Suspense: uma luz varre as artes por alguns segundos antes do vencedor se abrir.
+  const [suspense, setSuspense] = useState<string | null>(null);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const reveal = useCallback(() => {
+    if (!cat || shown[cat.id] || suspense) return;
+    const id = cat.id;
+    const calm = document.documentElement.dataset.motion === 'reduzidas';
+    setSuspense(id);
+    timer.current = window.setTimeout(() => { setShown((x) => ({ ...x, [id]: true })); setSuspense(null); }, calm ? 300 : 2800);
+  }, [cat, shown, suspense]);
 
   useEffect(() => {
     if (!open) return;
@@ -94,10 +103,13 @@ export function AwardsRevealPage() {
   const top = cat ? Math.max(0, ...cat.nominees.map((n) => res[n.id] ?? 0)) : 0;
   const winners = cat ? cat.nominees.filter((n) => top > 0 && (res[n.id] ?? 0) === top) : [];
   const isShown = !!cat && !!shown[cat.id];
+  const isSus = !!cat && suspense === cat.id;
+  const tag = winners.length > 1 ? 'Empate' : 'Vencedor';
   const full_ = () => { const el = document.documentElement; if (document.fullscreenElement) void document.exitFullscreen(); else void el.requestFullscreen?.(); };
+  const pctOf = (id: string) => (total ? Math.round(((res[id] ?? 0) / total) * 100) : 0);
 
   return (
-    <main className="reveal">
+    <main className="reveal reveal--cine">
       <div className="reveal__glow" aria-hidden="true" />
       <header className="reveal__bar-top">
         <Link className="reveal__back" to="/eventos/awards/admin">← Sair</Link>
@@ -108,32 +120,62 @@ export function AwardsRevealPage() {
         </span>
       </header>
       {!cat ? <p className="reveal__empty">Nenhuma categoria com indicados.</p> : (
-        <section className={`reveal__stage${isShown ? ' is-shown' : ''}`} key={cat.id} aria-live="polite">
-          <h1 className="t reveal__cat">{cat.name}</h1>
-          {cat.description && <p className="reveal__desc">{cat.description}</p>}
-          <ul className="reveal__noms" style={{ ['--n' as string]: cat.nominees.length }}>
-            {cat.nominees.map((n, k) => {
-              const v = res[n.id] ?? 0;
-              const win = isShown && winners.some((w) => w.id === n.id);
-              return (
-                <li key={n.id} className={`reveal__nom${win ? ' is-win' : isShown ? ' is-out' : ''}`} style={{ animationDelay: `${0.12 * k}s` }}>
-                  <span className="reveal__cover"><CoverArt game={n.game} />{win && <span className="reveal__badge">{winners.length > 1 ? 'Empate' : 'Vencedor'}</span>}</span>
-                  <span className="reveal__name">{n.game.title}</span>
-                  {isShown && <span className="reveal__bar"><span style={{ width: `${total ? Math.round((v / total) * 100) : 0}%` }} /><em>{total ? Math.round((v / total) * 100) : 0}%</em></span>}
-                </li>
-              );
-            })}
-          </ul>
-          {isShown && (
-            <div className="reveal__winner" aria-label="Vencedor">
-              <svg className="reveal__rays" viewBox="0 0 400 400" aria-hidden="true">{Array.from({ length: 24 }, (_, r) => <line key={r} x1="200" y1="200" x2={200 + 190 * Math.cos((r * Math.PI) / 12)} y2={200 + 190 * Math.sin((r * Math.PI) / 12)} />)}</svg>
-              <p className="t">{winners.length ? winners.map((w) => w.game.title).join(' e ') : 'Sem votos nesta categoria'}</p>
-              <p className="reveal__votes">{total ? `${total.toLocaleString('pt-BR')} ${total === 1 ? 'voto' : 'votos'} na categoria` : ''}</p>
+        <section className="rvc" key={cat.id} aria-live="polite">
+          <div className="rvc__head">
+            <span className="kicker kicker--now">Categoria {Math.min(i, cats.length - 1) + 1} de {cats.length}</span>
+            <h1 className="t rvc__cat">{cat.name}</h1>
+            {cat.description && <p className="rvc__desc">{cat.description}</p>}
+          </div>
+          <div className={`scene rvc__scene${isShown && winners.length ? ' has' : ''}${isSus ? ' is-suspense' : ''}`} style={{ ['--n' as string]: cat.nominees.length }}>
+            <div className="scene__row">
+              {cat.nominees.map((n, k) => {
+                const on = isShown && winners.some((w) => w.id === n.id);
+                const pct = pctOf(n.id);
+                const sub = n.game.developer || (n.game.year ? String(n.game.year) : '');
+                return (
+                  <div key={n.id} className={`scene__p rvc__p${on ? ' on' : ''}`} style={{ ['--k' as string]: k }}>
+                    <img className="scene__img" src={nomineeArt(n)} alt="" style={{ objectPosition: n.focus || '50% 50%' }} />
+                    <span className="scene__shade" aria-hidden="true" />
+                    <span className="rvc__scan" aria-hidden="true" />
+                    {on && <span className="scene__leak" aria-hidden="true" />}
+                    <span className="scene__name">
+                      <b>{n.game.title}</b>
+                      {sub && <span>{sub}</span>}
+                    </span>
+                    <span className="scene__vt" aria-hidden="true">{pct}% · {n.game.title}</span>
+                    {isShown && !winners.length && <span className="rvc__pct">{pct}%</span>}
+                    {on && (
+                      <span className="scene__ttl">
+                        <span className="scene__tag rvc__tag"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 20.9l1.6-7L2 9.2l7.1-.6z" /></svg>{tag}</span>
+                        <span className="scene__nm">{n.game.title}</span>
+                        <span className="scene__sub">{[sub, `${pct}% dos votos`].filter(Boolean).join(' · ')}</span>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
-          <div className="reveal__actions">
+            <span className="scene__grain" aria-hidden="true" />
+            {isSus && <span className="rvc__beam" aria-hidden="true" />}
+            {isShown && winners.length > 0 && <>
+              <span className="scene__flare" aria-hidden="true" />
+              <span className="scene__ghost" aria-hidden="true" />
+              <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
+              <span className="scene__flash" aria-hidden="true" />
+            </>}
+            <span className="scene__lb scene__lb--t" aria-hidden="true" />
+            <span className="scene__lb scene__lb--b" aria-hidden="true" />
+            {isShown && (
+              <div className="scene__bottom">
+                <span className="scene__desc">{total ? `${total.toLocaleString('pt-BR')} ${total === 1 ? 'voto' : 'votos'} na categoria` : 'Sem votos nesta categoria'}</span>
+              </div>
+            )}
+          </div>
+          <div className="reveal__actions rvc__actions">
             <button className="btn ghost" disabled={i === 0} onClick={() => setI(i - 1)}>← Anterior</button>
-            {!isShown ? <button className="btn primary lg" onClick={reveal}>Revelar o vencedor</button> : <span className="reveal__hint">Revelado</span>}
+            {isShown ? <span className="reveal__hint">Revelado</span>
+              : isSus ? <span className="reveal__hint rvc__wait">E o vencedor é…</span>
+              : <button className="btn primary lg" onClick={reveal}>Revelar o vencedor</button>}
             <button className="btn ghost" disabled={i >= cats.length - 1} onClick={() => setI(i + 1)}>Próxima →</button>
           </div>
         </section>

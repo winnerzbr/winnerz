@@ -3,7 +3,8 @@ import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { awardsApi, canAdmin, adminResultsOpen, type AwardFull } from '../data/awards';
 import { CoverArt } from '../components/CoverArt';
-import { fmtWhen } from './Awards';
+import { fmtWhen, fmtDay, Countdown } from './Awards';
+import { BrandMark } from '../components/Brand';
 
 /**
  * Apresentação da revelação (para gravar o vídeo): uma categoria por vez, indicados na tela,
@@ -47,16 +48,46 @@ export function AwardsRevealPage() {
   if (full === undefined) return <main className="page pad"><p className="muted">Carregando…</p></main>;
   if (!full) return <main className="page pad narrow"><h1 className="t big">Revelação</h1><p className="muted lead">{error || 'Nenhuma edição do Awards ainda.'}</p></main>;
 
-  if (!open) return (
-    <main className="reveal reveal--locked">
-      <div className="reveal__locked">
-        <span className="awards-card__kicker">{full.award.title}</span>
-        <h1 className="t">Resultado trancado</h1>
-        <p>{full.award.resultsAt ? `Abre em ${fmtWhen(full.award.resultsAt, true)}. Até lá, ninguém vê a contagem, nem você.` : 'Marque, na tela de montar a edição, quando o resultado chega para você.'}</p>
-        <Link className="btn ghost" to="/eventos/awards/admin">Voltar para a montagem</Link>
-      </div>
-    </main>
-  );
+  if (!open) {
+    const a = full.award;
+    const start = Date.parse(a.votingOpens ?? '') || Date.now();
+    const end = Date.parse(a.resultsAt ?? '');
+    const pos = (t: number) => Math.min(100, Math.max(0, ((t - start) / (end - start)) * 100));
+    const ruler = !!a.resultsAt && end > start;
+    const closes = Date.parse(a.votingCloses ?? '');
+    return (
+      <main className="reveal reveal--locked">
+        <div className="reveal__glow" aria-hidden="true" />
+        <header className="reveal__bar-top">
+          <Link className="reveal__back" to="/eventos/awards/admin">← Voltar para a montagem</Link>
+          <BrandMark width={44} className="reveal__logo" />
+          <span className="kicker">{full.award.title} · Revelação</span>
+        </header>
+        <div className="reveal__locked">
+          <span className="reveal__lock" aria-hidden="true"><svg width="24" height="26" viewBox="0 0 24 26" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="11" width="18" height="13" rx="3" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></span>
+          <h1 className="t">Resultado trancado</h1>
+          <p>{a.resultsAt ? <>Abre em {fmtWhen(a.resultsAt, true)}.<br />Até lá, ninguém vê a contagem. Nem você.</> : 'Marque, na tela de montar a edição, quando o resultado chega para você.'}</p>
+          {a.resultsAt && <Countdown to={a.resultsAt} big />}
+        </div>
+        {ruler && (
+          <section className="reveal__ruler" aria-label="Até a revelação">
+            <div className="rvr">
+              <span className="rvr__line" aria-hidden="true" />
+              <span className="rvr__fill" style={{ width: `${pos(Date.now())}%` }} aria-hidden="true" />
+              <span className="rvr__now" style={{ left: `${pos(Date.now())}%` }} aria-hidden="true" />
+              <span className="kicker rvr__lbl rvr__lbl--now" style={{ left: `${pos(Date.now())}%` }}>Hoje</span>
+              {!Number.isNaN(closes) && closes < end && <>
+                <span className="rvr__mk" style={{ left: `${pos(closes)}%` }} aria-hidden="true" />
+                <span className="kicker rvr__lbl" style={{ left: `${pos(closes)}%` }}>{fmtDay(a.votingCloses!).toLowerCase()} · fim dos votos</span>
+              </>}
+              <span className="rvr__end" aria-hidden="true" />
+              <span className="kicker rvr__lbl rvr__lbl--end">{fmtDay(a.resultsAt!).toLowerCase()} · revelação</span>
+            </div>
+          </section>
+        )}
+      </main>
+    );
+  }
 
   const res = full.results!;
   const total = cat ? cat.nominees.reduce((a, n) => a + (res[n.id] ?? 0), 0) : 0;
@@ -67,11 +98,14 @@ export function AwardsRevealPage() {
 
   return (
     <main className="reveal">
-      <header className="reveal__top">
-        <span className="awards-card__kicker">{full.award.title}</span>
-        <span className="reveal__count">{cats.length ? `${Math.min(i, cats.length - 1) + 1} de ${cats.length}` : ''}</span>
-        <button className="btn quiet sm" onClick={full_}>Tela cheia</button>
-        <Link className="btn quiet sm" to="/eventos/awards/admin">Sair</Link>
+      <div className="reveal__glow" aria-hidden="true" />
+      <header className="reveal__bar-top">
+        <Link className="reveal__back" to="/eventos/awards/admin">← Sair</Link>
+        <BrandMark width={44} className="reveal__logo" />
+        <span className="reveal__right">
+          <span className="kicker">{full.award.title}{cats.length ? ` · ${Math.min(i, cats.length - 1) + 1} de ${cats.length}` : ''}</span>
+          <button className="btn quiet sm" onClick={full_}>Tela cheia</button>
+        </span>
       </header>
       {!cat ? <p className="reveal__empty">Nenhuma categoria com indicados.</p> : (
         <section className={`reveal__stage${isShown ? ' is-shown' : ''}`} key={cat.id} aria-live="polite">

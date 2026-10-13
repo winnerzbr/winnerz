@@ -31,7 +31,7 @@ import { RadarPage } from './pages/Radar';
 import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
-import { ComingSoon } from './pages/ComingSoon';
+import { CommunityPage } from './pages/Community';
 import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
@@ -61,7 +61,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
   if (match('/entrar', path)) return <Login />;
-  if (match('/comunidade', path)) return <ComingSoon pillar="Comunidade" />;
+  if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/eventos', path)) return <EventsIndex />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
@@ -89,7 +89,8 @@ export function App() {
   // Completa tempo para zerar, modos e temas do acervo em segundo plano (DNA e "O que jogar").
   useEffect(() => { if (!ready) return; const t = setTimeout(() => { void backfillGameFacts(); }, 5000); return () => clearTimeout(t); }, [ready]);
 
-  const isSession = path.startsWith('/sessao');
+  // Sessão e apresentação da revelação ocupam a tela toda, sem o menu do site.
+  const isSession = path.startsWith('/sessao') || path.startsWith('/eventos/awards/revelar');
 
   // Overlay do OBS: só o cartão, fundo transparente, sem menu (não espera os seus dados carregarem).
   const ovl = match('/overlay/:k', path);

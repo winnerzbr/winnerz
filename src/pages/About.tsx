@@ -18,7 +18,7 @@ export function AboutPage({ standalone = false }: { standalone?: boolean }) {
           Os jogos do catálogo e as suas informações (nomes, capas, artes, capturas de tela, vídeos, datas de lançamento, plataformas, estúdios,
           gêneros, temas, modos de jogo, sinopses, notas gerais e o tempo médio para zerar) vêm do{' '}
           <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer">IGDB</a>, uma base de dados de jogos mantida pela Twitch.
-          As sinopses são traduzidas automaticamente para o português.
+          As sinopses são traduzidas automaticamente para o português, e as fichas são atualizadas com a fonte de tempos em tempos.
         </p>
         <p>Capas, artes e marcas dos jogos pertencem aos seus donos. O WinnerZ usa os dados do IGDB, mas não é endossado nem certificado pelo IGDB ou pela Twitch.</p>
       </section>

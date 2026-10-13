@@ -92,12 +92,14 @@ function GameView({ gameId }: { gameId: string }) {
     // Fichas antigas: sem vídeos, em inglês, ou de antes do filtro de logotipos (atualizadas uma vez por aparelho).
     let fresh: string[] = [];
     try { fresh = JSON.parse(localStorage.getItem(FRESH_KEY) || '[]'); } catch { fresh = []; }
-    const stale = g.videos === undefined || /em inglês/.test(g.summarySource ?? '') || !fresh.includes(gameId);
+    // E toda ficha com mais de 7 dias: as informações dos jogos precisam ficar em dia com a fonte.
+    const old = !!g.updatedAt && Date.now() - Date.parse(g.updatedAt) > 7 * 86_400_000;
+    const stale = g.videos === undefined || /em inglês/.test(g.summarySource ?? '') || !fresh.includes(gameId) || old;
     if (!stale) return;
     refreshed.add(gameId);
     try { localStorage.setItem(FRESH_KEY, JSON.stringify([...fresh, gameId].slice(-2000))); } catch { /* nada */ }
     refreshGame(g.igdbId).then((fresh) => { if (fresh && fresh.id === gameId) actions.mergeGames([fresh]); });
-  }, [gameId, g.igdbId, g.videos, g.summarySource]);
+  }, [gameId, g.igdbId, g.videos, g.summarySource, g.updatedAt]);
   const [showOriginal, setShowOriginal] = useState(false);
   const media = useMemo(() => buildMedia(g.videos, g.screenshots, g.artworks), [g.videos, g.screenshots, g.artworks]);
 

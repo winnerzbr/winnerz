@@ -138,7 +138,10 @@ export function App() {
         <footer className="site-footer">
           <div className="page">
             <BrandMark width={56} title="WinnerZ" />
-            <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
+            <div className="site-footer__txt">
+              <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
+              <p className="site-footer__src">Dados e imagens dos jogos: <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer">IGDB.com</a></p>
+            </div>
           </div>
         </footer>
       )}

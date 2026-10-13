@@ -37,6 +37,8 @@ export interface Game {
   ttb?: { h?: number; n?: number; c?: number } | null;
   /** AAAA-MM-DD do primeiro lançamento. */
   releasedOn?: string;
+  /** Quando a ficha foi atualizada pela última vez a partir da fonte (para manter os dados em dia). */
+  updatedAt?: string;
 }
 
 /** Pilar Coleção: exemplar (posse) — separado da relação com o jogo. */

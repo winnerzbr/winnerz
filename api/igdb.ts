@@ -637,8 +637,26 @@ async function steamLibrary(input: string): Promise<{ steamId: string; games: St
   return { steamId, games };
 }
 
+/**
+ * Só o próprio site usa esta API: ela não pode virar uma porta aberta para os dados do IGDB
+ * (o contrato da Twitch proíbe redistribuir). O calendário do Radar é a exceção (aplicativos de agenda, com assinatura).
+ */
+function fromOurSite(req: Req): boolean {
+  const h = req.headers ?? {};
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const site = one(h['sec-fetch-site']);
+  if (site) return site === 'same-origin' || site === 'none';
+  const host = one(h['x-forwarded-host']) ?? one(h.host);
+  const from = one(h.origin) ?? one(h.referer);
+  if (!host || !from) return false;
+  try { return new URL(from).host === host; } catch { return false; }
+}
+
 export default async function handler(req: Req, res: Res) {
   try {
+    if (!(typeof req.query.ics === 'string' && typeof req.query.sig === 'string') && !fromOurSite(req)) {
+      return res.status(403).json({ error: 'Uso restrito ao WinnerZ.' });
+    }
     if (req.method === 'POST') {
       const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; facts?: number[]; radarLink?: boolean; steam?: string };
       if (body.radarLink || typeof body.steam === 'string') {

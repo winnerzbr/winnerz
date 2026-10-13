@@ -31,6 +31,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
           <dt>Sua coleção</dt><dd>Os jogos que você tem, plataformas, edições, estado e, se você informar, quanto pagou e onde comprou. Também seus desejos e favoritos.</dd>
           <dt>Notas e análises</dt><dd>As notas e os textos que você escreve sobre os jogos.</dd>
           <dt>Votos do Awards</dt><dd>Um voto por categoria. Ninguém vê o voto de ninguém: no resultado só aparecem os totais.</dd>
+          <dt>Perfil</dt><dd>O endereço e a apresentação que você escolher, e quem pode ver cada parte.</dd>
           <dt>Preferências</dt><dd>Tema, escala de notas, animações e os jogos em foco.</dd>
         </dl>
       </section>
@@ -45,7 +46,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
         <ul>
           <li><b>Só você</b> vê sua Jornada, sua coleção, suas fotos e seus votos.</li>
           <li><b>As análises que você publica</b> aparecem na ficha do jogo com o seu nome, para quem visita o site.</li>
-          <li>Quando o perfil público chegar, você vai escolher o que mostrar. Tudo começa privado.</li>
+          <li><b>Seu perfil</b> (winnerz.com.br/@seunome) mostra só o que você liberar, pilar por pilar: para todo mundo, só para quem tem o seu link, ou para ninguém. Tudo começa privado, e recados, fotos, sessões, preços e com quem você jogou nunca aparecem lá.</li>
         </ul>
       </section>
 

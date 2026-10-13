@@ -33,6 +33,7 @@ import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
 import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
+import { PublicProfilePage } from './pages/PublicProfile';
 import { DeletionBanner } from './components/AccountData';
 import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
@@ -69,6 +70,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
+  if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   return (
     <main className="page" style={{ padding: '96px 32px' }}>
       <h1 className="t" style={{ fontSize: 72 }}>Página não encontrada</h1>

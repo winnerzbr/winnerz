@@ -7,6 +7,7 @@ import { formatScore, normalize, scaleMax } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
 import { DeleteAccount, ExportData } from '../components/AccountData';
+import { ProfileSettings } from '../components/ProfileSettings';
 import { Link } from '../lib/router';
 
 const SAMPLES = [
@@ -31,7 +32,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências">
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#perfil">Perfil e privacidade</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -120,6 +121,11 @@ export function Preferences() {
       </section>
 
       <OverlaySettings />
+
+      <section className="prefs__section" aria-labelledby="perfil">
+        <h2 id="perfil" className="t">Perfil e privacidade</h2>
+        <ProfileSettings />
+      </section>
 
       <section className="prefs__section" aria-labelledby="dados">
         <h2 id="dados" className="t">Seus dados</h2>

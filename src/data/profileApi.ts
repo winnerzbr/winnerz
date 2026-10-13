@@ -4,7 +4,9 @@
  * No modo demonstração, o perfil fica neste navegador e a página pública é montada com os seus dados daqui.
  */
 import { getState } from './store';
-import type { DatePrecision } from './types';
+import type { DatePrecision, HardwareKind } from './types';
+import { showcasePieces } from '../lib/showcases';
+import { exhibitOf } from '../lib/museum';
 
 export type Visibility = 'privado' | 'link' | 'publico';
 export type Pillar = 'jornada' | 'colecao' | 'notas';
@@ -40,6 +42,25 @@ export type PublicProfile = {
   links?: ProfileLink[];
   showcase?: { title: string; slug: string; cover: string | null; backdrop: string | null; stories: number; moments: number; finished: boolean; lastAt: string | null }[];
   live?: { title: string; slug: string; cover: string | null; since: string };
+  /** Vitrines que a pessoa marcou para o perfil (só com o pilar Coleção visível). */
+  vitrines?: { id: string; title: string; description: string | null; items: PublicPiece[] }[];
+  /** Museu aberto no perfil. */
+  museu?: { title: string | null; rooms: number } | null;
+};
+
+/** Peça como o público vê: capa, título e plataforma, ou o console. Nada da ficha do exemplar. */
+export type PublicPiece =
+  | { t: 'c'; title: string; slug: string; cover: string | null; platform: string; year?: number | null }
+  | { t: 'h'; name: string; platform: string | null; kind: HardwareKind };
+
+export type PublicMuseumPiece =
+  | (PublicPiece & { caption?: string | null })
+  | { t: 'f'; image?: string; caption?: string | null }
+  | { t: 'm'; title: string; quote?: string | null; image?: string; at: string; game: string; slug: string; cover: string | null; caption?: string | null };
+
+export type PublicMuseum = {
+  name: string; handle: string; title: string | null; intro: string | null;
+  rooms: { id: string; title: string; text: string | null; pieces: PublicMuseumPiece[] }[];
 };
 
 export type PublicJourney = {
@@ -117,6 +138,14 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
     const oj = open && s.journeys.find((j) => j.id === open.journeyId);
     if (me.visibility.aoVivo === 'sim' && open && oj && s.games[oj.gameId]) out.live = { title: s.games[oj.gameId].title, slug: s.games[oj.gameId].slug, cover: s.games[oj.gameId].cover, since: open.startedAt };
   }
+  if (show('colecao')) {
+    const pub = (p: ReturnType<typeof showcasePieces>[number]): PublicPiece => (p.kind === 'c'
+      ? { t: 'c', title: p.game.title, slug: p.game.slug, cover: p.game.cover, platform: p.copy.platform, year: p.game.year ?? null }
+      : { t: 'h', name: p.hw.name, platform: p.hw.platform ?? null, kind: p.hw.kind });
+    out.vitrines = [...(s.showcases ?? [])].filter((x) => x.shared).sort((a, b) => a.position - b.position)
+      .map((x) => ({ id: x.id, title: x.title, description: x.description ?? null, items: showcasePieces(s, x).slice(0, 60).map(pub) }));
+    out.museu = s.museum?.shared && s.rooms?.length ? { title: s.museum.title || null, rooms: s.rooms.length } : null;
+  }
   if (show('notas')) {
     out.notas = s.reviews.filter((r) => r.mine && s.games[r.gameId]).map((r) => ({
       title: s.games[r.gameId].title, slug: s.games[r.gameId].slug, cover: s.games[r.gameId].cover, normalized: r.rating.normalized,
@@ -144,6 +173,27 @@ function demoJourney(handle: string, key: string | null | undefined, slug: strin
       title: e.kind === 'sessao' ? 'Sessão' : e.title, text: e.kind === 'sessao' ? null : e.text ?? null, quote: e.kind === 'momento' ? e.quote ?? null : null,
       image: e.kind === 'sessao' ? undefined : e.image,
     })),
+  };
+}
+
+function demoMuseum(handle: string, key?: string | null): PublicMuseum | null {
+  const me = demoGet();
+  if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return null;
+  if (!(visOf(me, 'colecao') === 'publico' || (visOf(me, 'colecao') === 'link' && key === me.shareKey))) return null;
+  const s = getState();
+  if (!s.museum?.shared) return null;
+  const piece = (p: Parameters<typeof exhibitOf>[1]): PublicMuseumPiece | null => {
+    const ex = exhibitOf(s, p);
+    if (!ex) return null;
+    const caption = p.caption ?? null;
+    if (p.t === 'c') { const c = s.copies.find((x) => x.id === p.id)!; const g = s.games[c.gameId]; return { t: 'c', title: g.title, slug: g.slug, cover: g.cover, platform: c.platform, year: g.year ?? null, caption }; }
+    if (p.t === 'h') { const h = s.hardware.find((x) => x.id === p.id)!; return { t: 'h', name: h.name, platform: h.platform ?? null, kind: h.kind, caption }; }
+    if (p.t === 'm') { const e = s.events.find((x) => x.id === p.id)!; const g = s.games[s.journeys.find((j) => j.id === e.journeyId)!.gameId]; return { t: 'm', title: e.title, quote: e.quote ?? null, image: e.image, at: e.at, game: g.title, slug: g.slug, cover: g.cover, caption }; }
+    return { t: 'f', image: ex.img, caption };
+  };
+  return {
+    name: me.handle, handle: me.handle, title: s.museum.title || null, intro: s.museum.intro || null,
+    rooms: [...s.rooms].sort((a, b) => a.position - b.position).map((r) => ({ id: r.id, title: r.title, text: r.text ?? null, pieces: r.pieces.map(piece).filter((x): x is PublicMuseumPiece => !!x) })),
   };
 }
 
@@ -183,8 +233,10 @@ export const profileApi = {
   },
   async publicOf(handle: string, key?: string | null): Promise<PublicProfile | null> {
     if (!supa()) return demoPublic(handle, key);
-    try { return await rpc<PublicProfile | null>('public_profile_v2', { p_handle: handle, p_key: key ?? null }); }
-    catch { return rpc<PublicProfile | null>('public_profile', { p_handle: handle, p_key: key ?? null }); }
+    const args = { p_handle: handle, p_key: key ?? null };
+    try { return await rpc<PublicProfile | null>('public_profile_v3', args); } catch { /* sem a 0015 */ }
+    try { return await rpc<PublicProfile | null>('public_profile_v2', args); }
+    catch { return rpc<PublicProfile | null>('public_profile', args); }
   },
   async journeyOf(handle: string, key: string | null | undefined, slug: string): Promise<PublicJourney | null> {
     if (!supa()) return demoJourney(handle, key, slug);
@@ -193,6 +245,14 @@ export const profileApi = {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || 'Não consegui carregar a Jornada.');
     return body as PublicJourney;
+  },
+  async museumOf(handle: string, key: string | null | undefined): Promise<PublicMuseum | null> {
+    if (!supa()) return demoMuseum(handle, key);
+    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&museu=1${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+    if (r.status === 404) return null;
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.error || 'Não consegui carregar o Museu.');
+    return body as PublicMuseum;
   },
   async setLinks(links: ProfileLink[]): Promise<MyProfile> {
     const clean = links.map((l) => ({ url: l.url.trim(), label: l.label?.trim() || undefined })).filter((l) => /^https:\/\/\S{3,200}$/.test(l.url)).slice(0, 6);

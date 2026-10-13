@@ -2953,3 +2953,10 @@ a.gev { color: var(--ink); }
 .mnew__model:hover, .mnew__model:focus-visible { border-color: var(--accent); }
 .mnew__model .muted { font-size: 13px; }
 .museum.is-editing .mroom__wall { border-style: dashed; }
+.pp-museum { display: grid; gap: 6px; margin: 0 0 34px; padding: 26px 26px 24px; border-radius: 18px; text-decoration: none; color: var(--ink);
+  background: radial-gradient(70% 140% at 50% 0, rgba(255, 228, 182, 0.12), transparent 70%), linear-gradient(180deg, #17140F, #0E0C0A); border: 1px solid var(--line); }
+:root[data-theme='claro'] .pp-museum { background: linear-gradient(180deg, #F2EDE4, #E7E0D3); }
+.pp-museum b { font-size: clamp(26px, 4vw, 40px); line-height: 1; }
+.pp-museum:hover { border-color: var(--accent); }
+.pp-vitrines { margin-top: 6px; }
+:root[data-theme='claro'] .vshelf { background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0) 55%, rgba(0, 0, 0, 0.05)), var(--surface); }

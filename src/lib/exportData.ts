@@ -51,18 +51,25 @@ export function exportJson(s: State, photoNames: Record<string, string>) {
     sessoes: s.sessions,
     registros: s.events.map(({ image: _url, ...e }) => ({ ...e, fotoArquivo: photoNames[e.id] ?? null })),
     analises: s.reviews.filter((r) => r.mine).map(({ author: _a, ...r }) => r),
+    emprestimos: s.loans ?? [],
+    vitrines: s.showcases ?? [],
+    museu: { ...(s.museum ?? {}), salas: (s.rooms ?? []).map((r) => ({ ...r, pieces: r.pieces.map((p) => (p.t === 'f' ? { t: 'f', id: p.id, caption: p.caption, fotoArquivo: photoNames[p.id] ?? null } : p)) })) },
   };
 }
 
 /** Monta o .zip. Fotos que não baixarem (rede) ficam de fora e entram na lista de avisos. */
 export async function buildExport(s: State, onProgress?: (done: number, total: number) => void): Promise<{ blob: Blob; missing: number }> {
-  const withPhoto = s.events.filter((e) => e.image);
+  // Fotos dos momentos e as fotos penduradas no Museu.
+  const withPhoto: { id: string; image: string; at: string; title: string }[] = [
+    ...s.events.filter((e) => e.image).map((e) => ({ id: e.id, image: e.image!, at: e.at, title: e.title })),
+    ...(s.rooms ?? []).flatMap((r) => r.pieces.flatMap((p) => (p.t === 'f' && p.image ? [{ id: p.id, image: p.image, at: r.createdAt ?? new Date().toISOString(), title: `museu ${r.title}` }] : []))),
+  ];
   const files: ZipEntry[] = [];
   const names: Record<string, string> = {};
   let missing = 0, done = 0;
   for (const e of withPhoto) {
     try {
-      const r = await fetch(e.image!);
+      const r = await fetch(e.image);
       if (!r.ok) throw new Error();
       const buf = new Uint8Array(await r.arrayBuffer());
       const ext = (r.headers.get('content-type') ?? '').includes('png') ? 'png' : (r.headers.get('content-type') ?? '').includes('webp') ? 'webp' : 'jpg';
@@ -76,7 +83,7 @@ export async function buildExport(s: State, onProgress?: (done: number, total: n
     { name: 'dados.json', data: JSON.stringify(exportJson(s, names), null, 2) },
     { name: 'colecao.csv', data: collectionCsv(s) },
     ...((s.hardware ?? []).length ? [{ name: 'consoles.csv', data: hardwareCsv(s) }] : []),
-    { name: 'LEIA-ME.txt', data: 'Seus dados no WinnerZ.\r\n\r\ndados.json: tudo o que você registrou, em formato aberto.\r\ncolecao.csv: sua estante em planilha (Excel ou Google Planilhas).\r\nconsoles.csv: consoles, portáteis e acessórios.\r\nfotos/: as fotos dos seus momentos e pontos para voltar.\r\n' },
+    { name: 'LEIA-ME.txt', data: 'Seus dados no WinnerZ.\r\n\r\ndados.json: tudo o que você registrou, em formato aberto.\r\ncolecao.csv: sua estante em planilha (Excel ou Google Planilhas).\r\nconsoles.csv: consoles, portáteis e acessórios.\r\nfotos/: as fotos dos seus momentos, pontos para voltar e do seu Museu.\r\n' },
   );
   return { blob: makeZip(files), missing };
 }

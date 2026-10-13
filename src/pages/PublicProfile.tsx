@@ -2,10 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
-import { linkLabel, profileApi, type PublicProfile } from '../data/profileApi';
+import { linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
+import { Shelf, type ShelfItem } from '../components/Showcase';
 import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
+
+export const pubShelfItem = (p: PublicPiece, k: number): ShelfItem => (p.t === 'c'
+  ? { key: `c-${k}-${p.slug}`, t: 'c', title: p.title, cover: p.cover ?? '', platform: p.platform, slug: p.slug }
+  : { key: `h-${k}`, t: 'h', title: p.name, platform: p.platform ?? undefined, hwKind: p.kind });
 
 const since = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
 
@@ -148,6 +153,31 @@ export function PublicProfilePage({ handle }: { handle: string }) {
               ))}
             </ul>
             {c.count > c.items.length && <p className="muted pp__more">E mais {c.count - c.items.length}.</p>}
+          </section>
+        )}
+
+        {(!!data.vitrines?.length || data.museu) && (
+          <section className="pp__sec" aria-labelledby="pp-v">
+            <h2 id="pp-v" className="t pp__h">{data.vitrines?.length && data.museu ? 'Museu e Vitrines' : data.vitrines?.length ? 'Vitrines' : 'Museu'}</h2>
+            {data.museu && (
+              <Link to={`/@${data.handle.toLowerCase()}/museu${key ? `?k=${key}` : ''}`} className="pp-museum">
+                <span className="kicker">Museu pessoal · {data.museu.rooms} {data.museu.rooms === 1 ? 'sala' : 'salas'}</span>
+                <b className="t">{data.museu.title || `O museu de ${data.name}`}</b>
+                <span className="muted">Entrar no museu →</span>
+              </Link>
+            )}
+            <div className="vlist pp-vitrines">
+              {(data.vitrines ?? []).map((v) => (
+                <article key={v.id} className="vcard">
+                  <div className="vcard__head"><div>
+                    <span className="kicker">{v.items.length} {v.items.length === 1 ? 'peça' : 'peças'}</span>
+                    <h3 className="t vcard__title">{v.title}</h3>
+                    {v.description && <p className="muted vcard__desc">{v.description}</p>}
+                  </div></div>
+                  <Shelf compact items={v.items.map(pubShelfItem)} />
+                </article>
+              ))}
+            </div>
           </section>
         )}
 

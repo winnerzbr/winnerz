@@ -11,7 +11,11 @@
 alter table public.profiles add column if not exists handle text;
 alter table public.profiles add column if not exists bio text;
 alter table public.profiles add column if not exists visibility jsonb not null default '{}'::jsonb;
-alter table public.profiles add column if not exists share_key text not null default encode(gen_random_bytes(9), 'hex');
+-- Código do link: 18 caracteres aleatórios (sem depender da extensão pgcrypto, que no Supabase fica em outro esquema).
+alter table public.profiles add column if not exists share_key text;
+alter table public.profiles alter column share_key set default substr(md5(gen_random_uuid()::text || clock_timestamp()::text), 1, 18);
+update public.profiles set share_key = substr(md5(gen_random_uuid()::text || clock_timestamp()::text || id::text), 1, 18) where share_key is null;
+alter table public.profiles alter column share_key set not null;
 
 create unique index if not exists profiles_handle_key on public.profiles (lower(handle)) where handle is not null;
 do $$ begin
@@ -52,7 +56,7 @@ end; $$;
 -- Trocar o código secreto: os links antigos de "só com link" param de funcionar.
 create or replace function public.rotate_share_key() returns jsonb
 language sql security definer set search_path = public as $$
-  update profiles set share_key = encode(gen_random_bytes(9), 'hex') where id = auth.uid();
+  update profiles set share_key = substr(md5(gen_random_uuid()::text || clock_timestamp()::text), 1, 18) where id = auth.uid();
   select public.my_profile();
 $$;
 

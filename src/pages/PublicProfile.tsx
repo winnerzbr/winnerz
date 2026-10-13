@@ -4,6 +4,7 @@ import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
 import { linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
 import { Shelf, type ShelfItem } from '../components/Showcase';
+import { PublicCollection } from '../components/PublicCollection';
 import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
@@ -147,20 +148,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
           </section>
         )}
 
-        {cur === 'colecao' && c && (
-          <section className="pp__sec" aria-label="Coleção">
-            <h2 className="t pp__h">Coleção · {c.count} {c.count === 1 ? 'jogo' : 'jogos'}</h2>
-            <div className="pp-plats">{c.platforms.map((p) => <span key={p.platform} className="chip">{shortPlatform(p.platform)} <small>{p.n}</small></span>)}</div>
-            <ul className="pp-grid pp-grid--dense">
-              {c.items.map((g, k) => (
-                <li key={g.slug + k}><Link to={`/jogos/${g.slug}`} className="pp-grid__item" title={g.title}>
-                  <span className="pp-grid__cover"><CoverArt game={{ title: g.title, cover: g.cover ?? '' }} platform={g.platform} /></span>
-                </Link></li>
-              ))}
-            </ul>
-            {c.count > c.items.length && <p className="muted pp__more">E mais {c.count - c.items.length}.</p>}
-          </section>
-        )}
+        {cur === 'colecao' && c && <PublicCollection handle={data.handle} k={key} c={c} />}
 
         {cur === 'museu' && (
           <section className="pp__sec" aria-label="Museu e Vitrines">
@@ -176,9 +164,9 @@ export function PublicProfilePage({ handle }: { handle: string }) {
                 <article key={v.id} className="vcard">
                   <div className="vcard__head"><div>
                     <span className="kicker">{v.items.length} {v.items.length === 1 ? 'peça' : 'peças'}</span>
-                    <h3 className="t vcard__title">{v.title}</h3>
+                    <h3 className="t vcard__title"><Link to={`${at}/vitrines/${v.id}${qs}`}>{v.title}</Link></h3>
                     {v.description && <p className="muted vcard__desc">{v.description}</p>}
-                  </div></div>
+                  </div><Link className="btn ghost sm" to={`${at}/vitrines/${v.id}${qs}`}>Abrir a vitrine</Link></div>
                   <Shelf compact items={v.items.map(pubShelfItem)} />
                 </article>
               ))}

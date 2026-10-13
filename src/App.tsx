@@ -41,6 +41,7 @@ import { TrashPage } from './pages/Trash';
 import { ShowcasesPage, ShowcasePage } from './pages/Showcases';
 import { MuseumPage } from './pages/Museum';
 import { PublicMuseumPage } from './pages/PublicMuseum';
+import { PublicShowcasePage } from './pages/PublicShowcase';
 import { DeletionBanner } from './components/AccountData';
 import { NickGate } from './components/NickGate';
 import { PrivateTeaser } from './pages/PrivateTeaser';
@@ -86,6 +87,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
+  if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicShowcasePage handle={m.handle.slice(1)} id={m.id} />;
   if ((m = match('/:handle/:slug', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicJourneyPage handle={m.handle.slice(1)} slug={m.slug} />;
   return (
     <main className="page" style={{ padding: '96px 32px' }}>

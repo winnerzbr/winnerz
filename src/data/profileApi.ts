@@ -62,6 +62,8 @@ export type PublicProfile = {
   mural?: { image?: string; title: string; at: string; game: string; slug: string }[];
 };
 
+export type PublicCollectionItem = { title: string; slug: string; cover: string | null; platform: string; year?: number | null; at?: string };
+
 /** Peça como o público vê: capa, título e plataforma, ou o console. Nada da ficha do exemplar. */
 export type PublicPiece =
   | { t: 'c'; title: string; slug: string; cover: string | null; platform: string; year?: number | null }
@@ -279,6 +281,19 @@ export const profileApi = {
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || 'Não consegui carregar a Jornada.');
     return body as PublicJourney;
+  },
+  /** A coleção inteira para a aba Coleção do perfil (migração 0017). null = sem a função; cai nas 60 do perfil. */
+  async collectionOf(handle: string, key: string | null | undefined): Promise<PublicCollectionItem[] | null> {
+    if (!supa()) {
+      const me = demoGet();
+      if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return [];
+      if (!(visOf(me, 'colecao') === 'publico' || (visOf(me, 'colecao') === 'link' && key === me.shareKey))) return [];
+      const st = getState();
+      return st.copies.map((c) => ({ c, g: st.games[c.gameId] })).filter((x) => x.g)
+        .map(({ c, g }) => ({ title: g.title, slug: g.slug, cover: g.cover, platform: c.platform, year: g.year ?? null, at: c.createdAt ?? '' }));
+    }
+    try { return (await rpc<PublicCollectionItem[] | null>('public_collection', { p_handle: handle, p_key: key ?? null })) ?? []; }
+    catch { return null; }
   },
   async museumOf(handle: string, key: string | null | undefined): Promise<PublicMuseum | null> {
     if (!supa()) return demoMuseum(handle, key);

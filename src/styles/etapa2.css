@@ -3312,3 +3312,12 @@ a.gev { color: var(--ink); }
   .vmini__row { min-height: 168px; }
   .vmini__cell { flex-basis: 92px; }
 }
+
+/* Perfil · aba Coleção inteira */
+.pcol__bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.pcol__q { flex: 1 1 260px; max-width: 420px; }
+.pcol__plats .chip { cursor: pointer; border: 0; font: inherit; }
+.pcol__plats .chip[aria-pressed='true'] { background: var(--primary); color: var(--on-primary); }
+.pcol__plats .chip[aria-pressed='true'] small { color: inherit; opacity: .7; }
+.pcol__note { margin: 0 0 12px; }
+.pcol__more { display: flex; justify-content: center; margin-top: 24px; }

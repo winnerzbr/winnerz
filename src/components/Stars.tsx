@@ -81,7 +81,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
       aria-labelledby={labelledBy}
       aria-valuemin={0} aria-valuemax={5} aria-valuenow={value} aria-valuetext={`${fmt(value)} ${value === 1 ? 'estrela' : 'estrelas'}`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={leave} onKeyDown={key}
-      style={{ gap: Math.round(size * 0.14), ['--score-h' as string]: scoreHue(shown / 5) } as CSSProperties}
+      style={{ gap: Math.round(size * 0.14), ['--score-h' as string]: scoreHue(shown / 5), ['--k' as string]: shown / 5 } as CSSProperties}
     >
       {[0, 1, 2, 3, 4].map((i) => {
         const fill = Math.max(0, Math.min(1, shown - i));

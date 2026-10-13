@@ -23,7 +23,7 @@ export function AnimatedScore({ value, max }: { value: number; max: number }) {
     return () => { cancelAnimationFrame(raf); from.current = end; };
   }, [value]);
   return (
-    <span className="t score-num" style={{ ['--score-h' as string]: scoreHue(value / max) } as CSSProperties}>
+    <span className="t score-num" style={{ ['--score-h' as string]: scoreHue(value / max), ['--k' as string]: shown / max } as CSSProperties}>
       <span key={pop} className={pop ? 'score-num__v is-pop' : 'score-num__v'}>{fmt(shown)}</span><span className="muted">/{max}</span>
     </span>
   );
@@ -53,7 +53,7 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
     if (value !== last.current && !drag) setBurst((n) => n + 1);
     last.current = value;
   }, [value, drag]);
-  const style = { ['--score-h' as string]: scoreHue(f), ['--f' as string]: `${f * 100}%` } as CSSProperties;
+  const style = { ['--score-h' as string]: scoreHue(f), ['--f' as string]: `${f * 100}%`, ['--k' as string]: f } as CSSProperties;
   return (
     <div className={`score-slider${drag ? ' is-dragging' : ''}${value === 10 ? ' is-max' : ''}`} style={style}>
       <input

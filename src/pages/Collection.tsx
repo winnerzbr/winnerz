@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, journeyForGame, currentHistory, myGame, historiesOf } from '../data/store';
+import { actions, useStore, journeyForGame, currentHistory, myGame, historiesOf, activeLoan } from '../data/store';
 import type { Copy, CopyKind, State } from '../data/types';
 import { FavoriteButton, useFavorite } from '../components/FavoriteCover';
 import { Icon } from '../components/Icon';
@@ -14,12 +14,13 @@ import { STATE_LABEL } from '../components/JourneyManage';
 import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 import { titleKey } from '../lib/importer';
 import { collectionCsv, download } from '../lib/exportData';
+import { LoanPanel, loanDate, overdue } from '../components/LoanPanel';
 
-type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial';
+type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial' | 'emprestados';
 type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
 const STATUS: [Status, string][] = [
   ['tudo', 'Tudo'], ['nunca', 'Nunca joguei'], ['prioridade', 'Prioridade alta'], ['jogando', 'Jogando ou pausados'],
-  ['zerados', 'Zerados'], ['largados', 'Largados ou encerrados'], ['naovou', 'Não vou jogar'], ['favoritos', 'Favoritos'], ['especial', 'Especial para mim'],
+  ['zerados', 'Zerados'], ['largados', 'Largados ou encerrados'], ['naovou', 'Não vou jogar'], ['favoritos', 'Favoritos'], ['especial', 'Especial para mim'], ['emprestados', 'Emprestados'],
 ];
 const SORTS: [Sort, string][] = [['az', 'A a Z'], ['plataforma', 'Plataforma'], ['prioridade', 'Prioridade'], ['curtos', 'Mais curtos primeiro'], ['recentes', 'Adicionados por último']];
 const PAGE = 48;
@@ -79,6 +80,7 @@ export function Collection() {
         case 'naovou': return !!m.wontPlay;
         case 'favoritos': return s.favorites.includes(c.gameId);
         case 'especial': return !!c.special;
+        case 'emprestados': return !!activeLoan(s, { copyId: c.id });
       }
       return true;
     });
@@ -111,6 +113,7 @@ export function Collection() {
     return manual.filter((k) => igdb.has(k)).length;
   }, [s.copies, s.games]);
 
+  const lent = (s.loans ?? []).filter((l) => !l.returnedOn);
   const shown = list.slice(0, limit);
   const uniqueGames = new Set(s.copies.map((c) => c.gameId)).size;
   const filtered = q || platform || kind !== 'tudo' || status !== 'tudo';
@@ -169,7 +172,7 @@ export function Collection() {
             <div className="cfilters__group">
               <span className="kicker">Situação</span>
               <div className="cfilters__chips" role="group" aria-label="Situação">
-                {STATUS.filter(([id]) => id !== 'tudo').map(([id, l]) => <button key={id} className="chip" aria-pressed={status === id} onClick={() => setStatus(status === id ? 'tudo' : id)}>{l}</button>)}
+                {STATUS.filter(([id]) => id !== 'tudo' && (id !== 'emprestados' || lent.length > 0 || status === id)).map(([id, l]) => <button key={id} className="chip" aria-pressed={status === id} onClick={() => setStatus(status === id ? 'tudo' : id)}>{l}</button>)}
               </div>
             </div>
             <div className="cfilters__group">
@@ -194,6 +197,26 @@ export function Collection() {
       )}
 
       <div className="collection__main">
+      {lent.length > 0 && status !== 'emprestados' && (
+        <div className="lendbar" role="status">
+          <span className="kicker">Emprestados agora</span>
+          <ul>
+            {lent.slice(0, 4).map((l) => {
+              const c = l.copyId ? s.copies.find((x) => x.id === l.copyId) : undefined;
+              const h = l.hardwareId ? s.hardware.find((x) => x.id === l.hardwareId) : undefined;
+              const name = c ? s.games[c.gameId]?.title : h?.name;
+              if (!name) return null;
+              return (
+                <li key={l.id}>
+                  {c ? <button className="lendbar__item" onClick={() => setOpen(c.id)}>{name}</button> : <Link className="lendbar__item" to="/colecao/consoles">{name}</Link>}
+                  <span className={`muted${overdue(l) ? ' lendbar__late' : ''}`}> com {l.person}, desde {loanDate(l.lentOn)}</span>
+                </li>
+              );
+            })}
+          </ul>
+          {lent.some((l) => l.copyId) && <button className="linklike" onClick={() => setStatus('emprestados')}>{lent.length > 4 ? `Ver os ${lent.length}` : 'Filtrar'}</button>}
+        </div>
+      )}
       {s.copies.length === 0 ? (
         <div className="card tl-empty">
           <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Sua estante está vazia</p>
@@ -231,11 +254,12 @@ function CopyTile({ s, c, onOpen }: { s: State; c: Copy; onOpen: () => void }) {
   const st = situation(s, c.gameId);
   const m = myGame(s, c.gameId);
   const fav = s.favorites.includes(g.id);
-  const badge = st.zerou ? 'Zerado' : st.h?.state === 'ativa' ? 'Jogando' : st.h?.state === 'pausada' ? 'Pausado' : st.left ? 'Largado' : m.wontPlay ? 'Não vou jogar' : null;
+  const lent = !!activeLoan(s, { copyId: c.id });
+  const badge = lent ? 'Emprestado' : st.zerou ? 'Zerado' : st.h?.state === 'ativa' ? 'Jogando' : st.h?.state === 'pausada' ? 'Pausado' : st.left ? 'Largado' : m.wontPlay ? 'Não vou jogar' : null;
   return (
     <button className={`ctile${m.wontPlay ? ' is-muted' : ''}`} onClick={onOpen} aria-label={`${g.title}, ${shortPlatform(c.platform)}${badge ? `, ${badge.toLowerCase()}` : ''}${fav ? ', favorito' : ''}`}>
       <span className="ctile__cover"><CoverArt game={g} platform={c.platform} /></span>
-      {badge && <span className={`ctile__badge ctile__badge--${st.zerou ? 'ok' : st.open ? 'now' : 'off'}`} aria-hidden="true">{badge}</span>}
+      {badge && <span className={`ctile__badge ctile__badge--${lent ? 'loan' : st.zerou ? 'ok' : st.open ? 'now' : 'off'}`} aria-hidden="true">{badge}</span>}
       {fav && <span className="ctile__fav" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" /></svg></span>}
       <span className="ctile__meta" aria-hidden="true"><span className="ctile__title">{g.title}</span><span className="ctile__plat">{shortPlatform(c.platform)} · {c.kind === 'digital' ? 'digital' : c.kind === 'fisico' ? 'físico' : c.kind === 'assinatura' ? 'assinatura' : 'outro'}</span></span>
     </button>
@@ -300,6 +324,8 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
             {m.genre && <div className="relation__row"><span className="muted">Seu gênero</span><span>{m.genre}</span></div>}
             {!st.open && <button className="btn quiet sm" aria-pressed={!!m.wontPlay} onClick={() => actions.toggleWontPlay(g.id)}>{m.wontPlay ? 'Não vou jogar (desfazer)' : 'Não vou jogar'}</button>}
           </div>
+
+          <LoanPanel item={{ copyId: c.id }} />
 
           {rows.some(([, v]) => v) ? (
             <dl className="csheet__dl">{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>

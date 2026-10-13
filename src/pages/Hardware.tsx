@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from '../lib/router';
-import { actions, useStore } from '../data/store';
+import { actions, useStore, activeLoan } from '../data/store';
+import { LoanPanel } from '../components/LoanPanel';
 import type { Hardware, HardwareKind } from '../data/types';
 import { SubNav } from '../components/SubNav';
 import { Sheet, ConfirmButton } from '../components/Sheet';
@@ -79,7 +80,7 @@ export function HardwarePage() {
                   <span className="hwcard__top"><span className="hwcard__icon"><KindIcon k={h.kind} /></span>{h.platform && <span className="hwcard__plat">{shortPlatform(h.platform)}</span>}</span>
                   <span className="t hwcard__name">{h.name}</span>
                   <span className="hwcard__meta">{[h.model, h.edition].filter(Boolean).join(' · ') || ' '}</span>
-                  <span className="hwcard__foot">{h.condition && <span className="hwcard__cond">{h.condition}</span>}{h.kind !== 'acessorio' && gamesOn(h.platform) > 0 && <span>{gamesOn(h.platform)} {gamesOn(h.platform) === 1 ? 'jogo' : 'jogos'} na estante</span>}</span>
+                  <span className="hwcard__foot">{activeLoan(s, { hardwareId: h.id }) && <span className="hwcard__loan">Emprestado</span>}{h.condition && <span className="hwcard__cond">{h.condition}</span>}{h.kind !== 'acessorio' && gamesOn(h.platform) > 0 && <span>{gamesOn(h.platform)} {gamesOn(h.platform) === 1 ? 'jogo' : 'jogos'} na estante</span>}</span>
                 </button>
               </li>
             ))}
@@ -107,6 +108,7 @@ function HardwareSheet({ hw, onClose }: { hw?: Hardware; onClose: () => void }) 
       <Sheet title={hw.name} onClose={onClose} labelId="hw-t" wide>
         <dl className="hwdl">{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
         {hw.note && <p className="hwnote">{hw.note}</p>}
+        <LoanPanel item={{ hardwareId: hw.id }} />
         <div className="sheet__actions">
           <button className="btn ghost" onClick={() => setEditing(true)}>Editar ficha</button>
           {n > 0 && hw.kind !== 'acessorio' && <Link className="btn quiet" to={`/colecao?plataforma=${encodeURIComponent(canonicalPlatform(hw.platform!))}`} onClick={onClose}>{n === 1 ? `Ver o jogo de ${shortPlatform(hw.platform!)}` : `Ver os ${n} jogos de ${shortPlatform(hw.platform!)}`}</Link>}

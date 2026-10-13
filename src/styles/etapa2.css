@@ -2747,3 +2747,31 @@ a.gev { color: var(--ink); }
 .site-footer__txt { display: grid; gap: 6px; justify-items: end; text-align: right; }
 @media (max-width: 600px) { .site-footer__txt { justify-items: start; text-align: left; } }
 .site-footer__txt .site-footer__src { margin: 0; }
+
+/* Empréstimos (Etapa 5 · entrega 5) */
+.loan { display: grid; gap: 10px; margin: 18px 0 4px; padding: 14px 0 0; border-top: 1px solid var(--line); }
+.loan__idle { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.loan__idle .btn svg { margin-right: 6px; }
+.loan__idle .faint { font-size: 13px; }
+.loan__now { --loan: #9FD3C7; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--loan) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--loan) 34%, transparent); }
+.loan__now.is-late { border-color: color-mix(in srgb, #E07A5F 55%, transparent); }
+.loan__ic { width: 34px; height: 34px; border-radius: 999px; display: grid; place-items: center; background: color-mix(in srgb, var(--loan) 22%, transparent); color: var(--loan); }
+:root[data-theme="claro"] .loan__now { --loan: #2F7F6F; }
+.loan__txt { display: grid; gap: 2px; min-width: 0; }
+.loan__txt b { font-size: 15px; }
+.loan__txt .muted { font-size: 13.5px; }
+.loan__late { font-style: normal; color: #E9967A; }
+.loan__note { font-size: 13px; }
+.loan__acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 520px) { .loan__now { grid-template-columns: auto 1fr; } .loan__acts { grid-column: 1 / -1; justify-content: flex-start; } }
+.loan__hist summary { cursor: pointer; font-size: 13.5px; color: var(--muted); }
+.loan__hist ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.loan__hist li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.loan__mig { font-size: 13px; margin: 14px 0 0; }
+.loan__form { margin-top: 2px; }
+.ctile__badge--loan { color: #07080A !important; background: #9FD3C7 !important; }
+.hwcard__loan { padding: 2px 8px; border-radius: 999px; background: #9FD3C7; color: #07080A; font-size: 11px; font-weight: 600; }
+.lendbar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0 0 16px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.lendbar ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; flex: 1 1 320px; font-size: 14px; }
+.lendbar__item { border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+.lendbar__late { color: #E9967A; }

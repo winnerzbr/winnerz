@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Adapter, Action } from './store';
 import { emptyState } from './store';
-import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame, Hardware } from './types';
+import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame, Hardware, Loan, Showcase, MuseumRoom, Museum } from './types';
 import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
 
 /**
@@ -33,6 +33,7 @@ const SIGNED_FOR = 60 * 60 * 24 * 7; // links das fotos valem 7 dias
 let storageReady = false;
 /** A migração 0004 (Etapa 2) já rodou? Sem ela, as colunas novas não são enviadas. */
 let v14 = false;
+let v15 = false;
 let v4 = false;
 /** A migração 0006 já rodou? */
 let v6 = false;
@@ -132,6 +133,31 @@ const hardwareToRow = (h: Hardware) => ({
   condition: h.condition ?? null, items: h.items ?? null, serial: h.serial ?? null, origin: h.origin ?? null, purchased_on: h.purchasedOn ?? null,
   purchase_place: h.purchasePlace ?? null, price_paid: h.pricePaid ?? null, note: h.note ?? null,
 });
+const loanFromRow = (r: any): Loan => ({
+  id: r.id, copyId: r.copy_id ?? undefined, hardwareId: r.hardware_id ?? undefined, person: r.person, lentOn: r.lent_on,
+  dueOn: r.due_on ?? undefined, returnedOn: r.returned_on ?? undefined, note: r.note ?? undefined, createdAt: r.created_at ?? undefined,
+});
+const loanToRow = (l: Loan) => ({
+  id: l.id, copy_id: l.copyId ?? null, hardware_id: l.hardwareId ?? null, person: l.person, lent_on: l.lentOn,
+  due_on: l.dueOn ?? null, returned_on: l.returnedOn ?? null, note: l.note ?? null,
+});
+const showcaseFromRow = (r: any): Showcase => ({
+  id: r.id, title: r.title, description: r.description ?? undefined, kind: r.kind, rule: r.rule ?? undefined,
+  items: Array.isArray(r.items) ? r.items : [], position: r.position ?? 0, shared: !!r.shared, createdAt: r.created_at ?? undefined,
+});
+const showcaseToRow = (x: Showcase) => ({
+  id: x.id, title: x.title, description: x.description ?? null, kind: x.kind, rule: x.rule ?? null,
+  items: x.kind === 'curada' ? x.items : [], position: x.position, shared: !!x.shared, updated_at: new Date().toISOString(),
+});
+const roomFromRow = (r: any): MuseumRoom => ({
+  id: r.id, position: r.position ?? 0, title: r.title, text: r.text ?? undefined, pieces: Array.isArray(r.pieces) ? r.pieces : [], createdAt: r.created_at ?? undefined,
+});
+// A foto vai pelo caminho; o endereço temporário (image) nunca é gravado.
+const roomToRow = (x: MuseumRoom) => ({
+  id: x.id, position: x.position, title: x.title, text: x.text ?? null, updated_at: new Date().toISOString(),
+  pieces: x.pieces.map((p) => (p.t === 'f' ? { t: 'f', id: p.id, path: p.path, caption: p.caption } : p)).filter((p) => p.t !== 'f' || (p as { path?: string }).path),
+});
+
 const myGameFromRow = (r: any): MyGame => ({
   gameId: r.game_id, priority: r.priority ?? undefined, estHours: r.est_hours != null ? Number(r.est_hours) : undefined,
   wontPlay: !!r.wont_play, genre: r.genre ?? undefined, note: r.note ?? undefined,
@@ -259,6 +285,7 @@ export const supabaseAdapter: Adapter = {
     v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
     v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
+    v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {
       // Lixeira: o que passou de 30 dias sai de vez.
       const old = new Date(Date.now() - 30 * 86400000).toISOString();
@@ -284,6 +311,16 @@ export const supabaseAdapter: Adapter = {
       ])
       : [{ data: [] as any[], error: null }, { data: [] as any[], error: null }];
 
+    const [loans, showcases, rooms, museum] = v15
+      ? await Promise.all([
+        selectAll(() => sb.from('loans').select('*').order('created_at').order('id')),
+        selectAll(() => sb.from('showcases').select('*').order('position').order('id')),
+        selectAll(() => sb.from('museum_rooms').select('*').order('position').order('id')),
+        sb.rpc('my_museum'),
+      ])
+      : [{ data: [] as any[] }, { data: [] as any[] }, { data: [] as any[] }, { data: {} }];
+    const museumRooms = ((rooms.data ?? []) as any[]).map(roomFromRow);
+
     const gameIds = new Set<string>();
     for (const r of [...copies.data, ...trashCopies.data, ...wishes.data, ...favs.data, ...journeys.data, ...myReviews.data, ...mine.data]) gameIds.add(r.game_id);
     // Muitos ids não cabem num endereço só: busca em grupos.
@@ -294,8 +331,10 @@ export const supabaseAdapter: Adapter = {
     // Fotos: confere se a migração 0003 rodou e gera os links temporários de uma vez só.
     storageReady = !(await sb.from('timeline_events').select('image_path').limit(1)).error;
     const evs = (events.data ?? []).map(eventFromRow);
-    const signed = await signPaths(evs.filter((e) => e.imagePath).map((e) => e.imagePath!));
+    const roomPaths = museumRooms.flatMap((r) => r.pieces.flatMap((p) => (p.t === 'f' && p.path ? [p.path] : [])));
+    const signed = await signPaths([...evs.filter((e) => e.imagePath).map((e) => e.imagePath!), ...roomPaths]);
     for (const e of evs) if (e.imagePath) e.image = signed[e.imagePath];
+    for (const r of museumRooms) for (const p of r.pieces) if (p.t === 'f' && p.path) p.image = signed[p.path];
 
     const p = profile.data;
     const name: string = p?.display_name ?? user.email?.split('@')[0] ?? 'Jogador';
@@ -315,6 +354,11 @@ export const supabaseAdapter: Adapter = {
       hardware: (hardware.data ?? []).filter((r: any) => !r.deleted_at).map(hardwareFromRow),
       trashHardware: (hardware.data ?? []).filter((r: any) => r.deleted_at).map((r: any) => ({ ...hardwareFromRow(r), deletedAt: r.deleted_at })),
       schemaV14: v14,
+      schemaV15: v15,
+      loans: (loans.data ?? []).map(loanFromRow),
+      showcases: (showcases.data ?? []).map(showcaseFromRow),
+      rooms: museumRooms,
+      museum: (museum.data && typeof museum.data === 'object' ? museum.data : {}) as Museum,
       wishes: (wishes.data ?? []).map((w: any) => ({ gameId: w.game_id, note: w.note ?? undefined })),
       favorites: (favs.data ?? []).map((f: any) => f.game_id),
       journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined, createdAt: j.created_at ?? undefined, shared: !!j.shared })),
@@ -398,6 +442,37 @@ export const supabaseAdapter: Adapter = {
       case 'copy.delete':
         if (v14) check(await sb.from('copies').update({ deleted_at: new Date().toISOString() }).eq('id', a.copyId));
         else check(await sb.from('copies').delete().eq('id', a.copyId));
+        return;
+      case 'loan.save':
+        check(await sb.from('loans').upsert(loanToRow(a.loan)));
+        return;
+      case 'loan.delete':
+        check(await sb.from('loans').delete().eq('id', a.id));
+        return;
+      case 'showcase.save':
+        check(await sb.from('showcases').upsert(showcaseToRow(a.sc)));
+        return;
+      case 'showcase.delete':
+        check(await sb.from('showcases').delete().eq('id', a.id));
+        return;
+      case 'showcases.order':
+        for (const x of next.showcases) if (a.ids.includes(x.id)) check(await sb.from('showcases').update({ position: x.position }).eq('id', x.id));
+        return;
+      case 'museum.meta':
+        check(await sb.rpc('set_my_museum', { p_title: a.museum.title ?? '', p_intro: a.museum.intro ?? '', p_shared: !!a.museum.shared }));
+        return;
+      case 'room.save': {
+        check(await sb.from('museum_rooms').upsert(roomToRow(a.room)));
+        // Fotos que saíram da sala saem do Storage também.
+        if (a.dropPaths?.length) await removePhotos(a.dropPaths);
+        return;
+      }
+      case 'room.delete':
+        check(await sb.from('museum_rooms').delete().eq('id', a.id));
+        await removePhotos(a.paths);
+        return;
+      case 'rooms.order':
+        for (const x of next.rooms) if (a.ids.includes(x.id)) check(await sb.from('museum_rooms').update({ position: x.position }).eq('id', x.id));
         return;
       case 'hardware.add':
         check(await sb.from('hardware').insert(hardwareToRow(a.hw)));

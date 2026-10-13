@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom } from './types';
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
+import { localDay } from '../lib/dates';
 
 /**
  * Store único do app. Todas as telas leem daqui e chamam as ações daqui.
@@ -53,6 +54,15 @@ export type Action =
   | { type: 'trash.restore'; what: 'copy' | 'hardware'; id: ID }
   | { type: 'trash.purge'; what: 'copy' | 'hardware'; id: ID }
   | { type: 'trash.empty' }
+  | { type: 'loan.save'; loan: Loan }
+  | { type: 'loan.delete'; id: ID }
+  | { type: 'showcase.save'; sc: Showcase }
+  | { type: 'showcase.delete'; id: ID }
+  | { type: 'showcases.order'; ids: ID[] }
+  | { type: 'museum.meta'; museum: Museum }
+  | { type: 'room.save'; room: MuseumRoom; dropPaths?: string[] }
+  | { type: 'room.delete'; id: ID; paths: string[] }
+  | { type: 'rooms.order'; ids: ID[] }
   | { type: 'mygame.set'; mine: MyGame }
   | { type: 'import.bulk'; data: ImportPayload }
   | { type: 'reviews.merge'; gameId: ID; reviews: Review[]; stats?: State['reviewStats'][string] };
@@ -75,6 +85,7 @@ export function emptyState(): State {
     games: {}, copies: [], wishes: [], favorites: [], journeys: [], histories: [],
     sessions: [], events: [], reviews: [], reviewStats: {}, myGames: {}, schemaV4: false,
     hardware: [], trashCopies: [], trashHardware: [],
+    loans: [], showcases: [], museum: {}, rooms: [],
   };
 }
 
@@ -266,10 +277,33 @@ function reduce(s: State, a: Action): State {
       const { deletedAt: _d, ...h } = t;
       return { ...s, hardware: [...(s.hardware ?? []), h], trashHardware: s.trashHardware.filter((x) => x.id !== a.id) };
     }
-    case 'trash.purge':
-      return a.what === 'copy' ? { ...s, trashCopies: (s.trashCopies ?? []).filter((x) => x.id !== a.id) } : { ...s, trashHardware: (s.trashHardware ?? []).filter((x) => x.id !== a.id) };
-    case 'trash.empty':
-      return { ...s, trashCopies: [], trashHardware: [] };
+    case 'trash.purge': {
+      // Apagar de vez leva junto o histórico de empréstimos daquela peça (no banco, em cascata).
+      const loans = (s.loans ?? []).filter((l) => (a.what === 'copy' ? l.copyId : l.hardwareId) !== a.id);
+      return a.what === 'copy' ? { ...s, loans, trashCopies: (s.trashCopies ?? []).filter((x) => x.id !== a.id) } : { ...s, loans, trashHardware: (s.trashHardware ?? []).filter((x) => x.id !== a.id) };
+    }
+    case 'trash.empty': {
+      const gone = new Set([...(s.trashCopies ?? []), ...(s.trashHardware ?? [])].map((x) => x.id));
+      return { ...s, trashCopies: [], trashHardware: [], loans: (s.loans ?? []).filter((l) => !gone.has(l.copyId ?? l.hardwareId ?? '')) };
+    }
+    case 'loan.save':
+      return { ...s, loans: (s.loans ?? []).some((l) => l.id === a.loan.id) ? s.loans.map((l) => (l.id === a.loan.id ? a.loan : l)) : [...(s.loans ?? []), a.loan] };
+    case 'loan.delete':
+      return { ...s, loans: (s.loans ?? []).filter((l) => l.id !== a.id) };
+    case 'showcase.save':
+      return { ...s, showcases: (s.showcases ?? []).some((x) => x.id === a.sc.id) ? s.showcases.map((x) => (x.id === a.sc.id ? a.sc : x)) : [...(s.showcases ?? []), a.sc] };
+    case 'showcase.delete':
+      return { ...s, showcases: (s.showcases ?? []).filter((x) => x.id !== a.id) };
+    case 'showcases.order':
+      return { ...s, showcases: (s.showcases ?? []).map((x) => ({ ...x, position: a.ids.indexOf(x.id) < 0 ? x.position : a.ids.indexOf(x.id) })) };
+    case 'museum.meta':
+      return { ...s, museum: a.museum };
+    case 'room.save':
+      return { ...s, rooms: (s.rooms ?? []).some((x) => x.id === a.room.id) ? s.rooms.map((x) => (x.id === a.room.id ? a.room : x)) : [...(s.rooms ?? []), a.room] };
+    case 'room.delete':
+      return { ...s, rooms: (s.rooms ?? []).filter((x) => x.id !== a.id) };
+    case 'rooms.order':
+      return { ...s, rooms: (s.rooms ?? []).map((x) => ({ ...x, position: a.ids.indexOf(x.id) < 0 ? x.position : a.ids.indexOf(x.id) })) };
     case 'mygame.set':
       return { ...s, myGames: { ...s.myGames, [a.mine.gameId]: a.mine } };
     case 'import.bulk': {
@@ -321,6 +355,15 @@ export async function commit(a: Action) {
 
 export const uid = () => (globalThis.crypto?.randomUUID?.() ?? `id-${Date.now()}-${Math.random().toString(16).slice(2)}`);
 export const nowIso = () => new Date().toISOString();
+
+/** Empréstimo em aberto de um exemplar ou console (se houver). */
+export function activeLoan(s: State, item: { copyId?: ID; hardwareId?: ID }): Loan | undefined {
+  return (s.loans ?? []).find((l) => !l.returnedOn && (item.copyId ? l.copyId === item.copyId : l.hardwareId === item.hardwareId));
+}
+/** Histórico de empréstimos de uma peça, do mais recente ao mais antigo. */
+export function loansOf(s: State, item: { copyId?: ID; hardwareId?: ID }): Loan[] {
+  return (s.loans ?? []).filter((l) => (item.copyId ? l.copyId === item.copyId : l.hardwareId === item.hardwareId)).sort((a, b) => b.lentOn.localeCompare(a.lentOn));
+}
 
 export function journeyForGame(s: State, gameId: ID) {
   return s.journeys.find((j) => j.gameId === gameId) ?? null;
@@ -722,6 +765,49 @@ export const actions = {
   restoreFromTrash(what: 'copy' | 'hardware', id: ID) { dispatch({ type: 'trash.restore', what, id }); },
   purgeFromTrash(what: 'copy' | 'hardware', id: ID) { dispatch({ type: 'trash.purge', what, id }); },
   emptyTrash() { dispatch({ type: 'trash.empty' }); },
+
+  /* Empréstimos ------------------------------------------------------------- */
+  lend(item: { copyId?: ID; hardwareId?: ID }, data: { person: string; lentOn?: string; dueOn?: string; note?: string }) {
+    track('colecao.emprestar');
+    const loan: Loan = { id: uid(), ...item, person: data.person.trim(), lentOn: data.lentOn || localDay(), dueOn: data.dueOn || undefined, note: data.note?.trim() || undefined, createdAt: nowIso() };
+    dispatch({ type: 'loan.save', loan });
+    return loan;
+  },
+  updateLoan(loan: Loan) { dispatch({ type: 'loan.save', loan }); },
+  returnLoan(id: ID, on = localDay()) {
+    const l = state.loans.find((x) => x.id === id);
+    if (l) { track('colecao.devolvido'); dispatch({ type: 'loan.save', loan: { ...l, returnedOn: on } }); }
+  },
+  deleteLoan(id: ID) { dispatch({ type: 'loan.delete', id }); },
+
+  /* Vitrines ---------------------------------------------------------------- */
+  saveShowcase(sc: Omit<Showcase, 'id' | 'position'> & { id?: ID; position?: number }) {
+    const old = sc.id ? state.showcases.find((x) => x.id === sc.id) : undefined;
+    if (!old) track('colecao.vitrine-nova');
+    const full: Showcase = { ...old, ...sc, id: sc.id ?? uid(), position: sc.position ?? old?.position ?? Math.max(-1, ...state.showcases.map((x) => x.position)) + 1, createdAt: old?.createdAt ?? nowIso() } as Showcase;
+    dispatch({ type: 'showcase.save', sc: full });
+    return full;
+  },
+  deleteShowcase(id: ID) { dispatch({ type: 'showcase.delete', id }); },
+  orderShowcases(ids: ID[]) { dispatch({ type: 'showcases.order', ids }); },
+
+  /* Museu ------------------------------------------------------------------- */
+  setMuseum(m: Museum) { dispatch({ type: 'museum.meta', museum: { ...state.museum, ...m } }); },
+  saveRoom(room: Omit<MuseumRoom, 'id' | 'position'> & { id?: ID; position?: number }) {
+    const old = room.id ? state.rooms.find((x) => x.id === room.id) : undefined;
+    if (!old) track('colecao.museu-sala');
+    const full: MuseumRoom = { ...old, ...room, id: room.id ?? uid(), position: room.position ?? old?.position ?? Math.max(-1, ...state.rooms.map((x) => x.position)) + 1, createdAt: old?.createdAt ?? nowIso() } as MuseumRoom;
+    const keep = new Set(full.pieces.flatMap((p) => (p.t === 'f' && p.path ? [p.path] : [])));
+    const dropPaths = (old?.pieces ?? []).flatMap((p) => (p.t === 'f' && p.path && !keep.has(p.path) ? [p.path] : []));
+    dispatch({ type: 'room.save', room: full, dropPaths });
+    return full;
+  },
+  deleteRoom(id: ID) {
+    const r = state.rooms.find((x) => x.id === id);
+    const paths = (r?.pieces ?? []).flatMap((p) => (p.t === 'f' && p.path ? [p.path] : []));
+    dispatch({ type: 'room.delete', id, paths });
+  },
+  orderRooms(ids: ID[]) { dispatch({ type: 'rooms.order', ids }); },
 
   setMyGame(gameId: ID, patch: Partial<Omit<MyGame, 'gameId'>>) {
     dispatch({ type: 'mygame.set', mine: { ...myGame(state, gameId), ...patch, gameId } });

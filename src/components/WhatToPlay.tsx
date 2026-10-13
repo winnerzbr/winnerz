@@ -54,13 +54,15 @@ export function ideasFor(s: State, mood: number, focusId?: string, today = local
   const mine = (g: ID) => s.myGames[g] ?? { gameId: g };
   const dnaOf = new Map<ID, Dna>();
   const dna = (g: ID) => dnaOf.get(g) ?? dnaOf.set(g, gameDna(s.games[g], s)).get(g)!;
-  const owned = [...new Set(s.copies.map((c) => c.gameId))].filter((g) => s.games[g] && !started.has(g) && !mine(g).wontPlay && !notNow(s, g, today));
+  // Exemplar emprestado não está ao alcance (a menos que haja outro exemplar do mesmo jogo em casa).
+  const lent = new Set((s.loans ?? []).filter((l) => !l.returnedOn && l.copyId).map((l) => l.copyId!));
+  const owned = [...new Set(s.copies.filter((c) => !lent.has(c.id)).map((c) => c.gameId))].filter((g) => s.games[g] && !started.has(g) && !mine(g).wontPlay && !notNow(s, g, today));
   // Prioridade alta primeiro; depois os mais curtos (pela sua estimativa ou pela média do IGDB).
   const hrs = (g: ID) => dna(g).hours ?? 99;
   owned.sort((a, b) => (mine(a).priority ?? 2) - (mine(b).priority ?? 2) || hrs(a) - hrs(b));
 
   const fresh = (gid: ID): Idea => {
-    const c = s.copies.find((x) => x.gameId === gid)!;
+    const c = s.copies.find((x) => x.gameId === gid && !lent.has(x.id)) ?? s.copies.find((x) => x.gameId === gid)!;
     const d = dna(gid);
     const why = [
       mine(gid).priority === 1 ? 'Está na sua lista de prioridade alta.' : null,

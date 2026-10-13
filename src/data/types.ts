@@ -87,6 +87,58 @@ export interface Hardware {
   createdAt?: string;
 }
 
+/** Empréstimo de um exemplar ou console. Quem pegou é sempre privado. Voltou = returnedOn preenchido (o histórico fica). */
+export interface Loan {
+  id: ID;
+  copyId?: ID;
+  hardwareId?: ID;
+  person: string;
+  /** AAAA-MM-DD */
+  lentOn: string;
+  /** Combinado para voltar até (AAAA-MM-DD). */
+  dueOn?: string;
+  returnedOn?: string;
+  note?: string;
+  createdAt?: string;
+}
+
+/** Peça de uma Vitrine ou do Museu: um exemplar ('c') ou um console ('h'). */
+export interface PieceRef { t: 'c' | 'h'; id: ID }
+
+/** Regra de uma Vitrine inteligente: sempre em dia com a coleção. */
+export type ShowcaseRuleType = 'favoritos' | 'especial' | 'zerados' | 'plataforma' | 'geracao';
+export interface ShowcaseRule { type: ShowcaseRuleType; /** Plataformas (nomes canônicos) para 'plataforma' e 'geracao'. */ platforms?: string[]; /** Chave da sugestão (ex.: 'plat:PlayStation 2'). */ key?: string }
+
+/** Vitrine: uma seleção da coleção para mostrar uma ideia. Curada = você escolhe; inteligente = uma regra escolhe. */
+export interface Showcase {
+  id: ID;
+  title: string;
+  description?: string;
+  kind: 'curada' | 'inteligente';
+  rule?: ShowcaseRule;
+  items: PieceRef[];
+  position: number;
+  /** Mostrar no perfil (só para quem pode ver o pilar Coleção). */
+  shared?: boolean;
+  createdAt?: string;
+}
+
+/** Peça do Museu, com a sua plaquinha. 'm' = momento da Jornada; 'f' = foto sua. */
+export type MuseumPiece =
+  | { t: 'c' | 'h' | 'm'; id: ID; caption?: string }
+  | { t: 'f'; id: ID; caption?: string; /** Caminho no Storage. */ path?: string; /** Endereço para exibir (link temporário ou foto local). */ image?: string };
+
+export interface MuseumRoom {
+  id: ID;
+  position: number;
+  title: string;
+  text?: string;
+  pieces: MuseumPiece[];
+  createdAt?: string;
+}
+
+export interface Museum { title?: string; intro?: string; shared?: boolean }
+
 /** Na lixeira: some da coleção e volta com um toque por 30 dias. */
 export type Trashed<T> = T & { deletedAt: string };
 
@@ -255,6 +307,13 @@ export interface State {
   /** Lixeira da coleção (30 dias). */
   trashCopies: Trashed<Copy>[];
   trashHardware: Trashed<Hardware>[];
+  /** Empréstimos (ativos e o histórico). */
+  loans: Loan[];
+  showcases: Showcase[];
+  museum: Museum;
+  rooms: MuseumRoom[];
+  /** A migração 0015 (empréstimos, Vitrines e Museu) já rodou? */
+  schemaV15?: boolean;
   /** A migração 0014 (consoles e lixeira) já rodou? */
   schemaV14?: boolean;
   /** A migração 0004 já rodou? (no modo demonstração, sempre sim) */

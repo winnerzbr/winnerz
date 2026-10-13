@@ -45,6 +45,35 @@ export function demoState(): State {
     ],
     trashCopies: [],
     trashHardware: [],
+    schemaV15: true,
+    loans: [
+      { id: 'l1', copyId: 'c5', person: 'Rafa', lentOn: '2026-09-20', dueOn: '2026-10-10', note: 'Levou com o manual.' },
+      { id: 'l2', copyId: 'c9', person: 'Primo Léo', lentOn: '2025-12-23', returnedOn: '2026-01-15' },
+    ],
+    showcases: [
+      { id: 'v1', title: 'Os que me formaram', description: 'Antes de eu saber o que era gostar de jogo, eles já estavam aqui.', kind: 'curada', items: [{ t: 'h', id: 'hw2' }, { t: 'c', id: 'c7' }, { t: 'c', id: 'c9' }, { t: 'c', id: 'c6' }], position: 0 },
+      { id: 'v2', title: 'Especial para mim', kind: 'inteligente', rule: { type: 'especial', key: 'especial' }, items: [], position: 1 },
+    ],
+    museum: { title: 'O museu da minha estante', intro: 'Cada peça daqui tem uma história. Algumas eu comprei, outras chegaram de presente, e uma eu herdei.' },
+    rooms: [
+      {
+        id: 'r1', position: 0, title: 'Os começos', text: 'O PlayStation 2 foi o primeiro console que foi só meu. Tudo começou nesta prateleira.',
+        pieces: [
+          { t: 'h', id: 'hw2', caption: 'Ganhei no Natal de 2002. Os dois controles ainda funcionam.' },
+          { t: 'c', id: 'c7', caption: 'O primeiro jogo que comprei com o meu dinheiro.' },
+          { t: 'c', id: 'c9' },
+          { t: 'f', id: 'f1', image: img('scene-nfs'), caption: 'A tarde em que o primo deixou o Need for Speed comigo.' },
+        ],
+      },
+      {
+        id: 'r2', position: 1, title: 'Histórias que ficaram', text: 'Jogos que não saíram da cabeça depois dos créditos.',
+        pieces: [
+          { t: 'c', id: 'c2', caption: 'Pré-venda, joguei na semana do lançamento.' },
+          { t: 'm', id: 'e3' },
+          { t: 'c', id: 'c6' },
+        ],
+      },
+    ],
     myGames: { infamous: { gameId: 'infamous', priority: 1, estHours: 17 }, kz2: { gameId: 'kz2', priority: 2, estHours: 9 }, dderby: { gameId: 'dderby', wontPlay: true } },
     games: Object.fromEntries(games.map((g) => [g.id, g])),
     copies: [

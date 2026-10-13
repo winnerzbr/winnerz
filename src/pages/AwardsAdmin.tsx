@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import { Link } from '../lib/router';
 import { useStore, actions } from '../data/store';
-import { awardsApi, canAdmin, adminResultsOpen, type Award, type AwardFull, type Category } from '../data/awards';
+import { awardsApi, canAdmin, adminResultsOpen, artChoices, nomineeArt, type Award, type AwardFull, type Category, type Nominee } from '../data/awards';
+import { igdbSize } from '../lib/backdrop';
 import { searchGames, loadGame, type Hit } from '../components/AddGameDialog';
 import { CoverArt } from '../components/CoverArt';
 import { ConfirmButton } from '../components/Sheet';
@@ -153,16 +154,75 @@ function CategoryEditor({ cat, year, run }: { cat: Category; year: number; run: 
         </div>
       </div>
       <ul className="awards-admin__noms">
-        {cat.nominees.map((n) => (
-          <li key={n.id}>
-            <span className="awards-admin__cover"><CoverArt game={n.game} /></span>
-            <span>{n.game.title}{n.game.year ? <span className="faint"> ({n.game.year})</span> : null}</span>
-            <button className="btn quiet sm" onClick={() => run(() => awardsApi().deleteNominee(n.id))} aria-label={`Tirar ${n.game.title}`}>Tirar</button>
-          </li>
-        ))}
+        {cat.nominees.map((n) => <NomineeRow key={n.id} n={n} run={run} />)}
       </ul>
       {open && <NomineePicker cat={cat} year={year} run={run} />}
     </details>
+  );
+}
+
+function NomineeRow({ n, run }: { n: Nominee; run: Run }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li className={open ? 'is-open' : undefined}>
+      <span className="awards-admin__art" style={{ backgroundImage: `url("${igdbSize(nomineeArt(n), 't_screenshot_med')}")`, backgroundPosition: n.focus || '50% 50%' }} aria-hidden="true" />
+      <span>{n.game.title}{n.game.year ? <span className="faint"> ({n.game.year})</span> : null}{n.art ? null : <span className="faint"> · arte automática</span>}</span>
+      <span className="awards-admin__acts">
+        <button className="btn quiet sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>{open ? 'Fechar' : 'Arte'}</button>
+        <button className="btn quiet sm" onClick={() => run(() => awardsApi().deleteNominee(n.id))} aria-label={`Tirar ${n.game.title}`}>Tirar</button>
+      </span>
+      {open && <NomineeArtEditor n={n} run={run} onDone={() => setOpen(false)} />}
+    </li>
+  );
+}
+
+/**
+ * Escolher a imagem do indicado na votação e o ponto dela que fica à vista.
+ * Toque na imagem grande para mudar o ponto; as prévias mostram o cartão reduzido e o aberto.
+ */
+function NomineeArtEditor({ n, run, onDone }: { n: Nominee; run: Run; onDone: () => void }) {
+  const choices = artChoices(n.game);
+  const [art, setArt] = useState(nomineeArt(n));
+  const [focus, setFocus] = useState(n.focus || '50% 50%');
+  const [url, setUrl] = useState('');
+  const list = [...new Set([art, ...choices])].filter(Boolean);
+  const pickPoint = (e: MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.round(((e.clientX - r.left) / r.width) * 100), y = Math.round(((e.clientY - r.top) / r.height) * 100);
+    setFocus(`${Math.min(100, Math.max(0, x))}% ${Math.min(100, Math.max(0, y))}%`);
+  };
+  const [fx, fy] = focus.split(' ');
+  return (
+    <div className="artpick">
+      <p className="muted artpick__help">Escolha uma imagem sem logo e toque nela no ponto que deve ficar à vista quando o cartão estiver reduzido.</p>
+      <div className="artpick__thumbs" role="radiogroup" aria-label="Imagens do jogo">
+        {list.map((u) => (
+          <button key={u} role="radio" aria-checked={u === art} className={`artpick__thumb${u === art ? ' is-on' : ''}`} onClick={() => setArt(u)}>
+            <img src={igdbSize(u, 't_screenshot_med')} alt="" loading="lazy" />
+          </button>
+        ))}
+        {list.length === 0 && <span className="muted">Este jogo não tem artes nem capturas no IGDB. Cole o endereço de uma imagem abaixo.</span>}
+      </div>
+      <div className="artpick__url">
+        <input className="field" placeholder="Ou cole o endereço de outra imagem (https://…)" value={url} onChange={(e) => setUrl(e.target.value)} aria-label="Endereço de outra imagem" />
+        <button className="btn ghost sm" disabled={!/^https:\/\//.test(url.trim())} onClick={() => { setArt(url.trim()); setUrl(''); }}>Usar</button>
+      </div>
+      <div className="artpick__stage">
+        <div className="artpick__full" onClick={pickPoint} role="presentation">
+          <img src={art} alt="" />
+          <span className="artpick__dot" style={{ left: fx, top: fy }} aria-hidden="true" />
+        </div>
+        <div className="artpick__previews">
+          <figure><div className="artpick__strip" style={{ backgroundImage: `url("${art}")`, backgroundPosition: focus }} /><figcaption>Reduzido</figcaption></figure>
+          <figure><div className="artpick__band" style={{ backgroundImage: `url("${art}")`, backgroundPosition: focus }} /><figcaption>Reduzido no celular</figcaption></figure>
+          <figure><div className="artpick__wide" style={{ backgroundImage: `url("${art}")`, backgroundPosition: focus }} /><figcaption>Aberto (seu voto)</figcaption></figure>
+        </div>
+      </div>
+      <div className="awards-admin__row">
+        <button className="btn primary sm" onClick={() => run(() => awardsApi().setNomineeArt(n.id, art, focus), 'Arte gravada.').then(onDone)}>Gravar arte</button>
+        {(n.art || n.focus) && <button className="btn ghost sm" onClick={() => run(() => awardsApi().setNomineeArt(n.id, null, null), 'Voltou para a arte automática.').then(onDone)}>Voltar ao automático</button>}
+      </div>
+    </div>
   );
 }
 

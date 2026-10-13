@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, canAdmin, phaseOf, publicAt, type Award, type AwardFull, type AwardGame, type Category, type Phase } from '../data/awards';
+import { awardsApi, canAdmin, nomineeArt, phaseOf, publicAt, type Award, type AwardFull, type AwardGame, type Category, type Phase } from '../data/awards';
 import type { Game } from '../data/types';
-import { CoverArt } from '../components/CoverArt';
 import { FORJADO_PATH } from '../components/Brand';
 import { useBackdrop } from '../components/Backdrop';
 import { igdbSize } from '../lib/backdrop';
@@ -294,51 +293,77 @@ export function AwardsPage() {
                 {head && <h2 className="t awrows__head">Mais {collapsedCount} {collapsedCount === 1 ? 'categoria' : 'categorias'}</h2>}
                 <button className={`awrow${mine ? ' is-voted' : ''}`} onClick={() => goTo(c)}>
                   <span className="t awrow__name">{c.name}</span>
-                  <span className="awrow__covers" aria-hidden="true">{c.nominees.slice(0, 5).map((n) => <span key={n.id} className="awrow__cover"><CoverArt game={n.game} /></span>)}</span>
+                  <span className="awrow__covers" aria-hidden="true">{c.nominees.slice(0, 6).map((n) => <span key={n.id} className="awrow__art" style={{ backgroundImage: `url("${igdbSize(nomineeArt(n), 't_screenshot_med')}")`, backgroundPosition: n.focus || '50% 50%' }} />)}</span>
                   <span className="kicker awrow__go">{mine ? `Seu voto: ${mine}` : 'Votar →'}</span>
                 </button>
               </div>
             );
           }
           const total = res ? c.nominees.reduce((a, n) => a + (res[n.id] ?? 0), 0) : 0;
-          const ordered = showResult ? [...c.nominees].sort((a, b) => (res![b.id] ?? 0) - (res![a.id] ?? 0)) : c.nominees;
           const top = showResult && total ? Math.max(...c.nominees.map((n) => res![n.id] ?? 0)) : -1;
           const winners = top > 0 ? c.nominees.filter((n) => (res![n.id] ?? 0) === top) : [];
           const mine = myTitle(c);
+          // A cena: a escolhida (seu voto ou, no resultado, o vencedor) se abre em widescreen.
+          const openId = showResult ? winners[0]?.id : full.myVotes[c.id];
+          const next = withNominees[k + 1];
+          const tag = showResult ? (winners.length > 1 ? 'Empate' : 'Vencedor') : 'Seu voto';
           return (
             <section key={c.id} id={`cat-${c.id}`} className="awcat" aria-labelledby={`cath-${c.id}`}>
-              <div className="awcat__head">
-                <h2 id={`cath-${c.id}`} className="t">{c.name}</h2>
-                {saving === c.id ? <span className="kicker" role="status">Gravando…</span>
-                  : winners.length ? <span className="kicker awcat__win">{winners.length > 1 ? 'Empate: ' : 'Vencedor: '}{winners.map((w) => w.game.title).join(' e ')}</span>
-                  : mine ? <span className="kicker kicker--now">Seu voto: {mine}</span>
-                  : voting ? <span className="kicker">Escolha um</span> : null}
-                {c.description && <p className="muted awcat__desc">{c.description}</p>}
+              <div className={`scene${openId ? ' has' : ''}`}>
+                <div className="scene__row" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
+                  {c.nominees.map((n) => {
+                    const on = n.id === openId;
+                    const isMine = full.myVotes[c.id] === n.id;
+                    const votes = res?.[n.id] ?? 0;
+                    const pct = total ? Math.round((votes / total) * 100) : 0;
+                    const sub = n.game.developer || (n.game.year ? String(n.game.year) : '');
+                    const body = (
+                      <>
+                        <img className="scene__img" src={nomineeArt(n)} alt="" loading="lazy" style={{ objectPosition: n.focus || '50% 50%' }} />
+                        <span className="scene__shade" aria-hidden="true" />
+                        {on && <span className="scene__leak" aria-hidden="true" />}
+                        <span className="scene__name">
+                          <b>{n.game.title}</b>
+                          {sub && <span>{sub}</span>}
+                          {!voting && isMine && !on && <em className="scene__mine">Seu voto</em>}
+                          {showResult && <span className="scene__bar" aria-label={`${votes} votos`}><i style={{ width: `${pct}%` }} /><em>{pct}%</em></span>}
+                        </span>
+                        <span className="scene__vt" aria-hidden="true">{showResult ? `${pct}% · ` : ''}{n.game.title}</span>
+                        {on && (
+                          <span className="scene__ttl" key={`${n.id}-${tag}`}>
+                            <span className="kicker kicker--now">{tag} · {c.name}</span>
+                            <span className="scene__nm">{n.game.title}</span>
+                            <span className="scene__sub">{[sub, showResult ? `${pct}% dos votos` : '', !showResult && isMine && voting ? 'Toque de novo para tirar o voto' : ''].filter(Boolean).join(' · ')}</span>
+                          </span>
+                        )}
+                      </>
+                    );
+                    const cls = `scene__p${on ? ' on' : ''}`;
+                    return voting
+                      ? <button key={n.id} role="radio" aria-checked={isMine} aria-label={n.game.title} className={cls} onClick={() => vote(c, n.id)} disabled={saving === c.id}>{body}</button>
+                      : <Link key={n.id} to={`/jogos/${n.game.slug}`} aria-label={n.game.title} className={cls}>{body}</Link>;
+                  })}
+                </div>
+                <span className="scene__grain" aria-hidden="true" />
+                {openId && <>
+                  <span className="scene__flare" key={`f-${openId}`} aria-hidden="true" />
+                  <span className="scene__ghost" aria-hidden="true" />
+                  <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
+                  <span className="scene__flash" key={`x-${openId}`} aria-hidden="true" />
+                </>}
+                <span className="scene__lb scene__lb--t" aria-hidden="true" />
+                <span className="scene__lb scene__lb--b" aria-hidden="true" />
+                <div className="scene__top">
+                  <div className="scene__head"><h2 id={`cath-${c.id}`} className="t">{c.name}</h2><span className="kicker">{k + 1} de {withNominees.length}</span></div>
+                  <span className="kicker scene__status" role={saving === c.id ? 'status' : undefined}>
+                    {saving === c.id ? 'Gravando…' : winners.length ? '' : mine ? '' : voting ? 'Toque numa arte para votar' : ''}
+                  </span>
+                </div>
+                <div className="scene__bottom">
+                  <span className="scene__desc">{c.description || (voting ? 'Um voto por categoria. Dá para mudar até o fim da votação.' : '')}</span>
+                  {next && <button className="kicker scene__next" onClick={() => goTo(next)}>{next.name} →</button>}
+                </div>
               </div>
-              <ul className="awcat__noms" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
-                {ordered.map((n) => {
-                  const isMine = full.myVotes[c.id] === n.id;
-                  const votes = res?.[n.id] ?? 0;
-                  const winner = top > 0 && votes === top;
-                  const pct = total ? Math.round((votes / total) * 100) : 0;
-                  const body = (
-                    <>
-                      <span className="nom__cover"><CoverArt game={n.game} />{winner && <span className="nom__win">Vencedor</span>}</span>
-                      {voting && <span className="nom__radio" aria-hidden="true">{isMine && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4"><path d="M5 12l5 5 9-10" /></svg>}</span>}
-                      {!voting && isMine && <span className="nom__mine">Seu voto</span>}
-                      <span className="nom__name">{n.game.title}</span>
-                      {showResult && <span className="nom__bar" aria-label={`${votes} votos`}><span style={{ width: `${pct}%` }} /><em>{pct}%</em></span>}
-                    </>
-                  );
-                  return (
-                    <li key={n.id}>
-                      {voting
-                        ? <button role="radio" aria-checked={isMine} className={`nom${isMine ? ' is-mine' : ''}`} onClick={() => vote(c, n.id)} disabled={saving === c.id}>{body}</button>
-                        : <Link to={`/jogos/${n.game.slug}`} className={`nom${isMine ? ' is-mine' : ''}${winner ? ' is-winner' : ''}`}>{body}</Link>}
-                    </li>
-                  );
-                })}
-              </ul>
             </section>
           );
         })}

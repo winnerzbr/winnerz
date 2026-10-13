@@ -7,6 +7,7 @@
 import { getState } from './store';
 import { getClient } from './supabaseAdapter';
 import type { Game } from './types';
+import { igdbSize } from '../lib/backdrop';
 
 export type Award = {
   id: string; year: number; title: string; intro?: string; votingOpens?: string; votingCloses?: string;
@@ -16,8 +17,9 @@ export type Award = {
   publicResultsAt?: string;
   published: boolean;
 };
-export type AwardGame = { id: string; slug: string; title: string; cover: string; year?: number };
-export type Nominee = { id: string; categoryId: string; gameId: string; game: AwardGame; position: number };
+export type AwardGame = { id: string; slug: string; title: string; cover: string; year?: number; developer?: string; backdrop?: string; artworks?: string[]; screenshots?: string[] };
+/** art: a imagem escolhida para a votação (arte oficial ou captura, sem logo); focus: o ponto da imagem que fica à vista ("50% 40%"). */
+export type Nominee = { id: string; categoryId: string; gameId: string; game: AwardGame; position: number; art?: string; focus?: string };
 export type Category = { id: string; awardId: string; name: string; description?: string; position: number; nominees: Nominee[] };
 export type AwardFull = {
   award: Award;
@@ -57,9 +59,22 @@ export interface AwardsApi {
   deleteCategory(id: string): Promise<void>;
   addNominee(categoryId: string, game: Game, position: number): Promise<void>;
   deleteNominee(id: string): Promise<void>;
+  /** Arte e enquadramento do indicado na votação (null volta para a escolha automática). */
+  setNomineeArt(id: string, art: string | null, focus: string | null): Promise<void>;
 }
 
-const gameOf = (g: Pick<Game, 'id' | 'slug' | 'title' | 'cover' | 'year'>): AwardGame => ({ id: g.id, slug: g.slug, title: g.title, cover: g.cover, year: g.year });
+const gameOf = (g: Pick<Game, 'id' | 'slug' | 'title' | 'cover' | 'year'> & Partial<Pick<Game, 'developer' | 'backdrop' | 'artworks' | 'screenshots'>>): AwardGame => ({
+  id: g.id, slug: g.slug, title: g.title, cover: g.cover, year: g.year, developer: g.developer || undefined, backdrop: g.backdrop || undefined, artworks: g.artworks ?? undefined, screenshots: g.screenshots ?? undefined,
+});
+
+/** Imagens que podem aparecer na votação: artes oficiais primeiro (costumam vir sem logo), depois o fundo e as capturas. */
+export function artChoices(g: AwardGame): string[] {
+  return [...new Set([...(g.artworks ?? []), g.backdrop, ...(g.screenshots ?? [])].filter((x): x is string => !!x).map((u) => igdbSize(u, 't_1080p')))];
+}
+/** A arte do indicado: a escolhida na montagem, ou a primeira arte oficial; sem nenhuma, a capa. */
+export function nomineeArt(n: Nominee): string {
+  return n.art || artChoices(n.game)[0] || (n.game.cover ? igdbSize(n.game.cover, 't_1080p') : '');
+}
 
 /* ---- Supabase --------------------------------------------------------------------------- */
 
@@ -79,7 +94,7 @@ const supabaseApi: AwardsApi = {
     const award = awardFromRow(ok(await sb.from('awards').select('*').eq('id', id).single()));
     const cats = ok(await sb.from('award_categories').select('*').eq('award_id', id).order('position')) as any[];
     const ids = cats.map((c) => c.id);
-    const noms = ids.length ? (ok(await sb.from('award_nominees').select('*, games(id,slug,title,cover,year)').in('category_id', ids).order('position')) as any[]) : [];
+    const noms = ids.length ? (ok(await sb.from('award_nominees').select('*, games(id,slug,title,cover,year,developer,backdrop,artworks,screenshots)').in('category_id', ids).order('position')) as any[]) : [];
     const me = getState().profile;
     const votes = me && ids.length ? (ok(await sb.from('award_votes').select('category_id,nominee_id').in('category_id', ids)) as any[]) : [];
     const voters = Number((await sb.rpc('award_voters', { p_award: id })).data ?? 0);
@@ -94,7 +109,7 @@ const supabaseApi: AwardsApi = {
       myVotes: Object.fromEntries(votes.map((v) => [v.category_id, v.nominee_id])),
       categories: cats.map((c) => ({
         id: c.id, awardId: c.award_id, name: c.name, description: c.description ?? undefined, position: c.position,
-        nominees: noms.filter((n) => n.category_id === c.id && n.games).map((n) => ({ id: n.id, categoryId: n.category_id, gameId: n.game_id, position: n.position, game: gameOf({ ...n.games, cover: n.games.cover ?? '', year: n.games.year ?? undefined }) })),
+        nominees: noms.filter((n) => n.category_id === c.id && n.games).map((n) => ({ id: n.id, categoryId: n.category_id, gameId: n.game_id, position: n.position, art: n.art ?? undefined, focus: n.focus ?? undefined, game: gameOf({ ...n.games, cover: n.games.cover ?? '', year: n.games.year ?? undefined }) })),
       })),
     };
   },
@@ -120,6 +135,12 @@ const supabaseApi: AwardsApi = {
     ok(await sb.from('award_nominees').upsert({ category_id: categoryId, game_id: game.id, position }, { onConflict: 'category_id,game_id', ignoreDuplicates: true }));
   },
   async deleteNominee(id) { const sb = await getClient(); ok(await sb.from('award_nominees').delete().eq('id', id)); },
+  async setNomineeArt(id, art, focus) {
+    const sb = await getClient();
+    const r = await sb.from('award_nominees').update({ art, focus }).eq('id', id);
+    if (r.error && /column|art|focus/i.test(r.error.message)) throw new Error('Para guardar a arte dos indicados, rode a migração 0010 no Supabase (SQL Editor).');
+    ok(r);
+  },
 };
 
 /* ---- Demonstração (neste navegador) ------------------------------------------------------ */
@@ -182,6 +203,7 @@ const demoApi: AwardsApi = {
     saveDemo(db);
   },
   async deleteNominee(id) { const db = demoDb(); db.nominees = db.nominees.filter((n) => n.id !== id); for (const [c, n] of Object.entries(db.votes)) if (n === id) delete db.votes[c]; saveDemo(db); },
+  async setNomineeArt(id, art, focus) { const db = demoDb(); db.nominees = db.nominees.map((n) => (n.id === id ? { ...n, art: art ?? undefined, focus: focus ?? undefined } : n)); saveDemo(db); },
 };
 
 /** Quem monta as edições: administração (no banco) ou qualquer um no modo demonstração. */

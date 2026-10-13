@@ -3484,3 +3484,9 @@ a.gev { color: var(--ink); }
   .collection__tools .btn { flex: 1 1 calc(50% - 5px); }
   .collection__tools .btn.primary, .collection__tools .collection__cam { order: -1; }
 }
+/* Cabeçalho com ações (Coleção): quando não cabe ao lado do título, as ações descem para a linha de baixo. */
+@media (min-width: 761px) {
+  .page-head:has(.page-head__side) { flex-wrap: wrap; }
+  .page-head__side { max-width: 100%; min-width: 0; }
+  .page-head__side .subnav { max-width: 100%; }
+}

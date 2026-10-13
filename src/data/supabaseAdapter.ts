@@ -3,6 +3,7 @@ import type { Adapter, Action } from './store';
 import { emptyState } from './store';
 import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame, Hardware, Loan, Showcase, MuseumRoom, Museum } from './types';
 import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
+import { avatarUrl } from '../lib/avatar';
 
 /**
  * Modo Supabase: lê e grava nas tabelas definidas em supabase/migrations.
@@ -226,11 +227,12 @@ const manualGameToRow = (g: Game) => ({
  * função my_prefs(); num banco sem a 0009, lê a linha inteira como antes.
  */
 async function loadProfile(sb: SupabaseClient, uid: string): Promise<{ data: any; error: any }> {
-  const [row, prefs] = await Promise.all([
+  const [row, prefs, mine] = await Promise.all([
     sb.from('profiles').select('display_name, is_admin').eq('id', uid).maybeSingle(),
     sb.rpc('my_prefs'),
+    sb.rpc('my_profile'),
   ]);
-  if (!row.error && !prefs.error) return { data: row.data ? { ...row.data, prefs: prefs.data ?? {} } : null, error: null };
+  if (!row.error && !prefs.error) return { data: row.data ? { ...row.data, prefs: prefs.data ?? {}, avatar: (mine.data as { avatar?: string } | null)?.avatar ?? null } : null, error: null };
   return sb.from('profiles').select('*').eq('id', uid).maybeSingle();
 }
 
@@ -340,7 +342,7 @@ export const supabaseAdapter: Adapter = {
     const name: string = p?.display_name ?? user.email?.split('@')[0] ?? 'Jogador';
     return {
       ...base,
-      profile: { id: user.id, name, initial: name.slice(0, 1).toUpperCase() },
+      profile: { id: user.id, name, initial: name.slice(0, 1).toUpperCase(), avatar: avatarUrl(p?.avatar) },
       prefs: { ...base.prefs, ...(p?.prefs ?? {}) },
       schemaV4: v4,
       schemaV6: v6,

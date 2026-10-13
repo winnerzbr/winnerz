@@ -283,6 +283,8 @@ export interface Profile {
   id: ID;
   name: string;
   initial: string;
+  /** Foto do perfil (endereço pronto para usar). */
+  avatar?: string | null;
 }
 
 export interface State {

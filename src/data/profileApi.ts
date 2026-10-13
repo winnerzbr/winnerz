@@ -3,7 +3,9 @@
  * Com conta, tudo passa por funções do banco (migração 0011), que devolvem ao público só o que foi liberado.
  * No modo demonstração, o perfil fica neste navegador e a página pública é montada com os seus dados daqui.
  */
-import { getState } from './store';
+import { actions, getState } from './store';
+import { avatarUrl } from '../lib/avatar';
+export { avatarUrl };
 import type { DatePrecision, HardwareKind } from './types';
 import { showcasePieces } from '../lib/showcases';
 import { exhibitOf } from '../lib/museum';
@@ -20,7 +22,8 @@ export type ProfileLink = { url: string; label?: string };
 export type MyVisibility = Partial<Record<Pillar, Visibility>> & { aoVivo?: 'sim' | 'nao' };
 /** O topo do perfil (Palco): o jogo que te definiu, os três da vida e o ano em que começou a jogar. */
 export type ProfileStage = { defining?: { game: string; text?: string }; top?: { game: string; quote?: string }[]; since?: number };
-export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[]; stage?: ProfileStage };
+export type MyProfile = { handle: string | null; bio: string | null; visibility: MyVisibility; shareKey: string; links?: ProfileLink[]; stage?: ProfileStage; avatar?: string | null };
+
 
 export type PublicStage = {
   defining?: { title: string; slug: string; cover: string | null; backdrop: string | null; year?: number | null; text?: string | null };
@@ -40,6 +43,8 @@ export function linkLabel(l: ProfileLink): string {
 
 export type PublicProfile = {
   name: string; handle: string; bio: string | null; since: string; onlyLink: boolean;
+  /** Foto do perfil (migração 0018). */
+  avatar?: string | null;
   jornada?: {
     playing: { title: string; slug: string; cover: string | null; progress: number | null; startedAt: string; startedPrecision: DatePrecision; ordinal: number }[];
     completed: { title: string; slug: string; cover: string | null; completedAt: string | null; completedPrecision: DatePrecision; ordinal: number }[];
@@ -100,6 +105,7 @@ function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
   const key = Object.keys(MSG).find((k) => m.includes(k));
   if (key) return new Error(MSG[key]);
+  if (/set_my_avatar|avatar_path|bucket not found|avatares/i.test(m)) return new Error('Para a foto do perfil, rode a migração 0018 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_stage|public_profile_v4/i.test(m)) return new Error('Para isso, rode a migração 0016 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_links|public_profile_v2|public_journey/i.test(m)) return new Error('Para isso, rode a migração 0013 no Supabase (SQL Editor → colar → Run).');
   if (/set_my_handle|handle_available/i.test(m)) return new Error('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).');
@@ -123,7 +129,7 @@ function demoPublic(handle: string, key?: string | null): PublicProfile | null {
   const show = (k: Pillar) => visOf(me, k) === 'publico' || (visOf(me, k) === 'link' && key === me.shareKey);
   if (!show('jornada') && !show('colecao') && !show('notas')) return null;
   const gameOfJ = (jid: string) => { const j = s.journeys.find((x) => x.id === jid); return j ? s.games[j.gameId] : undefined; };
-  const out: PublicProfile = { name: me.handle, handle: me.handle, bio: me.bio, since: '2026-01-01T12:00:00Z', onlyLink: !(['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(me, k) === 'publico') };
+  const out: PublicProfile = { name: me.handle, handle: me.handle, bio: me.bio, avatar: me.avatar ?? null, since: '2026-01-01T12:00:00Z', onlyLink: !(['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(me, k) === 'publico') };
   if (show('jornada')) {
     const hs = s.histories;
     out.jornada = {
@@ -311,6 +317,30 @@ export const profileApi = {
     };
     if (supa()) return rpc<MyProfile>('set_my_stage', { p_stage: clean });
     const next = { ...demoGet(), stage: clean }; demoSet(next); return next;
+  },
+  /** Troca a foto do perfil (ou tira, com null). Grava na hora; a foto antiga é apagada. */
+  async setAvatar(blob: Blob | null): Promise<MyProfile> {
+    if (!supa()) {
+      const url = blob ? await new Promise<string>((ok) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.readAsDataURL(blob); }) : null;
+      const next = { ...demoGet(), avatar: url }; demoSet(next);
+      actions.setProfileAvatar(url);
+      return next;
+    }
+    const uid = getState().profile?.id;
+    if (!uid) throw new Error('Entre na sua conta para trocar a foto.');
+    const { getClient } = await import('./supabaseAdapter');
+    const sb = await getClient();
+    const old = (await this.mine())?.avatar ?? null;
+    let path: string | null = null;
+    if (blob) {
+      path = `${uid}/${Date.now().toString(36)}.${blob.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
+      const { error } = await sb.storage.from('avatares').upload(path, blob, { contentType: blob.type, upsert: true, cacheControl: '31536000' });
+      if (error) throw friendly(error);
+    }
+    const p = await rpc<MyProfile>('set_my_avatar', { p_path: path });
+    if (old && old !== path && !/^(data:|https?:)/.test(old)) await sb.storage.from('avatares').remove([old]).catch(() => {});
+    actions.setProfileAvatar(avatarUrl(path));
+    return p;
   },
   async setLinks(links: ProfileLink[]): Promise<MyProfile> {
     const clean = links.map((l) => ({ url: l.url.trim(), label: l.label?.trim() || undefined })).filter((l) => /^https:\/\/\S{3,200}$/.test(l.url)).slice(0, 6);

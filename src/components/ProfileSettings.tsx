@@ -3,6 +3,7 @@ import { Link } from '../lib/router';
 import { actions, useStore } from '../data/store';
 import { HANDLE_RE, PILLARS, linkLabel, profileApi, profileUrl, visOf, type MyProfile, type MyVisibility, type ProfileLink, type ProfileStage } from '../data/profileApi';
 import { StageSettings, stageKey } from './StageSettings';
+import { AvatarEditor } from './AvatarEditor';
 
 const OPTS: { v: 'privado' | 'link' | 'publico'; label: string }[] = [
   { v: 'privado', label: 'Só você' },
@@ -68,6 +69,8 @@ export function ProfileSettings() {
   return (
     <div className="pfs">
       <p className="muted prefs__p">Tudo começa só seu. Escolha, pilar por pilar, quem pode ver. Recados, fotos, sessões, preços e com quem você jogou nunca aparecem no perfil.</p>
+
+      <AvatarEditor />
 
       <label className="pfs__field">
         <span>Seu @</span>

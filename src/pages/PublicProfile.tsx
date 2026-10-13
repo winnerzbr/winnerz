@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
-import { linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
+import { avatarUrl, linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
 import { Cabinet, type ShelfItem } from '../components/Showcase';
 import { MuseumTour } from '../components/MuseumTour';
 import { publicExhibit } from './PublicMuseum';
@@ -184,7 +184,7 @@ function Hero({ data, owner, onShare, copied }: { data: PublicProfile; owner: bo
       )}
       <div className="page pd-hero__in">
         <div className="pd-id">
-          <span className="pd-avatar" aria-hidden="true">{data.name.slice(0, 1).toUpperCase()}</span>
+          <span className={`pd-avatar${data.avatar ? ' pd-avatar--img' : ''}`} aria-hidden="true">{data.avatar ? <img src={avatarUrl(data.avatar) ?? ''} alt="" /> : data.name.slice(0, 1).toUpperCase()}</span>
           <div className="pd-id__text">
             <div className="pd-chips">
               {data.live && <Link to={`/jogos/${data.live.slug}`} className="pd-chip pd-chip--live"><i aria-hidden="true" />Jogando agora · {data.live.title}</Link>}

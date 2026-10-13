@@ -1,28 +1,30 @@
 import { Buddy, useBuddy } from '../components/Buddy';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, eventsOf, activeWaypoints, focusJourneys } from '../data/store';
-import type { State, Journey, TimelineEvent } from '../data/types';
-import { ago } from '../lib/format';
-import { whenLabel, partsOf } from '../lib/dates';
+import type { State, Journey, TimelineEvent, History } from '../data/types';
+import { ago, dayMonth } from '../lib/format';
+import { whenLabel, partsOf, localDay } from '../lib/dates';
+import { shortPlatform } from '../lib/platforms';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
 import { formatScore } from '../lib/rating';
 import { ActionToast } from '../components/Toast';
 import { eventDate } from './Journey';
-import { Compass, Icon } from '../components/Icon';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
-import { PhotoViewer } from '../components/MediaGallery';
 import { Backdrop } from '../components/Backdrop';
+import { BrandMark } from '../components/Brand';
 
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
 
 function rowFor(s: State, j: Journey) {
   const h = currentHistory(s, j.id);
   const last = [...s.sessions].filter((x) => x.journeyId === j.id).sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
-  return { j, g: s.games[j.gameId], h, n: historiesOf(s, j.id).length, last, note: lastNote(s, j.id) };
+  const copy = s.copies.find((c) => c.gameId === j.gameId);
+  return { j, g: s.games[j.gameId], h, n: historiesOf(s, j.id).length, last, note: lastNote(s, j.id), platform: copy ? shortPlatform(copy.platform) : undefined };
 }
+type Row = ReturnType<typeof rowFor>;
 
 export function JourneyIndex() {
   const s = useStore((x) => x);
@@ -38,30 +40,52 @@ export function JourneyIndex() {
     .sort((a, b) => (b.h!.completedAt ?? '').localeCompare(a.h!.completedAt ?? ''));
   const left = rows.filter((r) => r.h && (r.h.state === 'dropada' || r.h.state === 'encerrada'));
   const putInFocus = (id: string) => { if (!actions.addFocus(id)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em foco. Tire um deles para pôr outro.' }); };
+  const light = !!s.prefs.light;
 
-  const Group = ({ title, list, hint, canFocus }: { title: string; list: typeof rows; hint?: string; canFocus?: boolean }) => list.length ? (
-    <section className="block">
-      <div className="block__head"><h2 className="t">{title}</h2>{hint && <span className="muted">{hint}</span>}</div>
-      <div className="jgrid">
-        {list.map(({ j, g, h, n, last, note }) => (
-          <article key={j.id} className="jcard on-photo">
-            <Backdrop game={g} />
-            <div className="jcard__shade" aria-hidden="true" />
-            <Link to={`/jornada/${g.slug}`} className="jcard__link" aria-label={`Abrir a Jornada de ${g.title}`} />
-            {canFocus && (
-              <button className="jcard__focus" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">
-                <Compass size={13} />Pôr em foco
-              </button>
-            )}
-            <div className="jcard__body">
-              <div className="jcard__meta">{h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') ? `${h.state === 'concluida' ? 'Zerou' : h.state === 'dropada' ? 'Largou' : 'Encerrou'}, ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}${n > 1 ? `. ${n} Histórias` : ''}` : `${n > 1 ? `${n} Histórias` : 'Primeira História'}${last ? `, última sessão ${ago(last.startedAt)}` : ''}`}</div>
-              <div className="t jcard__title">{g.title}</div>
-              {note?.note && <div className="quote jcard__note">“{note.note}”</div>}
-              {!!h?.progress && (h.state === 'ativa' || h.state === 'pausada') && <div className="jcard__prog"><span className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /></span><span className="mono">{h.progress}%</span></div>}
-            </div>
-          </article>
-        ))}
-      </div>
+  const metaOf = ({ h, n, last, note, platform }: Row) => {
+    if (!h) return '';
+    if (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') return '';
+    const bits = [
+      platform,
+      h.state === 'pausada' ? (last ? `Pausado desde ${monthOf(last.startedAt)}` : 'Pausado') : last ? `Última sessão ${ago(last.startedAt)}` : n > 1 ? `${n} Histórias` : 'Primeira História',
+      !light && h.progress ? `${h.progress}%` : null,
+      note?.note ? `“${note.note}”` : h.state === 'ativa' ? 'Sem recado' : null,
+    ];
+    return bits.filter(Boolean).join(' · ');
+  };
+
+  const Group = ({ title, list, hint, more, kind }: { title: string; list: Row[]; hint?: string; more?: ReactNode; kind: 'going' | 'paused' | 'done' | 'left' }) => list.length ? (
+    <section className={`jlist jlist--${kind}`} aria-label={title}>
+      <div className="jlist__head"><h2 className="t">{title}</h2>{more ?? (hint ? <span className="muted">{hint}</span> : <span className="kicker">{list.length} {list.length === 1 ? 'jogo' : 'jogos'}</span>)}</div>
+      <ul>
+        {list.map((r) => {
+          const { j, g, h, n } = r;
+          const ended = h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada');
+          return (
+            <li key={j.id} className="jrow">
+              <Link to={`/jornada/${g.slug}`} className="jrow__link">
+                <span className="jrow__cover"><CoverArt game={g} /></span>
+                <span className="jrow__text">
+                  <span className="t jrow__title">{g.title}</span>
+                  {ended ? (
+                    <span className="mono jrow__date">{h!.state === 'concluida' ? 'Zerou' : h!.state === 'dropada' ? 'Largou' : 'Encerrou'} {h!.completedPrecision === 'desconhecida' || !h!.completedAt ? 'sem data' : `em ${whenLabel(h!.completedAt, h!.completedPrecision, { short: true })}`}{n > 1 ? ` · ${n} Histórias` : ''}</span>
+                  ) : (
+                    <span className="muted jrow__meta">{metaOf(r)}</span>
+                  )}
+                </span>
+              </Link>
+              {kind === 'going' && <button className="btn ghost sm" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">Pôr em foco</button>}
+              {kind === 'paused' && (
+                <span className="jrow__actions">
+                  <button className="btn ghost sm" onClick={() => actions.setHistoryState(h!.id, 'ativa')}>Retomar</button>
+                  <button className="btn quiet sm" onClick={() => putInFocus(j.id)}>Pôr em foco</button>
+                </span>
+              )}
+              {kind === 'done' && <span className="jrow__mark" aria-label="Marco" />}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   ) : null;
 
@@ -83,30 +107,52 @@ export function JourneyIndex() {
       )}
 
       {principal && <FocusCard s={s} journey={principal.journey} chosen={principal.chosen} />}
-      {secondary.length > 0 && (
-        <div className="focus-minis" aria-label="Também em foco">
-          {secondary.map((f) => <FocusMini key={f.journey.id} s={s} journeyId={f.journey.id} />)}
-        </div>
-      )}
-
-      <Group title="Jogando agora" list={going} canFocus />
 
       {rows.length > 0 && (
-        <section className="block jindex__what">
-          <WhatToPlay excludeJourneyId={principal?.journey.id} headingId="oqj-jornada" />
-        </section>
+        <div className="jindex__cols">
+          <div className="jindex__main">
+            {secondary.map((f) => <FocusMini key={f.journey.id} s={s} journeyId={f.journey.id} />)}
+            <Group kind="going" title="Jogando agora" list={going} />
+            <Group kind="paused" title="Pausados" list={paused} hint="Sem pressa. Eles esperam." />
+            <Group kind="done" title="Zerados recentemente" list={done.slice(0, 5)} more={<Link className="arrow-link" to="/jornada/concluidas">Ver Concluídas</Link>} />
+            <Group kind="left" title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
+          </div>
+          <aside className="jindex__aside">
+            <WhatToPlay excludeJourneyId={principal?.journey.id} headingId="oqj-jornada" />
+            {!light && <MonthCard s={s} />}
+          </aside>
+        </div>
       )}
-
-      <Group title="Pausados" list={paused} hint="Sem pressa. Eles esperam." canFocus />
-      <Group title="Zerados recentemente" list={done.slice(0, 6)} hint={done.length > 6 ? `${done.length} ao todo` : undefined} />
-      {done.length > 6 && <p className="jindex__more"><Link className="btn ghost" to="/jornada/concluidas">Ver todas as Histórias concluídas</Link></p>}
-      <Group title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
       {toast && <ActionToast key={toast.id} text={toast.text} onDone={() => setToast(null)} />}
     </main>
   );
 }
 
-/** A Jornada em foco: foto do jogo, progresso, recado, últimos acontecimentos e fotos. */
+const dm = (iso: string) => dayMonth(iso).replace(' de ', ' ');
+const monthOf = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
+
+/** Seu mês até aqui: sessões, momentos guardados e pontos para voltar em aberto. */
+function MonthCard({ s }: { s: State }) {
+  const month = localDay().slice(0, 7);
+  const inMonth = (iso: string) => localDay(0, new Date(iso)).slice(0, 7) === month;
+  const sessions = s.sessions.filter((x) => inMonth(x.startedAt)).length;
+  const moments = s.events.filter((e) => e.kind === 'momento' && inMonth(e.at)).length;
+  const back = s.events.filter((e) => e.kind === 'ponto' && !e.resolved).length;
+  if (!sessions && !moments && !back) return null;
+  return (
+    <section className="card month-card" aria-labelledby="mes">
+      <h2 id="mes" className="kicker">Seu mês até aqui</h2>
+      <div className="month-card__grid">
+        <div><div className="t">{sessions}</div><div className="muted">{sessions === 1 ? 'sessão' : 'sessões'}</div></div>
+        <div><div className="t">{moments}</div><div className="muted">{moments === 1 ? 'momento' : 'momentos'}</div></div>
+        <div><div className="t month-card__now">{back}</div><div className="muted">para voltar</div></div>
+      </div>
+      <Link to="/jornada/ritmo" className="arrow-link">Ver o seu ritmo</Link>
+    </section>
+  );
+}
+
+/** A Jornada em foco: foto do jogo, progresso, recado e a linha dos últimos acontecimentos até hoje. */
 function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen: boolean }) {
   const g = s.games[journey.gameId];
   const h = currentHistory(s, journey.id);
@@ -114,91 +160,82 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
   const wps = activeWaypoints(s, journey.id);
   const events = eventsOf(s, journey.id);
   const recent = events.slice(-6);
-  const photos = [...events].reverse().filter((e) => e.image).slice(0, 4);
   const nSessions = h ? sessionsOf(s, h.id).length : 0;
-  const [viewer, setViewer] = useState<number | null>(null);
   if (!g || !h) return null;
+  const step = recent.length > 1 ? 84 / (recent.length - 1) : 0;
 
   return (
     <section className="focus on-photo" aria-labelledby="em-foco">
       <Backdrop game={g} className="focus__bg kb" />
       <div className="focus__shade" aria-hidden="true" />
-      <div className="focus__grid">
+      <div className="focus__top">
+        <Link to={`/jornada/${g.slug}`} className="focus__cover" aria-label={`Abrir a Jornada de ${g.title}`}><CoverArt game={g} lazy={false} /></Link>
         <div className="focus__main">
           <div className="focus__kicker">
-            <span className="focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco</span>
-            <span>{chosen ? 'Foco principal' : 'Sua sessão mais recente'}</span>
+            <span className="kicker kicker--now focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco · {chosen ? 'Foco principal' : 'Sua sessão mais recente'}</span>
+            <span className="kicker">· {h.ordinal > 1 ? `${h.title}, História ${h.ordinal}` : 'Primeira História'}{nSessions && !s.prefs.light ? ` · ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'}` : ''}{wps.length ? ` · ${wps.length} para voltar` : ''}</span>
           </div>
           <h2 id="em-foco" className="t focus__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
-          <p className="focus__meta">
-            {h.ordinal > 1 ? `Sua ${h.ordinal}ª História, ${h.title}` : 'Primeira História'}
-            {nSessions && !s.prefs.light ? `. ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'}` : ''}
-            {wps.length ? `. ${wps.length} ${wps.length === 1 ? 'ponto' : 'pontos'} para voltar` : ''}.
-          </p>
-          {h.progress != null && (
+          {h.progress != null && !s.prefs.light && (
             <div className="focus__progress">
               <div className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /><b style={{ left: `${h.progress}%` }} /></div>
-              <span className="mono">{h.progress}%</span>
+              <div className="mono focus__progress-meta"><span>Seu progresso</span><span>{h.progress}%</span></div>
             </div>
           )}
-          {note?.note && <blockquote className="quote focus__note">“{note.note}”<cite>Seu recado, {ago(note.startedAt)}</cite></blockquote>}
+          {note?.note && <blockquote className="focus__note">“{note.note}”<cite className="kicker">Seu recado, {ago(note.startedAt)}</cite></blockquote>}
           <div className="focus__actions">
-            <PlayButton gameId={g.id} />
-            <Link className="btn ghost lg" to={`/jornada/${g.slug}`}>Abrir linha do tempo</Link>
+            <PlayButton gameId={g.id} className="btn" />
+            <Link className="btn ghost" to={`/jornada/${g.slug}`}>Abrir linha do tempo</Link>
             {chosen && <button className="btn quiet" onClick={() => actions.removeFocus(journey.id)}>Tirar do foco</button>}
           </div>
         </div>
-
-        <div className="focus__side">
-          {photos.length > 0 && (
-            <div className={`focus__photos n${Math.min(photos.length, 3)}`}>
-              {photos.slice(0, 3).map((e, i) => (
-                <button key={e.id} className="focus__photo" onClick={() => setViewer(i)} aria-label={`Ver foto: ${e.title}`}>
-                  <img src={e.image} alt="" />
-                </button>
-              ))}
-            </div>
-          )}
-          {recent.length > 0 && (
-            <ol className="focus__trail" aria-label="Últimos acontecimentos">
-              {recent.map((e: TimelineEvent) => (
-                <li key={e.id} className={`focus__step k-${e.kind}`}>
-                  <span className={`dot dot--${e.kind}`} aria-hidden="true" />
-                  <span className="focus__step-date">{eventDate(e)}</span>
-                  <span className="focus__step-title">{e.title}</span>
-                  <span className="focus__step-kind">{KIND[e.kind]}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-          <Link to={`/jornada/${g.slug}`} className="focus__more">Ver a linha do tempo inteira <Icon name="avancar" size={14} /></Link>
-        </div>
       </div>
-      {viewer !== null && (
-        <PhotoViewer title={g.title} items={photos.map((e) => ({ kind: 'image' as const, src: e.image!, label: e.title }))} start={viewer} onClose={() => setViewer(null)} />
+      {recent.length > 0 && (
+        <div className="focus__line">
+          <ol className="focus__track" aria-label="Últimos acontecimentos">
+            <li className="focus__rail" aria-hidden="true" />
+            {recent.map((e: TimelineEvent, i) => (
+              <li key={e.id} className={`focus__node k-${e.kind}${e.kind === 'ponto' && !e.resolved ? ' is-back' : ''}`} style={{ left: `${i * step}%` }}>
+                <Link to={`/jornada/${g.slug}`} className="focus__node-link">
+                  <span className="mono focus__node-date">{eventDate(e)}</span>
+                  <span className="focus__node-title">{e.title}</span>
+                  <span className="mono focus__node-kind">{KIND[e.kind]}</span>
+                </Link>
+                <span className="focus__mk" aria-hidden="true" />
+              </li>
+            ))}
+            <li className="focus__today" aria-label="Hoje"><span className="kicker kicker--now">Hoje</span><span className="focus__glow" aria-hidden="true" /></li>
+          </ol>
+        </div>
       )}
     </section>
   );
 }
 
-/** Os outros jogos em foco: menores, ao lado do principal. */
+/** Os outros jogos em foco: imagem à esquerda, recado e ações à direita. */
 function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
   const j = s.journeys.find((x) => x.id === journeyId)!;
   const g = s.games[j.gameId];
   const h = currentHistory(s, j.id);
   const note = lastNote(s, j.id);
   if (!g || !h) return null;
+  const n = sessionsOf(s, h.id).length;
   return (
-    <article className="focus-mini on-photo">
-      <Backdrop game={g} />
-      <div className="focus-mini__shade" aria-hidden="true" />
+    <article className="focus-mini">
+      <div className="focus-mini__art"><Backdrop game={g} /><span aria-hidden="true" /></div>
       <div className="focus-mini__body">
-        <span className="focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco</span>
+        <span className="kicker kicker--now">Em foco</span>
         <h2 className="t"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
-        <p>{h.state === 'pausada' ? 'Pausado.' : `Jogando${h.progress != null ? `, ${h.progress}%` : ''}.`}{note?.note ? ` “${note.note}”` : ''}</p>
+        {h.progress != null && !s.prefs.light && (
+          <div className="focus-mini__prog">
+            <div className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /><b style={{ left: `${h.progress}%` }} /></div>
+            <div className="mono focus__progress-meta"><span>{h.state === 'pausada' ? 'Pausado · ' : ''}História {h.ordinal}{n ? ` · ${n} ${n === 1 ? 'sessão' : 'sessões'}` : ''}</span><span>{h.progress}%</span></div>
+          </div>
+        )}
+        {note?.note && <p className="focus-mini__note">“{note.note}”</p>}
         <div className="focus-mini__actions">
           <PlayButton gameId={g.id} className="btn sm" />
-          <button className="btn quiet sm" onClick={() => actions.makePrincipal(j.id)}>Tornar principal</button>
+          <button className="btn ghost sm" onClick={() => actions.makePrincipal(j.id)}>Tornar principal</button>
           <button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)}>Tirar do foco</button>
         </div>
       </div>
@@ -206,60 +243,91 @@ function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
   );
 }
 
-/** Histórias concluídas: tudo o que você zerou, do mais recente ao mais antigo, agrupado por ano. */
+/** Histórias concluídas: o mural de honra e tudo o que você zerou, do mais recente ao mais antigo, por ano. */
 export function ConcludedPage() {
   const s = useStore((x) => x);
+  const light = !!s.prefs.light;
   const done = s.histories.filter((h) => h.state === 'concluida').map((h) => {
     const j = s.journeys.find((x) => x.id === h.journeyId);
     const g = j ? s.games[j.gameId] : undefined;
     const known = h.completedAt && h.completedPrecision !== 'desconhecida';
-    return { h, g, year: known ? partsOf(h.completedAt!).y : null, review: g ? s.reviews.find((r) => r.mine && r.gameId === g.id) : undefined };
+    const sess = sessionsOf(s, h.id).length + s.events.filter((e) => e.historyId === h.id && e.kind === 'sessao' && !e.sessionId).reduce((n, e) => n + (parseInt(e.title) || 1), 0);
+    const moments = s.events.filter((e) => e.historyId === h.id && e.kind === 'momento').length;
+    const copy = g ? s.copies.find((c) => c.gameId === g.id) : undefined;
+    return { h, g, year: known ? partsOf(h.completedAt!).y : null, review: g ? s.reviews.find((r) => r.mine && r.gameId === g.id) : undefined, sess, moments, platform: copy ? shortPlatform(copy.platform) : g?.platforms[0] ? shortPlatform(g.platforms[0]) : undefined };
   }).filter((x) => x.g)
     .sort((a, b) => (b.year ?? -1) - (a.year ?? -1) || (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? ''));
   const years = [...new Set(done.map((d) => d.year))];
   const totalHours = done.reduce((a, d) => a + (d.h.hours ?? 0), 0);
+  const honor = [...done].sort((a, b) => (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? '')).slice(0, 4);
+  const when = (h: History) => (h.completedAt && h.completedPrecision !== 'desconhecida' ? whenLabel(h.completedAt, h.completedPrecision, { short: true }) : 'sem data');
+  const span = (h: History, sess: number) => {
+    if (!sess || !h.completedAt || (h.completedPrecision ?? 'dia') !== 'dia' || (h.startedPrecision ?? 'dia') !== 'dia') return null;
+    const days = Math.max(1, Math.round((Date.parse(h.completedAt) - Date.parse(h.startedAt)) / 86400000));
+    return `${dm(h.startedAt)} → ${dm(h.completedAt)} · ${days} ${days === 1 ? 'dia' : 'dias'}`;
+  };
   return (
-    <main className="page pad jindex">
+    <main className="page pad jindex concluded">
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Concluídas</h1>
-          <p className="muted lead">{done.length && s.prefs.light ? 'Cada História aqui é sua, completa ou mínima.' : done.length ? `${done.length} ${done.length === 1 ? 'História zerada' : 'Histórias zeradas'}${totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}.` : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
+          <p className="muted lead">{done.length && light ? 'Cada História aqui é sua, completa ou mínima.' : done.length ? <><span className="mono concluded__n">{done.length}</span> {done.length === 1 ? 'História zerada' : 'Histórias zeradas'}{totalHours ? `, ${Math.round(totalHours).toLocaleString('pt-BR')} horas informadas por você` : ''}. Cada uma no seu tempo.</> : 'Quando você zerar um jogo, ele aparece aqui. Dá para registrar os que zerou antes, com “Já zerei” na página do jogo.'}</p>
         </div>
         <SubNav pillar="jornada" />
       </header>
       {done.length === 1 && <FirstBuddy />}
-      {done.length > 0 && (
+      {honor.length > 0 && (
         <section className="honor" aria-labelledby="honra">
-          <h2 id="honra" className="sr-only">Mural de honra</h2>
-          <ul className="honor__shelf">
-            {[...done].sort((a, b) => (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? '')).slice(0, 5).map(({ h, g, review }, i) => (
+          <div className="honor__head"><BrandMark width={26} className="honor__mark" /><h2 id="honra" className="kicker">Mural de honra</h2></div>
+          <ul className="honor__grid">
+            {honor.map(({ h, g, review, sess, platform }, i) => (
               <li key={h.id} style={{ animationDelay: `${i * 0.08}s` }}>
-                <Link to={`/jornada/${g!.slug}`} className="honor__item">
-                  <span className="honor__cover"><CoverArt game={g!} /></span>
-                  <span className="honor__plate"><strong>{g!.title}</strong><span>{whenLabel(h.completedAt, h.completedPrecision, { short: true })}{review && !s.prefs.light ? ` · ${formatScore(review.rating.normalized, s.prefs.scale)}` : ''}</span></span>
+                <Link to={`/jornada/${g!.slug}`} className="hon on-photo">
+                  <Backdrop game={g} className={`hon__bg${sess ? '' : ' is-memory'}`} />
+                  <span className="hon__shade" aria-hidden="true" />
+                  <span className="hon__in">
+                    <span className="hon__cover"><CoverArt game={g!} /></span>
+                    <span className="hon__text">
+                      <span className="mono hon__when">Zerou {h.completedAt && h.completedPrecision !== 'desconhecida' ? `em ${when(h)}` : 'sem data'}</span>
+                      <span className="t hon__title">{g!.title}</span>
+                      <span className="muted hon__meta">{sess ? [span(h, sess), !light && h.hours ? `${String(h.hours).replace('.', ',')} horas informadas` : null, h.ordinal > 1 ? `${h.ordinal}ª vez` : null].filter(Boolean).join(' · ') || `${sess} ${sess === 1 ? 'sessão' : 'sessões'}` : ['Registrado de memória', platform].filter(Boolean).join(' · ')}</span>
+                    </span>
+                    {!light && (
+                      <span className="hon__score">
+                        <span className={`t${review ? '' : ' is-none'}`}>{review ? formatScore(review.rating.normalized, s.prefs.scale) : '—'}</span>
+                        <span className="kicker">{review ? 'Sua nota' : 'Sem nota'}</span>
+                      </span>
+                    )}
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
-          <p className="faint honor__note">Completa ou mínima, toda História concluída tem lugar aqui.</p>
         </section>
       )}
-      {years.map((y) => (
-        <section key={String(y)} className="block" aria-labelledby={`ano-${y}`}>
-          <div className="block__head"><h2 id={`ano-${y}`} className="t">{y ?? 'Sem data'}</h2><span className="muted">{done.filter((d) => d.year === y).length}</span></div>
-          <ul className="done-grid">
-            {done.filter((d) => d.year === y).map(({ h, g, review }) => (
-              <li key={h.id}>
-                <Link to={`/jornada/${g!.slug}`} className="done-card">
-                  <span className="done-card__cover"><CoverArt game={g!} /></span>
-                  <span className="done-card__title">{g!.title}</span>
-                  <span className="muted done-card__meta">{h.ordinal > 1 ? `${h.ordinal}ª vez, ` : ''}{whenLabel(h.completedAt, h.completedPrecision, { short: true })}{h.hours ? `, ${String(h.hours).replace('.', ',')} h` : ''}{review ? `, nota ${formatScore(review.rating.normalized, s.prefs.scale)}` : ''}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {years.map((y) => {
+        const list = done.filter((d) => d.year === y);
+        return (
+          <section key={String(y)} className="concluded__year" aria-labelledby={`ano-${y}`}>
+            <div className="yr"><h2 id={`ano-${y}`} className="mono">{y ?? 'Sem data'}</h2><i aria-hidden="true" /><span className="kicker">{list.length} {list.length === 1 ? 'História' : 'Histórias'}</span></div>
+            <ul className="concluded__list">
+              {list.map(({ h, g, review, sess, moments }) => (
+                <li key={h.id}>
+                  <Link to={`/jornada/${g!.slug}`} className="crow">
+                    <span className="crow__cover"><CoverArt game={g!} /></span>
+                    <span className="crow__text">
+                      <span className="t crow__title">{g!.title}</span>
+                      <span className="muted crow__meta">{[`História ${h.ordinal}`, sess ? (light ? null : `${sess} ${sess === 1 ? 'sessão' : 'sessões'}`) : 'registrada depois', !light && moments ? `${moments} ${moments === 1 ? 'momento' : 'momentos'}` : null, !light && h.hours ? `${String(h.hours).replace('.', ',')} h` : null].filter(Boolean).join(' · ')}</span>
+                    </span>
+                    <span className="mono crow__date">{h.completedAt && (h.completedPrecision ?? 'dia') === 'dia' ? dm(h.completedAt) : h.completedAt && h.completedPrecision === 'mes' ? whenLabel(h.completedAt, 'mes', { short: true }) : '—'}</span>
+                    {!light && <span className={`mono crow__score${review ? '' : ' is-none'}`}>{review ? formatScore(review.rating.normalized, s.prefs.scale) : '—'}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
     </main>
   );
 }

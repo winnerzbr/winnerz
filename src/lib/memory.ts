@@ -160,6 +160,9 @@ export type GlobalItem = {
   game?: Game;
   to?: string;
   precision?: string;
+  /** Tipo do registro da Jornada (para a marca na linha). */
+  ev?: string;
+  resolved?: boolean;
 };
 
 const KIND_LABEL: Record<string, string> = { inicio: 'Começou', sessao: 'Sessão', momento: 'Momento', ponto: 'Ponto para voltar', marco: 'Marco', carta: 'Carta' };
@@ -172,7 +175,7 @@ export function globalTimeline(s: State): GlobalItem[] {
   for (const e of s.events as TimelineEvent[]) {
     if (e.kind === 'carta') continue;
     const g = gameOfJourney(s, e.journeyId);
-    items.push({ id: e.id, at: e.at, kind: 'jornada', label: KIND_LABEL[e.kind] ?? 'Registro', title: e.title, text: e.quote ?? e.text, image: e.image, game: g, to: g ? `/jornada/${g.slug}` : undefined, precision: e.precision });
+    items.push({ id: e.id, at: e.at, kind: 'jornada', label: KIND_LABEL[e.kind] ?? 'Registro', title: e.title, text: e.quote ?? e.text, image: e.image, game: g, to: g ? `/jornada/${g.slug}` : undefined, precision: e.precision, ev: e.kind, resolved: e.resolved });
   }
   // Cópias que entraram juntas (importação da planilha ou da Steam) viram um registro só.
   const batches = new Map<string, typeof s.copies>();

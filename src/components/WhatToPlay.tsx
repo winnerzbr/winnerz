@@ -222,8 +222,8 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
     <section aria-labelledby={headingId} className="card what">
       <h2 id={headingId} className="t">O que jogar hoje?</h2>
       <div role="tablist" aria-label="Por onde procurar" className="what__paths">
-        <button role="tab" aria-selected={path === 'alcance'} onClick={() => { setPath('alcance'); reset(); }}>Entre o que já está ao meu alcance</button>
-        <button role="tab" aria-selected={path === 'descobrir'} onClick={() => { setPath('descobrir'); reset(); track('oqj.descobrir'); }}>Quero descobrir algo</button>
+        <button role="tab" aria-selected={path === 'alcance'} onClick={() => { setPath('alcance'); reset(); }}>Ao meu alcance</button>
+        <button role="tab" aria-selected={path === 'descobrir'} onClick={() => { setPath('descobrir'); reset(); track('oqj.descobrir'); }}>Descobrir algo</button>
       </div>
       <div role="group" aria-label="Como está seu dia (opcional)" className="chips">
         {MOODS.map((l, i) => (

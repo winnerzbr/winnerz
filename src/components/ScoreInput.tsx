@@ -30,10 +30,10 @@ export function AnimatedScore({ value, max }: { value: number; max: number }) {
 }
 
 /** Explosão de pontinhos na cor da nota, no ponto onde ela mudou. */
-export function Burst({ seed, left, big }: { seed: number; left: string; big?: boolean }) {
+export function Burst({ seed, left, big, k = 0.5 }: { seed: number; left: string; big?: boolean; k?: number }) {
   if (!seed) return null;
   return (
-    <span key={seed} className={`burst${big ? ' burst--big' : ''}`} style={{ left }} aria-hidden="true">
+    <span key={seed} className={`burst${big ? ' burst--big' : ''}`} style={{ left, ['--k' as string]: k } as CSSProperties} aria-hidden="true">
       {Array.from({ length: big ? 14 : 8 }, (_, i) => <i key={i} style={{ ['--a' as string]: `${(360 / (big ? 14 : 8)) * i}deg`, ['--d' as string]: `${(i % 3) * 30}ms` } as CSSProperties} />)}
     </span>
   );
@@ -70,7 +70,7 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
           <span key={i} className={`score-slider__tick${i <= value ? ' is-on' : ''}`} style={{ left: `${i * 10}%`, ['--i' as string]: i } as CSSProperties} />
         ))}
         <div className="score-slider__thumb" />
-        <Burst seed={burst} left={`${f * 100}%`} big={value === 10} />
+        <Burst seed={burst} left={`${f * 100}%`} big={value === 10} k={f} />
       </div>
     </div>
   );

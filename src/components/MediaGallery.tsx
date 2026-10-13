@@ -25,7 +25,9 @@ export function buildMedia(videos?: { id: string; name: string }[], screenshots?
 /** Bloco da ficha: vídeo em destaque, grade de imagens e a galeria em tela cheia. */
 export function MediaGallery({ title, items, gameId }: { title: string; items: MediaItem[]; gameId?: string }) {
   const [open, setOpen] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false);
   if (items.length === 0) return null;
+  const openAt = (i: number) => { setPlaying(false); setOpen(i); };
   const videos = items.filter((i) => i.kind === 'video').length;
   const images = items.length - videos;
   const lead = items[0].kind === 'video' ? 0 : -1;
@@ -38,21 +40,30 @@ export function MediaGallery({ title, items, gameId }: { title: string; items: M
         <h2 id="midia" className="t sec-title">{videos ? 'Vídeos e imagens' : 'Imagens'}</h2>
         <span className="media__tools">
           <span className="kicker media__count">{[videos && `${videos} ${videos === 1 ? 'vídeo' : 'vídeos'}`, images && `${images} ${images === 1 ? 'imagem' : 'imagens'}`].filter(Boolean).join(' · ')}</span>
-          <button className="btn quiet sm" onClick={() => setOpen(0)}>Ver tudo</button>
+          <button className="btn quiet sm" onClick={() => openAt(lead === 0 && grid.length ? grid[0].i : 0)}>Ver tudo</button>
         </span>
       </div>
       <div className="media__body">
-      {lead === 0 && items[0].kind === 'video' && (
-        <button className="media__lead" onClick={() => setOpen(0)} aria-label={`Assistir: ${items[0].name}`}>
+      {lead === 0 && items[0].kind === 'video' && (playing ? (
+        <div className="media__lead is-playing">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${items[0].id}?autoplay=1&rel=0&playsinline=1`}
+            title={items[0].name}
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+          />
+        </div>
+      ) : (
+        <button className="media__lead" onClick={() => setPlaying(true)} aria-label={`Assistir aqui: ${items[0].name}`}>
           <img src={ytThumb(items[0].id)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
           <span className="media__play" aria-hidden="true"><Icon name="play" size={22} /></span>
           <span className="media__label">{items[0].name}</span>
         </button>
-      )}
+      ))}
       {grid.length > 0 && (
         <div className="shots">
           {grid.map(({ it, i }, k) => it.kind === 'image' && (
-            <button key={it.src} className="shots__item" onClick={() => setOpen(i)} aria-label={`Abrir ${it.label.toLowerCase()} ${i + 1} de ${items.length}`}>
+            <button key={it.src} className="shots__item" onClick={() => openAt(i)} aria-label={`Abrir ${it.label.toLowerCase()} ${i + 1} de ${items.length}`}>
               <img src={it.src} alt="" loading="lazy" />
               {k === grid.length - 1 && hidden > 0 && <span className="shots__more" aria-hidden="true">+{hidden}</span>}
             </button>

@@ -89,7 +89,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
           // A estrela onde a nota parou "pula" quando a nota muda (a chave nova reinicia a animação).
           <span key={Math.ceil(value) === i + 1 ? `${i}-${pop}` : i} className={`star-input__cell${pop > 0 && Math.ceil(value) === i + 1 ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
             <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 4 - i) * 55} />
-            {pop > 0 && !dragging && Math.ceil(value) === i + 1 && <Burst seed={pop} left="50%" big={value === 5} />}
+            {pop > 0 && !dragging && Math.ceil(value) === i + 1 && <Burst seed={pop} left="50%" big={value === 5} k={value / 5} />}
           </span>
         );
       })}

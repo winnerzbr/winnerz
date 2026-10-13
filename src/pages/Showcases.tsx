@@ -6,7 +6,7 @@ import { SubNav } from '../components/SubNav';
 import { Sheet, ConfirmButton } from '../components/Sheet';
 import { Icon } from '../components/Icon';
 import { PiecePicker } from '../components/PiecePicker';
-import { Shelf, ShelfPiece, shelfItem } from '../components/Showcase';
+import { Cabinet, Shelf, ShelfPiece, shelfItem } from '../components/Showcase';
 import { ruleLabel, showcasePieces, suggestions, type Suggestion } from '../lib/showcases';
 
 const MIGRATION = 'Para guardar Vitrines, rode a migração 0015 no Supabase (SQL Editor → colar → Run).';
@@ -222,7 +222,7 @@ export function ShowcasePage({ id }: { id: string }) {
           )}
         </section>
       ) : (
-        <Shelf items={pieces.map(shelfItem)} empty={sc.kind === 'curada' ? 'Nenhuma peça ainda. Toque em Editar para escolher.' : 'Hoje nada da coleção entra nesta regra.'} />
+        <Cabinet items={pieces.map(shelfItem)} owner={s.profile?.name} empty={sc.kind === 'curada' ? 'Nenhuma peça ainda. Toque em Editar para escolher.' : 'Hoje nada da coleção entra nesta regra.'} />
       )}
 
       {editing && (

@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { Link, usePath } from '../lib/router';
 import { Icon } from './Icon';
 import { actions, useStore, openSession } from '../data/store';
 import { BrandLockup } from './Brand';
 import { openSearch } from './CommandPalette';
+import { Sheet } from './Sheet';
 
 const PILLARS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', match: '/colecao' },
@@ -76,5 +77,78 @@ export function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+/* ---- Celular: barra de abas embaixo ------------------------------------------------------ */
+
+const TAB_ICONS: Record<string, ReactElement> = {
+  inicio: <><path d="M2 15h20" /><circle cx="12" cy="15" r="3" fill="currentColor" /></>,
+  jornada: <><path d="M3 12h18" /><circle cx="7" cy="12" r="2" /><circle cx="17" cy="12" r="2" /></>,
+  colecao: <><rect x="4" y="4" width="5" height="16" rx="1.5" /><rect x="11" y="4" width="5" height="16" rx="1.5" /><path d="M18 5l3 1-3 14-3-1" /></>,
+  jogos: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
+  mais: <><circle cx="5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="19" cy="12" r="1.6" fill="currentColor" /></>,
+};
+const TabIcon = ({ name }: { name: string }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{TAB_ICONS[name]}</svg>
+);
+
+const TABS = [
+  { to: '/', label: 'Início', icon: 'inicio', on: (p: string) => p === '/' },
+  { to: '/jornada', label: 'Jornada', icon: 'jornada', on: (p: string) => p.startsWith('/jornada') },
+  { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
+  { to: '/jogos', label: 'Jogos', icon: 'jogos', on: (p: string) => p.startsWith('/jogos') },
+];
+const MORE = ['/comunidade', '/eventos', '/preferencias', '/entrar'];
+
+/** No celular, os pilares ficam numa barra fixa embaixo; Comunidade, Eventos e a aparência ficam em "Mais". */
+export function TabBar() {
+  const path = usePath();
+  const prefs = useStore((s) => s.prefs);
+  const profile = useStore((s) => s.profile);
+  const [more, setMore] = useState(false);
+  const moreOn = MORE.some((m) => path.startsWith(m));
+
+  useEffect(() => {
+    document.documentElement.classList.add('has-tabbar');
+    return () => document.documentElement.classList.remove('has-tabbar');
+  }, []);
+  useEffect(() => { setMore(false); }, [path]);
+
+  return (
+    <>
+      <nav className="tabbar" aria-label="Principal">
+        {TABS.map((t) => (
+          <Link key={t.to} to={t.to} className="tabbar__item" aria-current={t.on(path) ? 'page' : undefined}><TabIcon name={t.icon} />{t.label}</Link>
+        ))}
+        <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais</button>
+      </nav>
+      {more && (
+        <Sheet title="Mais" onClose={() => setMore(false)} labelId="tab-mais">
+          <nav className="moremenu" aria-label="Mais seções">
+            <Link to="/comunidade" className="moremenu__item" aria-current={path.startsWith('/comunidade') ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>Em breve</small></span></Link>
+            <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
+            {profile
+              ? <Link to="/preferencias" className="moremenu__item" aria-current={path.startsWith('/preferencias') ? 'page' : undefined}><span className="avatar moremenu__avatar">{profile.initial}</span><span><b>Preferências</b><small>Conta, privacidade e ajustes</small></span></Link>
+              : <Link to="/entrar" className="moremenu__item"><Icon name="cadeado" size={20} /><span><b>Entrar</b><small>Guarde sua Jornada em qualquer aparelho</small></span></Link>}
+          </nav>
+          <div className="moremenu__look">
+            <span className="kicker">Aparência</span>
+            <div className="seg" role="group" aria-label="Tema" style={{ display: 'flex' }}>
+              <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'escuro'} onClick={() => actions.setPrefs({ theme: 'escuro' })}>Escuro</button>
+              <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>Claro</button>
+            </div>
+            {prefs.theme === 'escuro' && (
+              <>
+                <label htmlFor="preto-mais" className="appearance__label">Intensidade do preto <span>{prefs.black}%</span></label>
+                <input id="preto-mais" className="range" type="range" min={0} max={100} value={prefs.black}
+                  style={{ ['--p' as string]: `${prefs.black}%` }}
+                  onChange={(e) => actions.setPrefs({ black: Number(e.target.value) })} />
+              </>
+            )}
+          </div>
+        </Sheet>
+      )}
+    </>
   );
 }

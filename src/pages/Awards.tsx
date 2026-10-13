@@ -179,7 +179,7 @@ export function AwardsPage() {
   useEffect(() => {
     const h = document.querySelector<HTMLElement>('.site-header');
     if (!h || typeof ResizeObserver === 'undefined') return;
-    const set = () => document.documentElement.style.setProperty('--hdr', `${h.offsetHeight - 1}px`);
+    const set = () => document.documentElement.style.setProperty('--hdr', getComputedStyle(h).position === 'sticky' ? `${h.offsetHeight - 1}px` : '0px');
     const ro = new ResizeObserver(set); ro.observe(h); set();
     return () => ro.disconnect();
   }, []);

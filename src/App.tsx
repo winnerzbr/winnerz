@@ -9,7 +9,7 @@ import { MiniCelebrationHost } from './components/MiniCelebration';
 import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
 import { TrailsPage, TrailPage } from './pages/Trails';
 import { OverlayPage } from './pages/Overlay';
-import { Header } from './components/Header';
+import { Header, TabBar } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
 import { PastSheetHost } from './components/PastPlay';
@@ -125,6 +125,7 @@ export function App() {
           </div>
         </footer>
       )}
+      {!isSession && <TabBar />}
       {hasSession && !isSession && <SessionDock />}
       <PastSheetHost />
       <MiniCelebrationHost />

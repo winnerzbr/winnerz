@@ -32,6 +32,8 @@ import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
 import { ComingSoon } from './pages/ComingSoon';
+import { PrivateTeaser } from './pages/PrivateTeaser';
+import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
 import { AwardsAdminPage } from './pages/AwardsAdmin';
 import { AwardsRevealPage } from './pages/AwardsReveal';
@@ -78,6 +80,7 @@ export function App() {
   const prefs = useStore((s) => s.prefs);
   const mode = useStore((s) => s.mode);
   const hasSession = useStore((s) => Boolean(openSession(s)));
+  const isAdmin = useStore((s) => !!s.isAdmin);
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
   // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo.
@@ -94,6 +97,12 @@ export function App() {
 
   if (!ready) {
     return <div className="boot" aria-busy="true"><BrandMark width={64} title="WinnerZ" /></div>;
+  }
+
+  // Site fechado: com o banco ligado, só a conta de administrador passa. Os demais veem só o "Em breve"
+  // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
+  if (SITE_PRIVATE && mode === 'supabase' && !isAdmin) {
+    return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 
   return (

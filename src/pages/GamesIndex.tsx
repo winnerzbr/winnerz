@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, navigate } from '../lib/router';
 import { actions, useStore, getState } from '../data/store';
 import type { Game } from '../data/types';
@@ -7,10 +7,14 @@ import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
-import { MoreActions } from '../components/MoreActions';
+import { Backdrop } from '../components/Backdrop';
+import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { recordPastNow } from '../components/PastPlay';
 
 const hitOf = (g: Game): Hit => ({ igdbId: g.igdbId, slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g });
+
+type Tag = 'jornada' | 'zerado' | 'colecao' | 'desejo';
+const TAG_LABEL: Record<Tag, string> = { jornada: 'Jornada', zerado: 'Zerado', colecao: 'Coleção', desejo: 'Desejo' };
 
 export function GamesIndex() {
   const games = useStore((s) => s.games);
@@ -19,52 +23,100 @@ export function GamesIndex() {
   const [searching, setSearching] = useState(false);
   const [adding, setAdding] = useState<Hit | null>(null);
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
+  const [all, setAll] = useState(false);
   const say = (text: string) => setToast({ id: Date.now(), text });
+  const results = useRef<HTMLElement>(null);
+  const seq = useRef(0);
+
+  const run = async (term: string) => {
+    const n = ++seq.current;
+    setSearching(true);
+    const found = (await searchGames(term, Object.values(getState().games))).hits;
+    if (n !== seq.current) return;
+    setHits(found);
+    setSearching(false);
+  };
 
   useEffect(() => {
-    if (q.trim().length < 2) { setHits([]); return; }
+    if (q.trim().length < 2) { seq.current++; setHits([]); setSearching(false); return; }
     setSearching(true);
-    const t = setTimeout(async () => { setHits((await searchGames(q.trim(), Object.values(games))).hits); setSearching(false); }, 300);
+    const t = setTimeout(() => run(q.trim()), 300);
     return () => clearTimeout(t);
   }, [q, games]);
 
-  // Do seu universo: os jogos em andamento e os que chegaram por último (a coleção inteira fica na Estante).
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (q.trim().length < 2) return;
+    run(q.trim());
+    results.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Do seu universo: o que está em andamento, o que você zerou, o que chegou por último e o que deseja.
   const s = useStore((x) => x);
-  const list = useMemo(() => {
-    const playing = s.journeys.filter((j) => { const h = s.histories.filter((x) => x.journeyId === j.id).sort((a, b) => b.ordinal - a.ordinal)[0]; return h && (h.state === 'ativa' || h.state === 'pausada'); }).map((j) => j.gameId);
-    const recent = [...s.copies].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? '')).map((c) => c.gameId);
-    const wished = s.wishes.map((w) => w.gameId);
-    return [...new Set([...playing, ...wished, ...recent])].map((id) => games[id]).filter((g): g is Game => !!g).slice(0, 24);
+  const universe = useMemo(() => {
+    const last = (jid: string) => s.histories.filter((x) => x.journeyId === jid).sort((a, b) => b.ordinal - a.ordinal)[0];
+    const tags = new Map<string, Tag>();
+    const put = (id: string, t: Tag) => { if (!tags.has(id)) tags.set(id, t); };
+    for (const j of s.journeys) { const h = last(j.id); if (h && (h.state === 'ativa' || h.state === 'pausada')) put(j.gameId, 'jornada'); }
+    for (const j of s.journeys) { if (s.histories.some((h) => h.journeyId === j.id && h.state === 'concluida')) put(j.gameId, 'zerado'); }
+    const recent = [...s.copies].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+    // Intercala: alguns zerados, depois a estante recente e os desejos.
+    const order: string[] = [...tags.keys()].filter((id) => tags.get(id) === 'jornada');
+    const done = [...tags.keys()].filter((id) => tags.get(id) === 'zerado').slice(0, 6);
+    for (const c of recent) put(c.gameId, 'colecao');
+    for (const w of s.wishes) put(w.gameId, 'desejo');
+    const owned = [...tags.keys()].filter((id) => tags.get(id) === 'colecao');
+    const wished = [...tags.keys()].filter((id) => tags.get(id) === 'desejo');
+    return [...new Set([...order, ...owned.slice(0, 6), ...done, ...wished.slice(0, 4), ...owned.slice(6)])]
+      .map((id) => ({ game: games[id], tag: tags.get(id)! }))
+      .filter((x): x is { game: Game; tag: Tag } => !!x.game)
+      .slice(0, 24);
   }, [s, games]);
+  const shown = all ? universe : universe.slice(0, 10);
+  const heroGame = universe.find((u) => u.tag === 'jornada')?.game ?? universe[0]?.game;
 
   return (
-    <main className="page pad">
-      <header className="page-head">
-        <div className="page-head__text">
-          <h1 className="t big">Jogos</h1>
-          <p className="muted lead">Busque qualquer jogo, ou <Link to="/jogos/explorar">explore o catálogo</Link> por gênero, plataforma e época. Fichas e capas vêm do IGDB.</p>
-        </div>
-        <SubNav pillar="jogos" />
-      </header>
-      <label htmlFor="jq" className="sr-only">Buscar jogo</label>
-      <input id="jq" className="field games-search" placeholder="Buscar um jogo pelo nome" value={q} onChange={(e) => setQ(e.target.value)} />
-
-      {q.trim().length >= 2 && (
-        <section className="block" aria-live="polite">
-          <div className="block__head"><h2 className="t">Resultados</h2><span className="muted">{searching ? 'Buscando…' : `${hits.length} ${hits.length === 1 ? 'jogo' : 'jogos'}`}</span></div>
-          {!searching && hits.length === 0 && <p className="muted">Nenhum jogo encontrado com esse nome.</p>}
-          <div className="cover-grid">
-            {hits.map((h) => <GameTile key={h.slug} hit={h} onAdd={setAdding} say={say} />)}
-          </div>
-        </section>
-      )}
-
-      <section className="block">
-        <div className="block__head"><h2 className="t">Do seu universo</h2><Link to="/colecao">A estante inteira</Link></div>
-        <div className="cover-grid">
-          {list.map((g) => <GameTile key={g.id} hit={hitOf(g)} onAdd={setAdding} say={say} />)}
+    <main>
+      <section className="ghub on-photo" aria-labelledby="ghub-title">
+        {heroGame && <Backdrop game={heroGame} className="ghub__bg" />}
+        <div className="ghub__shade" aria-hidden="true" />
+        <div className="page ghub__inner">
+          <SubNav pillar="jogos" />
+          <h1 id="ghub-title" className="t ghub__title">Qualquer jogo.<br />De qualquer época.</h1>
+          <form className="ghub__search" role="search" onSubmit={submit}>
+            <Icon name="busca" size={22} />
+            <label htmlFor="jq" className="sr-only">Buscar jogo</label>
+            <input id="jq" className="field" placeholder="Busque qualquer jogo…" autoComplete="off" value={q} onChange={(e) => setQ(e.target.value)} />
+            <button className="btn primary" type="submit">Buscar jogo</button>
+          </form>
+          <p className="kicker ghub__note">Fichas e capas vêm do IGDB · <Link to="/jogos/explorar">Ou explore por gênero e época</Link></p>
         </div>
       </section>
+
+      <div className="page pad ghub__body">
+        {q.trim().length >= 2 && (
+          <section className="block ghub__results" aria-live="polite" ref={results}>
+            <div className="ghub__head"><h2 className="kicker">Resultados</h2><span className="muted">{searching ? 'Buscando…' : `${hits.length} ${hits.length === 1 ? 'jogo' : 'jogos'}`}</span></div>
+            {!searching && hits.length === 0 && <p className="muted">Nenhum jogo encontrado com esse nome.</p>}
+            <div className="cover-grid">
+              {hits.map((h) => <GameTile key={h.slug} hit={h} onAdd={setAdding} say={say} />)}
+            </div>
+          </section>
+        )}
+
+        {universe.length > 0 && (
+          <section className="block ghub__universe" aria-labelledby="uv-title">
+            <div className="ghub__head"><h2 id="uv-title" className="kicker">Do seu universo</h2><span className="muted">Jogos que já passaram pela sua Jornada ou Coleção</span></div>
+            <ul className="uv-list">
+              {shown.map(({ game, tag }) => <UniverseRow key={game.id} game={game} tag={tag} onAdd={setAdding} say={say} />)}
+            </ul>
+            <div className="ghub__foot">
+              {universe.length > 10 && <button className="btn quiet sm" onClick={() => setAll((v) => !v)}>{all ? 'Mostrar menos' : `Mostrar mais ${universe.length - 10}`}</button>}
+              <Link className="arrow-link" to="/colecao">A estante inteira</Link>
+            </div>
+          </section>
+        )}
+      </div>
 
       {adding && <AddGameDialog initial={adding} onClose={() => setAdding(null)} />}
       {toast && <Toast key={toast.id} text={toast.text} />}
@@ -72,8 +124,34 @@ export function GamesIndex() {
   );
 }
 
-/** Capa com ações rápidas: coleção, favorito e desejo, sem precisar abrir a ficha. */
-export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => void; say: (t: string) => void }) {
+/** Linha do "Do seu universo": capa, nome, ano e plataformas, a marca da relação e as ações rápidas num menu. */
+function UniverseRow({ game, tag, onAdd, say }: { game: Game; tag: Tag; onAdd: (h: Hit) => void; say: (t: string) => void }) {
+  const hit = hitOf(game);
+  const a = useGameActions(hit, say);
+  return (
+    <li className="uv">
+      <Link className="uv__link" to={`/jogos/${game.slug}`}>
+        <span className="uv__cover"><CoverArt game={{ title: game.title, cover: game.cover }} platform={game.platforms[0]} /></span>
+        <span className="uv__text">
+          <span className="t uv__title">{game.title}</span>
+          <span className="mono uv__meta">{[game.year, game.platforms.slice(0, 4).join(', ')].filter(Boolean).join(' · ')}</span>
+        </span>
+        <span className={`uv__tag uv__tag--${tag}`}>{TAG_LABEL[tag]}</span>
+      </Link>
+      <MoreActions className="uv__more" label={`Ações para ${game.title}`} items={[
+        a.owned
+          ? { key: 'col', icon: 'estante', on: true, label: 'Na sua coleção (abrir a estante)', onSelect: () => navigate('/colecao') }
+          : { key: 'col', icon: 'mais', label: 'Adicionar à coleção', onSelect: () => onAdd(hit) },
+        { key: 'fav', icon: 'coracao', on: a.fav, label: a.fav ? 'Favorito (tirar)' : 'Favoritar', onSelect: a.favorite },
+        { key: 'wish', icon: 'desejo', on: a.wished, label: a.wished ? 'Nos desejos (tirar)' : 'Colocar nos desejos', onSelect: a.wish },
+        ...a.moreItems.filter((i) => i.key !== 'ficha'),
+      ]} />
+    </li>
+  );
+}
+
+/** As ações rápidas de um jogo (da busca ou do site), compartilhadas pela capa e pela linha. */
+function useGameActions(hit: Hit, say: (t: string) => void) {
   const s = useStore((x) => x);
   const known = hit.local ?? Object.values(s.games).find((g) => g.slug === hit.slug);
   const id = known?.id;
@@ -83,6 +161,8 @@ export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => voi
   const onRadar = !!id && !!s.myGames[id]?.onRadar;
   const wontPlay = !!id && !!s.myGames[id]?.wontPlay;
   const canTrack = s.schemaV6 || s.mode === 'demo';
+  const playing = !!id && s.journeys.some((j) => j.gameId === id && s.histories.some((h) => h.journeyId === j.id && (h.state === 'ativa' || h.state === 'pausada')));
+  const status: { label: string; now?: boolean } | null = playing ? { label: 'Na jornada', now: true } : owned ? { label: 'Na estante' } : wished ? { label: 'Desejo' } : null;
   const [busy, setBusy] = useState<string | null>(null);
   const [pop, setPop] = useState(0);
 
@@ -110,12 +190,25 @@ export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => voi
     actions.toggleWish(gid);
     say(was ? 'Tirado dos desejos.' : 'Nos seus desejos.');
   };
+  const moreItems: MoreItem[] = [
+    { key: 'radar', icon: 'radar', on: onRadar, label: onRadar ? 'No Radar (deixar de acompanhar)' : 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006',
+      onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const on = actions.toggleRadar(gid); say(on ? 'Acompanhando no Radar.' : 'Fora do Radar.'); } },
+    { key: 'zerei', icon: 'check', label: 'Já zerei', onSelect: async () => { const gid = await ensure('more'); if (gid) recordPastNow(gid); } },
+    { key: 'nao', icon: 'fechar', on: wontPlay, label: wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const v = actions.toggleWontPlay(gid); say(v ? 'Marcado como “não vou jogar”.' : 'Desmarcado.'); } },
+    { key: 'ficha', icon: 'avancar', label: 'Abrir a ficha', onSelect: open },
+  ];
+  return { owned, fav, wished, status, busy, pop, open, favorite, wish, moreItems };
+}
 
+/** Capa com ações rápidas: coleção, favorito e desejo, sem precisar abrir a ficha. */
+export function GameTile({ hit, onAdd, say, pill, meta }: { hit: Hit; onAdd: (h: Hit) => void; say: (t: string) => void; pill?: { big: string; small: string; dim?: boolean }; meta?: string }) {
+  const { owned, fav, wished, status, busy, pop, open, favorite, wish, moreItems } = useGameActions(hit, say);
   return (
     <div className="cover-grid__item">
       <button className="cover-grid__cover" onClick={open} aria-busy={busy === 'open'} aria-label={`Abrir a ficha de ${hit.title}`}>
         <CoverArt game={{ title: hit.title, cover: hit.cover }} platform={hit.platforms[0]} />
-        {owned && <span className="cover-grid__badge" title="Na sua coleção"><Icon name="check" size={13} /></span>}
+        {status && <span className={`cover-grid__own${status.now ? ' is-now' : ''}`}>{status.label}</span>}
+        {pill && <span className={`cover-grid__score${pill.dim ? ' is-dim' : ''}`}><b>{pill.big}</b><i>{pill.small}</i></span>}
       </button>
       <div className="quick" role="group" aria-label={`Ações rápidas para ${hit.title}`}>
         {owned ? (
@@ -129,17 +222,10 @@ export function GameTile({ hit, onAdd, say }: { hit: Hit; onAdd: (h: Hit) => voi
         <button className={`quick__btn${wished ? ' is-on' : ''}`} aria-pressed={wished} title={wished ? 'Nos seus desejos' : 'Colocar nos desejos'} aria-label={wished ? 'Tirar dos desejos' : 'Colocar nos desejos'} onClick={wish} aria-busy={busy === 'wish'}>
           <Icon name="desejo" size={17} fill={wished ? 'currentColor' : 'none'} />
         </button>
-        <MoreActions label={`Mais ações para ${hit.title}`} items={[
-          { key: 'radar', icon: 'radar', on: onRadar, label: onRadar ? 'No Radar (deixar de acompanhar)' : 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006',
-            onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const on = actions.toggleRadar(gid); say(on ? 'Acompanhando no Radar.' : 'Fora do Radar.'); } },
-          { key: 'zerei', icon: 'check', label: 'Já zerei', onSelect: async () => { const gid = await ensure('more'); if (gid) recordPastNow(gid); } },
-          { key: 'nao', icon: 'fechar', on: wontPlay, label: wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const v = actions.toggleWontPlay(gid); say(v ? 'Marcado como “não vou jogar”.' : 'Desmarcado.'); } },
-          { key: 'ficha', icon: 'avancar', label: 'Abrir a ficha', onSelect: open },
-        ]} />
+        <MoreActions label={`Mais ações para ${hit.title}`} items={moreItems} />
       </div>
-      <button className="cover-grid__title linkish" onClick={open}>{hit.title}</button>
-      <span className="faint cover-grid__year">{[hit.year, hit.platforms.slice(0, 2).join(', ')].filter(Boolean).join(' · ')}</span>
+      <button className="t cover-grid__title linkish" onClick={open}>{hit.title}</button>
+      <span className="mono cover-grid__year">{meta ?? [hit.year, hit.platforms.slice(0, 2).join(', ')].filter(Boolean).join(' · ')}</span>
     </div>
   );
 }
-

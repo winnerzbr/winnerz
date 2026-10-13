@@ -46,13 +46,13 @@ export function FavoriteCover({ src, alt, width, height, burst, radius = 8 }: { 
   );
 }
 
-export function FavoriteButton({ fav, onClick, burst, labels = ['Favoritar', 'Favorito'], className = 'btn ghost' }: { fav: boolean; onClick: () => void; burst: number; labels?: [string, string]; className?: string }) {
+export function FavoriteButton({ fav, onClick, burst, labels = ['Favoritar', 'Favorito'], className = 'btn ghost', iconOnly = false }: { fav: boolean; onClick: () => void; burst: number; labels?: [string, string]; className?: string; iconOnly?: boolean }) {
   return (
-    <button className={className} aria-pressed={fav} onClick={onClick}>
+    <button className={`${className}${fav ? ' is-fav' : ''}`} aria-pressed={fav} onClick={onClick} aria-label={iconOnly ? (fav ? 'Favorito (tirar dos favoritos)' : 'Favoritar') : undefined} title={iconOnly ? (fav ? 'Favorito' : 'Favoritar') : undefined}>
       <span key={burst} className={burst && fav ? 'heart-pop' : ''} style={{ display: 'inline-flex' }}>
         <Icon name="coracao" size={17} fill={fav ? 'currentColor' : 'none'} />
       </span>
-      {fav ? labels[1] : labels[0]}
+      {!iconOnly && (fav ? labels[1] : labels[0])}
     </button>
   );
 }

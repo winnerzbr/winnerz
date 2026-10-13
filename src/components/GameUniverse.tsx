@@ -36,8 +36,12 @@ export function relationTag(s: State, h: Pick<Hit, 'slug' | 'igdbId'>): 'Zerado'
   return null;
 }
 
-/** Universo do jogo: série, expansões, remakes e parecidos (do IGDB). Marca o que já é seu. */
-export function GameUniverse({ game }: { game: Game }) {
+/**
+ * Universo do jogo (do IGDB), marcando o que já é seu.
+ * part="aside": série, expansões, remakes e o original, numa lista com "você está aqui".
+ * part="next": "O que vem depois", com os jogos parecidos em capas.
+ */
+export function GameUniverse({ game, part }: { game: Game; part: 'aside' | 'next' }) {
   const id = game.igdbId;
   const [u, setU] = useState<Universe | null>(id ? cache.get(id) ?? null : null);
   const s = useStore((x) => x);
@@ -49,29 +53,62 @@ export function GameUniverse({ game }: { game: Game }) {
   }, [id]);
   if (!u || !u.groups?.length) return null;
 
+  if (part === 'next') {
+    const similar = u.groups.find((g) => g.title === 'Parecidos')?.games.slice(0, 8) ?? [];
+    if (!similar.length) return null;
+    return (
+      <section className="universe-next" aria-labelledby="depois">
+        <div className="sec-head"><h2 id="depois" className="t sec-title">O que vem depois</h2><span className="kicker">Parecidos, pelo IGDB</span></div>
+        <ul className="universe-next__grid">
+          {similar.map((h) => {
+            const tag = relationTag(s, h);
+            return (
+              <li key={h.slug}>
+                <Link to={`/jogos/${h.slug}`} className="universe-next__item">
+                  <span className="universe-next__cover"><CoverArt game={{ title: h.title, cover: h.cover }} /></span>
+                  <span className="universe-next__title">{h.title}</span>
+                  <span className={`universe-next__sub${tag ? ' is-mine' : ''}`}>{tag === 'Na estante' ? 'Na sua estante' : tag === 'Desejo' ? 'Nos seus desejos' : tag ?? (h.year ? String(h.year) : 'Parecido')}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  }
 
+  const groups = u.groups.filter((g) => g.title !== 'Parecidos');
+  if (!groups.length) return null;
   return (
-    <section className="page universe" aria-labelledby="universo">
-      <div className="block__head"><h2 id="universo" className="t">Universo de {game.title}</h2>{u.series && <span className="muted">Série: {u.series}</span>}</div>
-      {u.groups.map((gr) => (
-        <div key={gr.title} className="universe__group">
-          <h3 className="universe__h">{gr.title}</h3>
-          <ul className="universe__row">
-            {gr.games.map((h) => {
-              const tag = relationTag(s, h);
-              return (
-                <li key={h.slug}>
-                  <Link to={`/jogos/${h.slug}`} className="universe__item">
-                    <span className="universe__cover"><CoverArt game={{ title: h.title, cover: h.cover }} />{tag && <span className="universe__tag">{tag}</span>}</span>
-                    <span className="universe__title">{h.title}</span>
-                    {h.year && <span className="faint universe__year">{h.year}</span>}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ))}
+    <section className="side-card universe" aria-labelledby="universo">
+      <h2 id="universo" className="kicker">Universo{u.series ? ` · ${u.series}` : ''}</h2>
+      {groups.map((gr) => {
+        // Na série, o jogo da ficha entra no seu lugar (por ano), marcado.
+        const list = gr.title === 'Da mesma série'
+          ? [...gr.games, { slug: game.slug, title: game.title, cover: game.cover, year: game.year, platforms: game.platforms, here: true } as Hit & { here?: boolean }].sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999))
+          : gr.games;
+        return (
+          <div key={gr.title} className="universe__group">
+            {groups.length > 1 && <h3 className="universe__h">{gr.title}</h3>}
+            <ul className="universe__list">
+              {list.slice(0, 12).map((h) => {
+                const here = 'here' in h && (h as { here?: boolean }).here;
+                const tag = here ? null : relationTag(s, h);
+                const inner = (
+                  <>
+                    <span className="universe__cover"><CoverArt game={{ title: h.title, cover: h.cover }} /></span>
+                    <span className="universe__text">
+                      <span className="universe__title">{h.title}</span>
+                      <span className={`mono universe__year${here ? ' is-here' : tag ? ' is-mine' : ''}`}>{[h.year, here ? 'Você está aqui' : tag].filter(Boolean).join(' · ')}</span>
+                    </span>
+                  </>
+                );
+                return <li key={h.slug}>{here ? <span className="universe__item is-here" aria-current="page">{inner}</span> : <Link to={`/jogos/${h.slug}`} className="universe__item">{inner}</Link>}</li>;
+              })}
+            </ul>
+          </div>
+        );
+      })}
     </section>
   );
 }

@@ -10,8 +10,8 @@ export function GameDna({ game }: { game: Game }) {
   const dna = gameDna(game, s);
   if (!dna.traits.length) return null;
   return (
-    <section aria-labelledby="dna" className="dna">
-      <h2 id="dna" className="t aside-title">Como é jogar</h2>
+    <section aria-labelledby="dna" className="side-card dna">
+      <h2 id="dna" className="kicker">Como é jogar</h2>
       <ul className="dna__list">
         {dna.traits.map((t) => (
           <li key={t.key} className="dna__item">

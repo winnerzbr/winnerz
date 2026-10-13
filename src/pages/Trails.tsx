@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, navigate } from '../lib/router';
 import { useStore, actions, slugify, currentHistory, isOpenState } from '../data/store';
-import type { State } from '../data/types';
+import type { Game, State } from '../data/types';
 import { trailsApi, type Trail, type TrailGame } from '../data/trails';
 import { canAdmin } from '../data/awards';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
+import { Backdrop } from '../components/Backdrop';
+import { PlayButton } from '../components/PlayButton';
 import { ConfirmButton } from '../components/Sheet';
 import { searchGames, loadGame, type Hit } from '../components/AddGameDialog';
 import { track } from '../lib/track';
@@ -48,32 +50,79 @@ export function TrailsPage() {
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Trilhas</h1>
-          <p className="muted lead">Jogos em sequência, com um fio que liga um ao outro. Siga no seu ritmo: o que você já jogou aparece marcado.</p>
+          <p className="muted lead">Jogos em sequência, com um fio que liga um ao outro. Uma saga, uma época, um desafio. Siga no seu ritmo: o que você já jogou aparece marcado.</p>
         </div>
-        <SubNav pillar="jogos" />
+        <div className="page-head__side trails__side">
+          {admin && <button className="btn primary" onClick={() => void create()}>+ Nova trilha</button>}
+          <SubNav pillar="jogos" />
+        </div>
       </header>
-      {admin && <button className="btn ghost sm" onClick={() => void create()}>Nova trilha</button>}
       {error && <p className="awards__error" role="alert">{error}</p>}
-      {list && !list.length && !error && <div className="card tl-empty"><p className="muted">As primeiras trilhas estão sendo montadas.</p></div>}
       <ul className="trails__list">
         {(list ?? []).map((t) => {
-          const done = t.items.filter((i) => statusOf(s, i.game) === 'Zerado').length;
+          const st = t.items.map((i) => statusOf(s, i.game));
+          const done = st.filter((x) => x === 'Zerado').length;
+          const nextIdx = st.findIndex((x) => x !== 'Zerado');
+          const shown = t.items.slice(0, 5);
+          const bgGame = localOf(s, t.items[Math.max(0, nextIdx)]?.game);
           return (
             <li key={t.id}>
-              <Link to={`/jogos/trilhas/${t.slug}`} className="card trail-card">
-                <span className="trail-card__covers">{t.items.slice(0, 5).map((i) => <span key={i.id} className={statusOf(s, i.game) === 'Zerado' ? 'is-done' : ''}><CoverArt game={i.game} /></span>)}</span>
-                <span className="trail-card__text">
-                  <strong className="t">{t.title}</strong>
-                  {t.intro && <span className="muted">{t.intro}</span>}
-                  <span className="faint">{t.items.length} {t.items.length === 1 ? 'jogo' : 'jogos'}{done && !s.prefs.light ? `, você já zerou ${done}` : ''}{t.published ? '' : ' · rascunho'}</span>
+              <Link to={`/jogos/trilhas/${t.slug}`} className="trail-card">
+                {bgGame && <Backdrop game={bgGame} className="trail-card__bg" />}
+                <span className="trail-card__shade" aria-hidden="true" />
+                <span className="trail-card__head">
+                  <span className="trail-card__text">
+                    <strong className="t">{t.title}</strong>
+                    <span className="muted">{t.items.length} {t.items.length === 1 ? 'jogo' : 'jogos'}{done && !s.prefs.light ? ` · você já zerou ${done}` : ''}{t.published ? '' : ' · rascunho'}</span>
+                  </span>
+                  {t.items.length > 0 && <span className="mono trail-card__count">{done}/{t.items.length}</span>}
                 </span>
+                {shown.length > 0 && (
+                  <span className="trail-card__steps" style={{ ['--n' as string]: shown.length }}>
+                    <span className="trail-card__line" aria-hidden="true" style={{ ['--done' as string]: `${Math.max(0, (nextIdx < 0 ? shown.length - 1 : Math.min(nextIdx, shown.length - 1)) / Math.max(1, shown.length - 1)) * 100}%` }} />
+                    {shown.map((i, k) => {
+                      const x = st[k];
+                      const kind = x === 'Zerado' ? 'done' : k === nextIdx ? 'next' : 'todo';
+                      return (
+                        <span key={i.id} className={`trail-step is-${kind}`}>
+                          <span className="trail-step__cover"><CoverArt game={i.game} /></span>
+                          <span className="trail-step__mk" aria-hidden="true" />
+                          <span className="mono trail-step__label">{kind === 'next' ? 'Próximo' : x ?? ' '}</span>
+                        </span>
+                      );
+                    })}
+                  </span>
+                )}
               </Link>
             </li>
           );
         })}
+        {list && (admin || !list.length) && !error && (
+          <li>
+            {admin ? (
+              <button className="trail-new" onClick={() => void create()}>
+                <span className="trail-new__plus" aria-hidden="true">+</span>
+                <span className="t trail-new__title">Começar uma trilha</span>
+                <span className="muted">Ideias: todos os Yakuza na ordem da história. Os jogos que ficaram sem final na adolescência. Um por plataforma.</span>
+              </button>
+            ) : (
+              <div className="trail-new is-static">
+                <span className="trail-new__plus" aria-hidden="true">+</span>
+                <span className="t trail-new__title">As primeiras trilhas estão sendo montadas</span>
+                <span className="muted">Em breve aparecem aqui sagas em ordem, épocas e desafios para seguir no seu ritmo.</span>
+              </div>
+            )}
+          </li>
+        )}
       </ul>
     </main>
   );
+}
+
+/** O jogo do site para um jogo de trilha (para fundo, plataformas e botão de jogar). */
+function localOf(s: State, g?: TrailGame): Game | undefined {
+  if (!g) return undefined;
+  return s.games[g.id] ?? Object.values(s.games).find((x) => g.igdbId && x.igdbId === g.igdbId);
 }
 
 /** Uma trilha: os jogos em ordem, com o porquê de cada um e onde você está nela. */
@@ -86,47 +135,79 @@ export function TrailPage({ slug }: { slug: string }) {
   if (!list) return <main className="page pad"><p className="muted">Carregando…</p></main>;
   if (!t) return <main className="page pad narrow"><SubNav pillar="jogos" /><h1 className="t big">Trilha</h1><p className="muted lead">{error || 'Essa trilha não existe (ou ainda não foi publicada).'}</p><Link className="btn ghost" to="/jogos/trilhas">Ver as trilhas</Link></main>;
   const nextUp = t.items.find((i) => statusOf(s, i.game) !== 'Zerado');
+  const done = t.items.filter((i) => statusOf(s, i.game) === 'Zerado').length;
+  const years = t.items.map((i) => i.game.year).filter((y): y is number => !!y);
+  const span = years.length > 1 ? `, de ${Math.min(...years)} a ${Math.max(...years)}` : '';
+  const heroGame = localOf(s, (nextUp ?? t.items[0])?.game);
+  const nextLocal = localOf(s, nextUp?.game);
+  const pct = t.items.length ? (done / t.items.length) * 100 : 0;
+  const nextCopy = nextLocal && s.copies.find((c) => c.gameId === nextLocal.id);
+  const nextStatus = nextUp && statusOf(s, nextUp.game);
+  const editingNow = editing && admin;
   return (
-    <main className="page pad trail">
-      <header className="page-head">
-        <div className="page-head__text">
-          <Link to="/jogos/trilhas" className="kicker trail__back">← Trilhas</Link>
-          {!(editing && admin) && <h1 className="t big">{t.title}</h1>}
-          {!(editing && admin) && t.intro && <p className="muted lead">{t.intro}</p>}
-        </div>
-        <SubNav pillar="jogos" />
-      </header>
-      {editing && admin ? <TrailEditor trail={t} onSaved={reload} onDone={() => setEditing(false)} /> : (
-        <>
-          {admin && <button className="btn ghost sm trail__edit" onClick={() => setEditing(true)}>Editar trilha</button>}
-          {nextUp && (
-            <Link to={`/jogos/${nextUp.game.slug}`} className="trail-next on-photo">
-              <span className="trail-next__cover"><CoverArt game={nextUp.game} /></span>
-              <span className="trail-next__text"><span className="kicker kicker--now">Próximo no seu caminho</span><span className="t trail-next__title">{nextUp.game.title}</span>{nextUp.game.year && <span className="muted">{nextUp.game.year}</span>}</span>
-              <span className="trail-next__go" aria-hidden="true">→</span>
-            </Link>
-          )}
-        </>
-      )}
-      <ol className="trail__items">
-        {t.items.map((i, k) => {
-          const st = statusOf(s, i.game);
-          return (
-            <li key={i.id} className={`trail__item${st === 'Zerado' ? ' is-done' : ''}${nextUp?.id === i.id ? ' is-next' : ''}`}>
-              <span className="trail__n t">{k + 1}</span>
-              <Link to={`/jogos/${i.game.slug}`} className="trail__cover"><CoverArt game={i.game} /></Link>
-              <div className="trail__text">
-                <Link to={`/jogos/${i.game.slug}`} className="trail__title">{i.game.title}</Link>
-                {i.game.year && <span className="faint"> {i.game.year}</span>}
-                {i.note && <p className="muted">{i.note}</p>}
-                {editing && admin && <ItemEditor trail={t} index={k} onSaved={reload} />}
+    <main className="trail">
+      <section className="trail-hero on-photo">
+        {heroGame && <Backdrop game={heroGame} className="trail-hero__bg" />}
+        <div className="trail-hero__shade" aria-hidden="true" />
+        <div className="page trail-hero__row">
+          <div className="trail-hero__text">
+            <Link to="/jogos/trilhas" className="kicker trail__back">← Trilhas</Link>
+            {!editingNow && <h1 className="t trail-hero__title">{t.title}</h1>}
+            {editingNow && <h1 className="t trail-hero__title">Editando a trilha</h1>}
+            <p className="trail-hero__lead">{t.intro ? `${t.intro} ` : ''}{t.items.length} {t.items.length === 1 ? 'jogo' : 'jogos'}{span}.{done && !s.prefs.light ? ` Você já zerou ${done}.` : ''}</p>
+            {t.items.length > 0 && !s.prefs.light && (
+              <div className="trail-hero__prog">
+                <div className="hline" aria-hidden="true"><i style={{ width: `${pct}%` }} /><b style={{ left: `${pct}%` }} /></div>
+                <span className="mono">{done}/{t.items.length}</span>
               </div>
-              {st && <span className={`trail__tag trail__tag--${st === 'Zerado' ? 'done' : 'mine'}`}>{st}</span>}
-            </li>
-          );
-        })}
-      </ol>
-      {editing && admin && <AddToTrail trail={t} onSaved={reload} />}
+            )}
+          </div>
+          <div className="trail-hero__side">
+            <SubNav pillar="jogos" />
+            {admin && !editingNow && <button className="btn ghost" onClick={() => setEditing(true)}>Editar trilha</button>}
+          </div>
+        </div>
+      </section>
+
+      <div className="page pad trail__body">
+        {editingNow && <TrailEditor trail={t} onSaved={reload} onDone={() => setEditing(false)} />}
+        <div className="trail__cols">
+          {nextUp && !editingNow && (
+            <article className="trail-next">
+              <span className="kicker kicker--now">Próximo no seu caminho</span>
+              <Link to={`/jogos/${nextUp.game.slug}`} className="trail-next__cover"><CoverArt game={nextUp.game} /></Link>
+              <h2 className="t trail-next__title">{nextUp.game.title}</h2>
+              <p className="muted trail-next__meta">{[nextCopy?.platform ?? nextLocal?.platforms[0], nextUp.game.year, nextStatus === 'Na estante' ? 'Na sua estante' : nextStatus === 'Jogando' ? 'Na sua Jornada' : nextStatus === 'Desejo' ? 'Nos seus desejos' : null].filter(Boolean).join(' · ')}</p>
+              {nextUp.note && <p className="trail-next__note">“{nextUp.note}”</p>}
+              <div className="trail-next__actions">
+                {nextLocal && <PlayButton gameId={nextLocal.id} className="btn" idle="Começar Jornada" />}
+                <Link to={`/jogos/${nextUp.game.slug}`} className={`btn ${nextLocal ? 'ghost' : 'primary'}`}>Ver ficha</Link>
+              </div>
+            </article>
+          )}
+          <ol className="trail__items">
+            {t.items.map((i, k) => {
+              const st = statusOf(s, i.game);
+              const isNext = nextUp?.id === i.id;
+              const plats = localOf(s, i.game)?.platforms.slice(0, 2).join(', ');
+              return (
+                <li key={i.id} className={`trail__item${st === 'Zerado' ? ' is-done' : ''}${isNext ? ' is-next' : ''}`}>
+                  <span className="trail__n">{k + 1}</span>
+                  <Link to={`/jogos/${i.game.slug}`} className="trail__cover"><CoverArt game={i.game} /></Link>
+                  <div className="trail__text">
+                    <Link to={`/jogos/${i.game.slug}`} className="t trail__title">{i.game.title}</Link>
+                    {(i.game.year || plats) && <span className="mono trail__meta">{[i.game.year, plats].filter(Boolean).join(' · ')}</span>}
+                    {i.note && <p className="trail__note">“{i.note}”</p>}
+                    {editingNow && <ItemEditor trail={t} index={k} onSaved={reload} />}
+                  </div>
+                  {(st || isNext) && <span className={`trail__tag trail__tag--${st === 'Zerado' ? 'done' : isNext ? 'next' : 'mine'}`}>{[st, isNext ? 'Próximo' : null].filter(Boolean).join(' · ')}</span>}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+        {editingNow && <AddToTrail trail={t} onSaved={reload} />}
+      </div>
     </main>
   );
 }

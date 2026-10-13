@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { navigate, usePath } from '../lib/router';
 import { SubNav } from '../components/SubNav';
 import { AddGameDialog, type Hit } from '../components/AddGameDialog';
@@ -66,43 +66,55 @@ export function GamesExplore() {
   const genres = (meta?.genres ?? []).map((g) => ({ ...g, label: pt(g.name) })).sort((a, b) => a.label.localeCompare(b.label, 'pt-BR'));
   const modes = (meta?.modes ?? []).map((g) => ({ ...g, label: pt(g.name) }));
 
+  const genreName = genres.find((g) => String(g.id) === f.genre)?.label;
+  const platName = (meta?.platforms ?? []).find((p) => String(p.id) === f.platform)?.name;
+  const eraName = ERAS.find((e) => e[0] === f.era && e[0])?.[1];
+  const modeName = modes.find((g) => String(g.id) === f.mode)?.label;
+  const anyFilter = !!(f.genre || f.platform || f.era || f.mode);
+  const clear = () => navigate(`/jogos/explorar${f.sort !== 'popular' ? `?ordem=${f.sort}` : ''}`, { replace: true, keepScroll: true });
+  const count = `${items.length}${state !== 'end' && items.length ? '+' : ''} ${items.length === 1 ? 'jogo' : 'jogos'}`;
+
   return (
     <main className="page pad explore">
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Explorar</h1>
-          <p className="muted lead">O catálogo inteiro do IGDB. Filtre pelo que você quer jogar; os filtros ficam no endereço, dá para salvar ou mandar para alguém.</p>
+          <p className="muted lead">Para quando você não sabe o nome, só o que está com vontade.</p>
         </div>
         <SubNav pillar="jogos" />
       </header>
 
-      <div className="cbar explore__bar">
-        <label className="cbar__sel"><span className="sr-only">Gênero</span>
-          <select className="field" value={f.genre} onChange={(e) => set('genero', e.target.value)}>
+      <div className="explore__filters" role="group" aria-label="Filtros">
+        <Dropdown label="Gênero" value={genreName} empty="Todos" on={!!f.genre}>
+          <select value={f.genre} onChange={(e) => set('genero', e.target.value)} aria-label="Gênero">
             <option value="">Todos os gêneros</option>
             {genres.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
           </select>
-        </label>
-        <label className="cbar__sel"><span className="sr-only">Plataforma</span>
-          <select className="field" value={f.platform} onChange={(e) => set('plataforma', e.target.value)}>
+        </Dropdown>
+        <Dropdown label="Plataforma" value={platName && shortPlatform(platName)} empty="Todas" on={!!f.platform}>
+          <select value={f.platform} onChange={(e) => set('plataforma', e.target.value)} aria-label="Plataforma">
             <option value="">Todas as plataformas</option>
             {(meta?.platforms ?? []).map((p) => <option key={p.id} value={p.id}>{shortPlatform(p.name)}</option>)}
           </select>
-        </label>
-        <label className="cbar__sel"><span className="sr-only">Época</span>
-          <select className="field" value={f.era} onChange={(e) => set('epoca', e.target.value)}>
+        </Dropdown>
+        <Dropdown label="Época" value={eraName} empty="Qualquer" on={!!f.era}>
+          <select value={f.era} onChange={(e) => set('epoca', e.target.value)} aria-label="Época">
             {ERAS.map(([id, l]) => <option key={id} value={id}>{l}</option>)}
           </select>
-        </label>
-        <label className="cbar__sel"><span className="sr-only">Como se joga</span>
-          <select className="field" value={f.mode} onChange={(e) => set('modo', e.target.value)}>
+        </Dropdown>
+        <Dropdown label="Como se joga" value={modeName} empty="Qualquer" on={!!f.mode}>
+          <select value={f.mode} onChange={(e) => set('modo', e.target.value)} aria-label="Como se joga">
             <option value="">Qualquer modo</option>
             {modes.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
           </select>
-        </label>
+        </Dropdown>
+        {anyFilter && <button className="btn quiet sm" onClick={clear}>Limpar</button>}
       </div>
-      <div className="seg explore__sort" role="group" aria-label="Ordem">
-        {SORTS.map(([id, l]) => <button key={id} aria-pressed={f.sort === id} onClick={() => set('ordem', id === 'popular' ? '' : id)}>{l}</button>)}
+      <div className="explore__sortbar">
+        <div className="seg explore__sort" role="group" aria-label="Ordem">
+          {SORTS.map(([id, l]) => <button key={id} aria-pressed={f.sort === id} onClick={() => set('ordem', id === 'popular' ? '' : id)}>{l}</button>)}
+        </div>
+        {items.length > 0 && <span className="mono explore__count">{count}</span>}
       </div>
 
       {state === 'error' && items.length === 0 ? (
@@ -110,21 +122,36 @@ export function GamesExplore() {
       ) : (
         <div className="cover-grid explore__grid">
           {items.map((h) => (
-            <div key={h.slug} className="explore__item">
-              <GameTile hit={h} onAdd={setAdding} say={(text) => setToast({ id: Date.now(), text })} />
-              {(h.rating || (f.sort === 'upcoming' && h.date)) && (
-                <span className="explore__meta faint">{f.sort === 'upcoming' && h.date ? new Date(`${h.date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }) : `IGDB ${h.rating}`}</span>
-              )}
-            </div>
+            <GameTile key={h.slug} hit={h} onAdd={setAdding} say={(text) => setToast({ id: Date.now(), text })} pill={pillOf(h, f.sort)} />
           ))}
           {state === 'loading' && Array.from({ length: items.length ? 6 : 18 }, (_, i) => <div key={`s${i}`} className="explore__skeleton" aria-hidden="true" />)}
         </div>
       )}
-      {state === 'idle' && items.length > 0 && <div className="import__actions"><button className="btn ghost" onClick={() => setPage(page + 1)}>Mostrar mais</button></div>}
+      {state === 'idle' && items.length > 0 && <div className="explore__more"><button className="btn ghost" onClick={() => setPage(page + 1)}>Carregar mais</button></div>}
       {state === 'end' && items.length === 0 && <p className="card tl-empty">Nenhum jogo com esses filtros. Tente tirar um deles.</p>}
 
       {adding && <AddGameDialog initial={adding} onClose={() => setAdding(null)} />}
       {toast && <Toast key={toast.id} text={toast.text} />}
     </main>
+  );
+}
+
+/** Pílula no canto da capa: a nota do IGDB, ou a data quando o jogo ainda não saiu. */
+function pillOf(h: Found, sort: string): { big: string; small: string; dim?: boolean } | undefined {
+  const future = h.date && h.date > new Date().toISOString().slice(0, 10);
+  if ((sort === 'upcoming' || future) && h.date) return { big: new Date(`${h.date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', ''), small: 'Em breve' };
+  if (h.rating) return { big: (h.rating / 10).toFixed(1).replace('.', ','), small: 'IGDB' };
+  return undefined;
+}
+
+/** Filtro em pílula: mostra o nome e o valor escolhido; o select nativo fica por cima, invisível, e cuida da escolha. */
+function Dropdown({ label, value, empty, on, children }: { label: string; value?: string; empty: string; on: boolean; children: ReactNode }) {
+  return (
+    <label className={`dd${on ? ' is-on' : ''}`}>
+      <span className="dd__label">{label}</span>
+      <small className="dd__value">{value ?? empty}</small>
+      <svg width="10" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>
+      {children}
+    </label>
   );
 }

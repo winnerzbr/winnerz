@@ -107,37 +107,49 @@ function GameView({ gameId }: { gameId: string }) {
   const setScale = (sc: Scale) => actions.setPrefs({ scale: sc });
   const play = () => { actions.play(gameId); navigate('/sessao'); };
 
+  const concluded = j ? historiesOf(s, j.id).filter((x) => x.state === 'concluida' && x.completedAt).sort((x, y) => (y.completedAt ?? '').localeCompare(x.completedAt ?? ''))[0] : undefined;
+  const journeyValue = j && h
+    ? [nHist > 1 ? `História ${nHist}` : null, STATE_LABEL[h.state], h.state === 'ativa' && h.progress != null ? `${h.progress}%` : null, h.hours ? `${String(h.hours).replace('.', ',')} h` : null].filter(Boolean).join(' · ')
+    : mine2.wontPlay ? 'Não vou jogar' : 'Ainda não começou';
+  const kindLabel = (k: string) => (k === 'fisico' ? 'Físico' : k === 'digital' ? 'Digital' : k === 'assinatura' ? 'Assinatura' : 'Outro');
+  const genreList = (ptJoined(g.genres) ?? '').split(/,\s*|\s+e\s+/).map((x) => x.trim()).filter(Boolean).map((x) => x[0].toUpperCase() + x.slice(1));
+  const mineDate = mine ? new Date(mine.writtenAt).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '').replace(/ de /g, ' ') : '';
+  const lockedAny = others.some((r) => r.spoiler && !revealed.includes(r.id));
+  const playLabel = openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && (h?.state === 'ativa' || h?.state === 'pausada') ? 'Continuar Jornada' : j && h?.state !== 'concluida' && h?.state !== 'encerrada' ? 'Retomar' : j ? 'Jogar de novo' : 'Jogar agora';
+
   return (
     <main>
       <section className="ghero on-photo" aria-labelledby="titulo">
         <Backdrop game={g} className="ghero__bg kb" />
         <div className="ghero__shade" aria-hidden="true" />
-        <div className="ghero__fade" aria-hidden="true" />
         <div className="page ghero__row">
-          {g.cover ? <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={240} height={320} burst={burst} /> : <CoverArt game={g} className="ghero__cover-art" />}
+          {g.cover ? <FavoriteCover src={g.cover} alt={`Capa de ${g.title}`} width={210} height={280} burst={burst} /> : <CoverArt game={g} className="ghero__cover-art" />}
           <div className="ghero__info">
-            <div className="muted">{[g.developer, g.year].filter(Boolean).join(', ')}{g.publisher && g.publisher !== g.developer ? `. Publicado pela ${g.publisher}.` : '.'}</div>
             <h1 id="titulo" className="t ghero__title">{g.title}</h1>
-            <div className="ghero__chips">
-              {g.platforms.slice(0, 4).map((p) => <span key={p} className="ghero__chip">{pt(p)}</span>)}
-              {g.genres && <span className="muted">{ptJoined(g.genres)}</span>}
-            </div>
+            <p className="ghero__by">{[g.developer, g.year].filter(Boolean).join(', ')}{g.publisher && g.publisher !== g.developer ? `. Publicado pela ${g.publisher}.` : g.developer || g.year ? '.' : ''}</p>
+            {(g.platforms.length > 0 || genreList.length > 0) && (
+              <div className="ghero__chips">
+                {g.platforms.slice(0, 4).map((p) => <span key={p} className="ghero__chip">{shortPlatform(pt(p))}</span>)}
+                {g.platforms.length > 0 && genreList.length > 0 && <span className="ghero__sep" aria-hidden="true" />}
+                {genreList.slice(0, 3).map((x) => <span key={x} className="ghero__chip">{x}</span>)}
+              </div>
+            )}
             <div className="ghero__actions">
-              <button className="btn primary lg" onClick={play}><Icon name="play" size={15} />{openSession(s)?.journeyId === j?.id && j ? 'Voltar para a sessão' : j && (h?.state === 'ativa' || h?.state === 'pausada') ? 'Continuar Jornada' : j && h?.state !== 'concluida' && h?.state !== 'encerrada' ? 'Retomar' : j ? 'Jogar de novo' : 'Jogar agora'}</button>
-              {h?.state !== 'concluida' && <PastButton gameId={gameId} className="btn ghost lg" />}
+              <button className="btn primary" onClick={play}><Icon name="play" size={14} />{playLabel}</button>
+              {h?.state !== 'concluida' && <PastButton gameId={gameId} className="btn ghost ghero__past" />}
               {owned.length ? (
-                <Link className="btn ghost lg" to="/colecao"><Icon name="check" size={16} />Na sua coleção</Link>
+                <Link className="btn ghost" to="/colecao"><Icon name="check" size={15} />Na sua coleção</Link>
               ) : (
-                <button className="btn ghost lg" aria-pressed={wished} onClick={() => actions.toggleWish(gameId)}>{wished ? 'Nos seus desejos' : 'Desejar'}</button>
+                <button className="btn ghost" aria-pressed={wished} onClick={() => actions.toggleWish(gameId)}><Icon name="desejo" size={15} fill={wished ? 'currentColor' : 'none'} />{wished ? 'Nos seus desejos' : 'Desejar'}</button>
               )}
               {g.igdbId && (upcoming || mine2.onRadar) && (
-                <button className={`btn ghost lg${mine2.onRadar ? ' is-radar' : ''}`} aria-pressed={!!mine2.onRadar} disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(gameId)}>
-                  <Icon name="radar" size={16} />{mine2.onRadar ? 'No Radar' : 'Acompanhar no Radar'}
+                <button className={`btn ghost${mine2.onRadar ? ' is-radar' : ''}`} aria-pressed={!!mine2.onRadar} disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(gameId)}>
+                  <Icon name="radar" size={15} />{mine2.onRadar ? 'No Radar' : 'Acompanhar no Radar'}
                 </button>
               )}
-              <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost lg" />
-              <MoreActions className="btn ghost lg" showLabel label="Mais ações" align="left" items={[
-                { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' }); } },
+              <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost icon" iconOnly />
+              <MoreActions className="btn ghost icon" label="Mais ações" align="left" items={[
+                { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { if (mine) setEditing(true); document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' }); } },
                 ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006', onSelect: () => { actions.toggleRadar(gameId); } }] : []),
                 ...(mine2.onRadar ? [{ key: 'verradar', icon: 'radar', label: 'Ver o Radar', onSelect: () => navigate('/jogos/radar') }] : []),
                 ...(!h || h.state !== 'ativa' ? [{ key: 'nao', icon: 'fechar', on: !!mine2.wontPlay, label: mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: () => { actions.toggleWontPlay(gameId); } }] : []),
@@ -145,104 +157,117 @@ function GameView({ gameId }: { gameId: string }) {
               ]} />
             </div>
           </div>
-          <div className="ratings" role="region" aria-label="Notas">
-            <div className="ratings__head">
-              <span className="muted">Ver notas em</span>
-              <div className="seg seg--glass" role="group" aria-label="Escala das notas">
-                <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
-                <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>5 estrelas</button>
-              </div>
-            </div>
-            <div className="ratings__cols">
-              <div>
-                <div className="muted ratings__k">Média da comunidade</div>
-                {avg != null ? (
-                  <>
-                    <div className="ratings__v"><span className="t">{formatScore(avg, scale, { average: true })}</span><span className="muted">/{scaleMax(scale)}</span></div>
-                    {scale === 'FIVE_STAR' && <Stars normalized={avg} />}
-                    <div className="muted ratings__n">{count.toLocaleString('pt-BR')} {count === 1 ? 'análise' : 'análises'}</div>
-                  </>
-                ) : <div className="muted ratings__n">Ainda sem análises.</div>}
-              </div>
-              <div className="ratings__sep" />
-              <div>
-                <div className="muted ratings__k">Sua nota</div>
-                {mine ? (
-                  <>
-                    <div className="ratings__v"><span className="t ratings__mine">{formatScore(mine.rating.normalized, scale)}</span><span className="muted">/{scaleMax(scale)}</span></div>
-                    {scale === 'FIVE_STAR' && <Stars normalized={mine.rating.normalized} />}
-                    <div className="muted ratings__n">{originalLabel(mine.rating, scale) ?? 'Na sua análise'}</div>
-                  </>
-                ) : <div className="muted ratings__n">Você ainda não avaliou.</div>}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
       <div className="page game-body">
         <div className="game-main">
-          <section id="analise" className="card my-review" aria-labelledby="sua">
+          <div className="rate-row" role="region" aria-label="Notas">
+            <article className="rate-card">
+              <div className="rate-card__head">
+                <h2 className="kicker">Comunidade WinnerZ</h2>
+                <div className="seg seg--sm" role="group" aria-label="Escala das notas">
+                  <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
+                  <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>5 estrelas</button>
+                </div>
+              </div>
+              <div className="rate-card__body">
+                <div className="rate-card__num">
+                  {avg != null ? (
+                    <>
+                      <div className="t rate-card__v">{formatScore(avg, scale, { average: true })}</div>
+                      {scale === 'FIVE_STAR' && <Stars normalized={avg} />}
+                      <div className="muted rate-card__n">{count.toLocaleString('pt-BR')} {count === 1 ? 'análise' : 'análises'}</div>
+                    </>
+                  ) : <div className="muted rate-card__n">Ainda sem análises.</div>}
+                </div>
+                {count > 0 && (
+                  <figure className="dist" aria-label={`Distribuição das ${count.toLocaleString('pt-BR')} notas`}>
+                    <div className="dist__bars" aria-hidden="true">
+                      {dist.map((v, i) => {
+                        const top = v === maxD && v > 0;
+                        const last = i === dist.length - 1;
+                        return <div key={i} className={`dist__col${top ? ' is-top' : ''}${last ? ' is-max' : ''}`}><div className="dist__bar" style={{ height: `${Math.max(2, Math.round((v / maxD) * 100))}%` }} /><span>{scale === 'TEN_POINT' ? i + 1 : `${i + 1}★`}</span></div>;
+                      })}
+                    </div>
+                  </figure>
+                )}
+              </div>
+              {count > 0 && <p className="faint rate-card__note">As médias usam a nota original de cada pessoa, sem arredondar.</p>}
+            </article>
+            <article className="rate-card rate-card--mine">
+              <h2 className="kicker kicker--now">Sua nota</h2>
+              {mine ? (
+                <>
+                  <div className="t rate-card__v">{formatScore(mine.rating.normalized, scale)}</div>
+                  {scale === 'FIVE_STAR' && <Stars normalized={mine.rating.normalized} />}
+                  <div className="hline rate-card__line" aria-hidden="true"><i style={{ width: `${mine.rating.normalized / 10}%` }} /><b style={{ left: `${mine.rating.normalized / 10}%` }} /></div>
+                  <span className="muted rate-card__n">{originalLabel(mine.rating, scale) ?? `Dada em ${mineDate}`}</span>
+                </>
+              ) : (
+                <>
+                  <p className="muted rate-card__n">Você ainda não avaliou.</p>
+                  <button className="btn ghost sm" onClick={() => document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' })}>Dar uma nota</button>
+                </>
+              )}
+            </article>
+          </div>
+
+          <section id="analise" className="my-review" aria-labelledby="sua">
             {mine && !editing ? (
               <>
-                <div className="my-review__top"><span className="my-review__k">Sua análise</span><span className="muted">{mine.context ?? `Escrita em ${new Date(mine.writtenAt).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`}</span></div>
-                <h2 id="sua" className="t my-review__title">{mine.title || 'Sem título'}</h2>
-                <div className="my-review__score"><span className="t">{formatScore(mine.rating.normalized, scale)}/{scaleMax(scale)}</span>{scale === 'FIVE_STAR' && <Stars normalized={mine.rating.normalized} size={20} />}</div>
-                {mine.text && <p className="my-review__text">{mine.text}</p>}
-                <div className="my-review__actions"><button className="btn ghost sm" onClick={() => setEditing(true)}>Editar</button></div>
+                <div className="sec-head"><h2 id="sua" className="t sec-title">Sua análise</h2><button className="btn quiet sm" onClick={() => setEditing(true)}>Editar</button></div>
+                <blockquote className="my-review__quote">
+                  <p className="t my-review__title">“{mine.title || 'Sem título'}”</p>
+                  {mine.text && <p className="my-review__text">{mine.text}</p>}
+                  <span className="mono my-review__meta">{[mine.author?.name, mineDate, mine.context].filter(Boolean).join(' · ')}</span>
+                </blockquote>
               </>
             ) : (
-              <ReviewEditor gameId={gameId} existing={mine} viewerScale={scale} onDone={() => setEditing(false)} />
+              <div className="card my-review__edit"><ReviewEditor gameId={gameId} existing={mine} viewerScale={scale} onDone={() => setEditing(false)} /></div>
             )}
           </section>
 
           <section aria-labelledby="comunidade" className="community-reviews">
-            <div className="block__head"><h2 id="comunidade" className="t">Análises da comunidade</h2></div>
-            {count > 0 && (
-              <figure className="dist">
-                <div className="dist__bars" aria-hidden="true">
-                  {dist.map((v, i) => (
-                    <div key={i} className="dist__col"><div className="dist__bar" style={{ height: `${Math.round((v / maxD) * 100)}%` }} /><div className="faint">{scale === 'TEN_POINT' ? i + 1 : `${i + 1}★`}</div></div>
-                  ))}
-                </div>
-                <figcaption className="muted">Distribuição das {count.toLocaleString('pt-BR')} notas. As médias usam a nota original de cada pessoa, sem arredondar.</figcaption>
-              </figure>
-            )}
+            <div className="sec-head">
+              <h2 id="comunidade" className="t sec-title">Análises da comunidade</h2>
+              {lockedAny ? <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoilers protegidos{progressOf != null ? ` · você está em ${progressOf}%` : ''}</span> : others.length > 0 && <span className="kicker">{others.length} {others.length === 1 ? 'análise' : 'análises'}</span>}
+            </div>
             {others.length === 0 && <p className="muted">Ninguém além de você escreveu sobre este jogo ainda.</p>}
             <div className="reviews">
               {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
             </div>
           </section>
+
+          <GameUniverse game={g} part="next" />
         </div>
 
         <aside className="game-aside">
-          <section className="card relation" aria-labelledby="relacao">
-            <h2 id="relacao" className="t aside-title aside-title--now">Sua relação com este jogo</h2>
-            <ul>
-              <li><span className="relation__ic">✦</span><div>{j ? <Link to={`/jornada/${g.slug}`}><strong>Jornada</strong></Link> : <strong>Jornada</strong>}<div className="muted">{j && h ? `${nHist} ${nHist === 1 ? 'História' : 'Histórias'}. ${STATE_LABEL[h.state]}${h.state === 'ativa' && h.progress != null ? `, ${h.progress}%` : ''}${h.completedAt && h.state !== 'ativa' && h.state !== 'pausada' ? `, ${whenLabel(h.completedAt, h.completedPrecision)}` : ''}${h.hours ? `, ${String(h.hours).replace('.', ',')} h informadas` : ''}.` : mine2.wontPlay ? 'Marcado como “não vou jogar”.' : 'Ainda não começou. Jogar cria a primeira História.'}</div></div></li>
-              <li><span className="relation__ic">▥</span><div>{owned.length ? <Link to="/colecao"><strong>Coleção</strong></Link> : <strong>Coleção</strong>}<div className="muted">{owned.length ? owned.map((c) => `${c.kind === 'fisico' ? 'Exemplar físico' : c.kind === 'digital' ? 'Cópia digital' : 'Assinatura'} de ${shortPlatform(c.platform)}`).join('; ') + '.' : wished ? 'Nos seus desejos.' : 'Não está na sua estante.'}</div></div></li>
-            </ul>
-            <div className="relation__mine">
-              <div className="relation__row">
-                <span className="muted">Prioridade</span>
-                <div className="chips chips--sm" role="group" aria-label="Prioridade">
-                  {([1, 2, 3] as const).map((p) => <button key={p} className="chip" aria-pressed={mine2.priority === p} onClick={() => actions.setMyGame(gameId, { priority: mine2.priority === p ? undefined : p })}>{p === 1 ? 'Alta' : p === 2 ? 'Média' : 'Baixa'}</button>)}
-                </div>
+          <section className="side-card relation" aria-labelledby="relacao">
+            <h2 id="relacao" className="kicker kicker--now">Sua relação com este jogo</h2>
+            <div className="kv"><span className="muted">Jornada</span>{j ? <Link to={`/jornada/${g.slug}`} className="kv__v">{journeyValue}</Link> : <span className="kv__v">{journeyValue}</span>}</div>
+            <div className="kv"><span className="muted">Coleção</span>{owned.length ? <Link to="/colecao" className="kv__v">{owned.map((c) => `${shortPlatform(c.platform)} · ${kindLabel(c.kind)}`).join('; ')}</Link> : <span className="kv__v">{wished ? 'Nos seus desejos' : 'Não está na estante'}</span>}</div>
+            <div className="kv">
+              <span className="muted">Prioridade</span>
+              <div className="chips chips--sm" role="group" aria-label="Prioridade">
+                {([1, 2, 3] as const).map((p) => <button key={p} className="chip" aria-pressed={mine2.priority === p} onClick={() => actions.setMyGame(gameId, { priority: mine2.priority === p ? undefined : p })}>{p === 1 ? 'Alta' : p === 2 ? 'Média' : 'Baixa'}</button>)}
               </div>
-              {mine2.steamMinutes != null && mine2.steamMinutes > 0 && <div className="relation__row"><span className="muted">Tempo na Steam</span><span>{mine2.steamMinutes < 60 ? `${mine2.steamMinutes} min` : `${(Math.round(mine2.steamMinutes / 6) / 10).toLocaleString('pt-BR')} h`} <span className="prov">Informado pela Steam</span></span></div>}
-              {mine2.estHours != null && <div className="relation__row"><span className="muted">Tempo estimado</span><span>{String(mine2.estHours).replace('.', ',')} h</span></div>}
-              {mine2.genre && <div className="relation__row"><span className="muted">Seu gênero</span><span>{mine2.genre}</span></div>}
-              {(!h || h.state !== 'ativa') && (
-                <button className="btn quiet sm" aria-pressed={!!mine2.wontPlay} onClick={() => actions.toggleWontPlay(gameId)}>{mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar'}</button>
-              )}
             </div>
+            {concluded && <div className="kv"><span className="muted">Zerou</span><span className="mono kv__v kv__date">{whenLabel(concluded.completedAt, concluded.completedPrecision, { short: true })}</span></div>}
+            {mine2.steamMinutes != null && mine2.steamMinutes > 0 && <div className="kv"><span className="muted">Tempo na Steam</span><span className="kv__v">{mine2.steamMinutes < 60 ? `${mine2.steamMinutes} min` : `${(Math.round(mine2.steamMinutes / 6) / 10).toLocaleString('pt-BR')} h`} <span className="prov">Informado pela Steam</span></span></div>}
+            {mine2.estHours != null && <div className="kv"><span className="muted">Tempo estimado</span><span className="kv__v">{String(mine2.estHours).replace('.', ',')} h</span></div>}
+            {mine2.genre && <div className="kv"><span className="muted">Seu gênero</span><span className="kv__v">{mine2.genre}</span></div>}
+            {!j && !mine2.wontPlay && <p className="faint relation__hint">Jogar cria a primeira História da sua Jornada.</p>}
+            {(!h || h.state !== 'ativa') && (
+              <button className="btn quiet sm relation__wont" aria-pressed={!!mine2.wontPlay} onClick={() => actions.toggleWontPlay(gameId)}>{mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar'}</button>
+            )}
             {g.source === 'manual' && <LinkToIgdb game={g} />}
             {g.igdbId && <RadarToggle game={g} on={!!mine2.onRadar} />}
           </section>
           <GameDna game={g} />
           {(g.summary || g.themes?.length || g.modes?.length) && (
-            <section aria-labelledby="sobre">
-              <h2 id="sobre" className="t aside-title">Sobre o jogo</h2>
+            <section className="side-card" aria-labelledby="sobre">
+              <h2 id="sobre" className="kicker">Sobre o jogo</h2>
               {g.summary && <p className="about" lang={showOriginal ? 'en' : 'pt-BR'}>{showOriginal && g.summaryOriginal ? g.summaryOriginal : g.summary}</p>}
               {g.summarySource && (
                 <div className="about__src faint">
@@ -258,16 +283,16 @@ function GameView({ gameId }: { gameId: string }) {
               </dl>
             </section>
           )}
-          <MediaGallery title={g.title} items={media} gameId={g.id} />
+          <GameUniverse game={g} part="aside" />
+          <div className="side-card side-card--media"><MediaGallery title={g.title} items={media} gameId={g.id} /></div>
           {g.releases && g.releases.length > 0 && (
-            <section aria-labelledby="lanc">
-              <h2 id="lanc" className="t aside-title">Lançamentos</h2>
-              <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date}><dt className="muted">{pt(r.platform)}</dt><dd>{r.date}</dd></div>)}</dl>
+            <section className="side-card" aria-labelledby="lanc">
+              <h2 id="lanc" className="kicker">Lançamentos</h2>
+              <dl className="releases">{g.releases.map((r) => <div key={r.platform + r.date} className="kv"><dt className="muted">{pt(r.platform)}</dt><dd className="mono kv__v">{r.date}</dd></div>)}</dl>
             </section>
           )}
         </aside>
       </div>
-      <GameUniverse game={g} />
     </main>
   );
 }
@@ -275,29 +300,30 @@ function GameView({ gameId }: { gameId: string }) {
 function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: Scale; locked: boolean; reveal: () => void; progress: number | null }) {
   const orig = originalLabel(r.rating, scale);
   return (
-    <article className="review">
+    <article className={`review${locked ? ' is-locked' : ''}`}>
       <div className="review__head">
-        <span className="review__avatar" style={{ background: r.author.color }} aria-hidden="true">{r.author.initial}</span>
-        <div className="review__who"><div className="review__name">{r.author.name}</div>{r.context && <div className="muted">{r.context}</div>}</div>
-        <div className="review__score">
-          <div className="t">{formatScore(r.rating.normalized, scale)}<span className="muted">/{scaleMax(scale)}</span></div>
-          {scale === 'FIVE_STAR' && <Stars normalized={r.rating.normalized} size={14} />}
-          <div className="faint review__orig">{orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}</div>
+        <span className="review__avatar" aria-hidden="true">{r.author.initial}</span>
+        <div className="review__who"><div className="review__name">{r.author.name}</div>{r.context && <div className="mono review__ctx">{r.context}</div>}</div>
+        <div className="review__score" title={orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}>
+          <span className="t">{formatScore(r.rating.normalized, scale)}</span>
+          {scale === 'FIVE_STAR' && <Stars normalized={r.rating.normalized} size={12} />}
         </div>
       </div>
       {locked ? (
-        <div className="spoiler">
-          <Icon name="escudo" size={24} />
-          <div><strong>Protegida contra spoiler</strong><div className="muted">Fala do final.{progress != null ? ` Você está em ${progress}% da sua História.` : ''}</div></div>
-          <button className="btn ghost sm" onClick={reveal}>Mostrar mesmo assim</button>
-        </div>
+        <>
+          <p className="review__text review__blur" aria-hidden="true">Este trecho fala do final do jogo e fica escondido até você decidir ver, para não estragar nada da sua História.</p>
+          <div className="spoiler">
+            <span><Icon name="escudo" size={14} /> Fala do final{progress != null ? ` · você está em ${progress}%` : ''}</span>
+            <button className="btn quiet sm" onClick={reveal}>Mostrar</button>
+          </div>
+        </>
       ) : (
         <>
           {r.title && <h3 className="t review__title">{r.title}</h3>}
           <p className="review__text">{r.text}</p>
         </>
       )}
-      {r.useful != null && <div className="faint review__useful">{r.useful} pessoas acharam útil</div>}
+      <div className="faint review__foot">{orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}{r.useful != null ? ` · ${r.useful} pessoas acharam útil` : ''}</div>
     </article>
   );
 }

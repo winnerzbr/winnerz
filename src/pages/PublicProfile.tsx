@@ -3,7 +3,11 @@ import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
 import { linkLabel, profileApi, type PublicPiece, type PublicProfile } from '../data/profileApi';
-import { Shelf, type ShelfItem } from '../components/Showcase';
+import { Cabinet, type ShelfItem } from '../components/Showcase';
+import { MuseumTour } from '../components/MuseumTour';
+import { publicExhibit } from './PublicMuseum';
+import type { Exhibit } from '../lib/museum';
+import type { PublicMuseum } from '../data/profileApi';
 import { PublicCollection } from '../components/PublicCollection';
 import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
@@ -21,11 +25,11 @@ const ago = (iso: string) => {
   return m < 60 ? `há ${m} min` : `há ${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
 };
 
-type Tab = 'geral' | 'jornadas' | 'colecao' | 'museu' | 'notas';
-const TAB_LABEL: Record<Tab, string> = { geral: 'Visão geral', jornadas: 'Jornadas', colecao: 'Coleção', museu: 'Museu e Vitrines', notas: 'Notas' };
+type Tab = 'geral' | 'jornadas' | 'colecao' | 'museu' | 'vitrines' | 'notas';
+const TAB_LABEL: Record<Tab, string> = { geral: 'Visão geral', jornadas: 'Jornadas', colecao: 'Coleção', museu: 'Museu', vitrines: 'Vitrines', notas: 'Notas' };
 
 /** O perfil como os outros veem (Palco): o topo com a arte do jogo que te definiu, abas e a visão geral. Só mostra o que foi liberado. */
-export function PublicProfilePage({ handle }: { handle: string }) {
+export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine?: string }) {
   usePath();
   const mode = useStore((s) => s.mode);
   const me = useStore((s) => s.profile);
@@ -34,7 +38,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
   const [mine, setMine] = useState(false);
   const [asVisitor, setAsVisitor] = useState(false);
   const [error, setError] = useState('');
-  const [tab, setTabState] = useState<Tab>(() => (location.hash.slice(1) as Tab) || 'geral');
+  const [tab, setTabState] = useState<Tab>(() => (vitrine ? 'vitrines' : (location.hash.slice(1) as Tab) || 'geral'));
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
   );
 
   const j = data.jornada, c = data.colecao, n = data.notas;
-  const tabs: Tab[] = ['geral', ...(j ? ['jornadas' as Tab] : []), ...(c ? ['colecao' as Tab] : []), ...(data.vitrines?.length || data.museu ? ['museu' as Tab] : []), ...(n ? ['notas' as Tab] : [])];
+  const tabs: Tab[] = ['geral', ...(j ? ['jornadas' as Tab] : []), ...(c ? ['colecao' as Tab] : []), ...(data.museu ? ['museu' as Tab] : []), ...(data.vitrines?.length ? ['vitrines' as Tab] : []), ...(n ? ['notas' as Tab] : [])];
   const cur: Tab = tabs.includes(tab) ? tab : 'geral';
   const setTab = (t: Tab) => {
     setTabState(t);
@@ -96,7 +100,9 @@ export function PublicProfilePage({ handle }: { handle: string }) {
         </div>
       </nav>
 
-      <div className="page pd-body">
+      {cur === 'museu' && data.museu && <ProfileMuseum data={data} k={key} />}
+
+      <div className={`page pd-body${cur === 'museu' ? ' is-hidden' : ''}`}>
         {cur === 'geral' && <Overview data={data} mine={mine} qs={qs} at={at} goTab={setTab} />}
 
         {cur === 'jornadas' && j && (
@@ -150,29 +156,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
 
         {cur === 'colecao' && c && <PublicCollection handle={data.handle} k={key} c={c} />}
 
-        {cur === 'museu' && (
-          <section className="pp__sec" aria-label="Museu e Vitrines">
-            {data.museu && (
-              <Link to={`${at}/museu${qs}`} className="pp-museum">
-                <span className="kicker">Museu pessoal · {data.museu.rooms} {data.museu.rooms === 1 ? 'sala' : 'salas'}</span>
-                <b className="t">{data.museu.title || `O museu de ${data.name}`}</b>
-                <span className="muted">Entrar no museu →</span>
-              </Link>
-            )}
-            <div className="vlist pp-vitrines">
-              {(data.vitrines ?? []).map((v) => (
-                <article key={v.id} className="vcard">
-                  <div className="vcard__head"><div>
-                    <span className="kicker">{v.items.length} {v.items.length === 1 ? 'peça' : 'peças'}</span>
-                    <h3 className="t vcard__title"><Link to={`${at}/vitrines/${v.id}${qs}`}>{v.title}</Link></h3>
-                    {v.description && <p className="muted vcard__desc">{v.description}</p>}
-                  </div><Link className="btn ghost sm" to={`${at}/vitrines/${v.id}${qs}`}>Abrir a vitrine</Link></div>
-                  <Shelf compact items={v.items.map(pubShelfItem)} />
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
+        {cur === 'vitrines' && !!data.vitrines?.length && <ProfileShowcases data={data} initial={vitrine} />}
 
         {cur === 'notas' && n && <Notes notes={n} />}
       </div>
@@ -442,6 +426,47 @@ function Notes({ notes }: { notes: NonNullable<PublicProfile['notas']> }) {
           ))}
         </ul>
       )}
+    </section>
+  );
+}
+
+/** Aba Museu: a visita guiada começa ali mesmo, sem sair do perfil. */
+function ProfileMuseum({ data, k }: { data: PublicProfile; k: string | null }) {
+  const [m, setM] = useState<PublicMuseum | null | undefined>(undefined);
+  useEffect(() => { setM(undefined); profileApi.museumOf(data.handle, k).then(setM).catch(() => setM(null)); }, [data.handle, k]);
+  if (m === undefined) return <div className="page pd-body"><p className="muted">Abrindo o museu…</p></div>;
+  if (!m) return <div className="page pd-body"><p className="muted">O museu não abriu agora. Tente de novo daqui a pouco.</p></div>;
+  return (
+    <div className="pd-museum">
+      <MuseumTour title={m.title || `O museu de ${m.name}`} intro={m.intro} owner={m.handle}
+        rooms={m.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x) }))} />
+    </div>
+  );
+}
+
+/** Aba Vitrines: uma vitrine por vez, já aberta no expositor; as outras ficam nas abas de cima. */
+function ProfileShowcases({ data, initial }: { data: PublicProfile; initial?: string }) {
+  const list = data.vitrines ?? [];
+  const [id, setId] = useState(() => (list.some((v) => v.id === initial) ? initial! : list[0]?.id));
+  const v = list.find((x) => x.id === id) ?? list[0];
+  if (!v) return null;
+  return (
+    <section className="pd-vits" aria-label="Vitrines">
+      {list.length > 1 && (
+        <div className="pd-vits__pick" role="tablist" aria-label="Escolher a vitrine">
+          {list.map((x) => (
+            <button key={x.id} role="tab" aria-selected={x.id === v.id} onClick={() => setId(x.id)}>
+              <b>{x.title}</b><small>{x.items.length} {x.items.length === 1 ? 'peça' : 'peças'}</small>
+            </button>
+          ))}
+        </div>
+      )}
+      <header className="pd-vits__head" key={`h${v.id}`}>
+        <span className="kicker">Vitrine · {v.items.length} {v.items.length === 1 ? 'peça' : 'peças'}</span>
+        <h2 className="t pd-vits__title">{v.title}</h2>
+        {v.description && <p className="muted pd-vits__desc">{v.description}</p>}
+      </header>
+      <Cabinet key={v.id} items={v.items.map(pubShelfItem)} owner={data.handle} />
     </section>
   );
 }

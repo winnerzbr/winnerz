@@ -8,7 +8,7 @@ import { shortPlatform } from '../lib/platforms';
 
 const day = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' });
 
-function exhibit(p: PublicMuseumPiece, k: number): Exhibit | null {
+export function publicExhibit(p: PublicMuseumPiece, k: number): Exhibit | null {
   const caption = p.caption || undefined;
   switch (p.t) {
     case 'c': return { key: `c${k}`, t: 'c', title: p.title, sub: [shortPlatform(p.platform), p.year].filter(Boolean).join(' · '), cover: p.cover ?? '', platform: p.platform, slug: p.slug, caption };
@@ -44,7 +44,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
     return (
       <main className="pmuseum-tour">
         <MuseumTour title={data.title || `O museu de ${data.name}`} intro={data.intro} owner={data.handle} back={back} onList={() => { setList(true); scrollTo(0, 0); }}
-          rooms={data.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(exhibit).filter((x): x is Exhibit => !!x) }))} />
+          rooms={data.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x) }))} />
       </main>
     );
   }
@@ -57,7 +57,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
         {data.intro && <p className="museum__intro">{data.intro}</p>}
       </header>
       {data.rooms.map((r, i) => {
-        const ex = r.pieces.map(exhibit).filter((x): x is Exhibit => !!x);
+        const ex = r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x);
         return (
           <RoomView key={r.id} index={i} title={<h2 className="t mroom__title">{r.title}</h2>} text={r.text ? <p className="mroom__text">{r.text}</p> : null}
             exhibits={ex.length ? ex.map((x) => <ExhibitView key={x.key} ex={x} />) : <p className="muted mroom__empty">Sala em montagem.</p>} />

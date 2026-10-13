@@ -35,6 +35,7 @@ import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
 import { PublicProfilePage } from './pages/PublicProfile';
 import { DeletionBanner } from './components/AccountData';
+import { NickGate } from './components/NickGate';
 import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
@@ -113,7 +114,7 @@ export function App() {
   }
 
   return (
-    <>
+    <NickGate>
       {mode === 'demo' && (
         <div className="demo-bar">
           Modo demonstração: seus registros ficam só neste navegador. <button onClick={resetDemo}>Recomeçar a demonstração</button>
@@ -137,6 +138,6 @@ export function App() {
       <PastSheetHost />
       <MiniCelebrationHost />
       <CommandPalette />
-    </>
+    </NickGate>
   );
 }

@@ -27,18 +27,21 @@ export type PublicProfile = {
   notas?: { title: string; slug: string; cover: string | null; normalized: number; originalScale: 'TEN_POINT' | 'FIVE_STAR'; originalValue: number; reviewTitle: string; text: string; spoiler: boolean; at: string }[];
 };
 
-export const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
+/** O @: 3 a 24 letras sem acento, números ou _. Guarda as maiúsculas escolhidas; é único sem diferenciá-las. */
+export const HANDLE_RE = /^[A-Za-z0-9_]{3,24}$/;
 export const visOf = (p: MyProfile | null, k: Pillar): Visibility => p?.visibility?.[k] ?? 'privado';
 
 const MSG: Record<string, string> = {
   handle_taken: 'Esse endereço já tem dono. Tente outro.',
-  handle_format: 'Use de 3 a 24 letras minúsculas, números ou _ (sem espaço nem acento).',
+  handle_format: 'Use de 3 a 24 letras, números ou _ (sem espaço nem acento).',
+  handle_required: 'Escolha o seu @ para continuar.',
   handle_reserved: 'Esse endereço é reservado do site. Tente outro.',
 };
 function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
   const key = Object.keys(MSG).find((k) => m.includes(k));
   if (key) return new Error(MSG[key]);
+  if (/set_my_handle|handle_available/i.test(m)) return new Error('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).');
   if (/my_profile|set_my_profile|public_profile|rotate_share_key|function|schema cache/i.test(m)) return new Error('Para usar o perfil, rode a migração 0011 no Supabase (SQL Editor → colar → Run).');
   return new Error(m || 'Não deu certo. Tente de novo.');
 }
@@ -54,7 +57,7 @@ function demoSet(p: MyProfile) { try { localStorage.setItem(KEY, JSON.stringify(
 
 function demoPublic(handle: string, key?: string | null): PublicProfile | null {
   const me = demoGet();
-  if (!me.handle || me.handle !== handle.toLowerCase()) return null;
+  if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return null;
   const s = getState();
   const show = (k: Pillar) => visOf(me, k) === 'publico' || (visOf(me, k) === 'link' && key === me.shareKey);
   if (!show('jornada') && !show('colecao') && !show('notas')) return null;
@@ -100,11 +103,23 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
 export const profileApi = {
   async mine(): Promise<MyProfile> { return supa() ? rpc<MyProfile>('my_profile') : demoGet(); },
   async save(handle: string, bio: string, visibility: Partial<Record<Pillar, Visibility>>): Promise<MyProfile> {
-    const h = handle.trim().toLowerCase();
-    if (h && !HANDLE_RE.test(h)) throw new Error(MSG.handle_format);
+    const h = handle.trim();
+    if (!h) throw new Error(MSG.handle_required);
+    if (!HANDLE_RE.test(h)) throw new Error(MSG.handle_format);
     if (supa()) return rpc<MyProfile>('set_my_profile', { p_handle: h || null, p_bio: bio, p_visibility: visibility });
     const next = { ...demoGet(), handle: h || null, bio: bio.trim().slice(0, 160) || null, visibility };
     demoSet(next); return next;
+  },
+  /** Primeiro acesso: só o @. */
+  async setHandle(handle: string): Promise<MyProfile> {
+    const h = handle.trim();
+    if (!HANDLE_RE.test(h)) throw new Error(MSG.handle_format);
+    if (supa()) return rpc<MyProfile>('set_my_handle', { p_handle: h });
+    const next = { ...demoGet(), handle: h }; demoSet(next); return next;
+  },
+  async available(handle: string): Promise<boolean> {
+    if (!supa()) return true;
+    return rpc<boolean>('handle_available', { p_handle: handle.trim() });
   },
   async rotateKey(): Promise<MyProfile> {
     if (supa()) return rpc<MyProfile>('rotate_share_key');
@@ -120,5 +135,5 @@ export const profileApi = {
 export function profileUrl(p: MyProfile, withKey = true): string | null {
   if (!p.handle) return null;
   const needsKey = (['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(p, k) === 'link');
-  return `${location.origin}/@${p.handle}${withKey && needsKey ? `?k=${p.shareKey}` : ''}`;
+  return `${location.origin}/@${p.handle.toLowerCase()}${withKey && needsKey ? `?k=${p.shareKey}` : ''}`;
 }

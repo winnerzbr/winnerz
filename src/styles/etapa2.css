@@ -2599,3 +2599,18 @@ a.gev { color: var(--ink); }
   .pp-grid--dense { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 }
 .pp-plats .chip { display: inline-flex; align-items: center; gap: 2px; }
+
+/* Primeiro acesso: escolher o @ */
+.nick { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 32px 16px; overflow: hidden; background: var(--bg); }
+.nick__glow { position: absolute; left: 50%; top: 62%; width: 900px; height: 340px; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(255, 178, 91, .14), transparent); pointer-events: none; }
+.nick__box { position: relative; width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.nick__logo { color: var(--brand); margin-bottom: 12px; }
+.nick__title { font-size: clamp(40px, 7vw, 64px); line-height: .9; }
+.nick__lead { margin: 0; color: var(--ink-2); line-height: 1.55; }
+.nick__field { position: relative; width: 100%; margin-top: 8px; }
+.nick__at { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); font: 600 22px var(--font-mono); color: var(--now); }
+.nick__field .field { width: 100%; min-height: 60px; padding-left: 48px; font-size: 22px; font-weight: 600; border-radius: 999px; box-sizing: border-box; }
+.nick__hint { margin: 0; min-height: 20px; font-size: 14px; color: var(--muted); }
+.nick__hint.is-ok { color: #8fd19e; }
+.nick__hint.is-bad { color: #e08a7a; }
+.nick__box .btn.lg { width: 100%; margin-top: 4px; }

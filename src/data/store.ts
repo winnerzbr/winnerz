@@ -16,6 +16,7 @@ export type ImportPayload = {
 
 export type Action =
   | { type: 'prefs'; prefs: Partial<Prefs> }
+  | { type: 'profile.name'; name: string }
   | { type: 'favorite'; gameId: ID; value: boolean }
   | { type: 'wish'; gameId: ID; value: boolean }
   | { type: 'journey.create'; journey: Journey; history: History; event: TimelineEvent }
@@ -90,6 +91,8 @@ export async function initStore(a: Adapter) {
 
 function reduce(s: State, a: Action): State {
   switch (a.type) {
+    case 'profile.name':
+      return s.profile ? { ...s, profile: { ...s.profile, name: a.name, initial: a.name.slice(0, 1).toUpperCase() } } : s;
     case 'prefs':
       return { ...s, prefs: { ...s.prefs, ...a.prefs } };
     case 'favorite':
@@ -392,6 +395,8 @@ const STATE_EVENT: Record<string, { title: string; text: (note?: string) => stri
 
 export const actions = {
   setPrefs(prefs: Partial<Prefs>) { dispatch({ type: 'prefs', prefs }); },
+  /** O nome no site é o @ escolhido (já gravado no banco pela função do perfil). */
+  setProfileName(name: string) { dispatch({ type: 'profile.name', name }); },
 
   toggleFavorite(gameId: ID) {
     const value = !state.favorites.includes(gameId);

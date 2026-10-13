@@ -23,7 +23,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
   useEffect(() => {
     setData(undefined); setError('');
     profileApi.publicOf(handle, key).then(setData).catch((e) => { setError(e instanceof Error ? e.message : 'Não consegui carregar.'); setData(null); });
-    if (mode === 'demo' || me) profileApi.mine().then((p) => setMine(!!p?.handle && p.handle === handle.toLowerCase())).catch(() => setMine(false));
+    if (mode === 'demo' || me) profileApi.mine().then((p) => setMine(!!p?.handle && p.handle.toLowerCase() === handle.toLowerCase())).catch(() => setMine(false));
   }, [handle, key, mode, me]);
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export function PublicProfilePage({ handle }: { handle: string }) {
         <div className="page pph__inner">
           <span className="pph__avatar" aria-hidden="true">{data.name.slice(0, 1).toUpperCase()}</span>
           <div className="pph__text">
-            <span className="kicker">@{data.handle}</span>
+            <span className="kicker">Perfil no WinnerZ · @{data.handle}</span>
             <h1 className="t pph__name">{data.name}</h1>
             {data.bio && <p className="pph__bio">{data.bio}</p>}
             <p className="pph__since">No WinnerZ desde {since(data.since)}</p>

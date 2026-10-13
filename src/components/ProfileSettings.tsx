@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
-import { useStore } from '../data/store';
+import { actions, useStore } from '../data/store';
 import { HANDLE_RE, PILLARS, profileApi, profileUrl, visOf, type MyProfile, type Pillar, type Visibility } from '../data/profileApi';
 
 const OPTS: { v: Visibility; label: string }[] = [
@@ -30,20 +30,20 @@ export function ProfileSettings() {
 
   if (mode === 'supabase' && !profile) return <p className="muted prefs__p">Entre na sua conta para ter um perfil.</p>;
 
-  const h = handle.trim().toLowerCase();
+  const h = handle.trim();
   const badHandle = !!h && !HANDLE_RE.test(h);
   const dirty = !!mine && (h !== (mine.handle ?? '') || bio.trim() !== (mine.bio ?? '') || PILLARS.some((p) => (vis[p.key] ?? 'privado') !== visOf(mine, p.key)));
-  const anyOpen = PILLARS.some((p) => (vis[p.key] ?? 'privado') !== 'privado');
   const savedOpen = !!mine && PILLARS.some((p) => visOf(mine, p.key) !== 'privado');
   const usesLink = !!mine && PILLARS.some((p) => visOf(mine, p.key) === 'link');
   const url = mine && savedOpen ? profileUrl(mine) : null;
 
   const save = async () => {
-    if (anyOpen && !h) { setMsg({ err: 'Escolha um endereço para o seu perfil antes de abrir algum pilar.' }); return; }
+    if (!h) { setMsg({ err: 'Escolha o seu @.' }); return; }
     setBusy(true); setMsg({});
     try {
       const p = await profileApi.save(h, bio, Object.fromEntries(PILLARS.map((x) => [x.key, vis[x.key] ?? 'privado'])));
       setMine(p); setHandle(p.handle ?? ''); setBio(p.bio ?? ''); setVis(p.visibility ?? {});
+      if (p.handle) actions.setProfileName(p.handle);
       setMsg({ ok: 'Perfil gravado.' });
     } catch (e) { setMsg({ err: e instanceof Error ? e.message : 'Não deu certo.' }); }
     setBusy(false);
@@ -61,9 +61,10 @@ export function ProfileSettings() {
       <p className="muted prefs__p">Tudo começa só seu. Escolha, pilar por pilar, quem pode ver. Recados, fotos, sessões, preços e com quem você jogou nunca aparecem no perfil.</p>
 
       <label className="pfs__field">
-        <span>Endereço do perfil</span>
-        <span className="pfs__handle"><span className="pfs__prefix">winnerz.com.br/@</span><input className="field" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase().replace(/\s/g, ''))} placeholder="seunome" maxLength={24} autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-invalid={badHandle} /></span>
-        {badHandle && <small className="pfs__err">De 3 a 24 letras minúsculas, números ou _.</small>}
+        <span>Seu @</span>
+        <span className="pfs__handle"><span className="pfs__prefix">@</span><input className="field" value={handle} onChange={(e) => setHandle(e.target.value.replace(/\s/g, ''))} placeholder="SeuNick" maxLength={24} autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-invalid={badHandle} /></span>
+        {badHandle ? <small className="pfs__err">De 3 a 24 letras, números ou _ (sem espaço nem acento).</small>
+          : <small className="faint">É o seu nome no site inteiro. Seu perfil fica em winnerz.com.br/@{(h || 'seunick').toLowerCase()}.</small>}
       </label>
 
       <label className="pfs__field">

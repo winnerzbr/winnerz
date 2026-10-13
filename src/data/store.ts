@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware } from './types';
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
 
@@ -47,6 +47,12 @@ export type Action =
   | { type: 'copy.add'; copy: Copy }
   | { type: 'copy.update'; copy: Copy }
   | { type: 'copy.delete'; copyId: ID }
+  | { type: 'hardware.add'; hw: Hardware }
+  | { type: 'hardware.update'; hw: Hardware }
+  | { type: 'hardware.delete'; id: ID }
+  | { type: 'trash.restore'; what: 'copy' | 'hardware'; id: ID }
+  | { type: 'trash.purge'; what: 'copy' | 'hardware'; id: ID }
+  | { type: 'trash.empty' }
   | { type: 'mygame.set'; mine: MyGame }
   | { type: 'import.bulk'; data: ImportPayload }
   | { type: 'reviews.merge'; gameId: ID; reviews: Review[]; stats?: State['reviewStats'][string] };
@@ -68,6 +74,7 @@ export function emptyState(): State {
     prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas' },
     games: {}, copies: [], wishes: [], favorites: [], journeys: [], histories: [],
     sessions: [], events: [], reviews: [], reviewStats: {}, myGames: {}, schemaV4: false,
+    hardware: [], trashCopies: [], trashHardware: [],
   };
 }
 
@@ -232,8 +239,36 @@ function reduce(s: State, a: Action): State {
       return a.pairs.reduce((acc, p) => reduce(acc, { type: 'game.relink', fromId: p.fromId, to: p.to }), s);
     case 'copy.update':
       return { ...s, copies: s.copies.map((c) => (c.id === a.copy.id ? a.copy : c)) };
-    case 'copy.delete':
-      return { ...s, copies: s.copies.filter((c) => c.id !== a.copyId) };
+    case 'copy.delete': {
+      // Com a lixeira (migração 0014, ou demonstração), o exemplar fica 30 dias recuperável.
+      const c = s.copies.find((x) => x.id === a.copyId);
+      const trash = c && s.schemaV14 ? [{ ...c, deletedAt: new Date().toISOString() }, ...(s.trashCopies ?? [])] : s.trashCopies ?? [];
+      return { ...s, copies: s.copies.filter((x) => x.id !== a.copyId), trashCopies: trash };
+    }
+    case 'hardware.add':
+      return { ...s, hardware: [...(s.hardware ?? []), a.hw] };
+    case 'hardware.update':
+      return { ...s, hardware: (s.hardware ?? []).map((h) => (h.id === a.hw.id ? a.hw : h)) };
+    case 'hardware.delete': {
+      const h = (s.hardware ?? []).find((x) => x.id === a.id);
+      return { ...s, hardware: (s.hardware ?? []).filter((x) => x.id !== a.id), trashHardware: h ? [{ ...h, deletedAt: new Date().toISOString() }, ...(s.trashHardware ?? [])] : s.trashHardware ?? [] };
+    }
+    case 'trash.restore': {
+      if (a.what === 'copy') {
+        const t = (s.trashCopies ?? []).find((x) => x.id === a.id);
+        if (!t) return s;
+        const { deletedAt: _d, ...c } = t;
+        return { ...s, copies: [...s.copies, c], trashCopies: s.trashCopies.filter((x) => x.id !== a.id) };
+      }
+      const t = (s.trashHardware ?? []).find((x) => x.id === a.id);
+      if (!t) return s;
+      const { deletedAt: _d, ...h } = t;
+      return { ...s, hardware: [...(s.hardware ?? []), h], trashHardware: s.trashHardware.filter((x) => x.id !== a.id) };
+    }
+    case 'trash.purge':
+      return a.what === 'copy' ? { ...s, trashCopies: (s.trashCopies ?? []).filter((x) => x.id !== a.id) } : { ...s, trashHardware: (s.trashHardware ?? []).filter((x) => x.id !== a.id) };
+    case 'trash.empty':
+      return { ...s, trashCopies: [], trashHardware: [] };
     case 'mygame.set':
       return { ...s, myGames: { ...s.myGames, [a.mine.gameId]: a.mine } };
     case 'import.bulk': {
@@ -668,6 +703,17 @@ export const actions = {
     if (c) { track('colecao.editar-copia'); dispatch({ type: 'copy.update', copy: { ...c, ...patch } }); }
   },
   deleteCopy(copyId: ID) { dispatch({ type: 'copy.delete', copyId }); },
+  addHardware(hw: Omit<Hardware, 'id' | 'createdAt'>) {
+    const full: Hardware = { ...hw, id: uid(), createdAt: new Date().toISOString() };
+    track('colecao.console');
+    dispatch({ type: 'hardware.add', hw: full });
+    return full;
+  },
+  updateHardware(hw: Hardware) { dispatch({ type: 'hardware.update', hw }); },
+  deleteHardware(id: ID) { dispatch({ type: 'hardware.delete', id }); },
+  restoreFromTrash(what: 'copy' | 'hardware', id: ID) { dispatch({ type: 'trash.restore', what, id }); },
+  purgeFromTrash(what: 'copy' | 'hardware', id: ID) { dispatch({ type: 'trash.purge', what, id }); },
+  emptyTrash() { dispatch({ type: 'trash.empty' }); },
 
   setMyGame(gameId: ID, patch: Partial<Omit<MyGame, 'gameId'>>) {
     dispatch({ type: 'mygame.set', mine: { ...myGame(state, gameId), ...patch, gameId } });

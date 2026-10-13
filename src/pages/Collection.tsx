@@ -12,6 +12,7 @@ import { PastButton } from '../components/PastPlay';
 import { STATE_LABEL } from '../components/JourneyManage';
 import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 import { titleKey } from '../lib/importer';
+import { collectionCsv, download } from '../lib/exportData';
 
 type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial';
 type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
@@ -38,7 +39,7 @@ function situation(s: State, gameId: string) {
 export function Collection() {
   const s = useStore((x) => x);
   const [q, setQ] = useState('');
-  const [platform, setPlatform] = useState('');
+  const [platform, setPlatform] = useState(() => new URLSearchParams(location.search).get('plataforma') ?? '');
   const [kind, setKind] = useState<'tudo' | CopyKind>('tudo');
   const [status, setStatus] = useState<Status>('tudo');
   const [view, setView] = useState(loadView);
@@ -132,6 +133,7 @@ export function Collection() {
         <div className="page-head__side">
           <div className="collection__tools">
             <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
+            <button className="btn ghost" onClick={() => download(new Blob([collectionCsv(s)], { type: 'text/csv;charset=utf-8' }), `winnerz-colecao-${new Date().toISOString().slice(0, 10)}.csv`)} disabled={!s.copies.length}>Exportar planilha</button>
             <button className="btn primary" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Adicionar jogo</button>
           </div>
           <SubNav pillar="colecao" />
@@ -213,6 +215,7 @@ export function Collection() {
         </div>
       )}
       {limit < list.length && <p className="faint cgrid__more">Mostrando {limit} de {list.length}. Role para ver mais.</p>}
+      {(s.trashCopies?.length ?? 0) + (s.trashHardware?.length ?? 0) > 0 && <p className="collection__trash"><Link to="/colecao/lixeira">Lixeira ({(s.trashCopies?.length ?? 0) + (s.trashHardware?.length ?? 0)})</Link> · o que você tirou da coleção nos últimos 30 dias</p>}
       </div>
       </div>
 
@@ -312,6 +315,7 @@ const CONDITIONS = ['Lacrado', 'Novo', 'Muito bom', 'Bom', 'Regular', 'Ruim'];
 
 function CopyForm({ copy, onDone, onDeleted }: { copy: Copy; onDone: () => void; onDeleted: () => void }) {
   const g = useStore((s) => s.games[copy.gameId]);
+  const trash = useStore((s) => s.mode === 'demo' || !!s.schemaV14);
   const [f, setF] = useState({
     platform: copy.platform, kind: copy.kind, region: copy.region ?? '', edition: copy.edition ?? '', condition: copy.condition ?? '',
     boxCondition: copy.boxCondition ?? '', items: copy.items ?? '', purchasedOn: copy.purchasedOn ?? '', purchasePlace: copy.purchasePlace ?? '',
@@ -356,8 +360,8 @@ function CopyForm({ copy, onDone, onDeleted }: { copy: Copy; onDone: () => void;
         <button type="button" className="btn quiet" onClick={onDone}>Cancelar</button>
       </div>
       <div className="sheet__danger">
-        <ConfirmButton label="Tirar este exemplar da coleção" confirm="Toque de novo para tirar" onConfirm={() => { actions.deleteCopy(copy.id); onDeleted(); }} />
-        <p className="faint">A Jornada e as notas do jogo continuam.</p>
+        <ConfirmButton label={trash ? 'Mover para a lixeira' : 'Tirar este exemplar da coleção'} confirm={trash ? 'Toque de novo para mover' : 'Toque de novo para tirar'} onConfirm={() => { actions.deleteCopy(copy.id); onDeleted(); }} />
+        <p className="faint">{trash ? 'Fica 30 dias na lixeira e volta com um toque. ' : ''}A Jornada e as notas do jogo continuam.</p>
       </div>
     </form>
   );

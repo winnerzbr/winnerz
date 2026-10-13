@@ -4,6 +4,7 @@ import { Link, usePath } from '../lib/router';
 const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]> = {
   colecao: [
     { to: '/colecao', label: 'Estante' },
+    { to: '/colecao/consoles', label: 'Consoles' },
     { to: '/colecao/desejos', label: 'Desejos' },
     { to: '/colecao/estatisticas', label: 'Estatísticas' },
     { to: '/colecao/importar', label: 'Importar', also: ['/colecao/steam'] },

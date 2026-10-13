@@ -63,6 +63,31 @@ export interface Copy {
   priceNow?: number;
 }
 
+/** Consoles, portáteis e acessórios: ficha própria, separada dos jogos. */
+export type HardwareKind = 'console' | 'portatil' | 'acessorio';
+export interface Hardware {
+  id: ID;
+  kind: HardwareKind;
+  name: string;
+  platform?: string;
+  model?: string;
+  edition?: string;
+  region?: string;
+  condition?: string;
+  items?: string;
+  serial?: string;
+  origin?: string;
+  /** AAAA-MM-DD */
+  purchasedOn?: string;
+  purchasePlace?: string;
+  pricePaid?: number;
+  note?: string;
+  createdAt?: string;
+}
+
+/** Na lixeira: some da coleção e volta com um toque por 30 dias. */
+export type Trashed<T> = T & { deletedAt: string };
+
 /** Seus dados sobre um jogo, com ou sem cópia: prioridade, tempo estimado, "não vou jogar". */
 export interface MyGame {
   gameId: ID;
@@ -223,6 +248,13 @@ export interface State {
   reviewStats: Record<ID, { count: number; avg: number; dist10: number[] }>;
   focusJourneyId?: ID;
   myGames: Record<ID, MyGame>;
+  /** Consoles, portáteis e acessórios. */
+  hardware: Hardware[];
+  /** Lixeira da coleção (30 dias). */
+  trashCopies: Trashed<Copy>[];
+  trashHardware: Trashed<Hardware>[];
+  /** A migração 0014 (consoles e lixeira) já rodou? */
+  schemaV14?: boolean;
   /** A migração 0004 já rodou? (no modo demonstração, sempre sim) */
   schemaV4: boolean;
   /** A migração 0006 (Etapa 3 e Awards) já rodou? */

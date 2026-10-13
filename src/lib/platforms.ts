@@ -45,6 +45,9 @@ for (const [canon, short, aliases] of CANON) {
 }
 
 /** "PS2" → "PlayStation 2". Desconhecido volta como veio. */
+/** Nomes canônicos, na ordem da lista (do mais novo ao mais antigo, por família). */
+export const PLATFORM_NAMES: string[] = CANON.map((c) => c[0]);
+
 export function canonicalPlatform(name: string): string {
   const k = name.trim().toLowerCase().replace(/\s+/g, ' ');
   return BY_ALIAS.get(k) ?? name.trim();

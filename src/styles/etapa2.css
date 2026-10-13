@@ -2690,3 +2690,38 @@ a.gev { color: var(--ink); }
   .pp-show__card { min-height: 200px; }
   .pp-show__text b.t { font-size: 26px; }
 }
+
+/* Etapa 5 · 4: consoles e lixeira */
+.hwsec { margin-top: 36px; }
+.hwsec__h { display: flex; gap: 10px; align-items: baseline; margin: 0 0 14px; }
+.hwsec__h span { color: var(--faint); }
+.hwgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 14px; }
+.hwcard { --h: 32; position: relative; width: 100%; min-height: 176px; display: flex; flex-direction: column; gap: 8px; padding: 18px; border-radius: 16px; border: 0; cursor: pointer; text-align: left; color: var(--ink); font-family: var(--font-ui); overflow: hidden;
+  background: radial-gradient(120% 90% at 100% 0%, hsla(var(--h), 60%, 50%, .16), transparent 60%), var(--surface); box-shadow: inset 0 0 0 1px var(--line); transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), box-shadow .2s; }
+.hwcard:hover { transform: translateY(-3px); box-shadow: inset 0 0 0 1px var(--line-2), 0 18px 40px var(--shadow); }
+.hwcard__top { display: flex; justify-content: space-between; align-items: center; }
+.hwcard__icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: hsl(var(--h), 70%, 72%); box-shadow: inset 0 0 0 1.5px hsla(var(--h), 60%, 70%, .4); }
+.hwcard__plat { font: 600 12px var(--font-mono); letter-spacing: .1em; color: hsl(var(--h), 60%, 75%); }
+.hwcard__name { font-size: 22px; line-height: .95; margin-top: 10px; }
+.hwcard__meta { font-size: 13px; color: var(--muted); }
+.hwcard__foot { margin-top: auto; display: flex; flex-wrap: wrap; gap: 6px 12px; font: 400 11px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+.hwcard__cond { color: var(--ink-2); }
+.hw-empty { width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 28px; padding: 26px; border-radius: 16px; border: 1.5px dashed var(--line-2); background: none; color: var(--ink); cursor: pointer; text-align: left; font-family: var(--font-ui); }
+.hw-empty span { color: var(--muted); font-size: 14px; }
+.hwdl { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px 24px; margin: 6px 0 0; }
+.hwdl dt { font: 400 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.hwdl dd { margin: 4px 0 0; }
+.hwnote { margin: 8px 0 0; padding: 14px 16px; border-radius: 12px; background: var(--surface-2); color: var(--ink-2); line-height: 1.5; }
+.hwform__kind { display: flex; margin-bottom: 4px; }
+.hwform__kind button { flex: 1; }
+.collection__trash { margin-top: 28px; font-size: 13px; color: var(--faint); }
+.trash__list { list-style: none; margin: 24px 0 0; padding: 0; }
+.trash__row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.trash__cover { width: 44px; height: 58px; flex: none; border-radius: 6px; overflow: hidden; opacity: .7; filter: grayscale(.6); }
+.trash__cover img, .trash__cover .cover-art { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trash__cover--hw { display: flex; align-items: center; justify-content: center; background: var(--surface-2); font: 600 11px var(--font-mono); color: var(--muted); }
+.trash__text { flex: 1 1 200px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.trash__left { min-width: 70px; }
+.trash__acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.trash__empty { margin-top: 24px; }
+@media (max-width: 600px) { .trash__acts { width: 100%; padding-left: 62px; } }

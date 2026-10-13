@@ -36,7 +36,15 @@ export function demoState(): State {
     prefs: { theme: 'escuro', black: 70, scale: 'TEN_POINT', motion: 'completas', focusIds: ['j-tlou2', 'j-astro'] },
     schemaV4: true,
     schemaV6: true,
+    schemaV14: true,
     isAdmin: true,
+    hardware: [
+      { id: 'hw1', kind: 'console', name: 'PlayStation 5', platform: 'PlayStation 5', model: 'CFI-1214A', edition: 'Com leitor de disco', condition: 'Muito bom', items: 'Console, 1 controle, cabos', purchasedOn: '2021-11-20', origin: 'Comprei' },
+      { id: 'hw2', kind: 'console', name: 'PlayStation 2', platform: 'PlayStation 2', model: 'SCPH-39001', edition: 'Fat', condition: 'Bom', items: 'Console, 2 controles, memory card 8 MB', origin: 'Ganhei', note: 'O primeiro videogame da casa.' },
+      { id: 'hw3', kind: 'acessorio', name: 'DualSense Edge', platform: 'PlayStation 5', condition: 'Novo', items: 'Estojo, cabo trançado' },
+    ],
+    trashCopies: [],
+    trashHardware: [],
     myGames: { infamous: { gameId: 'infamous', priority: 1, estHours: 17 }, kz2: { gameId: 'kz2', priority: 2, estHours: 9 }, dderby: { gameId: 'dderby', wontPlay: true } },
     games: Object.fromEntries(games.map((g) => [g.id, g])),
     copies: [

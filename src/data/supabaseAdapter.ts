@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Adapter, Action } from './store';
 import { emptyState } from './store';
-import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame } from './types';
+import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame, Hardware } from './types';
 import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
 
 /**
@@ -32,6 +32,7 @@ const BUCKET = 'momentos';
 const SIGNED_FOR = 60 * 60 * 24 * 7; // links das fotos valem 7 dias
 let storageReady = false;
 /** A migração 0004 (Etapa 2) já rodou? Sem ela, as colunas novas não são enviadas. */
+let v14 = false;
 let v4 = false;
 /** A migração 0006 já rodou? */
 let v6 = false;
@@ -119,6 +120,17 @@ const copyFromRow = (r: any): Copy => ({
   region: r.region ?? undefined, edition: r.edition ?? undefined, boxCondition: r.box_condition ?? undefined,
   purchasedOn: r.purchased_on ?? undefined, purchasePlace: r.purchase_place ?? undefined,
   pricePaid: r.price_paid != null ? Number(r.price_paid) : undefined, priceNow: r.price_now != null ? Number(r.price_now) : undefined,
+});
+const hardwareFromRow = (r: any): Hardware => ({
+  id: r.id, kind: r.kind, name: r.name, platform: r.platform ?? undefined, model: r.model ?? undefined, edition: r.edition ?? undefined,
+  region: r.region ?? undefined, condition: r.condition ?? undefined, items: r.items ?? undefined, serial: r.serial ?? undefined,
+  origin: r.origin ?? undefined, purchasedOn: r.purchased_on ?? undefined, purchasePlace: r.purchase_place ?? undefined,
+  pricePaid: r.price_paid != null ? Number(r.price_paid) : undefined, note: r.note ?? undefined, createdAt: r.created_at ?? undefined,
+});
+const hardwareToRow = (h: Hardware) => ({
+  id: h.id, kind: h.kind, name: h.name, platform: h.platform ?? null, model: h.model ?? null, edition: h.edition ?? null, region: h.region ?? null,
+  condition: h.condition ?? null, items: h.items ?? null, serial: h.serial ?? null, origin: h.origin ?? null, purchased_on: h.purchasedOn ?? null,
+  purchase_place: h.purchasePlace ?? null, price_paid: h.pricePaid ?? null, note: h.note ?? null,
 });
 const myGameFromRow = (r: any): MyGame => ({
   gameId: r.game_id, priority: r.priority ?? undefined, estHours: r.est_hours != null ? Number(r.est_hours) : undefined,
@@ -246,9 +258,15 @@ export const supabaseAdapter: Adapter = {
     v4 = !probe.error;
     v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
     v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
+    v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
+    if (v14) {
+      // Lixeira: o que passou de 30 dias sai de vez.
+      const old = new Date(Date.now() - 30 * 86400000).toISOString();
+      await Promise.all([sb.from('copies').delete().lt('deleted_at', old), sb.from('hardware').delete().lt('deleted_at', old)]).catch(() => null);
+    }
     const [profile, copies, wishes, favs, journeys, histories, sessions, events, myReviews, mine] = await Promise.all([
       loadProfile(sb, user.id),
-      selectAll(() => sb.from('copies').select('*').order('created_at').order('id')),
+      selectAll(() => (v14 ? sb.from('copies').select('*').is('deleted_at', null) : sb.from('copies').select('*')).order('created_at').order('id')),
       selectAll(() => sb.from('wishes').select('*').order('created_at').order('game_id')),
       selectAll(() => sb.from('favorites').select('*').order('created_at').order('game_id')),
       selectAll(() => sb.from('journeys').select('*').order('created_at').order('id')),
@@ -259,8 +277,15 @@ export const supabaseAdapter: Adapter = {
       v4 ? selectAll(() => sb.from('my_games').select('*').order('game_id')) : Promise.resolve({ data: [], error: null }),
     ]);
 
+    const [trashCopies, hardware] = v14
+      ? await Promise.all([
+        selectAll(() => sb.from('copies').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }).order('id')),
+        selectAll(() => sb.from('hardware').select('*').order('created_at').order('id')),
+      ])
+      : [{ data: [] as any[], error: null }, { data: [] as any[], error: null }];
+
     const gameIds = new Set<string>();
-    for (const r of [...copies.data, ...wishes.data, ...favs.data, ...journeys.data, ...myReviews.data, ...mine.data]) gameIds.add(r.game_id);
+    for (const r of [...copies.data, ...trashCopies.data, ...wishes.data, ...favs.data, ...journeys.data, ...myReviews.data, ...mine.data]) gameIds.add(r.game_id);
     // Muitos ids não cabem num endereço só: busca em grupos.
     const ids = [...gameIds];
     const games: any[] = [];
@@ -286,6 +311,10 @@ export const supabaseAdapter: Adapter = {
       myGames: Object.fromEntries(mine.data.map((m: any) => [m.game_id, myGameFromRow(m)])),
       games: Object.fromEntries((games as any[]).map((g) => [g.id, gameFromRow(g)])),
       copies: (copies.data ?? []).map(copyFromRow),
+      trashCopies: (trashCopies.data ?? []).map((r: any) => ({ ...copyFromRow(r), deletedAt: r.deleted_at })),
+      hardware: (hardware.data ?? []).filter((r: any) => !r.deleted_at).map(hardwareFromRow),
+      trashHardware: (hardware.data ?? []).filter((r: any) => r.deleted_at).map((r: any) => ({ ...hardwareFromRow(r), deletedAt: r.deleted_at })),
+      schemaV14: v14,
       wishes: (wishes.data ?? []).map((w: any) => ({ gameId: w.game_id, note: w.note ?? undefined })),
       favorites: (favs.data ?? []).map((f: any) => f.game_id),
       journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined, createdAt: j.created_at ?? undefined, shared: !!j.shared })),
@@ -367,7 +396,27 @@ export const supabaseAdapter: Adapter = {
         check(await sb.from('copies').update(copyToRow(a.copy)).eq('id', a.copy.id));
         return;
       case 'copy.delete':
-        check(await sb.from('copies').delete().eq('id', a.copyId));
+        if (v14) check(await sb.from('copies').update({ deleted_at: new Date().toISOString() }).eq('id', a.copyId));
+        else check(await sb.from('copies').delete().eq('id', a.copyId));
+        return;
+      case 'hardware.add':
+        check(await sb.from('hardware').insert(hardwareToRow(a.hw)));
+        return;
+      case 'hardware.update':
+        check(await sb.from('hardware').update(hardwareToRow(a.hw)).eq('id', a.hw.id));
+        return;
+      case 'hardware.delete':
+        check(await sb.from('hardware').update({ deleted_at: new Date().toISOString() }).eq('id', a.id));
+        return;
+      case 'trash.restore':
+        check(await sb.from(a.what === 'copy' ? 'copies' : 'hardware').update({ deleted_at: null }).eq('id', a.id));
+        return;
+      case 'trash.purge':
+        check(await sb.from(a.what === 'copy' ? 'copies' : 'hardware').delete().eq('id', a.id).not('deleted_at', 'is', null));
+        return;
+      case 'trash.empty':
+        check(await sb.from('copies').delete().not('deleted_at', 'is', null));
+        check(await sb.from('hardware').delete().not('deleted_at', 'is', null));
         return;
       case 'mygame.set':
         if (!v4) return;

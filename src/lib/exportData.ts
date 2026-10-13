@@ -13,6 +13,13 @@ const csvCell = (v: unknown) => {
 };
 const money = (n?: number) => (n == null ? '' : n.toFixed(2).replace('.', ','));
 
+export function hardwareCsv(s: State): string {
+  const head = ['Tipo', 'Nome', 'Plataforma', 'Modelo', 'Edição', 'Região', 'Estado', 'Itens', 'Série', 'Origem', 'Comprado em', 'Onde', 'Preço pago', 'Nota'];
+  const kind = { console: 'Console', portatil: 'Portátil', acessorio: 'Acessório' } as const;
+  const rows = (s.hardware ?? []).map((h) => [kind[h.kind], h.name, h.platform, h.model, h.edition, h.region, h.condition, h.items, h.serial, h.origin, h.purchasedOn, h.purchasePlace, money(h.pricePaid), h.note]);
+  return '\ufeff' + [head, ...rows].map((r) => r.map(csvCell).join(';')).join('\r\n');
+}
+
 export function collectionCsv(s: State): string {
   const head = ['Jogo', 'Ano', 'Plataforma', 'Tipo', 'Edição', 'Região', 'Condição', 'Caixa', 'Itens', 'Origem', 'Comprado em', 'Onde', 'Preço pago', 'Preço atual', 'Especial', 'Nota'];
   const rows = s.copies.map((c) => {
@@ -37,6 +44,7 @@ export function exportJson(s: State, photoNames: Record<string, string>) {
     colecao: s.copies,
     desejos: s.wishes,
     favoritos: s.favorites,
+    consoles: s.hardware ?? [],
     meusJogos: Object.values(s.myGames),
     jornadas: s.journeys,
     historias: s.histories,
@@ -67,7 +75,8 @@ export async function buildExport(s: State, onProgress?: (done: number, total: n
   files.unshift(
     { name: 'dados.json', data: JSON.stringify(exportJson(s, names), null, 2) },
     { name: 'colecao.csv', data: collectionCsv(s) },
-    { name: 'LEIA-ME.txt', data: 'Seus dados no WinnerZ.\r\n\r\ndados.json: tudo o que você registrou, em formato aberto.\r\ncolecao.csv: sua estante em planilha (Excel ou Google Planilhas).\r\nfotos/: as fotos dos seus momentos e pontos para voltar.\r\n' },
+    ...((s.hardware ?? []).length ? [{ name: 'consoles.csv', data: hardwareCsv(s) }] : []),
+    { name: 'LEIA-ME.txt', data: 'Seus dados no WinnerZ.\r\n\r\ndados.json: tudo o que você registrou, em formato aberto.\r\ncolecao.csv: sua estante em planilha (Excel ou Google Planilhas).\r\nconsoles.csv: consoles, portáteis e acessórios.\r\nfotos/: as fotos dos seus momentos e pontos para voltar.\r\n' },
   );
   return { blob: makeZip(files), missing };
 }

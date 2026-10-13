@@ -8,6 +8,7 @@ import { Toast } from '../components/Toast';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop } from '../components/Backdrop';
+import { backdropCandidates } from '../lib/backdrop';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { recordPastNow } from '../components/PastPlay';
 
@@ -73,7 +74,15 @@ export function GamesIndex() {
       .slice(0, 24);
   }, [s, games]);
   const shown = all ? universe : universe.slice(0, 10);
-  const heroGame = universe.find((u) => u.tag === 'jornada')?.game ?? universe[0]?.game;
+  // Fundo do topo: um jogo sorteado a cada visita entre os da sua Jornada e da estante (de preferência os que têm imagem).
+  const [seed] = useState(() => Math.random());
+  const heroGame = useMemo(() => {
+    const ids = [...new Set([...s.journeys.map((j) => j.gameId), ...s.copies.map((c) => c.gameId)])].sort();
+    const pool = ids.map((id) => games[id]).filter((g): g is Game => !!g);
+    const withArt = pool.filter((g) => backdropCandidates(g).length > 0);
+    const from = withArt.length ? withArt : pool;
+    return from.length ? from[Math.floor(seed * from.length)] : universe[0]?.game;
+  }, [s.journeys, s.copies, games, seed, universe]);
 
   return (
     <main>

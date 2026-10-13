@@ -766,11 +766,12 @@ html.is-overlay, html.is-overlay body { background: transparent !important; }
 /* ------------------------------------------------------------------ */
 /* Nova estética, entrega 3: Jornada                                    */
 /* ------------------------------------------------------------------ */
-.page-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 32px; margin-bottom: 36px; }
-.page-head__text { min-width: 0; max-width: 760px; }
+.page-head { display: flex; flex-wrap: nowrap; justify-content: space-between; align-items: flex-end; gap: 20px 40px; margin-bottom: 36px; }
+.page-head__text { flex: 1 1 auto; min-width: 0; max-width: 760px; }
+.page-head > .subnav { flex: none; margin-left: auto; }
 .page-head__text .lead { margin-top: 16px; }
-.page-head .subnav { margin: 0; }
-@media (max-width: 760px) { .page-head { flex-direction: column-reverse; align-items: stretch; gap: 24px; margin-bottom: 28px; } }
+.page-head .subnav { margin-top: 0; margin-bottom: 0; }
+@media (max-width: 760px) { .page-head { flex-direction: column-reverse; align-items: stretch; gap: 24px; margin-bottom: 28px; } .page-head > .subnav { margin-left: 0; } }
 
 /* Uma Jornada: cabeçalho sobre a foto do jogo */
 .journey__hero { position: relative; overflow: hidden; margin-top: 24px; padding: 26px 32px 32px; border-radius: 16px; background: #07080A; box-shadow: inset 0 0 0 1px rgba(230, 233, 237, 0.08); }
@@ -802,7 +803,8 @@ html.is-overlay, html.is-overlay body { background: transparent !important; }
 
 /* Onde você parou e pontos para voltar */
 .capsule h2, .waypoints h2 { font-size: 26px; }
-.capsule__row { border-radius: 16px; }
+.capsule__rows { gap: 0; background: none; border-radius: 0; overflow: visible; border-top: 1px solid var(--line); }
+.capsule__row { background: none; border-radius: 0; padding: 18px 0; border-bottom: 1px solid var(--line); }
 .capsule__k { font: 400 11px/1.3 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
 .capsule__k.k-you { color: var(--now-ink); }
 .capsule__note { font-size: 19px; }

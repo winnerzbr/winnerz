@@ -239,6 +239,8 @@ function GameView({ gameId }: { gameId: string }) {
             </div>
           </section>
 
+          <MediaGallery title={g.title} items={media} gameId={g.id} />
+
           <GameUniverse game={g} part="next" />
         </div>
 
@@ -284,7 +286,6 @@ function GameView({ gameId }: { gameId: string }) {
             </section>
           )}
           <GameUniverse game={g} part="aside" />
-          <div className="side-card side-card--media"><MediaGallery title={g.title} items={media} gameId={g.id} /></div>
           {g.releases && g.releases.length > 0 && (
             <section className="side-card" aria-labelledby="lanc">
               <h2 id="lanc" className="kicker">Lançamentos</h2>

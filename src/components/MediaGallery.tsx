@@ -33,12 +33,15 @@ export function MediaGallery({ title, items, gameId }: { title: string; items: M
   const hidden = items.length - grid.length - (lead === 0 ? 1 : 0);
 
   return (
-    <section aria-labelledby="midia" className="media">
-      <div className="media__head">
-        <h2 id="midia" className="t aside-title">{videos ? 'Vídeos e imagens' : 'Imagens'}</h2>
-        <button className="btn quiet sm" onClick={() => setOpen(0)}>Ver tudo</button>
+    <section aria-labelledby="midia" className={`media${lead === 0 ? ' has-lead' : ''}`}>
+      <div className="sec-head media__head">
+        <h2 id="midia" className="t sec-title">{videos ? 'Vídeos e imagens' : 'Imagens'}</h2>
+        <span className="media__tools">
+          <span className="kicker media__count">{[videos && `${videos} ${videos === 1 ? 'vídeo' : 'vídeos'}`, images && `${images} ${images === 1 ? 'imagem' : 'imagens'}`].filter(Boolean).join(' · ')}</span>
+          <button className="btn quiet sm" onClick={() => setOpen(0)}>Ver tudo</button>
+        </span>
       </div>
-      <p className="faint media__count">{[videos && `${videos} ${videos === 1 ? 'vídeo' : 'vídeos'}`, images && `${images} ${images === 1 ? 'imagem' : 'imagens'}`].filter(Boolean).join(' · ')}</p>
+      <div className="media__body">
       {lead === 0 && items[0].kind === 'video' && (
         <button className="media__lead" onClick={() => setOpen(0)} aria-label={`Assistir: ${items[0].name}`}>
           <img src={ytThumb(items[0].id)} alt="" loading="lazy" onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
@@ -56,6 +59,7 @@ export function MediaGallery({ title, items, gameId }: { title: string; items: M
           ))}
         </div>
       )}
+      </div>
       {open !== null && createPortal(<Lightbox title={title} items={items} start={open} onClose={() => setOpen(null)} gameId={gameId} />, document.body)}
     </section>
   );

@@ -6,6 +6,8 @@ import { darkTokens } from '../lib/theme';
 import { formatScore, normalize, scaleMax } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
+import { DeleteAccount, ExportData } from '../components/AccountData';
+import { Link } from '../lib/router';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -29,7 +31,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências">
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -119,6 +121,12 @@ export function Preferences() {
 
       <OverlaySettings />
 
+      <section className="prefs__section" aria-labelledby="dados">
+        <h2 id="dados" className="t">Seus dados</h2>
+        <ExportData />
+        <p className="muted prefs__p">O que guardamos, por quê e o que você pode fazer: <Link to="/privacidade">Privacidade</Link>.</p>
+      </section>
+
       <section className="prefs__section" aria-labelledby="conta">
         <h2 id="conta" className="t">Conta</h2>
         {SUPABASE_ON ? (
@@ -126,6 +134,7 @@ export function Preferences() {
         ) : (
           <p className="muted prefs__p">Você está no modo demonstração: tudo fica neste navegador. <button className="btn quiet sm" onClick={resetDemo}>Recomeçar a demonstração</button></p>
         )}
+        <DeleteAccount />
       </section>
       </div>
     </main>

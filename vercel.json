@@ -15,5 +15,11 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/conta?purge=1",
+      "schedule": "0 9 * * *"
+    }
   ]
 }

@@ -32,6 +32,8 @@ import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
 import { CommunityPage } from './pages/Community';
+import { PrivacyPage } from './pages/Privacy';
+import { DeletionBanner } from './components/AccountData';
 import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
@@ -62,6 +64,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/sessao', path)) return <SessionPage />;
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
+  if (match('/privacidade', path)) return <PrivacyPage />;
   if (match('/eventos', path)) return <EventsIndex />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
@@ -103,6 +106,7 @@ export function App() {
   // Site fechado: com o banco ligado, só a conta de administrador passa. Os demais veem só o "Em breve"
   // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
   if (SITE_PRIVATE && mode === 'supabase' && !isAdmin) {
+    if (match('/privacidade', path)) return <PrivacyPage standalone />;
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 
@@ -115,13 +119,14 @@ export function App() {
       )}
       {!isSession && <Header />}
       <UpdateBanner />
+      <DeletionBanner />
       <ForgottenSession />
       <Routes path={path} />
       {!isSession && (
         <footer className="site-footer">
           <div className="page">
             <BrandMark width={56} title="WinnerZ" />
-            <p>Onde jogos viram histórias.</p>
+            <p>Onde jogos viram histórias. <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
           </div>
         </footer>
       )}

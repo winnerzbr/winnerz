@@ -2486,3 +2486,32 @@ a.gev { color: var(--ink); }
   .hz__title { display: -webkit-box; }
 }
 .radar__cal { min-width: 0; flex-basis: min(360px, 100%); }
+
+/* Etapa 5 · 1: seus dados, apagar conta, privacidade */
+.acct { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.acct__row { display: flex; flex-wrap: wrap; gap: 10px; }
+.acct__note { margin: 0; color: var(--muted); font-size: 14px; }
+.acct--danger { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+.acct--scheduled { padding: 20px; border-radius: 16px; border: 0; background: rgba(224, 138, 122, .08); box-shadow: inset 0 0 0 1px rgba(224, 138, 122, .35); }
+.acct__title { margin: 0; font-weight: 700; font-size: 17px; }
+.acct__confirm { display: flex; flex-direction: column; gap: 14px; padding: 20px; border-radius: 16px; box-shadow: inset 0 0 0 1px rgba(224, 138, 122, .35); }
+.acct__list { margin: 0; padding-left: 20px; color: var(--ink-2); line-height: 1.6; }
+.acct__type { display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); max-width: 320px; }
+.btn.danger-solid { background: #b4432f; color: #fff; border-color: transparent; }
+.btn.danger-solid:disabled { opacity: .45; }
+.del-banner { background: #3a1813; color: #ffd9d0; text-align: center; font-size: 14px; padding: 10px 16px; }
+.del-banner a { color: #fff; font-weight: 600; margin-left: 6px; }
+.site-footer__link { color: var(--muted); margin-left: 14px; }
+.privacy { padding-bottom: 40px; }
+.privacy--alone { padding-top: 40px; }
+.privacy__brand { display: inline-flex; margin-bottom: 28px; color: var(--brand); }
+.privacy__title { font-size: clamp(44px, 6vw, 72px); line-height: .9; margin-top: 12px; }
+.privacy__lead { font-size: 19px; line-height: 1.55; color: var(--ink-2); margin: 20px 0 8px; max-width: 62ch; }
+.privacy section { margin-top: 40px; }
+.privacy h2 { font-size: 26px; line-height: 1; margin-bottom: 14px; }
+.privacy p, .privacy li, .privacy dd { line-height: 1.65; color: var(--ink-2); max-width: 68ch; }
+.privacy ul { padding-left: 20px; margin: 0; display: grid; gap: 6px; }
+.privacy__dl { display: grid; grid-template-columns: 180px 1fr; gap: 12px 24px; margin: 0; }
+.privacy__dl dt { font-weight: 600; }
+.privacy__dl dd { margin: 0; }
+@media (max-width: 600px) { .privacy__dl { grid-template-columns: 1fr; gap: 4px; } .privacy__dl dd { margin-bottom: 12px; } }

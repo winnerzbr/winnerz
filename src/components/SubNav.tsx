@@ -5,6 +5,8 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
   colecao: [
     { to: '/colecao', label: 'Estante' },
     { to: '/colecao/consoles', label: 'Consoles' },
+    { to: '/colecao/vitrines', label: 'Vitrines', also: ['/colecao/vitrines/'] },
+    { to: '/colecao/museu', label: 'Museu' },
     { to: '/colecao/desejos', label: 'Desejos' },
     { to: '/colecao/estatisticas', label: 'Estatísticas' },
     { to: '/colecao/importar', label: 'Importar', also: ['/colecao/steam'] },

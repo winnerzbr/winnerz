@@ -110,8 +110,9 @@ begin
       from jsonb_array_elements(s.items) with ordinality as e(it, ord) limit 60) t where x is not null), '[]'::jsonb);
   end if;
   plats := array(select lower(jsonb_array_elements_text(coalesce(r -> 'platforms', '[]'::jsonb))));
+  -- Um exemplar por jogo, como no site.
   return coalesce((select jsonb_agg(x order by x ->> 'title') from (
-    select public.public_piece(s.user_id, 'c', c.id::text) x
+    select distinct on (c.game_id) public.public_piece(s.user_id, 'c', c.id::text) x
     from copies c
     where c.user_id = s.user_id and c.deleted_at is null and case r ->> 'type'
       when 'favoritos' then exists (select 1 from favorites f where f.user_id = s.user_id and f.game_id = c.game_id)
@@ -121,6 +122,7 @@ begin
       when 'plataforma' then lower(c.platform) = any(plats)
       when 'geracao' then lower(c.platform) = any(plats)
       else false end
+    order by c.game_id, c.created_at
     limit 60) t where x is not null), '[]'::jsonb);
 end; $$;
 

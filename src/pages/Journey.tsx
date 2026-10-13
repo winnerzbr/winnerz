@@ -337,25 +337,39 @@ const KIND_SHORT: Record<string, string> = { inicio: 'Início', sessao: 'Sessão
 const periodOf = (iso: string) => { const h = Number(new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' }).slice(0, 2)); return h < 6 ? 'De madrugada' : h < 12 ? 'De manhã' : h < 18 ? 'À tarde' : 'À noite'; };
 const dur = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}`);
 
+type GItem = Stop & { gap?: string; today?: { open: boolean; n: number } };
+const KIND_LONG: Record<string, string> = { inicio: 'Início de História', sessao: 'Sessão', momento: 'Momento guardado', ponto: 'Quero voltar aqui', marco: 'Marco', carta: 'Carta para o futuro', agora: 'Hoje' };
+
 function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, today }: { stops: Stop[]; bg: string; full: boolean; onExitFull: () => void; play: PlayCta; title: string; onEdit: (eventId: string) => void; today: { open: boolean; n: number } | null }) {
   const [viewer, setViewer] = useState<number | null>(null);
   const stage = useRef<HTMLElement>(null);
-  const scroller = useRef<HTMLDivElement>(null);
-  const photos = stops.filter((x) => x.image);
+  const swipe = useRef<number | null>(null);
 
-  // Começa no fim da película: o mais recente (e o "hoje") à vista.
-  useEffect(() => {
-    const el = scroller.current; if (!el) return;
-    const end = () => el.scrollTo({ left: el.scrollWidth, behavior: 'instant' as ScrollBehavior });
-    end(); const t = setTimeout(end, 250);
-    return () => clearTimeout(t);
-  }, [stops.length, full]);
+  // Os quadros: cada registro (o salto no tempo vira um aviso no quadro seguinte) e, no fim, o "hoje".
+  const items: GItem[] = useMemo(() => {
+    const out: GItem[] = [];
+    let gap: string | undefined;
+    for (const x of stops) {
+      if (x.kind === 'gap') { gap = x.title; continue; }
+      out.push({ ...x, gap });
+      gap = undefined;
+    }
+    if (today) out.push({ id: 'hoje', kind: 'agora', hist: out.at(-1)?.hist ?? 1, date: 'Hoje', title: today.open ? 'Agora' : 'Hoje', text: today.open ? `Sessão ${today.n} aberta. Registre o que quiser, quando quiser.` : `Sessão ${today.n} espera.`, today });
+    return out;
+  }, [stops, today]);
+  const last = items.length - 1;
+  const [sel, setSel] = useState(last);
+  useEffect(() => { setSel(items.length - 1); }, [items.length]);
+  const cur = items[Math.max(0, Math.min(last, sel))];
+  const go = (i: number) => setSel(Math.max(0, Math.min(last, i)));
+  const photos = items.filter((x) => x.image && x.kind !== 'agora');
 
   // Tela cheia de verdade quando o navegador permite; senão, ocupa a janela.
   useEffect(() => {
     if (!full) return;
     const el = stage.current;
     el?.requestFullscreen?.().catch(() => {});
+    el?.focus();
     const onChange = () => { if (!document.fullscreenElement) onExitFull(); };
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onExitFull(); };
     document.addEventListener('fullscreenchange', onChange);
@@ -367,74 +381,119 @@ function CinemaTimeline({ stops, bg, full, onExitFull, play, title, onEdit, toda
     };
   }, [full, onExitFull]);
 
-  const page = (d: number) => { const el = scroller.current; if (el) el.scrollBy({ left: d * Math.max(320, el.clientWidth * 0.7), behavior: 'smooth' }); };
-  const key = (e: ReactKeyboardEvent) => { if (e.key === 'ArrowRight') { e.preventDefault(); page(1); } if (e.key === 'ArrowLeft') { e.preventDefault(); page(-1); } };
+  const key = (e: ReactKeyboardEvent) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(sel + 1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); go(sel - 1); }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End') { e.preventDefault(); go(last); }
+  };
 
-  const media = (x: Stop) => {
-    if (x.image) return <button className="fr__img" onClick={() => setViewer(photos.indexOf(x))} aria-label={`Ver foto em tamanho grande: ${x.title}`}><img src={x.image} alt="" loading="lazy" /><span className="fr__zoom" aria-hidden="true"><Icon name="telaCheia" size={14} /></span></button>;
-    if (x.kind === 'inicio') return <div className="fr__ph fr__ph--start"><BrandMark width={40} /><span className="t">{x.title}</span></div>;
-    if (x.kind === 'marco') return <div className="fr__ph fr__ph--gold"><Compass size={30} color="#E2BE84" /><span className="t">{x.title}</span></div>;
-    if (x.kind === 'carta') return <div className="fr__ph"><span className="kicker">Carta para o fim</span><span className="fr__ph-text">Trancada até você zerar.</span></div>;
-    if (x.kind === 'sessao') return <div className="fr__ph">{x.minutes ? <span className="t fr__big">{dur(x.minutes)}</span> : <span className="t fr__big fr__big--sm">{x.title}</span>}<span className="muted">{[x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null].filter(Boolean).join(', ') || 'Sessão registrada'}</span></div>;
-    return <div className="fr__ph">{x.quote ? <span className="fr__ph-text">“{x.quote}”</span> : <span className="t fr__big fr__big--sm">{x.title}</span>}</div>;
+  // A régua do horizonte: um passo por registro, espaço extra no salto no tempo.
+  const pos: number[] = [];
+  let acc = 0;
+  items.forEach((x, i) => { if (i > 0) acc += x.gap ? 2.4 : 1; pos.push(acc); });
+  const span = acc || 1;
+  const pct = (i: number) => (items.length === 1 ? 50 : (pos[i] / span) * 100);
+  const dense = items.length > 24;
+  const ambient = cur.image ?? bg;
+  const ambients = [...new Set(items.map((x) => x.image).filter((x): x is string => !!x))];
+
+  const face = (x: GItem) => {
+    if (x.image && x.kind !== 'agora') return <img src={x.image} alt="" draggable={false} />;
+    if (x.kind === 'agora') return (
+      <span className="gal__ph gal__ph--today">
+        <span className="kicker kicker--now">{x.today?.open ? 'Sessão aberta' : 'Próxima sessão'}</span>
+        <span className="t gal__big">{x.title}</span>
+        <span className="muted">{x.text}</span>
+      </span>
+    );
+    const big = x.kind === 'sessao' && x.minutes ? dur(x.minutes) : x.kind === 'carta' ? 'Carta' : x.title;
+    const sub = x.kind === 'sessao' ? [x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null].filter(Boolean).join(', ') || x.title
+      : x.kind === 'carta' ? 'Lacrada até você zerar' : x.quote ? `“${x.quote}”` : x.text ?? '';
+    return (
+      <span className={`gal__ph gal__ph--${x.kind}`}>
+        {x.kind === 'inicio' && <BrandMark width={44} />}
+        {x.kind === 'marco' && <Compass size={36} color="#E2BE84" />}
+        <span className="kicker">{KIND_SHORT[x.kind] ?? x.kind}</span>
+        <span className="t gal__big">{big}</span>
+        {sub && <span className="gal__sub">{sub}</span>}
+      </span>
+    );
   };
 
   return (
-    <section ref={stage} className={`film${full ? ' is-full on-photo' : ''}`} aria-label="Linha do tempo, modo cinema">
-      {full && (
-        <>
-          <img className="film__bg" src={bg} alt="" />
-          <div className="film__shade" aria-hidden="true" />
-          <div className="film__top">
-            <span className="t film__title">{title}</span>
-            <div className="film__topactions">
-              <button className={`btn ${play.now ? 'now' : 'primary'} sm`} onClick={play.onClick} title={play.hint}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>
-              <button className="btn ghost sm" onClick={onExitFull}><Icon name="sairTela" size={15} />Sair da tela cheia</button>
-            </div>
-          </div>
-        </>
-      )}
-      <div className="film__scroll" ref={scroller} tabIndex={0} onKeyDown={key} aria-label="Película da História: use as setas para andar">
-        <ol className="film__strip">
-          {stops.map((x) => x.kind === 'gap' ? (
-            <li key={x.id} className="fr-gap"><span className="mono">{x.title}</span></li>
-          ) : (
-            <li key={x.id} className={`fr fr--${x.kind}${x.kind === 'ponto' && !x.resolved ? ' is-back' : ''}`}>
-              <div className="fr__media">{media(x)}</div>
-              <span className="fr__stem" aria-hidden="true" />
-              <span className="fr__mk" aria-hidden="true" />
-              <div className="fr__cap">
-                <span className="mono fr__d">{x.date} · {x.kind === 'sessao' && /^sess/i.test(x.title) ? x.title : KIND_SHORT[x.kind] ?? x.kind}</span>
-                <span className="fr__t">{x.kind === 'sessao' && /^sess/i.test(x.title) ? (x.quote ?? x.text ?? x.title) : x.title}</span>
-                {x.kind !== 'sessao' && (x.quote || x.text) && <span className="fr__n">{x.quote ? `“${x.quote}”` : x.text}</span>}
-                <span className="fr__tools">
-                  {x.kind === 'ponto' && x.eventId && !x.resolved && <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(x.eventId!)}>Resolver</button>}
-                  {x.kind === 'ponto' && x.resolved && <span className="kicker">Resolvido</span>}
-                  {x.eventId && x.kind !== 'carta' && !full && <button className="btn quiet sm" onClick={() => onEdit(x.eventId!)} aria-label={`Editar: ${x.title}`}>Editar</button>}
-                </span>
-              </div>
-            </li>
-          ))}
-          {today && (
-            <li className="fr fr--today">
-              <div className="fr__media">
-                <div className="fr__ph fr__ph--today">
-                  <span className="t">{today.open ? 'Agora' : 'Hoje'}</span>
-                  <span className="muted">{today.open ? `Sessão ${today.n} aberta` : `Sessão ${today.n} espera`}</span>
-                  {today.open ? <Link className="btn now sm" to="/sessao">Abrir a sessão</Link> : <button className={`btn ${play.now ? 'now' : 'primary'} sm`} onClick={play.onClick}>{play.label}</button>}
-                </div>
-              </div>
-              <span className="fr__stem" aria-hidden="true" />
-              <span className="fr__mk fr__mk--today" aria-hidden="true" />
-              <div className="fr__cap"><span className="mono fr__d fr__d--now">{new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' }).replace(/\./g, '').replace(',', '').replace(' de ', ' ')}</span></div>
-            </li>
-          )}
-        </ol>
+    <section ref={stage} tabIndex={-1} onKeyDown={key} className={`gal on-photo${full ? ' is-full' : ''}`} aria-label="Linha do tempo, modo cinema. Use as setas do teclado para andar.">
+      <img className="gal__game kb" src={bg} alt="" />
+      {ambients.map((src) => <img key={src} className="gal__amb" src={src} alt="" style={{ opacity: src === ambient ? 0.5 : 0 }} />)}
+      <div className="gal__shade" aria-hidden="true" />
+      <span className="gal__beam" aria-hidden="true" />
+      <span className="gal__beam gal__beam--2" aria-hidden="true" />
+      {Array.from({ length: 26 }, (_, k) => (
+        <span key={k} className="gal__dust fx-heavy" aria-hidden="true" style={{ left: `${(k * 41.3) % 100}%`, top: `${20 + ((k * 29.7) % 65)}%`, width: k % 4 === 0 ? 3 : 2, height: k % 4 === 0 ? 3 : 2, animationDuration: `${(7 + (k % 6) * 1.5).toFixed(1)}s`, animationDelay: `${((k * 0.71) % 8).toFixed(2)}s` }} />
+      ))}
+
+      <div className="gal__top">
+        <span className="mono gal__count">{String(sel + 1).padStart(2, '0')} / {items.length}{cur.kind !== 'agora' ? ` · História ${cur.hist}` : ''}</span>
+        <div className="gal__topactions">
+          {full && <span className="t gal__title">{title}</span>}
+          <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={play.onClick} title={play.hint}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>
+          {full && <button className="btn ghost sm" onClick={onExitFull}><Icon name="sairTela" size={15} />Sair da tela cheia</button>}
+        </div>
       </div>
-      <div className="film__nav">
-        <button className="btn ghost icon sm" onClick={() => page(-1)} aria-label="Voltar na película"><Icon name="voltar" size={16} /></button>
-        <button className="btn ghost icon sm" onClick={() => page(1)} aria-label="Avançar na película"><Icon name="avancar" size={16} /></button>
+
+      <div className="gal__frames"
+        onPointerDown={(e) => { swipe.current = e.clientX; }}
+        onPointerUp={(e) => { if (swipe.current == null) return; const dx = e.clientX - swipe.current; swipe.current = null; if (Math.abs(dx) > 50) go(sel + (dx < 0 ? 1 : -1)); }}>
+        {items.map((x, i) => {
+          const d = i - sel, ad = Math.abs(d), sg = Math.sign(d);
+          const k = d === 0 ? 0 : sg * (0.55 + (ad - 1) * 0.2);
+          const rot = d === 0 ? 0 : -sg * 52;
+          const sc = d === 0 ? 1 : 0.8 - (ad - 1) * 0.06;
+          const hidden = ad > 3;
+          const onCenter = d === 0;
+          return (
+            <button key={x.id} className={`gal__fr${onCenter ? ' is-on' : ''}${x.kind === 'ponto' && !x.resolved ? ' is-back' : ''}`}
+              tabIndex={hidden ? -1 : 0}
+              aria-label={`${KIND_LONG[x.kind] ?? x.kind}, ${x.date}: ${x.title}${onCenter && x.image ? '. Abrir a foto.' : ''}`}
+              style={{ transform: `translateX(calc(var(--fw) * ${k.toFixed(3)})) rotateY(${rot}deg) scale(${sc.toFixed(3)})`, zIndex: 20 - ad, opacity: hidden ? 0 : onCenter ? 1 : Math.max(0, 0.85 - (ad - 1) * 0.2), pointerEvents: hidden ? 'none' : undefined }}
+              onClick={() => { if (!onCenter) go(i); else if (x.image && x.kind !== 'agora') setViewer(photos.indexOf(x)); }}>
+              <span className="gal__in">{face(x)}{onCenter && x.image && x.kind !== 'agora' && <span className="gal__zoom" aria-hidden="true"><Icon name="telaCheia" size={14} /></span>}</span>
+            </button>
+          );
+        })}
+        <button className="gal__arrow gal__arrow--l" onClick={() => go(sel - 1)} disabled={sel === 0} aria-label="Anterior"><Icon name="voltar" size={20} /></button>
+        <button className="gal__arrow gal__arrow--r" onClick={() => go(sel + 1)} disabled={sel === last} aria-label="Próximo"><Icon name="avancar" size={20} /></button>
       </div>
+
+      <div className="gal__cap" key={cur.id} aria-live="polite">
+        {cur.gap && <span className="mono gal__gap">{cur.gap}</span>}
+        <span className={`kicker gal__kind k-${cur.kind}${cur.kind === 'ponto' && !cur.resolved ? ' is-back' : ''}`}>{KIND_LONG[cur.kind] ?? cur.kind}{cur.kind !== 'agora' ? ` · ${cur.date}` : ''}</span>
+        <h3 className="t gal__title2">{cur.title}</h3>
+        {cur.quote ? <p className="gal__quote">“{cur.quote}”</p> : cur.text && cur.kind !== 'agora' ? <p className="gal__text">{cur.text}</p> : null}
+        <div className="gal__actions">
+          {cur.kind === 'ponto' && cur.eventId && !cur.resolved && <button className="btn now sm" onClick={() => actions.resolveWaypoint(cur.eventId!)}>Marcar como resolvido</button>}
+          {cur.kind === 'ponto' && cur.resolved && <span className="kicker">Resolvido</span>}
+          {cur.kind === 'carta' && <span className="kicker">Lacrada até você zerar</span>}
+          {cur.kind === 'agora' && (cur.today?.open ? <Link className="btn now sm" to="/sessao">Abrir a sessão</Link> : <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={play.onClick}>{play.label}</button>)}
+          {cur.eventId && cur.kind !== 'carta' && !full && <button className="btn quiet sm" onClick={() => onEdit(cur.eventId!)}>Editar</button>}
+        </div>
+      </div>
+
+      <div className={`gal__ruler${dense ? ' is-dense' : ''}${today ? ' has-today' : ''}`}>
+        <div className="gal__rail" aria-hidden="true" />
+        <div className="gal__fill" aria-hidden="true" style={{ width: `${pct(sel)}%` }} />
+        {items.map((x, i) => x.gap ? (
+          <span key={`g-${x.id}`} className="gal__gapline" aria-hidden="true" style={{ left: `calc(${pct(i - 1)}% + 10px)`, width: `calc(${pct(i) - pct(i - 1)}% - 20px)` }}><span className="mono">{x.gap}</span></span>
+        ) : null)}
+        {items.map((x, i) => x.kind === 'agora' ? (
+          <button key={x.id} className={`gal__sun${i === sel ? ' is-on' : ''}`} style={{ left: `${pct(i)}%` }} onClick={() => go(i)} aria-label="Hoje"><span className="kicker kicker--now">Hoje</span></button>
+        ) : (
+          <button key={x.id} className={`gal__mk k-${x.kind}${i === sel ? ' is-on' : ''}${i < sel ? ' is-past' : ''}${x.kind === 'ponto' && !x.resolved ? ' is-back' : ''}`} style={{ left: `${pct(i)}%` }} onClick={() => go(i)} aria-label={`${KIND_LONG[x.kind] ?? x.kind}, ${x.date}: ${x.title}`} title={`${x.date} · ${x.title}`}>
+            <i />{(!dense || i === sel || i === 0) && <span className="mono">{x.date.replace(/ \d{4}$/, '')}</span>}
+          </button>
+        ))}
+      </div>
+
       {viewer !== null && photos.length > 0 && (
         <PhotoViewer title={title} items={photos.map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, viewer)} onClose={() => setViewer(null)} container={full ? stage.current : null} />
       )}

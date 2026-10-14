@@ -281,6 +281,8 @@ export interface Prefs {
   light?: boolean;
   /** Segredo do endereço do overlay (trocar invalida o endereço antigo). */
   overlayNonce?: string;
+  /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */
+  welcomeDone?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

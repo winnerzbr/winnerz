@@ -18,6 +18,7 @@ import { CommandPalette } from './components/CommandPalette';
 import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { Home } from './pages/Home';
+import { Welcome } from './pages/Welcome';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
 import { CollectionStats, Wishes } from './pages/CollectionStats';
 import { ImportPage } from './pages/Import';
@@ -56,6 +57,7 @@ import { AwardsRevealPage } from './pages/AwardsReveal';
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
+  if (match('/boas-vindas', path)) return <Welcome standalone />;
   if (match('/jornada', path)) return <JourneyIndex />;
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;

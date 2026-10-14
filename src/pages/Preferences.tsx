@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
 import { Stars } from '../components/Stars';
@@ -20,6 +20,13 @@ export function Preferences() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
   const isAdmin = useStore((s) => !!s.isAdmin);
+  // Links como /preferencias#perfil (vindos dos primeiros passos) abrem já na seção certa.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const t = setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }), 60);
+    return () => clearTimeout(t);
+  }, []);
   const preview = darkTokens(prefs.black);
   const white = prefs.white ?? WHITE_DEFAULT;
   const lightPreview = lightTokens(white);

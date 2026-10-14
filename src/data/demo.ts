@@ -28,6 +28,9 @@ const games: Game[] = [
   { id: 'elden', slug: 'elden-ring', title: 'Elden Ring', cover: img('cover-elden'), year: 2022, developer: 'FromSoftware', platforms: ['PlayStation 5', 'PC'], genres: 'RPG de ação', modes: ['Single player', 'Multiplayer', 'Co-operative', 'Third person'], themes: ['Action', 'Fantasy', 'Open world'], ttb: { h: 50, n: 60, c: 100 } },
 ];
 
+/** Os jogos da demonstração (também servem de grade nas boas-vindas da demonstração). */
+export const demoGames: readonly Game[] = games;
+
 export function demoState(): State {
   return {
     ready: true,

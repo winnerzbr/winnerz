@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from '../lib/router';
-import { useStore, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
+import { useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
 import type { Game, State } from '../data/types';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
@@ -13,19 +13,21 @@ import { loadRadar, daysUntil, type RadarInfo } from '../lib/radar';
 import { localDay } from '../lib/dates';
 import { radarGames } from './Radar';
 import { awardsApi, phaseOf, publicAt, type Award } from '../data/awards';
+import { isNewcomer } from '../lib/welcome';
+import { Welcome } from './Welcome';
 
 const TZ = 'America/Sao_Paulo';
 /** "09 OUT", e o ano quando não é o ano corrente. */
-function stamp(iso: string) {
+export function stamp(iso: string) {
   const d = new Date(iso);
   const dm = d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: TZ }).replace(/\.| de /g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
   return d.getFullYear() !== new Date().getFullYear() ? `${dm} ${d.getFullYear()}` : dm;
 }
 
-type Upcoming = { key: string; day: string; title: string; sub: string; to: string; kind: 'lancamento' | 'evento'; game?: Game; days: number };
+export type Upcoming = { key: string; day: string; title: string; sub: string; to: string; kind: 'lancamento' | 'evento'; game?: Game; days: number };
 
 /** O que vem pela frente: lançamentos do seu Radar com data de dia e as datas do WinnerZ Awards. */
-function useUpcoming(s: State) {
+export function useUpcoming(s: State) {
   const games = useMemo(() => radarGames(s).filter((g) => g.igdbId), [s]);
   const [info, setInfo] = useState<Record<number, RadarInfo>>({});
   const [award, setAward] = useState<Award | null>(null);
@@ -161,7 +163,13 @@ function AwardsNotice({ award }: { award: Award | null }) {
   );
 }
 
+/** Quem acabou de chegar vê as boas-vindas; os outros, o Início de sempre. Decidido ao abrir a página. */
 export function Home() {
+  const [welcome, setWelcome] = useState(() => isNewcomer(getState()));
+  return welcome ? <Welcome onDone={() => setWelcome(false)} /> : <HomeDefault />;
+}
+
+function HomeDefault() {
   const s = useStore((x) => x);
   const j = focusJourney(s)?.journey ?? null;
   const game = j ? s.games[j.gameId] : null;

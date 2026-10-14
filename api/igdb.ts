@@ -343,7 +343,31 @@ async function factsMany(ids: number[]) {
 async function cacheMany(ids: number[]) {
   const clean = [...new Set(ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 100);
   if (!clean.length) return [];
-  const rows = await igdb('games', `where id = (${clean.join(',')}); fields ${LIGHT_FIELDS}; limit 100;`);
+  return cacheRows(await igdb('games', `where id = (${clean.join(',')}); fields ${LIGHT_FIELDS}; limit 100;`));
+}
+
+/**
+ * Jogos da grade de boas-vindas: clássicos de várias épocas para quem acabou de chegar marcar o que já jogou,
+ * mais um lançamento grande para o Radar. Os que o IGDB não achar ficam de fora; a página usa os primeiros 15.
+ */
+const WELCOME_SLUGS = [
+  'the-last-of-us', 'super-mario-world', 'red-dead-redemption-2', 'the-legend-of-zelda-ocarina-of-time', 'elden-ring',
+  'crash-bandicoot', 'the-witcher-3-wild-hunt', 'grand-theft-auto-san-andreas', 'god-of-war--1', 'super-mario-64',
+  'hollow-knight', 'metal-gear-solid', 'the-legend-of-zelda-breath-of-the-wild', 'resident-evil-4', 'minecraft-java-edition',
+  'sonic-the-hedgehog', 'shadow-of-the-colossus', 'half-life-2', 'baldurs-gate-3', 'astro-bot', 'halo-combat-evolved',
+  'grand-theft-auto-vi',
+];
+
+async function welcomeGames() {
+  const rows = await igdb('games', `where slug = (${WELCOME_SLUGS.map((x) => `"${x}"`).join(',')}); fields ${LIGHT_FIELDS}; limit 50;`);
+  const out = await cacheRows(rows);
+  const at = (x: any) => WELCOME_SLUGS.indexOf(String(x.slug));
+  return out.sort((a: any, b: any) => at(a) - at(b));
+}
+
+/** Grava fichas leves no cache (sem apagar sinopse, vídeos etc. de fichas que já estavam completas). */
+async function cacheRows(rows: any[]) {
+  if (!rows.length) return [];
   for (const r of rows) r.artworks = await withoutLogos(r.artworks);
   const ttb = await timesToBeat(rows.map((r: any) => r.id));
   const withIds = await assignIds(rows.map((r: any) => ({ ...lightRow(r), ttb: ttb.get(r.id) ?? null })));
@@ -727,6 +751,11 @@ export default async function handler(req: Req, res: Res) {
       if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
       res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
       return res.status(200).json(r.game);
+    }
+
+    if (req.query.welcome) {
+      res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
+      return res.status(200).json(await welcomeGames());
     }
 
     if (req.query.meta) {

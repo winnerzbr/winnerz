@@ -183,7 +183,7 @@ export function ImageGrid({ images }: { images: string[] }) {
 /* ------------------------------------------------------------------ */
 /* Reações                                                              */
 /* ------------------------------------------------------------------ */
-export function ReactionBar({ target, id, value, compact = false }: { target: 'post' | 'resposta'; id: string; value: Reactions; compact?: boolean }) {
+export function ReactionBar({ target, id, value, compact = false }: { target: 'post' | 'resposta' | 'mensagem'; id: string; value: Reactions; compact?: boolean }) {
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const [r, setR] = useState(value);
   const [busy, setBusy] = useState(false);

@@ -23,6 +23,7 @@ import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
 import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityView } from './pages/Communities';
 import { PostEditorPage, PostPage } from './pages/Post';
+import { ClubEditPage, ClubNewPage, ClubPage, ClubsIndexPage } from './pages/Clubs';
 import { StudioModerationPage } from './pages/StudioModeration';
 import { ModerationBanner, RulesHost } from './components/Moderation';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
@@ -93,6 +94,10 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
   if (match('/comunidade/comunidades', path)) return <CommunitiesIndexPage />;
   if (match('/comunidade/criar', path)) return <CommunityNewPage />;
+  if (match('/comunidade/clubes', path)) return <ClubsIndexPage />;
+  if (match('/comunidade/clubes/criar', path)) return <ClubNewPage />;
+  if ((m = match('/clube/:slug', path))) return <ClubPage key={m.slug} slug={m.slug} />;
+  if ((m = match('/clube/:slug/editar', path))) return <ClubEditPage slug={m.slug} />;
   if ((m = match('/w/:slug', path))) return <CommunityView key={m.slug} slug={m.slug} />;
   if ((m = match('/w/:slug/editar', path))) return <CommunityEditPage slug={m.slug} />;
   if ((m = match('/w/:slug/escrever', path))) return <PostEditorPage slug={m.slug} />;

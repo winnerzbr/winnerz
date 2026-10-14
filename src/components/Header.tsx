@@ -39,9 +39,9 @@ export function Header() {
         <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandLockup /></Link>
         <nav className="pillars" aria-label="Pilares">
           {PILLARS.map((p) => (
-            <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && path.startsWith('/w/')) ? 'page' : undefined}>
+            <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && (path.startsWith('/w/') || path.startsWith('/clube/'))) ? 'page' : undefined}>
               <Icon name={p.icon} />{p.label}
-              {p.to === '/comunidade' && news > 0 && <span className="nav-badge" aria-label={`${news} ${news === 1 ? 'resposta nova' : 'respostas novas'}`}>{news > 9 ? '9+' : news}</span>}
+              {p.to === '/comunidade' && news > 0 && <span className="nav-badge" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}
             </Link>
           ))}
         </nav>
@@ -111,7 +111,7 @@ const TABS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
   { to: '/jogos', label: 'Jogos', icon: 'jogos', on: (p: string) => p.startsWith('/jogos') },
 ];
-const MORE = ['/comunidade', '/w/', '/eventos', '/preferencias', '/entrar', '/studio'];
+const MORE = ['/comunidade', '/w/', '/clube/', '/eventos', '/preferencias', '/entrar', '/studio'];
 
 /** No celular, os pilares ficam numa barra fixa embaixo; Comunidade, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {
@@ -135,12 +135,12 @@ export function TabBar() {
         {TABS.map((t) => (
           <Link key={t.to} to={t.to} className="tabbar__item" aria-current={t.on(path) ? 'page' : undefined}><TabIcon name={t.icon} />{t.label}</Link>
         ))}
-        <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais{news > 0 && <span className="nav-badge nav-badge--tab" aria-label={`${news} ${news === 1 ? 'resposta nova' : 'respostas novas'}`}>{news > 9 ? '9+' : news}</span>}</button>
+        <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais{news > 0 && <span className="nav-badge nav-badge--tab" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}</button>
       </nav>
       {more && (
         <Sheet title="Mais" onClose={() => setMore(false)} labelId="tab-mais">
           <nav className="moremenu" aria-label="Mais seções">
-            <Link to="/comunidade" className="moremenu__item" aria-current={path.startsWith('/comunidade') || path.startsWith('/w/') ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>{news > 0 ? `${news} ${news === 1 ? 'resposta nova' : 'respostas novas'} nas suas postagens` : 'Comunidades, amigos e conversas'}</small></span></Link>
+            <Link to="/comunidade" className="moremenu__item" aria-current={path.startsWith('/comunidade') || path.startsWith('/w/') || path.startsWith('/clube/') ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>{news > 0 ? `${news} ${news === 1 ? 'novidade' : 'novidades'} para você` : 'Comunidades, clubes e amigos'}</small></span></Link>
             <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
             {isAdmin && <Link to="/studio" className="moremenu__item" aria-current={path.startsWith('/studio') ? 'page' : undefined}><Icon name="caneta" size={20} /><span><b>Studio</b><small>Correções, uso dos planos e abertura do site</small></span></Link>}
             {profile

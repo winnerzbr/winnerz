@@ -504,6 +504,16 @@ export const actions = {
     return value;
   },
 
+  /** Põe o jogo na Jornada sem abrir sessão (ao entrar num clube). Se a Jornada já existe, não mexe em nada. */
+  ensureJourney(gameId: ID, note?: string): void {
+    if (journeyForGame(state, gameId)) return;
+    const at = nowIso();
+    const journey = { id: uid(), gameId, mood: 'jogando' as const, createdAt: at };
+    const history: History = { id: uid(), journeyId: journey.id, ordinal: 1, title: 'Primeira vez', state: 'ativa', startedAt: at, progress: 0 };
+    const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, kind: 'inicio', at, title: history.title, text: note ?? 'Começou sua primeira História com o jogo.' };
+    dispatch({ type: 'journey.create', journey, history, event });
+  },
+
   /**
    * "Jogar": cria a Jornada e a primeira História se ainda não existirem. Sem formulário.
    * História pausada ou largada é retomada; zerada ou encerrada abre uma História nova.

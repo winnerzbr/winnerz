@@ -6,6 +6,7 @@ import { communityApi, useReplyNews, type Community, type Post } from '../data/c
 import { FriendsActivity, GoToProfile } from '../components/Social';
 import { PersonAvatar, PostCard, ago } from '../components/Posts';
 import { CommunityTile } from './Communities';
+import { ClubsSection } from './Clubs';
 
 /** Pilar Comunidade: respostas novas, o que saiu nas suas comunidades, comunidades para participar e os amigos. */
 export function CommunityPage() {
@@ -19,15 +20,17 @@ export function CommunityPage() {
         <div className="page cmh__inner">
           <span className="kicker kicker--now">Comunidades no ar</span>
           <h1 className="t cmh__title">Comunidade</h1>
-          <p className="cmh__lead">Um lugar para jogar perto de quem joga o mesmo que você. Comunidades por assunto, conversas com spoiler coberto pelo seu progresso e os seus amigos. Clubes, jogatinas e Jornadas em dupla vêm a seguir.</p>
+          <p className="cmh__lead">Um lugar para jogar perto de quem joga o mesmo que você. Comunidades por assunto, clubes para jogar junto, conversas com spoiler coberto pelo seu progresso e os seus amigos. Jogatinas e Jornadas em dupla vêm a seguir.</p>
           <div className="cmh__ctas">
             <Link className="btn primary cmh__cta" to="/comunidade/comunidades">Ver as comunidades</Link>
+            <Link className="btn ghost cmh__cta" to="/comunidade/clubes">Clubes</Link>
             <Link className="btn ghost cmh__cta" to="/comunidade/pessoas">Encontrar pessoas</Link>
           </div>
         </div>
       </section>
       <ReplyNewsBox />
       <MyCommunities />
+      <ClubsSection />
       <Friends />
     </main>
   );
@@ -40,19 +43,27 @@ function ReplyNewsBox() {
   return (
     <section className="page cm-news" aria-labelledby="cm-news-t">
       <div className="cm-news__head">
-        <h2 id="cm-news-t" className="cm-news__t"><span className="nav-badge">{news.count}</span>{news.count === 1 ? 'Resposta nova' : 'Respostas novas'} para você</h2>
+        <h2 id="cm-news-t" className="cm-news__t"><span className="nav-badge">{news.count}</span>{news.count === 1 ? 'Novidade' : 'Novidades'} para você</h2>
         <button className="btn quiet sm" onClick={() => void communityApi.seen()}>Marcar como vistas</button>
       </div>
       <ul className="cm-news__list">
-        {news.items.map((n) => (
-          <li key={n.id}>
-            <Link to={`/w/${n.slug}/${n.postId}#r-${n.id}`} className="cm-news__it">
-              <PersonAvatar p={n.author} size={32} />
-              <span className="cm-news__tx"><span><b>@{n.author.handle ?? 'alguém'}</b> respondeu em <b>{n.title}</b></span><small className="muted">{n.excerpt}</small></span>
-              <small className="faint mono">{ago(n.at)}</small>
-            </Link>
-          </li>
-        ))}
+        {news.items.map((n) => {
+          const href = n.kind === 'resposta' ? `/w/${n.slug}/${n.ref}#r-${n.id}` : n.kind === 'clube_resposta' ? `/clube/${n.slug}#m-${n.id}` : `/clube/${n.slug}`;
+          const who = n.author?.handle ? `@${n.author.handle}` : 'Alguém';
+          const line = n.kind === 'resposta' ? <><b>{who}</b> respondeu em <b>{n.title}</b></>
+            : n.kind === 'clube_resposta' ? <><b>{who}</b> respondeu você no clube <b>{n.title}</b></>
+            : n.kind === 'encontro' ? <>Encontro <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é hoje'}</>
+            : <>Abriu a parte <b>{n.excerpt}</b> no clube <b>{n.title}</b></>;
+          return (
+            <li key={`${n.kind}-${n.id}`}>
+              <Link to={href} className={`cm-news__it${n.new === false ? ' is-old' : ''}`}>
+                {n.author ? <PersonAvatar p={n.author} size={32} /> : <span className="soc-av cm-news__ic" style={{ width: 32, height: 32 }} aria-hidden="true">{n.kind === 'encontro' ? '◷' : '▸'}</span>}
+                <span className="cm-news__tx"><span>{line}</span>{(n.kind === 'resposta' || n.kind === 'clube_resposta') && n.excerpt && <small className="muted">{n.excerpt}</small>}</span>
+                <small className="faint mono">{ago(n.at)}</small>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

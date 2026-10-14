@@ -32,7 +32,10 @@ export interface Reply {
 }
 export interface PostFull extends Post { communityFull: Community; canModerate: boolean; thread: Reply[] }
 export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[] }
-export interface ReplyNews { count: number; items: { id: string; postId: string; slug: string; title: string; excerpt: string; at: string; author: PersonRef }[] }
+/** Avisos do menu: respostas (comunidades e clubes), encontro chegando e parte do clube que abriu. */
+export type NewsKind = 'resposta' | 'clube_resposta' | 'encontro' | 'parte';
+export interface NewsItem { kind: NewsKind; id: string; ref: string; slug: string; title: string; excerpt?: string | null; at: string; new?: boolean; author?: PersonRef | null }
+export interface ReplyNews { count: number; items: NewsItem[] }
 export interface PostDraft { kind: PostKind; title: string; body: string; gameId: string | null; spoiler: SpoilerLevel | null; images: string[]; clip: string | null }
 export interface CommunityDraft { slug: string; name: string; description: string; rules: string; gameId: string | null; cover?: string | null }
 
@@ -208,7 +211,7 @@ export const communityApi = {
     if (!supa()) return demo.deleteReply(id);
     await rpc('reply_delete', { p_id: id });
   },
-  async react(target: 'post' | 'resposta', id: string, kind: ReactionKind, on: boolean): Promise<Reactions> {
+  async react(target: 'post' | 'resposta' | 'mensagem', id: string, kind: ReactionKind, on: boolean): Promise<Reactions> {
     if (!supa()) return demo.react(target, id, kind, on);
     return rpc<Reactions>('react', { p_target: target, p_id: id, p_kind: kind, p_on: on });
   },
@@ -222,11 +225,21 @@ export const communityApi = {
     return (await rpc<Post[] | null>('game_posts', { p_game: gameIdOrSlug, p_limit: 10 })) ?? [];
   },
   async news(): Promise<ReplyNews> {
-    if (!supa()) return demo.news();
+    if (!supa()) {
+      const a = demo.news();
+      const b = await (await import('./clubApi')).demoClubNews(demoSeenAt());
+      const items = [...a.items, ...b.items].sort((x, y) => y.at.localeCompare(x.at)).slice(0, 15);
+      return { count: a.count + b.count, items };
+    }
     if (!getState().profile) return { count: 0, items: [] };
-    const r = await (await client()).rpc('my_reply_news');
-    if (r.error) return { count: 0, items: [] }; // sem a 0026, nada de aviso
-    return (r.data as ReplyNews | null) ?? { count: 0, items: [] };
+    const sb = await client();
+    const r = await sb.rpc('my_news');
+    if (!r.error) return (r.data as ReplyNews | null) ?? { count: 0, items: [] };
+    // Sem a 0028 ainda: só as respostas das comunidades (0026).
+    const old = await sb.rpc('my_reply_news');
+    if (old.error) return { count: 0, items: [] };
+    const d = old.data as { count: number; items: { id: string; postId: string; slug: string; title: string; excerpt: string; at: string; author: PersonRef }[] } | null;
+    return { count: d?.count ?? 0, items: (d?.items ?? []).map((x) => ({ kind: 'resposta', id: x.id, ref: x.postId, slug: x.slug, title: x.title, excerpt: x.excerpt, at: x.at, new: true, author: x.author })) };
   },
   async seen(): Promise<void> {
     if (!supa()) demo.seen();
@@ -469,7 +482,7 @@ const demo = {
     const db = loadDb(); const r = db.replies.find((x) => x.id === id && x.author === ME); if (!r) err('not_author');
     r.deletedAt = new Date().toISOString(); db.posts.forEach((p) => { if (p.answerId === id) p.answerId = null; }); saveDb(db);
   },
-  react(target: 'post' | 'resposta', id: string, kind: ReactionKind, on: boolean): Reactions {
+  react(target: 'post' | 'resposta' | 'mensagem', id: string, kind: ReactionKind, on: boolean): Reactions {
     const db = loadDb(); const k = `${target}:${id}`;
     const r = db.reacts[k] ?? { gg: 0, coracao: 0, mine: [] };
     r.mine = on ? [...new Set([...r.mine, kind])] : r.mine.filter((x) => x !== kind);
@@ -494,8 +507,15 @@ const demo = {
     }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return {
       count: items.length,
-      items: items.slice(0, 12).map((r) => { const p = db.posts.find((x) => x.id === r.postId)!; const c = db.comms.find((x) => x.id === p.cid)!; return { id: r.id, postId: p.id, slug: c.slug, title: p.title, excerpt: r.body.slice(0, 140), at: r.createdAt, author: person(r.author) }; }),
+      items: items.slice(0, 12).map((r): NewsItem => { const p = db.posts.find((x) => x.id === r.postId)!; const c = db.comms.find((x) => x.id === p.cid)!; return { kind: 'resposta', id: r.id, ref: p.id, slug: c.slug, title: p.title, excerpt: r.body.slice(0, 140), at: r.createdAt, new: true, author: person(r.author) }; }),
     };
   },
   seen() { const db = loadDb(); db.seenAt = new Date().toISOString(); saveDb(db); },
 };
+
+/** Desde quando os avisos da demonstração já foram vistos (o mesmo marcador para comunidades e clubes). */
+export function demoSeenAt(): string { return loadDb().seenAt; }
+/** Pessoa de exemplo (ou você) no formato das listas; usado também pelos clubes da demonstração. */
+export const demoPersonRef = (id: string): PersonRef => person(id);
+export const demoGameMini = (id?: string | null): GameMini | null => gameMini(id);
+export const demoReactions = (target: 'post' | 'resposta' | 'mensagem', id: string): Reactions => reactOf(loadDb(), `${target}:${id}`);

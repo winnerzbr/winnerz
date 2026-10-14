@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from '../lib/router';
 import { actions, getState, uid, useStore } from '../data/store';
+import { ensureRules } from '../data/moderationApi';
 import type { MuseumPiece, MuseumRoom, PieceRef } from '../data/types';
 import { SubNav } from '../components/SubNav';
 import { ConfirmButton } from '../components/Sheet';
@@ -88,7 +89,7 @@ export function MuseumPage() {
           {!rooms.length && <button className="btn ghost" onClick={() => newRoom('livre')}>Começar do zero</button>}
           {rooms.length > 0 && (
             <label className="vitrine__share">
-              <input type="checkbox" role="switch" className="switch" checked={!!museum.shared} onChange={() => actions.setMuseum({ shared: !museum.shared })} />
+              <input type="checkbox" role="switch" className="switch" checked={!!museum.shared} onChange={async () => { if (!museum.shared && !(await ensureRules())) return; actions.setMuseum({ shared: !museum.shared }); }} />
               <span>Mostrar no meu perfil</span>
             </label>
           )}

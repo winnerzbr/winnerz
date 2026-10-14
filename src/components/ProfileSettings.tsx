@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore } from '../data/store';
 import { HANDLE_RE, PILLARS, linkLabel, profileApi, profileUrl, visOf, type MyProfile, type MyVisibility, type ProfileLink, type ProfileStage } from '../data/profileApi';
+import { ensureRules } from '../data/moderationApi';
 import { StageSettings, stageKey } from './StageSettings';
 import { AvatarEditor } from './AvatarEditor';
 
@@ -47,6 +48,10 @@ export function ProfileSettings() {
 
   const save = async () => {
     if (!h) { setMsg({ err: 'Escolha o seu @.' }); return; }
+    // Abrir qualquer pilar deixa algo público: antes, as regras da comunidade (só na primeira vez).
+    if (PILLARS.some((x) => (vis[x.key] ?? 'privado') !== 'privado') && !(await ensureRules())) {
+      setMsg({ err: 'Para abrir o perfil, é preciso aceitar as regras da comunidade.' }); return;
+    }
     setBusy(true); setMsg({});
     try {
       let p = await profileApi.save(h, bio, { ...Object.fromEntries(PILLARS.map((x) => [x.key, vis[x.key] ?? 'privado'])), aoVivo: vis.aoVivo ?? 'nao' });

@@ -19,6 +19,9 @@ import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { Home } from './pages/Home';
 import { Welcome } from './pages/Welcome';
+import { RulesPage } from './pages/Rules';
+import { StudioModerationPage } from './pages/StudioModeration';
+import { ModerationBanner, RulesHost } from './components/Moderation';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
 import { CollectionStats, Wishes } from './pages/CollectionStats';
 import { ImportPage } from './pages/Import';
@@ -85,6 +88,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/privacidade', path)) return <PrivacyPage />;
+  if (match('/regras', path)) return <RulesPage />;
   if (match('/sobre', path)) return <AboutPage />;
   if (match('/eventos', path)) return <EventsIndex />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
@@ -93,6 +97,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/studio', path)) return <StudioPage />;
   if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
+  if (match('/studio/moderacao', path)) return <StudioModerationPage />;
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} vitrine={m.id} />;
@@ -147,6 +152,7 @@ export function App() {
     if (inv) return <InvitePage code={inv.code} />;
     if (match('/privacidade', path)) return <PrivacyPage standalone />;
     if (match('/sobre', path)) return <AboutPage standalone />;
+    if (match('/regras', path)) return <RulesPage standalone />;
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 
@@ -160,6 +166,7 @@ export function App() {
       {!isSession && <Header />}
       <UpdateBanner />
       <DeletionBanner />
+      <ModerationBanner />
       <ForgottenSession />
       <Routes path={path} />
       {!isSession && (
@@ -167,7 +174,7 @@ export function App() {
           <div className="page">
             <BrandMark width={56} title="WinnerZ" />
             <div className="site-footer__txt">
-              <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link></p>
+              <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link> <Link to="/regras" className="site-footer__link">Regras</Link></p>
               <p className="site-footer__src">Dados e imagens dos jogos: <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer">IGDB.com</a></p>
             </div>
           </div>
@@ -176,6 +183,7 @@ export function App() {
       {!isSession && <TabBar />}
       {hasSession && !isSession && <SessionDock />}
       <PastSheetHost />
+      <RulesHost />
       <MiniCelebrationHost />
       <CommandPalette />
     </NickGate>

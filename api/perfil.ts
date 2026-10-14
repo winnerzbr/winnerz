@@ -10,7 +10,7 @@
  * endereços temporários das fotos (o Storage é privado), por 1 hora.
  */
 
-type Req = { method?: string; query?: Record<string, string | string[] | undefined> };
+type Req = { method?: string; query?: Record<string, string | string[] | undefined>; headers?: Record<string, string | string[] | undefined> };
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
 
 const BUCKET = 'momentos';
@@ -37,11 +37,36 @@ async function signAll(c: { url: string; headers: Record<string, string> }, item
   for (const e of items) { if (e.imagePath) e.image = map.get(e.imagePath); delete e.imagePath; }
 }
 
+/**
+ * Quem está pedindo (se mandou o token da conta). Serve só para respeitar o bloqueio: quem foi bloqueado
+ * não vê o perfil de quem bloqueou enquanto estiver na própria conta (migração 0024).
+ */
+async function viewerId(c: { url: string; headers: Record<string, string> }, req: Req): Promise<string | null> {
+  const auth = one(req.headers?.authorization ?? req.headers?.Authorization);
+  const token = /^Bearer\s+(.+)$/i.exec(auth)?.[1];
+  if (!token) return null;
+  try {
+    const r = await fetch(`${c.url}/auth/v1/user`, { headers: { apikey: c.headers.apikey, Authorization: `Bearer ${token}` } });
+    if (!r.ok) return null;
+    const u = (await r.json()) as { id?: string };
+    return u.id ?? null;
+  } catch { return null; }
+}
+
+async function blocked(c: { url: string; headers: Record<string, string> }, handle: string, viewer: string | null): Promise<boolean> {
+  if (!viewer) return false;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/viewer_blocked`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: handle, p_viewer: viewer }) });
+    return r.ok ? (await r.json()) === true : false; // sem a 0024 ainda, ninguém está bloqueado
+  } catch { return false; }
+}
+
 export default async function handler(req: Req, res: Res) {
   const c = db();
   if (!c) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   if (req.method && req.method !== 'GET') return res.status(405).json({ error: 'Método não aceito.' });
   const h = one(req.query?.h).slice(0, 40), j = one(req.query?.j).slice(0, 120), k = one(req.query?.k).slice(0, 64);
+  if (h && (await blocked(c, h, await viewerId(c, req)))) return res.status(404).json({ error: 'not_found' });
   if (h && one(req.query?.p) === '1') {
     try {
       const r = await fetch(`${c.url}/rest/v1/rpc/public_profile_v4`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null }) });

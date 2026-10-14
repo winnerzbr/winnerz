@@ -106,6 +106,9 @@ const MSG: Record<string, string> = {
   handle_format: 'Use de 3 a 24 letras, números ou _ (sem espaço nem acento).',
   handle_required: 'Escolha o seu @ para continuar.',
   handle_reserved: 'Esse endereço é reservado do site. Tente outro.',
+  handle_offensive: 'Esse @ tem uma palavra que não pode. Tente outro.',
+  handle_limit: 'Você já trocou o @ 3 vezes nos últimos 30 dias. Espere um pouco para trocar de novo.',
+  bio_offensive: 'A bio tem uma palavra que não pode. Reescreva e tente de novo.',
 };
 function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
@@ -242,6 +245,15 @@ function demoMuseum(handle: string, key?: string | null): PublicMuseum | null {
 
 /* ---- API ---- */
 const supa = () => getState().mode === 'supabase';
+/** O token da conta, para o servidor respeitar bloqueios (quem bloqueou some para quem foi bloqueado). */
+async function authHeaders(): Promise<Record<string, string>> {
+  try {
+    const { getClient } = await import('./supabaseAdapter');
+    const { data } = await (await getClient()).auth.getSession();
+    return data.session?.access_token ? { Authorization: `Bearer ${data.session.access_token}` } : {};
+  } catch { return {}; }
+}
+
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const { getClient } = await import('./supabaseAdapter');
   const { data, error } = await (await getClient()).rpc(fn, args);
@@ -278,7 +290,7 @@ export const profileApi = {
     if (!supa()) return demoPublic(handle, key);
     // O perfil completo vem pelo servidor, que assina as fotos do mural (migração 0016). Sem ela, cai para as versões antigas.
     try {
-      const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&p=1${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+      const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&p=1${key ? `&k=${encodeURIComponent(key)}` : ''}`, { headers: await authHeaders() });
       if (r.status === 404) return null;
       if (r.ok) return (await r.json()) as PublicProfile;
     } catch { /* tenta direto no banco */ }
@@ -289,7 +301,7 @@ export const profileApi = {
   },
   async journeyOf(handle: string, key: string | null | undefined, slug: string): Promise<PublicJourney | null> {
     if (!supa()) return demoJourney(handle, key, slug);
-    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&j=${encodeURIComponent(slug)}${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&j=${encodeURIComponent(slug)}${key ? `&k=${encodeURIComponent(key)}` : ''}`, { headers: await authHeaders() });
     if (r.status === 404) return null;
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || 'Não consegui carregar a Jornada.');
@@ -310,7 +322,7 @@ export const profileApi = {
   },
   async museumOf(handle: string, key: string | null | undefined): Promise<PublicMuseum | null> {
     if (!supa()) return demoMuseum(handle, key);
-    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&museu=1${key ? `&k=${encodeURIComponent(key)}` : ''}`);
+    const r = await fetch(`/api/perfil?h=${encodeURIComponent(handle)}&museu=1${key ? `&k=${encodeURIComponent(key)}` : ''}`, { headers: await authHeaders() });
     if (r.status === 404) return null;
     const body = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(body.error || 'Não consegui carregar o Museu.');

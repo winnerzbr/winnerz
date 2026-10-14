@@ -12,6 +12,8 @@ import { PublicCollection } from '../components/PublicCollection';
 import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
+import { ProfileMenu, ReportButton, useRelation } from '../components/Moderation';
+import { moderationApi } from '../data/moderationApi';
 
 export const pubShelfItem = (p: PublicPiece, k: number): ShelfItem => (p.t === 'c'
   ? { key: `c-${k}-${p.slug}`, t: 'c', title: p.title, cover: p.cover ?? '', platform: p.platform, slug: p.slug }
@@ -40,6 +42,8 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
   const [error, setError] = useState('');
   const [tab, setTabState] = useState<Tab>(() => (vitrine ? 'vitrines' : (location.hash.slice(1) as Tab) || 'geral'));
   const [copied, setCopied] = useState(false);
+  const rel = useRelation(handle);
+  const [showAnyway, setShowAnyway] = useState(false);
 
   useEffect(() => {
     setData(undefined); setError('');
@@ -64,6 +68,18 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
       <h1 className="t big">Perfil não encontrado</h1>
       <p className="muted lead">{error || 'Este endereço não existe, ou a pessoa ainda não abriu nada do perfil para você.'}</p>
       {mine && <Link className="btn primary" to="/preferencias#perfil">Abrir algum pilar do seu perfil</Link>}
+    </main>
+  );
+
+  if (rel?.kind === 'silenciar' && !showAnyway && !mine) return (
+    <main className="page pad narrow pp-empty pp-muted">
+      <span className="kicker">Silenciado por você</span>
+      <h1 className="t big">@{data.handle}</h1>
+      <p className="muted lead">Você silenciou este perfil: o que é de @{data.handle} não aparece para você no WinnerZ.</p>
+      <div className="acct__row">
+        <button className="btn ghost" onClick={() => setShowAnyway(true)}>Ver mesmo assim</button>
+        <button className="btn quiet" onClick={() => void moderationApi.unblock(rel.id)}>Deixar de silenciar</button>
+      </div>
     </main>
   );
 
@@ -92,7 +108,13 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
         </div></div>
       )}
 
-      <Hero data={data} owner={owner} onShare={share} copied={copied} />
+      <Hero data={data} owner={owner} preview={mine && asVisitor} onShare={share} copied={copied} />
+      {rel?.kind === 'bloquear' && !mine && (
+        <div className="pp-owner pp-owner--block"><div className="page pp-owner__row">
+          <span>Você bloqueou @{data.handle}: enquanto estiver na conta, @{data.handle} não vê o seu perfil.</span>
+          <span className="pp-owner__acts"><button className="linkish" onClick={() => void moderationApi.unblock(rel.id)}>Desbloquear</button></span>
+        </div></div>
+      )}
 
       <nav className="pd-tabs" aria-label="Seções do perfil">
         <div className="page pd-tabs__row">
@@ -156,7 +178,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 
         {cur === 'colecao' && c && <PublicCollection handle={data.handle} k={key} c={c} />}
 
-        {cur === 'vitrines' && !!data.vitrines?.length && <ProfileShowcases data={data} initial={vitrine} />}
+        {cur === 'vitrines' && !!data.vitrines?.length && <ProfileShowcases data={data} initial={vitrine} preview={mine && asVisitor} />}
 
         {cur === 'notas' && n && <Notes notes={n} />}
       </div>
@@ -165,7 +187,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 }
 
 /** O topo: a arte do jogo que definiu a pessoa, o avatar com aro dourado, o nome grande e a frase. */
-function Hero({ data, owner, onShare, copied }: { data: PublicProfile; owner: boolean; onShare: () => void; copied: boolean }) {
+function Hero({ data, owner, preview, onShare, copied }: { data: PublicProfile; owner: boolean; preview: boolean; onShare: () => void; copied: boolean }) {
   const st = data.stage, def = st?.defining;
   const art = coverSrc(st?.cover) || def?.backdrop || data.showcase?.find((s) => s.backdrop)?.backdrop || null;
   const artY = st?.cover?.y ?? 28;
@@ -200,9 +222,12 @@ function Hero({ data, owner, onShare, copied }: { data: PublicProfile; owner: bo
             {owner ? <>
               <Link className="btn ghost" to="/preferencias#perfil">Editar perfil</Link>
               <button className="btn primary" onClick={onShare}>{copied ? 'Link copiado' : 'Compartilhar'}</button>
-            </> : links.slice(0, 3).map((l, i) => (
-              <a key={l.url} className={`btn ${i === 0 ? 'primary' : 'ghost'}`} href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
-            ))}
+            </> : <>
+              {links.slice(0, 3).map((l, i) => (
+                <a key={l.url} className={`btn ${i === 0 ? 'primary' : 'ghost'}`} href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
+              ))}
+              <ProfileMenu handle={data.handle} snapshot={{ handle: data.handle, bio: data.bio ?? null }} force={preview} />
+            </>}
           </div>
         </div>
       </div>
@@ -441,12 +466,13 @@ function ProfileMuseum({ data, k }: { data: PublicProfile; k: string | null }) {
     <div className="pd-museum">
       <MuseumTour title={m.title || `O museu de ${m.name}`} intro={m.intro} owner={m.handle}
         rooms={m.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x) }))} />
+      <div className="page pd-modline"><ReportButton kind="museu" handle={m.handle} snapshot={{ title: m.title ?? undefined, intro: m.intro ?? null }} what={`O Museu de @${m.handle}: as salas, os textos e as fotos.`} label="Denunciar o Museu" /></div>
     </div>
   );
 }
 
 /** Aba Vitrines: uma vitrine por vez, já aberta no expositor; as outras ficam nas abas de cima. */
-function ProfileShowcases({ data, initial }: { data: PublicProfile; initial?: string }) {
+function ProfileShowcases({ data, initial, preview = false }: { data: PublicProfile; initial?: string; preview?: boolean }) {
   const list = data.vitrines ?? [];
   const [id, setId] = useState(() => (list.some((v) => v.id === initial) ? initial! : list[0]?.id));
   const v = list.find((x) => x.id === id) ?? list[0];
@@ -466,6 +492,7 @@ function ProfileShowcases({ data, initial }: { data: PublicProfile; initial?: st
         <span className="kicker">Vitrine · {v.items.length} {v.items.length === 1 ? 'peça' : 'peças'}</span>
         <h2 className="t pd-vits__title">{v.title}</h2>
         {v.description && <p className="muted pd-vits__desc">{v.description}</p>}
+        <ReportButton kind="vitrine" handle={data.handle} refId={v.id} snapshot={{ title: v.title, description: v.description ?? null }} what={`A vitrine “${v.title}”, de @${data.handle}.`} className="pd-vits__report" force={preview} />
       </header>
       <Cabinet key={v.id} items={v.items.map(pubShelfItem)} owner={data.handle} />
     </section>

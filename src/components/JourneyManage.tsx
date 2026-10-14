@@ -1,7 +1,8 @@
 import { say as toneLine } from '../lib/tone';
 import { useState } from 'react';
-import { navigate } from '../lib/router';
+import { Link, navigate } from '../lib/router';
 import { getState, actions, useStore, historiesOf, currentHistory } from '../data/store';
+import { ensureRules } from '../data/moderationApi';
 import type { History } from '../data/types';
 import { Sheet, ConfirmButton } from './Sheet';
 import { DateField, type WhenValue } from './DateField';
@@ -115,10 +116,11 @@ export function JourneyMenu({ journeyId, onClose, onEditHistory, onStateChanged 
 
       <section className="jmenu__group" aria-labelledby="jmenu-share">
         <h3 id="jmenu-share" className="jmenu__h">No seu perfil</h3>
+        {journey.modHidden ? <p className="muted jshare__mod">Esta Jornada foi tirada do perfil pela moderação e não pode voltar a aparecer. Ela continua aqui no seu diário. <Link to="/regras">Ler as regras</Link></p> : (
         <label className="jshare">
-          <input type="checkbox" checked={!!journey.shared} onChange={(e) => actions.shareJourney(journey.id, e.target.checked)} />
+          <input type="checkbox" checked={!!journey.shared} onChange={async (e) => { const on = e.target.checked; if (on && !(await ensureRules())) return; actions.shareJourney(journey.id, on); }} />
           <span><strong>Mostrar esta Jornada no meu perfil</strong><span>Aparece para quem pode ver a sua Jornada (escolha em Preferências): o início, as sessões, os momentos com foto e os marcos. Recados, pontos para voltar e cartas continuam só seus.</span></span>
-        </label>
+        </label>)}
       </section>
 
       <section className="jmenu__group" aria-labelledby="jmenu-hist">

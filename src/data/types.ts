@@ -124,6 +124,8 @@ export interface Showcase {
   position: number;
   /** Mostrar no perfil (só para quem pode ver o pilar Coleção). */
   shared?: boolean;
+  /** Tirada do perfil pela moderação. */
+  modHidden?: boolean;
   createdAt?: string;
 }
 
@@ -211,6 +213,8 @@ export interface Journey {
   pausedNote?: string;
   /** Mostrada no perfil público (vitrine). Só aparece para quem pode ver o pilar Jornada. */
   shared?: boolean;
+  /** Tirada do perfil pela moderação (o dono não consegue mostrar de novo). */
+  modHidden?: boolean;
 }
 
 export interface Session {

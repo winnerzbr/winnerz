@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, navigate } from '../lib/router';
 import { actions, useStore } from '../data/store';
+import { ensureRules } from '../data/moderationApi';
 import type { PieceRef, Showcase } from '../data/types';
 import { SubNav } from '../components/SubNav';
 import { Sheet, ConfirmButton } from '../components/Sheet';
@@ -188,10 +189,11 @@ export function ShowcasePage({ id }: { id: string }) {
         )}
         <div className="vitrine__actions">
           {editing ? <button className="btn primary" onClick={finish}>Pronto</button> : <button className="btn ghost" onClick={() => setEditing(true)}>Editar</button>}
+          {sc.modHidden ? <span className="faint vitrine__share">Tirada do perfil pela moderação · <Link to="/regras">regras</Link></span> : (
           <label className="vitrine__share">
-            <input type="checkbox" role="switch" className="switch" checked={!!sc.shared} onChange={() => save({ shared: !sc.shared })} />
+            <input type="checkbox" role="switch" className="switch" checked={!!sc.shared} onChange={async () => { if (!sc.shared && !(await ensureRules())) return; save({ shared: !sc.shared }); }} />
             <span>Mostrar no meu perfil</span>
-          </label>
+          </label>)}
         </div>
         {sc.shared && <p className="faint vitrine__hint">Aparece para quem pode ver a sua Coleção (<Link to="/preferencias#perfil">Perfil e privacidade</Link>). Mostra só capa, título e plataforma; nada da ficha dos exemplares.</p>}
       </header>

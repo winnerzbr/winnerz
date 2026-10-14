@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../data/store';
 import { canReview, fixesApi } from '../data/fixesApi';
+import { moderationApi } from '../data/moderationApi';
 import { FREE, fmtBytes, loadUsage, type Usage } from '../data/usageApi';
 import { SITE_PRIVATE } from '../lib/env';
 import { Link } from '../lib/router';
@@ -26,12 +27,14 @@ export function StudioPage() {
   const [usage, setUsage] = useState<Usage | null>(null);
   const [err, setErr] = useState('');
   const [queue, setQueue] = useState<number | null>(null);
+  const [reports, setReports] = useState<number | null>(null);
   const [done, setDone] = useState<Record<string, boolean>>(() => { try { return JSON.parse(localStorage.getItem(LAUNCH_KEY) || '{}'); } catch { return {}; } });
 
   useEffect(() => {
     if (!canReview()) return;
     loadUsage().then(setUsage).catch((e) => setErr(e instanceof Error ? e.message : 'Não deu certo agora.'));
     fixesApi.queue('aberta').then((l) => setQueue(l.length)).catch(() => setQueue(null));
+    moderationApi.queue().then((l) => setReports(l.length)).catch(() => setReports(null));
   }, [mode]);
 
   if (!canReview()) return (
@@ -62,6 +65,7 @@ export function StudioPage() {
 
       <nav className="studio__cards" aria-label="Ferramentas">
         <Link to="/studio/correcoes" className="studio__card"><b>Correções</b><span className="muted">{queue == null ? 'Fila do "Algo errado nesta ficha?" e qualidade dos dados.' : queue ? `${queue} ${queue === 1 ? 'sugestão esperando' : 'sugestões esperando'} revisão.` : 'Fila vazia. Painel de qualidade dos dados.'}</span></Link>
+        <Link to="/studio/moderacao" className="studio__card"><b>Moderação</b><span className="muted">{reports == null ? 'Denúncias, avisos e o histórico do que foi feito.' : reports ? `${reports} ${reports === 1 ? 'denúncia esperando' : 'denúncias esperando'} revisão.` : 'Nenhuma denúncia esperando.'}</span></Link>
         <Link to="/eventos/awards/admin" className="studio__card"><b>WinnerZ Awards</b><span className="muted">Montar edições, categorias e indicados.</span></Link>
       </nav>
 

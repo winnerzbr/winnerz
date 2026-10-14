@@ -3,6 +3,7 @@ import { Link } from '../lib/router';
 import { profileApi, type PublicMuseum, type PublicMuseumPiece } from '../data/profileApi';
 import { ExhibitView, RoomView } from '../components/MuseumView';
 import { MuseumTour } from '../components/MuseumTour';
+import { ReportButton } from '../components/Moderation';
 import type { Exhibit } from '../lib/museum';
 import { shortPlatform } from '../lib/platforms';
 
@@ -45,6 +46,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
       <main className="pmuseum-tour">
         <MuseumTour title={data.title || `O museu de ${data.name}`} intro={data.intro} owner={data.handle} back={back} onList={() => { setList(true); scrollTo(0, 0); }}
           rooms={data.rooms.map((r) => ({ title: r.title, text: r.text, exhibits: r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x) }))} />
+        <div className="page pd-modline"><ReportButton kind="museu" handle={data.handle} snapshot={{ title: data.title ?? undefined, intro: data.intro }} what={`O Museu de @${data.handle}: as salas, os textos e as fotos.`} label="Denunciar o Museu" /></div>
       </main>
     );
   }
@@ -55,6 +57,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
         <span className="kicker">Museu pessoal de @{data.handle}</span>
         <h1 className="t museum__title">{data.title || `O museu de ${data.name}`}</h1>
         {data.intro && <p className="museum__intro">{data.intro}</p>}
+        <ReportButton kind="museu" handle={data.handle} snapshot={{ title: data.title ?? undefined, intro: data.intro }} what={`O Museu de @${data.handle}: as salas, os textos e as fotos.`} label="Denunciar o Museu" />
       </header>
       {data.rooms.map((r, i) => {
         const ex = r.pieces.map(publicExhibit).filter((x): x is Exhibit => !!x);

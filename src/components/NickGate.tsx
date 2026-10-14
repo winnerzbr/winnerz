@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { actions, useStore } from '../data/store';
 import { HANDLE_RE, profileApi } from '../data/profileApi';
 import { BrandMark } from './Brand';
+import { moderationApi, useModeration } from '../data/moderationApi';
 
 /**
  * Primeiro acesso: antes de usar o site, a pessoa escolhe o @, que passa a ser o nome dela no site inteiro
@@ -28,6 +29,8 @@ function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => v
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const seq = useRef(0);
+  // Quando a moderação pediu outro @, a tela explica o motivo em vez de dizer "primeiro acesso".
+  const modNotice = useModeration()?.notices.find((n) => n.kind === 'trocar_arroba');
   const h = nick.trim();
   const valid = HANDLE_RE.test(h);
 
@@ -45,6 +48,7 @@ function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => v
     try {
       const p = await profileApi.setHandle(h);
       actions.setProfileName(p.handle ?? h);
+      if (modNotice) void moderationApi.ack(modNotice.id).catch(() => {});
       onDone();
     } catch (e) { setError(e instanceof Error ? e.message : 'Não deu certo.'); setBusy(false); }
   };
@@ -54,9 +58,9 @@ function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => v
       <div className="nick__glow" aria-hidden="true" />
       <form className="nick__box" onSubmit={(e) => { e.preventDefault(); void go(); }}>
         <BrandMark width={56} className="nick__logo" />
-        <span className="kicker kicker--now">Primeiro acesso</span>
-        <h1 className="t nick__title">Escolha o seu @</h1>
-        <p className="nick__lead">É o seu nome no WinnerZ: aparece no cabeçalho, nas suas análises e no endereço do seu perfil. Dá para trocar depois em Preferências.</p>
+        <span className="kicker kicker--now">{modNotice ? 'Aviso da moderação' : 'Primeiro acesso'}</span>
+        <h1 className="t nick__title">{modNotice ? 'Escolha um novo @' : 'Escolha o seu @'}</h1>
+        <p className="nick__lead">{modNotice ? modNotice.text : 'É o seu nome no WinnerZ: aparece no cabeçalho, nas suas análises e no endereço do seu perfil. Dá para trocar depois em Preferências.'}</p>
         <label className="nick__field">
           <span className="nick__at" aria-hidden="true">@</span>
           <input className="field" value={nick} onChange={(e) => setNick(e.target.value.replace(/\s/g, ''))} maxLength={24} autoFocus autoCapitalize="none" autoCorrect="off" spellCheck={false} aria-label="Seu @" aria-invalid={!!h && !valid} />
@@ -64,7 +68,7 @@ function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => v
         <p className={`nick__hint${(h && !valid) || free === false ? ' is-bad' : free ? ' is-ok' : ''}`} role="status">
           {!h ? 'De 3 a 24 letras, números ou _.'
             : !valid ? 'Use só letras sem acento, números ou _, de 3 a 24.'
-            : free === false ? 'Esse @ já tem dono. Tente outro.'
+            : free === false ? 'Esse @ não está disponível. Tente outro.'
             : free ? `Livre. Seu perfil: winnerz.com.br/@${h.toLowerCase()}`
             : 'Conferindo…'}
         </p>

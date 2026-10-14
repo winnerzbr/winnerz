@@ -8,6 +8,7 @@ import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
 import { DeleteAccount, ExportData } from '../components/AccountData';
 import { ProfileSettings } from '../components/ProfileSettings';
+import { BlockedList } from '../components/Moderation';
 import { Link } from '../lib/router';
 
 const SAMPLES = [
@@ -142,6 +143,8 @@ export function Preferences() {
       <section className="prefs__section" aria-labelledby="perfil">
         <h2 id="perfil" className="t">Perfil e privacidade</h2>
         <ProfileSettings />
+        <h3 className="prefs__sub" id="bloqueios">Pessoas bloqueadas e silenciadas</h3>
+        <BlockedList />
       </section>
 
       <section className="prefs__section" aria-labelledby="dados">

@@ -3,6 +3,7 @@ import { Link, usePath } from '../lib/router';
 import { profileApi, type PublicJourney } from '../data/profileApi';
 import { whenLabel } from '../lib/dates';
 import { igdbSize } from '../lib/backdrop';
+import { ReportButton } from '../components/Moderation';
 
 const KIND: Record<string, string> = { inicio: 'Início', momento: 'Momento', marco: 'Marco', sessao: 'Sessão' };
 const STATE: Record<string, string> = { ativa: 'Em andamento', pausada: 'Pausada', concluida: 'Zerada', encerrada: 'Encerrada', dropada: 'Largada' };
@@ -61,6 +62,7 @@ export function PublicJourneyPage({ handle, slug }: { handle: string; slug: stri
           <Link to={back} className="kicker pjh__back">← A Jornada de @{data.handle}</Link>
           <h1 className="t pjh__title">{data.game.title}</h1>
           <p className="pjh__meta">{[data.game.developer, data.game.year].filter(Boolean).join(', ')}</p>
+          <ReportButton kind="jornada" handle={data.handle} refId={data.game.slug} snapshot={{ game: data.game.title, slug: data.game.slug }} what={`A Jornada de @${data.handle} com ${data.game.title}: os textos, as fotos e os marcos.`} label="Denunciar a Jornada" className="pjh__report" />
           <dl className="pjh__stats">
             <div><dt>{data.histories.length === 1 ? 'História' : 'Histórias'}</dt><dd className="t">{data.histories.length}</dd></div>
             <div><dt>Sessões</dt><dd className="t">{sessions}</dd></div>
@@ -96,6 +98,10 @@ export function PublicJourneyPage({ handle, slug }: { handle: string; slug: stri
                     {r.ev.quote && <p className="pjt__quote">“{r.ev.quote}”</p>}
                     {r.ev.text && !r.ev.quote && <p className="pjt__text">{r.ev.text}</p>}
                     {r.ev.image && <button className="pjt__photo" onClick={() => setPhoto(r.ev.image!)} aria-label={`Ampliar a foto: ${r.ev.title}`}><img src={r.ev.image} alt="" loading="lazy" /></button>}
+                    {(r.ev.image || r.ev.quote || r.ev.text) && r.ev.kind !== 'inicio' && (
+                      <ReportButton kind="momento" handle={data.handle} refId={r.ev.id} snapshot={{ title: r.ev.title, quote: r.ev.quote ?? null, text: r.ev.text ?? null, game: data.game.title, slug: data.game.slug, photo: !!r.ev.image }}
+                        what={`O momento “${r.ev.title}”, da Jornada de @${data.handle} com ${data.game.title}.`} className="pjt__report" />
+                    )}
                   </li>
                 ))}
               </ol>

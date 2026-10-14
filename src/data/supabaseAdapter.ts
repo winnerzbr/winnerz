@@ -144,7 +144,7 @@ const loanToRow = (l: Loan) => ({
 });
 const showcaseFromRow = (r: any): Showcase => ({
   id: r.id, title: r.title, description: r.description ?? undefined, kind: r.kind, rule: r.rule ?? undefined,
-  items: Array.isArray(r.items) ? r.items : [], position: r.position ?? 0, shared: !!r.shared, createdAt: r.created_at ?? undefined,
+  items: Array.isArray(r.items) ? r.items : [], position: r.position ?? 0, shared: !!r.shared, modHidden: !!r.mod_hidden || undefined, createdAt: r.created_at ?? undefined,
 });
 const showcaseToRow = (x: Showcase) => ({
   id: x.id, title: x.title, description: x.description ?? null, kind: x.kind, rule: x.rule ?? null,
@@ -365,7 +365,7 @@ export const supabaseAdapter: Adapter = {
       museum: (museum.data && typeof museum.data === 'object' ? museum.data : {}) as Museum,
       wishes: (wishes.data ?? []).map((w: any) => ({ gameId: w.game_id, note: w.note ?? undefined })),
       favorites: (favs.data ?? []).map((f: any) => f.game_id),
-      journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined, createdAt: j.created_at ?? undefined, shared: !!j.shared })),
+      journeys: (journeys.data ?? []).map((j: any) => ({ id: j.id, gameId: j.game_id, mood: j.mood, pausedNote: j.paused_note ?? undefined, createdAt: j.created_at ?? undefined, shared: !!j.shared, modHidden: !!j.mod_hidden || undefined })),
       histories: (histories.data ?? []).map(historyFromRow),
       sessions: (sessions.data ?? []).map(sessionFromRow),
       events: evs,
@@ -503,7 +503,7 @@ export const supabaseAdapter: Adapter = {
         return;
       case 'journey.share': {
         const r = await sb.from('journeys').update({ shared: a.shared }).eq('id', a.journeyId);
-        if (r.error) throw new Error(/shared|column|schema/i.test(r.error.message) ? 'Para mostrar Jornadas no perfil, rode a migração 0013 no Supabase.' : r.error.message);
+        if (r.error) throw new Error(/public_limit/.test(r.error.message) ? 'Calma: contas novas mostram no máximo 20 coisas por hora no perfil. Tente daqui a pouco.' : /shared|column|schema/i.test(r.error.message) ? 'Para mostrar Jornadas no perfil, rode a migração 0013 no Supabase.' : r.error.message);
         return;
       }
       case 'journey.update':

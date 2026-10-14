@@ -332,6 +332,8 @@ export interface State {
   schemaV8?: boolean;
   /** Administração (monta os Awards). */
   isAdmin?: boolean;
+  /** Entrou por um convite: vê o site mesmo com o modo privado ligado (migração 0023). */
+  isGuest?: boolean;
   /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */
   loadIncomplete?: boolean;
 }

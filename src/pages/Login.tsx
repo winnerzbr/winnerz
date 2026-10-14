@@ -3,6 +3,7 @@ import { SUPABASE_ON } from '../lib/env';
 import { Link, navigate } from '../lib/router';
 import { BrandMark } from '../components/Brand';
 import { authMessage } from '../lib/authMessage';
+import { pendingInvite } from '../data/invitesApi';
 
 /** Lado da arte: a marca pousada na linha do horizonte. */
 function LoginArt() {
@@ -29,7 +30,9 @@ export function Login() {
 
   const request = async () => {
     const { getClient } = await import('../data/supabaseAdapter');
-    return (await getClient()).auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: location.origin } });
+    const invite = pendingInvite();
+    // Com convite guardado, o link do e-mail volta direto para a página do convite (vale mesmo se abrir em outro navegador).
+    return (await getClient()).auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: invite ? `${location.origin}/convite/${invite}` : location.origin } });
   };
   const send = async (e: FormEvent) => {
     e.preventDefault();

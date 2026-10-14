@@ -227,12 +227,13 @@ const manualGameToRow = (g: Game) => ({
  * função my_prefs(); num banco sem a 0009, lê a linha inteira como antes.
  */
 async function loadProfile(sb: SupabaseClient, uid: string): Promise<{ data: any; error: any }> {
-  const [row, prefs, mine] = await Promise.all([
+  const [row, prefs, mine, guest] = await Promise.all([
     sb.from('profiles').select('display_name, is_admin').eq('id', uid).maybeSingle(),
     sb.rpc('my_prefs'),
     sb.rpc('my_profile'),
+    sb.rpc('am_site_guest'),
   ]);
-  if (!row.error && !prefs.error) return { data: row.data ? { ...row.data, prefs: prefs.data ?? {}, avatar: (mine.data as { avatar?: string } | null)?.avatar ?? null } : null, error: null };
+  if (!row.error && !prefs.error) return { data: row.data ? { ...row.data, prefs: prefs.data ?? {}, avatar: (mine.data as { avatar?: string } | null)?.avatar ?? null, is_guest: guest.data === true } : null, error: null };
   return sb.from('profiles').select('*').eq('id', uid).maybeSingle();
 }
 
@@ -348,6 +349,7 @@ export const supabaseAdapter: Adapter = {
       schemaV6: v6,
       schemaV8: v8,
       isAdmin: !!p?.is_admin,
+      isGuest: !!p?.is_guest,
       loadIncomplete,
       myGames: Object.fromEntries(mine.data.map((m: any) => [m.game_id, myGameFromRow(m)])),
       games: Object.fromEntries((games as any[]).map((g) => [g.id, gameFromRow(g)])),

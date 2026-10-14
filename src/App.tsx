@@ -49,6 +49,8 @@ import { EventsIndex, AwardsPage } from './pages/Awards';
 import { AwardsAdminPage } from './pages/AwardsAdmin';
 import { StudioFixesPage } from './pages/StudioFixes';
 import { StudioPage } from './pages/Studio';
+import { InvitePage } from './pages/Invite';
+import { invitesApi, pendingInvite, setPendingInvite } from './data/invitesApi';
 import { AwardsRevealPage } from './pages/AwardsReveal';
 
 function Routes({ path }: { path: string }): ReactNode {
@@ -87,6 +89,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
   if (match('/studio', path)) return <StudioPage />;
+  if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
@@ -107,8 +110,17 @@ export function App() {
   const mode = useStore((s) => s.mode);
   const hasSession = useStore((s) => Boolean(openSession(s)));
   const isAdmin = useStore((s) => !!s.isAdmin);
+  const isGuest = useStore((s) => !!s.isGuest);
+  const profileId = useStore((s) => s.profile?.id);
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
+  // Voltou do e-mail de entrada com um convite guardado: usa o convite (vale também se entrou pelo código).
+  useEffect(() => {
+    if (mode !== 'supabase' || !profileId || isAdmin || isGuest) return;
+    const code = pendingInvite();
+    if (!code) return;
+    invitesApi.redeem(code).catch(() => null).finally(() => setPendingInvite(null));
+  }, [mode, profileId, isAdmin, isGuest]);
   // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo.
   useEffect(() => { track(`pagina.${path.split('?')[0].split('/')[1] || 'inicio'}`); }, [path]);
 
@@ -128,7 +140,9 @@ export function App() {
 
   // Site fechado: com o banco ligado, só a conta de administrador passa. Os demais veem só o "Em breve"
   // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
-  if (SITE_PRIVATE && mode === 'supabase' && !isAdmin) {
+  if (SITE_PRIVATE && mode === 'supabase' && !isAdmin && !isGuest) {
+    const inv = match('/convite/:code', path);
+    if (inv) return <InvitePage code={inv.code} />;
     if (match('/privacidade', path)) return <PrivacyPage standalone />;
     if (match('/sobre', path)) return <AboutPage standalone />;
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;

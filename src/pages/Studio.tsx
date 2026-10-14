@@ -4,6 +4,8 @@ import { canReview, fixesApi } from '../data/fixesApi';
 import { FREE, fmtBytes, loadUsage, type Usage } from '../data/usageApi';
 import { SITE_PRIVATE } from '../lib/env';
 import { Link } from '../lib/router';
+import { ConfirmButton } from '../components/Sheet';
+import { invitesApi, inviteLink, type Invite } from '../data/invitesApi';
 
 const LAUNCH_KEY = 'wz.launch.v1';
 const STEPS: { k: string; t: string; how: string }[] = [
@@ -63,6 +65,8 @@ export function StudioPage() {
         <Link to="/eventos/awards/admin" className="studio__card"><b>WinnerZ Awards</b><span className="muted">Montar edições, categorias e indicados.</span></Link>
       </nav>
 
+      <InvitesPanel open={isOpen} />
+
       <section className="studio__sec" aria-labelledby="uso">
         <h2 id="uso" className="t">Uso dos planos gratuitos</h2>
         {err ? <p className="awards__error" role="alert">{err}</p> : !usage ? <p className="faint">Carregando…</p> : (
@@ -112,5 +116,100 @@ export function StudioPage() {
         </ol>
       </section>
     </main>
+  );
+}
+
+const whenBR = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '') : '');
+
+/** Convites: links que liberam o site para pessoas escolhidas enquanto ele está fechado. */
+function InvitesPanel({ open }: { open: boolean }) {
+  const [list, setList] = useState<Invite[] | null>(null);
+  const [label, setLabel] = useState('');
+  const [max, setMax] = useState(1);
+  const [days, setDays] = useState<number | null>(14);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [fresh, setFresh] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const reload = () => invitesApi.list().then(setList).catch((e) => setErr(e instanceof Error ? e.message : 'Não deu certo agora.'));
+  useEffect(() => { reload(); }, []);
+
+  const create = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    if (!label.trim()) { setErr('Escreva para quem é o convite (só para você lembrar).'); return; }
+    setBusy(true); setErr('');
+    try { const code = await invitesApi.create(label.trim(), max, days); setFresh(code); setLabel(''); await reload(); }
+    catch (e2) { setErr(e2 instanceof Error ? e2.message : 'Não deu certo agora.'); }
+    setBusy(false);
+  };
+  const message = (code: string) => `Oi! Quero te mostrar o WinnerZ antes de abrir para todo mundo. Entra por este convite: ${inviteLink(code)}`;
+  const copy = async (code: string, what: 'link' | 'msg') => {
+    try { await navigator.clipboard.writeText(what === 'link' ? inviteLink(code) : message(code)); setCopied(`${code}-${what}`); setTimeout(() => setCopied(null), 2000); }
+    catch { setErr('Não consegui copiar. Selecione o link e copie à mão.'); }
+  };
+  const share = (code: string) => navigator.share?.({ title: 'Convite para o WinnerZ', text: message(code) }).catch(() => null);
+  const status = (i: Invite) => (i.revoked ? 'Cancelado' : i.expiresAt && Date.parse(i.expiresAt) < Date.now() ? 'Vencido' : i.uses >= i.maxUses ? 'Todo usado' : 'Ativo');
+
+  return (
+    <section className="studio__sec" aria-labelledby="conv">
+      <h2 id="conv" className="t">Convites</h2>
+      <p className="muted">{open ? 'O site está aberto, então os convites não fazem diferença agora. Eles voltam a valer se você fechar o site.' : 'Com o site fechado, só entra quem tiver um convite. Crie um link, mande para quem quiser e acompanhe quem já entrou.'}</p>
+      <form className="invform" onSubmit={create}>
+        <label className="invform__f"><span>Para quem</span><input className="field" value={label} onChange={(e) => setLabel(e.target.value)} maxLength={60} placeholder="Ex.: Lucas, ou Galera do Discord" /></label>
+        <label className="invform__f invform__f--s"><span>Quantas pessoas</span>
+          <select className="field" value={max} onChange={(e) => setMax(Number(e.target.value))}>{[1, 2, 3, 5, 10, 20, 50].map((n) => <option key={n} value={n}>{n}</option>)}</select>
+        </label>
+        <label className="invform__f invform__f--s"><span>Vale por</span>
+          <select className="field" value={days ?? 0} onChange={(e) => setDays(Number(e.target.value) || null)}>
+            <option value={7}>7 dias</option><option value={14}>14 dias</option><option value={30}>30 dias</option><option value={0}>Sem prazo</option>
+          </select>
+        </label>
+        <button className="btn primary" disabled={busy}>{busy ? 'Criando…' : 'Criar convite'}</button>
+      </form>
+      {err && <p className="awards__error" role="alert">{err}</p>}
+      {fresh && (
+        <div className="invnew" role="status">
+          <b>Convite criado.</b> Mande o link para a pessoa:
+          <code className="invnew__link">{inviteLink(fresh)}</code>
+          <div className="acct__row">
+            <button className="btn primary sm" onClick={() => copy(fresh, 'msg')}>{copied === `${fresh}-msg` ? 'Copiado!' : 'Copiar mensagem com o link'}</button>
+            <button className="btn ghost sm" onClick={() => copy(fresh, 'link')}>{copied === `${fresh}-link` ? 'Copiado!' : 'Copiar só o link'}</button>
+            {typeof navigator !== 'undefined' && 'share' in navigator && <button className="btn ghost sm" onClick={() => share(fresh)}>Compartilhar</button>}
+          </div>
+        </div>
+      )}
+      {list == null ? <p className="faint">Carregando…</p> : list.length === 0 ? <p className="faint">Nenhum convite ainda.</p> : (
+        <ul className="invlist">
+          {list.map((i) => {
+            const st = status(i);
+            return (
+              <li key={i.code} className={`invitem${st === 'Ativo' ? '' : ' is-off'}`}>
+                <div className="invitem__top">
+                  <b>{i.label}</b>
+                  <span className={`invitem__st${st === 'Ativo' ? ' is-on' : ''}`}>{st}</span>
+                  <span className="faint">{i.uses} de {i.maxUses} {i.maxUses === 1 ? 'pessoa' : 'pessoas'}{i.expiresAt ? ` · até ${whenBR(i.expiresAt)}` : ' · sem prazo'}</span>
+                </div>
+                {st === 'Ativo' && (
+                  <div className="invitem__acts">
+                    <button className="btn quiet sm" onClick={() => copy(i.code, 'msg')}>{copied === `${i.code}-msg` ? 'Copiado!' : 'Copiar convite'}</button>
+                    <ConfirmButton className="btn quiet sm" label="Cancelar link" confirm="Toque de novo para cancelar" onConfirm={() => invitesApi.revoke(i.code).then(reload)} />
+                  </div>
+                )}
+                {i.guests.length > 0 && (
+                  <ul className="invitem__guests">
+                    {i.guests.map((g) => (
+                      <li key={g.userId}>
+                        <span>{g.handle ? <Link to={`/@${g.handle}`}>@{g.handle}</Link> : g.name ?? 'Sem apelido ainda'}<small className="faint"> · entrou {whenBR(g.joinedAt)}</small></span>
+                        <ConfirmButton className="btn quiet sm" label="Tirar acesso" confirm="Toque de novo para tirar" onConfirm={() => invitesApi.removeGuest(g.userId).then(reload)} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

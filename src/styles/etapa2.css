@@ -3631,3 +3631,30 @@ a.gev { color: var(--ink); }
 .login__otp { font-family: var(--font-mono); font-size: 24px; letter-spacing: 0.3em; text-align: center; }
 .login__help { margin-top: 16px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 @media (max-width: 560px) { .launch__i p { margin-left: 0; } }
+
+/* ---- Etapa 6 · entrega 1: convites ----------------------------------------------------------- */
+.invform { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px auto; gap: 10px; align-items: end; max-width: 860px; }
+.invform__f { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+.invnew { display: grid; gap: 10px; padding: 14px 16px; border-radius: 14px; background: var(--surface); border-left: 3px solid var(--now); max-width: 860px; }
+.invnew__link { font-family: var(--font-mono); font-size: 13px; padding: 8px 10px; border-radius: 8px; background: var(--bg); overflow-wrap: anywhere; user-select: all; }
+.invlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 860px; }
+.invitem { display: grid; gap: 8px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.invitem.is-off { opacity: 0.7; }
+.invitem__top { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.invitem__top b { font-size: 16px; }
+.invitem__st { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 99px; border: 1px solid var(--line-2); color: var(--muted); }
+.invitem__st.is-on { background: var(--now); color: var(--bg); border-color: transparent; }
+.invitem__acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.invitem__guests { list-style: none; margin: 0; padding: 8px 0 0; border-top: 1px solid var(--line); display: grid; gap: 4px; }
+.invitem__guests li { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 14px; }
+.invite__in { gap: 28px; }
+.invite__card { display: grid; gap: 14px; justify-items: center; text-align: center; max-width: 520px; }
+.invite__kicker { margin: 0; font: 400 12px var(--font-mono); letter-spacing: 0.4em; text-transform: uppercase; color: #FFB25B; }
+.invite__title { margin: 0; font: 800 clamp(24px, 4.5vw, 34px)/1.15 var(--font-title); font-stretch: 125%; color: #F3EBDD; text-transform: uppercase; }
+.invite__lead { margin: 0; color: #C9CED4; font-size: 16px; line-height: 1.55; }
+.invite__note { color: #8D867A; font-size: 13px; }
+.invite .btn.primary { background: #F3EBDD; color: #07080A; }
+@media (max-width: 760px) {
+  .invform { grid-template-columns: 1fr 1fr; }
+  .invform__f:first-child, .invform .btn { grid-column: 1 / -1; }
+}

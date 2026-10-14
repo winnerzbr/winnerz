@@ -6,8 +6,9 @@ import { ensureRules } from '../data/moderationApi';
 import { StageSettings, stageKey } from './StageSettings';
 import { AvatarEditor } from './AvatarEditor';
 
-const OPTS: { v: 'privado' | 'link' | 'publico'; label: string }[] = [
+const OPTS: { v: 'privado' | 'amigos' | 'link' | 'publico'; label: string }[] = [
   { v: 'privado', label: 'Só você' },
+  { v: 'amigos', label: 'Só amigos' },
   { v: 'link', label: 'Quem tem o link' },
   { v: 'publico', label: 'Todo mundo' },
 ];

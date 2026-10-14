@@ -13,6 +13,7 @@ import { whenLabel } from '../lib/dates';
 import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
 import { ProfileMenu, ReportButton, useRelation } from '../components/Moderation';
+import { AffinityCard, FollowButton } from '../components/Social';
 import { moderationApi } from '../data/moderationApi';
 
 export const pubShelfItem = (p: PublicPiece, k: number): ShelfItem => (p.t === 'c'
@@ -45,11 +46,12 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
   const rel = useRelation(handle);
   const [showAnyway, setShowAnyway] = useState(false);
 
+  const [reload, setReload] = useState(0);
   useEffect(() => {
-    setData(undefined); setError('');
+    if (!reload) { setData(undefined); setError(''); }
     profileApi.publicOf(handle, key).then(setData).catch((e) => { setError(e instanceof Error ? e.message : 'Não consegui carregar.'); setData(null); });
     if (mode === 'demo' || me) profileApi.mine().then((p) => setMine(!!p?.handle && p.handle.toLowerCase() === handle.toLowerCase())).catch(() => setMine(false));
-  }, [handle, key, mode, me]);
+  }, [handle, key, mode, me, reload]);
 
   useEffect(() => {
     document.title = data ? `${data.name} (@${data.handle}) · WinnerZ` : 'Perfil · WinnerZ';
@@ -108,11 +110,18 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
         </div></div>
       )}
 
-      <Hero data={data} owner={owner} preview={mine && asVisitor} onShare={share} copied={copied} />
+      <Hero data={data} owner={owner} preview={mine && asVisitor} onShare={share} copied={copied} onFollow={() => setReload((n) => n + 1)} />
       {rel?.kind === 'bloquear' && !mine && (
         <div className="pp-owner pp-owner--block"><div className="page pp-owner__row">
           <span>Você bloqueou @{data.handle}: enquanto estiver na conta, @{data.handle} não vê o seu perfil.</span>
           <span className="pp-owner__acts"><button className="linkish" onClick={() => void moderationApi.unblock(rel.id)}>Desbloquear</button></span>
+        </div></div>
+      )}
+
+      {data.friendsOnly && !mine && (
+        <div className="page"><div className="pd-friendsonly" role="note">
+          <span className="kicker kicker--now">Só para amigos</span>
+          <p>Parte do perfil de @{data.handle} é só para amigos. Siga @{data.handle}: quando @{data.handle} seguir você de volta, vocês viram amigos e o resto aparece aqui.</p>
         </div></div>
       )}
 
@@ -187,7 +196,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 }
 
 /** O topo: a arte do jogo que definiu a pessoa, o avatar com aro dourado, o nome grande e a frase. */
-function Hero({ data, owner, preview, onShare, copied }: { data: PublicProfile; owner: boolean; preview: boolean; onShare: () => void; copied: boolean }) {
+function Hero({ data, owner, preview, onShare, copied, onFollow }: { data: PublicProfile; owner: boolean; preview: boolean; onShare: () => void; copied: boolean; onFollow: () => void }) {
   const st = data.stage, def = st?.defining;
   const art = coverSrc(st?.cover) || def?.backdrop || data.showcase?.find((s) => s.backdrop)?.backdrop || null;
   const artY = st?.cover?.y ?? 28;
@@ -214,6 +223,7 @@ function Hero({ data, owner, preview, onShare, copied }: { data: PublicProfile; 
               <span className="pd-chip">@{data.handle}</span>
               {st?.since && <span className="pd-chip">Joga desde {st.since}</span>}
               <span className="pd-chip">No WinnerZ desde {since(data.since)}</span>
+              {data.followers != null && <span className="pd-chip">{data.followers} {data.followers === 1 ? 'seguidor' : 'seguidores'} · {data.following ?? 0} seguindo</span>}
             </div>
             <h1 className="t pd-name">{data.name}</h1>
             {data.bio && <p className="pd-quote">“{data.bio}”</p>}
@@ -223,8 +233,9 @@ function Hero({ data, owner, preview, onShare, copied }: { data: PublicProfile; 
               <Link className="btn ghost" to="/preferencias#perfil">Editar perfil</Link>
               <button className="btn primary" onClick={onShare}>{copied ? 'Link copiado' : 'Compartilhar'}</button>
             </> : <>
+              <FollowButton handle={data.handle} onChange={onFollow} />
               {links.slice(0, 3).map((l, i) => (
-                <a key={l.url} className={`btn ${i === 0 ? 'primary' : 'ghost'}`} href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
+                <a key={l.url} className="btn ghost" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
               ))}
               <ProfileMenu handle={data.handle} snapshot={{ handle: data.handle, bio: data.bio ?? null }} force={preview} />
             </>}
@@ -336,7 +347,7 @@ function Overview({ data, mine, qs, at, goTab }: { data: PublicProfile; mine: bo
       </div>
 
       <aside className="pd-col pd-side">
-        {!mine && <InCommon data={data} />}
+        {!mine && <AffinityCard data={data} />}
         {st?.defining && (
           <Link to={`/jogos/${st.defining.slug}`} className="pd-def on-photo">
             {(st.defining.backdrop || st.defining.cover) && <img src={st.defining.backdrop || st.defining.cover!} alt="" loading="lazy" />}
@@ -405,33 +416,6 @@ function lifeline(d: PublicProfile): LifePoint[] {
 }
 
 /** "Em comum com você": o que quem visita também zerou ou tem na estante. Só conta, nada é gravado. */
-function InCommon({ data }: { data: PublicProfile }) {
-  const profile = useStore((s) => s.profile);
-  const mode = useStore((s) => s.mode);
-  const games = useStore((s) => s.games);
-  const journeys = useStore((s) => s.journeys);
-  const histories = useStore((s) => s.histories);
-  const copies = useStore((s) => s.copies);
-  const res = useMemo(() => {
-    const slugOf = (id: string) => games[id]?.slug;
-    const myDone = new Set(histories.filter((h) => h.state === 'concluida').map((h) => journeys.find((x) => x.id === h.journeyId)).map((x) => x && slugOf(x.gameId)).filter(Boolean) as string[]);
-    const myShelf = new Set(copies.map((c) => slugOf(c.gameId)).filter(Boolean) as string[]);
-    const done = [...new Map((data.jornada?.completed ?? []).filter((g) => myDone.has(g.slug)).map((g) => [g.slug, g])).values()];
-    const shelf = [...new Map((data.colecao?.items ?? []).filter((g) => myShelf.has(g.slug)).map((g) => [g.slug, g])).values()];
-    const covers = [...new Map([...done, ...shelf].map((g) => [g.slug, g])).values()].slice(0, 5);
-    return { done: done.length, shelf: shelf.length, covers };
-  }, [data, games, journeys, histories, copies]);
-  if ((mode === 'supabase' && !profile) || (!res.done && !res.shelf)) return null;
-  return (
-    <div className="pd-common">
-      <span className="kicker">Em comum com você</span>
-      <p>{res.done > 0 && <>Vocês dois zeraram <b>{res.done} {res.done === 1 ? 'jogo' : 'jogos'}</b>{res.shelf > 0 ? ' e ' : '.'}</>}
-        {res.shelf > 0 && <>{res.done > 0 ? 'têm' : 'Vocês dois têm'} <b>{res.shelf}</b> na estante.</>}</p>
-      <div className="pd-common__cv">{res.covers.map((g) => <Link key={g.slug} to={`/jogos/${g.slug}`} title={g.title}><CoverArt game={{ title: g.title, cover: g.cover ?? '' }} /></Link>)}</div>
-    </div>
-  );
-}
-
 function Notes({ notes }: { notes: NonNullable<PublicProfile['notas']> }) {
   const scale = useStore((s) => s.prefs.scale);
   return (

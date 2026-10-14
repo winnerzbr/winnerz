@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
+import { useStore } from '../data/store';
+import { socialApi } from '../data/socialApi';
+import { FriendsActivity, GoToProfile } from '../components/Social';
 
 const FEATURES: { title: string; text: string; icon: ReactNode; lit?: boolean }[] = [
   {
@@ -29,12 +33,13 @@ export function CommunityPage() {
         <div className="cmh__glow" aria-hidden="true" />
         <span className="cmh__dot" aria-hidden="true" />
         <div className="page cmh__inner">
-          <span className="kicker kicker--now">Em breve</span>
+          <span className="kicker kicker--now">Começando</span>
           <h1 className="t cmh__title">Comunidade</h1>
-          <p className="cmh__lead">Um lugar para jogar perto de quem joga o mesmo que você. Lobby, comunidades, jogatinas e Jornadas em dupla.</p>
-          <Link className="btn ghost cmh__cta" to="/jornada">Enquanto isso, abrir sua Jornada</Link>
+          <p className="cmh__lead">Um lugar para jogar perto de quem joga o mesmo que você. Já dá para seguir pessoas e acompanhar os amigos; comunidades, jogatinas e Jornadas em dupla vêm a seguir.</p>
+          <Link className="btn ghost cmh__cta" to="/comunidade/pessoas">Encontrar pessoas</Link>
         </div>
       </section>
+      <Friends />
       <section className="page cmf">
         {FEATURES.map((f) => (
           <article key={f.title} className={`cmf__card${f.lit ? ' is-lit' : ''}`}>
@@ -45,5 +50,38 @@ export function CommunityPage() {
         ))}
       </section>
     </main>
+  );
+}
+
+/** Seus amigos: o que andaram jogando, e o atalho para as listas de pessoas. */
+function Friends() {
+  const mode = useStore((s) => s.mode);
+  const signed = useStore((s) => !!s.profile);
+  const [n, setN] = useState<{ friends: number; followers: number; following: number } | null>(null);
+  useEffect(() => {
+    if (mode === 'supabase' && !signed) return;
+    socialApi.people().then((p) => setN({ friends: p.following.filter((x) => x.mutual).length, followers: p.followers.length, following: p.following.length })).catch(() => setN(null));
+  }, [mode, signed]);
+  if (mode === 'supabase' && !signed) return null;
+  return (
+    <section className="page cm-friends" aria-labelledby="cm-f-t">
+      <div className="cm-friends__head">
+        <div>
+          <span className="kicker kicker--now">Seus amigos</span>
+          <h2 id="cm-f-t" className="t cm-friends__t">O que andaram jogando</h2>
+        </div>
+        <Link to="/comunidade/pessoas" className="cm-friends__people">
+          {n ? <><b>{n.friends}</b> {n.friends === 1 ? 'amigo' : 'amigos'} · <b>{n.following}</b> seguindo · <b>{n.followers}</b> {n.followers === 1 ? 'seguidor' : 'seguidores'}</> : 'Pessoas'} →
+        </Link>
+      </div>
+      <div className="cm-friends__grid">
+        <FriendsActivity />
+        <aside className="cm-friends__side">
+          <span className="kicker">Achar alguém</span>
+          <GoToProfile />
+          <p className="faint">Só aparece aqui o que cada pessoa deixou ver: o pilar Jornada aberto para todos ou só para amigos.</p>
+        </aside>
+      </div>
+    </section>
   );
 }

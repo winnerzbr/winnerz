@@ -66,13 +66,22 @@ export default async function handler(req: Req, res: Res) {
   if (!c) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   if (req.method && req.method !== 'GET') return res.status(405).json({ error: 'Método não aceito.' });
   const h = one(req.query?.h).slice(0, 40), j = one(req.query?.j).slice(0, 120), k = one(req.query?.k).slice(0, 64);
-  if (h && (await blocked(c, h, await viewerId(c, req)))) return res.status(404).json({ error: 'not_found' });
+  const viewer = h ? await viewerId(c, req) : null;
+  if (h && (await blocked(c, h, viewer))) return res.status(404).json({ error: 'not_found' });
+  // Com a conta de quem pede, valem as regras de "só amigos" (migração 0025); sem ela, cai na função de sempre.
+  const rpc = async (fn: string, body: Record<string, unknown>, asFn = `${fn}_as`) => {
+    if (viewer) {
+      const r = await fetch(`${c.url}/rest/v1/rpc/${asFn}`, { method: 'POST', headers: c.headers, body: JSON.stringify({ ...body, p_viewer: viewer }) });
+      if (r.status !== 404) return r;
+    }
+    return fetch(`${c.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: c.headers, body: JSON.stringify(body) });
+  };
   if (h && one(req.query?.p) === '1') {
     try {
-      const r = await fetch(`${c.url}/rest/v1/rpc/public_profile_v4`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null }) });
+      const r = await rpc('public_profile_v4', { p_handle: h, p_key: k || null }, 'public_profile_as');
       if (!r.ok) return res.status(r.status === 404 ? 501 : 502).json({ error: 'Para o perfil novo, rode a migração 0016 no Supabase.' });
       const data = (await r.json()) as { mural?: Ev[] } | null;
-      res.setHeader('Cache-Control', 'private, max-age=60');
+      res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
       if (!data) return res.status(404).json({ error: 'not_found' });
       await signAll(c, data.mural ?? []);
       if (data.mural) data.mural = data.mural.filter((e) => e.image);
@@ -83,10 +92,10 @@ export default async function handler(req: Req, res: Res) {
   }
   if (h && one(req.query?.museu) === '1') {
     try {
-      const r = await fetch(`${c.url}/rest/v1/rpc/public_museum`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null }) });
+      const r = await rpc('public_museum', { p_handle: h, p_key: k || null });
       if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: 'Para mostrar o Museu no perfil, rode a migração 0015 no Supabase.' });
       const data = (await r.json()) as { rooms?: { pieces?: Ev[] }[] } | null;
-      res.setHeader('Cache-Control', 'private, max-age=60');
+      res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
       if (!data) return res.status(404).json({ error: 'not_found' });
       await signAll(c, (data.rooms ?? []).flatMap((x) => x.pieces ?? []));
       return res.status(200).json(data);
@@ -96,10 +105,10 @@ export default async function handler(req: Req, res: Res) {
   }
   if (!h || !j) return res.status(400).json({ error: 'Faltou o perfil ou o jogo.' });
   try {
-    const r = await fetch(`${c.url}/rest/v1/rpc/public_journey`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_handle: h, p_key: k || null, p_slug: j }) });
+    const r = await rpc('public_journey', { p_handle: h, p_key: k || null, p_slug: j });
     if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: 'Para mostrar Jornadas no perfil, rode a migração 0013 no Supabase.' });
     const data = (await r.json()) as { events?: Ev[] } | null;
-    res.setHeader('Cache-Control', 'private, max-age=60');
+    res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
     if (!data) return res.status(404).json({ error: 'not_found' });
     await signAll(c, data.events ?? []);
     return res.status(200).json(data);

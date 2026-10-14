@@ -20,6 +20,7 @@ import { track } from './lib/track';
 import { Home } from './pages/Home';
 import { Welcome } from './pages/Welcome';
 import { RulesPage } from './pages/Rules';
+import { PeoplePage } from './pages/People';
 import { StudioModerationPage } from './pages/StudioModeration';
 import { ModerationBanner, RulesHost } from './components/Moderation';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
@@ -87,6 +88,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/sessao', path)) return <SessionPage />;
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
+  if (match('/comunidade/pessoas', path)) return <PeoplePage />;
   if (match('/privacidade', path)) return <PrivacyPage />;
   if (match('/regras', path)) return <RulesPage />;
   if (match('/sobre', path)) return <AboutPage />;

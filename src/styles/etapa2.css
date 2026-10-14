@@ -3958,3 +3958,74 @@ a.gev { color: var(--ink); }
 .modlog__what { display: grid; gap: 4px; min-width: 0; }
 .modlog__what small { overflow-wrap: anywhere; }
 @media (max-width: 640px) { .modlog__row { grid-template-columns: minmax(0, 1fr); } }
+
+/* ------------------------------------------------------------------ */
+/* Etapa 6 · entrega 3 — Seguir e amigos                                */
+/* ------------------------------------------------------------------ */
+.follow { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.follow__btn { display: inline-flex; align-items: center; gap: 6px; min-width: 112px; justify-content: center; }
+.follow__btn.is-friends { color: var(--now-ink); box-shadow: inset 0 0 0 1px var(--now-line); }
+.follow__btn.is-armed { color: #e58b6b; box-shadow: inset 0 0 0 1px rgba(229, 139, 107, .5); }
+.follow__err { font-size: 12px; max-width: 220px; }
+
+.aff__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.aff__score { display: inline-flex; align-items: baseline; gap: 2px; color: var(--now-ink); }
+.aff__score b { font-size: 34px; line-height: 1; }
+.aff__score small { font-size: 14px; font-weight: 600; }
+.aff__label { font-weight: 600; color: var(--ink); }
+.aff__bar { display: block; height: 6px; border-radius: 99px; background: rgba(255, 178, 91, .15); overflow: hidden; }
+.aff__bar i { display: block; height: 100%; border-radius: inherit; background: var(--now); }
+.aff__lines { margin: 0; padding: 0 0 0 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--ink-2); }
+
+.soc-av { flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; overflow: hidden; background: var(--surface-2); color: var(--ink-2); font-weight: 700; box-shadow: inset 0 0 0 1px var(--line-2); }
+.soc-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.soc-feed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.soc-feed__it { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.soc-feed__it:last-child { border-bottom: 0; }
+.soc-feed__tx { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 15px; line-height: 1.4; }
+.soc-feed__tx a { color: var(--ink); }
+.soc-feed__who { font-weight: 700; }
+.soc-feed__q { font-size: 14px; color: var(--muted); font-style: italic; }
+.soc-feed__cv { width: 40px; border-radius: 3px; overflow: hidden; }
+
+.soc-empty { padding: 20px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 6px; }
+.soc-empty p { margin: 0; }
+
+.soc-go { display: flex; gap: 8px; flex-wrap: wrap; }
+.soc-go__f { position: relative; flex: 1 1 180px; min-width: 0; display: flex; }
+.soc-go__f span { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; }
+.soc-go__f .field { width: 100%; min-width: 0; padding-left: 34px; }
+
+.people { display: flex; flex-direction: column; gap: 16px; }
+.people .soc-go { max-width: 520px; }
+.people__tabs { margin-bottom: 0; align-self: flex-start; }
+.people__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+.people__row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.people__who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.people__who a { font-weight: 700; color: var(--ink); }
+.people__who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.people__acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+.pd-friendsonly { margin-top: 16px; margin-bottom: 0; padding: 14px 18px; border-radius: 14px; background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); display: flex; flex-direction: column; gap: 4px; }
+.pd-friendsonly .kicker { margin: 0; }
+.pd-friendsonly p { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+.cm-friends { margin-top: 32px; margin-bottom: 32px; display: flex; flex-direction: column; gap: 16px; }
+.cm-friends__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.cm-friends__head .kicker { margin: 0 0 4px; }
+.cm-friends__t { margin: 0; font-size: 28px; line-height: 1.05; }
+.cm-friends__people { color: var(--ink-2); font-size: 14px; text-decoration: none; }
+.cm-friends__people b { color: var(--ink); }
+.cm-friends__grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+.cm-friends__side { display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.cm-friends__side .kicker { margin: 0; }
+.cm-friends__side p { margin: 0; font-size: 13px; }
+@media (max-width: 860px) {
+  .cm-friends__grid { grid-template-columns: 1fr; }
+  .cm-friends__t { font-size: 24px; }
+}
+@media (max-width: 560px) {
+  .people__row { flex-wrap: wrap; }
+  .people__acts { width: 100%; justify-content: flex-start; padding-left: 62px; }
+}

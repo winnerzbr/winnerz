@@ -5,12 +5,13 @@
  */
 import { actions, getState } from './store';
 import { avatarUrl } from '../lib/avatar';
+import { demoPerson, demoPersonProfile } from './demoPeople';
 export { avatarUrl };
 import type { DatePrecision, HardwareKind } from './types';
 import { showcasePieces } from '../lib/showcases';
 import { exhibitOf } from '../lib/museum';
 
-export type Visibility = 'privado' | 'link' | 'publico';
+export type Visibility = 'privado' | 'amigos' | 'link' | 'publico';
 export type Pillar = 'jornada' | 'colecao' | 'notas';
 export const PILLARS: { key: Pillar; label: string; hint: string }[] = [
   { key: 'jornada', label: 'Jornada', hint: 'Jogos em andamento com o progresso e os que você zerou, com a data. Recados, fotos e sessões continuam só seus.' },
@@ -49,6 +50,10 @@ export function linkLabel(l: ProfileLink): string {
 
 export type PublicProfile = {
   name: string; handle: string; bio: string | null; since: string; onlyLink: boolean;
+  /** Algum pilar é só para amigos e quem está vendo ainda não é amigo (migração 0025). */
+  friendsOnly?: boolean;
+  /** Quantas pessoas seguem e quantas a pessoa segue (migração 0025). */
+  followers?: number; following?: number;
   /** Foto do perfil (migração 0018). */
   avatar?: string | null;
   jornada?: {
@@ -132,10 +137,13 @@ function demoGet(): MyProfile {
 function demoSet(p: MyProfile) { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch { /* só nesta visita */ } }
 
 function demoPublic(handle: string, key?: string | null): PublicProfile | null {
+  const person = demoPerson(handle);
+  if (person) return demoPersonProfile(person);
   const me = demoGet();
   if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return null;
   const s = getState();
-  const show = (k: Pillar) => visOf(me, k) === 'publico' || (visOf(me, k) === 'link' && key === me.shareKey);
+  // Na demonstração, quem vê o próprio perfil vê também o que é só para amigos.
+  const show = (k: Pillar) => visOf(me, k) === 'publico' || visOf(me, k) === 'amigos' || (visOf(me, k) === 'link' && key === me.shareKey);
   if (!show('jornada') && !show('colecao') && !show('notas')) return null;
   const gameOfJ = (jid: string) => { const j = s.journeys.find((x) => x.id === jid); return j ? s.games[j.gameId] : undefined; };
   const out: PublicProfile = { name: me.handle, handle: me.handle, bio: me.bio, avatar: me.avatar ?? null, since: '2026-01-01T12:00:00Z', onlyLink: !(['jornada', 'colecao', 'notas'] as Pillar[]).some((k) => visOf(me, k) === 'publico') };
@@ -310,6 +318,8 @@ export const profileApi = {
   /** A coleção inteira para a aba Coleção do perfil (migração 0017). null = sem a função; cai nas 60 do perfil. */
   async collectionOf(handle: string, key: string | null | undefined): Promise<PublicCollectionItem[] | null> {
     if (!supa()) {
+      const person = demoPerson(handle);
+      if (person) return (demoPersonProfile(person).colecao?.items ?? []).map((x) => ({ ...x, year: null, at: '' }));
       const me = demoGet();
       if (!me.handle || me.handle.toLowerCase() !== handle.toLowerCase()) return [];
       if (!(visOf(me, 'colecao') === 'publico' || (visOf(me, 'colecao') === 'link' && key === me.shareKey))) return [];

@@ -5,6 +5,10 @@ import { CoverArt } from './CoverArt';
 import { KindIcon, hueOf } from './HardwareArt';
 import { roomNumber } from './MuseumView';
 
+/** O mínimo de um toque que o passeio usa (serve tanto para o evento do React quanto para o do navegador). */
+type TouchPoint = { clientX: number; clientY: number };
+type TouchLike = { touches: ArrayLike<TouchPoint>; changedTouches: ArrayLike<TouchPoint> };
+
 export interface TourRoom { title: string; text?: string | null; exhibits: Exhibit[] }
 
 const AUTO_MS = 7000;
@@ -68,8 +72,8 @@ export function MuseumTour({ title, intro, owner, rooms, onClose, onList, back }
   }, [next, prev, go, onClose]);
   // deslizar no celular
   const touch = useRef<{ x: number; y: number } | null>(null);
-  const onTouchStart = (e: { touches: TouchList; changedTouches: TouchList }) => { touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
-  const onTouchEnd = (e: { touches: TouchList; changedTouches: TouchList }) => {
+  const onTouchStart = (e: TouchLike) => { touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; };
+  const onTouchEnd = (e: TouchLike) => {
     const s = touch.current; touch.current = null;
     if (!s) return;
     const dx = e.changedTouches[0].clientX - s.x, dy = e.changedTouches[0].clientY - s.y;

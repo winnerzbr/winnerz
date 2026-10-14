@@ -21,7 +21,7 @@ export const REASONS: { k: ReportReason; label: string; hint: string }[] = [
 ];
 export const REASON_LABEL: Record<ReportReason, string> = Object.fromEntries(REASONS.map((r) => [r.k, r.label])) as Record<ReportReason, string>;
 
-export const KIND_LABEL: Record<ReportKind, string> = { perfil: 'Perfil', jornada: 'Jornada', vitrine: 'Vitrine', momento: 'Foto de momento', museu: 'Museu' };
+export const KIND_LABEL: Record<ReportKind, string> = { perfil: 'Perfil', jornada: 'Jornada', vitrine: 'Vitrine', momento: 'Foto de momento', museu: 'Museu', comunidade: 'Comunidade', postagem: 'Postagem', resposta: 'Resposta' };
 
 /** Ações possíveis para cada tipo de alvo, na ordem em que aparecem na fila. */
 export const ACTIONS_FOR: Record<ReportKind, ModAction[]> = {
@@ -30,7 +30,12 @@ export const ACTIONS_FOR: Record<ReportKind, ModAction[]> = {
   vitrine: ['ocultar', 'avisar', 'suspender', 'arquivar'],
   momento: ['ocultar', 'avisar', 'suspender', 'arquivar'],
   museu: ['ocultar', 'avisar', 'suspender', 'arquivar'],
+  comunidade: ['ocultar', 'avisar', 'suspender', 'arquivar'],
+  postagem: ['ocultar', 'avisar', 'suspender', 'arquivar'],
+  resposta: ['ocultar', 'avisar', 'suspender', 'arquivar'],
 };
+/** Nome da ação "ocultar" conforme onde o conteúdo aparece. */
+export const HIDE_LABEL: Partial<Record<ReportKind, string>> = { comunidade: 'Tirar do ar', postagem: 'Tirar da comunidade', resposta: 'Tirar da conversa' };
 export const ACTION_LABEL: Record<ModAction, string> = {
   arquivar: 'Arquivar (sem problema)', avisar: 'Avisar a pessoa', ocultar: 'Tirar do perfil', suspender: 'Suspender o perfil',
   limpar_bio: 'Apagar a bio', trocar_arroba: 'Pedir outro @', tirar_imagens: 'Tirar foto e capa',
@@ -66,6 +71,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/content_reports_kind_check/.test(m)) throw new Error('Falta rodar a migração 0026 no Supabase.');
     if (/report_content|my_moderation|moderation_|block_user|my_blocks|accept_rules|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0024 no Supabase.');
     throw new Error(m);
   }
@@ -236,10 +242,11 @@ export const moderationApi = {
 };
 
 function demoNotice(kind: ReportKind, action: ModAction, until: string | null): string {
-  const what = kind === 'jornada' ? 'Uma Jornada' : kind === 'vitrine' ? 'Uma vitrine' : kind === 'momento' ? 'Uma foto de momento' : kind === 'museu' ? 'O seu Museu' : 'O seu perfil';
+  const what = kind === 'jornada' ? 'Uma Jornada' : kind === 'vitrine' ? 'Uma vitrine' : kind === 'momento' ? 'Uma foto de momento' : kind === 'museu' ? 'O seu Museu'
+    : kind === 'comunidade' ? 'Uma comunidade sua' : kind === 'postagem' ? 'Uma postagem sua' : kind === 'resposta' ? 'Uma resposta sua' : 'O seu perfil';
   switch (action) {
     case 'avisar': return `A moderação revisou uma denúncia sobre ${what.toLowerCase()} e pede atenção às regras da comunidade.`;
-    case 'ocultar': return `${what} saiu do seu perfil público por decisão da moderação. Continua no seu diário, só para você.`;
+    case 'ocultar': return ['comunidade', 'postagem', 'resposta'].includes(kind) ? `${what} saiu do ar por decisão da moderação. Só você ainda consegue ver.` : `${what} saiu do seu perfil público por decisão da moderação. Continua no seu diário, só para você.`;
     case 'suspender': return `O seu perfil público fica fora do ar até ${until ? new Date(until).toLocaleDateString('pt-BR') : ''}. O seu diário continua funcionando normalmente.`;
     case 'limpar_bio': return 'A sua bio foi apagada pela moderação.';
     case 'trocar_arroba': return 'O seu @ precisou ser trocado por decisão da moderação. Escolha um novo para continuar.';

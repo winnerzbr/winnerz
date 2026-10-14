@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
 import {
-  ACTIONS_FOR, ACTION_DONE, ACTION_LABEL, KIND_LABEL, REASON_LABEL, moderationApi, targetLabel, targetLink,
+  ACTIONS_FOR, ACTION_DONE, ACTION_LABEL, HIDE_LABEL, KIND_LABEL, REASON_LABEL, moderationApi, targetLabel, targetLink,
   type LogItem, type ModAction, type QueueItem,
 } from '../data/moderationApi';
 import { Link } from '../lib/router';
@@ -48,7 +48,7 @@ export function StudioModerationPage() {
       <header className="studio__head">
         <Link to="/studio" className="faint">← Studio</Link>
         <h1 className="t big">Moderação</h1>
-        <p className="muted lead">Denúncias sobre o que as pessoas mostram no perfil. Cada ação avisa a pessoa e pode ser desfeita no histórico.</p>
+        <p className="muted lead">Denúncias sobre o que as pessoas mostram no perfil e nas comunidades. Cada ação avisa a pessoa e pode ser desfeita no histórico.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, você mesmo denuncia, modera e recebe os avisos, para ver como tudo fica.</p>}
       </header>
       <div className="seg studio__tabs" role="tablist" aria-label="Seções">
@@ -81,6 +81,7 @@ function ModCard({ item, onDone, onError }: { item: QueueItem; onDone: (a: ModAc
   const [days, setDays] = useState(7);
   const [busy, setBusy] = useState(false);
   const s = item.now ?? item.snapshot;
+  const label = (a: ModAction) => (a === 'ocultar' && HIDE_LABEL[item.kind]) || ACTION_LABEL[a];
   const link = targetLink(item.kind, item.handle, item.ref, s);
   const changed = item.now && JSON.stringify(item.now) !== JSON.stringify(item.snapshot);
   const go = async () => {
@@ -104,12 +105,12 @@ function ModCard({ item, onDone, onError }: { item: QueueItem; onDone: (a: ModAc
         <Excerpt kind={item.kind} s={s} />
         {!item.now && <p className="faint">Isto já não existe (a pessoa apagou ou mudou). Dá para arquivar.</p>}
         {changed && <p className="faint">Mudou desde a denúncia: acima está como está agora.</p>}
-        {s?.hidden && <p className="faint">Já está fora do perfil por uma decisão anterior.</p>}
+        {s?.hidden && <p className="faint">Já está fora do ar por uma decisão anterior.</p>}
         {link && <Link to={link} className="arrow-link">Abrir para conferir →</Link>}
       </div>
       <div className="modcard__act">
         <div className="seg modcard__seg" role="group" aria-label="O que fazer">
-          {actions.map((a) => <button key={a} aria-pressed={action === a} onClick={() => setAction(a)}>{ACTION_LABEL[a]}</button>)}
+          {actions.map((a) => <button key={a} aria-pressed={action === a} onClick={() => setAction(a)}>{label(a)}</button>)}
         </div>
         {action === 'suspender' && (
           <label className="modcard__days">Por
@@ -124,7 +125,7 @@ function ModCard({ item, onDone, onError }: { item: QueueItem; onDone: (a: ModAc
             <textarea className="field" rows={2} maxLength={600} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Ela vê junto com o aviso padrão, sem saber quem denunciou." />
           </label>
         )}
-        <button className={`btn ${action === 'arquivar' ? 'ghost' : action === 'suspender' || action === 'trocar_arroba' ? 'danger-solid' : 'primary'}`} disabled={busy} onClick={go}>{busy ? 'Gravando…' : ACTION_LABEL[action]}</button>
+        <button className={`btn ${action === 'arquivar' ? 'ghost' : action === 'suspender' || action === 'trocar_arroba' ? 'danger-solid' : 'primary'}`} disabled={busy} onClick={go}>{busy ? 'Gravando…' : label(action)}</button>
       </div>
     </li>
   );
@@ -137,6 +138,9 @@ function Excerpt({ kind, s }: { kind: QueueItem['kind']; s: QueueItem['snapshot'
     : kind === 'momento' ? [['Título', s.title], ['Frase', s.quote], ['Texto', s.text], ['Foto', s.photo ? 'sim' : null]]
     : kind === 'vitrine' ? [['Título', s.title], ['Descrição', s.description]]
     : kind === 'museu' ? [['Título', s.title], ['Apresentação', s.intro]]
+    : kind === 'comunidade' ? [['Nome', s.title], ['Descrição', s.description]]
+    : kind === 'postagem' ? [['Título', s.title], ['Texto', s.text], ['Jogo', s.game], ['Imagens', s.photo ? 'sim' : null]]
+    : kind === 'resposta' ? [['Na postagem', s.title], ['Texto', s.text]]
     : [['Jogo', s.game]];
   const shown = lines.filter(([, v]) => v);
   if (!shown.length) return null;

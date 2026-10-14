@@ -23,6 +23,10 @@ export const demoAdapter: Adapter = {
 };
 
 export function resetDemo() {
-  try { localStorage.removeItem(KEY); } catch { /* nada */ }
+  try {
+    localStorage.removeItem(KEY);
+    // Pessoas, moderação e comunidades de exemplo também voltam ao começo.
+    Object.keys(localStorage).filter((k) => k.startsWith('wz.demo.')).forEach((k) => localStorage.removeItem(k));
+  } catch { /* nada */ }
   location.reload();
 }

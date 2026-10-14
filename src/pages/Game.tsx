@@ -26,6 +26,7 @@ import { RadarToggle } from '../components/RadarToggle';
 import { MoreActions } from '../components/MoreActions';
 import { localDay } from '../lib/dates';
 import { Backdrop } from '../components/Backdrop';
+import { GameConversations } from '../components/Posts';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
 const refreshed = new Set<string>();
@@ -249,6 +250,8 @@ function GameView({ gameId }: { gameId: string }) {
               {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
             </div>
           </section>
+
+          <GameConversations gameId={g.id} title={g.title} />
 
           <MediaGallery title={g.title} items={media} gameId={g.id} />
 

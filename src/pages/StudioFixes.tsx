@@ -55,7 +55,7 @@ export function StudioFixesPage() {
   return (
     <main className="page pad studio">
       <header className="studio__head">
-        <span className="kicker">Studio</span>
+        <Link to="/studio" className="faint">← Studio</Link>
         <h1 className="t big">Correções</h1>
         <p className="muted lead">O que a comunidade apontou nas fichas e o que está faltando nos jogos que as pessoas usam.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, a fila e as correções ficam só neste navegador.</p>}

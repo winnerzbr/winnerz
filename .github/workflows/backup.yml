@@ -1,0 +1,85 @@
+# Backup semanal do WinnerZ: banco (papéis, estrutura e dados) e arquivos do Storage, trancados com senha.
+# O repositório é público: o arquivo do backup só sai daqui criptografado (AES-256), e o log não mostra dados.
+# Guia completo (ligar, baixar e restaurar): README, seção "Backup semanal".
+name: Backup semanal
+
+on:
+  schedule:
+    - cron: '17 6 * * 0' # domingo, 03:17 em Brasília
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup
+  cancel-in-progress: false
+
+jobs:
+  conferir:
+    runs-on: ubuntu-latest
+    outputs:
+      ligado: ${{ steps.ok.outputs.ligado }}
+    steps:
+      - id: ok
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::warning::Backup desligado: faltam os segredos SUPABASE_DB_URL e BACKUP_PASSPHRASE (veja o README)."
+            echo "ligado=0" >> "$GITHUB_OUTPUT"
+          elif [ ${#BACKUP_PASSPHRASE} -lt 20 ]; then
+            echo "::error::A BACKUP_PASSPHRASE precisa ter pelo menos 20 caracteres."
+            exit 1
+          else
+            echo "ligado=1" >> "$GITHUB_OUTPUT"
+          fi
+
+  backup:
+    needs: conferir
+    if: needs.conferir.outputs.ligado == '1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Banco de dados
+        run: |
+          mkdir -p backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --data-only --use-copy
+          for f in backup/*.sql; do echo "$(basename "$f"): $(du -h "$f" | cut -f1)"; done
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Arquivos do Storage
+        run: node scripts/backup-storage.mjs backup/storage
+
+      - name: Empacotar e trancar
+        run: |
+          stamp=$(date -u +%Y-%m-%d)
+          printf 'WinnerZ backup %s\nRestaurar: README, seção "Backup semanal".\n' "$stamp" > backup/LEIAME.txt
+          tar -czf - -C backup . | openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -pass env:BACKUP_PASSPHRASE -out "winnerz-backup-$stamp.tar.gz.enc"
+          rm -rf backup
+          ls -lh winnerz-backup-*.enc
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: winnerz-backup-${{ github.run_number }}
+          path: winnerz-backup-*.tar.gz.enc
+          retention-days: 90
+          compression-level: 0
+          if-no-files-found: error

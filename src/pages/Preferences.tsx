@@ -147,7 +147,8 @@ export function Preferences() {
         <section className="prefs__section" aria-labelledby="adm">
           <h2 id="adm" className="t">Administração</h2>
           <div className="prefs__admin">
-            <Link className="btn ghost" to="/studio/correcoes">Correções e qualidade dos dados</Link>
+            <Link className="btn primary" to="/studio">Abrir o Studio</Link>
+            <Link className="btn ghost" to="/studio/correcoes">Correções</Link>
             <Link className="btn ghost" to="/eventos/awards/admin">Montar o WinnerZ Awards</Link>
           </div>
         </section>

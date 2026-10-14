@@ -3594,3 +3594,40 @@ a.gev { color: var(--ink); }
   .studio__tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
   .studio__tabs button { white-space: normal; line-height: 1.15; font-size: 13px; padding-inline: 6px; }
 }
+
+/* ---- Etapa 5 · entrega 8: Studio, uso dos planos, abrir o site, código de entrada ------------- */
+.studio__state { margin: 4px 0 0; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line-2); background: var(--surface); max-width: 720px; }
+.studio__state b { margin-right: 6px; }
+.studio__state::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
+.studio__state.is-open::before { background: var(--now); box-shadow: 0 0 10px var(--now); }
+.studio__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 36px; }
+.studio__card { display: grid; gap: 4px; padding: 18px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); text-decoration: none; }
+.studio__card:hover { border-color: var(--accent); }
+.studio__card b { font-size: 18px; }
+.studio__sec { display: grid; gap: 14px; margin-bottom: 40px; }
+.studio__sec h2 { margin: 0; }
+.studio__verdict { margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--surface); border-left: 3px solid var(--now); }
+.studio__verdict.is-hot { border-left-color: var(--accent); }
+.meters { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.meter { display: grid; gap: 8px; padding: 16px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); align-content: start; }
+.meter__top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.meter__top .mono { color: var(--muted); font-size: 13px; }
+.meter__bar { display: block; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.meter__bar i { display: block; height: 100%; border-radius: 99px; background: var(--ink-2); }
+.meter.is-hot .meter__bar i { background: var(--accent); }
+.meter__v { font-size: 14px; }
+.meter__warn { color: var(--accent-ink); font-weight: 600; }
+.meter small { font-size: 12px; line-height: 1.45; }
+.studio__notes { display: grid; gap: 6px; max-width: 820px; }
+.studio__notes p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.launch { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-width: 860px; }
+.launch__i { padding: 12px 4px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.launch__check { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.launch__check input { width: 18px; height: 18px; accent-color: var(--now); flex: none; }
+.launch__n { color: var(--muted); font-size: 12px; }
+.launch__i p { margin: 0 0 0 28px; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.launch__i.is-done b { text-decoration: line-through; text-decoration-color: var(--now); color: var(--muted); }
+.login__code { display: grid; gap: 10px; margin-top: 22px; }
+.login__otp { font-family: var(--font-mono); font-size: 24px; letter-spacing: 0.3em; text-align: center; }
+.login__help { margin-top: 16px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+@media (max-width: 560px) { .launch__i p { margin-left: 0; } }

@@ -13,7 +13,7 @@ const LINES: Record<BuddyReason, string[]> = {
   ],
   voltou: [
     'Faz tempo! Eu guardei tudo direitinho. Até o recado que você nem lembra que escreveu.',
-    'Bem-vindo de volta. O jogo não andou sem você, juro.',
+    'Que bom te ver de volta. O jogo não andou sem você, juro.',
   ],
   'primeiro-zerado': ['Primeira História no mural! Vou polir a moldura.'],
   radar: ['Lançamento chegando. Eu já separei o lanche.'],

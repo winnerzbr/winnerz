@@ -59,7 +59,7 @@ export function InvitePage({ code: raw }: { code: string }) {
         {view.k === 'convite' && (
           <div className="invite__card">
             <p className="invite__kicker">Convite</p>
-            <h1 className="invite__title">Você foi convidado para conhecer o WinnerZ antes de todo mundo</h1>
+            <h1 className="invite__title">Você tem um convite para conhecer o WinnerZ antes de todo mundo</h1>
             <p className="invite__lead">O site ainda está fechado. Com este convite você entra com o seu e-mail, sem senha, e já pode guardar as suas Jornadas, a sua coleção e as suas notas.</p>
             {!(mode === 'supabase' && isAdmin) && <button className="btn primary lg" onClick={enter}>Entrar com o meu e-mail</button>}
             {mode === 'demo' && <small className="invite__note">Na demonstração, o convite vale só neste navegador.</small>}
@@ -69,7 +69,7 @@ export function InvitePage({ code: raw }: { code: string }) {
         {view.k === 'pronto' && (
           <div className="invite__card" role="status">
             <p className="invite__kicker">Tudo certo</p>
-            <h1 className="invite__title">Bem-vindo ao WinnerZ</h1>
+            <h1 className="invite__title">Boas-vindas ao WinnerZ</h1>
             <p className="invite__lead">O seu convite está ativo. O site ainda não está aberto ao público, então capriche nas impressões e conte o que achou.</p>
             <button className="btn primary lg" onClick={() => navigate('/')}>Começar</button>
           </div>

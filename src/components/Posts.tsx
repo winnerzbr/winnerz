@@ -6,7 +6,8 @@ import {
   KIND_LABEL, SPOILER_LABEL, communityApi, communityImage,
   type GameMini, type PersonRef, type Post, type ReactionKind, type Reactions,
 } from '../data/communityApi';
-import { clipEmbed, parsePost, plainText, spoilerCovered, type Block, type GameProgress, type Inline } from '../lib/postText';
+import { parsePost, plainText, spoilerCovered, type Block, type GameProgress, type Inline } from '../lib/postText';
+import { EmbedBlock, LinkCard, embedFor, embedThumb } from './Embed';
 import { searchGames, loadGame, type Hit } from './AddGameDialog';
 import { actions } from '../data/store';
 import { CoverArt } from './CoverArt';
@@ -104,14 +105,41 @@ function renderInline(n: Inline[]): ReactNode {
     }
   });
 }
-export function PostText({ text, className = '' }: { text: string; className?: string }) {
+/** Links fora de spoiler, no meio do texto (os que estão sozinhos na linha já viram bloco). */
+function inlineLinks(blocks: Block[]): string[] {
+  const out: string[] = [];
+  const walk = (n: Inline[]) => n.forEach((x) => {
+    if (x.t === 'link') out.push(x.href);
+    else if (x.t === 'b' || x.t === 'i') walk(x.c);
+  });
+  blocks.forEach((b) => { if (b.t === 'p') walk(b.c); else if (b.t === 'ul' || b.t === 'ol') b.items.forEach(walk); });
+  return out;
+}
+
+/**
+ * Texto de postagem ou resposta. embeds: quantos vídeos e posts de redes sociais mostrar dentro (0 = nenhum).
+ * Link sozinho na linha aparece ali mesmo; link no meio da frase aparece no fim do texto.
+ */
+export function PostText({ text, className = '', embeds = 0 }: { text: string; className?: string; embeds?: number }) {
   const blocks = useMemo<Block[]>(() => parsePost(text), [text]);
   if (!blocks.length) return null;
+  let left = embeds;
+  const shown = new Set<string>();
+  const items = blocks.map((b, i) => {
+    if (b.t === 'link') {
+      if (left > 0 && !shown.has(b.url) && embedFor(b.url)) { left--; shown.add(b.url); return <EmbedBlock key={i} url={b.url} />; }
+      return embeds > 0 ? <LinkCard key={i} url={b.url} /> : <p key={i}><a href={b.url} target="_blank" rel="noopener noreferrer nofollow ugc">{b.url.replace(/^https?:\/\/(www\.)?/, '')}</a></p>;
+    }
+    return b.t === 'p' ? <p key={i}>{renderInline(b.c)}</p>
+      : b.t === 'ul' ? <ul key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ul>
+      : <ol key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ol>;
+  });
+  const extra = embeds > 0 ? inlineLinks(blocks).filter((u) => !shown.has(u) && embedFor(u)) : [];
+  const tail = [...new Set(extra)].slice(0, Math.max(0, left));
   return (
     <div className={`cm-text ${className}`}>
-      {blocks.map((b, i) => b.t === 'p' ? <p key={i}>{renderInline(b.c)}</p>
-        : b.t === 'ul' ? <ul key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ul>
-        : <ol key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ol>)}
+      {items}
+      {tail.map((u) => <EmbedBlock key={`e-${u}`} url={u} />)}
     </div>
   );
 }
@@ -119,10 +147,12 @@ export function PostText({ text, className = '' }: { text: string; className?: s
 /* ------------------------------------------------------------------ */
 /* Mídia                                                                */
 /* ------------------------------------------------------------------ */
-export function ClipFrame({ url }: { url: string }) {
-  const src = clipEmbed(url, location.hostname || 'localhost');
-  if (!src) return <a className="cm-cliplink" href={url} target="_blank" rel="noopener noreferrer nofollow ugc"><Icon name="play" size={16} />Abrir o clipe</a>;
-  return <div className="cm-clip"><iframe src={src} title="Clipe" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowFullScreen /></div>;
+/** Miniatura da postagem na lista: a primeira imagem, a capa do vídeo do YouTube, ou só o ícone de vídeo. */
+export function postThumb(post: Pick<Post, 'images' | 'clip' | 'body'>): { img: string | null; video: boolean } {
+  if (post.images[0]) return { img: communityImage(post.images[0]), video: false };
+  const urls = [post.clip, ...(post.body.match(/https?:\/\/[^\s<>"')\]|]+/g) ?? [])];
+  const t = embedThumb(urls);
+  return { img: t.thumb, video: t.has };
 }
 
 export function ImageGrid({ images }: { images: string[] }) {
@@ -188,8 +218,8 @@ export function KindChip({ kind }: { kind: Post['kind'] }) {
 export function PostCard({ post, showCommunity = false }: { post: Post; showCommunity?: boolean }) {
   const [covered, reveal] = usePostCovered(post);
   const href = `/w/${post.community.slug}/${post.id}`;
-  const excerpt = plainText(post.body);
-  const img = post.images[0];
+  const excerpt = plainText(post.body.replace(/https?:\/\/\S+/g, ' ')).replace(/\s+/g, ' ').trim();
+  const th = postThumb(post);
   return (
     <article className={`cm-card${post.pinned ? ' is-pinned' : ''}${post.hidden ? ' is-hidden' : ''}`}>
       <div className="cm-card__main">
@@ -215,9 +245,10 @@ export function PostCard({ post, showCommunity = false }: { post: Post; showComm
           </span>
         </div>
       </div>
-      {(img || post.clip) && (
-        <Link to={href} className={`cm-card__thumb${covered ? ' is-covered' : ''}`} tabIndex={-1} aria-hidden="true">
-          {img ? <img src={communityImage(img) ?? ''} alt="" loading="lazy" /> : <span className="cm-card__play"><Icon name="play" size={22} /></span>}
+      {(th.img || th.video) && (
+        <Link to={href} className={`cm-card__thumb${covered ? ' is-covered' : ''}${th.video ? ' is-video' : ''}`} tabIndex={-1} aria-hidden="true">
+          {th.img ? <img src={th.img} alt="" loading="lazy" /> : <span className="cm-card__play"><Icon name="play" size={22} /></span>}
+          {th.img && th.video && <span className="cm-card__playmini"><Icon name="play" size={14} /></span>}
           {post.imageCount > 1 && <span className="mono cm-card__count">+{post.imageCount - 1}</span>}
         </Link>
       )}

@@ -41,7 +41,7 @@ export const KINDS: { k: PostKind; label: string; hint: string }[] = [
   { k: 'pergunta', label: 'Pergunta', hint: 'Quem perguntou marca a resposta que resolveu.' },
   { k: 'dica', label: 'Dica', hint: 'Um macete, um caminho, um aviso útil.' },
   { k: 'colecao', label: 'Minha coleção', hint: 'Mostrar a prateleira, uma edição, um achado.' },
-  { k: 'clipe', label: 'Clipe', hint: 'Um vídeo do YouTube ou da Twitch.' },
+  { k: 'clipe', label: 'Vídeo ou clipe', hint: 'YouTube, Twitch, TikTok, Instagram, X e outros.' },
 ];
 export const KIND_LABEL = Object.fromEntries(KINDS.map((k) => [k.k, k.label])) as Record<PostKind, string>;
 export const SPOILERS: { k: SpoilerLevel; label: string; hint: string }[] = [
@@ -64,7 +64,8 @@ export function slugify(name: string): string {
   return name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 32).replace(/-+$/, '');
 }
 export const slugOk = (s: string) => /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/.test(s) && !s.includes('--');
-export const clipOk = (u: string) => /^https:\/\/(www\.|m\.)?(youtube\.com|youtu\.be|twitch\.tv|clips\.twitch\.tv)\/[^\s<>"]{1,240}$/.test(u.trim());
+/** Link do vídeo ou post: endereço completo. O que o site sabe mostrar dentro da página está em lib/embeds. */
+export const clipOk = (u: string) => /^https:\/\/[^\s<>"]{4,290}$/.test(u.trim());
 
 const MSG: Record<string, string> = {
   not_logged: 'Entre na sua conta para participar.',
@@ -85,8 +86,8 @@ const MSG: Record<string, string> = {
   title_offensive: 'O título tem uma palavra que não pode.',
   body_long: 'O texto passou do limite de 10 mil caracteres.',
   body_invalid: 'Escreva alguma coisa (até 5 mil caracteres).',
-  clip_invalid: 'O clipe precisa ser um link do YouTube ou da Twitch.',
-  clip_needed: 'Cole o link do clipe (YouTube ou Twitch).',
+  clip_invalid: 'Cole o endereço completo do vídeo ou post, começando com https://',
+  clip_needed: 'Cole o link do vídeo ou do post.',
   image_limit: `No máximo ${MAX_IMAGES} imagens por postagem.`,
   image_path: 'Não deu para usar essa imagem. Envie de novo.',
   post_limit: 'Você já publicou 20 postagens hoje. Volte amanhã.',

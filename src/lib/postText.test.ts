@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { clipEmbed, inline, parsePost, plainText, spoilerCovered } from './postText';
+import { inline, parsePost, plainText, spoilerCovered } from './postText';
 
 test('formatação simples: negrito, itálico, link e spoiler', () => {
   const x = inline('Olha **isso** e *aquilo* em https://winnerz.com.br, mas ||o chefe morre||.');
@@ -31,10 +31,8 @@ test('spoiler coberto conforme o progresso', () => {
   assert.equal(spoilerCovered('final', { progress: null, completed: true, started: true }), false);
 });
 
-test('clipes do YouTube e da Twitch', () => {
-  assert.equal(clipEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'x.com'), 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
-  assert.equal(clipEmbed('https://youtu.be/dQw4w9WgXcQ', 'x.com'), 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
-  assert.match(clipEmbed('https://www.twitch.tv/winnerz/clip/AbcDef-123', 'winnerz.com.br') ?? '', /clips\.twitch\.tv\/embed\?clip=AbcDef-123&parent=winnerz\.com\.br/);
-  assert.match(clipEmbed('https://twitch.tv/winnerz', 'winnerz.com.br') ?? '', /channel=winnerz/);
-  assert.equal(clipEmbed('https://youtube.com/', 'x'), null);
+test('link sozinho na linha vira bloco próprio', () => {
+  const b = parsePost('Olha esse:\nhttps://youtu.be/dQw4w9WgXcQ\nincrível');
+  assert.deepEqual(b.map((x) => x.t), ['p', 'link', 'p']);
+  assert.equal(b[1].t === 'link' ? b[1].url : '', 'https://youtu.be/dQw4w9WgXcQ');
 });

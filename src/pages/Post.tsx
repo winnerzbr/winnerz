@@ -8,9 +8,10 @@ import {
 import { ensureRules } from '../data/moderationApi';
 import { ReportButton } from '../components/Moderation';
 import {
-  ClipFrame, GameSearchPick, ImageGrid, KindChip, PersonAvatar, PersonLink, PostText, ReactionBar, SpoilerNote, SpoilerShield, ago, usePostCovered,
+  GameSearchPick, ImageGrid, KindChip, PersonAvatar, PersonLink, PostText, ReactionBar, SpoilerNote, SpoilerShield, ago, usePostCovered,
 } from '../components/Posts';
 import { CoverArt } from '../components/CoverArt';
+import { EmbedBlock, embedFor } from '../components/Embed';
 import { Icon } from '../components/Icon';
 import { shrink } from '../lib/image';
 import { plainText } from '../lib/postText';
@@ -86,8 +87,8 @@ function PostBody({ post, setPost, reload }: { post: PostFull; setPost: (p: Post
           </div>
           {covered ? <SpoilerShield post={post} onReveal={reveal} /> : (
             <>
-              {post.body && <PostText text={post.body} className="cm-post__text" />}
-              {post.clip && <ClipFrame url={post.clip} />}
+              {post.clip && <EmbedBlock url={post.clip} />}
+              {post.body && <PostText text={post.body} className="cm-post__text" embeds={6} />}
               <ImageGrid images={post.images} />
             </>
           )}
@@ -211,7 +212,7 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, reload, co
             <textarea className="field" rows={3} maxLength={5000} value={text} onChange={(e) => setText(e.target.value)} />
             <span className="cm-compose__acts"><button className="btn quiet sm" onClick={() => { setEditing(false); setText(r.body); }}>Cancelar</button><button className="btn primary sm" disabled={busy || !text.trim()} onClick={() => void save()}>Salvar</button></span>
           </div>
-        ) : <PostText text={r.body} />}
+        ) : <PostText text={r.body} embeds={2} />}
         {!compact && (
           <div className="cm-reply__acts">
             <ReactionBar target="resposta" id={r.id} value={r.reactions} compact />
@@ -362,9 +363,12 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
           </label>
 
           {kind === 'clipe' && (
-            <label className="cm-form__f"><span className="kicker">Link do clipe</span>
-              <input className="field" value={clip} onChange={(e) => setClip(e.target.value)} placeholder="https://youtube.com/… ou https://twitch.tv/…" inputMode="url" aria-invalid={clipBad} />
-              {clipBad && <small className="awards__error">Use um link do YouTube ou da Twitch.</small>}
+            <label className="cm-form__f"><span className="kicker">Link do vídeo ou post</span>
+              <input className="field" value={clip} onChange={(e) => setClip(e.target.value)} placeholder="Cole o link: YouTube, Twitch, TikTok, Instagram, X, Kick…" inputMode="url" aria-invalid={clipBad} />
+              {clipBad ? <small className="awards__error">Cole o endereço completo, começando com https://</small>
+                : clip.trim() && !embedFor(clip) ? <small className="faint">Não reconhecemos esse site: vai aparecer como link.</small>
+                : <small className="faint">YouTube, Twitch, Kick, TikTok, Instagram, X, Threads, Facebook, Reddit, Vimeo, Spotify e outros aparecem dentro da postagem.</small>}
+              {clip.trim() && !clipBad && embedFor(clip) && <div className="cm-editor__clipprev"><EmbedBlock url={clip.trim()} /></div>}
             </label>
           )}
 
@@ -378,8 +382,8 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
                 <button type="button" onClick={() => setPreview((v) => !v)} aria-pressed={preview}>{preview ? 'Escrever' : 'Ver como fica'}</button>
               </span>
             </span>
-            {preview ? <div className="cm-editor__preview">{body.trim() ? <PostText text={body} /> : <p className="faint">Nada escrito ainda.</p>}</div>
-              : <textarea ref={area} className="field cm-editor__body" rows={9} maxLength={10000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Escreva à vontade. Lista com “- ” no começo da linha; link é só colar." />}
+            {preview ? <div className="cm-editor__preview">{body.trim() ? <PostText text={body} embeds={6} /> : <p className="faint">Nada escrito ainda.</p>}</div>
+              : <textarea ref={area} className="field cm-editor__body" rows={9} maxLength={10000} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Escreva à vontade. Lista com “- ” no começo da linha. Link de vídeo ou post (YouTube, Instagram, TikTok, X…) numa linha só aparece dentro da postagem." />}
             <small className="faint">{words > 9000 ? `${body.length}/10000` : 'Trecho entre ||barras|| fica escondido até a pessoa tocar.'}</small>
           </div>
 

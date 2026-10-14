@@ -10,6 +10,7 @@ export type Inline =
   | { t: 'spoiler'; c: Inline[] };
 export type Block =
   | { t: 'p'; c: Inline[] }
+  | { t: 'link'; url: string }
   | { t: 'ul'; items: Inline[][] }
   | { t: 'ol'; items: Inline[][] };
 
@@ -46,6 +47,9 @@ export function parsePost(src: string): Block[] {
   const endPara = () => { if (para.length) { blocks.push({ t: 'p', c: inline(para.join('\n')) }); para = []; } };
   const endList = () => { if (list) { blocks.push({ t: list.t, items: list.items.map((x) => inline(x)) }); list = null; } };
   for (const line of lines) {
+    // Link sozinho na linha: vira bloco próprio (o site mostra o vídeo ou o post, quando reconhece).
+    const solo = /^\s*<?(https?:\/\/[^\s<>"]+?)>?\s*$/.exec(line);
+    if (solo) { endPara(); endList(); blocks.push({ t: 'link', url: solo[1] }); continue; }
     const ul = /^\s*[-•]\s+(.*)$/.exec(line);
     const ol = /^\s*\d{1,3}[.)]\s+(.*)$/.exec(line);
     if (ul || ol) {
@@ -77,27 +81,4 @@ export function spoilerCovered(level: SpoilerLevel | null | undefined, p: GamePr
   if (level === 'inicio') return !(p.started && pr >= 15);
   if (level === 'meio') return pr < 50;
   return pr < 95;
-}
-
-/** Endereço para tocar um clipe ali mesmo (YouTube ou Twitch), ou null se não reconhecer. */
-export function clipEmbed(url: string, host: string): string | null {
-  try {
-    const u = new URL(url);
-    const h = u.hostname.replace(/^(www|m)\./, '');
-    if (h === 'youtu.be') { const id = u.pathname.slice(1).split('/')[0]; return /^[\w-]{6,20}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : null; }
-    if (h === 'youtube.com') {
-      const id = u.searchParams.get('v') ?? (/^\/(shorts|embed|live)\/([\w-]{6,20})/.exec(u.pathname)?.[2] ?? null);
-      return id && /^[\w-]{6,20}$/.test(id) ? `https://www.youtube-nocookie.com/embed/${id}` : null;
-    }
-    if (h === 'clips.twitch.tv') { const id = u.pathname.slice(1).split('/')[0]; return id ? `https://clips.twitch.tv/embed?clip=${encodeURIComponent(id)}&parent=${host}` : null; }
-    if (h === 'twitch.tv') {
-      const clip = /^\/[^/]+\/clip\/([\w-]+)/.exec(u.pathname)?.[1];
-      if (clip) return `https://clips.twitch.tv/embed?clip=${encodeURIComponent(clip)}&parent=${host}`;
-      const vid = /^\/videos\/(\d+)/.exec(u.pathname)?.[1];
-      if (vid) return `https://player.twitch.tv/?video=${vid}&parent=${host}&autoplay=false`;
-      const ch = /^\/([A-Za-z0-9_]{3,25})\/?$/.exec(u.pathname)?.[1];
-      if (ch) return `https://player.twitch.tv/?channel=${ch}&parent=${host}&autoplay=false`;
-    }
-  } catch { /* link quebrado */ }
-  return null;
 }

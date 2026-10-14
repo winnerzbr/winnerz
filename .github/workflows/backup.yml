@@ -53,12 +53,51 @@ jobs:
         with:
           version: latest
 
+      - name: Conferir a conexão com o banco
+        run: |
+          # Confere o endereço sem nunca imprimir a senha (o log deste repositório é público).
+          python3 - <<'PY'
+          import os, sys
+          from urllib.parse import urlsplit
+          u = os.environ["SUPABASE_DB_URL"].strip()
+          erros = []
+          try:
+              p = urlsplit(u)
+              host, port, user, pw = p.hostname or "", p.port, p.username or "", p.password or ""
+          except Exception:
+              if "[" in u or "YOUR-PASSWORD" in u: print("::error::SUPABASE_DB_URL: falta trocar [YOUR-PASSWORD] (com os colchetes) pela senha do banco."); sys.exit(1)
+              print("::error::SUPABASE_DB_URL não parece um endereço postgresql://... Copie de novo em Supabase → Connect → Session pooler."); sys.exit(1)
+          if p.scheme not in ("postgresql", "postgres"): erros.append("o endereço precisa começar com postgresql://")
+          if not pw or "YOUR-PASSWORD" in u or "[" in u: erros.append("falta trocar [YOUR-PASSWORD] (com os colchetes) pela senha do banco")
+          if host.startswith("db.") and host.endswith(".supabase.co"): erros.append("esse é o endereço da conexão direta, que o GitHub não alcança; use o do Session pooler (termina em pooler.supabase.com)")
+          elif not host.endswith("pooler.supabase.com"): erros.append(f"o servidor ({host}) não é o do Session pooler (deveria terminar em pooler.supabase.com)")
+          if port == 6543: erros.append("a porta 6543 é do Transaction pooler; use o Session pooler, porta 5432")
+          elif port not in (None, 5432): erros.append(f"a porta deveria ser 5432 (está {port})")
+          if host.endswith("pooler.supabase.com") and not user.startswith("postgres."): erros.append("no Session pooler o usuário é postgres.<id-do-projeto>")
+          if any(c in pw for c in "@/?#"): erros.append("a senha tem símbolos (@ / ? #) que quebram o endereço; troque a senha do banco por uma só com letras e números")
+          for e in erros: print(f"::error::SUPABASE_DB_URL: {e}.")
+          sys.exit(1 if erros else 0)
+          PY
+          if ! psql "$SUPABASE_DB_URL" -Atc 'select 1' >/dev/null 2>psql.err; then
+            msg=$(sed -E 's#(postgres(ql)?://[^:/@]+):[^@]*@#\1:***@#g' psql.err | tr '\n' ' ' | cut -c1-400)
+            echo "::error::Não consegui entrar no banco: $msg"
+            exit 1
+          fi
+          echo "Conexão com o banco: ok"
+
       - name: Banco de dados
         run: |
           mkdir -p backup
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/roles.sql --role-only
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
-          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/data.sql --data-only --use-copy
+          dump() {
+            if ! supabase db dump --db-url "$SUPABASE_DB_URL" "$@" 2>dump.err; then
+              msg=$(sed -E 's#(postgres(ql)?://[^:/@]+):[^@]*@#\1:***@#g' dump.err | tail -n 6 | tr '\n' ' ' | cut -c1-500)
+              echo "::error::Falha ao copiar o banco ($*): $msg"
+              exit 1
+            fi
+          }
+          dump -f backup/roles.sql --role-only
+          dump -f backup/schema.sql
+          dump -f backup/data.sql --data-only --use-copy
           for f in backup/*.sql; do echo "$(basename "$f"): $(du -h "$f" | cut -f1)"; done
 
       - uses: actions/setup-node@v5

@@ -149,7 +149,7 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
     const el = stage.current;
     el?.requestFullscreen?.().catch(() => {});
     const onChange = () => { if (!document.fullscreenElement) onExitFull(); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onExitFull(); };
+    const esc = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape') onExitFull(); };
     document.addEventListener('fullscreenchange', onChange);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('fullscreenchange', onChange); document.removeEventListener('keydown', esc); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };

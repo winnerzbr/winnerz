@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { PactList } from '../components/Pacts';
+import { SeasonsSection } from '../components/Seasons';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { SubNav } from '../components/SubNav';
@@ -196,6 +198,7 @@ export function RhythmPage() {
         </div>
         <SubNav pillar="jornada" />
       </header>
+      <div id="semana" className="rhythm__week"><WeekCard /></div>
       {r.sessions < 3 ? (
         <div className="card tl-empty"><p className="muted">Ainda há poucas sessões registradas para mostrar um ritmo. Ele aparece aqui sozinho, com o tempo.</p></div>
       ) : (
@@ -231,6 +234,8 @@ export function RhythmPage() {
           </div>
         </>
       )}
+      <PactList />
+      <SeasonsSection />
     </main>
   );
 }

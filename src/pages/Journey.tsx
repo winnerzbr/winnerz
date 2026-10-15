@@ -1,4 +1,5 @@
 import { celebrateSmall } from '../components/MiniCelebration';
+import { PactList } from '../components/Pacts';
 import { discordApi } from '../data/discordApi';
 import { ShareCardButton } from '../components/ShareCard';
 import { say as toneLine } from '../lib/tone';
@@ -315,6 +316,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             <p className="faint jcap__src">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
           </section>
         </div>
+
+        <PactList gameId={game.id} game={game} title="Pactos deste jogo" />
 
         <section className="jline" aria-labelledby="jline-h">
           <div className="jline__head">

@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
 import { usePath, match, Link } from './lib/router';
@@ -75,6 +76,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
   if (match('/jornada/ritmo', path)) return <RhythmPage />;
+  if ((m = match('/jornada/temporada/:id', path))) return <SeasonPage id={m.id} />;
   if ((m = match('/jornada/:slug/voltar', path))) return <ComebackPage slug={m.slug} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;

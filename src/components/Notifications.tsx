@@ -50,12 +50,19 @@ export function notifLine(n: Notif): ReactNode {
     case 'seguiu': return n.data.friends ? <>{who(n)} seguiu você de volta: agora vocês são amigos</> : <>{who(n)} começou a seguir você</>;
     case 'lancamento': return <>Saiu {t}, que está na sua lista de desejos ou no Radar</>;
     case 'retomada': { const d = str(n.data.lastAt) ? Math.floor((Date.now() - Date.parse(str(n.data.lastAt))) / 86_400_000) : 14; return <>Faz {d} dias que você não volta a {t}. Quer ver onde parou?</>; }
+    case 'semana': {
+      const d = n.data as { sessions?: number; minutes?: number; games?: string[]; more?: number; done?: string[]; with?: string[] };
+      const gs = d.games ?? [], list = gs.length > 1 ? `${gs.slice(0, -1).join(', ')} e ${gs.at(-1)}` : gs[0] ?? '';
+      return <>Sua semana: {d.sessions ?? 0} {d.sessions === 1 ? 'sessão' : 'sessões'}{d.minutes ? `, ${d.minutes < 60 ? `${d.minutes} min` : `${Math.round(d.minutes / 6) / 10} h`.replace('.', ',')}` : ''}{list ? <> em <b>{list}</b>{d.more ? ` e mais ${d.more}` : ''}</> : ''}.{d.done?.length ? <> Zerou {d.done.join(', ')}!</> : ''}{d.with?.length ? ` Com ${d.with.slice(0, 3).join(', ')}.` : ''}</>;
+    }
+    case 'pacto': return <>{who(n)} chamou você para um pacto: {n.data.goal === 'jogar' ? 'jogar' : 'zerar'} {t}{str(n.data.until) ? ` até ${new Date(str(n.data.until) + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '')}` : ''}</>;
+    case 'pacto_zerou': return <>{who(n)} zerou {t}, do pacto de vocês. GG!</>;
     case 'moderacao': return <><b>Moderação</b></>;
     case 'site': return <><b>WinnerZ</b> · {t}</>;
     default: return <>{t}</>;
   }
 }
-const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
+const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
 /** Texto extra embaixo da frase (trecho da mensagem, aviso da moderação). */
 const showExcerpt = (n: Notif) => !!n.excerpt && !['clube_jogo', 'clube_jogatina', 'parte'].includes(n.kind);
 

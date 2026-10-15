@@ -116,10 +116,10 @@ function load(): DState {
   return { read: [], seenAt: hoursAgo(30), site: [{ id: 's-awards', title: 'As indicações do WinnerZ Awards abrem em breve', body: 'Separe os jogos que marcaram o seu ano.', link: '/awards', at: hoursAgo(26) }] };
 }
 function save(d: DState) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* sem espaço: segue */ } }
-const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' ? 'amigos' : k === 'lancamento' || k === 'retomada' ? 'jornada' : 'sistema');
+const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' || k === 'pacto' || k === 'pacto_zerou' ? 'amigos' : k === 'lancamento' || k === 'retomada' || k === 'semana' ? 'jornada' : 'sistema');
 const PREF: Record<string, keyof CommunityPrefs> = {
   reacao: 'aviso_reacoes', seguiu: 'aviso_seguidores', jogatina_convite: 'aviso_convites', clube_convite: 'aviso_convites',
-  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada',
+  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada', semana: 'aviso_semana', pacto: 'aviso_pactos', pacto_zerou: 'aviso_pactos',
 };
 function linkOf(n: NewsItem): string {
   if (n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando') return `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`;
@@ -143,6 +143,10 @@ async function demoAll(): Promise<Notif[]> {
   out.push(mk('seguiu:demo-duda', 'seguiu', hoursAgo(9), { actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { friends: true } }));
   out.push(mk('lancamento:astro', 'lancamento', hoursAgo(20), { title: 'Astro Bot', link: '/jogos/astro-bot', data: { cover: '/demo/cover-astro.webp' } }));
   st.site.forEach((s) => out.push(mk(`site:${s.id}`, 'site', s.at, { title: s.title, excerpt: s.body || null, link: s.link })));
+  // Resumo da semana passada (segunda de manhã) e o convite de pacto da demonstração.
+  { const now = new Date(); const mon = new Date(now); mon.setHours(8, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+    out.push(mk(`semana:${mon.toISOString().slice(0, 10)}`, 'semana', mon.toISOString(), { link: '/jornada/ritmo#semana', data: { sessions: 4, minutes: 370, games: ['The Last of Us Part II', 'Astro Bot'], more: 0, done: [], with: ['Ana'] } }));
+    out.push(mk('pacto:pacto-demo', 'pacto', hoursAgo(50), { title: 'The Last of Us Part II', link: '/jornada/ritmo#pactos', actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { goal: 'zerar', until: '2026-11-30' } })); }
   // Retomada: jogos em andamento sem sessão há 14 dias ou mais (como o banco faz).
   { const { daysAway, currentHistory, lastSession } = await import('./store'); const gs = getState();
     for (const j of gs.journeys) {

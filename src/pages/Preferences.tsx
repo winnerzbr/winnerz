@@ -271,6 +271,8 @@ function NotifSettings() {
       {row('aviso_seguidores', 'Quem começou a seguir você', 'E quando alguém segue você de volta e vocês viram amigos.')}
       {row('aviso_lancamentos', 'Lançamentos', 'Quando sai um jogo que está na sua lista de desejos ou no Radar.')}
       {row('aviso_retomada', 'Voltar a um jogo', 'Quando faz 14 dias que você não volta a um jogo que está jogando, com o link para ver onde parou.')}
+      {row('aviso_semana', 'Resumo da semana', 'Toda segunda de manhã, a sua semana de jogo. Só chega quando você jogou.')}
+      {row('aviso_pactos', 'Pactos', 'Convites de amigos para um pacto e quando alguém do pacto zera.')}
     </section>
   );
 }

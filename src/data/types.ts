@@ -303,6 +303,8 @@ export interface Prefs {
   comunidade?: CommunityPrefs;
   /** "Não encaixou" seguidos: a História e a última sessão em que a pessoa disse "continuar mesmo assim". */
   fitDismissed?: Record<ID, ID>;
+  /** Temporadas criadas pela pessoa (as estações do ano entram sozinhas). */
+  seasons?: { id: string; name: string; from: string; to: string }[];
 }
 
 /** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */
@@ -321,6 +323,8 @@ export interface CommunityPrefs {
   aviso_retomada?: boolean;
   /** Seus registros aparecem como eco na linha do tempo dos amigos (padrão: sim). */
   eco?: boolean;
+  aviso_semana?: boolean;
+  aviso_pactos?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

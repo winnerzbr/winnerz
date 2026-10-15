@@ -23,10 +23,12 @@ alter table public.posts add column if not exists club_id uuid references public
 alter table public.posts add column if not exists club_part integer not null default 0;
 alter table public.posts alter column community_id drop not null;
 alter table public.posts alter column title drop not null;
+-- "not valid": a regra vale para o que entrar daqui em diante, sem reprovar linhas antigas; assim esta migração
+-- pode rodar de novo depois das seguintes (que ampliam a regra) sem dar erro.
 alter table public.posts drop constraint if exists posts_place_check;
-alter table public.posts add constraint posts_place_check check (community_id is not null or club_id is not null);
+alter table public.posts add constraint posts_place_check check (community_id is not null or club_id is not null) not valid;
 alter table public.posts drop constraint if exists posts_title_needed;
-alter table public.posts add constraint posts_title_needed check (club_id is not null or title is not null);
+alter table public.posts add constraint posts_title_needed check (club_id is not null or title is not null) not valid;
 create index if not exists posts_club on public.posts (club_id, club_part, created_at) where club_id is not null;
 
 -- Respostas de clube podem ter imagens; resposta apagada pode ficar sem texto.
@@ -69,7 +71,7 @@ alter table public.reactions drop constraint if exists reactions_target_check;
 alter table public.reactions add constraint reactions_target_check check (target in ('post', 'resposta'));
 alter table public.content_reports drop constraint if exists content_reports_kind_check;
 alter table public.content_reports add constraint content_reports_kind_check
-  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta', 'clube'));
+  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta', 'clube')) not valid;
 
 -- ---------------------------------------------------------------------------------------------------------------
 -- Peças comuns

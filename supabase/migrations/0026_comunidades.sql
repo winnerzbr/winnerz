@@ -566,8 +566,10 @@ $$;
 -- Denúncias e moderação: comunidade, postagem e resposta entram na fila do Studio
 -- ---------------------------------------------------------------------------------------------------------------
 alter table public.content_reports drop constraint if exists content_reports_kind_check;
+-- "not valid": a regra vale para o que entrar daqui em diante, sem reprovar linhas antigas; assim esta migração
+-- pode rodar de novo depois das seguintes (que ampliam a regra) sem dar erro.
 alter table public.content_reports add constraint content_reports_kind_check
-  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta'));
+  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta')) not valid;
 
 -- Mesmas funções da 0024, agora com comunidade, postagem e resposta.
 create or replace function public.target_snapshot(p_kind text, p_owner uuid, p_ref text) returns jsonb

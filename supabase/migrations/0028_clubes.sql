@@ -442,7 +442,7 @@ $$;
 -- ---------------------------------------------------------------------------------------------------------------
 alter table public.content_reports drop constraint if exists content_reports_kind_check;
 alter table public.content_reports add constraint content_reports_kind_check
-  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta', 'clube', 'mensagem'));
+  check (kind in ('perfil', 'jornada', 'vitrine', 'momento', 'museu', 'comunidade', 'postagem', 'resposta', 'clube', 'mensagem')) not valid;
 
 -- Mesmas funções da 0026, agora com clube e mensagem de clube.
 create or replace function public.target_snapshot(p_kind text, p_owner uuid, p_ref text) returns jsonb

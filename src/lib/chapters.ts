@@ -161,7 +161,7 @@ export function buildTimeline(inp: BuildInput): TLItem[] {
 
 /** O capítulo de cada item (para a luz ambiente e a régua). */
 export function chapterOf(items: TLItem[], i: number): ChapterItem | null {
-  for (let k = i; k >= 0; k--) { const it = items[k]; if (it.type === 'chapter') return it; }
+  for (let k = Math.min(i, items.length - 1); k >= 0; k--) { const it = items[k]; if (it?.type === 'chapter') return it; }
   return null;
 }
 

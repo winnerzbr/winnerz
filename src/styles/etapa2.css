@@ -5428,3 +5428,13 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .fx-narr { padding: 10px 14px; border-radius: 12px; background: rgba(7, 8, 10, 0.6); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08); }
 .fx-amb__a { transition: opacity 2.4s ease; }
 .fx-ev.has-img .fx-k, .fx-mem .fx-k, .fx-echo .fx-k { position: relative; }
+
+/* Faixa: as imagens do jogo aparecem de verdade no fundo (antes eram só luz desfocada) */
+.fx.has-imgs .fx-amb { inset: 0; }
+.fx.has-imgs .fx-amb__a { filter: saturate(1.08) brightness(0.62) blur(1.5px); transform: scale(1.04); transition: opacity 2.4s ease; }
+.fx.has-imgs .fx-amb__a.on { opacity: 1; animation: fxkb 18s ease-in-out infinite alternate; }
+@keyframes fxkb { from { transform: scale(1.04) translate3d(0, 0, 0); } to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); } }
+.fx.has-imgs .fx-amb::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7, 8, 10, 0.55) 0%, rgba(7, 8, 10, 0.15) 30%, rgba(7, 8, 10, 0.2) 62%, rgba(7, 8, 10, 0.85) 100%); }
+.fx.has-imgs .fx-big { display: none; }
+.fx.has-imgs .fx-spot { opacity: 0.5; }
+.fx.is-reduced .fx-amb__a.on { animation: none; }

@@ -178,7 +178,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, full
   }, [full, onExitFull]);
 
   const cur = items[Math.max(0, Math.min(items.length - 1, focus))];
-  const curChap = chapterOf(items, focus);
+  const curChap = chapterOf(items, Math.min(focus, items.length - 1));
   // Fundo: as imagens do jogo, uma de cada vez, trocando devagar (parado com "reduzir movimento" e no modo leve).
   const ambients = useMemo(() => [...new Set([bg, ...images].filter(Boolean))].slice(0, 12), [bg, images]);
   const [amb, setAmb] = useState(0);
@@ -355,7 +355,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, full
 
   const narr = cur?.type === 'chapter' || cur?.type === 'event' ? curChap : null;
   return (
-    <section ref={stage} tabIndex={-1} onKeyDown={key} className={`fx${full ? ' is-full' : ''}${reduced ? ' is-reduced' : ''}${vertical ? ' is-vert' : ''}`} aria-label="Linha do tempo. Use as setas para andar entre os registros.">
+    <section ref={stage} tabIndex={-1} onKeyDown={key} className={`fx${full ? ' is-full' : ''}${reduced ? ' is-reduced' : ''}${vertical ? ' is-vert' : ''}${ambients.length ? ' has-imgs' : ''}`} aria-label="Linha do tempo. Use as setas para andar entre os registros.">
       <div className="fx-amb" aria-hidden="true">{ambients.map((src) => <div key={src} className={`fx-amb__a${src === ambient ? ' on' : ''}`} style={{ backgroundImage: `url(${src})` }} />)}</div>
       {!vertical && <div ref={big} className="fx-big" aria-hidden="true">{chapters.map((c, i) => <span key={c.id} style={{ left: `${i * 1500 + 200}px` }}>{c.name}</span>)}</div>}
       <canvas ref={dust} className="fx-dust" aria-hidden="true" />

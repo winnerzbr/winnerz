@@ -24,6 +24,7 @@ const paths: Record<string, ReactElement> = {
   telaCheia: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   sairTela: <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />,
   escudo: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
+  calendario: <><rect x="4" y="5.5" width="16" height="14.5" rx="2" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></>,
   cadeado: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
   mensagem: <><path d="M4 5.5h16v10H9l-5 4z" strokeLinejoin="round" /><path d="M8 9.5h8M8 12.5h5" /></>,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,

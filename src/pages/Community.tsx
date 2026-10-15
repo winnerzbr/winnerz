@@ -7,14 +7,17 @@ import {
   PATHS, communityApi, postHref, postTitle, refreshNews, useReplyNews,
   type Community, type NewsItem, type Post, type PracaPath, type PracaSide,
 } from '../data/communityApi';
-import { clubApi, encontroNow, type Club } from '../data/clubApi';
+import { clubApi, type Club } from '../data/clubApi';
+import { jogatinaApi, jogatinaNow, type Jogatina } from '../data/jogatinaApi';
 import { ensureRules } from '../data/moderationApi';
 import { FriendsActivity } from '../components/Social';
 import { MentionArea, PersonAvatar, PostCard, ago } from '../components/Posts';
 import { CoverArt } from '../components/CoverArt';
 import { Icon } from '../components/Icon';
 import { CommunityTile } from './Communities';
-import { ClubTile, whenLabel } from './Clubs';
+import { ClubTile } from './Clubs';
+import { JogatinaTile } from './Jogatina';
+import { whenLabel } from '../lib/when';
 import { clearDraft, readDraft, useDraft, writeDraft } from '../lib/draft';
 
 const isPath = (x: string | null): x is PracaPath => !!x && PATHS.some((p) => p.k === x);
@@ -35,7 +38,7 @@ export function CommunityPage() {
   const cam: PracaPath = isPath(q.get('c')) ? (q.get('c') as PracaPath) : 'para';
   const setCam = (k: PracaPath) => navigate(k === 'para' ? '/comunidade' : `/comunidade?c=${k}`, { replace: true, keepScroll: true });
   const [side, setSide] = useState<PracaSide | null>(null);
-  const [clubs, setClubs] = useState<{ next: Club[]; mine: Club[] } | null>(null);
+  const [clubs, setClubs] = useState<{ next: Jogatina[]; all: Club[] } | null>(null);
   const [mine, setMine] = useState<Community[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [tick, setTick] = useState(0);
@@ -44,7 +47,7 @@ export function CommunityPage() {
     if (!can) return;
     let alive = true;
     communityApi.side().then((x) => alive && setSide(x)).catch(() => alive && setSide({ entrar: [], continuam: [], novos: [] }));
-    Promise.all([clubApi.list('proximos').catch(() => []), clubApi.list('meus').catch(() => [])]).then(([next, my]) => alive && setClubs({ next, mine: my }));
+    Promise.all([jogatinaApi.list('proximas', { limit: 12 }).catch(() => []), clubApi.list('todos').catch(() => [])]).then(([next, all]) => alive && setClubs({ next, all }));
     communityApi.mine().then((x) => alive && setMine(x)).catch(() => {});
     socialApi.activity().then((x) => alive && setActivity(x)).catch(() => {});
     return () => { alive = false; };
@@ -60,7 +63,8 @@ export function CommunityPage() {
   );
 
   const info = PATHS.find((p) => p.k === cam)!;
-  const encontros = (clubs?.next ?? []).filter((c) => !c.ended);
+  const encontros = (clubs?.next ?? []).filter((j) => !j.ended && !j.canceled);
+  const myClubs = (clubs?.all ?? []).filter((c) => c.me);
   return (
     <main className="praca">
       <div className="page praca__grid">
@@ -81,10 +85,10 @@ export function CommunityPage() {
               <Link to="/comunidade?c=comunidades" onClick={(e) => { e.preventDefault(); setCam('comunidades'); }} className="praca__more">Ver todas →</Link>
             </div>
           )}
-          {(clubs?.mine.length ?? 0) > 0 && (
+          {myClubs.length > 0 && (
             <div className="praca__railsec">
               <span className="kicker">Seus clubes</span>
-              <ul>{clubs!.mine.slice(0, 6).map((c) => <li key={c.id}><Link to={`/clube/${c.slug}`}><span className="praca__railart">{c.game ? <CoverArt game={{ title: c.game.title, cover: c.game.cover ?? '' }} /> : null}</span>{c.name}</Link></li>)}</ul>
+              <ul>{myClubs.slice(0, 6).map((c) => <li key={c.id}><Link to={`/clube/${c.slug}`}><span className="praca__railart">{c.game ? <CoverArt game={{ title: c.game.title, cover: c.game.cover ?? '' }} /> : null}</span>{c.name}</Link></li>)}</ul>
             </div>
           )}
           <div className="praca__railsec praca__raillinks">
@@ -106,7 +110,7 @@ export function CommunityPage() {
             {PATHS.map((p) => <button key={p.k} className={`chip${cam === p.k ? ' is-on' : ''}`} aria-pressed={cam === p.k} onClick={() => setCam(p.k)}>{p.label}</button>)}
           </nav>
           <p className="praca__why">{info.why}</p>
-          {cam === 'comunidades' ? <CommunitiesPath /> : cam === 'jogatinas' ? <JogatinasPath clubs={clubs?.next ?? null} /> : (
+          {cam === 'comunidades' ? <CommunitiesPath /> : cam === 'jogatinas' ? <JogatinasPath jogs={clubs ? encontros : null} clubs={clubs?.all ?? []} /> : (
             <>
               {cam === 'amigos' && <div className="praca__friends"><span className="kicker">O que andaram jogando</span><FriendsActivity /></div>}
               <Feed key={`${cam}-${tick}`} path={cam} />
@@ -120,9 +124,9 @@ export function CommunityPage() {
               <span className="kicker kicker--now">Acontecendo</span>
               <ul className="praca__events">
                 {encontros.slice(0, 3).map((c) => (
-                  <li key={c.id}><Link to={`/clube/${c.slug}`}>
+                  <li key={c.id}><Link to={`/jogatina/${c.id}`}>
                     <span className="praca__ev-cv">{c.game ? <CoverArt game={{ title: c.game.title, cover: c.game.cover ?? '' }} /> : null}</span>
-                    <span><b>{encontroNow(c) && <span className="praca__live" aria-label="Agora" />}{c.name}</b><small className="faint">{encontroNow(c) ? 'Agora' : whenLabel(c.startsAt)} · {c.going} {c.going === 1 ? 'vai' : 'vão'}</small></span>
+                    <span><b>{jogatinaNow(c) && <span className="praca__live" aria-label="Agora" />}{c.title}</b><small className="faint">{jogatinaNow(c) ? 'Agora' : whenLabel(c.startsAt)} · {c.going} {c.going === 1 ? 'vai' : 'vão'}{c.me ? ` · você: ${c.me.rsvp === 'vou' ? 'vai' : c.me.rsvp === 'talvez' ? 'talvez' : 'não vai'}` : ''}</small></span>
                   </Link></li>
                 ))}
               </ul>
@@ -169,23 +173,23 @@ function RailArt({ c }: { c: Community }) {
 /* ------------------------------------------------------------------ */
 /* Enquanto você estava fora                                            */
 /* ------------------------------------------------------------------ */
-function Away({ activity, encontros }: { activity: Activity[]; encontros: Club[] }) {
+function Away({ activity, encontros }: { activity: Activity[]; encontros: Jogatina[] }) {
   const news = useReplyNews();
   const [open, setOpen] = useState(false);
   const fresh = (news?.items ?? []).filter((n) => n.new !== false);
   const count = (k: (n: NewsItem) => boolean) => fresh.filter(k).length;
-  const resp = count((n) => n.kind === 'resposta' || n.kind === 'clube_resposta');
-  const menc = count((n) => n.kind === 'mencao' || n.kind === 'clube_mencao');
+  const resp = count((n) => n.kind === 'resposta' || n.kind === 'clube_resposta' || n.kind === 'jogatina_resposta');
+  const menc = count((n) => n.kind === 'mencao' || n.kind === 'clube_mencao' || n.kind === 'jogatina_mencao');
   const acomp = count((n) => n.kind === 'acompanhando');
   const day = Date.now() - 86_400_000;
   const friends = activity.filter((a) => Date.parse(a.at) > day && a.kind !== 'momento').slice(0, 2);
-  const tonight = encontros.filter((c) => c.startsAt && new Date(c.startsAt).toDateString() === new Date().toDateString());
+  const tonight = encontros.filter((c) => new Date(c.startsAt).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) === new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
   const bits: string[] = [];
   if (resp) bits.push(resp === 1 ? '1 resposta para você' : `${resp} respostas para você`);
   if (menc) bits.push(menc === 1 ? '1 menção' : `${menc} menções`);
   if (acomp) bits.push(acomp === 1 ? '1 novidade numa conversa que você acompanha' : `${acomp} novidades em conversas que você acompanha`);
   friends.forEach((a) => bits.push(`@${a.handle} ${a.kind === 'zerou' ? 'zerou' : 'começou'} ${a.title}`));
-  if (tonight.length) bits.push(tonight.length === 1 ? `1 jogatina hoje: ${tonight[0].name}, ${whenLabel(tonight[0].startsAt).replace('hoje, ', '')}` : `${tonight.length} jogatinas hoje`);
+  if (tonight.length) bits.push(tonight.length === 1 ? `1 jogatina hoje: ${tonight[0].title}, ${whenLabel(tonight[0].startsAt).replace('hoje, ', '')}` : `${tonight.length} jogatinas hoje`);
   const list = (bits.length > 1 ? `${bits.slice(0, -1).join(', ')} e ${bits[bits.length - 1]}` : bits[0]) ?? '';
   return (
     <section className={`praca__away${bits.length ? '' : ' is-quiet'}`} aria-live="polite">
@@ -202,20 +206,25 @@ function NewsList({ items }: { items: NewsItem[] }) {
     <div className="praca__news">
       <ul className="cm-news__list">
         {items.map((n) => {
-          const href = n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando' ? `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}` : n.kind === 'clube_resposta' || n.kind === 'clube_mencao' ? `/clube/${n.slug}#m-${n.id}` : `/clube/${n.slug}`;
+          const href = n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando' ? `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`
+            : n.kind === 'clube_resposta' || n.kind === 'clube_mencao' ? `/clube/${n.slug}#m-${n.id}`
+            : n.kind === 'jogatina_resposta' || n.kind === 'jogatina_mencao' ? `/jogatina/${n.slug}#m-${n.id}`
+            : n.kind === 'jogatina' ? `/jogatina/${n.slug}` : `/clube/${n.slug}`;
           const who = n.author?.handle ? `@${n.author.handle}` : n.author?.gone ? 'Uma conta apagada' : 'Alguém';
           const line = n.kind === 'resposta' ? <><b>{who}</b> respondeu você em <b>{n.title}</b></>
             : n.kind === 'acompanhando' ? <><b>{who}</b> respondeu em <b>{n.title}</b>, que você acompanha</>
             : n.kind === 'clube_resposta' ? <><b>{who}</b> respondeu você no clube <b>{n.title}</b></>
             : n.kind === 'mencao' ? <><b>{who}</b> mencionou você em <b>{n.title}</b></>
             : n.kind === 'clube_mencao' ? <><b>{who}</b> mencionou você no clube <b>{n.title}</b></>
-            : n.kind === 'encontro' ? <>Encontro <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é hoje'}</>
+            : n.kind === 'jogatina_resposta' ? <><b>{who}</b> respondeu você na jogatina <b>{n.title}</b></>
+            : n.kind === 'jogatina_mencao' ? <><b>{who}</b> mencionou você na jogatina <b>{n.title}</b></>
+            : n.kind === 'jogatina' ? <>Jogatina <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é logo mais'}</>
             : <>Abriu a parte <b>{n.excerpt}</b> no clube <b>{n.title}</b></>;
           return (
             <li key={`${n.kind}-${n.id}`}>
               <Link to={href} className={`cm-news__it${n.new === false ? ' is-old' : ''}`}>
-                {n.author ? <PersonAvatar p={n.author} size={32} /> : <span className="soc-av cm-news__ic" style={{ width: 32, height: 32 }} aria-hidden="true">{n.kind === 'encontro' ? '◷' : '▸'}</span>}
-                <span className="cm-news__tx"><span>{line}</span>{n.kind !== 'encontro' && n.kind !== 'parte' && n.excerpt && <small className="muted">{plainText(n.excerpt)}</small>}</span>
+                {n.author ? <PersonAvatar p={n.author} size={32} /> : <span className="soc-av cm-news__ic" style={{ width: 32, height: 32 }} aria-hidden="true">{n.kind === 'jogatina' ? '◷' : '▸'}</span>}
+                <span className="cm-news__tx"><span>{line}</span>{n.kind !== 'jogatina' && n.kind !== 'parte' && n.excerpt && <small className="muted">{plainText(n.excerpt)}</small>}</span>
                 <small className="faint mono">{ago(n.at)}</small>
               </Link>
             </li>
@@ -247,7 +256,7 @@ function QuickComposer({ onPosted }: { onPosted: () => void }) {
   const slug = places.find((c) => c.id === place)?.slug;
   // Os outros tipos abrem o editor completo, levando o que já foi escrito.
   const full = (tipo: string) => {
-    if (tipo === 'jogatina') return navigate('/comunidade/clubes/criar');
+    if (tipo === 'jogatina') return navigate('/jogatina/criar');
     if (text.trim()) writeDraft(`p:novo:${slug ?? 'praca'}`, { kind: tipo, title: '', body: text, game: null, spoiler: null, spoilerNote: '', clip: '', poll: ['', ''] });
     clearDraft(QUICK_KEY);
     navigate(`/escrever?tipo=${tipo}${slug ? `&w=${slug}` : ''}`);
@@ -302,7 +311,7 @@ function QuickComposer({ onPosted }: { onPosted: () => void }) {
 /* ------------------------------------------------------------------ */
 /* Celular: blocos de atalho                                            */
 /* ------------------------------------------------------------------ */
-function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (k: PracaPath) => void; encontros: Club[]; activity: Activity[] }) {
+function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (k: PracaPath) => void; encontros: Jogatina[]; activity: Activity[] }) {
   const news = useReplyNews();
   const fresh = (news?.items ?? []).filter((n) => n.new !== false).length;
   const next = encontros[0];
@@ -311,7 +320,7 @@ function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (
     <div className="praca__tiles" aria-label="Atalhos">
       <button className={`praca__tile praca__tile--cool${cam === 'jogatinas' ? ' is-on' : ''}`} onClick={() => setCam('jogatinas')}>
         <span className="kicker">Jogatinas</span>
-        {next ? <><b className="praca__big">{encontroNow(next) ? 'Agora' : whenLabel(next.startsAt).split(',')[0]}</b><small>{next.name}</small></> : <small className="faint">Nada marcado. Marque uma!</small>}
+        {next ? <><b className="praca__big">{jogatinaNow(next) ? 'Agora' : whenLabel(next.startsAt).split(',')[0]}</b><small>{next.title}</small></> : <small className="faint">Nada marcado. Marque uma!</small>}
       </button>
       <button className={`praca__tile${cam === 'para' ? ' is-on' : ''}`} onClick={() => setCam('para')}>
         <span className="kicker">Para você</span>
@@ -379,14 +388,22 @@ function CommunitiesPath() {
   );
 }
 
-function JogatinasPath({ clubs }: { clubs: Club[] | null }) {
-  if (clubs == null) return <p className="faint">Carregando…</p>;
-  const list = clubs.filter((c) => !c.ended);
+function JogatinasPath({ jogs, clubs }: { jogs: Jogatina[] | null; clubs: Club[] }) {
+  if (jogs == null) return <p className="faint">Carregando…</p>;
+  const mine = clubs.filter((c) => c.me);
+  const open = clubs.filter((c) => !c.me).slice(0, 4);
   return (
     <div className="praca__comms">
-      {list.length === 0 ? <div className="soc-empty"><p className="muted">Nenhuma jogatina nos próximos dias.</p></div>
-        : <div className="club-tiles">{list.map((c) => <ClubTile key={c.id} c={c} />)}</div>}
-      <div className="praca__commacts"><Link className="btn ghost sm" to="/comunidade/clubes">Todos os clubes</Link><Link className="btn primary sm" to="/comunidade/clubes/criar">Marcar uma jogatina</Link></div>
+      {jogs.length === 0 ? <div className="soc-empty"><p className="muted">Nenhuma jogatina marcada. Que tal a primeira?</p></div>
+        : <div className="jog-cards">{jogs.map((j) => <JogatinaTile key={j.id} j={j} />)}</div>}
+      <div className="praca__commacts"><Link className="btn primary sm" to="/jogatina/criar">Marcar uma jogatina</Link></div>
+      {(mine.length > 0 || open.length > 0) && (
+        <>
+          <span className="kicker praca__sub">Clubes: grupos que continuam</span>
+          <div className="club-tiles">{[...mine, ...open].slice(0, 6).map((c) => <ClubTile key={c.id} c={c} />)}</div>
+          <div className="praca__commacts"><Link className="btn ghost sm" to="/comunidade/clubes">Todos os clubes</Link><Link className="btn ghost sm" to="/comunidade/clubes/criar">Criar clube</Link></div>
+        </>
+      )}
     </div>
   );
 }

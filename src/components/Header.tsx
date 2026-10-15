@@ -8,7 +8,7 @@ import { Sheet } from './Sheet';
 import { useReplyNews } from '../data/communityApi';
 
 /** Telas que fazem parte da Comunidade (para acender o pilar). */
-const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
+const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
 
 const PILLARS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', match: '/colecao' },

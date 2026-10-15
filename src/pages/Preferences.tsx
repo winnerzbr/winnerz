@@ -237,7 +237,7 @@ function CommunitySettings() {
       {row('aviso_respostas', true, 'Respostas para você', 'Quando alguém responde a uma postagem ou resposta sua.')}
       {row('aviso_mencoes', true, 'Menções', 'Quando alguém escreve o seu @.')}
       {row('aviso_acompanhando', true, 'Conversas que você acompanha', 'Respostas novas nas conversas em que você respondeu ou tocou em “Acompanhar”.')}
-      {row('aviso_clubes', true, 'Clubes', 'Respostas às suas mensagens, encontro chegando e parte que abriu.')}
+      {row('aviso_clubes', true, 'Clubes e jogatinas', 'Respostas às suas mensagens, jogatina chegando e parte do clube que abriu.')}
     </section>
   );
 }

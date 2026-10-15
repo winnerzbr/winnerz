@@ -156,7 +156,7 @@ function ThisConversation({ post }: { post: PostFull }) {
         <input type="checkbox" role="switch" className="switch" checked={following} onChange={() => void follow()} />
       </label>
       <small className="faint">{following ? 'As respostas novas aparecem nas suas novidades da Comunidade.' : 'Sem avisos desta conversa. Ela continua nos seus salvos, se você salvou.'}</small>
-      {post.game && <Link className="btn ghost sm cm-thisconv__jog" to={`/comunidade/clubes/criar?jogo=${encodeURIComponent(post.game.id)}`}><Icon name="jogos" size={15} />Marcar uma jogatina</Link>}
+      {post.game && <Link className="btn ghost sm cm-thisconv__jog" to={`/jogatina/criar?jogo=${encodeURIComponent(post.game.slug)}`}><Icon name="jogos" size={15} />Marcar uma jogatina</Link>}
     </section>
   );
 }

@@ -16,7 +16,7 @@ export type SpoilerLevel = 'inicio' | 'meio' | 'final';
 export type ReactionKind = 'gg' | 'coracao' | 'jogar' | 'dica' | 'junto' | 'haha' | 'momento';
 /** gone: a conta foi apagada; a conversa fica, sem nome. */
 export interface PersonRef { id: string; handle: string | null; avatar?: string | null; admin?: boolean; gone?: boolean; novo?: boolean }
-export interface GameMini { id: string; slug: string; title: string; cover?: string | null }
+export interface GameMini { id: string; slug: string; title: string; cover?: string | null; backdrop?: string | null }
 export type Reactions = { mine: ReactionKind[] } & Partial<Record<ReactionKind, number>>;
 /** As reações, na ordem em que aparecem. Curti é o coração de sempre (guardado como "coracao"). */
 export const REACTIONS: { k: ReactionKind; label: string; icon: string; hint: string }[] = [
@@ -69,8 +69,8 @@ export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[]
 /** Os cantos da Praça. */
 export interface PracaSide { entrar: Post[]; continuam: Post[]; novos: (PersonRef & { since: string; post?: { id: string; title: string } | null })[] }
 export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[] }
-/** Avisos do menu: respostas e menções (comunidades e clubes), encontro chegando e parte do clube que abriu. */
-export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'encontro' | 'parte';
+/** Avisos do menu: respostas e menções (comunidades, clubes e jogatinas), jogatina chegando e parte do clube que abriu. */
+export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'jogatina' | 'jogatina_resposta' | 'jogatina_mencao' | 'parte';
 export interface NewsItem { kind: NewsKind; id: string; ref: string; slug: string; title: string; excerpt?: string | null; at: string; new?: boolean; author?: PersonRef | null }
 export interface ReplyNews { count: number; items: NewsItem[] }
 export interface PostDraft { kind: PostKind; title: string; body: string; gameId: string | null; spoiler: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip: string | null; poll?: string[] | null }
@@ -326,8 +326,9 @@ export const communityApi = {
     if (!supa()) {
       const a = demo.news();
       const b = await (await import('./clubApi')).demoClubNews(demoSeenAt());
-      const items = [...a.items, ...b.items].sort((x, y) => y.at.localeCompare(x.at)).slice(0, 15);
-      return { count: a.count + b.count, items };
+      const j = await (await import('./jogatinaApi')).demoJogatinaNews(demoSeenAt());
+      const items = [...a.items, ...b.items, ...j.items].sort((x, y) => y.at.localeCompare(x.at)).slice(0, 15);
+      return { count: a.count + b.count + j.count, items };
     }
     if (!getState().profile) return { count: 0, items: [] };
     const sb = await client();
@@ -484,7 +485,7 @@ const visible = (author: string) => author === ME || !muted().has((person(author
 function gameMini(id?: string | null, snap?: GameMini | null): GameMini | null {
   if (!id) return null;
   const g = demoGames.find((x) => x.id === id) ?? getState().games[id];
-  return g ? { id: g.id, slug: g.slug, title: g.title, cover: g.cover } : snap ?? null;
+  return g ? { id: g.id, slug: g.slug, title: g.title, cover: g.cover, backdrop: g.backdrop ?? null } : snap ?? null;
 }
 const snapGame = (id?: string | null) => gameMini(id);
 const reactOf = (db: DB, k: string): Reactions => {
@@ -744,12 +745,14 @@ async function demoMyData(): Promise<Record<string, unknown>> {
   const db = loadDb();
   const where = (cid: string | null) => (cid ? `w/${db.comms.find((c) => c.id === cid)?.slug ?? ''}` : 'Praça');
   const clubs = await (await import('./clubApi')).demoClubData();
+  const jogs = await (await import('./jogatinaApi')).demoJogatinaData();
   return {
     postagens: db.posts.filter((p) => p.author === ME).map((p) => ({ id: p.id, onde: where(p.cid), tipo: p.kind, titulo: p.title, texto: p.body, jogo: gameMini(p.gameId, p.game)?.title ?? null, spoiler: p.spoiler ?? null, spoilerSobre: p.spoilerNote ?? null, imagens: p.images, link: p.clip ?? null, criadaEm: p.createdAt, editadaEm: p.editedAt ?? null, apagadaEm: p.deletedAt ?? null })),
     respostas: db.replies.filter((r) => r.author === ME).map((r) => { const p = db.posts.find((x) => x.id === r.postId); return { id: r.id, postagem: r.postId, onde: p ? where(p.cid) : '', emResposta: p?.title ?? '', texto: r.body, criadaEm: r.createdAt, editadaEm: r.editedAt ?? null, apagadaEm: r.deletedAt ?? null }; }),
     comunidadesCriadas: db.comms.filter((c) => c.owner === ME).map((c) => ({ endereco: `w/${c.slug}`, nome: c.name, descricao: c.description, combinados: c.rules, criadaEm: c.createdAt })),
     comunidadesQueSegue: db.comms.filter((c) => db.mine[c.id]).map((c) => ({ endereco: `w/${c.slug}`, nome: c.name })),
     ...clubs,
+    ...jogs,
     reacoes: Object.entries(db.reacts).flatMap(([k, v]) => v.mine.map((kind) => ({ em: k.split(':')[0], id: k.split(':')[1], reacao: kind }))),
   };
 }

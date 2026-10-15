@@ -4867,3 +4867,5 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .club-round > span:last-child { display: flex; flex-direction: column; gap: 2px; }
 .gchat__sec { display: flex; flex-direction: column; gap: 10px; }
 @media (max-width: 760px) { .club2-tabs { top: 64px; } .club2-tabs__in { gap: 20px; } }
+.jog-seat a { gap: 5px; min-height: 76px; }
+.jog-seat .soc-av { box-shadow: 0 0 0 2px rgba(16, 19, 26, .55); background: rgba(16, 19, 26, .82); color: #f4f5f7; }

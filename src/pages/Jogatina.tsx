@@ -4,7 +4,7 @@ import { useStore } from '../data/store';
 import { communityApi, type Community, type GameMini } from '../data/communityApi';
 import { clubApi, type Club } from '../data/clubApi';
 import {
-  JOG_ACCESS, RSVP_LABEL, clubLabel, downloadIcs, jogatinaApi, jogatinaNow,
+  JOG_ACCESS, RSVP_LABEL, clubLabel, downloadIcs, jogatinaApi, jogatinaEnd, jogatinaNow,
   type JogPerson, type Jogatina, type JogatinaDraft, type JogatinaFull, type JogatinaLocked, type Rsvp,
 } from '../data/jogatinaApi';
 import { ensureRules } from '../data/moderationApi';
@@ -23,8 +23,8 @@ const seatColor = (h?: string | null) => SEAT_COLORS[[...(h ?? '?')].reduce((a, 
 
 /** Status da jogatina em uma linha: "Faltam 1 h 20 · até 23h", "Acontecendo agora · até 23h", "Aconteceu ontem". */
 function statusLine(j: Jogatina, now: number): string {
-  const s = Date.parse(j.startsAt), e = s + j.durationMin * 60_000;
-  const until = `até ${hourLabel(new Date(e).toISOString())}`;
+  const s = Date.parse(j.startsAt), e = jogatinaEnd(j);
+  const until = j.durationMin ? `até ${hourLabel(new Date(e).toISOString())}` : 'sem hora para acabar';
   if (j.canceled) return 'Cancelada por quem marcou';
   if (now > e) return `Aconteceu ${relDay(j.startsAt) ?? `em ${whenLabel(j.startsAt).split(',').slice(0, -1).join(',')}`}`;
   if (now >= s - 15 * 60_000) return `Acontecendo agora · ${until}`;
@@ -229,7 +229,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
             <p className="muted">{j.ended
               ? `${j.wasThere || going.length} ${(j.wasThere || going.length) === 1 ? 'pessoa marcou' : 'pessoas marcaram'} “eu estava lá”. Fotos, prints e o momento da noite ficam aqui embaixo.`
               : 'Quem foi guarda a memória (fotos, o momento, “eu estava lá”). Se quiserem repetir, a jogatina vira um clube com ritmo Encontro recorrente.'}</p>
-            <small className="faint">{[j.platform, j.owner?.handle ? `organiza @${j.owner.handle}` : null, `${j.durationMin >= 60 ? `${Math.round(j.durationMin / 6) / 10} h`.replace('.', ',') : `${j.durationMin} min`}`].filter(Boolean).join(' · ')}</small>
+            <small className="faint">{[j.platform, j.owner?.handle ? `organiza @${j.owner.handle}` : null, durLabel(j.durationMin)].filter(Boolean).join(' · ')}</small>
           </section>
         </div>
 
@@ -249,7 +249,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
               <span className="kicker">Detalhes</span>
               <dl className="jog-facts">
                 <div><dt>Quando</dt><dd>{whenLabel(j.startsAt)}</dd></div>
-                <div><dt>Duração</dt><dd>{spanLabel(j.durationMin * 60_000)}</dd></div>
+                <div><dt>Duração</dt><dd>{durLabel(j.durationMin)}</dd></div>
                 {j.platform && <div><dt>Onde</dt><dd>{j.platform}</dd></div>}
                 <div><dt>Vagas</dt><dd>{j.maxPeople ? `${j.maxPeople} lugares` : 'Sem limite'}</dd></div>
                 {j.owner && <div><dt>Marcou</dt><dd><PersonLink p={j.owner} /></dd></div>}
@@ -280,7 +280,7 @@ function Seat({ p, owner }: { p: JogPerson; owner: boolean }) {
   return (
     <li className="jog-seat" style={{ background: seatColor(p.handle) }}>
       <Link to={p.handle && !p.gone ? `/@${p.handle.toLowerCase()}` : '#'} title={owner ? 'Marcou a jogatina' : undefined}>
-        <b>{(p.handle ?? '?').slice(0, 1).toUpperCase()}</b>
+        <PersonAvatar p={p} size={34} />
         <small>@{p.handle ?? 'conta apagada'}</small>
         {owner && <span className="jog-seat__star" aria-label="Marcou">★</span>}
       </Link>
@@ -291,8 +291,12 @@ function Seat({ p, owner }: { p: JogPerson; owner: boolean }) {
 /* ------------------------------------------------------------------ */
 /* Marcar e editar                                                      */
 /* ------------------------------------------------------------------ */
-const DURATIONS = [60, 90, 120, 150, 180, 240, 360];
-const durLabel = (m: number) => (m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)}h${m % 60}` : `${m / 60} h`);
+/** 0 = sem hora para acabar. */
+const DURATIONS = [60, 90, 120, 150, 180, 240, 360, 480, 0];
+function durLabel(m: number | null): string {
+  if (!m) return 'Sem hora para acabar';
+  return m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)}h${m % 60}` : `${m / 60} h`;
+}
 
 function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: JogatinaDraft & { game?: GameMini | null }; editing?: Jogatina; busy: boolean; err: string; onSubmit: (d: JogatinaDraft) => void }) {
   const [game, setGame] = useState<GameMini | null>(initial.game ?? null);
@@ -300,7 +304,7 @@ function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: Joga
   const [titleTouched, setTitleTouched] = useState(!!initial.title);
   const [description, setDescription] = useState(initial.description);
   const [startsAt, setStartsAt] = useState(localInput(initial.startsAt));
-  const [duration, setDuration] = useState(initial.durationMin);
+  const [duration, setDuration] = useState(initial.durationMin ?? 0);
   const [platform, setPlatform] = useState(initial.platform ?? '');
   const [max, setMax] = useState(initial.maxPeople ? String(initial.maxPeople) : '');
   const [access, setAccess] = useState(initial.access);
@@ -320,7 +324,7 @@ function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: Joga
   return (
     <form className="cm-form club-form" onSubmit={(e) => {
       e.preventDefault();
-      onSubmit({ title: t.trim(), description, gameId: game?.id ?? null, startsAt: startsAt ? new Date(startsAt).toISOString() : null, durationMin: duration, platform: platform.trim() || null,
+      onSubmit({ title: t.trim(), description, gameId: game?.id ?? null, startsAt: startsAt ? new Date(startsAt).toISOString() : null, durationMin: duration || null, platform: platform.trim() || null,
         maxPeople: max ? Number(max) : null, access, liveUrl: live.trim() || null, communityId: communityId || null, clubId: clubId || null });
     }}>
       <div className="cm-form__f"><span className="kicker">Jogo</span>

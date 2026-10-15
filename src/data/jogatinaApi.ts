@@ -10,7 +10,7 @@ import { mentionsOf } from '../lib/postText';
 
 export type Rsvp = 'vou' | 'talvez' | 'nao';
 export interface Jogatina {
-  id: string; title: string; description: string; game: GameMini | null; startsAt: string; durationMin: number; platform?: string | null;
+  id: string; title: string; description: string; game: GameMini | null; startsAt: string; durationMin: number | null; platform?: string | null;
   maxPeople?: number | null; access: ClubAccess; liveUrl?: string | null; ended: boolean; canceled: boolean; now: boolean;
   community?: { slug: string; name: string } | null; club?: { slug: string; name: string } | null; createdAt: string; hidden: boolean;
   owner?: PersonRef | null; going: number; maybe: number; wasThere: number; me?: { rsvp: Rsvp; wasThere: boolean } | null; inviteCode?: string | null;
@@ -19,7 +19,7 @@ export interface JogPerson extends PersonRef { rsvp: Rsvp; wasThere: boolean; jo
 export interface JogatinaFull extends Jogatina { locked: false; people: JogPerson[]; messages: GroupMessage[] }
 export interface JogatinaLocked { locked: true; id: string; title: string; access: ClubAccess; startsAt: string; game: GameMini | null; owner?: PersonRef | null }
 export interface JogatinaDraft {
-  title: string; description: string; gameId: string | null; startsAt: string | null; durationMin: number; platform: string | null;
+  title: string; description: string; gameId: string | null; startsAt: string | null; durationMin: number | null; platform: string | null;
   maxPeople: number | null; access: ClubAccess; liveUrl: string | null; communityId: string | null; clubId: string | null; newCode?: boolean;
 }
 /** "Clube Retrô" fica como está; "Elden Ring sem pressa" vira "Clube Elden Ring sem pressa". */
@@ -53,7 +53,7 @@ const client = async () => (await import('./supabaseAdapter')).getClient();
 const supa = () => getState().mode === 'supabase';
 const rpc = async <T>(fn: string, args?: Record<string, unknown>): Promise<T> => okRpc(await (await client()).rpc(fn, args), MSG) as T;
 const draftJson = (d: JogatinaDraft) => ({
-  title: d.title, description: d.description, gameId: d.gameId, startsAt: d.startsAt, durationMin: d.durationMin, platform: d.platform ?? '',
+  title: d.title, description: d.description, gameId: d.gameId, startsAt: d.startsAt, durationMin: d.durationMin ?? '', platform: d.platform ?? '',
   maxPeople: d.maxPeople ?? '', access: d.access, liveUrl: d.liveUrl ?? '', communityId: d.communityId ?? '', clubId: d.clubId ?? '', newCode: d.newCode ?? false,
 });
 export type JogFilter = 'proximas' | 'minhas' | 'passadas';
@@ -113,12 +113,12 @@ export function icsFor(j: Pick<Jogatina, 'id' | 'title' | 'description' | 'start
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const esc = (t: string) => t.replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/([,;])/g, '\\$1');
   const start = new Date(j.startsAt);
-  const end = new Date(start.getTime() + j.durationMin * 60_000);
+  const end = j.durationMin ? new Date(start.getTime() + j.durationMin * 60_000) : null;
   const url = `${origin}/jogatina/${j.id}`;
   const desc = [j.game ? `Jogo: ${j.game.title}` : '', j.description, j.liveUrl ? `Link: ${j.liveUrl}` : '', `No WinnerZ: ${url}`].filter(Boolean).join('\n');
   const fold = (line: string) => line.match(/.{1,73}/g)!.join('\r\n ');
   return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//WinnerZ//Jogatinas//PT', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-    `UID:jogatina-${j.id}@winnerz.com.br`, `DTSTAMP:${fmt(new Date())}`, `DTSTART:${fmt(start)}`, `DTEND:${fmt(end)}`,
+    `UID:jogatina-${j.id}@winnerz.com.br`, `DTSTAMP:${fmt(new Date())}`, `DTSTART:${fmt(start)}`, end ? `DTEND:${fmt(end)}` : '',
     fold(`SUMMARY:${esc(j.title)}`), fold(`DESCRIPTION:${esc(desc)}`), fold(`URL:${url}`), j.liveUrl ? fold(`LOCATION:${esc(j.liveUrl)}`) : '',
     'BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', `DESCRIPTION:${esc(j.title)}`, 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
 }
@@ -131,8 +131,11 @@ export function downloadIcs(j: Parameters<typeof icsFor>[0]) {
 export function jogatinaNow(j: Pick<Jogatina, 'startsAt' | 'durationMin' | 'canceled'>, now = Date.now()): boolean {
   if (j.canceled) return false;
   const s = Date.parse(j.startsAt);
-  return now >= s - 15 * 60_000 && now <= s + j.durationMin * 60_000;
+  return now >= s - 15 * 60_000 && now <= jogatinaEnd(j);
 }
+/** Quando acaba. Sem hora para acabar, conta como encerrada 12 horas depois de começar. */
+export const OPEN_END_MIN = 720;
+export const jogatinaEnd = (j: Pick<Jogatina, 'startsAt' | 'durationMin'>) => Date.parse(j.startsAt) + (j.durationMin ?? OPEN_END_MIN) * 60_000;
 
 /* ------------------------------------------------------------------ */
 /* Demonstração                                                         */
@@ -210,7 +213,7 @@ function out(j: DJog): Jogatina {
   const canceled = !!j.canceledAt;
   return {
     id: j.id, title: j.title, description: j.description, game: demoGameMini(j.gameId), startsAt: j.startsAt, durationMin: j.durationMin, platform: j.platform,
-    maxPeople: j.maxPeople, access: j.access, liveUrl: j.liveUrl, ended: Date.parse(j.startsAt) + j.durationMin * 60_000 < Date.now(), canceled,
+    maxPeople: j.maxPeople, access: j.access, liveUrl: j.liveUrl, ended: jogatinaEnd(j) < Date.now(), canceled,
     now: jogatinaNow({ startsAt: j.startsAt, durationMin: j.durationMin, canceled }), community: j.community, club: club ? { slug: club.slug, name: club.name } : null,
     createdAt: j.createdAt, hidden: j.hidden, owner: demoPersonRef(j.ownerId),
     going: j.people.filter((p) => p.rsvp === 'vou').length + j.extra, maybe: j.people.filter((p) => p.rsvp === 'talvez').length,
@@ -335,7 +338,7 @@ export async function demoJogatinaNews(seenAt: string): Promise<ReplyNews> {
     const me = j.people.find((p) => p.id === ME);
     if (!me || j.hidden) continue;
     const s = Date.parse(j.startsAt);
-    if (me.rsvp !== 'nao' && !j.canceledAt && s - 12 * 3_600_000 <= now && s + j.durationMin * 60_000 > now) items.push({ kind: 'jogatina', id: j.id, ref: '', slug: j.id, title: j.title, at: new Date(s - 12 * 3_600_000).toISOString() });
+    if (me.rsvp !== 'nao' && !j.canceledAt && s - 12 * 3_600_000 <= now && jogatinaEnd(j) > now) items.push({ kind: 'jogatina', id: j.id, ref: '', slug: j.id, title: j.title, at: new Date(s - 12 * 3_600_000).toISOString() });
     for (const x of db.msgs.filter((k) => k.jog === j.id && k.author !== ME && !k.deletedAt && Date.parse(k.createdAt) > now - 30 * 86_400_000)) {
       const parent = x.parentId ? db.msgs.find((k) => k.id === x.parentId) : null;
       if (parent?.author === ME) items.push({ kind: 'jogatina_resposta', id: x.id, ref: parent.id, slug: j.id, title: j.title, excerpt: x.body.slice(0, 140), at: x.createdAt, author: demoPersonRef(x.author) });

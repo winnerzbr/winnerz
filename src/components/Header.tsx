@@ -7,6 +7,9 @@ import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
 import { useReplyNews } from '../data/communityApi';
 
+/** Telas que fazem parte da Comunidade (para acender o pilar). */
+const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
+
 const PILLARS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', match: '/colecao' },
   { to: '/jogos', label: 'Jogos', icon: 'jogos', match: '/jogos' },
@@ -39,7 +42,7 @@ export function Header() {
         <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandLockup /></Link>
         <nav className="pillars" aria-label="Pilares">
           {PILLARS.map((p) => (
-            <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && (path.startsWith('/w/') || path.startsWith('/clube/'))) ? 'page' : undefined}>
+            <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && inCommunity(path)) ? 'page' : undefined}>
               <Icon name={p.icon} />{p.label}
               {p.to === '/comunidade' && news > 0 && <span className="nav-badge" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}
             </Link>
@@ -99,6 +102,7 @@ const TAB_ICONS: Record<string, ReactElement> = {
   jornada: <><path d="M3 12h18" /><circle cx="7" cy="12" r="2" /><circle cx="17" cy="12" r="2" /></>,
   colecao: <><rect x="4" y="4" width="5" height="16" rx="1.5" /><rect x="11" y="4" width="5" height="16" rx="1.5" /><path d="M18 5l3 1-3 14-3-1" /></>,
   jogos: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
+  comunidade: <><path d="M3.5 4.5h11v8H8l-4.5 3.5z" /><path d="M14.5 8.5h6v8l-3-2.2h-6.5v-1.8" /></>,
   mais: <><circle cx="5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="19" cy="12" r="1.6" fill="currentColor" /></>,
 };
 const TabIcon = ({ name }: { name: string }) => (
@@ -109,11 +113,11 @@ const TABS = [
   { to: '/', label: 'Início', icon: 'inicio', on: (p: string) => p === '/' },
   { to: '/jornada', label: 'Jornada', icon: 'jornada', on: (p: string) => p.startsWith('/jornada') },
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
-  { to: '/jogos', label: 'Jogos', icon: 'jogos', on: (p: string) => p.startsWith('/jogos') },
+  { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', on: inCommunity },
 ];
-const MORE = ['/comunidade', '/w/', '/clube/', '/eventos', '/preferencias', '/entrar', '/studio'];
+const MORE = ['/jogos', '/eventos', '/preferencias', '/entrar', '/studio'];
 
-/** No celular, os pilares ficam numa barra fixa embaixo; Comunidade, Eventos e a aparência ficam em "Mais". */
+/** No celular, os pilares ficam numa barra fixa embaixo; Jogos, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {
   const path = usePath();
   const prefs = useStore((s) => s.prefs);
@@ -133,14 +137,15 @@ export function TabBar() {
     <>
       <nav className="tabbar" aria-label="Principal">
         {TABS.map((t) => (
-          <Link key={t.to} to={t.to} className="tabbar__item" aria-current={t.on(path) ? 'page' : undefined}><TabIcon name={t.icon} />{t.label}</Link>
+          <Link key={t.to} to={t.to} className="tabbar__item" aria-current={t.on(path) ? 'page' : undefined}><TabIcon name={t.icon} />{t.label}
+            {t.to === '/comunidade' && news > 0 && <span className="nav-badge nav-badge--tab" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}</Link>
         ))}
-        <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais{news > 0 && <span className="nav-badge nav-badge--tab" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}</button>
+        <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais</button>
       </nav>
       {more && (
         <Sheet title="Mais" onClose={() => setMore(false)} labelId="tab-mais">
           <nav className="moremenu" aria-label="Mais seções">
-            <Link to="/comunidade" className="moremenu__item" aria-current={path.startsWith('/comunidade') || path.startsWith('/w/') || path.startsWith('/clube/') ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>{news > 0 ? `${news} ${news === 1 ? 'novidade' : 'novidades'} para você` : 'Comunidades, clubes e amigos'}</small></span></Link>
+            <Link to="/jogos" className="moremenu__item" aria-current={path.startsWith('/jogos') ? 'page' : undefined}><Icon name="jogos" size={20} /><span><b>Jogos</b><small>Buscar jogos, Radar e o que jogar agora</small></span></Link>
             <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
             {isAdmin && <Link to="/studio" className="moremenu__item" aria-current={path.startsWith('/studio') ? 'page' : undefined}><Icon name="caneta" size={20} /><span><b>Studio</b><small>Correções, uso dos planos e abertura do site</small></span></Link>}
             {profile

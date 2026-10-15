@@ -6,15 +6,16 @@
 import { useSyncExternalStore } from 'react';
 import { getState } from './store';
 import { demoGames } from './demo';
-import { DEMO_PEOPLE } from './demoPeople';
+import { DEMO_PEOPLE, demoFollowing, demoIsFriend } from './demoPeople';
+import type { CommunityPrefs } from './types';
 import { SUPABASE_URL } from '../lib/env';
 import { mentionsOf } from '../lib/postText';
 
-export type PostKind = 'discussao' | 'pergunta' | 'dica' | 'colecao' | 'clipe';
+export type PostKind = 'discussao' | 'pergunta' | 'dica' | 'colecao' | 'clipe' | 'enquete' | 'aquisicao';
 export type SpoilerLevel = 'inicio' | 'meio' | 'final';
 export type ReactionKind = 'gg' | 'coracao' | 'jogar' | 'dica' | 'junto' | 'haha' | 'momento';
 /** gone: a conta foi apagada; a conversa fica, sem nome. */
-export interface PersonRef { id: string; handle: string | null; avatar?: string | null; admin?: boolean; gone?: boolean }
+export interface PersonRef { id: string; handle: string | null; avatar?: string | null; admin?: boolean; gone?: boolean; novo?: boolean }
 export interface GameMini { id: string; slug: string; title: string; cover?: string | null }
 export type Reactions = { mine: ReactionKind[] } & Partial<Record<ReactionKind, number>>;
 /** As reações, na ordem em que aparecem. Curti é o coração de sempre (guardado como "coracao"). */
@@ -35,23 +36,44 @@ export interface Community {
   game?: GameMini | null; createdAt: string; hidden: boolean; owner?: PersonRef | null; members: number; posts: number;
   lastAt?: string | null; role?: 'dono' | 'membro' | null;
 }
+export interface Poll { options: { text: string; votes: number }[]; total: number; mine: number | null }
+/**
+ * Postagem da Praça (community null) ou de uma comunidade. Título opcional.
+ * why: por que apareceu no caminho; authorCtx: "jogando" ou "zerou" o jogo da conversa (só se a pessoa ligou);
+ * readAt e unread: a última visita e as respostas novas desde ela.
+ */
 export interface Post {
-  id: string; kind: PostKind; title: string; body: string; game?: GameMini | null; spoiler?: SpoilerLevel | null; spoilerNote?: string | null;
+  id: string; kind: PostKind; title: string | null; body: string; game?: GameMini | null; spoiler?: SpoilerLevel | null; spoilerNote?: string | null;
   images: string[]; imageCount: number; clip?: string | null; pinned: boolean; answerId?: string | null;
-  createdAt: string; editedAt?: string | null; hidden: boolean; author: PersonRef;
-  community: { slug: string; name: string; official: boolean }; replies: number; lastReplyAt?: string | null; reactions: Reactions;
+  createdAt: string; editedAt?: string | null; hidden: boolean; author: PersonRef; authorCtx?: string | null;
+  community: { slug: string; name: string; official: boolean } | null; replies: number; lastReplyAt?: string | null; reactions: Reactions;
+  poll?: Poll | null; saved?: boolean; following?: boolean; readAt?: string | null; unread?: number; why?: string | null;
 }
 export interface Reply {
   id: string; parentId: string | null; body: string; deleted: boolean; createdAt: string; editedAt?: string | null;
-  hidden: boolean; author: PersonRef; reactions: Reactions;
+  hidden: boolean; author: PersonRef; authorCtx?: string | null; reactions: Reactions;
 }
-export interface PostFull extends Post { communityFull: Community; canModerate: boolean; thread: Reply[] }
+export interface PostFull extends Post { communityFull: Community | null; canModerate: boolean; thread: Reply[] }
+/** Caminhos da Praça. Comunidades e Jogatinas mostram listas próprias; os outros, conversas. */
+export type PracaPath = 'para' | 'amigos' | 'seguindo' | 'comunidades' | 'discussoes' | 'jogatinas' | 'salvos' | 'novos';
+export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[] = [
+  { k: 'para', label: 'Para você', icon: 'jornada', why: 'Das comunidades que você segue, dos jogos da sua Jornada, Coleção e desejos, e de quem você segue. Cada conversa diz por que apareceu.' },
+  { k: 'amigos', label: 'Amigos', icon: 'coracao', why: 'Só o que os seus amigos (quem segue você de volta) publicaram, do mais novo para o mais antigo.' },
+  { k: 'seguindo', label: 'Seguindo', icon: 'olho', why: 'Pessoas e comunidades que você segue. Sem sugestão nenhuma no meio.' },
+  { k: 'comunidades', label: 'Comunidades', icon: 'grade', why: 'Os espaços por assunto. Seguir não é virar membro: só acompanha o que sai ali.' },
+  { k: 'discussoes', label: 'Discussões', icon: 'comunidade', why: 'As conversas mais vivas da semana e as antigas que voltaram a render.' },
+  { k: 'jogatinas', label: 'Jogatinas', icon: 'jogos', why: 'Ocasiões concretas para jogar junto: jogo, quando e quem vai.' },
+  { k: 'salvos', label: 'Salvos', icon: 'desejo', why: 'O que você guardou para ler depois. Só você vê.' },
+  { k: 'novos', label: 'Novos por aqui', icon: 'eventos', why: 'As primeiras conversas de quem acabou de chegar e topou aparecer aqui.' },
+];
+/** Os cantos da Praça. */
+export interface PracaSide { entrar: Post[]; continuam: Post[]; novos: (PersonRef & { since: string; post?: { id: string; title: string } | null })[] }
 export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[] }
 /** Avisos do menu: respostas e menções (comunidades e clubes), encontro chegando e parte do clube que abriu. */
-export type NewsKind = 'resposta' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'encontro' | 'parte';
+export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'encontro' | 'parte';
 export interface NewsItem { kind: NewsKind; id: string; ref: string; slug: string; title: string; excerpt?: string | null; at: string; new?: boolean; author?: PersonRef | null }
 export interface ReplyNews { count: number; items: NewsItem[] }
-export interface PostDraft { kind: PostKind; title: string; body: string; gameId: string | null; spoiler: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip: string | null }
+export interface PostDraft { kind: PostKind; title: string; body: string; gameId: string | null; spoiler: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip: string | null; poll?: string[] | null }
 export interface CommunityDraft { slug: string; name: string; description: string; rules: string; gameId: string | null; cover?: string | null }
 
 export const KINDS: { k: PostKind; label: string; hint: string }[] = [
@@ -60,6 +82,8 @@ export const KINDS: { k: PostKind; label: string; hint: string }[] = [
   { k: 'dica', label: 'Dica', hint: 'Um macete, um caminho, um aviso útil.' },
   { k: 'colecao', label: 'Minha coleção', hint: 'Mostrar a prateleira, uma edição, um achado.' },
   { k: 'clipe', label: 'Vídeo ou clipe', hint: 'YouTube, Twitch, TikTok, Instagram, X e outros.' },
+  { k: 'enquete', label: 'Enquete', hint: 'Uma pergunta com até 6 opções para votar.' },
+  { k: 'aquisicao', label: 'Chegou na coleção', hint: 'Um jogo que acabou de chegar: achado, presente, edição especial.' },
 ];
 export const KIND_LABEL = Object.fromEntries(KINDS.map((k) => [k.k, k.label])) as Record<PostKind, string>;
 export const SPOILERS: { k: SpoilerLevel; label: string; hint: string }[] = [
@@ -69,6 +93,15 @@ export const SPOILERS: { k: SpoilerLevel; label: string; hint: string }[] = [
 ];
 export const SPOILER_LABEL = Object.fromEntries(SPOILERS.map((k) => [k.k, k.label])) as Record<SpoilerLevel, string>;
 export const MAX_IMAGES = 4;
+
+/** Endereço da conversa (vale para a Praça e para as comunidades). */
+export const postHref = (p: Pick<Post, 'id'>) => `/conversa/${p.id}`;
+/** Título para mostrar: o da postagem ou o começo do texto. */
+export function postTitle(p: Pick<Post, 'title' | 'body' | 'kind'>): string {
+  if (p.title) return p.title;
+  const t = p.body.replace(/\|\|[\s\S]+?\|\|/g, '[spoiler]').replace(/[*>#]/g, '').replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim();
+  return t ? (t.length > 90 ? `${t.slice(0, 90).trimEnd()}…` : t) : p.kind === 'enquete' ? 'Enquete' : 'Postagem';
+}
 
 /** Endereço público de uma imagem (caminho no bucket 'comunidade', ou a própria imagem na demonstração). */
 export function communityImage(v?: string | null): string | null {
@@ -114,6 +147,10 @@ const MSG: Record<string, string> = {
   pin_limit: 'Já há 3 postagens fixadas. Solte uma antes.',
   not_author: 'Só quem escreveu pode fazer isso.',
   not_member: 'Entre no clube para reagir às mensagens dele.',
+  poll_invalid: 'A enquete precisa de 2 a 6 opções, com até 80 caracteres cada.',
+  poll_question: 'Escreva a pergunta da enquete.',
+  game_needed: 'Escolha o jogo que chegou na coleção.',
+  post_empty: 'Escreva alguma coisa (ou ponha uma imagem ou um link).',
   react_kind: 'Essa reação não existe. Atualize a página.',
   target_not_found: 'Não achei. Talvez tenha sido apagado.',
 };
@@ -134,6 +171,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/praca_feed|praca_side|poll_vote|post_save|post_follow|post_read|p_poll/i.test(m)) throw new Error('Falta rodar a migração 0030 no Supabase.');
     if (/p_spoiler_note|my_community_data|reactions_kind_check|club_messages_of/i.test(m)) throw new Error('Falta rodar a migração 0029 no Supabase.');
     if (/communit|post_|reply_|react|game_posts|my_reply_news|replies_seen|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0026 no Supabase.');
     throw new Error(m);
@@ -206,13 +244,14 @@ export const communityApi = {
     if (!supa()) return demo.post(id);
     return rpc<PostFull | null>('post_get', { p_id: id });
   },
-  async createPost(communityId: string, d: PostDraft): Promise<Post> {
+  /** communityId null = direto na Praça. */
+  async createPost(communityId: string | null, d: PostDraft): Promise<Post> {
     if (!supa()) return demo.createPost(communityId, d);
-    return rpc<Post>('post_create', { p_community: communityId, p_kind: d.kind, p_title: d.title, p_body: d.body, p_game: d.gameId, p_spoiler: d.spoiler, p_spoiler_note: d.spoilerNote ?? null, p_images: d.images, p_clip: d.clip });
+    return rpc<Post>('post_create', { p_community: communityId, p_kind: d.kind, p_title: d.title || null, p_body: d.body, p_game: d.gameId, p_spoiler: d.spoiler, p_spoiler_note: d.spoilerNote ?? null, p_images: d.images, p_clip: d.clip, p_poll: d.kind === 'enquete' ? d.poll ?? [] : null });
   },
   async editPost(id: string, d: PostDraft, removed: string[] = []): Promise<Post> {
     if (!supa()) return demo.editPost(id, d);
-    const p = await rpc<Post>('post_edit', { p_id: id, p_kind: d.kind, p_title: d.title, p_body: d.body, p_game: d.gameId, p_spoiler: d.spoiler, p_spoiler_note: d.spoilerNote ?? null, p_images: d.images, p_clip: d.clip });
+    const p = await rpc<Post>('post_edit', { p_id: id, p_kind: d.kind, p_title: d.title || null, p_body: d.body, p_game: d.gameId, p_spoiler: d.spoiler, p_spoiler_note: d.spoilerNote ?? null, p_images: d.images, p_clip: d.clip, p_poll: d.kind === 'enquete' ? d.poll ?? null : null });
     if (removed.length) await removeImages(removed);
     return p;
   },
@@ -244,6 +283,35 @@ export const communityApi = {
   async react(target: 'post' | 'resposta', id: string, kind: ReactionKind, on: boolean): Promise<Reactions> {
     if (!supa()) return demo.react(target, id, kind, on);
     return rpc<Reactions>('react', { p_target: target, p_id: id, p_kind: kind, p_on: on });
+  },
+  /** Um caminho da Praça (as conversas, com o motivo de cada uma). */
+  async praca(path: PracaPath, before?: string): Promise<Post[]> {
+    if (!supa()) return demo.praca(path, before);
+    if (!getState().profile) return [];
+    return (await rpc<Post[] | null>('praca_feed', { p_path: path, p_before: before ?? null, p_limit: 30 })) ?? [];
+  },
+  async side(): Promise<PracaSide> {
+    if (!supa()) return demo.side();
+    if (!getState().profile) return { entrar: [], continuam: [], novos: [] };
+    return (await rpc<PracaSide | null>('praca_side')) ?? { entrar: [], continuam: [], novos: [] };
+  },
+  async vote(postId: string, option: number | null): Promise<Poll> {
+    if (!supa()) return demo.vote(postId, option);
+    return rpc<Poll>('poll_vote', { p_post: postId, p_option: option });
+  },
+  async save(postId: string, on: boolean): Promise<void> {
+    if (!supa()) return demo.save(postId, on);
+    await rpc('post_save', { p_post: postId, p_on: on });
+  },
+  async follow(postId: string, on: boolean): Promise<void> {
+    if (!supa()) return demo.follow(postId, on);
+    await rpc('post_follow', { p_post: postId, p_on: on });
+  },
+  /** Marca a conversa como lida e devolve a visita anterior (null = primeira vez). */
+  async read(postId: string): Promise<string | null> {
+    if (!supa()) return demo.read(postId);
+    if (!getState().profile) return null;
+    try { return await rpc<string | null>('post_read', { p_post: postId }); } catch { return null; }
   },
   async feed(): Promise<Post[]> {
     if (!supa()) return demo.feed();
@@ -305,13 +373,15 @@ async function removeImages(paths: string[]) {
 /* Demonstração                                                         */
 /* ------------------------------------------------------------------ */
 type DComm = { id: string; slug: string; name: string; description: string; rules: string; cover?: string | null; official: boolean; gameId?: string | null; game?: GameMini | null; createdAt: string; owner: string; hidden?: boolean; extra: number };
-type DPost = { id: string; cid: string; author: string; kind: PostKind; title: string; body: string; gameId?: string | null; game?: GameMini | null; spoiler?: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip?: string | null; pinned: boolean; answerId?: string | null; createdAt: string; editedAt?: string | null; deletedAt?: string | null; hidden?: boolean };
+type DPoll = { options: string[]; counts: number[]; mine?: number | null };
+type DPost = { id: string; cid: string | null; poll?: DPoll | null; author: string; kind: PostKind; title: string; body: string; gameId?: string | null; game?: GameMini | null; spoiler?: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip?: string | null; pinned: boolean; answerId?: string | null; createdAt: string; editedAt?: string | null; deletedAt?: string | null; hidden?: boolean };
 type DReply = { id: string; postId: string; parentId: string | null; author: string; body: string; createdAt: string; editedAt?: string | null; deletedAt?: string | null; hidden?: boolean };
 type DReact = { mine: ReactionKind[] } & Partial<Record<ReactionKind, number>>;
-type DB = { v: number; comms: DComm[]; posts: DPost[]; replies: DReply[]; reacts: Record<string, DReact>; mine: Record<string, 'dono' | 'membro'>; seenAt: string };
+type DB = { v: number; comms: DComm[]; posts: DPost[]; replies: DReply[]; reacts: Record<string, DReact>; mine: Record<string, 'dono' | 'membro'>; seenAt: string;
+  saves: Record<string, string>; follows: string[]; reads: Record<string, string> };
 
 const KEY = 'wz.demo.comunidades';
-const VERSION = 2;
+const VERSION = 3;
 const ME = 'demo-me';
 const ago = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const rid = () => `d${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -356,15 +426,29 @@ function seed(): DB {
     r('r8', 'p-malenia', 'demo-duda', 60, 'Usa a Tiche sem culpa. A segunda fase continua difícil do mesmo jeito.'),
     r('r9', 'p-malenia', 'demo-rafa', 58, 'Eu fui no braço, 70 tentativas. Valeu cada uma.'),
     r('r10', 'p-derby', 'demo-duda', 30, 'Isso salvou a minha infância.'),
+    r('r11', 'p-yakuza', 'demo-duda', 20, 'Yakuza 0, sem dúvida. Você entende tudo o que vem depois.'),
+    r('r12', 'p-yakuza', 'demo-rafa', 8, 'Comecei pelo Like a Dragon e não me arrependo.'),
+    r('r13', 'p-yakuza', 'demo-carol', 1, 'Vou de 0 então. Valeu, gente!'),
+    r('r14', 'p-backlog', 'demo-carol', 5, 'Voltei para dizer: zerei mais 2 este mês!'),
   ];
+  // Direto na Praça (sem comunidade).
+  posts.push(
+    { id: 'p-yakuza', cid: null, author: 'demo-carol', kind: 'enquete', title: '', body: 'Qual Yakuza para começar a série?', images: [], pinned: false, createdAt: ago(26),
+      gameId: 'yakuza', poll: { options: ['Yakuza 0', 'Yakuza Kiwami', 'Like a Dragon'], counts: [28, 13, 7], mine: null } },
+    { id: 'p-astro-semana', cid: null, author: 'demo-duda', kind: 'discussao', title: '', body: 'Alguém mais jogando Astro Bot esta semana? Fechei o planeta de gelo ontem. @voce, já chegou lá?', images: [], pinned: false, createdAt: ago(5), gameId: 'astro' },
+    { id: 'p-mgs-caixa', cid: null, author: 'demo-rafa', kind: 'aquisicao', title: 'Metal Gear Solid 2, completo', body: 'Veio de uma feira de troca: caixa, manual e o disco sem um risco. Agora sim a prateleira do PS2 fecha.', images: ['/demo/cover-mgs2.webp'], pinned: false, createdAt: ago(30), gameId: 'mgs2' },
+    { id: 'p-lu', cid: null, author: 'demo-lu', kind: 'pergunta', title: 'Comecei Persona 5 agora. Alguma dica sem spoiler?', body: 'Primeira vez num jogo da série. Não sei se faço tudo no primeiro dia ou deixo para depois.', images: [], pinned: false, createdAt: ago(1), gameId: 'p5r' },
+  );
   const reacts: Record<string, DReact> = {
     'post:p-boasvindas': { gg: 12, coracao: 20, junto: 4, mine: [] }, 'post:p-live': { gg: 8, coracao: 5, jogar: 6, mine: [] },
     'post:p-ps1': { gg: 4, coracao: 9, momento: 3, haha: 2, mine: [] }, 'post:p-astro': { gg: 2, coracao: 1, jogar: 3, mine: [] },
     'post:p-malenia': { gg: 6, coracao: 2, junto: 5, mine: [] }, 'post:p-farum': { gg: 3, coracao: 4, momento: 7, mine: [] },
     'post:p-derby': { gg: 7, coracao: 1, dica: 9, mine: [] }, 'post:p-nfs': { gg: 2, coracao: 11, jogar: 2, mine: [] },
-    'post:p-prateleira': { gg: 1, coracao: 14, mine: [] }, 'resposta:r8': { gg: 5, dica: 4, mine: [] }, 'resposta:r9': { haha: 2, junto: 3, mine: [] },
+    'post:p-prateleira': { gg: 1, coracao: 14, mine: [] }, 'post:p-yakuza': { dica: 5, mine: [] }, 'post:p-mgs-caixa': { coracao: 11, jogar: 3, mine: [] },
+    'post:p-astro-semana': { gg: 3, junto: 2, mine: [] }, 'resposta:r8': { gg: 5, dica: 4, mine: [] }, 'resposta:r9': { haha: 2, junto: 3, mine: [] },
   };
-  const db: DB = { v: VERSION, comms, posts, replies, reacts, mine: { 'c-winnerz': 'dono', 'c-playstation': 'membro', 'c-retro': 'membro' }, seenAt: ago(12) };
+  const db: DB = { v: VERSION, comms, posts, replies, reacts, mine: { 'c-winnerz': 'dono', 'c-playstation': 'membro', 'c-retro': 'membro' }, seenAt: ago(12),
+    saves: { 'p-malenia': ago(40) }, follows: ['p-astro', 'p-boasvindas', 'p-live', 'p-yakuza', 'p-backlog'], reads: { 'p-yakuza': ago(10), 'p-backlog': ago(30) } };
   db.posts.find((x) => x.id === 'p-malenia')!.answerId = 'r8';
   return db;
 }
@@ -375,10 +459,22 @@ function loadDb(): DB {
 function saveDb(db: DB) { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { throw new Error('O navegador ficou sem espaço para a demonstração. Use imagens menores ou recomece a demonstração.'); } }
 
 function myHandle(): string { try { return (JSON.parse(localStorage.getItem('wz.profile.demo.v1') || '{}') as { handle?: string }).handle || 'voce'; } catch { return 'voce'; } }
+/** Gente que só aparece na comunidade da demonstração (chegou agora e topou aparecer em "Novos por aqui"). */
+const NEWCOMERS: Record<string, { handle: string; since: string }> = { 'demo-lu': { handle: 'lu', since: ago(24 * 3) } };
 function person(id: string): PersonRef {
   if (id === ME) return { id, handle: myHandle(), avatar: null, admin: true };
+  if (NEWCOMERS[id]) return { id, handle: NEWCOMERS[id].handle, avatar: null, admin: false, novo: true };
   const p = DEMO_PEOPLE.find((x) => x.id === id);
   return { id, handle: p?.handle ?? null, avatar: null, admin: false };
+}
+const isFriend = (id: string) => { const p = DEMO_PEOPLE.find((x) => x.id === id); return !!p && demoIsFriend(p); };
+const iFollow = (id: string) => { const p = DEMO_PEOPLE.find((x) => x.id === id); return !!p && demoFollowing().includes(p.handle); };
+/** "Jogando" ou "zerou" o jogo da conversa, para as pessoas de exemplo (na demonstração todas deixam ver). */
+function ctxOf(author: string, gameId?: string | null): string | null {
+  if (!gameId) return null;
+  const p = DEMO_PEOPLE.find((x) => x.id === author);
+  if (!p) return null;
+  return p.done.includes(gameId) ? 'zerou' : p.playing.includes(gameId) ? 'jogando' : null;
 }
 function muted(): Set<string> {
   try { return new Set((JSON.parse(localStorage.getItem('wz.demo.blocks') || '[]') as { handle?: string }[]).map((b) => (b.handle ?? '').toLowerCase())); } catch { return new Set(); }
@@ -408,22 +504,36 @@ function commOut(db: DB, c: DComm): Community {
     lastAt: posts.map((p) => p.createdAt).sort().pop() ?? null, role: db.mine[c.id] ?? null,
   };
 }
-function postOut(db: DB, p: DPost, full: boolean): Post {
-  const c = db.comms.find((x) => x.id === p.cid)!;
+function pollOut(p: DPoll): Poll {
+  const counts = p.counts.map((n, i) => n + (p.mine === i ? 1 : 0));
+  return { options: p.options.map((text, i) => ({ text, votes: counts[i] })), total: counts.reduce((a, b) => a + b, 0), mine: p.mine ?? null };
+}
+function postOut(db: DB, p: DPost, full: boolean, why?: string | null): Post {
+  const c = p.cid ? db.comms.find((x) => x.id === p.cid) ?? null : null;
   const rs = liveReplies(db, p.id);
+  const readAt = db.reads[p.id] ?? null;
   return {
-    id: p.id, kind: p.kind, title: p.title, body: full ? p.body : p.body.slice(0, 280), game: gameMini(p.gameId, p.game), spoiler: p.spoiler ?? null, spoilerNote: p.spoilerNote ?? null,
+    id: p.id, kind: p.kind, title: p.title || null, body: full ? p.body : p.body.slice(0, 280), game: gameMini(p.gameId, p.game), spoiler: p.spoiler ?? null, spoilerNote: p.spoilerNote ?? null,
     images: full ? p.images : p.images.slice(0, 1), imageCount: p.images.length, clip: p.clip ?? null, pinned: p.pinned, answerId: p.answerId ?? null,
-    createdAt: p.createdAt, editedAt: p.editedAt ?? null, hidden: !!p.hidden, author: person(p.author),
-    community: { slug: c.slug, name: c.name, official: c.official }, replies: rs.length,
+    createdAt: p.createdAt, editedAt: p.editedAt ?? null, hidden: !!p.hidden, author: person(p.author), authorCtx: ctxOf(p.author, p.gameId),
+    community: c ? { slug: c.slug, name: c.name, official: c.official } : null, replies: rs.length,
     lastReplyAt: rs.map((r) => r.createdAt).sort().pop() ?? null, reactions: reactOf(db, `post:${p.id}`),
+    poll: p.kind === 'enquete' && p.poll ? pollOut(p.poll) : null, saved: !!db.saves[p.id], following: db.follows.includes(p.id),
+    readAt, unread: readAt ? rs.filter((r) => r.author !== ME && r.createdAt > readAt).length : 0, why: why ?? null,
   };
 }
 const livePosts = (db: DB) => db.posts.filter((p) => !p.deletedAt && visible(p.author));
 function err(code: string): never { throw new Error(MSG[code] ?? code); }
 function checkDraft(d: PostDraft) {
   const t = d.title.trim();
-  if (t.length < 3 || t.length > 140) err('title_invalid');
+  if (t && (t.length < 3 || t.length > 140)) err('title_invalid');
+  if (!t && !d.body.trim() && !d.images.length && !d.clip) err('post_empty');
+  if (d.kind === 'enquete') {
+    const o = (d.poll ?? []).map((x) => x.trim()).filter(Boolean);
+    if (o.length < 2 || o.length > 6 || o.some((x) => x.length > 80)) err('poll_invalid');
+    if (!t && !d.body.trim()) err('poll_question');
+  }
+  if (d.kind === 'aquisicao' && !d.gameId) err('game_needed');
   if (d.body.length > 10000) err('body_long');
   if (d.images.length > MAX_IMAGES) err('image_limit');
   if (d.clip && !clipOk(d.clip)) err('clip_invalid');
@@ -478,24 +588,27 @@ const demo = {
   post(id: string): PostFull | null {
     const db = loadDb(); const p = db.posts.find((x) => x.id === id && !x.deletedAt);
     if (!p || !visible(p.author)) return null;
-    const c = db.comms.find((x) => x.id === p.cid)!;
+    const c = p.cid ? db.comms.find((x) => x.id === p.cid) ?? null : null;
     const thread = db.replies.filter((r) => r.postId === id && visible(r.author) && (!r.deletedAt || db.replies.some((k) => k.parentId === r.id && !k.deletedAt)))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      .map((r): Reply => ({ id: r.id, parentId: r.parentId, body: r.deletedAt ? '' : r.body, deleted: !!r.deletedAt, createdAt: r.createdAt, editedAt: r.editedAt ?? null, hidden: !!r.hidden, author: person(r.author), reactions: reactOf(db, `resposta:${r.id}`) }));
-    return { ...postOut(db, p, true), communityFull: commOut(db, c), canModerate: c.owner === ME, thread };
+      .map((r): Reply => ({ id: r.id, parentId: r.parentId, body: r.deletedAt ? '' : r.body, deleted: !!r.deletedAt, createdAt: r.createdAt, editedAt: r.editedAt ?? null, hidden: !!r.hidden, author: person(r.author), authorCtx: ctxOf(r.author, p.gameId), reactions: reactOf(db, `resposta:${r.id}`) }));
+    return { ...postOut(db, p, true), communityFull: c ? commOut(db, c) : null, canModerate: c ? c.owner === ME : true, thread };
   },
-  createPost(cid: string, d: PostDraft): Post {
-    const db = loadDb(); const c = db.comms.find((x) => x.id === cid);
-    if (!c) err('target_not_found');
+  createPost(cid: string | null, d: PostDraft): Post {
+    const db = loadDb(); const c = cid ? db.comms.find((x) => x.id === cid) : null;
+    if (cid && !c) err('target_not_found');
     checkDraft(d);
-    const p: DPost = { id: rid(), cid, author: ME, kind: d.kind, title: d.title.trim(), body: d.body, gameId: d.gameId, game: snapGame(d.gameId), spoiler: d.gameId ? d.spoiler : null, spoilerNote: d.gameId && d.spoiler ? d.spoilerNote?.trim().slice(0, 80) || null : null, images: d.images, clip: d.clip, pinned: false, createdAt: new Date().toISOString() };
-    db.posts.push(p); saveDb(db);
+    const poll = d.kind === 'enquete' ? (d.poll ?? []).map((x) => x.trim()).filter(Boolean) : null;
+    const p: DPost = { id: rid(), cid, author: ME, kind: d.kind, title: d.title.trim(), body: d.body, gameId: d.gameId, game: snapGame(d.gameId), spoiler: d.gameId ? d.spoiler : null, spoilerNote: d.gameId && d.spoiler ? d.spoilerNote?.trim().slice(0, 80) || null : null, images: d.images, clip: d.clip, pinned: false, createdAt: new Date().toISOString(),
+      poll: poll ? { options: poll, counts: poll.map(() => 0), mine: null } : null };
+    db.posts.push(p); db.follows = [...new Set([...db.follows, p.id])]; saveDb(db);
     return postOut(db, p, true);
   },
   editPost(id: string, d: PostDraft): Post {
     const db = loadDb(); const p = db.posts.find((x) => x.id === id);
     if (!p || p.author !== ME) err('not_author');
     checkDraft(d);
+    if (p.poll && d.poll && !p.poll.counts.some((n) => n > 0) && p.poll.mine == null) { const o = d.poll.map((x) => x.trim()).filter(Boolean); p.poll = { options: o, counts: o.map(() => 0), mine: null }; }
     Object.assign(p, { kind: d.kind, title: d.title.trim(), body: d.body, gameId: d.gameId, game: snapGame(d.gameId), spoiler: d.gameId ? d.spoiler : null, spoilerNote: d.gameId && d.spoiler ? d.spoilerNote?.trim().slice(0, 80) || null : null, images: d.images, clip: d.clip, editedAt: new Date().toISOString() });
     saveDb(db); return postOut(db, p, true);
   },
@@ -516,7 +629,7 @@ const demo = {
     if (!t || t.length > 5000) err('body_invalid');
     const parent = parentId ? db.replies.find((r) => r.id === parentId) : null;
     const r: DReply = { id: rid(), postId, parentId: parent ? parent.parentId ?? parent.id : null, author: ME, body: t, createdAt: new Date().toISOString() };
-    db.replies.push(r); saveDb(db);
+    db.replies.push(r); db.follows = [...new Set([...db.follows, postId])]; db.reads[postId] = r.createdAt; saveDb(db);
     return { id: r.id, parentId: r.parentId, body: r.body, deleted: false, createdAt: r.createdAt, editedAt: null, hidden: false, author: person(ME), reactions: { mine: [] } };
   },
   editReply(id: string, body: string) { const db = loadDb(); const r = db.replies.find((x) => x.id === id && x.author === ME); if (!r) err('not_author'); if (!body.trim()) err('body_invalid'); r.body = body.trim(); r.editedAt = new Date().toISOString(); saveDb(db); },
@@ -530,10 +643,62 @@ const demo = {
     r.mine = on ? [...new Set([...r.mine, kind])] : r.mine.filter((x) => x !== kind);
     db.reacts[k] = r; saveDb(db); return reactOf(db, k);
   },
+  praca(path: PracaPath, before?: string): Post[] {
+    const db = loadDb();
+    const all = livePosts(db).filter((p) => !before || p.createdAt < before);
+    const week = Date.now() - 7 * 86_400_000;
+    const weekN = (p: DPost) => liveReplies(db, p.id).filter((r) => Date.parse(r.createdAt) > week).length;
+    const s = getState();
+    const comm = (p: DPost) => (p.cid ? db.comms.find((c) => c.id === p.cid) ?? null : null);
+    const why = (p: DPost): string | null => {
+      const h = person(p.author).handle;
+      const g = gameMini(p.gameId, p.game);
+      if (isFriend(p.author)) return `Porque você e @${h} se seguem`;
+      if (p.gameId && s.journeys.some((j) => j.gameId === p.gameId)) return `Porque ${g?.title} está na sua Jornada`;
+      if (p.gameId && s.copies.some((c) => c.gameId === p.gameId)) return `Porque ${g?.title} está na sua Coleção`;
+      if (p.gameId && s.wishes.some((w) => w.gameId === p.gameId)) return `Porque ${g?.title} está nos seus desejos`;
+      if (p.cid && db.mine[p.cid]) return `Você segue w/${comm(p)?.slug}`;
+      if (iFollow(p.author)) return `Você segue @${h}`;
+      if (weekN(p) >= 3) return 'Uma das mais conversadas da semana';
+      if (!p.cid && Date.parse(p.createdAt) > Date.now() - 3 * 86_400_000) return 'Novo na Praça';
+      if (comm(p)?.official) return 'Da comunidade oficial do canal';
+      return null;
+    };
+    const byNew = (a: DPost, b: DPost) => b.createdAt.localeCompare(a.createdAt);
+    if (path === 'salvos') return Object.entries(db.saves).sort((a, b) => b[1].localeCompare(a[1])).map(([id]) => db.posts.find((p) => p.id === id && !p.deletedAt)).filter((p): p is DPost => !!p).map((p) => postOut(db, p, false));
+    if (path === 'discussoes') {
+      return livePosts(db).map((p) => ({ p, n: weekN(p) })).filter((x) => x.n > 0).sort((a, b) => b.n - a.n)
+        .map(({ p, n }) => postOut(db, p, false, `${Date.parse(p.createdAt) < week ? 'Conversa que voltou: ' : ''}${n === 1 ? '1 resposta' : `${n} respostas`} esta semana`));
+    }
+    if (path === 'amigos') return all.filter((p) => isFriend(p.author)).sort(byNew).map((p) => postOut(db, p, false, `De @${person(p.author).handle}`));
+    if (path === 'seguindo') return all.filter((p) => p.author === ME || iFollow(p.author) || (p.cid && db.mine[p.cid])).sort(byNew).map((p) => postOut(db, p, false, why(p)));
+    if (path === 'novos') return all.filter((p) => !!NEWCOMERS[p.author]).sort(byNew).map((p) => postOut(db, p, false, 'Chegou esta semana'));
+    return all.filter((p) => p.author !== ME).map((p) => ({ p, w: why(p) })).filter((x) => x.w).sort((a, b) => byNew(a.p, b.p)).slice(0, 30).map(({ p, w }) => postOut(db, p, false, w));
+  },
+  side(): PracaSide {
+    const db = loadDb();
+    const n = (p: DPost) => liveReplies(db, p.id).length;
+    const recent = livePosts(db).filter((p) => p.author !== ME && p.kind !== 'aquisicao' && Date.parse(p.createdAt) > Date.now() - 4 * 86_400_000 && n(p) <= 2);
+    const entrar = recent.sort((a, b) => Number(b.kind === 'pergunta') - Number(a.kind === 'pergunta') || Number(!!NEWCOMERS[b.author]) - Number(!!NEWCOMERS[a.author]) || b.createdAt.localeCompare(a.createdAt)).slice(0, 3)
+      .map((p) => postOut(db, p, false, n(p) === 0 ? 'Ninguém respondeu ainda' : n(p) === 1 ? 'Só 1 resposta até agora' : `${n(p)} respostas até agora`));
+    const continuam = livePosts(db).filter((p) => Date.parse(p.createdAt) < Date.now() - 7 * 86_400_000 && liveReplies(db, p.id).some((r) => Date.parse(r.createdAt) > Date.now() - 3 * 86_400_000)).slice(0, 3)
+      .map((p) => postOut(db, p, false, `Começou ${new Date(p.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' })} e voltou a render`));
+    const novos = Object.entries(NEWCOMERS).map(([id, x]) => { const last = livePosts(db).filter((p) => p.author === id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]; return { ...person(id), since: x.since, post: last ? { id: last.id, title: last.title || last.body.slice(0, 80) } : null }; });
+    return { entrar, continuam, novos };
+  },
+  vote(postId: string, option: number | null): Poll {
+    const db = loadDb(); const p = db.posts.find((x) => x.id === postId);
+    if (!p?.poll) err('target_not_found');
+    if (option != null && (option < 0 || option >= p!.poll!.options.length)) err('poll_invalid');
+    p!.poll!.mine = option; saveDb(db); return pollOut(p!.poll!);
+  },
+  save(postId: string, on: boolean) { const db = loadDb(); if (on) db.saves[postId] = new Date().toISOString(); else delete db.saves[postId]; saveDb(db); },
+  follow(postId: string, on: boolean) { const db = loadDb(); db.follows = on ? [...new Set([...db.follows, postId])] : db.follows.filter((x) => x !== postId); saveDb(db); },
+  read(postId: string): string | null { const db = loadDb(); const before = db.reads[postId] ?? null; db.reads[postId] = new Date().toISOString(); saveDb(db); return before; },
   feed(): Post[] {
     const db = loadDb();
     const at = (p: DPost) => [p.createdAt, ...liveReplies(db, p.id).map((r) => r.createdAt)].sort().pop()!;
-    return livePosts(db).filter((p) => db.mine[p.cid]).sort((a, b) => at(b).localeCompare(at(a))).slice(0, 20).map((p) => postOut(db, p, false));
+    return livePosts(db).filter((p) => p.cid && db.mine[p.cid]).sort((a, b) => at(b).localeCompare(at(a))).slice(0, 20).map((p) => postOut(db, p, false));
   },
   forGame(g: string): Post[] {
     const db = loadDb();
@@ -541,24 +706,27 @@ const demo = {
   },
   news(): ReplyNews {
     const db = loadDb();
-    const items = db.replies.filter((r) => {
-      if (r.author === ME || r.deletedAt || r.createdAt <= db.seenAt || !visible(r.author)) return false;
-      const p = db.posts.find((x) => x.id === r.postId);
-      const parent = r.parentId ? db.replies.find((x) => x.id === r.parentId) : null;
-      return !!p && !p.deletedAt && (p.author === ME || parent?.author === ME);
-    }).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    const out: NewsItem[] = items.slice(0, 12).map((r): NewsItem => { const p = db.posts.find((x) => x.id === r.postId)!; const c = db.comms.find((x) => x.id === p.cid)!; return { kind: 'resposta', id: r.id, ref: p.id, slug: c.slug, title: p.title, excerpt: r.body.slice(0, 140), at: r.createdAt, new: true, author: person(r.author) }; });
-    // Menções a você (@ do seu perfil da demonstração) em postagens e respostas.
+    const pref = (k: keyof CommunityPrefs, d = true) => getState().prefs.comunidade?.[k] ?? d;
+    const label = (p: DPost) => p.title || postTitle({ title: null, body: p.body, kind: p.kind });
+    const slugOf = (p: DPost) => (p.cid ? db.comms.find((x) => x.id === p.cid)?.slug ?? '' : '');
+    const out: NewsItem[] = [];
+    const seen = new Set<string>();
+    const add = (n: NewsItem) => { if (!seen.has(n.id)) { seen.add(n.id); out.push(n); } };
     const me = myHandle().toLowerCase();
-    const seen = new Set(out.map((x) => x.id));
     const mentions = (body: string) => mentionsOf(body).some((h) => h.toLowerCase() === me);
     for (const p of livePosts(db)) {
-      const c = db.comms.find((x) => x.id === p.cid)!;
-      if (p.author !== ME && p.createdAt > db.seenAt && mentions(p.body)) out.push({ kind: 'mencao', id: p.id, ref: p.id, slug: c.slug, title: p.title, excerpt: p.body.slice(0, 140), at: p.createdAt, new: true, author: person(p.author) });
-      for (const r of liveReplies(db, p.id)) if (r.author !== ME && !seen.has(r.id) && r.createdAt > db.seenAt && mentions(r.body)) out.push({ kind: 'mencao', id: r.id, ref: p.id, slug: c.slug, title: p.title, excerpt: r.body.slice(0, 140), at: r.createdAt, new: true, author: person(r.author) });
+      for (const r of liveReplies(db, p.id)) {
+        if (r.author === ME || r.createdAt <= db.seenAt) continue;
+        const parent = r.parentId ? db.replies.find((x) => x.id === r.parentId) : null;
+        const base = { id: r.id, ref: p.id, slug: slugOf(p), title: label(p), excerpt: r.body.slice(0, 140), at: r.createdAt, new: true, author: person(r.author) };
+        if (pref('aviso_respostas') && ((p.author === ME && db.follows.includes(p.id)) || parent?.author === ME)) add({ kind: 'resposta', ...base });
+        else if (pref('aviso_mencoes') && mentions(r.body)) add({ kind: 'mencao', ...base });
+        else if (pref('aviso_acompanhando') && p.author !== ME && db.follows.includes(p.id)) add({ kind: 'acompanhando', ...base });
+      }
+      if (pref('aviso_mencoes') && p.author !== ME && p.createdAt > db.seenAt && mentions(p.body)) add({ kind: 'mencao', id: p.id, ref: p.id, slug: slugOf(p), title: label(p), excerpt: p.body.slice(0, 140), at: p.createdAt, new: true, author: person(p.author) });
     }
     out.sort((a, b) => b.at.localeCompare(a.at));
-    return { count: out.length, items: out.slice(0, 12) };
+    return { count: out.length, items: out.slice(0, 15) };
   },
   seen() { const db = loadDb(); db.seenAt = new Date().toISOString(); saveDb(db); },
 };
@@ -573,7 +741,7 @@ export const demoReactions = (target: 'post' | 'resposta', id: string): Reaction
 /** "Baixar tudo" na demonstração: o que você escreveu nas comunidades e nos clubes deste navegador. */
 async function demoMyData(): Promise<Record<string, unknown>> {
   const db = loadDb();
-  const where = (cid: string) => `w/${db.comms.find((c) => c.id === cid)?.slug ?? ''}`;
+  const where = (cid: string | null) => (cid ? `w/${db.comms.find((c) => c.id === cid)?.slug ?? ''}` : 'Praça');
   const clubs = await (await import('./clubApi')).demoClubData();
   return {
     postagens: db.posts.filter((p) => p.author === ME).map((p) => ({ id: p.id, onde: where(p.cid), tipo: p.kind, titulo: p.title, texto: p.body, jogo: gameMini(p.gameId, p.game)?.title ?? null, spoiler: p.spoiler ?? null, spoilerSobre: p.spoilerNote ?? null, imagens: p.images, link: p.clip ?? null, criadaEm: p.createdAt, editadaEm: p.editedAt ?? null, apagadaEm: p.deletedAt ?? null })),

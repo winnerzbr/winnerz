@@ -3,7 +3,7 @@ import { Link, navigate } from '../lib/router';
 import { getState, useStore } from '../data/store';
 import { avatarUrl } from '../data/profileApi';
 import {
-  KIND_LABEL, REACTIONS, SPOILER_LABEL, communityApi, communityImage,
+  KIND_LABEL, REACTIONS, SPOILER_LABEL, communityApi, communityImage, postHref, postTitle,
   type GameMini, type PersonRef, type Post, type ReactionKind, type Reactions,
 } from '../data/communityApi';
 import { parsePost, plainText, spoilerReached, type Block, type GameProgress, type Inline } from '../lib/postText';
@@ -345,35 +345,106 @@ export function KindChip({ kind }: { kind: Post['kind'] }) {
   return <span className={`cm-chip cm-chip--${kind}`}>{KIND_LABEL[kind]}</span>;
 }
 
-export function PostCard({ post, showCommunity = false }: { post: Post; showCommunity?: boolean }) {
+/** Salvar para ler depois (só você vê os seus salvos). */
+export function SaveButton({ post, label = true }: { post: Pick<Post, 'id' | 'saved'>; label?: boolean }) {
+  const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
+  const [on, setOn] = useState(!!post.saved);
+  useEffect(() => setOn(!!post.saved), [post.saved]);
+  const toggle = async () => {
+    if (signedOut) return navigate('/entrar');
+    const next = !on; setOn(next);
+    try { await communityApi.save(post.id, next); } catch { setOn(!next); }
+  };
+  return (
+    <button className={`cm-save${on ? ' is-on' : ''}`} aria-pressed={on} onClick={() => void toggle()} title={on ? 'Tirar dos salvos' : 'Salvar para ler depois'}>
+      <Icon name="desejo" size={15} fill={on ? 'currentColor' : 'none'} />{label && <span>{on ? 'Salva' : 'Salvar'}</span>}
+    </button>
+  );
+}
+
+/** Enquete: antes de votar, as opções; depois, quanto cada uma tem. Dá para trocar o voto. */
+export function PollBox({ post }: { post: Pick<Post, 'id' | 'poll' | 'author'> }) {
+  const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
+  const me = useStore((s) => s.mode === 'demo' ? 'demo-me' : s.profile?.id ?? null);
+  const [poll, setPoll] = useState(post.poll ?? null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => setPoll(post.poll ?? null), [post.poll]);
+  if (!poll) return null;
+  const showResults = poll.mine != null || post.author.id === me;
+  const vote = async (i: number | null) => {
+    if (signedOut) return navigate('/entrar');
+    setBusy(true);
+    try { setPoll(await communityApi.vote(post.id, i)); } catch { /* fica como estava */ } finally { setBusy(false); }
+  };
+  return (
+    <div className={`cm-poll${showResults ? ' is-done' : ''}`}>
+      {poll.options.map((o, i) => {
+        const pc = poll.total ? Math.round((100 * o.votes) / poll.total) : 0;
+        return (
+          <button key={i} className={`cm-poll__o${poll.mine === i ? ' is-mine' : ''}`} disabled={busy} onClick={() => void vote(poll.mine === i ? null : i)}
+            aria-pressed={poll.mine === i} title={poll.mine === i ? 'Tirar o meu voto' : 'Votar nesta'}>
+            {showResults && <i style={{ width: `${pc}%` }} aria-hidden="true" />}
+            <span>{o.text}{poll.mine === i && <Icon name="check" size={13} />}</span>
+            {showResults && <b className="mono">{pc}%</b>}
+          </button>
+        );
+      })}
+      <small className="faint">{poll.total} {poll.total === 1 ? 'voto' : 'votos'}{poll.mine != null ? ` · você votou em ${poll.options[poll.mine]?.text}. Toque de novo para tirar.` : showResults ? '' : ' · toque numa opção para votar'}</small>
+    </div>
+  );
+}
+
+/** Onde a conversa está: a comunidade ou a Praça. */
+export function PlaceLink({ post }: { post: Pick<Post, 'community'> }) {
+  return post.community ? <Link to={`/w/${post.community.slug}`} className="cm-card__comm">w/{post.community.slug}</Link> : <Link to="/comunidade" className="cm-card__comm">Praça</Link>;
+}
+
+/** Quem escreveu, com "novo por aqui" e o jogo da conversa ("jogando", "zerou"), quando a pessoa deixou mostrar. */
+export function Byline({ p, ctx, game, official = false, avatar = true }: { p: PersonRef; ctx?: string | null; game?: GameMini | null; official?: boolean; avatar?: boolean }) {
+  return (
+    <span className="cm-byline">
+      <PersonLink p={p} official={official} avatar={avatar} />
+      {p.novo && <span className="cm-badge cm-badge--novo">Novo por aqui</span>}
+      {ctx && game && <span className="faint cm-byline__ctx">{game.title} · {ctx}</span>}
+    </span>
+  );
+}
+
+export function PostCard({ post, showCommunity = true, why = true }: { post: Post; showCommunity?: boolean; why?: boolean }) {
   const [covered, reveal] = usePostCovered(post);
-  const href = `/w/${post.community.slug}/${post.id}`;
+  const href = postHref(post);
   const excerpt = plainText(post.body.replace(/https?:\/\/\S+/g, ' ')).replace(/\s+/g, ' ').trim();
   const th = postThumb(post);
+  const title = postTitle(post);
+  const showEx = !!post.title && !!excerpt;
   return (
     <article className={`cm-card${post.pinned ? ' is-pinned' : ''}${post.hidden ? ' is-hidden' : ''}`}>
       <div className="cm-card__main">
+        <div className="cm-card__by">
+          <Byline p={post.author} ctx={post.authorCtx} game={post.game} official={!!post.community?.official} />
+          <span className="faint">· {ago(post.createdAt)}</span>
+          {showCommunity && <><span className="faint">·</span><PlaceLink post={post} /></>}
+        </div>
         <div className="cm-card__top">
           {post.pinned && <span className="cm-chip cm-chip--pin"><Icon name="pin" size={12} />Fixada</span>}
           <KindChip kind={post.kind} />
           {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Dúvida resolvida</span>}
           <SpoilerNote post={post} />
           {post.hidden && <span className="cm-chip cm-chip--hidden">Fora do ar pela moderação</span>}
-          {showCommunity && <Link to={`/w/${post.community.slug}`} className="cm-card__comm">w/{post.community.slug}</Link>}
         </div>
-        <h3 className="cm-card__t"><Link to={href}>{post.title}</Link></h3>
+        <h3 className={`cm-card__t${post.title ? '' : ' cm-card__t--text'}`}><Link to={href}>{covered && !post.title ? 'Conversa com spoiler' : title}</Link></h3>
         {covered ? (
           <button className="cm-card__covered" onClick={reveal}><Icon name="escudo" size={14} />Coberto: spoiler {post.spoiler ? SPOILER_LABEL[post.spoiler].toLowerCase() : ''} de {post.game?.title}{post.spoilerNote ? ` (${post.spoilerNote})` : ''}. Tocar para ver.</button>
-        ) : excerpt ? <p className="cm-card__ex">{excerpt.length > 220 ? `${excerpt.slice(0, 220).trimEnd()}…` : excerpt}</p> : null}
+        ) : showEx ? <p className="cm-card__ex">{excerpt.length > 220 ? `${excerpt.slice(0, 220).trimEnd()}…` : excerpt}</p> : null}
+        {post.kind === 'enquete' && !covered && <PollBox post={post} />}
         <div className="cm-card__meta">
-          <PersonLink p={post.author} official={post.community.official} />
-          <span className="faint">{ago(post.createdAt)}</span>
-          {post.game && <Link to={`/jogos/${post.game.slug}`} className="cm-card__game">{post.game.title}</Link>}
-          <span className="cm-card__stats">
-            <Link to={`${href}#respostas`} className="cm-card__n" aria-label={`${post.replies} respostas`}><Icon name="mensagem" size={15} />{post.replies}</Link>
-            <ReactionBar target="post" id={post.id} value={post.reactions} compact game={post.game} />
-          </span>
+          <ReactionBar target="post" id={post.id} value={post.reactions} compact game={post.game} />
+          <Link to={`${href}#respostas`} className="cm-card__n" aria-label={`${post.replies} respostas`}><Icon name="mensagem" size={15} />{post.replies}</Link>
+          {!!post.unread && post.readAt && <Link to={`${href}#novas`} className="cm-card__new">{post.unread === 1 ? '1 nova' : `${post.unread} novas`} desde a sua visita</Link>}
+          {post.game && !showCommunity && <Link to={`/jogos/${post.game.slug}`} className="cm-card__game">{post.game.title}</Link>}
+          <span className="cm-card__save"><SaveButton post={post} /></span>
         </div>
+        {why && post.why && <span className="cm-card__why"><Icon name="jornada" size={11} />{post.why}</span>}
       </div>
       {(th.img || th.video) && (
         <Link to={href} className={`cm-card__thumb${covered ? ' is-covered' : ''}${th.video ? ' is-video' : ''}`} tabIndex={-1} aria-hidden="true">
@@ -446,8 +517,8 @@ export function GameConversations({ gameId, title }: { gameId: string; title: st
         {list.length > 0 && <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoiler coberto até você tocar</span>}
       </div>
       {list.length === 0
-        ? <p className="muted">Ninguém falou de {title} nas comunidades ainda. <Link to="/comunidade/comunidades">Abrir uma conversa</Link></p>
-        : <div className="cm-list">{list.map((p) => <PostCard key={p.id} post={p} showCommunity />)}</div>}
+        ? <p className="muted">Ninguém falou de {title} ainda. <Link to={`/escrever?jogo=${encodeURIComponent(gameId)}`}>Abrir uma conversa</Link></p>
+        : <div className="cm-list">{list.map((p) => <PostCard key={p.id} post={p} why={false} />)}</div>}
     </section>
   );
 }

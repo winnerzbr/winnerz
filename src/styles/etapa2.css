@@ -4525,3 +4525,159 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .cm-shield.is-safe { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-2); }
 .cm-chip__note { font-weight: 500; text-transform: none; letter-spacing: 0; }
 .cm-spoil__note { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+
+/* ------------------------------------------------------------------ */
+/* Etapa 6 · Comunidade B: a Praça                                      */
+/* ------------------------------------------------------------------ */
+.praca { padding: 32px 0 72px; }
+.praca__grid { display: grid; grid-template-columns: 220px minmax(0, 1fr) 300px; gap: 28px; align-items: start; }
+.praca__rail { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 22px; }
+.praca__paths { display: flex; flex-direction: column; gap: 2px; }
+.praca__path { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 12px; border: 0; border-radius: 12px; background: transparent; color: var(--ink-2); font: 500 15px var(--font-ui); cursor: pointer; text-align: left; }
+.praca__path span { flex: 1; }
+.praca__path small { color: var(--muted); }
+.praca__path:hover { background: var(--surface); color: var(--ink); }
+.praca__path.is-on { background: var(--surface); color: var(--ink); box-shadow: inset 3px 0 0 var(--now), inset 0 0 0 1px var(--line); font-weight: 600; }
+.praca__path.is-on svg { color: var(--now-ink); }
+.praca__railsec { display: flex; flex-direction: column; gap: 8px; }
+.praca__railsec .kicker { margin: 0; }
+.praca__railsec ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.praca__railsec li a { display: flex; align-items: center; gap: 10px; color: var(--ink-2); text-decoration: none; font-size: 14px; line-height: 1.25; }
+.praca__railsec li a:hover { color: var(--ink); }
+.praca__railart { flex: none; width: 24px; height: 24px; border-radius: 6px; overflow: hidden; background: var(--surface-2); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; }
+.praca__railart img, .praca__railart .cover { width: 100%; height: 100%; object-fit: cover; }
+.praca__more { font-size: 13px; color: var(--muted); text-decoration: none; }
+.praca__raillinks { flex-direction: row; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.praca__raillinks a { color: var(--muted); }
+
+.praca__main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.praca__head { display: flex; flex-direction: column; gap: 6px; }
+.praca__head .kicker { margin: 0; text-transform: uppercase; }
+.praca__t { margin: 0; font-size: clamp(40px, 9vw, 64px); line-height: .9; text-transform: uppercase; }
+@media (min-width: 901px) { .praca__head { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+
+.praca__away { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; padding: 16px 18px; border-radius: 16px; background: linear-gradient(150deg, var(--now-bg), var(--surface) 70%); box-shadow: inset 0 0 0 1px var(--now-line); color: var(--now-ink); }
+.praca__away p { flex: 1 1 240px; margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.praca__away p b { color: var(--ink); }
+.praca__away.is-quiet { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.praca__news { flex-basis: 100%; display: flex; flex-direction: column; gap: 10px; }
+.praca__news .cm-news__list { margin: 0; }
+
+.praca__compose { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.praca__compose-row { display: flex; align-items: flex-start; gap: 12px; }
+.praca__me { flex: none; width: 36px; height: 36px; font-size: 14px; }
+.praca__compose-row .cm-mentionbox { flex: 1; }
+.praca__compose-fake { flex: 1; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--muted); font: 15px var(--font-ui); text-align: left; cursor: text; }
+.praca__compose-fake:hover { box-shadow: inset 0 0 0 1px var(--ink-2); }
+.praca__types { display: flex; flex-wrap: wrap; gap: 6px; }
+.praca__types .chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; font-size: 12.5px; }
+.praca__types .chip.is-on { background: var(--now-bg); color: var(--now-ink); border-color: var(--now-line); }
+.praca__compose-acts { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.praca__compose-acts small { flex: 1; min-width: 140px; }
+.praca__where { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+.praca__where .field { min-height: 34px; padding: 0 10px; width: auto; }
+
+.praca__why { margin: 6px 2px 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+.praca__feed { gap: 12px; }
+.praca__friends { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.praca__friends .kicker { margin: 0; }
+.cm-more { align-self: center; }
+.praca__comms { display: flex; flex-direction: column; gap: 16px; }
+.praca__commacts { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.praca__side { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 14px; }
+.praca__events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.praca__events a { display: flex; gap: 12px; align-items: center; color: var(--ink); text-decoration: none; }
+.praca__events a > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 14px; }
+.praca__ev-cv { flex: none; width: 38px; border-radius: 5px; overflow: hidden; }
+.praca__live { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #ff5a5a; box-shadow: 0 0 8px #ff5a5a; vertical-align: middle; }
+.praca__entrar { display: flex; flex-direction: column; gap: 4px; color: var(--ink); text-decoration: none; }
+.praca__entrar b { font-size: 15px; line-height: 1.3; }
+.praca__entrar:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.praca__entrar + .praca__entrar { padding-top: 12px; border-top: 1px solid var(--line); }
+.cm-people { display: flex; flex-wrap: wrap; gap: 6px; }
+.cm-people a { text-decoration: none; }
+
+.praca__tiles, .praca__chips { display: none; }
+.praca-out { padding-top: 48px; }
+
+@media (max-width: 1180px) {
+  .praca__grid { grid-template-columns: 200px minmax(0, 1fr); }
+  .praca__side { position: static; grid-column: 2; }
+}
+@media (max-width: 900px) {
+  .praca { padding-top: 18px; }
+  .praca__grid { grid-template-columns: 1fr; gap: 18px; }
+  .praca__rail { display: none; }
+  .praca__side { grid-column: auto; }
+  .praca__chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+  .praca__chips::-webkit-scrollbar { display: none; }
+  .praca__chips .chip { flex: none; min-height: 34px; padding: 0 14px; }
+  .praca__tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .praca__tile { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 96px; padding: 14px; border: 0; border-radius: 18px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); font: inherit; text-align: left; cursor: pointer; }
+  .praca__tile .kicker { margin: 0; }
+  .praca__tile small { font-size: 12.5px; line-height: 1.35; }
+  .praca__tile.is-on { box-shadow: inset 0 0 0 1.5px var(--now), 0 0 24px rgba(255, 178, 91, .1); }
+  .praca__tile--cool { background: linear-gradient(150deg, rgba(91, 140, 255, .1), var(--surface) 70%); }
+  .praca__tile--mint { background: linear-gradient(150deg, rgba(143, 220, 155, .1), var(--surface) 70%); }
+  .praca__big { font: 900 26px/0.9 var(--font-display, var(--font-ui)); text-transform: uppercase; color: var(--now-ink); }
+  .praca__faces { display: flex; gap: 4px; }
+  .praca__compose-row .btn { display: none; }
+}
+
+/* Cartão da conversa: quem, onde, motivo, salvar */
+.cm-card__by { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px; }
+.cm-card__by .cm-person { font-size: 13px; font-weight: 600; }
+.cm-byline { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.cm-byline__ctx { font-size: 12.5px; }
+.cm-badge--novo { background: var(--now-bg); color: var(--now-ink); box-shadow: inset 0 0 0 1px var(--now-line); }
+.cm-card__t--text { font-size: 17px; font-weight: 600; line-height: 1.4; }
+.cm-card__new { color: var(--now-ink); font-weight: 600; font-size: 12.5px; text-decoration: none; }
+.cm-card__save { margin-left: auto; }
+.cm-card__why { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.cm-card__why svg { color: var(--now-ink); opacity: .8; }
+.cm-save { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 0; border-radius: 99px; background: transparent; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; }
+.cm-save:hover { background: var(--surface-2); color: var(--ink); }
+.cm-save.is-on { color: var(--now-ink); }
+
+.cm-poll { display: flex; flex-direction: column; gap: 6px; }
+.cm-poll__o { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-2); color: var(--ink); font: 500 14px var(--font-ui); text-align: left; cursor: pointer; overflow: hidden; }
+.cm-poll__o:hover { box-shadow: inset 0 0 0 1px var(--ink-2); }
+.cm-poll__o i { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(255, 178, 91, .16); transition: width .4s; }
+.cm-poll__o span, .cm-poll__o b { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.cm-poll__o.is-mine { box-shadow: inset 0 0 0 1.5px var(--now); }
+.cm-poll__o.is-mine i { background: rgba(255, 178, 91, .28); }
+.cm-poll small { font-size: 12px; }
+
+/* A conversa */
+.cm-post__main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.cm-post__side { display: flex; flex-direction: column; gap: 12px; }
+.cm-post__text--lead { font-size: 18px; }
+.cm-thisconv__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--ink-2); }
+.cm-thisconv__row > span { display: inline-flex; align-items: center; gap: 8px; }
+.cm-thisconv__row .cm-save { padding: 0; }
+.cm-thisconv__jog { align-self: flex-start; display: inline-flex; gap: 6px; }
+.cm-mini__art--praca { color: var(--now-ink); }
+.cm-place__game { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+.cm-place__game > span:last-child { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.cm-place__game .cm-post__gcv { width: 40px; flex: none; }
+.cm-thread__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.cm-thread__head .cm-thread__t { margin: 0; }
+.cm-thread__new { color: var(--now-ink); }
+.seg--sm button { min-height: 30px; padding: 0 12px; font-size: 13px; }
+.cm-newline { display: flex; align-items: center; gap: 12px; margin: 6px 0 12px; color: var(--now-ink); font-size: 13px; font-weight: 600; scroll-margin-top: 120px; }
+.cm-newline::before, .cm-newline::after { content: ''; flex: 1; height: 1px; background: var(--now-line); }
+.cm-reply.is-new > .soc-av { box-shadow: 0 0 0 2px var(--now); }
+.cm-pollmake { display: flex; flex-direction: column; gap: 8px; border: 0; padding: 0; margin: 0; }
+.cm-pollmake__row { display: flex; gap: 8px; align-items: center; }
+.cm-pollmake__row .field { flex: 1; }
+.cm-pollmake .btn { align-self: flex-start; }
+.cm-editor__place { display: inline-flex; align-items: center; gap: 10px; }
+.cm-editor__place .field { width: auto; min-width: 220px; }
+@media (max-width: 960px) {
+  .cm-post__side { order: 1; }
+}
+.cm-post__savem { display: none; }
+@media (max-width: 960px) { .cm-post__savem { display: inline-flex; } }
+.cm-thread__head .cm-thread__t { font-size: 12px; letter-spacing: .14em; }
+.praca__compose-fake { border-radius: 20px; padding: 9px 16px; line-height: 1.35; }

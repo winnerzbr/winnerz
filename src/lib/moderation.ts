@@ -23,8 +23,8 @@ export function targetLink(kind: ReportKind, handle: string | null, ref: string,
   // Postagem ou resposta de clube: abre na conversa do clube.
   if ((kind === 'postagem' || kind === 'resposta') && s?.club) return `/clube/${s.club}#m-${ref}`;
   if (kind === 'comunidade') return s?.slug ? `/w/${s.slug}` : null;
-  if (kind === 'postagem') return s?.slug ? `/w/${s.slug}/${ref}` : null;
-  if (kind === 'resposta') return s?.slug && s.postId ? `/w/${s.slug}/${s.postId}#r-${ref}` : null;
+  if (kind === 'postagem') return `/conversa/${ref}`;
+  if (kind === 'resposta') return s?.postId ? `/conversa/${s.postId}#r-${ref}` : null;
   if (!handle) return null;
   const at = `/@${handle.toLowerCase()}`;
   if (kind === 'jornada') return `${at}/${ref}`;

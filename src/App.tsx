@@ -101,8 +101,11 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/w/:slug', path))) return <CommunityView key={m.slug} slug={m.slug} />;
   if ((m = match('/w/:slug/editar', path))) return <CommunityEditPage slug={m.slug} />;
   if ((m = match('/w/:slug/escrever', path))) return <PostEditorPage slug={m.slug} />;
-  if ((m = match('/w/:slug/:id/editar', path))) return <PostEditorPage slug={m.slug} id={m.id} />;
-  if ((m = match('/w/:slug/:id', path))) return <PostPage key={m.id} slug={m.slug} id={m.id} />;
+  if ((m = match('/w/:slug/:id/editar', path))) return <PostEditorPage id={m.id} />;
+  if ((m = match('/w/:slug/:id', path))) return <PostPage key={m.id} id={m.id} />;
+  if (match('/escrever', path)) return <PostEditorPage />;
+  if ((m = match('/conversa/:id/editar', path))) return <PostEditorPage id={m.id} />;
+  if ((m = match('/conversa/:id', path))) return <PostPage key={m.id} id={m.id} />;
   if (match('/privacidade', path)) return <PrivacyPage />;
   if (match('/regras', path)) return <RulesPage />;
   if (match('/sobre', path)) return <AboutPage />;

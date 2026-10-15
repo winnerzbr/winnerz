@@ -10,6 +10,8 @@ import { DeleteAccount, ExportData } from '../components/AccountData';
 import { ProfileSettings } from '../components/ProfileSettings';
 import { BlockedList } from '../components/Moderation';
 import { Link } from '../lib/router';
+import type { CommunityPrefs } from '../data/types';
+import { refreshNews } from '../data/communityApi';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -43,7 +45,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências">
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#perfil">Perfil e privacidade</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -140,6 +142,8 @@ export function Preferences() {
 
       <OverlaySettings />
 
+      <CommunitySettings />
+
       <section className="prefs__section" aria-labelledby="perfil">
         <h2 id="perfil" className="t">Perfil e privacidade</h2>
         <ProfileSettings />
@@ -207,6 +211,33 @@ function OverlaySettings() {
         </div>
       )}
       {state === 'error' && <p className="awards__error">Não consegui gerar agora. Tente de novo.</p>}
+    </section>
+  );
+}
+
+/** Comunidade: aparecer em "Novos por aqui", o jogo ao lado do nome e quais avisos receber. */
+function CommunitySettings() {
+  const stored = useStore((s) => s.prefs.comunidade);
+  const cp = stored ?? {};
+  // Os avisos são contados no servidor a partir destas escolhas: depois de gravar, recontamos.
+  const set = (patch: Partial<CommunityPrefs>) => { actions.setPrefs({ comunidade: { ...cp, ...patch } }); setTimeout(() => void refreshNews(), 1200); };
+  const row = (k: keyof CommunityPrefs, def: boolean, title: string, hint: string) => (
+    <label className="motion motion--switch" data-on={cp[k] ?? def} key={k}>
+      <input type="checkbox" role="switch" className="switch" checked={cp[k] ?? def} onChange={(e) => set({ [k]: e.target.checked })} />
+      <span><strong>{title}</strong><span className="muted">{hint}</span></span>
+    </label>
+  );
+  return (
+    <section aria-labelledby="comunidade" className="prefs__section">
+      <h2 id="comunidade" className="t">Comunidade</h2>
+      {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
+      {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
+      <h3 className="prefs__sub">Avisos da Comunidade</h3>
+      <p className="muted prefs__p">Aparecem no número do menu e em “Enquanto você estava fora”. Nada de e-mail.</p>
+      {row('aviso_respostas', true, 'Respostas para você', 'Quando alguém responde a uma postagem ou resposta sua.')}
+      {row('aviso_mencoes', true, 'Menções', 'Quando alguém escreve o seu @.')}
+      {row('aviso_acompanhando', true, 'Conversas que você acompanha', 'Respostas novas nas conversas em que você respondeu ou tocou em “Acompanhar”.')}
+      {row('aviso_clubes', true, 'Clubes', 'Respostas às suas mensagens, encontro chegando e parte que abriu.')}
     </section>
   );
 }

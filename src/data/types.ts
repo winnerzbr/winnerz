@@ -287,6 +287,18 @@ export interface Prefs {
   overlayNonce?: string;
   /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */
   welcomeDone?: boolean;
+  /** Escolhas da Comunidade (o banco lê daqui: profiles.prefs -> 'comunidade'). */
+  comunidade?: CommunityPrefs;
+}
+
+/** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */
+export interface CommunityPrefs {
+  novos?: boolean;
+  jogo?: boolean;
+  aviso_respostas?: boolean;
+  aviso_mencoes?: boolean;
+  aviso_acompanhando?: boolean;
+  aviso_clubes?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

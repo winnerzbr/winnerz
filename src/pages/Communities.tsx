@@ -254,7 +254,7 @@ export function CommunityView({ slug }: { slug: string }) {
         <div className="cm-view__main">
           {err && <p className="awards__error" role="alert">{err}</p>}
           {!canWrite && <p className="cm-note"><Icon name="escudo" size={14} />Só o canal publica aqui. Dá para responder e reagir às postagens.</p>}
-          {data.pinned.length > 0 && <div className="cm-list cm-list--pinned">{data.pinned.map((p) => <PostCard key={p.id} post={p} />)}</div>}
+          {data.pinned.length > 0 && <div className="cm-list cm-list--pinned">{data.pinned.map((p) => <PostCard key={p.id} post={p} showCommunity={false} why={false} />)}</div>}
           <div className="seg cm-sort" role="tablist" aria-label="Ordem das postagens">
             <button role="tab" aria-selected={sort === 'recentes'} aria-pressed={sort === 'recentes'} onClick={() => setSort('recentes')}>Recentes</button>
             <button role="tab" aria-selected={sort === 'conversadas'} aria-pressed={sort === 'conversadas'} onClick={() => setSort('conversadas')}>Mais conversadas da semana</button>
@@ -262,7 +262,7 @@ export function CommunityView({ slug }: { slug: string }) {
           <p className="faint cm-sort__hint">{sort === 'recentes' ? 'Da mais nova para a mais antiga. Sem algoritmo.' : 'As que mais receberam respostas nos últimos 7 dias.'}</p>
           {posts.length === 0 ? (
             <div className="soc-empty"><b>{sort === 'conversadas' ? 'Nenhuma conversa nesta semana.' : 'Nada publicado ainda.'}</b>{canWrite && sort === 'recentes' && <p className="muted">Que tal abrir a primeira conversa? <Link to={`/w/${c.slug}/escrever`}>Escrever</Link></p>}</div>
-          ) : <div className="cm-list">{posts.map((p) => <PostCard key={p.id} post={p} />)}</div>}
+          ) : <div className="cm-list">{posts.map((p) => <PostCard key={p.id} post={p} showCommunity={false} why={false} />)}</div>}
           {sort === 'recentes' && !end && posts.length > 0 && <button className="btn ghost cm-more" onClick={() => void older()}>Ver mais antigas</button>}
         </div>
         <aside className="cm-view__side">

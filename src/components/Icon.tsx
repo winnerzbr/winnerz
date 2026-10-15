@@ -38,6 +38,12 @@ const paths: Record<string, ReactElement> = {
   link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,
   subir: <path d="M12 19V6M6 11l6-6 6 6" />,
   reagir: <><circle cx="11" cy="12" r="8" /><path d="M7.8 13.5c.8 1.3 1.8 2 3.2 2s2.4-.7 3.2-2M8.5 9.8h.01M13.5 9.8h.01M19 3v5M16.5 5.5h5" /></>,
+  olho: <><path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" /><circle cx="12" cy="12" r="3" /></>,
+  grade: <path d="M4 4.5h7v7H4zM13 4.5h7v7h-7zM4 13.5h7v7H4zM13 13.5h7v7h-7z" strokeLinejoin="round" />,
+  enquete: <path d="M5 20V12M10 20V6M15 20v-9M20 20V9M3 20h18" />,
+  caixa: <><path d="M3.5 8 12 4l8.5 4v9L12 21l-8.5-4z" strokeLinejoin="round" /><path d="M3.5 8 12 12l8.5-4M12 12v9" /></>,
+  imagem: <><rect x="3.5" y="5" width="17" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M20.5 16l-5-5-8 8" /></>,
+  pergunta: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.3c-.7.3-1.1 1-1.1 1.7v.5M12 17h.01" /></>,
   maisAcoes: <><circle cx="5.5" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18.5" cy="12" r="1.4" fill="currentColor" /></>,
 };
 

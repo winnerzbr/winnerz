@@ -1,7 +1,7 @@
 -- Etapa 6 · Comunidade reorganizada, entrega B: a Praça
 --  1. Postar direto na Praça: comunidade e título opcionais; postagens novas de Enquete e Aquisição ("chegou na coleção").
 --  2. Caminhos da Praça (Para você, Amigos, Seguindo, Discussões, Salvos, Novos por aqui), cada postagem com o motivo.
---     Para você mostra também o resto da Praça (de quem a pessoa ainda não segue), dizendo de onde veio.
+--     Para você mostra também o resto da Praça (de quem a pessoa ainda não segue) e as postagens dela, dizendo de onde veio.
 --  3. Salvar e acompanhar conversas; quantas respostas novas desde a última visita ("continuar de onde parei").
 --  4. Boa conversa para entrar, conversas que continuam e quem chegou agora (só quem topou aparecer).
 --  5. O jogo da conversa ao lado do nome ("jogando", "zerou"), só para quem ligou nas Preferências.
@@ -385,6 +385,7 @@ begin
              when exists (select 1 from wishes d where d.user_id = me and d.game_id = p.game_id) then 'desejos' end mine) s
     left join games g on g.id = p.game_id
     cross join lateral (select case
+        when p.author = me then 'Você publicou'
         when s.friend then 'Porque você e @' || pr.handle || ' se seguem'
         when s.mine = 'jornada' then 'Porque ' || g.title || ' está na sua Jornada'
         when s.mine = 'colecao' then 'Porque ' || g.title || ' está na sua Coleção'
@@ -404,7 +405,7 @@ begin
             when 'amigos' then s.friend
             when 'seguindo' then s.fol_person or s.fol_comm or p.author = me
             when 'novos' then pr.created_at > now() - interval '21 days' and public.cm_pref(pr, 'novos', false)
-            else p.author is distinct from me and p.created_at > now() - interval '45 days'
+            else p.created_at > now() - interval '45 days'
           end
     order by p.created_at desc limit lim) x;
   return out;

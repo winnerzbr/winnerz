@@ -57,7 +57,7 @@ export interface PostFull extends Post { communityFull: Community | null; canMod
 /** Caminhos da Praça. Comunidades e Jogatinas mostram listas próprias; os outros, conversas. */
 export type PracaPath = 'para' | 'amigos' | 'seguindo' | 'comunidades' | 'discussoes' | 'jogatinas' | 'salvos' | 'novos';
 export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[] = [
-  { k: 'para', label: 'Para você', icon: 'jornada', why: 'O que tem a ver com você (comunidades e pessoas que você segue, jogos da sua Jornada, Coleção e desejos) e o resto da Praça, de quem você ainda não segue. Cada conversa diz por que apareceu.' },
+  { k: 'para', label: 'Para você', icon: 'jornada', why: 'O que tem a ver com você (comunidades e pessoas que você segue, jogos da sua Jornada, Coleção e desejos) o resto da Praça, de quem você ainda não segue, e as suas postagens. Cada conversa diz por que apareceu.' },
   { k: 'amigos', label: 'Amigos', icon: 'coracao', why: 'Só o que os seus amigos (quem segue você de volta) publicaram, do mais novo para o mais antigo.' },
   { k: 'seguindo', label: 'Seguindo', icon: 'olho', why: 'Pessoas e comunidades que você segue. Sem sugestão nenhuma no meio.' },
   { k: 'comunidades', label: 'Comunidades', icon: 'grade', why: 'Os espaços por assunto. Seguir não é virar membro: só acompanha o que sai ali.' },
@@ -653,6 +653,7 @@ const demo = {
     const why = (p: DPost): string | null => {
       const h = person(p.author).handle;
       const g = gameMini(p.gameId, p.game);
+      if (p.author === ME) return 'Você publicou';
       if (isFriend(p.author)) return `Porque você e @${h} se seguem`;
       if (p.gameId && s.journeys.some((j) => j.gameId === p.gameId)) return `Porque ${g?.title} está na sua Jornada`;
       if (p.gameId && s.copies.some((c) => c.gameId === p.gameId)) return `Porque ${g?.title} está na sua Coleção`;
@@ -673,7 +674,7 @@ const demo = {
     if (path === 'amigos') return all.filter((p) => isFriend(p.author)).sort(byNew).map((p) => postOut(db, p, false, `De @${person(p.author).handle}`));
     if (path === 'seguindo') return all.filter((p) => p.author === ME || iFollow(p.author) || (p.cid && db.mine[p.cid])).sort(byNew).map((p) => postOut(db, p, false, why(p)));
     if (path === 'novos') return all.filter((p) => !!NEWCOMERS[p.author]).sort(byNew).map((p) => postOut(db, p, false, 'Chegou esta semana'));
-    return all.filter((p) => p.author !== ME).map((p) => ({ p, w: why(p) })).filter((x) => x.w).sort((a, b) => byNew(a.p, b.p)).slice(0, 30).map(({ p, w }) => postOut(db, p, false, w));
+    return all.map((p) => ({ p, w: why(p) })).filter((x) => x.w).sort((a, b) => byNew(a.p, b.p)).slice(0, 30).map(({ p, w }) => postOut(db, p, false, w));
   },
   side(): PracaSide {
     const db = loadDb();

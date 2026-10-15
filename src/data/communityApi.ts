@@ -57,7 +57,7 @@ export interface PostFull extends Post { communityFull: Community | null; canMod
 /** Caminhos da Praça. Comunidades e Jogatinas mostram listas próprias; os outros, conversas. */
 export type PracaPath = 'para' | 'amigos' | 'seguindo' | 'comunidades' | 'discussoes' | 'jogatinas' | 'salvos' | 'novos';
 export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[] = [
-  { k: 'para', label: 'Para você', icon: 'jornada', why: 'Das comunidades que você segue, dos jogos da sua Jornada, Coleção e desejos, e de quem você segue. Cada conversa diz por que apareceu.' },
+  { k: 'para', label: 'Para você', icon: 'jornada', why: 'O que tem a ver com você (comunidades e pessoas que você segue, jogos da sua Jornada, Coleção e desejos) e o resto da Praça, de quem você ainda não segue. Cada conversa diz por que apareceu.' },
   { k: 'amigos', label: 'Amigos', icon: 'coracao', why: 'Só o que os seus amigos (quem segue você de volta) publicaram, do mais novo para o mais antigo.' },
   { k: 'seguindo', label: 'Seguindo', icon: 'olho', why: 'Pessoas e comunidades que você segue. Sem sugestão nenhuma no meio.' },
   { k: 'comunidades', label: 'Comunidades', icon: 'grade', why: 'Os espaços por assunto. Seguir não é virar membro: só acompanha o que sai ali.' },
@@ -662,7 +662,7 @@ const demo = {
       if (weekN(p) >= 3) return 'Uma das mais conversadas da semana';
       if (!p.cid && Date.parse(p.createdAt) > Date.now() - 3 * 86_400_000) return 'Novo na Praça';
       if (comm(p)?.official) return 'Da comunidade oficial do canal';
-      return null;
+      return p.cid ? `Em w/${comm(p)?.slug}, que você ainda não segue` : 'Na Praça, de quem você ainda não segue';
     };
     const byNew = (a: DPost, b: DPost) => b.createdAt.localeCompare(a.createdAt);
     if (path === 'salvos') return Object.entries(db.saves).sort((a, b) => b[1].localeCompare(a[1])).map(([id]) => db.posts.find((p) => p.id === id && !p.deletedAt)).filter((p): p is DPost => !!p).map((p) => postOut(db, p, false));

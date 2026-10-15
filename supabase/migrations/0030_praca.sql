@@ -1,6 +1,7 @@
 -- Etapa 6 · Comunidade reorganizada, entrega B: a Praça
 --  1. Postar direto na Praça: comunidade e título opcionais; postagens novas de Enquete e Aquisição ("chegou na coleção").
 --  2. Caminhos da Praça (Para você, Amigos, Seguindo, Discussões, Salvos, Novos por aqui), cada postagem com o motivo.
+--     Para você mostra também o resto da Praça (de quem a pessoa ainda não segue), dizendo de onde veio.
 --  3. Salvar e acompanhar conversas; quantas respostas novas desde a última visita ("continuar de onde parei").
 --  4. Boa conversa para entrar, conversas que continuam e quem chegou agora (só quem topou aparecer).
 --  5. O jogo da conversa ao lado do nome ("jogando", "zerou"), só para quem ligou nas Preferências.
@@ -393,6 +394,9 @@ begin
         when s.week >= 3 then 'Uma das mais conversadas da semana'
         when p.community_id is null and p.created_at > now() - interval '3 days' then 'Novo na Praça'
         when c.official then 'Da comunidade oficial do canal'
+        -- O resto da Praça também aparece (de quem você ainda não segue), dizendo de onde veio.
+        when p.community_id is null then 'Na Praça, de quem você ainda não segue'
+        else 'Em w/' || c.slug || ', que você ainda não segue'
       end why) w
     where public.praca_open(p)
       and (p_before is null or p.created_at < p_before)
@@ -400,7 +404,7 @@ begin
             when 'amigos' then s.friend
             when 'seguindo' then s.fol_person or s.fol_comm or p.author = me
             when 'novos' then pr.created_at > now() - interval '21 days' and public.cm_pref(pr, 'novos', false)
-            else p.author is distinct from me and p.created_at > now() - interval '45 days' and w.why is not null
+            else p.author is distinct from me and p.created_at > now() - interval '45 days'
           end
     order by p.created_at desc limit lim) x;
   return out;

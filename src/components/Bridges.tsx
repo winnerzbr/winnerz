@@ -7,7 +7,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { actions, getState, useStore, openSession, journeyForGame, currentHistory } from '../data/store';
-import { bridgeApi, useBridges, BY, PROVIDER_NAME, type BridgeItem, type Provider, type NowPlaying } from '../data/bridgeApi';
+import { bridgeApi, useBridges, BY, PROVIDER_NAME, PLAYNITE_DOWNLOAD, type BridgeItem, type Provider, type NowPlaying } from '../data/bridgeApi';
 import { refreshGame } from './AddGameDialog';
 import { navigate } from '../lib/router';
 import { durLabel, hourMin, dayMonth } from '../lib/format';
@@ -103,7 +103,7 @@ function NowPlayingBanner() {
   return (
     <aside className="forgotten nowplaying" role="region" aria-label="Jogando agora">
       <div className="page forgotten__row">
-        <p><strong>{np.provider === 'steam' ? 'A Steam' : 'O RetroAchievements'} diz que você está jogando {np.title} agora.</strong>{np.detail ? ` ${np.detail}.` : ''} {canOpen ? 'Quer abrir a sessão aqui?' : ''}</p>
+        <p><strong>{np.provider === 'steam' ? 'A Steam' : np.provider === 'playnite' ? 'O Playnite' : 'O RetroAchievements'} diz que você está jogando {np.title} agora.</strong>{np.detail ? ` ${np.detail}.` : ''} {canOpen ? 'Quer abrir a sessão aqui?' : ''}</p>
         <div className="forgotten__actions">
           {canOpen && <button className="btn sm primary" disabled={busy} onClick={start}><Icon name="play" size={13} />{busy ? 'Abrindo…' : 'Abrir a sessão'}</button>}
           <button className="btn sm quiet" onClick={hide}>Agora não</button>
@@ -141,7 +141,7 @@ export function BridgeInbox() {
         {items.slice(0, 8).map((it) => {
           const mapped = b?.maps[`${it.provider}:${it.extGame}`];
           const game = s.games[mapped ?? it.gameId ?? ''] ?? Object.values(s.games).find((g) => it.igdbId && g.igdbId === it.igdbId);
-          const guess = it.provider === 'ra' && !mapped && !it.confirmed;
+          const guess = it.provider !== 'steam' && !mapped && !it.confirmed;
           return (
             <li key={it.id} className="bridge-item">
               <span className="bridge-item__cover">{game ? <CoverArt game={game} /> : <Icon name="jogos" size={20} />}</span>
@@ -184,6 +184,7 @@ export function BridgeSettings() {
       <p className="muted prefs__p">Ligue suas contas e o WinnerZ registra as sessões sozinho, pelo tempo jogado (Steam) ou pelas conquistas (RetroAchievements). Ninguém mais vê essas contas. O que você jogou antes de ligar não entra.</p>
       <BridgeRow provider="steam" placeholder="Link do seu perfil (steamcommunity.com/id/…)" hint="O perfil e os “Detalhes do jogo” precisam estar públicos nas configurações de privacidade da Steam." />
       <BridgeRow provider="ra" placeholder="Seu usuário no RetroAchievements" hint="Conquistas desbloqueadas viram sessões; o status do jogo vira a sugestão de onde você parou." />
+      <PlayniteRow />
     </section>
   );
 }
@@ -221,6 +222,49 @@ function BridgeRow({ provider, placeholder, hint }: { provider: Provider; placeh
         </form>
       )}
       <p className="faint bridge-row__hint">{hint}</p>
+      {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
+    </div>
+  );
+}
+
+/** Playnite: a extensão avisa sozinha; aqui só se gera a chave pessoal e se baixa a extensão. */
+function PlayniteRow() {
+  const b = useBridges();
+  const acc = b?.accounts.find((a) => a.provider === 'playnite');
+  const [token, setToken] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const gen = async () => { setBusy(true); setMsg(''); try { setToken(await bridgeApi.playniteToken()); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); } setBusy(false); };
+  const copy = async () => { try { await navigator.clipboard.writeText(token); setMsg('Chave copiada.'); } catch { setMsg('Selecione a chave e copie.'); } };
+  return (
+    <div className={`bridge-row${acc ? ' is-on' : ''}`}>
+      <div className="bridge-row__head">
+        <strong>Playnite</strong>
+        {acc ? <span className="chip chip--static">Ligado</span> : <span className="faint">Desligado</span>}
+      </div>
+      <p className="muted bridge-row__p">O Playnite é o lançador de jogos do PC (Steam, Epic, GOG, emuladores). Com a extensão do WinnerZ, cada jogo aberto por ele vira sessão, com início e fim exatos.</p>
+      {token ? (
+        <div className="pn-token">
+          <span className="finish__label">Sua chave (aparece só agora)</span>
+          <div className="pn-token__row"><input className="field mono" readOnly value={token} onFocus={(e) => e.currentTarget.select()} aria-label="Chave do Playnite" /><button className="btn ghost sm" onClick={copy}>Copiar</button></div>
+          <ol className="pn-steps">
+            <li><a href={PLAYNITE_DOWNLOAD} target="_blank" rel="noopener noreferrer">Baixe a extensão WinnerZ.pext</a> e abra o arquivo com o Playnite aberto (ele pergunta se quer instalar).</li>
+            <li>No Playnite: menu → Complementos → Configurações de extensões → WinnerZ. Cole a chave e salve.</li>
+            <li>Abra um jogo pelo Playnite. Ao fechar, a sessão chega aqui.</li>
+          </ol>
+          <p className="faint">Guarde a chave só no Playnite. Se ela vazar, gere outra: a antiga para de funcionar.</p>
+        </div>
+      ) : acc ? (
+        <>
+          <p className="muted bridge-row__p">{acc.lastSyncAt ? `Último aviso da extensão: ${dayMonth(acc.lastSyncAt)}, ${hourMin(acc.lastSyncAt)}.` : 'A extensão ainda não avisou nada.'} <a href={PLAYNITE_DOWNLOAD} target="_blank" rel="noopener noreferrer">Baixar a extensão</a></p>
+          <div className="bridge-row__actions">
+            <button className="btn ghost sm" disabled={busy} onClick={gen}>Gerar nova chave</button>
+            <button className="btn quiet sm danger" disabled={busy} onClick={async () => { setBusy(true); try { await bridgeApi.unlink('playnite'); setMsg('Desligado.'); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); } setBusy(false); }}>Desligar</button>
+          </div>
+        </>
+      ) : (
+        <div className="bridge-row__actions"><button className="btn primary sm" disabled={busy} onClick={gen}>{busy ? 'Gerando…' : 'Gerar a chave e ligar'}</button></div>
+      )}
       {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
     </div>
   );

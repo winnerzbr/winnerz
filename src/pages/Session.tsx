@@ -1,4 +1,5 @@
 import { ShareCardButton } from '../components/ShareCard';
+import { TrailerButton } from '../components/Trailer';
 import { discordApi } from '../data/discordApi';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
@@ -329,7 +330,7 @@ function Celebrated({ historyId, onClose }: { historyId: string; onClose: () => 
         <PersonalSticker image={img} title={h.ordinal > 1 ? `Fim da ${h.title}` : 'Primeira vez'} />
         {h.letter && <SealedLetter text={h.letter.text} date={dayMonthYear(h.startedAt)} opened={false} onOpen={() => actions.openLetter(h.id)} />}
       </div>
-      <div className="celebration__actions"><Link className="btn primary lg" to={`/jogos/${g.slug}#analise`}>{s.reviews.some((r) => r.gameId === g.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link><ShareCardButton game={g} history={h} /></div>
+      <div className="celebration__actions"><Link className="btn primary lg" to={`/jogos/${g.slug}#analise`}>{s.reviews.some((r) => r.gameId === g.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link><ShareCardButton game={g} history={h} /><TrailerButton game={g} history={h} /></div>
       <WhatNext game={g} />
     </Celebration>
   );

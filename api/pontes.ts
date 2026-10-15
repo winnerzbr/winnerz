@@ -3,6 +3,8 @@
  *
  *   POST /api/pontes (com login) { link: "steam", value: "<link do perfil>" }  → liga a Steam (o tempo já jogado não vira sessão)
  *   POST /api/pontes (com login) { link: "ra", value: "<usuário>" }            → liga o RetroAchievements
+ *   POST /api/pontes (com login) { link: "playnite" }                         → gera a chave pessoal da extensão do Playnite (mostrada uma vez)
+ *   POST /api/pontes (extensão do Playnite, cabeçalho X-WinnerZ-Token) { playnite: { event: "start" | "stop", game, startedAt?, endedAt? } }
  *   POST /api/pontes (com login) { sync: true, force?: true }                  → busca agora (no máximo a cada 10 minutos; com force, a cada 1)
  *   GET  /api/pontes?cron=1  (agendado pela Vercel, uma vez por dia)           → busca de todo mundo que ligou alguma ponte
  *
@@ -19,7 +21,7 @@
 
 type Req = { method?: string; body?: unknown; query?: Record<string, string | string[] | undefined>; headers?: Record<string, string | string[] | undefined> };
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
-type Account = { user_id: string; provider: 'steam' | 'ra'; external_id: string; display?: string | null; last_sync_at?: string | null };
+type Account = { user_id: string; provider: 'steam' | 'ra' | 'playnite'; external_id: string; display?: string | null; last_sync_at?: string | null };
 type Row = Record<string, unknown>;
 
 const SYNC_EVERY_MIN = 10;
@@ -285,8 +287,57 @@ async function syncRa(acc: Account): Promise<{ added: number; now: Row | null }>
   return { added, now };
 }
 
+/* ---- Playnite ---------------------------------------------------------------------------- */
+const sha256 = async (t: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+async function linkPlaynite(user: string) {
+  const bytes = crypto.getRandomValues(new Uint8Array(24));
+  const token = `wzpn_${Buffer.from(bytes).toString('base64url')}`;
+  await upsert('linked_accounts', [{ user_id: user, provider: 'playnite', external_id: await sha256(token), display: 'Playnite', last_sync_at: new Date().toISOString(), last_error: null, now_playing: null, now_at: null }], 'user_id,provider');
+  return { ok: true, token };
+}
+
+type PnGame = { id?: string; name?: string; platform?: string; source?: string; gameId?: string };
+export function playniteSession(g: PnGame, startedAt: string | undefined, endedAt: string | undefined, now = Date.now()): { start: number; end: number; minutes: number } | null {
+  const end = Math.min(now, Date.parse(endedAt ?? '') || now);
+  const start = Date.parse(startedAt ?? '');
+  if (!Number.isFinite(start) || start >= end) return null;
+  const minutes = Math.round((end - start) / 60_000);
+  if (minutes < 2 || minutes > 1440 || !g.name) return null;
+  return { start, end, minutes };
+}
+
+/** A extensão avisa que um jogo abriu (start) ou fechou (stop). */
+async function playniteEvent(token: string, body: { playnite?: { event?: string; game?: PnGame; startedAt?: string; endedAt?: string } }) {
+  if (!/^wzpn_[\w-]{20,60}$/.test(token)) return { status: 401, json: { error: 'Chave inválida.' } };
+  const rows = await sel<Account>(`linked_accounts?select=user_id,provider,external_id&provider=eq.playnite&external_id=eq.${await sha256(token)}&limit=1`);
+  const acc = rows[0];
+  if (!acc) return { status: 401, json: { error: 'Chave não reconhecida. Gere uma nova nas Preferências do WinnerZ.' } };
+  const ev = body.playnite ?? {};
+  const g: PnGame = { id: String(ev.game?.id ?? '').slice(0, 64), name: String(ev.game?.name ?? '').slice(0, 160), platform: String(ev.game?.platform ?? '').slice(0, 60) || undefined, source: String(ev.game?.source ?? '').slice(0, 40) || undefined, gameId: String(ev.game?.gameId ?? '').slice(0, 40) || undefined };
+  const at = new Date().toISOString();
+  if (!g.id || !g.name) return { status: 400, json: { error: 'Jogo sem nome.' } };
+  // Jogo da Steam no Playnite: o número da Steam acha a ficha com segurança. Os outros: pelo nome e pela plataforma.
+  const steamApp = /steam/i.test(g.source ?? '') && /^\d+$/.test(g.gameId ?? '') ? g.gameId! : null;
+  const igdbId = steamApp ? (await igdbBySteam([steamApp])).get(steamApp) : await igdbGuess(g.name, g.platform);
+  const gameId = igdbId ? (await gameIdsByIgdb([igdbId])).get(igdbId) ?? null : null;
+  if (ev.event === 'start') {
+    await patch('linked_accounts', `user_id=eq.${acc.user_id}&provider=eq.playnite`, { now_playing: { provider: 'playnite', extGame: g.id, title: g.name, detail: g.platform ?? null, igdbId: igdbId ?? null, gameId }, now_at: at, last_sync_at: at, last_error: null });
+    return { status: 200, json: { ok: true } };
+  }
+  if (ev.event !== 'stop') return { status: 400, json: { error: 'Evento desconhecido.' } };
+  await patch('linked_accounts', `user_id=eq.${acc.user_id}&provider=eq.playnite`, { now_playing: null, now_at: null, last_sync_at: at, last_error: null });
+  const ses = playniteSession(g, ev.startedAt, ev.endedAt);
+  if (!ses) return { status: 200, json: { ok: true, skipped: true } };
+  if (steamApp && gameId) await upsert('bridge_games', [{ user_id: acc.user_id, provider: 'playnite', ext_game: g.id, game_id: gameId }], 'user_id,provider,ext_game', true);
+  await upsert('inferred_sessions', [{ user_id: acc.user_id, provider: 'playnite', key: `pn:${g.id}:${Math.floor(ses.start / 1000)}`, ext_game: g.id, title: g.name, console: g.platform ?? null,
+    igdb_id: igdbId ?? null, game_id: gameId, started_at: new Date(ses.start).toISOString(), ended_at: new Date(ses.end).toISOString(), minutes: ses.minutes, detail: g.source ? `Aberto pelo Playnite (${g.source})` : 'Aberto pelo Playnite' }], 'user_id,key', true);
+  return { status: 200, json: { ok: true, minutes: ses.minutes } };
+}
+
 /* ---- Busca ------------------------------------------------------------------------------- */
 async function syncOne(acc: Account): Promise<number> {
+  if (acc.provider === 'playnite') return 0; // o Playnite avisa sozinho; não há o que buscar
   const startedAt = new Date().toISOString();
   try {
     const r = acc.provider === 'steam' ? await syncSteam(acc) : await syncRa(acc);
@@ -316,10 +367,18 @@ export default async function handler(req: Req, res: Res) {
       const roles = host ? await fetch(`https://${host}/api/discord?cron=1`, { headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(12_000) }).then((r) => r.ok).catch(() => false) : false;
       return res.status(200).json({ accounts: done, added, discordRoles: roles });
     }
+    // Extensão do Playnite: entra pela chave pessoal, não pelo login do site.
+    const pnToken = header(req, 'x-winnerz-token');
+    if (pnToken && req.method === 'POST') {
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as Parameters<typeof playniteEvent>[1];
+      const r = await playniteEvent(pnToken.trim(), body);
+      return res.status(r.status).json(r.json);
+    }
     const user = await requireUser(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
     if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
     const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { link?: string; value?: string; sync?: boolean; force?: boolean };
+    if (body.link === 'playnite') return res.status(200).json(await linkPlaynite(user));
     if (body.link === 'steam' || body.link === 'ra') {
       const r = body.link === 'steam' ? await linkSteam(user, String(body.value ?? '')) : await linkRa(user, String(body.value ?? ''));
       return res.status('error' in r ? 400 : 200).json(r);

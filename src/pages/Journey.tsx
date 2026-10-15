@@ -1,4 +1,5 @@
 import { celebrateSmall } from '../components/MiniCelebration';
+import { TrailerButton } from '../components/Trailer';
 import { PactList } from '../components/Pacts';
 import { discordApi } from '../data/discordApi';
 import { ShareCardButton } from '../components/ShareCard';
@@ -282,6 +283,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <p className="muted">Zerou em {current.completedAt ? dayMonthYear(current.completedAt) : 'data não informada'}. Nada é obrigatório agora. Se quiser, comece outra História: esta continua guardada.</p>
               <div className="jprog__actions">
                 <button className="btn ghost" onClick={() => { actions.play(game.id); navigate('/sessao'); }}>Jogar de novo</button>
+                <TrailerButton game={game} history={current} className="btn ghost" />
                 <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
               </div>
             </section>
@@ -364,6 +366,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <div className="celebration__actions">
             <Link className="btn primary lg" to={`/jogos/${game.slug}#analise`} onClick={() => setCelebrating(null)}>{s.reviews.some((r) => r.gameId === game.id && r.mine) ? 'Rever sua análise' : 'Escrever uma análise'}</Link>
             <ShareCardButton game={game} history={s.histories.find((x) => x.id === celebrating.id) ?? celebrating} />
+            <TrailerButton game={game} history={s.histories.find((x) => x.id === celebrating.id) ?? celebrating} />
           </div>
           <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>

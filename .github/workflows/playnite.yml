@@ -1,0 +1,43 @@
+name: Extensão do Playnite
+
+on:
+  push:
+    branches: [main]
+    paths: ['playnite/**', '.github/workflows/playnite.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  compilar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compilar
+        run: dotnet build playnite/WinnerZ/WinnerZ.csproj -c Release -o out
+      - name: Empacotar (.pext)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force pext | Out-Null
+          Copy-Item out/WinnerZ.dll, playnite/WinnerZ/extension.yaml, playnite/WinnerZ/icon.png pext/
+          Compress-Archive -Path pext/* -DestinationPath WinnerZ.zip -Force
+          Move-Item WinnerZ.zip WinnerZ.pext -Force
+          Get-ChildItem pext
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WinnerZ.pext
+          path: WinnerZ.pext
+      - name: Publicar na página de downloads
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view playnite *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create playnite --title "Extensão do Playnite" --notes "Extensão do WinnerZ para o Playnite. Baixe WinnerZ.pext e abra com o Playnite aberto. A chave fica em Preferências → Pontes → Playnite, no site."
+          }
+          gh release upload playnite WinnerZ.pext --clobber

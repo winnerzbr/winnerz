@@ -240,7 +240,7 @@ export interface Session {
   goal?: string;
   goalDone?: 'sim' | 'quase' | 'nao';
   /** Sessão que veio de uma ponte (lida na Steam ou no RetroAchievements). */
-  source?: 'steam' | 'ra';
+  source?: 'steam' | 'ra' | 'playnite';
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';

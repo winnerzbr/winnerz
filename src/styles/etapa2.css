@@ -5438,3 +5438,21 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .fx.has-imgs .fx-big { display: none; }
 .fx.has-imgs .fx-spot { opacity: 0.5; }
 .fx.is-reduced .fx-amb__a.on { animation: none; }
+
+/* J7: trailer da História */
+.trailer { display: grid; grid-template-columns: minmax(200px, 340px) 1fr; gap: 20px; align-items: start; }
+.trailer--horizontal { grid-template-columns: 1fr; }
+.trailer__stage { position: relative; border-radius: 14px; overflow: hidden; background: #07080A; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); }
+.trailer__canvas, .trailer__video { display: block; width: 100%; height: auto; }
+.trailer--vertical .trailer__canvas, .trailer--vertical .trailer__video { max-height: 62vh; object-fit: contain; }
+.trailer__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255, 255, 255, 0.15); }
+.trailer__bar i { display: block; height: 100%; background: var(--now); }
+.trailer__opts { display: flex; flex-direction: column; gap: 10px; }
+.trailer__opts > p { margin: 0; }
+.trailer__rec { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--now-ink); font-weight: 600; }
+@media (max-width: 720px) { .trailer { grid-template-columns: 1fr; } .trailer--vertical .trailer__stage { max-width: 260px; margin: 0 auto; } }
+.pn-token { display: flex; flex-direction: column; gap: 8px; }
+.pn-token__row { display: flex; gap: 8px; }
+.pn-token__row .field { flex: 1; font-size: 13px; }
+.pn-steps { margin: 4px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.pn-token .faint { margin: 0; font-size: 12.5px; }

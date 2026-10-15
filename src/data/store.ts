@@ -767,7 +767,7 @@ export const actions = {
    * Sessão que veio de uma ponte (Steam ou RetroAchievements), já terminada. Com onlyOpen, só entra se a Jornada
    * tem uma História em andamento; sem, cria a Jornada (ou uma História nova) como o "Jogar" faria.
    */
-  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source: 'steam' | 'ra'; detail?: string | null; whereStopped?: string | null }, opts: { onlyOpen?: boolean } = {}): ID | null {
+  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source: 'steam' | 'ra' | 'playnite'; detail?: string | null; whereStopped?: string | null }, opts: { onlyOpen?: boolean } = {}): ID | null {
     let journey = journeyForGame(state, gameId);
     let history = journey ? currentHistory(state, journey.id) : null;
     if (opts.onlyOpen && (!history || history.state !== 'ativa')) return null;
@@ -784,7 +784,7 @@ export const actions = {
       if (isNew) dispatch({ type: 'journey.create', journey, history, event }); else dispatch({ type: 'history.create', history, event });
     }
     const before = sessionsOf(state, history.id).filter((x) => x.startedAt < d.startedAt).length;
-    const by = d.source === 'steam' ? 'Pela Steam' : 'Pelo RetroAchievements';
+    const by = d.source === 'steam' ? 'Pela Steam' : d.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements';
     const where = d.whereStopped?.trim().slice(0, 140) || undefined;
     const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: d.startedAt, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where, source: d.source, progress: history.progress };
     const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, sessionId: session.id, kind: 'sessao', at: d.endedAt, title: `Sessão ${before + 1}`, text: [`${by}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') };
@@ -800,7 +800,7 @@ export const actions = {
     const where = d.whereStopped?.trim().slice(0, 140) || ses.whereStopped;
     dispatch({ type: 'session.update', session: { ...ses, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where } });
     const ev = state.events.find((e) => e.sessionId === sessionId && e.kind === 'sessao');
-    if (ev) dispatch({ type: 'event.update', eventId: ev.id, patch: { at: d.endedAt, text: [`${ses.source === 'ra' ? 'Pelo RetroAchievements' : 'Pela Steam'}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') } });
+    if (ev) dispatch({ type: 'event.update', eventId: ev.id, patch: { at: d.endedAt, text: [`${ses.source === 'ra' ? 'Pelo RetroAchievements' : ses.source === 'playnite' ? 'Pelo Playnite' : 'Pela Steam'}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') } });
   },
 
   /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */

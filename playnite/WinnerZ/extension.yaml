@@ -1,0 +1,10 @@
+Id: WinnerZ_Jornada
+Name: WinnerZ
+Author: WinnerZ
+Version: 1.0.0
+Module: WinnerZ.dll
+Type: GenericPlugin
+Icon: icon.png
+Links:
+  - Name: Site
+    Url: https://www.winnerz.com.br

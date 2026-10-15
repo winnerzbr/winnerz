@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react';
 import { getState } from './store';
 
-export type Provider = 'steam' | 'ra';
+export type Provider = 'steam' | 'ra' | 'playnite';
 export type NowPlaying = { provider: Provider; extGame: string; title: string; console?: string | null; detail?: string | null; igdbId?: number | null; gameId?: string | null };
 export type BridgeAccount = { provider: Provider; display?: string | null; auto: boolean; lastSyncAt?: string | null; error?: string | null; nowPlaying?: NowPlaying | null };
 export type BridgeItem = {
@@ -15,8 +15,10 @@ export type BridgeItem = {
 };
 export type Bridges = { accounts: BridgeAccount[]; items: BridgeItem[]; maps: Record<string, string> };
 
-export const PROVIDER_NAME: Record<Provider, string> = { steam: 'Steam', ra: 'RetroAchievements' };
-export const BY: Record<Provider, string> = { steam: 'pela Steam', ra: 'pelo RetroAchievements' };
+export const PROVIDER_NAME: Record<Provider, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
+export const BY: Record<Provider, string> = { steam: 'pela Steam', ra: 'pelo RetroAchievements', playnite: 'pelo Playnite' };
+/** Onde baixar a extensão do Playnite (compilada pelo GitHub a cada mudança). */
+export const PLAYNITE_DOWNLOAD = 'https://github.com/winnerzbr/winnerz/releases/download/playnite/WinnerZ.pext';
 
 const supa = () => getState().mode === 'supabase';
 const client = async () => (await import('./supabaseAdapter')).getClient();
@@ -59,6 +61,18 @@ export const bridgeApi = {
     if (r.error) { set(null); return null; } // sem a 0039: as pontes ficam escondidas
     set(r.data as Bridges);
     return current;
+  },
+  /** Gera a chave pessoal da extensão do Playnite (aparece uma vez só). */
+  async playniteToken(): Promise<string> {
+    if (!supa()) {
+      const d = demoLoad();
+      d.accounts = [...d.accounts.filter((a) => a.provider !== 'playnite'), { provider: 'playnite', display: 'Playnite', auto: true, lastSyncAt: new Date().toISOString() }];
+      demoSave(d); await bridgeApi.status();
+      return 'wzpn_exemplo_da_demonstracao_nao_funciona';
+    }
+    const r = await api({ link: 'playnite' });
+    await bridgeApi.status();
+    return r.token as string;
   },
   async link(provider: Provider, value: string): Promise<string | null> {
     if (!supa()) {

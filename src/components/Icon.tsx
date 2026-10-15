@@ -11,6 +11,7 @@ const paths: Record<string, ReactElement> = {
   sino: <><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5h4" /></>,
   tema: <><circle cx="12" cy="12" r="8" /><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" /></>,
   play: <path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="none" />,
+  relogio: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></>,
   camera: <><rect x="3" y="6" width="18" height="14" rx="3" /><circle cx="12" cy="13" r="3.5" /><path d="M9 6l1.5-2h3L15 6" /></>,
   pin: <><path d="M12 21s7-7.6 7-12.6a7 7 0 0 0-14 0C5 13.4 12 21 12 21z" /><circle cx="12" cy="8.6" r="2.4" /></>,
   caneta: <path d="M4 20h4L19 9l-4-4L4 16z" />,

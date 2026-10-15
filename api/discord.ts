@@ -8,6 +8,7 @@
  *   POST /api/discord  (com login) { roles: true }       → atualiza os seus cargos ligados agora
  *   POST /api/discord  (administração) { register: true } → cadastra os comandos e os cargos ligados no Discord
  *   GET  /api/discord?cron=1  (Vercel, uma vez por dia)   → atualiza os cargos ligados de todo mundo
+ *   GET  /api/discord?status=1                           → quais variáveis do Discord estão preenchidas (sem os valores)
  *
  * Variáveis na Vercel: DISCORD_APP_ID, DISCORD_PUBLIC_KEY, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
  * DISCORD_FEED_CHANNEL_ID (onde o bot publica) e, se quiser jogatinas no canal de voz, DISCORD_VOICE_CHANNEL_ID.
@@ -58,11 +59,27 @@ async function isAdmin(user: string): Promise<boolean> {
   return !!rows?.[0]?.is_admin;
 }
 
-async function rawBody(req: Req): Promise<string> {
-  const chunks: Buffer[] = [];
-  try { for await (const c of req) chunks.push(Buffer.from(c)); } catch { /* corpo já lido */ }
-  if (chunks.length) return Buffer.concat(chunks).toString('utf8');
-  return typeof req.body === 'string' ? req.body : req.body ? JSON.stringify(req.body) : '';
+/**
+ * Corpo cru do pedido (a assinatura do Discord é conferida sobre ele, byte a byte). A Vercel já leu o corpo antes
+ * da função rodar e o devolve pelos eventos "data" e "end"; por isso a leitura é por eventos, não por iteração.
+ */
+function rawBody(req: Req): Promise<string> {
+  const r = req as unknown as { on: (ev: string, cb: (c?: unknown) => void) => void };
+  return new Promise((resolve) => {
+    const chunks: Buffer[] = [];
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve(chunks.length ? Buffer.concat(chunks).toString('utf8') : typeof req.body === 'string' ? req.body : req.body ? JSON.stringify(req.body) : '');
+    };
+    try {
+      r.on('data', (c) => chunks.push(Buffer.isBuffer(c) ? c : Buffer.from(String(c))));
+      r.on('end', finish);
+      r.on('error', finish);
+    } catch { finish(); }
+    setTimeout(finish, 4000);
+  });
 }
 
 /* ---- Assinaturas ------------------------------------------------------------------------- */
@@ -227,6 +244,16 @@ export default async function handler(req: Req, res: Res) {
       return res.status(302).send('');
     }
 
+    // Conferência rápida da configuração (só diz o que está preenchido, nunca os valores).
+    if (req.method === 'GET' && q.status) {
+      const has = (k: string) => !!env(k);
+      return res.status(200).json({
+        DISCORD_APP_ID: has('DISCORD_APP_ID'), DISCORD_PUBLIC_KEY: has('DISCORD_PUBLIC_KEY') && /^[0-9a-f]{64}$/i.test(env('DISCORD_PUBLIC_KEY').trim()),
+        DISCORD_CLIENT_SECRET: has('DISCORD_CLIENT_SECRET'), DISCORD_BOT_TOKEN: has('DISCORD_BOT_TOKEN'), DISCORD_GUILD_ID: has('DISCORD_GUILD_ID'),
+        DISCORD_FEED_CHANNEL_ID: has('DISCORD_FEED_CHANNEL_ID'), DISCORD_VOICE_CHANNEL_ID: has('DISCORD_VOICE_CHANNEL_ID'), banco: !!db(),
+      });
+    }
+
     if (req.method === 'GET' && q.cron) {
       const secret = env('CRON_SECRET');
       if (!secret || header(req, 'authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Sem permissão.' });
@@ -243,7 +270,7 @@ export default async function handler(req: Req, res: Res) {
     // Comandos vindos do Discord (assinados).
     const sig = header(req, 'x-signature-ed25519'), ts = header(req, 'x-signature-timestamp');
     if (sig && ts) {
-      if (!env('DISCORD_PUBLIC_KEY') || !verifyDiscord(env('DISCORD_PUBLIC_KEY'), sig, ts, body)) return res.status(401).json({ error: 'assinatura inválida' });
+      if (!env('DISCORD_PUBLIC_KEY') || !verifyDiscord(env('DISCORD_PUBLIC_KEY').trim(), sig, ts, body)) return res.status(401).json({ error: 'assinatura inválida' });
       const i = JSON.parse(body);
       if (i.type === 1) return res.status(200).json({ type: 1 });
       if (i.type === 2) return res.status(200).json(await command(i, site).catch(() => reply('O WinnerZ não respondeu agora. Tente de novo em instantes.')));

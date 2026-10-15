@@ -239,6 +239,8 @@ export interface Session {
   /** O objetivo pequeno escolhido para esta sessão e se foi cumprido. */
   goal?: string;
   goalDone?: 'sim' | 'quase' | 'nao';
+  /** Sessão que veio de uma ponte (lida na Steam ou no RetroAchievements). */
+  source?: 'steam' | 'ra';
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';

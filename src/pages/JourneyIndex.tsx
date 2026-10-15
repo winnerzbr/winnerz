@@ -1,4 +1,5 @@
 import { Buddy, useBuddy } from '../components/Buddy';
+import { BridgeInbox } from '../components/Bridges';
 import { useState, type ReactNode } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, eventsOf, activeWaypoints, focusJourneys } from '../data/store';
@@ -107,6 +108,7 @@ export function JourneyIndex() {
         </div>
       )}
 
+      <BridgeInbox />
       {principal && <FocusCard s={s} journey={principal.journey} chosen={principal.chosen} />}
 
       {rows.length > 0 && (

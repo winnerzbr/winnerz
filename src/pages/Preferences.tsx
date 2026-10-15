@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BridgeSettings } from '../components/Bridges';
 import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
 import { Stars } from '../components/Stars';
@@ -143,6 +144,7 @@ export function Preferences() {
 
       <OverlaySettings />
 
+      <BridgeSettings />
       <CommunitySettings />
       <NotifSettings />
 

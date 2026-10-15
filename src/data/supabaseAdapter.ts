@@ -46,6 +46,9 @@ export function schemaV37() { return v37; }
 /** A migração 0038 já rodou? (capítulo da História e objetivo da sessão) */
 let v38 = false;
 export function schemaV38() { return v38; }
+/** A migração 0039 já rodou? (pontes: Steam e RetroAchievements) */
+let v39 = false;
+export function schemaV39() { return v39; }
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -118,7 +121,7 @@ const sessionFromRow = (r: any): Session => ({
   endedAt: r.ended_at ?? undefined, minutes: r.minutes ?? undefined, note: r.note ?? undefined,
   whereStopped: r.where_stopped ?? undefined, feeling: r.feeling ?? undefined, companions: r.companions?.length ? r.companions : undefined,
   progress: r.progress ?? undefined,
-  goal: r.goal ?? undefined, goalDone: r.goal_done ?? undefined,
+  goal: r.goal ?? undefined, goalDone: r.goal_done ?? undefined, source: r.source ?? undefined,
 });
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
@@ -200,6 +203,7 @@ const sessionToRow = (x: Session) => ({
   ...(v8 ? { companions: x.companions?.length ? x.companions : null } : {}),
   ...(v37 ? { progress: x.progress ?? null } : {}),
   ...(v38 ? { goal: x.goal ?? null, goal_done: x.goalDone ?? null } : {}),
+  ...(v39 ? { source: x.source ?? null } : {}),
 });
 const eventToRow = (e: TimelineEvent) => {
   const row: Record<string, unknown> = {
@@ -303,6 +307,7 @@ export const supabaseAdapter: Adapter = {
     v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
     v37 = v8 && !(await sb.from('sessions').select('progress').limit(1)).error && !(await sb.from('histories').select('narrations').limit(1)).error;
     v38 = v37 && !(await sb.from('sessions').select('goal,goal_done').limit(1)).error && !(await sb.from('histories').select('part').limit(1)).error;
+    v39 = v38 && !(await sb.from('sessions').select('source').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {
@@ -415,6 +420,10 @@ export const supabaseAdapter: Adapter = {
         return;
       case 'session.start':
         check(await sb.from('sessions').insert(sessionToRow(a.session)));
+        return;
+      case 'session.add':
+        check(await sb.from('sessions').insert(sessionToRow(a.session)));
+        check(await sb.from('timeline_events').insert(eventToRow(a.event)));
         return;
       case 'session.finish':
         check(await sb.from('sessions').update(sessionToRow(a.session)).eq('id', a.session.id));

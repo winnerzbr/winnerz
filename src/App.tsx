@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { BridgeSync } from './components/Bridges';
 import { usePath, match, Link } from './lib/router';
 import { useStore, openSession } from './data/store';
 import { applyPrefs } from './lib/theme';
@@ -198,6 +199,7 @@ export function App() {
       <DeletionBanner />
       <ModerationBanner />
       <ForgottenSession />
+      <BridgeSync />
       <Routes path={path} />
       {!isSession && (
         <footer className="site-footer">

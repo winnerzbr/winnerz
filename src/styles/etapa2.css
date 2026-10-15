@@ -5328,3 +5328,25 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .stopcard--talvez { box-shadow: inset 3px 0 0 #FFB25B, inset 0 0 0 1px rgba(230, 233, 237, 0.12); }
 .stopcard--nao { box-shadow: inset 3px 0 0 #e46d5f, inset 0 0 0 1px rgba(230, 233, 237, 0.12); }
 .finish__goal { display: flex; flex-direction: column; gap: 6px; }
+
+/* J4: pontes (Steam e RetroAchievements) */
+.nowplaying { box-shadow: inset 0 -1px 0 var(--now-line); }
+.bridge-inbox { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; padding: 18px 20px; }
+.bridge-inbox__head p { margin: 4px 0 0; font-size: 14px; }
+.bridge-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bridge-item { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.bridge-item__cover { width: 44px; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--line); color: var(--muted); }
+.bridge-item__cover img { width: 100%; height: 100%; object-fit: cover; }
+.bridge-item__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bridge-item__body b { font-size: 15px; }
+.bridge-item__detail { font-size: 13px; color: var(--ink-2); }
+.bridge-item__ask { font-size: 13px; color: var(--now-ink); }
+.bridge-item__actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 640px) { .bridge-item { grid-template-columns: 44px 1fr; } .bridge-item__actions { grid-column: 1 / -1; justify-content: flex-start; } }
+.bridge-row { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); margin-top: 10px; }
+.bridge-row.is-on { box-shadow: inset 0 0 0 1px var(--now-line); }
+.bridge-row__head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.bridge-row__p, .bridge-row__hint, .bridge-row__msg { margin: 0; font-size: 13px; }
+.bridge-row__form { display: flex; gap: 8px; flex-wrap: wrap; }
+.bridge-row__form .field { flex: 1 1 240px; }
+.bridge-row__actions { display: flex; gap: 6px; flex-wrap: wrap; }

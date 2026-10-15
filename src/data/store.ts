@@ -33,6 +33,7 @@ export type Action =
   | { type: 'session.start'; session: Session }
   | { type: 'session.finish'; session: Session; event: TimelineEvent; progress?: { historyId: ID; value: number } }
   | { type: 'session.update'; session: Session }
+  | { type: 'session.add'; session: Session; event: TimelineEvent }
   | { type: 'session.delete'; sessionId: ID }
   | { type: 'event.add'; event: TimelineEvent }
   | { type: 'event.resolve'; eventId: ID }
@@ -133,6 +134,8 @@ function reduce(s: State, a: Action): State {
       return { ...s, histories: [...s.histories, a.history], events: [...s.events, a.event] };
     case 'session.start':
       return { ...s, sessions: [...s.sessions, a.session] };
+    case 'session.add':
+      return { ...s, sessions: [...s.sessions, a.session], events: [...s.events, a.event] };
     case 'session.finish': {
       let histories = s.histories;
       if (a.progress) histories = histories.map((h) => (h.id === a.progress!.historyId ? { ...h, progress: a.progress!.value } : h));
@@ -759,6 +762,46 @@ export const actions = {
 
   /** Apaga a sessão (ex.: aberta sem querer). Momentos guardados nela ficam na linha do tempo. */
   deleteSession(sessionId: ID) { track('sessao.apagar'); dispatch({ type: 'session.delete', sessionId }); },
+
+  /**
+   * Sessão que veio de uma ponte (Steam ou RetroAchievements), já terminada. Com onlyOpen, só entra se a Jornada
+   * tem uma História em andamento; sem, cria a Jornada (ou uma História nova) como o "Jogar" faria.
+   */
+  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source: 'steam' | 'ra'; detail?: string | null; whereStopped?: string | null }, opts: { onlyOpen?: boolean } = {}): ID | null {
+    let journey = journeyForGame(state, gameId);
+    let history = journey ? currentHistory(state, journey.id) : null;
+    if (opts.onlyOpen && (!history || history.state !== 'ativa')) return null;
+    if (journey && history && (history.state === 'pausada' || history.state === 'dropada')) {
+      actions.setHistoryState(history.id, 'ativa');
+      history = state.histories.find((h) => h.id === history!.id)!;
+    }
+    if (!journey || !history || history.state === 'concluida' || history.state === 'encerrada') {
+      const isNew = !journey;
+      journey = journey ?? { id: uid(), gameId, mood: 'jogando', createdAt: d.startedAt };
+      const ordinal = isNew ? 1 : nextOrdinal(state, journey.id);
+      history = { id: uid(), journeyId: journey.id, ordinal, title: ordinal === 1 ? 'Primeira vez' : 'Rejogada', state: 'ativa', startedAt: d.startedAt, progress: 0 };
+      const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, kind: 'inicio', at: d.startedAt, title: history.title, text: ordinal === 1 ? 'Começou sua primeira História com o jogo.' : 'Uma nova História. As anteriores continuam guardadas.' };
+      if (isNew) dispatch({ type: 'journey.create', journey, history, event }); else dispatch({ type: 'history.create', history, event });
+    }
+    const before = sessionsOf(state, history.id).filter((x) => x.startedAt < d.startedAt).length;
+    const by = d.source === 'steam' ? 'Pela Steam' : 'Pelo RetroAchievements';
+    const where = d.whereStopped?.trim().slice(0, 140) || undefined;
+    const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: d.startedAt, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where, source: d.source, progress: history.progress };
+    const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, sessionId: session.id, kind: 'sessao', at: d.endedAt, title: `Sessão ${before + 1}`, text: [`${by}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') };
+    track(`ponte.${d.source}`);
+    dispatch({ type: 'session.add', session, event });
+    return session.id;
+  },
+
+  /** A ponte leu mais tempo da mesma sessão (a pessoa continuou jogando): estende a que já foi registrada. */
+  extendInferredSession(sessionId: ID, d: { endedAt: string; minutes: number; detail?: string | null; whereStopped?: string | null }) {
+    const ses = state.sessions.find((x) => x.id === sessionId);
+    if (!ses) return;
+    const where = d.whereStopped?.trim().slice(0, 140) || ses.whereStopped;
+    dispatch({ type: 'session.update', session: { ...ses, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where } });
+    const ev = state.events.find((e) => e.sessionId === sessionId && e.kind === 'sessao');
+    if (ev) dispatch({ type: 'event.update', eventId: ev.id, patch: { at: d.endedAt, text: [`${ses.source === 'ra' ? 'Pelo RetroAchievements' : 'Pela Steam'}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') } });
+  },
 
   /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */
   setHistoryPart(historyId: ID, part: { id: string; pct: number } | null) {

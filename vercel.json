@@ -20,6 +20,15 @@
     {
       "path": "/api/conta?purge=1",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/pontes?cron=1",
+      "schedule": "0 11 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/pontes.ts": {
+      "maxDuration": 60
+    }
+  }
 }

@@ -26,7 +26,8 @@ import { useBackdrop } from '../components/Backdrop';
 import { FitCard, LetterLine } from '../components/Comeback';
 import { Faixa, type FaixaToday } from '../components/Faixa';
 import { PaintedMap } from '../components/PaintedMap';
-import { buildTimeline, type TLItem } from '../lib/chapters';
+import { buildTimeline, weaveEchoes, durText, type TLItem, type ChapterItem, type Compare } from '../lib/chapters';
+import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
 import { awayLabel } from '../lib/recap';
 
@@ -137,15 +138,57 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     events, sessions: s.sessions, allEvents: s.events, journeyId, today: showToday,
     gameTitleOf: (jid) => { const j = s.journeys.find((x) => x.id === jid); return j ? s.games[j.gameId]?.title : undefined; },
   }), [events, s.sessions, s.events, s.journeys, s.games, journeyId, showToday]);
+  // Ecos dos amigos (só até o seu progresso) e a comparação anônima: só na História em andamento.
+  const [echoes, setEchoes] = useState<Echoes | null>(null);
+  const [compare, setCompare] = useState<Compare | null>(null);
+  const [ai, setAi] = useState<AiStatus | null>(null);
+  const online = s.mode !== 'supabase' || !!s.profile;
+  useEffect(() => {
+    if (!online) return;
+    let live = true;
+    echoApi.echoes(game.id, current.progress ?? null).then((r) => { if (live) setEchoes(r); }).catch(() => null);
+    return () => { live = false; };
+  }, [game.id, current.progress, online]);
+  useEffect(() => {
+    if (!online) return;
+    let live = true;
+    echoApi.compare(game.id).then((r) => { if (live) setCompare(r); }).catch(() => null);
+    echoApi.aiStatus().then((r) => { if (live) setAi(r); }).catch(() => null);
+    return () => { live = false; };
+  }, [game.id, online]);
+  const woven: TLItem[] = useMemo(() => {
+    if (!showToday) return allItems;
+    const cmp = compare?.enough ? { type: 'compare' as const, id: 'comparar' as const, data: compare, mine: current.progress } : null;
+    return weaveEchoes(allItems, echoes?.echoes ?? [], cmp);
+  }, [allItems, echoes, compare, showToday, current.progress]);
+  const narrations = useMemo(() => Object.fromEntries(histories.flatMap((h) => Object.entries(h.narrations ?? {}).map(([k, v]) => [k, v.text]))), [histories]);
+  const factsOf = (c: ChapterItem): string[] => allItems.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && x.chapter === c.n && x.e.historyId === c.historyId).map(({ e, session: x }) => {
+    const when = eventDate(e, false);
+    if (e.kind === 'sessao') return [`${when}: ${e.title}`, x?.minutes ? durText(x.minutes) : '', x?.whereStopped ? `parou em ${x.whereStopped}` : '', x?.feeling ? `disse que foi “${x.feeling}”` : '', x?.companions?.length ? `jogou com ${x.companions.join(', ')}` : '', x?.note ? `deixou o recado “${x.note}”` : ''].filter(Boolean).join(', ');
+    if (e.kind === 'carta') return `${when}: escreveu uma carta para o fim (lacrada)`;
+    const label = e.kind === 'momento' ? 'momento guardado' : e.kind === 'ponto' ? 'lugar marcado para voltar' : e.kind === 'marco' ? 'marco' : 'começo';
+    return `${when}: ${label} “${e.title}”${e.quote ? `, com a frase “${e.quote}”` : ''}${e.text ? ` (${e.text})` : ''}`;
+  });
+  const narrate = ai?.enabled ? {
+    saved: narrations,
+    left: Math.max(0, ai.limit - ai.used),
+    ask: async (c: ChapterItem, range: string) => {
+      const text = await echoApi.narrate({ game: game.title, chapter: c.n, name: c.name, range, summary: c.summary, facts: factsOf(c) });
+      setAi((a) => (a ? { ...a, used: a.used + 1 } : a));
+      return text;
+    },
+    save: (c: ChapterItem, text: string) => actions.setNarration(c.historyId, c.id, text),
+  } : null;
+
   const groups = FILTERS.find((f) => f[0] === filter)![2];
   const visible = useMemo(() => {
-    if (!groups) return allItems;
+    if (!groups) return woven;
     const kept = allItems.filter((x) => x.type !== 'event' || groups.includes(x.e.kind));
     const used = new Set(kept.filter((x) => x.type === 'event').map((x) => (x as { chapter: number }).chapter));
     return kept.filter((x) => x.type !== 'chapter' || used.has(x.n));
-  }, [allItems, groups]);
+  }, [allItems, woven, groups]);
   const hasEvents = visible.some((x) => x.type === 'event');
-  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere } : null;
+  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [] } : null;
 
   return (
     <main className="journey">
@@ -292,7 +335,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {!hasEvents && !todayInfo ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} />
+            <Faixa items={visible} bg={bg ?? game.cover} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
           ) : (
             <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
           )}

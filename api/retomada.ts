@@ -4,6 +4,8 @@
  * só vira registro quando a pessoa confirma no site. A foto não é guardada aqui.
  *
  *   POST /api/retomada  (com login)  { image: "<jpeg em base64>", note?, game, context? }
+ *   POST /api/retomada  (com login)  { kind: 'narrar', game, chapter, name, range, summary, facts[] } → { text, used, limit }
+ *        Narra um capítulo da Jornada (J2b) só com os fatos enviados; a pessoa guarda ou descarta no site.
  *   GET  /api/retomada  (com login)  → { enabled, used, limit }
  *
  * Variáveis na Vercel:
@@ -75,6 +77,43 @@ Responda SOMENTE com um objeto JSON, sem texto antes ou depois, com estas chaves
 Nunca invente nomes, lugares ou objetivos que não estejam na imagem ou na nota. Se não der para ler, deixe vazio e use confidence "baixa".
 Não dê dicas de solução nem spoilers além do que está na tela.`;
 
+const NARRATE = `Você escreve a narração curta de um capítulo da jornada de uma pessoa com um videogame.
+Use SOMENTE os fatos enviados. Não invente acontecimentos, lugares, personagens, sentimentos, números nem detalhes do jogo.
+Não conte nada do jogo além do que está nos fatos (sem spoilers).
+Escreva em português do Brasil, na segunda pessoa ("você"), em tom tranquilo e caloroso, em 2 ou 3 frases, no máximo 320 caracteres.
+Não use adjetivos ou particípios que marquem o gênero da pessoa (prefira "você voltou" a "você ficou animado").
+Responda só com o texto da narração, sem aspas e sem título.`;
+
+async function narrate(user: string, body: Record<string, unknown>, res: Res) {
+  const facts = Array.isArray(body.facts) ? body.facts.slice(0, 40).map((f) => clip(f, 220)).filter(Boolean) : [];
+  if (!facts.length && !clip(body.summary, 10)) return res.status(400).json({ error: 'Este capítulo ainda não tem registros para narrar.' });
+  const used = await reserve(user);
+  if (used < 0) return res.status(429).json({ error: `Você já usou os ${LIMIT()} pedidos de IA deste mês.`, used: LIMIT(), limit: LIMIT() });
+  const text = [
+    `Jogo: ${clip(body.game, 120) || 'não informado'}.`,
+    `Capítulo ${Number(body.chapter) || 1}: ${clip(body.name, 120)} (${clip(body.range, 60)}).`,
+    `Resumo do site: ${clip(body.summary, 600)}`,
+    facts.length ? `Registros, em ordem:\n- ${facts.join('\n- ')}` : '',
+  ].filter(Boolean).join('\n');
+  let r: Response;
+  try {
+    r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: MODEL(), max_tokens: 300, system: NARRATE, messages: [{ role: 'user', content: text }] }),
+    });
+  } catch { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
+  if (!r.ok) {
+    await refund(user);
+    console.error('anthropic narrar', r.status);
+    return res.status(502).json({ error: r.status === 429 || r.status === 529 ? 'A IA está ocupada agora. Tente de novo em instantes.' : 'A IA não respondeu agora. Tente de novo.' });
+  }
+  const out = (await r.json()) as { content?: { type: string; text?: string }[] };
+  const said = clip((out.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join(' ').replace(/^["“]|["”]$/g, ''), 420);
+  if (!said) { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
+  return res.status(200).json({ text: said, used, limit: LIMIT() });
+}
+
 export default async function handler(req: Req, res: Res) {
   try {
     res.setHeader('Cache-Control', 'no-store');
@@ -84,7 +123,8 @@ export default async function handler(req: Req, res: Res) {
     if (req.method !== 'POST') return res.status(200).json({ enabled, used: enabled ? await usage(user).catch(() => 0) : 0, limit: LIMIT() });
     if (!enabled) return res.status(503).json({ error: 'A Retomada Inteligente ainda não foi ligada (falta a chave da IA no servidor).' });
 
-    const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { image?: string; note?: string; game?: string; context?: string };
+    const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { kind?: string; image?: string; note?: string; game?: string; context?: string };
+    if (body.kind === 'narrar') return narrate(user, body as Record<string, unknown>, res);
     const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 

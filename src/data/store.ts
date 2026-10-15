@@ -743,7 +743,8 @@ export const actions = {
     const n = sessionsOf(state, ses.historyId).findIndex((x) => x.id === sessionId) + 1;
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined };
+    const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known };
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
     const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText].filter(Boolean).join(' ') || undefined;
     const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text };
@@ -896,6 +897,17 @@ export const actions = {
     const first = !h.letter;
     dispatch({ type: 'history.update', history: { ...h, letter: { text: t } } });
     if (first) dispatch({ type: 'event.add', event: { id: uid(), journeyId: h.journeyId, historyId, kind: 'carta', at: nowIso(), title: 'Carta para o fim', text: 'Lacrada até você zerar.' } });
+  },
+
+  /** Guarda (ou apaga, com texto vazio) a narração da IA de um capítulo. */
+  setNarration(historyId: ID, chapterId: string, text: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const next = { ...(h.narrations ?? {}) };
+    const t = text.trim().slice(0, 600);
+    if (t) next[chapterId] = { text: t, at: nowIso() }; else delete next[chapterId];
+    if (t) track('jornada.narrar');
+    dispatch({ type: 'history.update', history: { ...h, narrations: Object.keys(next).length ? next : undefined } });
   },
 
   /** "Continuar mesmo assim": some a sugestão de pausa até a próxima sequência de "Não encaixou". */

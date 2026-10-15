@@ -15,7 +15,7 @@ import type { FaixaPlay, FaixaToday } from './Faixa';
 
 type Pt = { id: string; x: number; y: number; t: number; it: TLItem; kind: string; label: string; sub: string; up: boolean };
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
-const ICON: Record<string, string> = { inicio: '◇', sessao: '●', momento: '✦', ponto: '⚑', marco: '◆', carta: '✉', silence: '…', memory: '◴', today: '☺', goal: '◆' };
+const ICON: Record<string, string> = { inicio: '◇', sessao: '●', momento: '✦', ponto: '⚑', marco: '◆', carta: '✉', silence: '…', echo: '◌', memory: '◴', today: '☺', goal: '◆' };
 const short = (iso: string) => whenLabel(iso, 'dia', { short: true }).replace(/ \d{4}$/, '');
 
 export function PaintedMap({ items, historyId, title, subtitle, play, today, onEdit, reduced }: {
@@ -31,7 +31,7 @@ export function PaintedMap({ items, historyId, title, subtitle, play, today, onE
 
   // Os pontos na trilha, os capítulos como regiões e o que ainda falta.
   const { pts, regions, explored, chapters, goal } = useMemo(() => {
-    const route = items.filter((x) => x.type === 'event' || x.type === 'silence' || x.type === 'today');
+    const route = items.filter((x) => x.type === 'event' || x.type === 'silence' || x.type === 'today' || x.type === 'echo');
     const explored = today ? 0.8 : 1;
     const n = Math.max(1, route.filter((x) => x.type !== 'today').length);
     const pts: Pt[] = [];
@@ -43,6 +43,8 @@ export function PaintedMap({ items, historyId, title, subtitle, play, today, onE
       if (it.type === 'event') {
         const e = it.e, x2 = it.session;
         pts.push({ id: it.id, x, y, t, it, kind: e.kind, label: e.kind === 'sessao' && x2?.minutes ? `${e.title} · ${durText(x2.minutes)}` : e.title, sub: `${KIND[e.kind] ?? e.kind} · ${e.dateLabel ?? short(e.at)}`, up: e.kind === 'carta' || e.kind === 'momento' ? k % 2 === 0 : k % 2 === 1 });
+      } else if (it.type === 'echo') {
+        pts.push({ id: it.id, x, y, t, it, kind: 'echo', label: `@${it.echo.handle} · ${it.echo.kind === 'inicio' ? 'começou' : it.echo.title}`, sub: `Eco${it.echo.progress > 0 ? ` · ${it.echo.progress}%` : ''}`, up: k % 2 === 1 });
       } else if (it.type === 'silence') {
         pts.push({ id: it.id, x, y, t, it, kind: 'silence', label: `${it.days} dias sem jogar`, sub: 'Silêncio', up: k % 2 === 1 });
       } else {
@@ -178,6 +180,14 @@ export function PaintedMap({ items, historyId, title, subtitle, play, today, onE
               {selIt.e.kind === 'ponto' && !selIt.e.resolved && <button className="pmap__btn is-main" onClick={() => actions.resolveWaypoint(selIt.e.id)}>Resolver</button>}
               {selIt.e.kind !== 'carta' && <button className="pmap__btn" onClick={() => onEdit(selIt.e.id)}>Editar</button>}
             </div>
+          </>}
+          {selIt.type === 'echo' && <>
+            <span className="pmap__k">Eco · @{selIt.echo.handle}{selIt.echo.progress > 0 ? ` · ${selIt.echo.progress}%` : ''}</span>
+            <h3>{selIt.echo.kind === 'inicio' ? 'Começou a jogar' : selIt.echo.title}</h3>
+            {selIt.echo.image && <img src={selIt.echo.image} alt="" />}
+            {selIt.echo.legend && <p>{selIt.echo.legend}</p>}
+            <p className="pmap__meta">Passou por aqui em {whenLabel(selIt.echo.at, 'mes')}. Só aparece o que fica até onde você está.</p>
+            <div className="pmap__actions"><Link className="pmap__btn" to={`/@${selIt.echo.handle}`}>Ver o perfil</Link></div>
           </>}
           {selIt.type === 'silence' && <>
             <span className="pmap__k">Silêncio · {short(selIt.from)} → {short(selIt.to)}</span>

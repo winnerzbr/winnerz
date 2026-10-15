@@ -15,7 +15,13 @@ export type EventItem = { type: 'event'; id: string; e: TimelineEvent; session?:
 export type SilenceItem = { type: 'silence'; id: string; days: number; from: string; to: string; meanwhile: string[]; chapter: number };
 export type MemoryItem = { type: 'memory'; id: string; e: TimelineEvent; years: number; gameTitle: string };
 export type TodayItem = { type: 'today'; id: 'hoje' };
-export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem;
+/** Registro de um amigo no mesmo jogo, ancorado no progresso (só até onde você está). */
+export type Echo = { id: string; handle: string; avatar?: string | null; kind: 'inicio' | 'momento' | 'marco'; at: string; title: string; legend?: string | null; image?: string | null; progress: number };
+export type EchoItem = { type: 'echo'; id: string; echo: Echo; chapter: number };
+/** Números de todo mundo que jogou (sem nomes, só a partir de 5 pessoas). */
+export type Compare = { players: number; enough: boolean; playing?: number | null; done?: number; doneSessions?: number | null; doneHours?: number | null; paused?: number; pauseBuckets?: { from: number; count: number }[] };
+export type CompareItem = { type: 'compare'; id: 'comparar'; data: Compare; mine?: number };
+export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem;
 
 export type BuildInput = {
   /** Registros da História (ou das Histórias) mostrada, em qualquer ordem. */
@@ -155,4 +161,47 @@ export function buildTimeline(inp: BuildInput): TLItem[] {
 export function chapterOf(items: TLItem[], i: number): ChapterItem | null {
   for (let k = i; k >= 0; k--) { const it = items[k]; if (it.type === 'chapter') return it; }
   return null;
+}
+
+/**
+ * Costura os ecos dos amigos na faixa. Cada registro seu ganha o progresso da sessão dele (ou o último informado
+ * antes, na mesma História); o eco entra antes do primeiro registro seu que já passou daquele ponto. Sem nenhum
+ * progresso seu, os ecos ficam juntos antes do fim. A comparação anônima entra logo antes do "Hoje".
+ */
+export function weaveEchoes(items: TLItem[], echoes: Echo[], compare?: CompareItem | null): TLItem[] {
+  const queue = [...echoes].sort((a, b) => a.progress - b.progress || a.at.localeCompare(b.at));
+  const out: TLItem[] = [];
+  const last = new Map<ID, number>();
+  let chapter = 0;
+  const flush = (upto: number) => { while (queue.length && queue[0].progress < upto) { const e = queue.shift()!; out.push({ type: 'echo', id: `eco-${e.id}`, echo: e, chapter }); } };
+  for (const it of items) {
+    if (it.type === 'chapter') chapter = it.n;
+    if (it.type === 'event') {
+      const own = it.session?.progress;
+      const anchor = own ?? last.get(it.e.historyId);
+      if (own != null) last.set(it.e.historyId, own);
+      if (anchor != null) flush(anchor);
+    }
+    if (it.type === 'memory' || it.type === 'today') { flush(Infinity); if (it.type === 'today' && compare) out.push(compare); }
+    out.push(it);
+  }
+  flush(Infinity);
+  if (compare && !out.includes(compare)) out.push(compare);
+  return out;
+}
+
+/** As frases da comparação anônima, só com o que os números dizem. */
+export function compareLines(c: Compare, mine?: number): string[] {
+  const out: string[] = [];
+  const b = [...(c.pauseBuckets ?? [])].sort((x, y) => y.count - x.count)[0];
+  if (b && (c.paused ?? 0) >= 5) {
+    const share = Math.round((b.count / (c.paused ?? 1)) * 10);
+    out.push(`Muita gente pausa entre ${b.from}% e ${b.from + 10}%${share >= 2 ? `: ${share} em cada 10 que pararam, pararam aí` : ''}.`);
+    if (mine != null && mine >= b.from && mine < b.from + 10) out.push('Você está bem nesse trecho. Se der vontade de parar, não é só com você.');
+    else if (mine != null && mine < b.from) out.push('Você ainda não chegou nesse trecho.');
+  }
+  if (c.doneSessions || c.doneHours) out.push(`Quem zerou levou, em geral, ${[c.doneSessions ? `${c.doneSessions} ${c.doneSessions === 1 ? 'sessão' : 'sessões'}` : '', c.doneHours ? `cerca de ${c.doneHours} h` : ''].filter(Boolean).join(', ')}.`);
+  if (c.done != null && c.done > 0) out.push(`${c.done} de ${c.players} ${c.players === 1 ? 'pessoa zerou' : 'pessoas zeraram'}.`);
+  if (c.playing) out.push(`${c.playing} ${c.playing === 1 ? 'pessoa está jogando' : 'pessoas estão jogando'} agora.`);
+  return out;
 }

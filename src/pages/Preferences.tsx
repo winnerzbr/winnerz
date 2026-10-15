@@ -234,6 +234,7 @@ function CommunitySettings() {
       <h2 id="comunidade" className="t">Comunidade</h2>
       {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
       {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
+      {row('eco', true, 'Meus registros como eco para amigos', 'Quem é seu amigo e joga o mesmo jogo vê, na linha do tempo, quando você começou, os momentos das Jornadas que você mostra no perfil e quando zerou. Só até o ponto onde a pessoa está, sem spoiler. Recados, pontos para voltar e cartas nunca aparecem.')}
     </section>
   );
 }

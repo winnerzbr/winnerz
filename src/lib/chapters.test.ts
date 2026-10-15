@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTimeline, summarize } from './chapters';
+import { buildTimeline, summarize, weaveEchoes, compareLines } from './chapters';
 
 const ev = (id: string, at: string, kind: any, more: any = {}) => ({ id, journeyId: 'j', historyId: 'h', kind, at, title: more.title ?? id, ...more });
 const ses = (id: string, at: string, more: any = {}) => ({ id, journeyId: 'j', historyId: 'h', startedAt: at, endedAt: at, ...more });
@@ -38,4 +38,31 @@ test('o resumo só usa o que foi registrado', () => {
 test('sem "Hoje" quando a História não está em andamento', () => {
   const items = buildTimeline({ events, sessions, allEvents: events, gameTitleOf: (j) => titles[j], journeyId: 'j', today: false });
   assert.equal(items.at(-1)!.type, 'event');
+});
+
+test('ecos entram antes do primeiro registro seu que já passou daquele ponto; a comparação, antes do Hoje', () => {
+  const ss = [ses('a', '2026-10-02T21:00:00-03:00', { progress: 20 }), ses('b', '2026-10-12T21:00:00-03:00', { progress: 50 })];
+  const items = buildTimeline({ events, sessions: ss, allEvents: events, gameTitleOf: (j) => titles[j], journeyId: 'j', today: true, now: Date.parse('2026-10-15T12:00:00-03:00') });
+  const echo = (id: string, progress: number) => ({ id, handle: 'duda', kind: 'momento' as const, at: '2025-01-01T00:00:00Z', title: id, progress });
+  const cmp = { type: 'compare' as const, id: 'comparar' as const, data: { players: 9, enough: true } };
+  const out = weaveEchoes(items, [echo('e30', 30), echo('e10', 10), echo('e45', 45)], cmp);
+  const ids = out.map((x) => x.id);
+  assert.ok(ids.indexOf('eco-e10') < ids.indexOf('s1'));
+  assert.ok(ids.indexOf('eco-e30') > ids.indexOf('s1') && ids.indexOf('eco-e30') < ids.indexOf('s2'));
+  assert.ok(ids.indexOf('eco-e45') < ids.indexOf('s2'));
+  assert.equal(ids.at(-2), 'comparar');
+  assert.equal(ids.at(-1), 'hoje');
+  // Sem progresso nenhum: todos juntos antes do fim.
+  const flat = weaveEchoes(buildTimeline({ events, sessions, allEvents: events, gameTitleOf: () => 'x', journeyId: 'j', today: true }), [echo('a', 5)], null);
+  assert.equal(flat.at(-2)?.id, 'eco-a');
+});
+
+test('a comparação só diz o que os números dizem', () => {
+  const c = { players: 40, enough: true, done: 12, doneSessions: 20, doneHours: 25, paused: 10, pauseBuckets: [{ from: 40, count: 6 }, { from: 10, count: 4 }] };
+  const l = compareLines(c, 45);
+  assert.equal(l[0], 'Muita gente pausa entre 40% e 50%: 6 em cada 10 que pararam, pararam aí.');
+  assert.match(l[1], /não é só com você/);
+  assert.equal(l[2], 'Quem zerou levou, em geral, 20 sessões, cerca de 25 h.');
+  assert.equal(l[3], '12 de 40 pessoas zeraram.');
+  assert.deepEqual(compareLines({ players: 6, enough: true, paused: 3, pauseBuckets: [] }), []);
 });

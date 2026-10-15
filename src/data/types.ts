@@ -182,6 +182,8 @@ export interface History {
   startedAt: string;
   completedAt?: string;
   progress?: number; // 0..100, sempre informado pelo usuário
+  /** Capítulos narrados pela IA que a pessoa guardou (chave: o capítulo). */
+  narrations?: Record<string, { text: string; at: string }>;
   /** Campo antigo (modo de dificuldade); não aparece mais no site. */
   mode?: string;
   letter?: { text: string; openedAt?: string };
@@ -230,6 +232,8 @@ export interface Session {
   feeling?: string;
   /** Com quem você jogou (nomes livres). */
   companions?: string[];
+  /** O progresso (%) informado ao fechar esta sessão, ou o último informado antes dela. */
+  progress?: number;
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';
@@ -308,6 +312,8 @@ export interface CommunityPrefs {
   aviso_lembretes?: boolean;
   aviso_lancamentos?: boolean;
   aviso_retomada?: boolean;
+  /** Seus registros aparecem como eco na linha do tempo dos amigos (padrão: sim). */
+  eco?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

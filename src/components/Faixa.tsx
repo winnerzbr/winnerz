@@ -8,7 +8,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, typ
 import { Link } from '../lib/router';
 import { actions } from '../data/store';
 import type { TLItem, ChapterItem } from '../lib/chapters';
-import { chapterOf, durText } from '../lib/chapters';
+import { chapterOf, durText, compareLines } from '../lib/chapters';
 import { whenLabel } from '../lib/dates';
 import { awayLabel } from '../lib/recap';
 import { Icon, Compass } from './Icon';
@@ -16,7 +16,19 @@ import { BrandMark } from './Brand';
 import { PhotoViewer } from './MediaGallery';
 
 export type FaixaPlay = { label: string; now: boolean; onClick: () => void; hint?: string };
-export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean };
+export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean; friends?: { handle: string; state: string }[] };
+export type FaixaNarrate = { saved: Record<string, string>; left: number; ask: (c: ChapterItem, range: string) => Promise<string>; save: (c: ChapterItem, text: string) => void };
+
+/** "@duda e @carol também jogaram este jogo · 1 já zerou" (sem marcar gênero). */
+export function friendsLine(fr: { handle: string; state: string }[]): string {
+  if (!fr.length) return '';
+  const names = fr.slice(0, 2).map((f) => `@${f.handle}`);
+  const rest = fr.length - names.length;
+  const who = rest > 0 ? `${names.join(', ')} e mais ${rest}` : names.join(' e ');
+  const done = fr.filter((f) => f.state === 'zerou').length;
+  const tail = !done ? '' : fr.length === 1 ? ' · e zerou' : ` · ${done} já ${done === 1 ? 'zerou' : 'zeraram'}`;
+  return `${who} também ${fr.length === 1 ? 'jogou' : 'jogaram'} este jogo${tail}.`;
+}
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX'];
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
@@ -31,13 +43,23 @@ function itemDate(it: TLItem): string {
   if (it.type === 'event') return it.e.at;
   if (it.type === 'silence') return it.from;
   if (it.type === 'memory') return it.e.at;
+  if (it.type === 'echo') return '';
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull, reduced, light }: {
+export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull, reduced, light, narrate }: {
   items: TLItem[]; bg: string; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void;
-  full: boolean; onExitFull: () => void; reduced: boolean; light: boolean;
+  full: boolean; onExitFull: () => void; reduced: boolean; light: boolean; narrate?: FaixaNarrate | null;
 }) {
+  const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
+  const [asking, setAsking] = useState<string | null>(null);
+  const [aiErr, setAiErr] = useState<{ id: string; text: string } | null>(null);
+  const askAi = async (c: ChapterItem) => {
+    if (!narrate) return;
+    setAsking(c.id); setAiErr(null);
+    try { setDraft({ id: c.id, text: await narrate.ask(c, range(c)) }); } catch (err) { setAiErr({ id: c.id, text: err instanceof Error ? err.message : 'A IA não respondeu agora.' }); }
+    setAsking(null);
+  };
   const stage = useRef<HTMLElement>(null);
   const vp = useRef<HTMLDivElement>(null);
   const big = useRef<HTMLDivElement>(null);
@@ -206,9 +228,69 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
         <span className="fx-num">{ROMAN[it.n - 1] ?? it.n}</span>
         <span className="fx-k">Capítulo {it.n} · {range(it)}</span>
         <h3 className="fx-h">{it.name}</h3>
-        <p className="fx-p">{it.summary}</p>
+        {draft?.id === it.id ? (
+          <div className="fx-ai" onClick={(ev) => ev.stopPropagation()}>
+            <p className="fx-p fx-ai__text">{draft.text}</p>
+            <small className="fx-src">Inferido · narrado pela IA só com o que você registrou. Guarde se gostou.</small>
+            <div className="fx-actions">
+              <button className="btn now sm" onClick={() => { narrate?.save(it, draft.text); setDraft(null); }}>Guardar</button>
+              <button className="btn ghost sm fx-btn" onClick={() => setDraft(null)}>Descartar</button>
+            </div>
+          </div>
+        ) : narrate?.saved[it.id] ? (
+          <>
+            <p className="fx-p fx-ai__text">{narrate.saved[it.id]}</p>
+            <small className="fx-src">Inferido · narrado pela IA</small>
+            {on && <div className="fx-actions"><button className="btn quiet sm" onClick={(ev) => { ev.stopPropagation(); narrate.save(it, ''); }}>Voltar ao resumo do site</button></div>}
+          </>
+        ) : (
+          <>
+            <p className="fx-p">{it.summary}</p>
+            {on && narrate && !full && (
+              <div className="fx-actions">
+                <button className="btn ghost sm fx-btn" disabled={asking === it.id || narrate.left <= 0} onClick={(ev) => { ev.stopPropagation(); askAi(it); }}>
+                  <Icon name="brilho" size={13} />{asking === it.id ? 'Narrando…' : 'Narrar com a IA'}
+                </button>
+                {narrate.left <= 0 && <small className="fx-src">Os pedidos de IA deste mês acabaram.</small>}
+              </div>
+            )}
+            {aiErr?.id === it.id && <small className="fx-src fx-err" role="alert">{aiErr.text}</small>}
+          </>
+        )}
       </article>
     );
+    if (it.type === 'echo') {
+      const x = it.echo;
+      return (
+        <article key={it.id} {...common} className={`fx-pn fx-ev fx-echo${x.image ? ' has-img' : ''}`} aria-label={`Eco de @${x.handle}: ${x.title}`}>
+          {x.image && <div className="fx-bg" style={{ backgroundImage: `url(${x.image})` }} />}
+          <span className="fx-ava" aria-hidden="true">{x.avatar ? <img src={x.avatar} alt="" /> : x.handle.slice(0, 1).toUpperCase()}</span>
+          <span className="fx-k fx-k--echo">Eco · @{x.handle}{x.progress > 0 ? ` · ${x.progress}%` : ''}</span>
+          <h3 className="fx-h fx-h--sm">{x.kind === 'inicio' ? 'Começou a jogar' : x.title}</h3>
+          {x.legend && <p className="fx-p">{x.legend}</p>}
+          <small className="fx-src">Passou por aqui em {whenLabel(x.at, 'mes')}</small>
+          {on && <div className="fx-actions"><Link className="btn quiet sm" to={`/@${x.handle}`} onClick={(ev) => ev.stopPropagation()}>Ver o perfil</Link></div>}
+        </article>
+      );
+    }
+    if (it.type === 'compare') {
+      const c = it.data, lines = compareLines(c, it.mine);
+      const max = Math.max(1, ...(c.pauseBuckets ?? []).map((b) => b.count));
+      return (
+        <article key={it.id} {...common} className="fx-pn fx-cmp" aria-label="Quem também jogou">
+          <span className="fx-k">Quem também jogou · comparação anônima</span>
+          <h3 className="fx-h fx-h--sm">{c.players} pessoas no WinnerZ</h3>
+          {(c.pauseBuckets ?? []).length > 0 && (
+            <div className="fx-bars" aria-hidden="true">
+              {Array.from({ length: 10 }, (_, k) => { const b = c.pauseBuckets!.find((x) => x.from === k * 10); const me = it.mine != null && Math.min(9, Math.floor(it.mine / 10)) === k; return <i key={k} className={me ? 'me' : undefined} style={{ height: `${8 + ((b?.count ?? 0) / max) * 52}px` }} title={`${k * 10}%`} />; })}
+            </div>
+          )}
+          {(c.pauseBuckets ?? []).length > 0 && <small className="fx-src">Onde as pessoas pausaram, de 0% a 100%{it.mine != null ? ' · em destaque, onde você está' : ''}</small>}
+          <ul className="fx-lines">{lines.map((l) => <li key={l}>{l}</li>)}</ul>
+          <small className="fx-src">Números de todo mundo que registrou este jogo, sem nomes. Só aparece com 5 pessoas ou mais.</small>
+        </article>
+      );
+    }
     if (it.type === 'silence') return (
       <article key={it.id} {...common} className="fx-pn fx-sil" aria-label={`${it.days} dias sem jogar`}>
         <b>{it.days} dias</b><small>sem jogar</small>
@@ -230,6 +312,7 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
         <span className="fx-k fx-k--now">Hoje{today?.away != null && today.away > 0 ? ` · última vez ${awayLabel(today.away)}` : ''}</span>
         <h3 className="fx-h">{today?.open ? 'Sessão aberta agora' : today?.where ? <>Você parou em {today.where}</> : 'O próximo instante'}</h3>
         {today?.note && !today.open && <p className="fx-p">“{today.note}”</p>}
+        {!!today?.friends?.length && <p className="fx-sub fx-friends"><Icon name="pessoas" size={14} /> {friendsLine(today.friends)}</p>}
         <div className="fx-actions">
           {today?.open ? <Link className="btn now sm" to="/sessao">Abrir a sessão</Link> : <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={(e) => { e.stopPropagation(); play.onClick(); }}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>}
           {today && !today.open && (today.away ?? 0) >= 3 && <Link className="btn ghost sm" to={`/jornada/${today.slug}/voltar`} onClick={(e) => e.stopPropagation()}>Preparar a volta</Link>}
@@ -280,8 +363,8 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
       </div>
       {narr && (
         <div className="fx-narr" key={narr.id} aria-live="polite">
-          <b>{narr.summary}</b>
-          <small>Resumo do site · só com o que você registrou</small>
+          <b>{narrate?.saved[narr.id] ?? narr.summary}</b>
+          <small>{narrate?.saved[narr.id] ? 'Inferido · narrado pela IA' : 'Resumo do site · só com o que você registrou'}</small>
         </div>
       )}
       {!vertical && (

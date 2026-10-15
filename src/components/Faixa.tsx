@@ -1,7 +1,7 @@
 /**
  * Linha do tempo da Jornada · Rolagem "Faixa".
  * Uma faixa de painéis (capítulos, registros, silêncios, lembranças e o "Hoje"). O painel do centro fica
- * nítido e aceso; os outros recuam, escurecem e desfocam. A luz ambiente vem da arte do capítulo.
+ * nítido e aceso; os outros recuam, escurecem e desfocam. O fundo alterna as imagens do jogo (capa de fundo, artes e capturas).
  * Horizontal no computador, vertical no celular. Com "reduzir movimento", sem profundidade nem poeira.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type MouseEvent, type KeyboardEvent } from 'react';
@@ -47,8 +47,8 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull, reduced, light, narrate }: {
-  items: TLItem[]; bg: string; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void;
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, full, onExitFull, reduced, light, narrate }: {
+  items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void;
   full: boolean; onExitFull: () => void; reduced: boolean; light: boolean; narrate?: FaixaNarrate | null;
 }) {
   const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
@@ -179,8 +179,17 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
 
   const cur = items[Math.max(0, Math.min(items.length - 1, focus))];
   const curChap = chapterOf(items, focus);
-  const ambient = curChap?.image ?? bg;
-  const ambients = useMemo(() => [...new Set([bg, ...chapters.map((c) => c.image).filter((x): x is string => !!x)])], [bg, chapters]);
+  // Fundo: as imagens do jogo, uma de cada vez, trocando devagar (parado com "reduzir movimento" e no modo leve).
+  const ambients = useMemo(() => [...new Set([bg, ...images].filter(Boolean))].slice(0, 12), [bg, images]);
+  const [amb, setAmb] = useState(0);
+  useEffect(() => {
+    if (reduced || light || ambients.length < 2) return;
+    const t = setInterval(() => setAmb((n) => (n + 1) % ambients.length), 9000);
+    return () => clearInterval(t);
+  }, [reduced, light, ambients.length]);
+  const ambient = ambients[amb % Math.max(1, ambients.length)] ?? bg;
+  /** A imagem de cada capítulo: uma imagem do jogo diferente por capítulo. */
+  const chapImage = (c: ChapterItem) => (ambients.length > 1 ? ambients[(c.n - 1) % ambients.length] : c.image ?? bg);
 
   // Régua: cada painel avança um passo, mais um pouco pelo tempo que passou (raiz dos dias, para as pausas
   // longas aparecerem sem esmagar o resto). O "Hoje" fica no fim.
@@ -196,7 +205,7 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
   // Rótulos dos capítulos sem se encostar.
   const labels = useMemo(() => {
     const out: { c: ChapterItem; p: number }[] = [];
-    for (const c of chapters) { const p = posMap.get(c.id) ?? 0; if ((!out.length || p - out[out.length - 1].p >= 9) && (!today || p <= 90)) out.push({ c, p }); }
+    for (const c of chapters) { const p = posMap.get(c.id) ?? 0; if ((!out.length || p - out[out.length - 1].p >= 12) && (!today || p <= 90)) out.push({ c, p }); }
     return out;
   }, [chapters, posMap, today]);
   const onRuler = (e: MouseEvent<HTMLDivElement>) => {
@@ -224,7 +233,7 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
     const common = { ref, onClick: () => click(i), 'data-on': on || undefined } as const;
     if (it.type === 'chapter') return (
       <article key={it.id} {...common} className="fx-pn fx-chap" aria-label={`Capítulo ${it.n}: ${it.name}`}>
-        <div className="fx-bg" style={{ backgroundImage: `url(${it.image ?? bg})` }} /><div className="fx-sh" />
+        <div className="fx-bg" style={{ backgroundImage: `url(${chapImage(it)})` }} /><div className="fx-sh" />
         <span className="fx-num">{ROMAN[it.n - 1] ?? it.n}</span>
         <span className="fx-k">Capítulo {it.n} · {range(it)}</span>
         <h3 className="fx-h">{it.name}</h3>

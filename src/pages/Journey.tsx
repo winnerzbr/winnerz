@@ -342,7 +342,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {!hasEvents && !todayInfo ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
+            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
           ) : (
             <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
           )}

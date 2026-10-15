@@ -15,6 +15,7 @@ import { radarGames } from './Radar';
 import { awardsApi, phaseOf, publicAt, type Award } from '../data/awards';
 import { isNewcomer } from '../lib/welcome';
 import { Welcome } from './Welcome';
+import { StopLine } from '../components/Comeback';
 
 const TZ = 'America/Sao_Paulo';
 /** "09 OUT", e o ano quando não é o ano corrente. */
@@ -122,7 +123,7 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
         {slots[0] ?? <span className="hz__item hz__item--far" />}
         {slots[1] ?? <span className="hz__item" />}
         <div className="hz__item hz__item--today">
-          <span className="hz__label hz__label--today"><span className="t hz__today">Hoje</span>{focusGame && nextSession ? <span className="hz__sub">Seu recado espera na Sessão {nextSession}</span> : null}</span>
+          <span className="hz__label hz__label--today"><span className="t hz__today">Hoje</span>{focusGame && nextSession ? <span className="hz__sub">Seu recado espera por você</span> : null}</span>
           <span className="hz__mk hz__mk--today" aria-hidden="true" />
         </div>
         {slots[2] ?? <span className="hz__item" />}
@@ -207,6 +208,7 @@ function HomeDefault() {
                 {h.ordinal > 1 ? `Sua ${h.ordinal}ª História com este jogo` : 'Sua primeira História com este jogo'}
                 {nSessions ? `. ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'} desde ${dayMonthYear(h.startedAt).replace(/ de \d{4}$/, '')}` : ''}.
               </p>
+              <StopLine journeyId={j.id} slug={game.slug} className="hero__stop in-2" />
               {h.progress != null && (
                 <div className="hero__progress in-2">
                   <div className="hline" aria-hidden="true"><i style={{ width: `${h.progress}%` }} /><b style={{ left: `${h.progress}%` }} /></div>

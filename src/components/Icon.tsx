@@ -26,6 +26,7 @@ const paths: Record<string, ReactElement> = {
   escudo: <path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z" />,
   calendario: <><rect x="4" y="5.5" width="16" height="14.5" rx="2" /><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" /></>,
   cadeado: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
+  carta: <><path d="M3.5 6.5h17v11h-17z" strokeLinejoin="round" /><path d="M3.5 7l8.5 6.5L20.5 7" strokeLinejoin="round" /></>,
   mensagem: <><path d="M4 5.5h16v10H9l-5 4z" strokeLinejoin="round" /><path d="M8 9.5h8M8 12.5h5" /></>,
   fechar: <path d="M6 6l12 12M18 6L6 18" />,
   desejo: <path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-4-6 4V4.5a1 1 0 0 1 1-1z" strokeLinejoin="round" />,

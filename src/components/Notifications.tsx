@@ -49,12 +49,13 @@ export function notifLine(n: Notif): ReactNode {
       : <>A jogatina {t} mudou para <b>{whenLabel(str(n.data.startsAt))}</b></>;
     case 'seguiu': return n.data.friends ? <>{who(n)} seguiu você de volta: agora vocês são amigos</> : <>{who(n)} começou a seguir você</>;
     case 'lancamento': return <>Saiu {t}, que está na sua lista de desejos ou no Radar</>;
+    case 'retomada': { const d = str(n.data.lastAt) ? Math.floor((Date.now() - Date.parse(str(n.data.lastAt))) / 86_400_000) : 14; return <>Faz {d} dias que você não volta a {t}. Quer ver onde parou?</>; }
     case 'moderacao': return <><b>Moderação</b></>;
     case 'site': return <><b>WinnerZ</b> · {t}</>;
     default: return <>{t}</>;
   }
 }
-const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
+const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
 /** Texto extra embaixo da frase (trecho da mensagem, aviso da moderação). */
 const showExcerpt = (n: Notif) => !!n.excerpt && !['clube_jogo', 'clube_jogatina', 'parte'].includes(n.kind);
 

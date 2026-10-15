@@ -472,6 +472,24 @@ export function activeWaypoints(s: State, journeyId: ID) {
   return eventsOf(s, journeyId).filter((e) => e.kind === 'ponto' && !e.resolved);
 }
 
+export { sessionMinutes, NOT_FIT } from '../lib/sessions';
+import { sessionMinutes, notFitStreak } from '../lib/sessions';
+
+/** Dias desde a última sessão (ou registro) da Jornada. */
+export function daysAway(s: State, journeyId: ID, now = Date.now()): number | null {
+  const last = [...s.sessions.filter((x) => x.journeyId === journeyId).map((x) => x.endedAt ?? x.startedAt), ...s.events.filter((e) => e.journeyId === journeyId && e.precision !== 'desconhecida').map((e) => e.at)].sort().at(-1);
+  return last ? Math.max(0, Math.floor((now - Date.parse(last)) / 86_400_000)) : null;
+}
+
+/** Três sessões seguidas que "não encaixaram" na História em andamento: hora de sugerir uma pausa sem culpa. */
+export function fitHint(s: State, journeyId: ID): { historyId: ID; lastSessionId: ID } | null {
+  const h = currentHistory(s, journeyId);
+  if (!h || h.state !== 'ativa') return null;
+  const last = notFitStreak(sessionsOf(s, h.id));
+  if (!last || s.prefs.fitDismissed?.[h.id] === last.id) return null;
+  return { historyId: h.id, lastSessionId: last.id };
+}
+
 /* ------------------------------------------------------------------ */
 /* Ações de alto nível                                                 */
 /* ------------------------------------------------------------------ */
@@ -724,7 +742,8 @@ export const actions = {
     const at = data.endedAt ?? nowIso();
     const n = sessionsOf(state, ses.historyId).findIndex((x) => x.id === sessionId) + 1;
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes: data.minutes, companions: companions.length ? companions : undefined };
+    const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined };
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
     const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText].filter(Boolean).join(' ') || undefined;
     const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text };
@@ -867,6 +886,22 @@ export const actions = {
   importBulk(data: ImportPayload) { dispatch({ type: 'import.bulk', data }); },
 
   openLetter(historyId: ID) { dispatch({ type: 'history.letterOpen', historyId, at: nowIso() }); },
+
+  /** Carta para o eu que vai zerar: lacrada até o marco "Zerou". Escrever de novo troca o texto. */
+  writeLetter(historyId: ID, text: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    const t = text.trim().slice(0, 4000);
+    if (!h || !t || h.state === 'concluida') return;
+    track('jornada.carta');
+    const first = !h.letter;
+    dispatch({ type: 'history.update', history: { ...h, letter: { text: t } } });
+    if (first) dispatch({ type: 'event.add', event: { id: uid(), journeyId: h.journeyId, historyId, kind: 'carta', at: nowIso(), title: 'Carta para o fim', text: 'Lacrada até você zerar.' } });
+  },
+
+  /** "Continuar mesmo assim": some a sugestão de pausa até a próxima sequência de "Não encaixou". */
+  dismissFit(historyId: ID, lastSessionId: ID) {
+    dispatch({ type: 'prefs', prefs: { fitDismissed: { ...(state.prefs.fitDismissed ?? {}), [historyId]: lastSessionId } } });
+  },
 
   saveReview(gameId: ID, rating: Rating, title: string, text: string, existingId?: ID) {
     const me = state.profile;

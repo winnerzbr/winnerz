@@ -5027,3 +5027,77 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .st-comms__tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 24px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
 .cm-form__admin .cm-form__f, .cm-form__admin .field { width: 100%; }
 .cm-door-edit__list label { width: 100%; box-sizing: border-box; }
+
+/* ===================================================================== */
+/* Jornada 2 · J1: fim da sessão em dois toques, retomada, carta, pausa   */
+/* ===================================================================== */
+.finish__dur { margin: 4px 0 2px; font-size: 13px; color: var(--muted); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.finish__dur b { color: var(--ink); font-weight: 600; }
+.finish__fix { border: 0; background: none; padding: 0; color: var(--accent-ink); font: 500 12px var(--font-ui); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.finish__where { display: flex; gap: 8px; align-items: stretch; }
+.finish__where .field { flex: 1; min-width: 0; }
+.finish__cam { flex: none; width: 52px; padding: 0; justify-content: center; }
+.finish__feel { margin-top: 12px; }
+.finish__more { display: flex; flex-direction: column; gap: 8px; padding: 6px 0 4px; border-top: 1px solid var(--line); margin-top: 10px; }
+.finish__mins { max-width: 140px; }
+.who__add { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+
+.stopline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
+.stopline svg { color: var(--accent-ink); flex: none; }
+.stopline b { color: var(--ink); font-weight: 600; }
+.stopline__ago { color: var(--muted); }
+.stopline__go { color: var(--accent-ink); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.stopline__go:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero__stop { font-size: 15px; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6); }
+.focus__stop { margin-bottom: 6px; }
+
+.fit-card { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; align-items: center; padding: 20px 24px; margin-top: 18px; border-color: var(--line-2); background: linear-gradient(135deg, var(--surface-2), var(--surface)); }
+.fit-card h2 { font-size: 22px; }
+.fit-card p { margin: 6px 0 0; max-width: 62ch; }
+.fit-card__actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.focus .fit-card { margin: 12px 0; background: rgba(13, 15, 18, 0.72); backdrop-filter: blur(8px); }
+
+.letter-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line-2); font-size: 14px; color: var(--ink-2); }
+.letter-line svg { color: var(--gold); flex: none; }
+.letter-line span { flex: 1; min-width: 160px; }
+.letter-sheet { display: flex; flex-direction: column; gap: 8px; }
+.letter-sheet textarea { font-size: 16px; line-height: 1.5; }
+.letter-sheet__done { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.letter-sheet__done .t { font-size: 26px; color: var(--gold); }
+.jcap__tools { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.chip--static { cursor: default; pointer-events: none; }
+
+/* Voltar a um jogo */
+.comeback__hero { position: relative; overflow: hidden; min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; background: #07080A; }
+.comeback__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.comeback__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7, 8, 10, 0.95) 0%, rgba(7, 8, 10, 0.72) 48%, rgba(7, 8, 10, 0.2) 85%), linear-gradient(0deg, var(--bg) 0%, rgba(7, 8, 10, 0) 40%); }
+.comeback__in { position: relative; padding-top: 28px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 22px; }
+.comeback__back { color: var(--ink-2); text-decoration: none; }
+.comeback__row { display: flex; gap: 28px; align-items: flex-end; flex-wrap: wrap; }
+.comeback__cover { width: 132px; flex: none; border-radius: 10px; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); }
+.comeback__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.comeback__title { font-size: clamp(38px, 6vw, 72px); line-height: 0.92; text-wrap: balance; }
+.comeback__lead { margin: 0; font-size: 18px; line-height: 1.45; color: var(--ink-2); max-width: 60ch; }
+.comeback__lead b { color: #F2F4F6; }
+.comeback__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.comeback__body { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; padding-top: 28px; padding-bottom: 60px; align-items: start; }
+.comeback__main, .comeback__aside { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.comeback__next { padding: 26px 28px; display: flex; flex-direction: column; gap: 10px; border-color: var(--now-line); background: linear-gradient(135deg, var(--now-bg), var(--surface)); }
+.comeback__goal { margin: 0; font: 600 clamp(21px, 2.4vw, 28px)/1.25 var(--font-ui); letter-spacing: -0.01em; color: var(--ink); text-wrap: balance; }
+.comeback__next p.muted { margin: 0; }
+.comeback__next-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.comeback__sessions { padding: 22px 24px; }
+.comeback__sessions ol { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.comeback__sessions li { display: flex; flex-direction: column; gap: 4px; padding-left: 14px; border-left: 2px solid var(--line-2); font-size: 14px; color: var(--ink-2); }
+.comeback__sessions li:first-child { border-left-color: var(--accent); }
+.comeback__sessions .quote { font-size: 16px; color: var(--ink); }
+.comeback__sessions .chip { align-self: flex-start; min-height: 26px; font-size: 12px; }
+.comeback__when { font-size: 12px; color: var(--muted); }
+.comeback__meanwhile { display: flex; flex-direction: column; gap: 12px; }
+.comeback__meanwhile > .kicker { margin: 4px 0 0; }
+@media (max-width: 900px) {
+  .comeback__body { grid-template-columns: 1fr; }
+  .comeback__hero { min-height: 360px; }
+  .comeback__cover { display: none; }
+  .comeback__lead { font-size: 16px; }
+}

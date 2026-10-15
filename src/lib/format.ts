@@ -41,3 +41,6 @@ export function gapLabel(fromIso: string, toIso: string) {
   const w = years <= 10 ? words[years] : String(years);
   return years === 1 ? 'um ano depois' : `${w} anos depois`;
 }
+
+/** Duração de sessão: "35 min", "1 h", "1 h 40". */
+export const durLabel = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`);

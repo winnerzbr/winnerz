@@ -15,6 +15,7 @@ import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
 import { Backdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
+import { StopLine, FitCard } from '../components/Comeback';
 
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
 
@@ -39,7 +40,7 @@ export function JourneyIndex() {
   const done = rows.filter((r) => r.h && r.h.state === 'concluida')
     .sort((a, b) => (b.h!.completedAt ?? '').localeCompare(a.h!.completedAt ?? ''));
   const left = rows.filter((r) => r.h && (r.h.state === 'dropada' || r.h.state === 'encerrada'));
-  const putInFocus = (id: string) => { if (!actions.addFocus(id)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em foco. Tire um deles para pôr outro.' }); };
+  const putInFocus = (id: string) => { if (!actions.addFocus(id)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em “Jogando agora”. Tire um deles para pôr outro.' }); };
   const light = !!s.prefs.light;
 
   const metaOf = ({ h, n, last, note, platform }: Row) => {
@@ -74,11 +75,11 @@ export function JourneyIndex() {
                   )}
                 </span>
               </Link>
-              {kind === 'going' && <button className="btn ghost sm" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">Pôr em foco</button>}
+              {kind === 'going' && <button className="btn ghost sm" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">Estou jogando</button>}
               {kind === 'paused' && (
                 <span className="jrow__actions">
                   <button className="btn ghost sm" onClick={() => actions.setHistoryState(h!.id, 'ativa')}>Retomar</button>
-                  <button className="btn quiet sm" onClick={() => putInFocus(j.id)}>Pôr em foco</button>
+                  <button className="btn quiet sm" onClick={() => putInFocus(j.id)}>Estou jogando</button>
                 </span>
               )}
               {kind === 'done' && <span className="jrow__mark" aria-label="Marco" />}
@@ -112,7 +113,7 @@ export function JourneyIndex() {
         <div className="jindex__cols">
           <div className="jindex__main">
             {secondary.map((f) => <FocusMini key={f.journey.id} s={s} journeyId={f.journey.id} />)}
-            <Group kind="going" title="Jogando agora" list={going} />
+            <Group kind="going" title={inFocus.size ? 'Também em andamento' : 'Em andamento'} list={going} />
             <Group kind="paused" title="Pausados" list={paused} hint="Sem pressa. Eles esperam." />
             <Group kind="done" title="Zerados recentemente" list={done.slice(0, 5)} more={<Link className="arrow-link" to="/jornada/concluidas">Ver Concluídas</Link>} />
             <Group kind="left" title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
@@ -172,7 +173,7 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
         <Link to={`/jornada/${g.slug}`} className="focus__cover" aria-label={`Abrir a Jornada de ${g.title}`}><CoverArt game={g} lazy={false} /></Link>
         <div className="focus__main">
           <div className="focus__kicker">
-            <span className="kicker kicker--now focus__badge"><span className="focus__dot" aria-hidden="true" />Em foco · {chosen ? 'Foco principal' : 'Sua sessão mais recente'}</span>
+            <span className="kicker kicker--now focus__badge"><span className="focus__dot" aria-hidden="true" />Jogando agora{chosen ? '' : ' · sua sessão mais recente'}</span>
             <span className="kicker">· {h.ordinal > 1 ? `${h.title}, História ${h.ordinal}` : 'Primeira História'}{nSessions && !s.prefs.light ? ` · ${nSessions} ${nSessions === 1 ? 'sessão' : 'sessões'}` : ''}{wps.length ? ` · ${wps.length} para voltar` : ''}</span>
           </div>
           <h2 id="em-foco" className="t focus__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
@@ -182,11 +183,13 @@ function FocusCard({ s, journey, chosen }: { s: State; journey: Journey; chosen:
               <div className="mono focus__progress-meta"><span>Seu progresso</span><span>{h.progress}%</span></div>
             </div>
           )}
+          <StopLine journeyId={journey.id} slug={g.slug} className="focus__stop" />
           {note?.note && <blockquote className="focus__note">“{note.note}”<cite className="kicker">Seu recado, {ago(note.startedAt)}</cite></blockquote>}
+          <FitCard journeyId={journey.id} />
           <div className="focus__actions">
             <PlayButton gameId={g.id} className="btn" />
             <Link className="btn ghost" to={`/jornada/${g.slug}`}>Abrir linha do tempo</Link>
-            {chosen && <button className="btn quiet" onClick={() => actions.removeFocus(journey.id)}>Tirar do foco</button>}
+            {chosen && <button className="btn quiet" onClick={() => actions.removeFocus(journey.id)}>Não estou mais jogando</button>}
           </div>
         </div>
       </div>
@@ -224,7 +227,7 @@ function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
     <article className="focus-mini">
       <div className="focus-mini__art"><Backdrop game={g} /><span aria-hidden="true" /></div>
       <div className="focus-mini__body">
-        <span className="kicker kicker--now">Em foco</span>
+        <span className="kicker kicker--now">Jogando agora</span>
         <h2 className="t"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
         {h.progress != null && !s.prefs.light && (
           <div className="focus-mini__prog">
@@ -232,11 +235,12 @@ function FocusMini({ s, journeyId }: { s: State; journeyId: string }) {
             <div className="mono focus__progress-meta"><span>{h.state === 'pausada' ? 'Pausado · ' : ''}História {h.ordinal}{n ? ` · ${n} ${n === 1 ? 'sessão' : 'sessões'}` : ''}</span><span>{h.progress}%</span></div>
           </div>
         )}
+        <StopLine journeyId={j.id} slug={g.slug} />
         {note?.note && <p className="focus-mini__note">“{note.note}”</p>}
         <div className="focus-mini__actions">
           <PlayButton gameId={g.id} className="btn sm" />
           <button className="btn ghost sm" onClick={() => actions.makePrincipal(j.id)}>Tornar principal</button>
-          <button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)}>Tirar do foco</button>
+          <button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)}>Não estou mais jogando</button>
         </div>
       </div>
     </article>

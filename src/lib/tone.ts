@@ -10,7 +10,7 @@ export const TONES: { id: Tone; label: string; desc: string; sample: string }[] 
   { id: 'bem-humorada', label: 'Bem-humorada', desc: 'Com uma piada leve de vez em quando.', sample: 'Print tirado. O fotógrafo oficial da party agradece.' },
 ];
 
-type Kind = 'momento' | 'ponto' | 'sessao' | 'primeira' | 'metade' | 'dez' | 'zerou' | 'zerouSub' | 'retomou';
+type Kind = 'momento' | 'ponto' | 'sessao' | 'primeira' | 'metade' | 'dez' | 'zerou' | 'zerouSub' | 'retomou' | 'carta';
 
 const BANK: Record<Kind, Record<Tone, string[]>> = {
   momento: {
@@ -57,6 +57,11 @@ const BANK: Record<Kind, Record<Tone, string[]>> = {
     tranquila: ['De volta à História.'],
     encorajadora: ['Que bom te ver de volta!'],
     'bem-humorada': ['Ele sentiu sua falta. Os inimigos, nem tanto.'],
+  },
+  carta: {
+    tranquila: ['Ela abre quando você zerar.'],
+    encorajadora: ['Ela espera por você lá no fim. Vai ser bom reler.'],
+    'bem-humorada': ['Guardada a sete chaves. Sem spoiler nem para você.'],
   },
 };
 

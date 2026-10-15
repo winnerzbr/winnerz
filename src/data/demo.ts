@@ -102,7 +102,7 @@ export function demoState(): State {
     focusJourneyId: 'j-tlou2',
     histories: [
       { id: 'h-tlou2-1', journeyId: 'j-tlou2', ordinal: 1, title: 'Primeira vez', state: 'concluida', startedAt: '2020-06-19T22:00:00-03:00', completedAt: '2020-08-14T23:30:00-03:00', progress: 100 },
-      { id: 'h-tlou2-2', journeyId: 'j-tlou2', ordinal: 2, title: 'Rejogada', state: 'ativa', startedAt: '2026-09-28T21:00:00-03:00', progress: 46, mode: 'Implacável', letter: { text: 'Voltei porque em 2020 joguei com raiva e quis entender a Abby com calma. Se você está lendo isso, conseguiu? Espero que sim. E vê se não demora seis anos para a próxima.' } },
+      { id: 'h-tlou2-2', journeyId: 'j-tlou2', ordinal: 2, title: 'Rejogada', state: 'ativa', startedAt: '2026-09-28T21:00:00-03:00', progress: 46, letter: { text: 'Voltei porque em 2020 joguei com raiva e quis entender a Abby com calma. Se você está lendo isso, conseguiu? Espero que sim. E vê se não demora seis anos para a próxima.' } },
       { id: 'h-astro-1', journeyId: 'j-astro', ordinal: 1, title: 'Primeira vez', state: 'ativa', startedAt: '2025-10-11T20:00:00-03:00', progress: 78 },
       { id: 'h-yakuza-1', journeyId: 'j-yakuza', ordinal: 1, title: 'Primeira vez', state: 'ativa', startedAt: '2026-07-02T21:00:00-03:00' },
       { id: 'h-p5r-1', journeyId: 'j-p5r', ordinal: 1, title: 'Primeira vez', state: 'pausada', startedAt: '2026-03-10T21:00:00-03:00', progress: 62 },
@@ -120,7 +120,7 @@ export function demoState(): State {
       { id: 'e2', journeyId: 'j-tlou2', historyId: 'h-tlou2-1', kind: 'sessao', at: '2020-07-10T22:00:00-03:00', dateLabel: 'jun a ago 2020', title: '23 sessões', text: 'Quase sempre à noite, de fone.', image: img('scene-tlou-fire') },
       { id: 'e3', journeyId: 'j-tlou2', historyId: 'h-tlou2-1', kind: 'momento', at: '2020-08-02T23:00:00-03:00', title: 'A porta iluminada', quote: 'Fiquei parado aqui um tempão.', text: 'Momento guardado com captura de tela.', image: img('scene-tlou-door') },
       { id: 'e4', journeyId: 'j-tlou2', historyId: 'h-tlou2-1', kind: 'marco', at: '2020-08-14T23:30:00-03:00', title: 'Zerou', text: 'Primeira História concluída. 31 horas informadas.', image: img('scene-tlou-horse') },
-      { id: 'e5', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', kind: 'inicio', at: '2026-09-28T21:00:00-03:00', title: 'Rejogada', text: 'Uma nova História, no modo Implacável. A primeira continua intacta.', image: img('scene-tlou-field') },
+      { id: 'e5', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', kind: 'inicio', at: '2026-09-28T21:00:00-03:00', title: 'Rejogada', text: 'Uma nova História. A primeira continua intacta.', image: img('scene-tlou-field') },
       { id: 'e6', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', kind: 'carta', at: '2026-09-28T21:01:00-03:00', title: 'Uma carta para o fim', text: 'Você escreveu por que voltou. Ela abre quando você zerar.', image: img('scene-tlou-ellie') },
       { id: 'e7', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', kind: 'momento', at: '2026-10-02T22:10:00-03:00', title: 'Loja de música', quote: 'Não lembrava dessa cena.', text: 'Momento guardado na sessão 2.', image: img('scene-tlou-guitar'), sessionId: 's-2' },
       { id: 'e8', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', kind: 'ponto', at: '2026-10-05T21:40:00-03:00', title: 'Quarto trancado', text: 'Hillcrest, segundo andar.', image: img('scene-tlou-forest'), sessionId: 's-3' },

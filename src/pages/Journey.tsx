@@ -9,7 +9,7 @@ import { recapFor } from '../lib/recap';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys, isOpenState } from '../data/store';
+import { actions, useStore, historiesOf, currentHistory, eventsOf, sessionsOf, lastNote, lastSession, activeWaypoints, openSession, focusJourneys, isOpenState, daysAway } from '../data/store';
 import { playStateFor } from '../components/PlayButton';
 import { PhotoViewer } from '../components/MediaGallery';
 import type { TimelineEvent, EventKind, History } from '../data/types';
@@ -24,6 +24,8 @@ import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
+import { FitCard, LetterLine } from '../components/Comeback';
+import { awayLabel } from '../lib/recap';
 
 type StopKind = EventKind | 'agora';
 interface Stop { id: string; kind: StopKind | 'gap'; hist: number; date: string; title: string; text?: string; quote?: string; image?: string; eventId?: string; resolved?: boolean; minutes?: number; companions?: string[]; startedAt?: string }
@@ -136,15 +138,15 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const isFocus = chosenFocus.includes(journeyId);
   const toggleFocus = () => {
     if (isFocus) { actions.removeFocus(journeyId); return; }
-    if (!actions.addFocus(journeyId)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em foco. Tire um deles para pôr este.' });
+    if (!actions.addFocus(journeyId)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em “Jogando agora”. Tire um deles para pôr este.' });
   };
   const stateChanged = (historyId: string, text: string) => setToast({ id: Date.now(), text, historyId: /De volta/.test(text) ? undefined : historyId });
   const openState = current.state === 'ativa' || current.state === 'pausada';
   const histLabel = (h: History) => [`História ${h.ordinal}`, h.title && !/^hist[óo]ria \d/i.test(h.title) ? h.title : null, h.state === 'concluida' ? 'Zerada' : h.state === 'dropada' ? 'Largada' : h.state === 'encerrada' ? 'Encerrada' : null].filter(Boolean).join(' · ');
   const nSessSel = selHist ? sessionsOf(s, selHist.id).length : s.sessions.filter((x) => x.journeyId === journeyId).length;
-  const nextSession = sessionsOf(s, current.id).length + 1;
   const where = current.capsule?.where ?? last?.whereStopped;
   const extra = CAPSULE_FIELDS.filter((f) => f.key !== 'where' && current.capsule?.[f.key]);
+  const away = daysAway(s, journeyId);
 
   return (
     <main className="journey">
@@ -180,7 +182,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               </button>
               {openState && (
                 <button className="btn ghost focus-toggle" aria-pressed={isFocus} onClick={toggleFocus}>
-                  <span className="focus-toggle__dot" aria-hidden="true" />{isFocus ? (chosenFocus[0] === journeyId ? 'Foco principal' : 'Em foco') : 'Pôr em foco'}
+                  <span className="focus-toggle__dot" aria-hidden="true" />{isFocus ? (chosenFocus[0] === journeyId && chosenFocus.length > 1 ? 'Jogando agora · principal' : 'Jogando agora') : 'Estou jogando'}
                 </button>
               )}
               <button className="btn ghost icon" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-label="Mais opções" title="Mais opções"><Icon name="maisAcoes" size={17} /></button>
@@ -192,6 +194,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
       <div className="page jbody">
         {isOpenState(current.state) && <BackBuddy journeyId={journeyId} />}
+        <FitCard journeyId={journeyId} onPaused={(id) => stateChanged(id, 'Pausado. Ele espera, sem pressa.')} />
 
         {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
           <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
@@ -223,6 +226,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
               <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
               <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>
+              <LetterLine historyId={current.id} />
             </section>
           ) : (
             <section className="card jprog jprog--done">
@@ -239,11 +243,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <section className="card jcap" aria-labelledby="capsula">
             <div className="jcap__head">
               <h2 id="capsula" className="t">Onde você parou</h2>
-              {current.state !== 'concluida' ? <button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button> : <span className="kicker kicker--now">Cápsula de retomada</span>}
+              {current.state !== 'concluida' ? <span className="jcap__tools">{away != null && away >= 3 && <Link className="btn ghost sm" to={`/jornada/${game.slug}/voltar`}>Preparar a volta</Link>}<button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span> : <span className="kicker kicker--now">Cápsula de retomada</span>}
             </div>
             <div className="jcap__grid">
               {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}
-              {last && <div><span className="kicker">Última sessão</span><span className="mono">{longDay(last.startedAt)}{last.minutes ? ` · ${Math.floor(last.minutes / 60)}h${String(last.minutes % 60).padStart(2, '0')}` : ''}</span></div>}
+              {last && <div><span className="kicker">Última sessão</span><span className="mono">{longDay(last.startedAt)}{last.minutes ? ` · ${dur(last.minutes)}` : ''}{away != null && away > 1 ? ` · ${awayLabel(away)}` : ''}</span></div>}
               {last?.companions?.length ? <div><span className="kicker">Com quem</span><strong>{last.companions.join(', ')}</strong></div> : null}
               {extra.map((f) => <div key={f.key}><span className="kicker">{f.label}</span><strong>{current.capsule![f.key]}</strong></div>)}
               {!where && !last && !extra.length && <div><span className="kicker">Registrado</span><span className="muted">Ainda nada. Ao finalizar uma sessão, você pode deixar um recado para a próxima vez.</span></div>}
@@ -286,11 +290,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
           {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
 
-          {visible.length === 0 && !(openState || openHere) ? (
+          {visible.length === 0 && !openHere ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'cinema' ? (
             <CinemaTimeline stops={visible} bg={bg ?? game.cover} full={full} onExitFull={() => setFull(false)} play={playCta} title={game.title} onEdit={setEditEvent}
-              today={selHist && selHist.id !== current.id ? null : openHere ? { open: true, n: sessionsOf(s, openHere.historyId).length } : openState ? { open: false, n: nextSession } : null} />
+              today={selHist && selHist.id !== current.id ? null : openHere ? { open: true, n: sessionsOf(s, openHere.historyId).length } : null} />
           ) : (
             <SimpleTimeline stops={visible} histories={histories} full={full} onExitFull={() => setFull(false)} title={game.title} onEdit={setEditEvent} />
           )}

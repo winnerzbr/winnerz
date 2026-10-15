@@ -2,13 +2,13 @@ import { ShareCardButton } from '../components/ShareCard';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8 } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, sessionMinutes } from '../data/store';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
 import { PhotoViewer } from '../components/MediaGallery';
 import { Celebration, PersonalSticker, SealedLetter } from '../components/Celebration';
-import { dayMonthYear, hourMin, longDay } from '../lib/format';
+import { dayMonthYear, hourMin, longDay, durLabel } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop, useBackdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
@@ -61,7 +61,7 @@ export function SessionPage() {
   const path = usePath();
   const s = useStore((x) => x);
   const session = openSession(s);
-  const [finishing, setFinishing] = useState(path.includes('finalizar=1'));
+  const [finishing, setFinishing] = useState<boolean | 'recado'>(path.includes('finalizar=1'));
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
   const [celebrate, setCelebrate] = useState<{ historyId: string } | null>(null);
   // Vindo da barra da sessão ("Momento" / "Quero voltar aqui"): abre a folha direto.
@@ -73,6 +73,7 @@ export function SessionPage() {
   const [viewer, setViewer] = useState<number | null>(null);
   const [capsuleOpen, setCapsuleOpen] = useState(false);
   const photoKind = useRef<'momento' | 'ponto'>('momento');
+  const prefill = useRef('');
   const fileInput = useRef<HTMLInputElement>(null);
   // No celular o fim da sessão fica abaixo do palco: leva até ele.
   useEffect(() => { if (finishing && window.innerWidth < 1100) document.querySelector('.session__aside')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [finishing]);
@@ -111,7 +112,8 @@ export function SessionPage() {
     try { blob = await shrink(f); } catch { say('Não consegui abrir essa imagem. Tente outra foto.'); return; }
     setDraft((d) => {
       if (d?.preview) URL.revokeObjectURL(d.preview);
-      return { kind: d?.kind ?? photoKind.current, blob, preview: URL.createObjectURL(blob), title: d?.title ?? '', note: d?.note ?? '' };
+      const title = d?.title ?? prefill.current; prefill.current = '';
+      return { kind: d?.kind ?? photoKind.current, blob, preview: URL.createObjectURL(blob), title, note: d?.note ?? '' };
     });
   };
   const pickPhoto = (kind: 'momento' | 'ponto') => { photoKind.current = kind; fileInput.current?.click(); };
@@ -166,7 +168,7 @@ export function SessionPage() {
           </div>
           <div className="session__more">
             <button className="btn quiet sm" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={16} />Anotar sem foto</button>
-            <button className="btn quiet sm" onClick={() => setFinishing(true)}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
+            <button className="btn quiet sm" onClick={() => setFinishing('recado')}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
             <button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={16} />Cápsula de Retomada</button>
           </div>
         </div>
@@ -194,6 +196,9 @@ export function SessionPage() {
         <aside className="session__aside" aria-label="Fim da sessão">
           <FinishForm
             progress={h.progress ?? 0}
+            startedAt={session.startedAt}
+            detailsOpen={finishing === 'recado'}
+            onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
             onCancel={() => setFinishing(false)}
             companions={knownCompanions(s)}
             canWho={hasV8(s)}
@@ -230,7 +235,13 @@ function Elapsed({ since }: { since: string }) {
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
-function FinishForm({ progress, companions: known, canWho, onFinish, onZerei, onCancel }: { progress: number; companions: string[]; canWho: boolean; onFinish: (d: { note?: string; whereStopped?: string; feeling?: string; progress?: number; companions?: string[] }) => void; onZerei: (d: { note?: string; companions?: string[] }) => void; onCancel: () => void }) {
+type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[] };
+
+/**
+ * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
+ * A duração é calculada sozinha; o resto fica em "Mais detalhes".
+ */
+function FinishForm({ progress, startedAt, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
   const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
@@ -239,36 +250,51 @@ function FinishForm({ progress, companions: known, canWho, onFinish, onZerei, on
   const [where, setWhere] = useState('');
   const [note, setNote] = useState('');
   const [feel, setFeel] = useState<string | undefined>();
+  const [more, setMore] = useState(!!detailsOpen);
+  // A duração é calculada na hora de finalizar; só fica fixa se a pessoa corrigir.
+  const auto = sessionMinutes(startedAt, new Date().toISOString());
+  const [mins, setMins] = useState<string | null>(null);
+  const typed = mins != null && mins.trim() ? Math.max(1, Math.min(1440, Math.round(Number(mins)))) : undefined;
+  const minutes = mins == null ? auto : Number.isFinite(typed) ? typed : undefined;
+  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho });
   return (
-    <div className="finish">
-      <div className="finish__head"><h2 className="t">Fim da sessão</h2><button className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
-      <p className="kicker">Tudo aqui é opcional</p>
-      <label htmlFor="prog-f" className="finish__label"><span>Seu progresso</span><span className="t">{p}%</span></label>
-      <input id="prog-f" className="range" type="range" min={0} max={100} value={p} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setP(Number(e.target.value))} />
+    <form className="finish" onSubmit={(e) => { e.preventDefault(); onFinish(data()); }}>
+      <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
+      <p className="finish__dur mono">{minutes ? <>Você jogou <b>{durLabel(minutes)}</b></> : 'Duração não calculada'}<button type="button" className="finish__fix" onClick={() => setMore(true)}>corrigir</button></p>
       <label htmlFor="parei" className="finish__label">Onde você parou?</label>
-      <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} />
-      <label htmlFor="recado" className="finish__label">Recado para a próxima vez</label>
-      <textarea id="recado" className="field" rows={2} placeholder="O que você quer lembrar quando voltar?" value={note} onChange={(e) => setNote(e.target.value)} />
-      <div className="finish__label">Como foi hoje?</div>
-      <div className="chips" role="group" aria-label="Como foi hoje">
-        {FEELINGS.map((f) => <button key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
+      <div className="finish__where">
+        <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} maxLength={140} />
+        <button type="button" className="btn ghost finish__cam" onClick={() => onPhoto(where)} aria-label="Foto de onde você parou" title="Foto de onde você parou"><Icon name="camera" size={18} /></button>
       </div>
-      {canWho && <>
-      <div className="finish__label">Com quem você jogou? <span className="faint">(opcional)</span></div>
-      <div className="chips who" role="group" aria-label="Com quem você jogou">
-        {[...new Set([...known, ...withWho])].map((c) => <button key={c} className="chip" aria-pressed={withWho.includes(c)} onClick={() => toggleWho(c)}>{c}</button>)}
-        <form className="who__add" onSubmit={(e) => { e.preventDefault(); addWho(who); }}>
-          <input className="field" value={who} onChange={(e) => setWho(e.target.value)} placeholder="Um nome (ex.: Ana)" aria-label="Adicionar pessoa" maxLength={40} />
-          <button className="btn ghost sm" disabled={!who.trim()}>Adicionar</button>
-        </form>
+      <div className="chips finish__feel" role="group" aria-label="Como foi hoje">
+        {FEELINGS.map((f) => <button type="button" key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
       </div>
-      </>}
-      <button className="finish__zerei" onClick={() => onZerei({ note: note || undefined, companions: withWho })}>Zerei a campanha nesta sessão</button>
       <div className="finish__actions">
-        <button className="btn primary lg" onClick={() => onFinish({ note, whereStopped: where, feeling: feel, progress: p !== progress ? p : undefined, companions: withWho })}>Salvar e finalizar</button>
-        <button className="btn quiet" onClick={() => onFinish({})}>Finalizar sem adicionar nada</button>
+        <button type="submit" className="btn primary lg">Finalizar</button>
+        <button type="button" className="btn quiet" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Menos detalhes' : 'Mais detalhes'}</button>
       </div>
-    </div>
+      {more && (
+        <div className="finish__more">
+          <label htmlFor="recado" className="finish__label">Recado para a próxima vez</label>
+          <textarea id="recado" className="field" rows={2} placeholder="O que você quer lembrar quando voltar?" value={note} onChange={(e) => setNote(e.target.value)} autoFocus={detailsOpen} />
+          <label htmlFor="prog-f" className="finish__label"><span>Seu progresso</span><span className="t">{p}%</span></label>
+          <input id="prog-f" className="range" type="range" min={0} max={100} value={p} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setP(Number(e.target.value))} />
+          <label htmlFor="dur-f" className="finish__label">Quanto tempo você jogou? <span className="faint">(minutos)</span></label>
+          <input id="dur-f" className="field finish__mins" type="number" inputMode="numeric" min={1} max={1440} value={mins ?? (auto ? String(auto) : '')} onChange={(e) => setMins(e.target.value)} />
+          {canWho && <>
+            <div className="finish__label">Com quem você jogou? <span className="faint">(opcional)</span></div>
+            <div className="chips who" role="group" aria-label="Com quem você jogou">
+              {[...new Set([...known, ...withWho])].map((c) => <button type="button" key={c} className="chip" aria-pressed={withWho.includes(c)} onClick={() => toggleWho(c)}>{c}</button>)}
+              <span className="who__add">
+                <input className="field" value={who} onChange={(e) => setWho(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addWho(who); } }} placeholder="Um nome (ex.: Ana)" aria-label="Adicionar pessoa" maxLength={40} />
+                <button type="button" className="btn ghost sm" disabled={!who.trim()} onClick={() => addWho(who)}>Adicionar</button>
+              </span>
+            </div>
+          </>}
+        </div>
+      )}
+      <button type="button" className="finish__zerei" onClick={() => onZerei(data())}>Zerei a campanha nesta sessão</button>
+    </form>
   );
 }
 

@@ -34,6 +34,7 @@ import { CollectionStats, Wishes } from './pages/CollectionStats';
 import { ImportPage } from './pages/Import';
 import { SteamImportPage } from './pages/SteamImport';
 import { JourneyPage } from './pages/Journey';
+import { ComebackPage } from './pages/Comeback';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
 import { GamePage } from './pages/Game';
@@ -72,6 +73,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
   if (match('/jornada/ritmo', path)) return <RhythmPage />;
+  if ((m = match('/jornada/:slug/voltar', path))) return <ComebackPage slug={m.slug} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;
   if (match('/colecao/consoles', path)) return <HardwarePage />;

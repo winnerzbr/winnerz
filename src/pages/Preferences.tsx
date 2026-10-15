@@ -265,6 +265,7 @@ function NotifSettings() {
       <h3 className="prefs__sub">Amigos e Jornada</h3>
       {row('aviso_seguidores', 'Quem começou a seguir você', 'E quando alguém segue você de volta e vocês viram amigos.')}
       {row('aviso_lancamentos', 'Lançamentos', 'Quando sai um jogo que está na sua lista de desejos ou no Radar.')}
+      {row('aviso_retomada', 'Voltar a um jogo', 'Quando faz 14 dias que você não volta a um jogo que está jogando, com o link para ver onde parou.')}
     </section>
   );
 }

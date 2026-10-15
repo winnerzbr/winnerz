@@ -182,7 +182,8 @@ export interface History {
   startedAt: string;
   completedAt?: string;
   progress?: number; // 0..100, sempre informado pelo usuário
-  mode?: string; // ex.: "Implacável"
+  /** Campo antigo (modo de dificuldade); não aparece mais no site. */
+  mode?: string;
   letter?: { text: string; openedAt?: string };
   startedPrecision?: DatePrecision;
   completedPrecision?: DatePrecision;
@@ -289,6 +290,8 @@ export interface Prefs {
   welcomeDone?: boolean;
   /** Escolhas da Comunidade (o banco lê daqui: profiles.prefs -> 'comunidade'). */
   comunidade?: CommunityPrefs;
+  /** "Não encaixou" seguidos: a História e a última sessão em que a pessoa disse "continuar mesmo assim". */
+  fitDismissed?: Record<ID, ID>;
 }
 
 /** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */
@@ -304,6 +307,7 @@ export interface CommunityPrefs {
   aviso_convites?: boolean;
   aviso_lembretes?: boolean;
   aviso_lancamentos?: boolean;
+  aviso_retomada?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

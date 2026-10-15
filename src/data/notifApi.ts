@@ -116,10 +116,10 @@ function load(): DState {
   return { read: [], seenAt: hoursAgo(30), site: [{ id: 's-awards', title: 'As indicações do WinnerZ Awards abrem em breve', body: 'Separe os jogos que marcaram o seu ano.', link: '/awards', at: hoursAgo(26) }] };
 }
 function save(d: DState) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* sem espaço: segue */ } }
-const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' ? 'amigos' : k === 'lancamento' ? 'jornada' : 'sistema');
+const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' ? 'amigos' : k === 'lancamento' || k === 'retomada' ? 'jornada' : 'sistema');
 const PREF: Record<string, keyof CommunityPrefs> = {
   reacao: 'aviso_reacoes', seguiu: 'aviso_seguidores', jogatina_convite: 'aviso_convites', clube_convite: 'aviso_convites',
-  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos',
+  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada',
 };
 function linkOf(n: NewsItem): string {
   if (n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando') return `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`;
@@ -143,6 +143,14 @@ async function demoAll(): Promise<Notif[]> {
   out.push(mk('seguiu:demo-duda', 'seguiu', hoursAgo(9), { actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { friends: true } }));
   out.push(mk('lancamento:astro', 'lancamento', hoursAgo(20), { title: 'Astro Bot', link: '/jogos/astro-bot', data: { cover: '/demo/cover-astro.webp' } }));
   st.site.forEach((s) => out.push(mk(`site:${s.id}`, 'site', s.at, { title: s.title, excerpt: s.body || null, link: s.link })));
+  // Retomada: jogos em andamento sem sessão há 14 dias ou mais (como o banco faz).
+  { const { daysAway, currentHistory, lastSession } = await import('./store'); const gs = getState();
+    for (const j of gs.journeys) {
+      const h = currentHistory(gs, j.id), g = gs.games[j.gameId], d = daysAway(gs, j.id), last = lastSession(gs, j.id);
+      if (!g || !h || h.state !== 'ativa' || j.mood === 'silencioso' || d == null || d < 14 || d > 120 || !last) continue;
+      const at = new Date(Date.parse(last.endedAt ?? last.startedAt) + 14 * 86_400_000).toISOString();
+      out.push(mk(`retomada:${j.id}:${last.id}`, 'retomada', at, { title: g.title, excerpt: last.whereStopped ?? null, link: `/jornada/${g.slug}/voltar`, data: { cover: g.cover, lastAt: last.endedAt ?? last.startedAt } }));
+    } }
   const pref = getState().prefs.comunidade ?? {};
   return out.filter((n) => !PREF[n.kind] || pref[PREF[n.kind]] !== false).sort((a, b) => b.at.localeCompare(a.at));
 }

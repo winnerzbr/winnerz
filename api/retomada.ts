@@ -112,7 +112,7 @@ async function narrate(user: string, body: Record<string, unknown>, res: Res) {
     r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 300, system: NARRATE, messages: [{ role: 'user', content: text }] }),
+      body: JSON.stringify({ model: MODEL(), max_tokens: 1500, system: NARRATE, messages: [{ role: 'user', content: text }] }),
     });
   } catch { await refund(user); return res.status(502).json({ error: 'Não consegui falar com a IA agora (conexão). Tente de novo.' }); }
   if (!r.ok) {
@@ -121,9 +121,15 @@ async function narrate(user: string, body: Record<string, unknown>, res: Res) {
     console.error('anthropic narrar', r.status, detail.slice(0, 300));
     return res.status(502).json({ error: aiError(r.status, detail) });
   }
-  const out = (await r.json()) as { content?: { type: string; text?: string }[] };
-  const said = clip((out.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join(' ').replace(/^["“]|["”]$/g, ''), 420);
-  if (!said) { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
+  const out = (await r.json()) as { content?: { type: string; text?: string }[]; stop_reason?: string };
+  let said = clip((out.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join(' ').replace(/^["“]|["”]$/g, ''), 600);
+  // Resposta cortada no limite: fica até a última frase completa.
+  if (out.stop_reason === 'max_tokens') { const end = Math.max(said.lastIndexOf('. '), said.lastIndexOf('! '), said.endsWith('.') ? said.length - 1 : -1); said = end > 40 ? said.slice(0, end + 1) : ''; }
+  if (!said) {
+    await refund(user);
+    console.error('anthropic narrar vazio', out.stop_reason, (out.content ?? []).map((c) => c.type).join(','));
+    return res.status(502).json({ error: 'A IA não terminou a resposta desta vez. Tente de novo.' });
+  }
   return res.status(200).json({ text: said, used, limit: LIMIT() });
 }
 
@@ -156,7 +162,7 @@ export default async function handler(req: Req, res: Res) {
         method: 'POST',
         headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
-          model: MODEL(), max_tokens: 600, system: SYSTEM,
+          model: MODEL(), max_tokens: 1500, system: SYSTEM,
           messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text }] }],
         }),
       });

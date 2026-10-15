@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { plainText } from '../lib/postText';
 import { Link, navigate, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { socialApi, type Activity } from '../data/socialApi';
 import {
-  PATHS, communityApi, postHref, postTitle, refreshNews, useReplyNews,
-  type Community, type NewsItem, type Post, type PracaPath, type PracaSide,
+  PATHS, communityApi, postHref, postTitle, refreshNews,
+  type Community, type Post, type PracaPath, type PracaSide,
 } from '../data/communityApi';
 import { clubApi, type Club } from '../data/clubApi';
 import { jogatinaApi, jogatinaNow, type Jogatina } from '../data/jogatinaApi';
+import { notifApi, refreshNotifs, useNotifCount, type Notif } from '../data/notifApi';
 import { ensureRules } from '../data/moderationApi';
 import { FriendsActivity } from '../components/Social';
 import { MentionArea, PersonAvatar, PostCard, ago } from '../components/Posts';
@@ -174,21 +174,22 @@ function RailArt({ c }: { c: Community }) {
 /* Enquanto você estava fora                                            */
 /* ------------------------------------------------------------------ */
 function Away({ activity, encontros }: { activity: Activity[]; encontros: Jogatina[] }) {
-  const news = useReplyNews();
-  const [open, setOpen] = useState(false);
-  const fresh = (news?.items ?? []).filter((n) => n.new !== false);
-  const count = (k: (n: NewsItem) => boolean) => fresh.filter(k).length;
+  const [unread, setUnread] = useState<Notif[] | null>(null);
+  useEffect(() => { notifApi.list('naolidos', null, 50).then((r) => setUnread(r.items)).catch(() => setUnread([])); }, []);
+  const count = (k: (n: Notif) => boolean) => (unread ?? []).filter(k).length;
   const resp = count((n) => n.kind === 'resposta' || n.kind === 'clube_resposta' || n.kind === 'jogatina_resposta');
   const menc = count((n) => n.kind === 'mencao' || n.kind === 'clube_mencao' || n.kind === 'jogatina_mencao');
   const acomp = count((n) => n.kind === 'acompanhando');
-  const conv = count((n) => n.kind === 'jogatina_convite');
+  const conv = count((n) => n.kind === 'jogatina_convite' || n.kind === 'clube_convite');
+  const reac = count((n) => n.kind === 'reacao');
   const day = Date.now() - 86_400_000;
   const friends = activity.filter((a) => Date.parse(a.at) > day && a.kind !== 'momento').slice(0, 2);
   const tonight = encontros.filter((c) => new Date(c.startsAt).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) === new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
   const bits: string[] = [];
-  if (conv) bits.push(conv === 1 ? '1 convite para jogatina' : `${conv} convites para jogatinas`);
+  if (conv) bits.push(conv === 1 ? '1 convite' : `${conv} convites`);
   if (resp) bits.push(resp === 1 ? '1 resposta para você' : `${resp} respostas para você`);
   if (menc) bits.push(menc === 1 ? '1 menção' : `${menc} menções`);
+  if (reac) bits.push(reac === 1 ? 'reações numa mensagem sua' : `reações em ${reac} mensagens suas`);
   if (acomp) bits.push(acomp === 1 ? '1 novidade numa conversa que você acompanha' : `${acomp} novidades em conversas que você acompanha`);
   friends.forEach((a) => bits.push(`@${a.handle} ${a.kind === 'zerou' ? 'zerou' : 'começou'} ${a.title}`));
   if (tonight.length) bits.push(tonight.length === 1 ? `1 jogatina hoje: ${tonight[0].title}, ${whenLabel(tonight[0].startsAt).replace('hoje, ', '')}` : `${tonight.length} jogatinas hoje`);
@@ -197,45 +198,8 @@ function Away({ activity, encontros }: { activity: Activity[]; encontros: Jogati
     <section className={`praca__away${bits.length ? '' : ' is-quiet'}`} aria-live="polite">
       <Icon name="sino" size={16} />
       <p><b>{greeting()}!</b> {bits.length ? <>Enquanto você estava fora: {list}.</> : 'Nada novo para você desde a última visita.'}</p>
-      {(news?.items.length ?? 0) > 0 && <button className="btn ghost sm" aria-expanded={open} onClick={() => setOpen((v) => !v)}>{open ? 'Fechar' : 'Ver tudo'}</button>}
-      {open && news && <NewsList items={news.items} />}
+      {(unread?.length ?? 0) > 0 && <Link className="btn ghost sm" to="/avisos?f=naolidos">Ver avisos</Link>}
     </section>
-  );
-}
-
-function NewsList({ items }: { items: NewsItem[] }) {
-  return (
-    <div className="praca__news">
-      <ul className="cm-news__list">
-        {items.map((n) => {
-          const href = n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando' ? `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`
-            : n.kind === 'clube_resposta' || n.kind === 'clube_mencao' ? `/clube/${n.slug}#m-${n.id}`
-            : n.kind === 'jogatina_resposta' || n.kind === 'jogatina_mencao' ? `/jogatina/${n.slug}#m-${n.id}`
-            : n.kind === 'jogatina' || n.kind === 'jogatina_convite' ? `/jogatina/${n.slug}` : `/clube/${n.slug}`;
-          const who = n.author?.handle ? `@${n.author.handle}` : n.author?.gone ? 'Uma conta apagada' : 'Alguém';
-          const line = n.kind === 'resposta' ? <><b>{who}</b> respondeu você em <b>{n.title}</b></>
-            : n.kind === 'acompanhando' ? <><b>{who}</b> respondeu em <b>{n.title}</b>, que você acompanha</>
-            : n.kind === 'clube_resposta' ? <><b>{who}</b> respondeu você no clube <b>{n.title}</b></>
-            : n.kind === 'mencao' ? <><b>{who}</b> mencionou você em <b>{n.title}</b></>
-            : n.kind === 'clube_mencao' ? <><b>{who}</b> mencionou você no clube <b>{n.title}</b></>
-            : n.kind === 'jogatina_convite' ? <><b>{who}</b> convidou você para a jogatina <b>{n.title}</b></>
-            : n.kind === 'jogatina_resposta' ? <><b>{who}</b> respondeu você na jogatina <b>{n.title}</b></>
-            : n.kind === 'jogatina_mencao' ? <><b>{who}</b> mencionou você na jogatina <b>{n.title}</b></>
-            : n.kind === 'jogatina' ? <>Jogatina <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é logo mais'}</>
-            : <>Abriu a parte <b>{n.excerpt}</b> no clube <b>{n.title}</b></>;
-          return (
-            <li key={`${n.kind}-${n.id}`}>
-              <Link to={href} className={`cm-news__it${n.new === false ? ' is-old' : ''}`}>
-                {n.author ? <PersonAvatar p={n.author} size={32} /> : <span className="soc-av cm-news__ic" style={{ width: 32, height: 32 }} aria-hidden="true">{n.kind === 'jogatina' ? '◷' : '▸'}</span>}
-                <span className="cm-news__tx"><span>{line}</span>{n.kind !== 'jogatina' && n.kind !== 'parte' && n.excerpt && <small className="muted">{plainText(n.excerpt)}</small>}</span>
-                <small className="faint mono">{ago(n.at)}</small>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <button className="btn quiet sm" onClick={() => void communityApi.seen()}>Marcar tudo como visto</button>
-    </div>
   );
 }
 
@@ -271,7 +235,7 @@ function QuickComposer({ onPosted }: { onPosted: () => void }) {
     setBusy(true);
     try {
       const p = await communityApi.createPost(place || null, { kind: question ? 'pergunta' : 'discussao', title: '', body: text, gameId: null, spoiler: null, images: [], clip: null });
-      clearDraft(QUICK_KEY); setText(''); setOpen(false); onPosted(); void refreshNews();
+      clearDraft(QUICK_KEY); setText(''); setOpen(false); onPosted(); void refreshNews(); void refreshNotifs();
       navigate(postHref(p));
     } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
   };
@@ -315,8 +279,7 @@ function QuickComposer({ onPosted }: { onPosted: () => void }) {
 /* Celular: blocos de atalho                                            */
 /* ------------------------------------------------------------------ */
 function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (k: PracaPath) => void; encontros: Jogatina[]; activity: Activity[] }) {
-  const news = useReplyNews();
-  const fresh = (news?.items ?? []).filter((n) => n.new !== false).length;
+  const fresh = useNotifCount()?.unread ?? 0;
   const next = encontros[0];
   const playing = [...new Map(activity.filter((a) => a.kind === 'jogando').map((a) => [a.handle, a])).values()].slice(0, 3);
   return (

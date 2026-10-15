@@ -8,8 +8,10 @@ import {
 } from '../data/clubApi';
 import { clubLabel, jogatinaApi, type Jogatina } from '../data/jogatinaApi';
 import { ensureRules } from '../data/moderationApi';
+import { refreshNotifs } from '../data/notifApi';
 import { ReportButton } from '../components/Moderation';
 import { GroupChat, type ChatCtx } from '../components/GroupChat';
+import { InviteBox, inviteSummary } from '../components/InviteBox';
 import { GameSearchPick, PersonAvatar, PersonLink, ago, useProgressOf } from '../components/Posts';
 import { CoverArt } from '../components/CoverArt';
 import { Icon } from '../components/Icon';
@@ -344,7 +346,7 @@ function ClubView({ c, code, reload }: { c: ClubFull; code: string | null; reloa
     if (m && m.part !== (typeof tab === 'number' ? tab : 0)) setTabState(m.part || 'geral');
     setTimeout(() => document.getElementById(`m-${id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 200);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  const run = async (f: () => Promise<unknown>) => { setErr(''); setBusy(true); try { await f(); await reload(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); } };
+  const run = async (f: () => Promise<unknown>) => { setErr(''); setBusy(true); try { await f(); await reload(); void refreshNotifs(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); } };
   const join = async (firstTime: boolean | null) => {
     if (signedOut) return navigate('/entrar');
     setErr(''); setAskFirst(false);
@@ -376,6 +378,7 @@ function ClubView({ c, code, reload }: { c: ClubFull; code: string | null; reloa
               {c.schedule && <><br /><span className="club2-hero__sched"><Icon name="calendario" size={14} /> {c.schedule}</span></>}
             </p>
             <div className="club2-hero__acts">
+              {!me && c.invitedBy && <span className="jog-answer__invited club2-hero__invited"><PersonAvatar p={c.invitedBy} size={22} /><span><b>@{c.invitedBy.handle ?? 'alguém'}</b> convidou você.</span></span>}
               {!me && (c.format === 'primeira_vez'
                 ? (askFirst
                   ? <><button className="btn primary" disabled={busy} onClick={() => void join(true)}>É a minha primeira vez</button><button className="btn ghost" disabled={busy} onClick={() => void join(false)}>Já zerei: entro como guia</button></>
@@ -430,6 +433,7 @@ function ClubView({ c, code, reload }: { c: ClubFull; code: string | null; reloa
             <p className="muted">{fmt?.side}</p>
             {c.liveUrl && <a className="cm-link" href={c.liveUrl} target="_blank" rel="noopener noreferrer nofollow">{/discord/.test(c.liveUrl) ? 'Discord do clube' : 'Link do clube'} ↗</a>}
           </section>
+          {me && <InviteCard c={c} reload={reload} copy={copy} copied={copied} />}
           <AfterCard c={c} owner={owner || isAdmin} reload={reload} />
           <People c={c} />
           <section className="cm-side cm-side--quiet">
@@ -638,6 +642,31 @@ function NextCard({ c, reload }: { c: ClubFull; reload: () => Promise<void> }) {
         : <button className="btn primary sm" disabled={busy} onClick={() => void vou()}>Vou</button>)}
       {err && <p className="awards__error" role="alert">{err}</p>}
       {c.agenda.length > 1 && <small className="faint">e mais {c.agenda.length - 1} na agenda</small>}
+    </section>
+  );
+}
+
+/* ---- Lateral: convidar pelo @ ---- */
+function InviteCard({ c, reload, copy, copied }: { c: ClubFull; reload: () => Promise<void>; copy: () => Promise<void>; copied: boolean }) {
+  const [handles, setHandles] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
+  const [err, setErr] = useState('');
+  const send = async () => {
+    setBusy(true); setErr('');
+    try { setNote(inviteSummary(await clubApi.invite(c.id, handles))); setHandles([]); await reload(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
+  };
+  return (
+    <section className="cm-side">
+      <span className="kicker">Convidar</span>
+      <p className="muted">Pelo @: a pessoa recebe o aviso e consegue entrar{c.access !== 'aberto' ? `, mesmo o clube sendo ${c.access === 'amigos' ? 'só para amigos' : 'por convite'}` : ''}.</p>
+      <InviteBox value={handles} onChange={setHandles} exclude={c.people.map((p) => (p.handle ?? '').toLowerCase())} />
+      {note && <p className="jog-invite__note" role="status"><Icon name="check" size={14} /> {note}</p>}
+      {err && <p className="awards__error" role="alert">{err}</p>}
+      <span className="jog-invite__acts">
+        <button className="btn primary sm" disabled={busy || !handles.length} onClick={() => void send()}>{handles.length > 1 ? `Convidar ${handles.length}` : 'Convidar'}</button>
+        <button className="btn ghost sm" onClick={() => void copy()}>{copied ? 'Link copiado' : 'Copiar o link'}</button>
+      </span>
     </section>
   );
 }

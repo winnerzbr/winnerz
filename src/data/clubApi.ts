@@ -11,6 +11,7 @@ import { getState } from './store';
 import { communityApi, demoGameMini, demoPersonRef, demoReactions, fixAuthors, slugOk, type GameMini, type NewsItem, type PersonRef, type Reactions, type ReplyNews } from './communityApi';
 import { demoClubAgenda, demoClubPast, type Jogatina } from './jogatinaApi';
 import { mentionsOf } from '../lib/postText';
+import { DEMO_PEOPLE } from './demoPeople';
 
 export type ClubFormat = 'sem_pressa' | 'primeira_vez' | 'recorrente' | 'mes';
 export type ClubAccess = 'aberto' | 'amigos' | 'convite';
@@ -21,6 +22,8 @@ export interface Club {
   maxMembers?: number | null; community?: { slug: string; name: string } | null; schedule?: string | null; round: number;
   liveUrl?: string | null; createdAt: string; hidden: boolean; owner?: PersonRef | null; members: number;
   me?: ClubMe | null; inviteCode?: string | null; parts: ClubPart[]; next?: Jogatina | null; lastAt?: string | null;
+  /** Quem convidou você, se alguém convidou. */
+  invitedBy?: PersonRef | null;
 }
 export interface ClubPerson extends PersonRef {
   role: 'dono' | 'membro'; firstTime?: boolean | null; stage: number; finishedAt?: string | null; joinedAt: string;
@@ -89,6 +92,8 @@ const MSG: Record<string, string> = {
   public_limit: 'Conta nova tem um limite de publicações por hora. Espere um pouco.',
   image_limit: 'No máximo 4 imagens por mensagem.',
   target_not_found: 'Não achei. Talvez tenha sido apagado.',
+  invite_too_many: 'No máximo 20 pessoas por vez.',
+  invite_limit: 'Você já mandou muitos convites hoje. Volte amanhã.',
 };
 export const okRpc = <T>(r: { data: T; error: { message: string } | null }, msgs: Record<string, string> = MSG): T => {
   if (r.error) {
@@ -138,6 +143,13 @@ export const clubApi = {
   async join(slug: string, code: string | null, firstTime: boolean | null): Promise<Club> {
     if (!supa()) return demo.join(slug, firstTime);
     return rpc<Club>('club_join', { p_slug: slug, p_code: code, p_first_time: firstTime });
+  },
+  /** Convida pelo @ (quem está no clube). A pessoa vê o clube, recebe o aviso e entra. */
+  async invite(id: string, handles: string[]): Promise<{ sent: string[]; already: string[]; notFound: string[] }> {
+    const clean = [...new Set(handles.map((h) => h.trim().replace(/^@/, '').toLowerCase()).filter(Boolean))];
+    if (!clean.length) return { sent: [], already: [], notFound: [] };
+    if (!supa()) return demo.invite(id, clean);
+    return rpc('club_invite', { p_id: id, p_handles: clean });
   },
   async leave(id: string): Promise<void> {
     if (!supa()) return demo.leave(id);
@@ -328,6 +340,16 @@ const demo = {
       saveDb(db);
     }
     return clubOut(c);
+  },
+  invite(id: string, handles: string[]) {
+    const db = loadDb(); const c = db.clubs.find((x) => x.id === id);
+    if (!c || !c.people.some((p) => p.id === ME)) err('not_member');
+    const r = { sent: [] as string[], already: [] as string[], notFound: [] as string[] };
+    for (const h of handles) {
+      const who = DEMO_PEOPLE.find((p) => p.handle.toLowerCase() === h)?.id ?? (h === 'lu' ? 'demo-lu' : null);
+      if (!who) r.notFound.push(h); else if (c!.people.some((p) => p.id === who)) r.already.push(h); else r.sent.push(h);
+    }
+    return r;
   },
   leave(id: string) {
     const db = loadDb(); const c = db.clubs.find((x) => x.id === id);

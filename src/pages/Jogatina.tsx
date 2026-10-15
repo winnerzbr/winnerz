@@ -8,6 +8,7 @@ import {
   type JogPerson, type Jogatina, type JogatinaDraft, type JogatinaFull, type JogatinaLocked, type Rsvp,
 } from '../data/jogatinaApi';
 import { ensureRules } from '../data/moderationApi';
+import { refreshNotifs } from '../data/notifApi';
 import { ReportButton } from '../components/Moderation';
 import { GroupChat, type ChatCtx } from '../components/GroupChat';
 import { InviteBox, inviteSummary } from '../components/InviteBox';
@@ -132,7 +133,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
     setErr('');
     if (!(await ensureRules())) return;
     setBusy(true);
-    try { await f(); await reload(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
+    try { await f(); await reload(); void refreshNotifs(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
   };
   const answer = (r: Rsvp | null) => act(() => jogatinaApi.rsvp(j.id, code, r));
   const invite = j.inviteCode ? `${location.origin}/jogatina/${j.id}?c=${j.inviteCode}` : `${location.origin}/jogatina/${j.id}`;

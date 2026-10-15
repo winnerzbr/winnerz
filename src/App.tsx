@@ -25,6 +25,7 @@ import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityVie
 import { PostEditorPage, PostPage } from './pages/Post';
 import { ClubEditPage, ClubNewPage, ClubPage, ClubsIndexPage } from './pages/Clubs';
 import { JogatinaEditPage, JogatinaNewPage, JogatinaPage } from './pages/Jogatina';
+import { AvisosPage } from './pages/Avisos';
 import { StudioModerationPage } from './pages/StudioModeration';
 import { ModerationBanner, RulesHost } from './components/Moderation';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
@@ -99,6 +100,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/comunidade/clubes/criar', path)) return <ClubNewPage />;
   if ((m = match('/clube/:slug', path))) return <ClubPage key={m.slug} slug={m.slug} />;
   if ((m = match('/clube/:slug/editar', path))) return <ClubEditPage slug={m.slug} />;
+  if (match('/avisos', path)) return <AvisosPage />;
   if (match('/jogatina/criar', path)) return <JogatinaNewPage />;
   if ((m = match('/jogatina/:id/editar', path))) return <JogatinaEditPage id={m.id} />;
   if ((m = match('/jogatina/:id', path))) return <JogatinaPage key={m.id} id={m.id} />;

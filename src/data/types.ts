@@ -299,6 +299,11 @@ export interface CommunityPrefs {
   aviso_mencoes?: boolean;
   aviso_acompanhando?: boolean;
   aviso_clubes?: boolean;
+  aviso_reacoes?: boolean;
+  aviso_seguidores?: boolean;
+  aviso_convites?: boolean;
+  aviso_lembretes?: boolean;
+  aviso_lancamentos?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

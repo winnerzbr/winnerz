@@ -4,6 +4,7 @@ import { canReview, fixesApi } from '../data/fixesApi';
 import { moderationApi } from '../data/moderationApi';
 import { FREE, fmtBytes, loadUsage, type Usage } from '../data/usageApi';
 import { SITE_PRIVATE } from '../lib/env';
+import { notifApi } from '../data/notifApi';
 import { Link } from '../lib/router';
 import { ConfirmButton } from '../components/Sheet';
 import { invitesApi, inviteLink, type Invite } from '../data/invitesApi';
@@ -70,6 +71,7 @@ export function StudioPage() {
       </nav>
 
       <InvitesPanel open={isOpen} />
+      <AnnouncePanel />
 
       <section className="studio__sec" aria-labelledby="uso">
         <h2 id="uso" className="t">Uso dos planos gratuitos</h2>
@@ -212,6 +214,51 @@ function InvitesPanel({ open }: { open: boolean }) {
               </li>
             );
           })}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+/** Aviso do site: aparece no sino de todo mundo que tem conta. */
+function AnnouncePanel() {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [link, setLink] = useState('');
+  const [sure, setSure] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [err, setErr] = useState('');
+  const [list, setList] = useState<Awaited<ReturnType<typeof notifApi.announcements>>>([]);
+  const load = () => { notifApi.announcements().then(setList).catch(() => {}); };
+  useEffect(load, []);
+  const linkBad = link.trim() !== '' && !/^(\/\S*|https:\/\/\S{4,})$/.test(link.trim());
+  const send = async () => {
+    setBusy(true); setErr(''); setMsg('');
+    try { const r = await notifApi.announce(title, body, link); setMsg(`Aviso enviado para ${r.sent} ${r.sent === 1 ? 'conta' : 'contas'}.`); setTitle(''); setBody(''); setLink(''); setSure(false); load(); }
+    catch (e) { setErr(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(false); }
+  };
+  return (
+    <section className="studio__sec" aria-labelledby="aviso-site">
+      <h2 id="aviso-site" className="t">Aviso do site</h2>
+      <p className="muted">Vai para o sino de todo mundo que tem conta, como “WinnerZ · título”. Use para o que interessa a todos: Awards, novidades grandes, manutenção.</p>
+      <div className="cm-form studio__announce">
+        <label className="cm-form__f"><span className="kicker">Título</span><input className="field" value={title} maxLength={120} onChange={(e) => { setTitle(e.target.value); setSure(false); }} placeholder="Ex.: As indicações do WinnerZ Awards estão abertas" /></label>
+        <label className="cm-form__f"><span className="kicker">Texto (opcional)</span><textarea className="field" rows={2} maxLength={600} value={body} onChange={(e) => setBody(e.target.value)} /></label>
+        <label className="cm-form__f"><span className="kicker">Link (opcional)</span><input className="field" value={link} onChange={(e) => setLink(e.target.value)} placeholder="/eventos/awards ou https://…" aria-invalid={linkBad} />
+          {linkBad && <small className="awards__error">Use um endereço do site (começando com /) ou um link completo com https://</small>}
+        </label>
+        {err && <p className="awards__error" role="alert">{err}</p>}
+        {msg && <p className="jog-invite__note" role="status">{msg}</p>}
+        <div className="cm-form__acts">
+          {sure
+            ? <><button className="btn primary" disabled={busy} onClick={() => void send()}>{busy ? 'Enviando…' : 'Enviar para todo mundo'}</button><button className="btn quiet" onClick={() => setSure(false)}>Voltar</button></>
+            : <button className="btn ghost" disabled={title.trim().length < 3 || linkBad} onClick={() => setSure(true)}>Enviar aviso</button>}
+        </div>
+      </div>
+      {list.length > 0 && (
+        <ul className="studio__announced">
+          {list.map((a) => <li key={a.id}><b>{a.title}</b><small className="faint">{new Date(a.at).toLocaleDateString('pt-BR')} · {a.read} de {a.sent} já leram</small></li>)}
         </ul>
       )}
     </section>

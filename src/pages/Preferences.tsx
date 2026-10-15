@@ -12,6 +12,7 @@ import { BlockedList } from '../components/Moderation';
 import { Link } from '../lib/router';
 import type { CommunityPrefs } from '../data/types';
 import { refreshNews } from '../data/communityApi';
+import { refreshNotifs } from '../data/notifApi';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -143,6 +144,7 @@ export function Preferences() {
       <OverlaySettings />
 
       <CommunitySettings />
+      <NotifSettings />
 
       <section className="prefs__section" aria-labelledby="perfil">
         <h2 id="perfil" className="t">Perfil e privacidade</h2>
@@ -232,12 +234,37 @@ function CommunitySettings() {
       <h2 id="comunidade" className="t">Comunidade</h2>
       {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
       {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
-      <h3 className="prefs__sub">Avisos da Comunidade</h3>
-      <p className="muted prefs__p">Aparecem no número do menu e em “Enquanto você estava fora”. Nada de e-mail.</p>
-      {row('aviso_respostas', true, 'Respostas para você', 'Quando alguém responde a uma postagem ou resposta sua.')}
-      {row('aviso_mencoes', true, 'Menções', 'Quando alguém escreve o seu @.')}
-      {row('aviso_acompanhando', true, 'Conversas que você acompanha', 'Respostas novas nas conversas em que você respondeu ou tocou em “Acompanhar”.')}
-      {row('aviso_clubes', true, 'Clubes e jogatinas', 'Respostas às suas mensagens, jogatina chegando e parte do clube que abriu.')}
+    </section>
+  );
+}
+
+/** Quais avisos aparecem no sino e em /avisos. Os da moderação e do site sempre aparecem. */
+function NotifSettings() {
+  const stored = useStore((s) => s.prefs.comunidade);
+  const cp = stored ?? {};
+  const set = (patch: Partial<CommunityPrefs>) => { actions.setPrefs({ comunidade: { ...cp, ...patch } }); setTimeout(() => void refreshNotifs(), 1200); };
+  const row = (k: keyof CommunityPrefs, title: string, hint: string) => (
+    <label className="motion motion--switch" data-on={cp[k] ?? true} key={k}>
+      <input type="checkbox" role="switch" className="switch" checked={cp[k] ?? true} onChange={(e) => set({ [k]: e.target.checked })} />
+      <span><strong>{title}</strong><span className="muted">{hint}</span></span>
+    </label>
+  );
+  return (
+    <section aria-labelledby="avisos" className="prefs__section">
+      <h2 id="avisos" className="t">Avisos</h2>
+      <p className="muted prefs__p">Aparecem no sino do topo e em <Link to="/avisos">Avisos</Link>, só dentro do site. Os da moderação e os recados do WinnerZ sempre aparecem.</p>
+      <h3 className="prefs__sub">Conversas</h3>
+      {row('aviso_respostas', 'Respostas para você', 'Quando alguém responde a uma postagem ou resposta sua.')}
+      {row('aviso_mencoes', 'Menções', 'Quando alguém escreve o seu @, na Praça, nas comunidades, nos clubes e nas jogatinas.')}
+      {row('aviso_acompanhando', 'Conversas que você acompanha', 'Respostas novas nas conversas em que você respondeu ou tocou em “Acompanhar”.')}
+      {row('aviso_reacoes', 'Reações', 'GG, Curti e as outras reações nas suas mensagens, juntas num aviso só.')}
+      <h3 className="prefs__sub">Jogatinas e clubes</h3>
+      {row('aviso_convites', 'Convites', 'Quando alguém convida você para uma jogatina ou um clube.')}
+      {row('aviso_lembretes', 'Lembretes de jogatina', 'Uma hora antes da jogatina em que você disse Vou ou Talvez, e quando ela muda de hora ou é cancelada.')}
+      {row('aviso_clubes', 'Clubes e jogatinas', 'Respostas às suas mensagens, jogatina nova na agenda do clube, jogo novo do clube e parte que abriu.')}
+      <h3 className="prefs__sub">Amigos e Jornada</h3>
+      {row('aviso_seguidores', 'Quem começou a seguir você', 'E quando alguém segue você de volta e vocês viram amigos.')}
+      {row('aviso_lancamentos', 'Lançamentos', 'Quando sai um jogo que está na sua lista de desejos ou no Radar.')}
     </section>
   );
 }

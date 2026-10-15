@@ -1,3 +1,4 @@
+import { notifApi } from '../data/notifApi';
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { getState, useStore } from '../data/store';
@@ -50,7 +51,10 @@ export function ExportData() {
     try {
       // O que você escreveu nas comunidades e nos clubes vem do servidor (sem a migração 0029, fica de fora).
       const { communityApi, communityImage } = await import('../data/communityApi');
-      const comunidade = await communityApi.myData().catch(() => null);
+      const base = await communityApi.myData().catch(() => null);
+      // Os avisos também (sem a migração 0034, ficam de fora).
+      const avisos = await notifApi.myData().catch(() => null);
+      const comunidade = base || avisos ? { ...(base ?? {}), ...(avisos ? { avisos } : {}) } : null;
       const { blob, missing } = await buildExport(getState(), (d, t) => setBusy(`Juntando as fotos: ${d} de ${t}…`), comunidade, communityImage);
       download(blob, `winnerz-dados-${today()}.zip`);
       setNote(missing ? `Pronto. ${missing} ${missing === 1 ? 'foto não baixou' : 'fotos não baixaram'} (conexão); tente de novo para incluí-las.` : 'Pronto. O arquivo foi baixado.');

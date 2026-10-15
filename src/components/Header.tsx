@@ -5,7 +5,7 @@ import { actions, useStore, openSession } from '../data/store';
 import { BrandLockup } from './Brand';
 import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
-import { useReplyNews } from '../data/communityApi';
+import { NotifBell } from './Notifications';
 
 /** Telas que fazem parte da Comunidade (para acender o pilar). */
 const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
@@ -23,7 +23,6 @@ export function Header() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
   const session = useStore(openSession);
-  const news = useReplyNews()?.count ?? 0;
   const [open, setOpen] = useState(false);
   const pop = useRef<HTMLDivElement>(null);
 
@@ -44,7 +43,6 @@ export function Header() {
           {PILLARS.map((p) => (
             <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && inCommunity(path)) ? 'page' : undefined}>
               <Icon name={p.icon} />{p.label}
-              {p.to === '/comunidade' && news > 0 && <span className="nav-badge" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}
             </Link>
           ))}
         </nav>
@@ -53,6 +51,7 @@ export function Header() {
           {session && (
             <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" /><span className="session-pill__label">Sessão aberta</span></Link>
           )}
+          <NotifBell />
           <div className="appearance" ref={pop}>
             <button className="icon-btn" aria-label="Aparência" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="tema" size={20} /></button>
             {open && (
@@ -123,7 +122,6 @@ export function TabBar() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
   const isAdmin = useStore((s) => !!s.isAdmin);
-  const news = useReplyNews()?.count ?? 0;
   const [more, setMore] = useState(false);
   const moreOn = MORE.some((m) => path.startsWith(m));
 
@@ -138,7 +136,7 @@ export function TabBar() {
       <nav className="tabbar" aria-label="Principal">
         {TABS.map((t) => (
           <Link key={t.to} to={t.to} className="tabbar__item" aria-current={t.on(path) ? 'page' : undefined}><TabIcon name={t.icon} />{t.label}
-            {t.to === '/comunidade' && news > 0 && <span className="nav-badge nav-badge--tab" aria-label={`${news} ${news === 1 ? 'novidade' : 'novidades'} na Comunidade`}>{news > 9 ? '9+' : news}</span>}</Link>
+</Link>
         ))}
         <button className="tabbar__item" aria-current={moreOn ? 'page' : undefined} aria-expanded={more} onClick={() => setMore(true)}><TabIcon name="mais" />Mais</button>
       </nav>

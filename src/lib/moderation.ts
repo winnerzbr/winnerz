@@ -1,6 +1,6 @@
 /** Textos e endereços dos alvos de denúncia (fila do Studio e histórico). */
-export type ReportKind = 'perfil' | 'jornada' | 'vitrine' | 'momento' | 'museu' | 'comunidade' | 'postagem' | 'resposta' | 'clube' | 'mensagem';
-export interface Snapshot { handle?: string; bio?: string | null; avatar?: boolean; cover?: boolean; game?: string; slug?: string; title?: string; description?: string | null; quote?: string | null; text?: string | null; intro?: string | null; photo?: boolean; shared?: boolean; hidden?: boolean; community?: string; postId?: string }
+export type ReportKind = 'perfil' | 'jornada' | 'vitrine' | 'momento' | 'museu' | 'comunidade' | 'postagem' | 'resposta' | 'clube';
+export interface Snapshot { handle?: string; bio?: string | null; avatar?: boolean; cover?: boolean; game?: string; slug?: string; title?: string; description?: string | null; quote?: string | null; text?: string | null; intro?: string | null; photo?: boolean; shared?: boolean; hidden?: boolean; community?: string; postId?: string; club?: string | null }
 
 /** O que mostrar sobre o alvo na fila e no histórico. */
 export function targetLabel(kind: ReportKind, s: Snapshot | null | undefined): string {
@@ -13,7 +13,6 @@ export function targetLabel(kind: ReportKind, s: Snapshot | null | undefined): s
     case 'comunidade': return `Comunidade “${s.title ?? ''}”`;
     case 'postagem': return `Postagem “${s.title ?? ''}”${s.community ? ` · ${s.community}` : ''}`;
     case 'clube': return `Clube “${s.title ?? ''}”${s.game ? ` · ${s.game}` : ''}`;
-    case 'mensagem': return `Mensagem no clube “${s.title ?? ''}”`;
     case 'resposta': return `Resposta em “${s.title ?? ''}”${s.community ? ` · ${s.community}` : ''}`;
     default: return `Perfil @${s.handle ?? ''}`;
   }
@@ -21,7 +20,8 @@ export function targetLabel(kind: ReportKind, s: Snapshot | null | undefined): s
 /** Endereço público do alvo, para abrir e conferir. */
 export function targetLink(kind: ReportKind, handle: string | null, ref: string, s: Snapshot | null | undefined): string | null {
   if (kind === 'clube') return s?.slug ? `/clube/${s.slug}` : null;
-  if (kind === 'mensagem') return s?.slug ? `/clube/${s.slug}#m-${ref}` : null;
+  // Postagem ou resposta de clube: abre na conversa do clube.
+  if ((kind === 'postagem' || kind === 'resposta') && s?.club) return `/clube/${s.club}#m-${ref}`;
   if (kind === 'comunidade') return s?.slug ? `/w/${s.slug}` : null;
   if (kind === 'postagem') return s?.slug ? `/w/${s.slug}/${ref}` : null;
   if (kind === 'resposta') return s?.slug && s.postId ? `/w/${s.slug}/${s.postId}#r-${ref}` : null;

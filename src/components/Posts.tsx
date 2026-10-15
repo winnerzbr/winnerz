@@ -1,12 +1,12 @@
-import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { Link, navigate } from '../lib/router';
-import { useStore } from '../data/store';
+import { getState, useStore } from '../data/store';
 import { avatarUrl } from '../data/profileApi';
 import {
-  KIND_LABEL, SPOILER_LABEL, communityApi, communityImage,
+  KIND_LABEL, REACTIONS, SPOILER_LABEL, communityApi, communityImage,
   type GameMini, type PersonRef, type Post, type ReactionKind, type Reactions,
 } from '../data/communityApi';
-import { parsePost, plainText, spoilerCovered, type Block, type GameProgress, type Inline } from '../lib/postText';
+import { parsePost, plainText, spoilerReached, type Block, type GameProgress, type Inline } from '../lib/postText';
 import { EmbedBlock, LinkCard, embedFor, embedThumb } from './Embed';
 import { searchGames, loadGame, type Hit } from './AddGameDialog';
 import { actions } from '../data/store';
@@ -29,13 +29,14 @@ export function ago(iso?: string | null): string {
 
 export function PersonAvatar({ p, size = 32 }: { p: PersonRef; size?: number }) {
   return (
-    <span className="soc-av" style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden="true">
-      {p.avatar ? <img src={avatarUrl(p.avatar) ?? ''} alt="" /> : (p.handle ?? '?').slice(0, 1).toUpperCase()}
+    <span className={`soc-av${p.gone ? ' soc-av--gone' : ''}`} style={{ width: size, height: size, fontSize: size * 0.42 }} aria-hidden="true">
+      {p.avatar ? <img src={avatarUrl(p.avatar) ?? ''} alt="" /> : p.gone ? '·' : (p.handle ?? '?').slice(0, 1).toUpperCase()}
     </span>
   );
 }
 
 export function PersonLink({ p, official = false, avatar = true }: { p: PersonRef; official?: boolean; avatar?: boolean }) {
+  if (p.gone) return <span className="cm-person cm-person--gone">{avatar && <PersonAvatar p={p} size={24} />}<span>Conta apagada</span></span>;
   const inner = <>{avatar && <PersonAvatar p={p} size={24} />}<span>{p.handle ? `@${p.handle}` : 'Conta sem @'}</span>{official && p.admin && <span className="cm-badge">Canal</span>}</>;
   return p.handle ? <Link to={`/@${p.handle.toLowerCase()}`} className="cm-person">{inner}</Link> : <span className="cm-person">{inner}</span>;
 }
@@ -61,28 +62,45 @@ const REVEALED = 'wz.spoiler.vistos';
 const revealedSet = (): Set<string> => { try { return new Set(JSON.parse(sessionStorage.getItem(REVEALED) || '[]') as string[]); } catch { return new Set(); } };
 function rememberReveal(id: string) { try { sessionStorage.setItem(REVEALED, JSON.stringify([...revealedSet(), id])); } catch { /* só nesta tela */ } }
 
-/** A postagem está coberta para quem vê? (quem escreveu nunca vê coberto) */
-export function usePostCovered(post: Pick<Post, 'id' | 'spoiler' | 'game' | 'author'>): [boolean, () => void] {
+/**
+ * Spoiler fica coberto para todo mundo até a pessoa tocar (quem escreveu nunca vê coberto).
+ * A Jornada só ajuda: diz se a pessoa já passou daquela parte (true), ainda não (false) ou nem tem o jogo (null).
+ */
+export function usePostCovered(post: Pick<Post, 'id' | 'spoiler' | 'game' | 'author'>): [boolean, () => void, boolean | null] {
   const progressOf = useProgressOf();
   const me = useStore((s) => s.mode === 'demo' ? 'demo-me' : s.profile?.id ?? null);
   const [shown, setShown] = useState(() => revealedSet().has(post.id));
-  const covered = !shown && post.author.id !== me && spoilerCovered(post.spoiler ?? null, progressOf(post.game?.id));
-  return [covered, () => { rememberReveal(post.id); setShown(true); }];
+  const covered = !shown && !!post.spoiler && post.author.id !== me;
+  return [covered, () => { rememberReveal(post.id); setShown(true); }, spoilerReached(post.spoiler ?? null, progressOf(post.game?.id))];
 }
 
-export function SpoilerNote({ post }: { post: Pick<Post, 'spoiler' | 'game'> }) {
+export function SpoilerNote({ post }: { post: Pick<Post, 'spoiler' | 'game' | 'spoilerNote'> }) {
   if (!post.spoiler || !post.game) return null;
-  return <span className="cm-chip cm-chip--spoiler" title={`Spoiler ${SPOILER_LABEL[post.spoiler].toLowerCase()} de ${post.game.title}`}><Icon name="escudo" size={12} />Spoiler {SPOILER_LABEL[post.spoiler].toLowerCase()}</span>;
+  return (
+    <span className="cm-chip cm-chip--spoiler" title={`Spoiler ${SPOILER_LABEL[post.spoiler].toLowerCase()} de ${post.game.title}${post.spoilerNote ? `: ${post.spoilerNote}` : ''}`}>
+      <Icon name="escudo" size={12} />Spoiler {SPOILER_LABEL[post.spoiler].toLowerCase()}{post.spoilerNote ? <span className="cm-chip__note"> · {post.spoilerNote}</span> : null}
+    </span>
+  );
 }
 
-/** Capa sobre o conteúdo com spoiler, para quem ainda não chegou lá no jogo. */
-export function SpoilerShield({ post, onReveal }: { post: Pick<Post, 'spoiler' | 'game'>; onReveal: () => void }) {
-  const what = post.spoiler === 'final' ? 'ainda não zerou' : post.spoiler === 'meio' ? 'ainda não passou da metade de' : 'ainda não começou';
+/** O que a Jornada diz sobre um spoiler, numa frase. */
+export function spoilerHint(post: Pick<Post, 'spoiler' | 'game'>, reached: boolean | null): string {
+  const g = post.game?.title ?? 'o jogo';
+  if (reached == null) return `${g} não está na sua Jornada.`;
+  if (reached) return post.spoiler === 'final' ? `Pela sua Jornada, você já zerou ${g}.` : `Pela sua Jornada, você já passou dessa parte de ${g}.`;
+  return post.spoiler === 'final' ? `Pela sua Jornada, você ainda não zerou ${g}.` : post.spoiler === 'meio' ? `Pela sua Jornada, você ainda não chegou na metade de ${g}.` : `Pela sua Jornada, você ainda está no comecinho de ${g}.`;
+}
+
+/** Capa sobre o conteúdo com spoiler. Fica para todo mundo; a Jornada só dá a dica. */
+export function SpoilerShield({ post, onReveal, reached }: { post: Pick<Post, 'spoiler' | 'game' | 'spoilerNote'>; onReveal: () => void; reached: boolean | null }) {
   return (
-    <div className="cm-shield">
+    <div className={`cm-shield${reached ? ' is-safe' : ''}`}>
       <Icon name="escudo" size={22} />
-      <p><b>Tem spoiler {post.spoiler ? SPOILER_LABEL[post.spoiler].toLowerCase() : ''} de {post.game?.title}.</b> Pela sua Jornada, você {what}{post.spoiler === 'meio' ? ` ${post.game?.title}` : ''}. Por isso o texto ficou coberto.</p>
-      <button className="btn ghost sm" onClick={onReveal}>Ver mesmo assim</button>
+      <p>
+        <b>Spoiler {post.spoiler ? SPOILER_LABEL[post.spoiler].toLowerCase() : ''} de {post.game?.title}{post.spoilerNote ? `: ${post.spoilerNote}` : ''}.</b>{' '}
+        {spoilerHint(post, reached)}
+      </p>
+      <button className={`btn ${reached ? 'primary' : 'ghost'} sm`} onClick={onReveal}>{reached ? 'Ver' : 'Ver mesmo assim'}</button>
     </div>
   );
 }
@@ -101,6 +119,7 @@ function renderInline(n: Inline[]): ReactNode {
       case 'i': return <em key={i}>{renderInline(x.c)}</em>;
       case 'link': return <a key={i} href={x.href} target="_blank" rel="noopener noreferrer nofollow ugc">{x.v}</a>;
       case 'spoiler': return <InlineSpoiler key={i}>{renderInline(x.c)}</InlineSpoiler>;
+      case 'mention': return <Link key={i} to={`/@${x.handle.toLowerCase()}`} className="cm-mention">@{x.handle}</Link>;
       default: return <Fragment key={i}>{x.v.split('\n').map((l, k) => <Fragment key={k}>{k > 0 && <br />}{l}</Fragment>)}</Fragment>;
     }
   });
@@ -131,6 +150,7 @@ export function PostText({ text, className = '', embeds = 0 }: { text: string; c
       return embeds > 0 ? <LinkCard key={i} url={b.url} /> : <p key={i}><a href={b.url} target="_blank" rel="noopener noreferrer nofollow ugc">{b.url.replace(/^https?:\/\/(www\.)?/, '')}</a></p>;
     }
     return b.t === 'p' ? <p key={i}>{renderInline(b.c)}</p>
+      : b.t === 'quote' ? <blockquote key={i} className="cm-quote">{renderInline(b.c)}</blockquote>
       : b.t === 'ul' ? <ul key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ul>
       : <ol key={i}>{b.items.map((it, k) => <li key={k}>{renderInline(it)}</li>)}</ol>;
   });
@@ -141,6 +161,56 @@ export function PostText({ text, className = '', embeds = 0 }: { text: string; c
       {items}
       {tail.map((u) => <EmbedBlock key={`e-${u}`} url={u} />)}
     </div>
+  );
+}
+
+/** Caixa de texto com sugestão de @: ao digitar @, aparecem as pessoas da conversa. */
+export function MentionArea({ value, onChange, people, ...rest }: { value: string; onChange: (v: string) => void; people: string[] } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'>) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const [q, setQ] = useState<string | null>(null);
+  const caret = useRef<number | null>(null);
+  // Ao abrir já com texto (Citar), o cursor vai para o fim, depois da citação.
+  useEffect(() => { const el = ref.current; if (el && rest.autoFocus) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [pick, setPick] = useState(0);
+  const sync = (el: HTMLTextAreaElement) => {
+    const m = /(^|[\s(])@([a-zA-Z0-9_.]{0,30})$/.exec(el.value.slice(0, el.selectionStart));
+    setQ(m ? m[2].toLowerCase() : null); setPick(0);
+  };
+  const list = q == null ? [] : people.filter((h) => h.toLowerCase().startsWith(q)).slice(0, 5);
+  const choose = (h: string) => {
+    const el = ref.current; if (!el) return;
+    const at = el.selectionStart;
+    const before = el.value.slice(0, at).replace(/@[a-zA-Z0-9_.]{0,30}$/, `@${h} `);
+    const next = before + el.value.slice(at);
+    caret.current = before.length;
+    onChange(next); setQ(null);
+  };
+  // O cursor fica logo depois do @ escolhido (assim que o texto novo aparece na tela).
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el && caret.current != null) { el.focus(); el.setSelectionRange(caret.current, caret.current); caret.current = null; }
+  }, [value]);
+  return (
+    <span className="cm-mentionbox">
+      <textarea ref={ref} {...rest} value={value}
+        onChange={(e) => { onChange(e.target.value); sync(e.target); }}
+        onClick={(e) => sync(e.currentTarget)}
+        onBlur={() => setTimeout(() => setQ(null), 150)}
+        onKeyDown={(e) => {
+          if (list.length) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); setPick((i) => (i + 1) % list.length); return; }
+            if (e.key === 'ArrowUp') { e.preventDefault(); setPick((i) => (i - 1 + list.length) % list.length); return; }
+            if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); choose(list[pick]); return; }
+            if (e.key === 'Escape') { setQ(null); return; }
+          }
+          rest.onKeyDown?.(e);
+        }} />
+      {list.length > 0 && (
+        <span className="cm-mentions" role="listbox" aria-label="Pessoas da conversa">
+          {list.map((h, i) => <button type="button" key={h} role="option" aria-selected={i === pick} className={i === pick ? 'is-on' : ''} onMouseDown={(e) => { e.preventDefault(); choose(h); }}>@{h}</button>)}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -183,27 +253,87 @@ export function ImageGrid({ images }: { images: string[] }) {
 /* ------------------------------------------------------------------ */
 /* Reações                                                              */
 /* ------------------------------------------------------------------ */
-export function ReactionBar({ target, id, value, compact = false }: { target: 'post' | 'resposta' | 'mensagem'; id: string; value: Reactions; compact?: boolean }) {
+/** "Quero jogar": o jogo vai para os desejos (ou para o Radar, se ainda não saiu). Devolve o aviso para mostrar. */
+function wantToPlay(g: GameMini): { text: string; undo?: () => void } | null {
+  if (!getState().games[g.id]) actions.mergeGames([{ id: g.id, slug: g.slug, title: g.title, cover: g.cover ?? '', platforms: [] }]);
+  const s = getState();
+  const full = s.games[g.id];
+  const today = new Date().toISOString().slice(0, 10);
+  if (full?.releasedOn && full.releasedOn > today) {
+    if (s.myGames[g.id]?.onRadar) return { text: `${g.title} já está no seu Radar.` };
+    actions.toggleRadar(g.id);
+    return { text: `${g.title} entrou no seu Radar.`, undo: () => actions.toggleRadar(g.id) };
+  }
+  if (s.copies.some((c) => c.gameId === g.id) || s.journeys.some((j) => j.gameId === g.id)) return null;
+  if (s.wishes.some((w) => w.gameId === g.id)) return { text: `${g.title} já está nos seus desejos.` };
+  actions.toggleWish(g.id);
+  return { text: `${g.title} foi para os seus desejos.`, undo: () => actions.toggleWish(g.id) };
+}
+
+function RxInner({ k, n, label }: { k: ReactionKind; n: number; label: boolean }) {
+  const x = REACTIONS.find((r) => r.k === k)!;
+  return <>{k === 'gg' ? <b>GG</b> : <Icon name={x.icon} size={16} />}{label && k !== 'gg' && <span className="cm-react__l">{x.label}</span>}{n > 0 && <span className="mono">{n}</span>}</>;
+}
+
+/**
+ * Reações: GG, Curti, Quero jogar, Boa dica, Tamo junto, Haha e Que momento.
+ * Inteira (na postagem): todas, com nome. Compacta (listas e respostas): só as que alguém usou, e um botão para reagir.
+ * game: o jogo da conversa, para o "Quero jogar" levar para os desejos.
+ */
+export function ReactionBar({ target, id, value, compact = false, game = null }: { target: 'post' | 'resposta'; id: string; value: Reactions; compact?: boolean; game?: GameMini | null }) {
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const [r, setR] = useState(value);
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState<{ text: string; undo?: () => void } | null>(null);
+  const box = useRef<HTMLSpanElement>(null);
   useEffect(() => setR(value), [value]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => {
+      if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close); document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
+  }, [open]);
+  useEffect(() => { if (!note) return; const t = setTimeout(() => setNote(null), 6000); return () => clearTimeout(t); }, [note]);
+  const n = (k: ReactionKind) => r[k] ?? 0;
   const toggle = async (k: ReactionKind) => {
     if (signedOut) return navigate('/entrar');
+    setOpen(false);
     const on = !r.mine.includes(k);
     const prev = r;
-    setR({ ...r, [k]: r[k] + (on ? 1 : -1), mine: on ? [...r.mine, k] : r.mine.filter((x) => x !== k) });
+    setR({ ...r, [k]: Math.max(0, n(k) + (on ? 1 : -1)), mine: on ? [...r.mine, k] : r.mine.filter((x) => x !== k) });
     setBusy(true);
-    try { setR(await communityApi.react(target, id, k, on)); } catch { setR(prev); } finally { setBusy(false); }
+    try {
+      setR(await communityApi.react(target, id, k, on));
+      if (k === 'jogar' && on && game) setNote(wantToPlay(game));
+    } catch { setR(prev); } finally { setBusy(false); }
   };
+  const shown = compact ? REACTIONS.filter((x) => n(x.k) > 0 || r.mine.includes(x.k)) : REACTIONS;
   return (
-    <span className={`cm-react${compact ? ' cm-react--compact' : ''}`}>
-      <button className={`cm-react__b cm-react__gg${r.mine.includes('gg') ? ' is-on' : ''}`} disabled={busy} aria-pressed={r.mine.includes('gg')} onClick={() => void toggle('gg')} title="GG: mandou bem">
-        <b>GG</b>{r.gg > 0 && <span className="mono">{r.gg}</span>}
-      </button>
-      <button className={`cm-react__b cm-react__heart${r.mine.includes('coracao') ? ' is-on' : ''}`} disabled={busy} aria-pressed={r.mine.includes('coracao')} onClick={() => void toggle('coracao')} aria-label="Curtir">
-        <Icon name="coracao" size={16} fill={r.mine.includes('coracao') ? 'currentColor' : 'none'} />{r.coracao > 0 && <span className="mono">{r.coracao}</span>}
-      </button>
+    <span className={`cm-react${compact ? ' cm-react--compact' : ''}`} ref={box}>
+      {shown.map((x) => (
+        <button key={x.k} className={`cm-react__b cm-react__${x.k}${r.mine.includes(x.k) ? ' is-on' : ''}`} disabled={busy} aria-pressed={r.mine.includes(x.k)}
+          onClick={() => void toggle(x.k)} title={x.hint} aria-label={`${x.label}${n(x.k) ? `: ${n(x.k)}` : ''}`}>
+          <RxInner k={x.k} n={n(x.k)} label={!compact} />
+        </button>
+      ))}
+      {compact && (
+        <span className="cm-react__more">
+          <button className="cm-react__b cm-react__add" aria-expanded={open} aria-haspopup="menu" aria-label="Reagir" title="Reagir" onClick={() => setOpen((v) => !v)}><Icon name="reagir" size={16} /></button>
+          {open && (
+            <span className="cm-react__pop" role="menu" aria-label="Reações">
+              {REACTIONS.map((x) => (
+                <button key={x.k} role="menuitemcheckbox" aria-checked={r.mine.includes(x.k)} className={r.mine.includes(x.k) ? 'is-on' : ''} onClick={() => void toggle(x.k)} title={x.hint}>
+                  {x.k === 'gg' ? <><b>GG</b><span>Mandou bem</span></> : <><Icon name={x.icon} size={18} /><span>{x.label}</span></>}
+                </button>
+              ))}
+            </span>
+          )}
+        </span>
+      )}
+      {note && <span className="cm-react__note" role="status">{note.text}{note.undo && <button className="cm-link" onClick={() => { note.undo!(); setNote(null); }}>Desfazer</button>}</span>}
     </span>
   );
 }
@@ -226,14 +356,14 @@ export function PostCard({ post, showCommunity = false }: { post: Post; showComm
         <div className="cm-card__top">
           {post.pinned && <span className="cm-chip cm-chip--pin"><Icon name="pin" size={12} />Fixada</span>}
           <KindChip kind={post.kind} />
-          {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Resolvida</span>}
+          {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Dúvida resolvida</span>}
           <SpoilerNote post={post} />
           {post.hidden && <span className="cm-chip cm-chip--hidden">Fora do ar pela moderação</span>}
           {showCommunity && <Link to={`/w/${post.community.slug}`} className="cm-card__comm">w/{post.community.slug}</Link>}
         </div>
         <h3 className="cm-card__t"><Link to={href}>{post.title}</Link></h3>
         {covered ? (
-          <button className="cm-card__covered" onClick={reveal}><Icon name="escudo" size={14} />Coberto: spoiler {post.spoiler ? SPOILER_LABEL[post.spoiler].toLowerCase() : ''} de {post.game?.title}. Tocar para ver.</button>
+          <button className="cm-card__covered" onClick={reveal}><Icon name="escudo" size={14} />Coberto: spoiler {post.spoiler ? SPOILER_LABEL[post.spoiler].toLowerCase() : ''} de {post.game?.title}{post.spoilerNote ? ` (${post.spoilerNote})` : ''}. Tocar para ver.</button>
         ) : excerpt ? <p className="cm-card__ex">{excerpt.length > 220 ? `${excerpt.slice(0, 220).trimEnd()}…` : excerpt}</p> : null}
         <div className="cm-card__meta">
           <PersonLink p={post.author} official={post.community.official} />
@@ -241,7 +371,7 @@ export function PostCard({ post, showCommunity = false }: { post: Post; showComm
           {post.game && <Link to={`/jogos/${post.game.slug}`} className="cm-card__game">{post.game.title}</Link>}
           <span className="cm-card__stats">
             <Link to={`${href}#respostas`} className="cm-card__n" aria-label={`${post.replies} respostas`}><Icon name="mensagem" size={15} />{post.replies}</Link>
-            <ReactionBar target="post" id={post.id} value={post.reactions} compact />
+            <ReactionBar target="post" id={post.id} value={post.reactions} compact game={post.game} />
           </span>
         </div>
       </div>
@@ -313,7 +443,7 @@ export function GameConversations({ gameId, title }: { gameId: string; title: st
     <section aria-labelledby="conversas" className="cm-gamesec">
       <div className="sec-head">
         <h2 id="conversas" className="t sec-title">Conversas sobre este jogo</h2>
-        {list.length > 0 && <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoiler coberto pelo seu progresso</span>}
+        {list.length > 0 && <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoiler coberto até você tocar</span>}
       </div>
       {list.length === 0
         ? <p className="muted">Ninguém falou de {title} nas comunidades ainda. <Link to="/comunidade/comunidades">Abrir uma conversa</Link></p>

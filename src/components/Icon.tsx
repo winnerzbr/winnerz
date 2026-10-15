@@ -30,6 +30,14 @@ const paths: Record<string, ReactElement> = {
   desejo: <path d="M7 3.5h10a1 1 0 0 1 1 1V21l-6-4-6 4V4.5a1 1 0 0 1 1-1z" strokeLinejoin="round" />,
   estante: <><path d="M4 4v16M20 4v16M4 12h16M4 20h16" /><path d="M7 12V7M10 12V8M15 20v-5M17 20v-6" /></>,
   radar: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><path d="M12 12l5.5-5.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></>,
+  lampada: <><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z" strokeLinejoin="round" /></>,
+  pessoas: <><circle cx="8" cy="8" r="3" /><circle cx="16" cy="8" r="3" /><path d="M2 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5M14 15.2c.6-.1 1.3-.2 2-.2 2.8 0 5.2 1.8 6 5" /></>,
+  riso: <><circle cx="12" cy="12" r="9" /><path d="M8.5 13.5c.9 1.6 2 2.5 3.5 2.5s2.6-.9 3.5-2.5M9 9.5h.01M15 9.5h.01" /></>,
+  brilho: <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z" strokeLinejoin="round" />,
+  citar: <path d="M5 17.5c2.5-1 3.5-3 3.5-5.5H5V6.5h5.5V12c0 3.5-2 6.3-5.5 7.5M13.5 17.5c2.5-1 3.5-3 3.5-5.5h-3.5V6.5H19V12c0 3.5-2 6.3-5.5 7.5" strokeLinejoin="round" />,
+  link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,
+  subir: <path d="M12 19V6M6 11l6-6 6 6" />,
+  reagir: <><circle cx="11" cy="12" r="8" /><path d="M7.8 13.5c.8 1.3 1.8 2 3.2 2s2.4-.7 3.2-2M8.5 9.8h.01M13.5 9.8h.01M19 3v5M16.5 5.5h5" /></>,
   maisAcoes: <><circle cx="5.5" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18.5" cy="12" r="1.4" fill="currentColor" /></>,
 };
 

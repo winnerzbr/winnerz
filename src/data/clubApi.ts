@@ -3,10 +3,12 @@
  *   encontro      → Encontro de uma noite (dia e hora, Vou/Talvez/Não vou, mural depois)
  *   sem_pressa    → Clube sem pressa (partes; a conversa de cada parte só abre para quem passou dela)
  *   primeira_vez  → Primeira vez juntos (quem nunca jogou e os guias)
- * Com conta, tudo passa pelas funções do banco (migração 0028). Na demonstração, fica neste navegador.
+ * Com conta, tudo passa pelas funções do banco (migrações 0028 e 0029: as mensagens são postagens e respostas,
+ * como no resto da comunidade). Na demonstração, fica neste navegador.
  */
 import { getState } from './store';
-import { communityApi, demoGameMini, demoPersonRef, demoReactions, slugOk, type GameMini, type NewsItem, type PersonRef, type Reactions, type ReplyNews } from './communityApi';
+import { communityApi, demoGameMini, demoPersonRef, demoReactions, fixAuthors, slugOk, type GameMini, type NewsItem, type PersonRef, type Reactions, type ReplyNews } from './communityApi';
+import { mentionsOf } from '../lib/postText';
 
 export type ClubFormat = 'encontro' | 'sem_pressa' | 'primeira_vez';
 export type ClubAccess = 'aberto' | 'amigos' | 'convite';
@@ -23,8 +25,9 @@ export interface ClubPerson extends PersonRef {
   role: 'dono' | 'membro'; rsvp?: Rsvp | null; firstTime?: boolean | null; stage: number; finishedAt?: string | null; joinedAt: string;
   journey?: { progress: number | null; completed: boolean | null } | null;
 }
+/** target: a mensagem de cima é uma postagem ('post'); as de baixo, respostas ('resposta'). Serve para reagir e denunciar. */
 export interface ClubMessage {
-  id: string; part: number; parentId: string | null; question: boolean; body: string; images: string[]; deleted: boolean;
+  id: string; part: number; parentId: string | null; question: boolean; target: 'post' | 'resposta'; body: string; images: string[]; deleted: boolean;
   createdAt: string; editedAt?: string | null; hidden: boolean; author: PersonRef; reactions: Reactions;
 }
 export interface ClubFull extends Club { locked: false; people: ClubPerson[]; messages: ClubMessage[]; hiddenParts: Record<string, number> }
@@ -84,10 +87,11 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/club_messages_of|relation "public.club_messages" does not exist/i.test(m)) throw new Error('Falta rodar a migração 0029 no Supabase.');
     if (/club_|my_news|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0028 no Supabase.');
     throw new Error(m);
   }
-  return r.data;
+  return fixAuthors(r.data);
 };
 const client = async () => (await import('./supabaseAdapter')).getClient();
 const supa = () => getState().mode === 'supabase';
@@ -175,7 +179,7 @@ type DClub = Omit<Club, 'game' | 'owner' | 'members' | 'going' | 'me' | 'ended' 
 type DMsg = { id: string; club: string; part: number; parentId: string | null; author: string; question: boolean; body: string; images: string[]; createdAt: string; editedAt?: string | null; deletedAt?: string | null };
 type DB = { v: number; clubs: DClub[]; msgs: DMsg[] };
 const KEY = 'wz.demo.clubes';
-const VERSION = 1;
+const VERSION = 2;
 const ME = 'demo-me';
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const dayOffset = (d: number) => { const x = new Date(Date.now() + d * 86_400_000); return x.toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }); };
@@ -211,7 +215,7 @@ function seed(): DB {
   const msgs: DMsg[] = [
     x('n1', 'k-noite', 'demo-duda', 20, 'Vou estar lá! Ainda me falta o planeta de gelo.'),
     x('n2', 'k-noite', 'demo-rafa', 18, 'Se der tempo eu entro. Alguém sabe se tem segredo no último chefe?'),
-    x('n3', 'k-noite', ME, 17, 'Tem sim, mas fica para a live 😄', { parentId: 'n2' }),
+    x('n3', 'k-noite', ME, 17, 'Tem sim, mas fica para a live 😄 @rafa', { parentId: 'n2' }),
     x('d1', 'k-derby', 'demo-rafa', 24 * 6 - 3, 'Que noite! Bati o recorde de carros destruídos no estádio.', { images: ['/demo/scene-dderby.webp'] }),
     x('d2', 'k-derby', ME, 24 * 6 - 4, 'Valeu pela noite, rafa. Na próxima eu levo o volante.'),
     x('e1', 'k-elden', 'demo-carol', 24 * 19, 'Boas-vindas! Combinado: spoiler só dentro da conversa de cada parte.'),
@@ -269,11 +273,11 @@ const demo = {
     const msgs = db.msgs.filter((x) => x.club === c.id && (x.part === 0 || (me && x.part <= stage)) && (!x.deletedAt || db.msgs.some((k) => k.parentId === x.id && !k.deletedAt)));
     const hidden: Record<string, number> = {};
     db.msgs.filter((x) => x.club === c.id && x.part > (me ? stage : 0) && !x.deletedAt).forEach((x) => { hidden[x.part] = (hidden[x.part] ?? 0) + 1; });
-    const reacts = (id: string): Reactions => demoReactions('mensagem', id);
+    const reacts = (x: DMsg): Reactions => demoReactions(x.parentId ? 'resposta' : 'post', x.id);
     return {
       ...clubOut(c), locked: false,
       people: c.people.map((p) => ({ ...demoPersonRef(p.id), role: p.role, rsvp: p.rsvp, firstTime: p.firstTime, stage: p.stage, finishedAt: p.finishedAt, joinedAt: p.joinedAt, journey: null })),
-      messages: msgs.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((x) => ({ id: x.id, part: x.part, parentId: x.parentId, question: x.question, body: x.deletedAt ? '' : x.body, images: x.deletedAt ? [] : x.images, deleted: !!x.deletedAt, createdAt: x.createdAt, editedAt: x.editedAt ?? null, hidden: false, author: demoPersonRef(x.author), reactions: reacts(x.id) })),
+      messages: msgs.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((x) => ({ id: x.id, part: x.part, parentId: x.parentId, question: x.question, target: x.parentId ? 'resposta' as const : 'post' as const, body: x.deletedAt ? '' : x.body, images: x.deletedAt ? [] : x.images, deleted: !!x.deletedAt, createdAt: x.createdAt, editedAt: x.editedAt ?? null, hidden: false, author: demoPersonRef(x.author), reactions: reacts(x) })),
       hiddenParts: hidden,
     };
   },
@@ -339,7 +343,7 @@ const demo = {
     if (p > 0 && p > me!.stage) err('part_locked');
     const m: DMsg = { id: rid(), club: clubId, part: p, parentId: parent, author: ME, question: question && !parent, body: t, images: images.slice(0, 4), createdAt: new Date().toISOString() };
     db.msgs.push(m); saveDb(db);
-    return { id: m.id, part: m.part, parentId: m.parentId, question: m.question, body: m.body, images: m.images, deleted: false, createdAt: m.createdAt, editedAt: null, hidden: false, author: demoPersonRef(ME), reactions: { gg: 0, coracao: 0, mine: [] } };
+    return { id: m.id, part: m.part, parentId: m.parentId, question: m.question, target: m.parentId ? 'resposta' : 'post', body: m.body, images: m.images, deleted: false, createdAt: m.createdAt, editedAt: null, hidden: false, author: demoPersonRef(ME), reactions: { mine: [] } };
   },
   editMessage(id: string, body: string) {
     const db = loadDb(); const m = db.msgs.find((x) => x.id === id && x.author === ME);
@@ -361,9 +365,11 @@ export async function demoClubNews(seenAt: string): Promise<ReplyNews> {
   for (const c of db.clubs) {
     const me = c.people.find((p) => p.id === ME);
     if (!me) continue;
-    for (const x of db.msgs.filter((k) => k.club === c.id && k.parentId && k.author !== ME && !k.deletedAt)) {
-      const parent = db.msgs.find((k) => k.id === x.parentId);
-      if (parent?.author === ME && Date.parse(x.createdAt) > now - 30 * 86_400_000) items.push({ kind: 'clube_resposta', id: x.id, ref: String(x.part), slug: c.slug, title: c.name, excerpt: x.body.slice(0, 140), at: x.createdAt, author: demoPersonRef(x.author) });
+    const myHandle = (demoPersonRef(ME).handle ?? '').toLowerCase();
+    for (const x of db.msgs.filter((k) => k.club === c.id && k.author !== ME && !k.deletedAt && Date.parse(k.createdAt) > now - 30 * 86_400_000)) {
+      const parent = x.parentId ? db.msgs.find((k) => k.id === x.parentId) : null;
+      if (parent?.author === ME) items.push({ kind: 'clube_resposta', id: x.id, ref: String(x.part), slug: c.slug, title: c.name, excerpt: x.body.slice(0, 140), at: x.createdAt, author: demoPersonRef(x.author) });
+      else if ((x.part === 0 || x.part <= me.stage) && mentionsOf(x.body).some((h) => h.toLowerCase() === myHandle)) items.push({ kind: 'clube_mencao', id: x.id, ref: String(x.part), slug: c.slug, title: c.name, excerpt: x.body.slice(0, 140), at: x.createdAt, author: demoPersonRef(x.author) });
     }
     if (c.format === 'encontro' && c.startsAt && me.rsvp !== 'nao') {
       const at = Date.parse(c.startsAt) - 12 * 3_600_000;
@@ -377,4 +383,14 @@ export async function demoClubNews(seenAt: string): Promise<ReplyNews> {
   }
   const out = items.map((i) => ({ ...i, new: i.at > seenAt }));
   return { count: out.filter((i) => i.new).length, items: out.sort((a, b) => b.at.localeCompare(a.at)) };
+}
+
+/** "Baixar tudo" na demonstração: seus clubes e o que você escreveu neles. */
+export async function demoClubData(): Promise<Record<string, unknown>> {
+  const db = loadDb();
+  const name = (id: string) => db.clubs.find((c) => c.id === id);
+  return {
+    clubes: db.clubs.filter((c) => c.people.some((p) => p.id === ME)).map((c) => { const p = c.people.find((x) => x.id === ME)!; return { endereco: `clube/${c.slug}`, nome: c.name, papel: p.role, vou: p.rsvp ?? null, primeiraVez: p.firstTime ?? null, parte: p.stage, terminouEm: p.finishedAt ?? null, entrouEm: p.joinedAt, criado: c.ownerId === ME }; }),
+    mensagensNosClubes: db.msgs.filter((x) => x.author === ME).map((x) => ({ id: x.id, onde: `clube/${name(x.club)?.slug ?? ''}`, parteDoClube: x.part, resposta: !!x.parentId, texto: x.body, imagens: x.images, criadaEm: x.createdAt, editadaEm: x.editedAt ?? null, apagadaEm: x.deletedAt ?? null })),
+  };
 }

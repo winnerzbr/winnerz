@@ -6,7 +6,9 @@
  *   GET  /api/conta?purge=1      (agendado pela Vercel, uma vez por dia) → apaga as contas cujo prazo venceu
  *
  * Ao agendar, a conta continua funcionando por 7 dias. Depois disso, a rotina diária apaga as fotos
- * da pessoa no Storage e o usuário; o banco apaga o resto em cascata (Jornadas, coleção, notas, votos).
+ * da pessoa no Storage (momentos, avatares e as imagens das conversas) e o usuário; o banco apaga o resto em cascata
+ * (Jornadas, coleção, notas, votos). Postagens e respostas que receberam resposta de outras pessoas ficam, sem texto,
+ * imagens nem nome (gatilho account_detach, migração 0029), para não apagar a conversa dos outros.
  * Usa SUPABASE_URL + SUPABASE_SECRET_KEY (as mesmas do IGDB). A rotina só roda com CRON_SECRET configurado
  * (a Vercel manda esse segredo sozinha nas chamadas agendadas); sem ele, fica desligada.
  * Com RESEND_API_KEY e MAIL_FROM (ex.: "WinnerZ <entrar@winnerz.com.br>"), a pessoa recebe um e-mail
@@ -18,7 +20,7 @@ type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: 
 
 const GRACE_DAYS = 7;
 /** Pastas do Storage com arquivos da pessoa (cada uma usa <id da pessoa>/ como prefixo). */
-const BUCKETS = ['momentos', 'avatares'];
+const BUCKETS = ['momentos', 'avatares', 'comunidade'];
 
 function db() {
   const url = process.env.SUPABASE_URL;
@@ -126,7 +128,7 @@ async function purge(): Promise<{ removed: number; failed: number }> {
       if (!r.ok) throw new Error(`apagar conta: ${r.status}`);
       removed++;
       await mail(email, 'Sua conta do WinnerZ foi apagada', 'Conta apagada', [
-        'Como você pediu, a sua conta do WinnerZ foi apagada, com as Jornadas, a coleção, as notas, as fotos e todo o resto.',
+        'Como você pediu, a sua conta do WinnerZ foi apagada, com as Jornadas, a coleção, as notas, as fotos, as postagens e todo o resto.',
         'Se um dia quiser voltar, é só criar uma conta nova com este e-mail. Obrigado por ter jogado com a gente.',
       ]);
     } catch (e) {

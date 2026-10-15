@@ -46,6 +46,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
         <ul>
           <li><b>Só você</b> vê sua Jornada, sua coleção, suas fotos e seus votos.</li>
           <li><b>As análises que você publica</b> aparecem na ficha do jogo com o seu nome, para quem visita o site.</li>
+          <li><b>O que você escreve nas comunidades</b> (postagens, respostas e reações) aparece com o seu @ para quem abre a comunidade. Nos clubes, só para quem pode ver o clube.</li>
           <li><b>Seu perfil</b> (winnerz.com.br/@seunome) mostra só o que você liberar, pilar por pilar: para todo mundo, só para quem tem o seu link, ou para ninguém. Tudo começa privado. Se você marcar uma Jornada para aparecer no perfil, ela mostra o início, as datas das sessões, os momentos (com legenda e foto) e os marcos daquele jogo; recados, pontos para voltar, cartas, preços e com quem você jogou nunca aparecem. "Jogando agora" (a sessão aberta) só aparece se você ligar.</li>
         </ul>
       </section>
@@ -72,7 +73,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
         <ul>
           <li><b>Ver e corrigir:</b> qualquer registro pode ser editado ou apagado onde ele aparece.</li>
           <li><b>Levar embora:</b> "Baixar tudo" entrega um arquivo com todos os seus dados e fotos.</li>
-          <li><b>Apagar a conta:</b> você tem 7 dias para desistir; depois apagamos tudo, inclusive as fotos.</li>
+          <li><b>Apagar a conta:</b> você tem 7 dias para desistir; depois apagamos tudo, inclusive as fotos e as imagens das conversas. Onde outras pessoas já responderam a você, a conversa delas fica, sem o seu nome, o seu texto e as suas imagens.</li>
         </ul>
         <p>Esses são direitos seus pela Lei Geral de Proteção de Dados (LGPD). Dúvidas: fale com a gente pelas redes do canal WinnerZ.</p>
       </section>

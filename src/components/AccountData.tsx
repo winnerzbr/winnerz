@@ -48,7 +48,10 @@ export function ExportData() {
   const all = async () => {
     setNote(''); setBusy('Juntando seus dados…');
     try {
-      const { blob, missing } = await buildExport(getState(), (d, t) => setBusy(`Juntando as fotos: ${d} de ${t}…`));
+      // O que você escreveu nas comunidades e nos clubes vem do servidor (sem a migração 0029, fica de fora).
+      const { communityApi, communityImage } = await import('../data/communityApi');
+      const comunidade = await communityApi.myData().catch(() => null);
+      const { blob, missing } = await buildExport(getState(), (d, t) => setBusy(`Juntando as fotos: ${d} de ${t}…`), comunidade, communityImage);
       download(blob, `winnerz-dados-${today()}.zip`);
       setNote(missing ? `Pronto. ${missing} ${missing === 1 ? 'foto não baixou' : 'fotos não baixaram'} (conexão); tente de novo para incluí-las.` : 'Pronto. O arquivo foi baixado.');
     } catch { setNote('Não consegui montar o arquivo. Tente de novo.'); }
@@ -57,7 +60,7 @@ export function ExportData() {
   const csv = () => download(new Blob([collectionCsv(getState())], { type: 'text/csv;charset=utf-8' }), `winnerz-colecao-${today()}.csv`);
   return (
     <div className="acct">
-      <p className="muted prefs__p">Um arquivo .zip com tudo o que você registrou: Jornadas, sessões, momentos com as fotos, coleção, desejos, notas e preferências. Em formato aberto, para guardar ou levar para onde quiser.</p>
+      <p className="muted prefs__p">Um arquivo .zip com tudo o que você registrou: Jornadas, sessões, momentos com as fotos, coleção, desejos, notas, preferências e o que você escreveu nas comunidades e nos clubes. Em formato aberto, para guardar ou levar para onde quiser.</p>
       <div className="acct__row">
         <button className="btn primary" onClick={all} disabled={!!busy}>{busy || 'Baixar tudo'}</button>
         <button className="btn ghost" onClick={csv} disabled={!!busy}>Só a coleção (planilha)</button>
@@ -90,7 +93,7 @@ export function DeleteAccount() {
   if (when) return (
     <div className="acct acct--danger acct--scheduled">
       <p className="acct__title">Sua conta será apagada em {fmtDate(when)}.</p>
-      <p className="muted prefs__p">Até lá, tudo continua funcionando normalmente. Depois dessa data, apagamos suas fotos, sua coleção, suas Jornadas, notas e votos, e não há como recuperar.</p>
+      <p className="muted prefs__p">Até lá, tudo continua funcionando normalmente. Depois dessa data, apagamos suas fotos, sua coleção, suas Jornadas, notas, votos e o que você escreveu nas comunidades, e não há como recuperar.</p>
       <div className="acct__row"><button className="btn primary" onClick={() => act('cancelar')} disabled={busy}>{busy ? 'Um instante…' : 'Desistir de apagar'}</button></div>
       {error && <p className="awards__error" role="alert">{error}</p>}
     </div>
@@ -104,7 +107,8 @@ export function DeleteAccount() {
         <div className="acct__confirm">
           <p className="acct__title">Apagar a conta e tudo o que está nela</p>
           <ul className="acct__list">
-            <li>Some tudo: Jornadas, sessões, momentos e fotos, coleção, desejos, notas, análises e votos do Awards.</li>
+            <li>Some tudo: Jornadas, sessões, momentos e fotos, coleção, desejos, notas, análises, votos do Awards, postagens e respostas.</li>
+            <li>Onde outras pessoas já responderam a você, a conversa delas fica, mas sem o seu nome, o seu texto e as suas imagens (aparece “Conta apagada”).</li>
             <li>Você tem 7 dias para desistir. Nesse tempo a conta continua funcionando.</li>
             <li>Antes, vale <b>baixar tudo</b> logo acima, para guardar uma cópia.</li>
           </ul>

@@ -8,7 +8,8 @@ import {
 } from '../data/clubApi';
 import { ensureRules } from '../data/moderationApi';
 import { ReportButton } from '../components/Moderation';
-import { GameSearchPick, ImageGrid, PersonAvatar, PersonLink, PostText, ReactionBar, ago, useProgressOf } from '../components/Posts';
+import { GameSearchPick, ImageGrid, MentionArea, PersonAvatar, PersonLink, PostText, ReactionBar, ago, useProgressOf } from '../components/Posts';
+import { quoteOf } from '../lib/postText';
 import { PlayButton } from '../components/PlayButton';
 import { CoverArt } from '../components/CoverArt';
 import { Icon } from '../components/Icon';
@@ -554,8 +555,10 @@ function People({ c }: { c: ClubFull }) {
 /* ---- Conversa ---- */
 function ClubThread({ c, reload, setC }: { c: ClubFull; reload: () => Promise<void>; setC: (c: ClubFull) => void }) {
   const me = c.me;
+  const meId = useStore((s) => (s.mode === 'demo' ? 'demo-me' : s.profile?.id ?? null));
   const [part, setPart] = useState(0);
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<{ top: string; quote: string; nonce: number } | null>(null);
+  const people = useMemo(() => c.people.filter((p) => p.handle && !p.gone && p.id !== meId).map((p) => p.handle!), [c.people, meId]);
   const isFirst = c.format === 'primeira_vez' && me?.firstTime !== false;
   const ended = c.format === 'encontro' && c.ended;
   const list = c.messages.filter((m) => m.part === part);
@@ -570,13 +573,14 @@ function ClubThread({ c, reload, setC }: { c: ClubFull; reload: () => Promise<vo
   const locked = part > 0 && (!me || me.stage < part);
   const sent = async () => { setReplyTo(null); await reload(); };
   void setC;
+  const open = (top: string, quote = '') => setReplyTo({ top, quote, nonce: Date.now() });
   const item = (m: ClubMessage) => (
     <li key={m.id} className="cm-replies__top">
-      <ClubMsg m={m} c={c} guide={guides.has(m.author.id)} onReply={() => setReplyTo(m.id)} reload={reload} />
-      {(kids(m.id).length > 0 || replyTo === m.id) && (
+      <ClubMsg m={m} c={c} guide={guides.has(m.author.id)} onReply={() => open(m.id)} onQuote={() => open(m.id, quoteOf(m.author.handle, m.body))} reload={reload} />
+      {(kids(m.id).length > 0 || replyTo?.top === m.id) && (
         <ol className="cm-replies__kids">
-          {kids(m.id).map((k) => <li key={k.id}><ClubMsg m={k} c={c} guide={guides.has(k.author.id)} onReply={() => setReplyTo(m.id)} reload={reload} /></li>)}
-          {replyTo === m.id && me && <li><ClubComposer c={c} part={part} parentId={m.id} onSent={sent} onCancel={() => setReplyTo(null)} placeholder={m.author.handle ? `Responder a @${m.author.handle}` : 'Responder'} guide={!isFirst && c.format === 'primeira_vez'} /></li>}
+          {kids(m.id).map((k) => <li key={k.id}><ClubMsg m={k} c={c} guide={guides.has(k.author.id)} onReply={() => open(m.id)} onQuote={() => open(m.id, quoteOf(k.author.handle, k.body))} onParent={() => flashTo(`m-${m.id}`)} reload={reload} /></li>)}
+          {replyTo?.top === m.id && me && <li><ClubComposer key={replyTo.nonce} c={c} part={part} parentId={m.id} initial={replyTo.quote} people={people} onSent={sent} onCancel={() => setReplyTo(null)} placeholder={m.author.handle ? `Responder a @${m.author.handle}` : 'Responder'} guide={!isFirst && c.format === 'primeira_vez'} /></li>}
         </ol>
       )}
     </li>
@@ -597,7 +601,7 @@ function ClubThread({ c, reload, setC }: { c: ClubFull; reload: () => Promise<vo
         <div className="cm-shield"><Icon name="cadeado" size={20} /><p><b>A conversa da parte {part} está trancada para você.</b> {me ? 'Marque "Passei daqui" nessa parte para abrir; assim ninguém leva spoiler de quem está na frente.' : 'Entre no clube e marque onde você está.'}{c.hiddenParts[String(part)] ? ` ${c.hiddenParts[String(part)]} ${c.hiddenParts[String(part)] === 1 ? 'mensagem esperando' : 'mensagens esperando'}.` : ''}</p></div>
       ) : (
         <>
-          {me ? <ClubComposer c={c} part={part} parentId={null} onSent={sent} question={isFirst} guide={!isFirst && c.format === 'primeira_vez'}
+          {me ? <ClubComposer c={c} part={part} parentId={null} onSent={sent} question={isFirst} people={people} guide={!isFirst && c.format === 'primeira_vez'}
             placeholder={ended ? 'Conte como foi: o momento da noite, uma foto, um print' : isFirst ? 'Pergunte o que quiser: os guias respondem sem spoiler' : part > 0 ? `Sobre a parte ${part}: pode falar sem medo, só quem passou dela vê` : 'Escreva para o clube'} />
             : <p className="cm-thread__login">{c.ended ? '' : 'Entre no clube para participar da conversa.'}</p>}
           {mural.length > 0 && <ol className="cm-replies club-mural">{mural.map(item)}</ol>}
@@ -612,14 +616,28 @@ function ClubThread({ c, reload, setC }: { c: ClubFull; reload: () => Promise<vo
   );
 }
 
-function ClubMsg({ m, c, guide, onReply, reload }: { m: ClubMessage; c: ClubFull; guide: boolean; onReply: () => void; reload: () => Promise<void> }) {
+/** Leva até uma mensagem e acende ela por um instante. */
+function flashTo(elId: string) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash');
+  setTimeout(() => el.classList.remove('is-flash'), 1800);
+}
+
+function ClubMsg({ m, c, guide, onReply, onQuote, onParent, reload }: { m: ClubMessage; c: ClubFull; guide: boolean; onReply: () => void; onQuote: () => void; onParent?: () => void; reload: () => Promise<void> }) {
   const meId = useStore((s) => (s.mode === 'demo' ? 'demo-me' : s.profile?.id ?? null));
   const mine = m.author.id === meId;
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(m.body);
   const [confirmDel, setConfirmDel] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [err, setErr] = useState('');
-  if (m.deleted) return <div className="cm-reply is-deleted" id={`m-${m.id}`}><p className="faint">Mensagem apagada por quem escreveu.</p></div>;
+  if (m.deleted) return <div className="cm-reply is-deleted" id={`m-${m.id}`}><p className="faint">{m.author.gone ? 'Mensagem de uma conta apagada.' : 'Mensagem apagada por quem escreveu.'}</p></div>;
+  const copy = async () => {
+    const url = `${location.origin}/clube/${c.slug}#m-${m.id}`;
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.prompt('Copie o link:', url); }
+  };
   const save = async () => { try { await clubApi.editMessage(m.id, text); setEditing(false); await reload(); } catch (e) { setErr(errOf(e)); } };
   const del = async () => { try { await clubApi.deleteMessage(m.id); await reload(); } catch (e) { setErr(errOf(e)); } };
   return (
@@ -641,11 +659,14 @@ function ClubMsg({ m, c, guide, onReply, reload }: { m: ClubMessage; c: ClubFull
         ) : <PostText text={m.body} embeds={2} />}
         <ImageGrid images={m.images} />
         <div className="cm-reply__acts">
-          <ReactionBar target="mensagem" id={m.id} value={m.reactions} compact />
+          <ReactionBar target={m.target} id={m.id} value={m.reactions} compact game={c.game} />
           {c.me && <button className="cm-link" onClick={onReply}>Responder</button>}
+          {c.me && <button className="cm-link" onClick={onQuote} title="Responder citando esta mensagem"><Icon name="citar" size={13} />Citar</button>}
+          <button className="cm-link" onClick={() => void copy()} title="Copiar o link desta mensagem"><Icon name="link" size={13} />{copied ? 'Copiado' : 'Copiar link'}</button>
+          {onParent && <button className="cm-link" onClick={onParent} title="Ir até a mensagem de cima"><Icon name="subir" size={13} />Ir ao pai</button>}
           {mine && !editing && <button className="cm-link" onClick={() => setEditing(true)}>Editar</button>}
           {mine && (confirmDel ? <><button className="cm-link cm-link--danger" onClick={() => void del()}>Apagar de vez</button><button className="cm-link" onClick={() => setConfirmDel(false)}>Cancelar</button></> : <button className="cm-link" onClick={() => setConfirmDel(true)}>Apagar</button>)}
-          {!mine && m.author.handle && <ReportButton kind="mensagem" handle={m.author.handle} refId={m.id} snapshot={{ title: c.name, text: m.body.slice(0, 400), slug: c.slug, community: 'Clube', photo: m.images.length > 0 }} what={`Uma mensagem de @${m.author.handle} no clube “${c.name}”.`} className="cm-link" />}
+          {!mine && m.author.handle && <ReportButton kind={m.target === 'post' ? 'postagem' : 'resposta'} handle={m.author.handle} refId={m.id} snapshot={{ title: c.name, text: m.body.slice(0, 400), slug: c.slug, community: `Clube ${c.name}`, club: c.slug, photo: m.images.length > 0 }} what={`Uma mensagem de @${m.author.handle} no clube “${c.name}”.`} className="cm-link" />}
         </div>
         {err && <p className="awards__error" role="alert">{err}</p>}
       </div>
@@ -653,8 +674,8 @@ function ClubMsg({ m, c, guide, onReply, reload }: { m: ClubMessage; c: ClubFull
   );
 }
 
-function ClubComposer({ c, part, parentId, onSent, onCancel, placeholder, question = false, guide = false }: { c: ClubFull; part: number; parentId: string | null; onSent: () => Promise<void>; onCancel?: () => void; placeholder: string; question?: boolean; guide?: boolean }) {
-  const [text, setText] = useState('');
+function ClubComposer({ c, part, parentId, onSent, onCancel, placeholder, people, initial = '', question = false, guide = false }: { c: ClubFull; part: number; parentId: string | null; onSent: () => Promise<void>; onCancel?: () => void; placeholder: string; people: string[]; initial?: string; question?: boolean; guide?: boolean }) {
+  const [text, setText] = useState(initial);
   const [isQ, setIsQ] = useState(question);
   const [images, setImages] = useState<string[]>([]);
   const [up, setUp] = useState(0);
@@ -678,11 +699,11 @@ function ClubComposer({ c, part, parentId, onSent, onCancel, placeholder, questi
   };
   return (
     <div className={`cm-compose${parentId ? ' cm-compose--kid' : ''}`}>
-      <textarea className="field" rows={parentId ? 2 : 3} maxLength={5000} value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} aria-label={placeholder}
+      <MentionArea className="field" rows={parentId ? (initial ? 4 : 2) : 3} maxLength={5000} value={text} onChange={setText} people={people} placeholder={placeholder} aria-label={placeholder} autoFocus={!!parentId}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }} />
       {images.length > 0 && <div className="cm-editor__imgs club-compose__imgs">{images.map((s) => <span key={s} className="cm-editor__img"><img src={communityImage(s) ?? ''} alt="" /><button type="button" className="icon-btn" aria-label="Tirar a imagem" onClick={() => { setImages((x) => x.filter((y) => y !== s)); void communityApi.removeImages([s]); }}><Icon name="fechar" size={14} /></button></span>)}</div>}
       <span className="cm-compose__acts">
-        <small className="faint cm-compose__hint">{guide ? 'Guia: esconda o que entrega a história entre ||barras||.' : '**negrito**, *itálico*, ||spoiler||'}</small>
+        <small className="faint cm-compose__hint">{guide ? 'Guia: esconda o que entrega a história entre ||barras||.' : '**negrito**, *itálico*, ||spoiler||, @pessoa'}</small>
         {!parentId && c.format === 'primeira_vez' && <label className="club-compose__q"><input type="checkbox" checked={isQ} onChange={(e) => setIsQ(e.target.checked)} /> É uma pergunta</label>}
         {!parentId && left > 0 && <button type="button" className="btn quiet sm" onClick={() => file.current?.click()} disabled={up > 0}><Icon name="camera" size={14} /> {up ? 'Enviando…' : 'Imagem'}</button>}
         <input ref={file} type="file" accept="image/*" multiple hidden onChange={(e) => { void add(e.target.files); e.target.value = ''; }} />

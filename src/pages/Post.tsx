@@ -8,13 +8,13 @@ import {
 import { ensureRules } from '../data/moderationApi';
 import { ReportButton } from '../components/Moderation';
 import {
-  GameSearchPick, ImageGrid, KindChip, PersonAvatar, PersonLink, PostText, ReactionBar, SpoilerNote, SpoilerShield, ago, usePostCovered,
+  GameSearchPick, ImageGrid, KindChip, MentionArea, PersonAvatar, PersonLink, PostText, ReactionBar, SpoilerNote, SpoilerShield, ago, usePostCovered,
 } from '../components/Posts';
 import { CoverArt } from '../components/CoverArt';
 import { EmbedBlock, embedFor } from '../components/Embed';
 import { Icon } from '../components/Icon';
 import { shrink } from '../lib/image';
-import { plainText } from '../lib/postText';
+import { plainText, quoteOf } from '../lib/postText';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 
@@ -55,7 +55,7 @@ export function PostPage({ slug, id }: { slug: string; id: string }) {
 function PostBody({ post, setPost, reload }: { post: PostFull; setPost: (p: PostFull) => void; reload: () => Promise<void> }) {
   const me = useMe();
   const isAdmin = useStore((s) => !!s.isAdmin);
-  const [covered, reveal] = usePostCovered(post);
+  const [covered, reveal, reached] = usePostCovered(post);
   const [err, setErr] = useState('');
   const [confirmDel, setConfirmDel] = useState(false);
   const mine = post.author.id === me;
@@ -76,7 +76,7 @@ function PostBody({ post, setPost, reload }: { post: PostFull; setPost: (p: Post
           <div className="cm-card__top">
             {post.pinned && <span className="cm-chip cm-chip--pin"><Icon name="pin" size={12} />Fixada</span>}
             <KindChip kind={post.kind} />
-            {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Resolvida</span>}
+            {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Dúvida resolvida</span>}
             <SpoilerNote post={post} />
             {post.hidden && <span className="cm-chip cm-chip--hidden">Fora do ar pela moderação: só você vê</span>}
           </div>
@@ -85,7 +85,8 @@ function PostBody({ post, setPost, reload }: { post: PostFull; setPost: (p: Post
             <PersonLink p={post.author} official={post.community.official} />
             <span className="faint">{ago(post.createdAt)}{post.editedAt ? ' · editada' : ''}</span>
           </div>
-          {covered ? <SpoilerShield post={post} onReveal={reveal} /> : (
+          {post.author.gone && <p className="faint cm-post__gone">Quem começou esta conversa apagou a conta. O texto saiu junto; as respostas continuam.</p>}
+          {covered ? <SpoilerShield post={post} onReveal={reveal} reached={reached} /> : (
             <>
               {post.clip && <EmbedBlock url={post.clip} />}
               {post.body && <PostText text={post.body} className="cm-post__text" embeds={6} />}
@@ -99,7 +100,7 @@ function PostBody({ post, setPost, reload }: { post: PostFull; setPost: (p: Post
             </Link>
           )}
           <div className="cm-post__acts">
-            <ReactionBar target="post" id={post.id} value={post.reactions} />
+            <ReactionBar target="post" id={post.id} value={post.reactions} game={post.game} />
             <span className="cm-post__tools">
               {mine && <Link className="btn quiet sm" to={`/w/${c.slug}/${post.id}/editar`}>Editar</Link>}
               {mine && (confirmDel
@@ -127,7 +128,7 @@ function CommunityMini({ c }: { c: Community }) {
   return (
     <Link to={`/w/${c.slug}`} className="cm-mini">
       <span className="cm-mini__art" aria-hidden="true">{cover ? <img src={cover} alt="" /> : c.name.slice(0, 1)}</span>
-      <span><b>{c.name}</b><small className="faint">{c.members} {c.members === 1 ? 'membro' : 'membros'}</small></span>
+      <span><b>{c.name}</b><small className="faint">{c.members} {c.members === 1 ? 'pessoa segue' : 'pessoas seguem'}</small></span>
     </Link>
   );
 }
@@ -135,16 +136,36 @@ function CommunityMini({ c }: { c: Community }) {
 /* ------------------------------------------------------------------ */
 /* Respostas em fio (2 níveis)                                          */
 /* ------------------------------------------------------------------ */
+/** Leva até uma resposta e acende ela por um instante (ir ao pai, links com #r-…). */
+function flashTo(elId: string) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  el.classList.remove('is-flash'); void el.offsetWidth; el.classList.add('is-flash');
+  setTimeout(() => el.classList.remove('is-flash'), 1800);
+}
+
 function Thread({ post, covered, onReveal, onAnswer, reload }: { post: PostFull; covered: boolean; onReveal: () => void; onAnswer: (id: string | null) => void; reload: () => Promise<void> }) {
   const me = useMe();
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
-  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyTo, setReplyTo] = useState<{ top: string; quote: string; nonce: number } | null>(null);
+  const [folded, setFolded] = useState<Set<string>>(() => new Set());
   const tops = post.thread.filter((r) => !r.parentId);
   const kids = (id: string) => post.thread.filter((r) => r.parentId === id);
   const answer = post.answerId ? post.thread.find((r) => r.id === post.answerId) : undefined;
   const canAnswer = post.kind === 'pergunta' && post.author.id === me;
   const count = post.thread.filter((r) => !r.deleted).length;
   const sent = async () => { setReplyTo(null); await reload(); void refreshNews(); };
+  // Quem está na conversa, para sugerir no @.
+  const people = useMemo(() => [...new Set([post.author, ...post.thread.map((r) => r.author)].filter((p) => p.handle && !p.gone && p.id !== me).map((p) => p.handle!))], [post, me]);
+  const open = (top: string, quote = '') => setReplyTo({ top, quote, nonce: Date.now() });
+  const fold = (id: string) => setFolded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const item = (r: Reply, top: Reply) => (
+    <ReplyItem r={r} post={post} isAnswer={r.id === post.answerId} canAnswer={canAnswer} onAnswer={onAnswer} reload={reload}
+      onReply={() => open(top.id)} onQuote={() => open(top.id, quoteOf(r.author.handle, r.body))}
+      onParent={r.parentId ? () => flashTo(`r-${r.parentId}`) : undefined}
+      fold={!r.parentId && kids(r.id).length > 0 ? { on: folded.has(r.id), toggle: () => fold(r.id) } : undefined} />
+  );
   return (
     <section className="cm-thread" id="respostas" aria-labelledby="cm-thread-t">
       <h2 id="cm-thread-t" className="cm-thread__t">{count === 0 ? 'Respostas' : `${count} ${count === 1 ? 'resposta' : 'respostas'}`}</h2>
@@ -154,25 +175,31 @@ function Thread({ post, covered, onReveal, onAnswer, reload }: { post: PostFull;
         <>
           {answer && !answer.deleted && (
             <div className="cm-answer">
-              <span className="kicker kicker--now"><Icon name="check" size={12} /> A resposta, escolhida por quem perguntou</span>
-              <ReplyItem r={answer} post={post} isAnswer canAnswer={canAnswer} onAnswer={onAnswer} onReply={() => setReplyTo(answer.parentId ?? answer.id)} reload={reload} compact />
+              <span className="kicker kicker--now"><Icon name="check" size={12} /> Resolveu a dúvida{post.author.handle ? ` de @${post.author.handle}` : ''}</span>
+              <ReplyItem r={answer} post={post} isAnswer canAnswer={canAnswer} onAnswer={onAnswer} onReply={() => open(answer.parentId ?? answer.id)} reload={reload} compact />
+              <button className="cm-link" onClick={() => flashTo(`r-${answer.id}`)}>Ver na conversa</button>
             </div>
           )}
           {signedOut ? <p className="cm-thread__login"><Link to="/entrar">Entre na sua conta</Link> para responder.</p>
-            : <Composer postId={post.id} parentId={null} onSent={sent} placeholder={post.kind === 'pergunta' ? 'Sabe a resposta? Conta aqui.' : 'Escreva uma resposta'} />}
+            : <Composer postId={post.id} parentId={null} onSent={sent} people={people} placeholder={post.kind === 'pergunta' ? 'Sabe a resposta? Conta aqui.' : 'Escreva uma resposta'} />}
           {tops.length === 0 ? <p className="muted cm-thread__empty">Ninguém respondeu ainda.</p> : (
             <ol className="cm-replies">
-              {tops.map((r) => (
-                <li key={r.id} className="cm-replies__top">
-                  <ReplyItem r={r} post={post} isAnswer={r.id === post.answerId} canAnswer={canAnswer} onAnswer={onAnswer} onReply={() => setReplyTo(r.id)} reload={reload} />
-                  {(kids(r.id).length > 0 || replyTo === r.id) && (
-                    <ol className="cm-replies__kids">
-                      {kids(r.id).map((k) => <li key={k.id}><ReplyItem r={k} post={post} isAnswer={k.id === post.answerId} canAnswer={canAnswer} onAnswer={onAnswer} onReply={() => setReplyTo(r.id)} reload={reload} /></li>)}
-                      {replyTo === r.id && <li><Composer postId={post.id} parentId={r.id} onSent={sent} onCancel={() => setReplyTo(null)} autoFocus placeholder={r.author.handle ? `Responder a @${r.author.handle}` : 'Responder'} /></li>}
-                    </ol>
-                  )}
-                </li>
-              ))}
+              {tops.map((r) => {
+                const ks = kids(r.id);
+                const isFolded = folded.has(r.id);
+                return (
+                  <li key={r.id} className="cm-replies__top">
+                    {item(r, r)}
+                    {isFolded && ks.length > 0 && <button className="cm-folded" onClick={() => fold(r.id)}>{ks.length} {ks.length === 1 ? 'resposta recolhida' : 'respostas recolhidas'} · Mostrar</button>}
+                    {((!isFolded && ks.length > 0) || replyTo?.top === r.id) && (
+                      <ol className="cm-replies__kids">
+                        {!isFolded && ks.map((k) => <li key={k.id}>{item(k, r)}</li>)}
+                        {replyTo?.top === r.id && <li><Composer key={replyTo.nonce} postId={post.id} parentId={r.id} onSent={sent} onCancel={() => setReplyTo(null)} autoFocus initial={replyTo.quote} people={people} placeholder={r.author.handle ? `Responder a @${r.author.handle}` : 'Responder'} /></li>}
+                      </ol>
+                    )}
+                  </li>
+                );
+              })}
             </ol>
           )}
         </>
@@ -181,7 +208,10 @@ function Thread({ post, covered, onReveal, onAnswer, reload }: { post: PostFull;
   );
 }
 
-function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, reload, compact = false }: { r: Reply; post: PostFull; isAnswer: boolean; canAnswer: boolean; onAnswer: (id: string | null) => void; onReply: () => void; reload: () => Promise<void>; compact?: boolean }) {
+function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, onQuote, onParent, fold, reload, compact = false }: {
+  r: Reply; post: PostFull; isAnswer: boolean; canAnswer: boolean; onAnswer: (id: string | null) => void; onReply: () => void;
+  onQuote?: () => void; onParent?: () => void; fold?: { on: boolean; toggle: () => void }; reload: () => Promise<void>; compact?: boolean;
+}) {
   const me = useMe();
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const mine = r.author.id === me;
@@ -189,22 +219,27 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, reload, co
   const [text, setText] = useState(r.body);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [copied, setCopied] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
-  if (r.deleted) return <div className="cm-reply is-deleted" id={compact ? undefined : `r-${r.id}`}><p className="faint">Resposta apagada por quem escreveu.</p></div>;
+  if (r.deleted) return <div className="cm-reply is-deleted" id={compact ? undefined : `r-${r.id}`}><p className="faint">{r.author.gone ? 'Resposta de uma conta apagada.' : 'Resposta apagada por quem escreveu.'}</p></div>;
   const save = async () => {
     setBusy(true); setErr('');
     try { await communityApi.editReply(r.id, text); setEditing(false); await reload(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
   };
   const del = async () => { try { await communityApi.deleteReply(r.id); await reload(); } catch (e) { setErr(errOf(e)); } };
+  const copy = async () => {
+    const url = `${location.origin}/w/${post.community.slug}/${post.id}#r-${r.id}`;
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.prompt('Copie o link:', url); }
+  };
   return (
     <div className={`cm-reply${isAnswer && !compact ? ' is-answer' : ''}${r.hidden ? ' is-hidden' : ''}`} id={compact ? undefined : `r-${r.id}`}>
       <PersonAvatar p={r.author} size={32} />
       <div className="cm-reply__b">
         <div className="cm-reply__by">
           <PersonLink p={r.author} official={post.community.official} avatar={false} />
-          {r.author.id === post.author.id && <span className="cm-badge cm-badge--op">Autor</span>}
+          {!r.author.gone && r.author.id === post.author.id && <span className="cm-badge cm-badge--op">{post.kind === 'pergunta' ? 'Quem perguntou' : 'Quem postou'}</span>}
           <span className="faint">{ago(r.createdAt)}{r.editedAt ? ' · editada' : ''}</span>
-          {isAnswer && !compact && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />A resposta</span>}
+          {isAnswer && !compact && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Resolveu a dúvida</span>}
           {r.hidden && <span className="cm-chip cm-chip--hidden">Fora do ar pela moderação</span>}
         </div>
         {editing ? (
@@ -215,9 +250,13 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, reload, co
         ) : <PostText text={r.body} embeds={2} />}
         {!compact && (
           <div className="cm-reply__acts">
-            <ReactionBar target="resposta" id={r.id} value={r.reactions} compact />
+            <ReactionBar target="resposta" id={r.id} value={r.reactions} compact game={post.game} />
             {!signedOut && <button className="cm-link" onClick={onReply}>Responder</button>}
-            {canAnswer && !mine && <button className="cm-link" onClick={() => onAnswer(isAnswer ? null : r.id)}>{isAnswer ? 'Desmarcar a resposta' : 'Marcar como a resposta'}</button>}
+            {!signedOut && onQuote && <button className="cm-link" onClick={onQuote} title="Responder citando este trecho"><Icon name="citar" size={13} />Citar</button>}
+            <button className="cm-link" onClick={() => void copy()} title="Copiar o link desta resposta"><Icon name="link" size={13} />{copied ? 'Copiado' : 'Copiar link'}</button>
+            {onParent && <button className="cm-link" onClick={onParent} title="Ir até a resposta de cima"><Icon name="subir" size={13} />Ir ao pai</button>}
+            {fold && <button className="cm-link" onClick={fold.toggle} aria-expanded={!fold.on}>{fold.on ? 'Mostrar respostas' : 'Recolher'}</button>}
+            {canAnswer && !mine && <button className="cm-link" onClick={() => onAnswer(isAnswer ? null : r.id)}>{isAnswer ? 'Desmarcar' : 'Resolveu minha dúvida'}</button>}
             {mine && !editing && <button className="cm-link" onClick={() => setEditing(true)}>Editar</button>}
             {mine && (confirmDel ? <><button className="cm-link cm-link--danger" onClick={() => void del()}>Apagar de vez</button><button className="cm-link" onClick={() => setConfirmDel(false)}>Cancelar</button></> : <button className="cm-link" onClick={() => setConfirmDel(true)}>Apagar</button>)}
             {!mine && r.author.handle && <ReportButton kind="resposta" handle={r.author.handle} refId={r.id} snapshot={{ title: post.title, text: r.body.slice(0, 400), slug: post.community.slug, community: post.community.name, postId: post.id }} what={`Uma resposta de @${r.author.handle} em “${post.title}”.`} className="cm-link" />}
@@ -229,8 +268,8 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, reload, co
   );
 }
 
-function Composer({ postId, parentId, onSent, onCancel, placeholder, autoFocus = false }: { postId: string; parentId: string | null; onSent: () => Promise<void>; onCancel?: () => void; placeholder: string; autoFocus?: boolean }) {
-  const [text, setText] = useState('');
+function Composer({ postId, parentId, onSent, onCancel, placeholder, people, initial = '', autoFocus = false }: { postId: string; parentId: string | null; onSent: () => Promise<void>; onCancel?: () => void; placeholder: string; people: string[]; initial?: string; autoFocus?: boolean }) {
+  const [text, setText] = useState(initial);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const send = async () => {
@@ -242,10 +281,10 @@ function Composer({ postId, parentId, onSent, onCancel, placeholder, autoFocus =
   };
   return (
     <div className={`cm-compose${parentId ? ' cm-compose--kid' : ''}`}>
-      <textarea className="field" rows={parentId ? 2 : 3} maxLength={5000} value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} autoFocus={autoFocus}
+      <MentionArea className="field" rows={parentId ? (initial ? 4 : 2) : 3} maxLength={5000} value={text} onChange={setText} people={people} placeholder={placeholder} autoFocus={autoFocus}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void send(); } }} aria-label={placeholder} />
       <span className="cm-compose__acts">
-        <small className="faint cm-compose__hint">**negrito**, *itálico*, ||spoiler||</small>
+        <small className="faint cm-compose__hint">**negrito**, *itálico*, ||spoiler||, @pessoa</small>
         {onCancel && <button className="btn quiet sm" onClick={onCancel}>Cancelar</button>}
         <button className="btn primary sm" disabled={busy || !text.trim()} onClick={() => void send()}>{busy ? 'Enviando…' : 'Responder'}</button>
       </span>
@@ -280,6 +319,7 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
   const [body, setBody] = useState(orig?.body ?? '');
   const [game, setGame] = useState<GameMini | null>(orig?.game ?? (c.game ?? null));
   const [spoiler, setSpoiler] = useState<SpoilerLevel | null>(orig?.spoiler ?? null);
+  const [spoilerNote, setSpoilerNote] = useState(orig?.spoilerNote ?? '');
   const [images, setImages] = useState<string[]>(orig?.images ?? []);
   const [clip, setClip] = useState(orig?.clip ?? '');
   const [upBusy, setUpBusy] = useState(0);
@@ -322,7 +362,7 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
     setErr('');
     if (!(await ensureRules())) return;
     setBusy(true);
-    const d: PostDraft = { kind, title: title.trim(), body, gameId: game?.id ?? null, spoiler: game ? spoiler : null, images, clip: clip.trim() || null };
+    const d: PostDraft = { kind, title: title.trim(), body, gameId: game?.id ?? null, spoiler: game ? spoiler : null, spoilerNote: game && spoiler ? spoilerNote.trim() || null : null, images, clip: clip.trim() || null };
     try {
       const removed = (orig?.images ?? []).filter((x) => !images.includes(x));
       const p = orig ? await communityApi.editPost(orig.id, d, removed) : await communityApi.createPost(c.id, d);
@@ -379,6 +419,7 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
                 <button type="button" onClick={() => wrap('**')} title="Negrito"><b>B</b></button>
                 <button type="button" onClick={() => wrap('*')} title="Itálico"><i>I</i></button>
                 <button type="button" onClick={() => wrap('||')} title="Esconder um trecho com spoiler">Spoiler</button>
+                <button type="button" onClick={() => wrap('\n> ', '\n')} title="Citar um trecho">Citar</button>
                 <button type="button" onClick={() => setPreview((v) => !v)} aria-pressed={preview}>{preview ? 'Escrever' : 'Ver como fica'}</button>
               </span>
             </span>
@@ -412,7 +453,12 @@ function PostEditor({ c, orig }: { c: Community; orig: PostFull | null }) {
               {SPOILERS.map((s) => (
                 <label key={s.k} className={`cm-spoil__o${spoiler === s.k ? ' is-on' : ''}`}><input type="radio" name="sp" checked={spoiler === s.k} onChange={() => setSpoiler(s.k)} /><b>Spoiler {s.label.toLowerCase()}</b><small>{s.hint}</small></label>
               ))}
-              <small className="faint">A capa usa a Jornada de quem lê: quem já passou daquela parte vê normalmente.</small>
+              {spoiler && (
+                <label className="cm-spoil__note"><span className="kicker">Spoiler de quê? (opcional)</span>
+                  <input className="field" value={spoilerNote} maxLength={80} onChange={(e) => setSpoilerNote(e.target.value)} placeholder="Ex.: a luta com a Malenia, o final da Ranni" />
+                </label>
+              )}
+              <small className="faint">O texto fica coberto para todo mundo até a pessoa tocar. A Jornada de quem lê só avisa se ela já passou dessa parte.</small>
             </fieldset>
           )}
           {err && <p className="awards__error" role="alert">{err}</p>}

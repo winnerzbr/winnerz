@@ -115,10 +115,8 @@ export function AffinityCard({ data }: { data: PublicProfile }) {
     <div className="pd-common aff">
       <div className="aff__head">
         <span className="kicker">Você e @{data.handle}</span>
-        {a.score != null && <span className="aff__score"><b className="t">{a.score}</b><small>%</small></span>}
+        {a.common.length > 0 && <span className="aff__count">{a.common.length} {a.common.length === 1 ? 'jogo' : 'jogos'} em comum</span>}
       </div>
-      {a.label && <p className="aff__label">{a.label}{a.common.length ? ` · ${a.common.length} ${a.common.length === 1 ? 'jogo' : 'jogos'} em comum` : ''}</p>}
-      {a.score != null && <span className="aff__bar" aria-hidden="true"><i style={{ width: `${Math.max(4, a.score)}%` }} /></span>}
       {lines.length > 0 && <ul className="aff__lines">{lines.map((l) => <li key={l}>{l}</li>)}</ul>}
       {a.common.length > 0 && <div className="pd-common__cv">{a.common.slice(0, 6).map((g) => <Link key={g.slug} to={`/jogos/${g.slug}`} title={g.title}><CoverArt game={{ title: g.title, cover: g.cover ?? '' }} /></Link>)}</div>}
     </div>

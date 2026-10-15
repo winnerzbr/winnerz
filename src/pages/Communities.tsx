@@ -25,7 +25,7 @@ export function CommunityTile({ c }: { c: Community }) {
         <span className="cm-tile__name">{c.name}{c.official && <span className="cm-badge">Oficial</span>}</span>
         <small className="mono faint">w/{c.slug}</small>
         {c.description && <span className="cm-tile__d">{c.description}</span>}
-        <small className="faint">{num(c.members, 'membro', 'membros')} · {num(c.posts, 'postagem', 'postagens')}{c.role ? ' · você participa' : ''}</small>
+        <small className="faint">{num(c.members, 'pessoa segue', 'pessoas seguem')} · {num(c.posts, 'postagem', 'postagens')}{c.role ? ' · você segue' : ''}</small>
       </span>
     </Link>
   );
@@ -243,9 +243,9 @@ export function CommunityView({ slug }: { slug: string }) {
           {c.hidden && <p className="cm-hero__hidden">Fora do ar por decisão da moderação. Só você ainda consegue abrir.</p>}
           <div className="cm-hero__acts">
             {canWrite && <Link className="btn primary" to={signedOut ? '/entrar' : `/w/${c.slug}/escrever`}>Escrever</Link>}
-            {!owner && <button className={`btn ${c.role ? 'ghost' : canWrite ? 'ghost' : 'primary'}`} disabled={joinBusy} onClick={() => void join()} aria-pressed={!!c.role}>{c.role ? <><Icon name="check" size={14} />Participando</> : 'Participar'}</button>}
+            {!owner && <button className={`btn ${c.role ? 'ghost' : canWrite ? 'ghost' : 'primary'}`} disabled={joinBusy} onClick={() => void join()} aria-pressed={!!c.role}>{c.role ? <><Icon name="check" size={14} />Seguindo</> : 'Seguir'}</button>}
             {(owner || isAdmin) && <Link className="btn ghost" to={`/w/${c.slug}/editar`}>Editar</Link>}
-            <span className="cm-hero__n">{num(c.members, 'membro', 'membros')} · {num(c.posts, 'postagem', 'postagens')}</span>
+            <span className="cm-hero__n">{num(c.members, 'pessoa segue', 'pessoas seguem')} · {num(c.posts, 'postagem', 'postagens')}</span>
           </div>
         </div>
       </section>
@@ -253,7 +253,7 @@ export function CommunityView({ slug }: { slug: string }) {
       <div className="page cm-view__grid">
         <div className="cm-view__main">
           {err && <p className="awards__error" role="alert">{err}</p>}
-          {!canWrite && <p className="cm-note"><Icon name="escudo" size={14} />Só o canal publica aqui. Dá para responder, dar GG e curtir as postagens.</p>}
+          {!canWrite && <p className="cm-note"><Icon name="escudo" size={14} />Só o canal publica aqui. Dá para responder e reagir às postagens.</p>}
           {data.pinned.length > 0 && <div className="cm-list cm-list--pinned">{data.pinned.map((p) => <PostCard key={p.id} post={p} />)}</div>}
           <div className="seg cm-sort" role="tablist" aria-label="Ordem das postagens">
             <button role="tab" aria-selected={sort === 'recentes'} aria-pressed={sort === 'recentes'} onClick={() => setSort('recentes')}>Recentes</button>

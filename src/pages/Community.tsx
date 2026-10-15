@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { plainText } from '../lib/postText';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { socialApi } from '../data/socialApi';
@@ -8,7 +9,7 @@ import { PersonAvatar, PostCard, ago } from '../components/Posts';
 import { CommunityTile } from './Communities';
 import { ClubsSection } from './Clubs';
 
-/** Pilar Comunidade: respostas novas, o que saiu nas suas comunidades, comunidades para participar e os amigos. */
+/** Pilar Comunidade: respostas novas, o que saiu nas suas comunidades, comunidades para seguir e os amigos. */
 export function CommunityPage() {
   useEffect(() => { document.title = 'Comunidade · WinnerZ'; }, []);
   return (
@@ -48,17 +49,19 @@ function ReplyNewsBox() {
       </div>
       <ul className="cm-news__list">
         {news.items.map((n) => {
-          const href = n.kind === 'resposta' ? `/w/${n.slug}/${n.ref}#r-${n.id}` : n.kind === 'clube_resposta' ? `/clube/${n.slug}#m-${n.id}` : `/clube/${n.slug}`;
+          const href = n.kind === 'resposta' || n.kind === 'mencao' ? `/w/${n.slug}/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}` : n.kind === 'clube_resposta' || n.kind === 'clube_mencao' ? `/clube/${n.slug}#m-${n.id}` : `/clube/${n.slug}`;
           const who = n.author?.handle ? `@${n.author.handle}` : 'Alguém';
           const line = n.kind === 'resposta' ? <><b>{who}</b> respondeu em <b>{n.title}</b></>
             : n.kind === 'clube_resposta' ? <><b>{who}</b> respondeu você no clube <b>{n.title}</b></>
+            : n.kind === 'mencao' ? <><b>{who}</b> mencionou você em <b>{n.title}</b></>
+            : n.kind === 'clube_mencao' ? <><b>{who}</b> mencionou você no clube <b>{n.title}</b></>
             : n.kind === 'encontro' ? <>Encontro <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é hoje'}</>
             : <>Abriu a parte <b>{n.excerpt}</b> no clube <b>{n.title}</b></>;
           return (
             <li key={`${n.kind}-${n.id}`}>
               <Link to={href} className={`cm-news__it${n.new === false ? ' is-old' : ''}`}>
                 {n.author ? <PersonAvatar p={n.author} size={32} /> : <span className="soc-av cm-news__ic" style={{ width: 32, height: 32 }} aria-hidden="true">{n.kind === 'encontro' ? '◷' : '▸'}</span>}
-                <span className="cm-news__tx"><span>{line}</span>{(n.kind === 'resposta' || n.kind === 'clube_resposta') && n.excerpt && <small className="muted">{n.excerpt}</small>}</span>
+                <span className="cm-news__tx"><span>{line}</span>{n.kind !== 'encontro' && n.kind !== 'parte' && n.excerpt && <small className="muted">{plainText(n.excerpt)}</small>}</span>
                 <small className="faint mono">{ago(n.at)}</small>
               </Link>
             </li>
@@ -69,7 +72,7 @@ function ReplyNewsBox() {
   );
 }
 
-/** O que saiu nas comunidades de que você participa, e comunidades para participar. */
+/** O que saiu nas comunidades que você segue, e comunidades para seguir. */
 function MyCommunities() {
   const mode = useStore((s) => s.mode);
   const signed = useStore((s) => !!s.profile);
@@ -99,12 +102,12 @@ function MyCommunities() {
         <div className="cm-list">
           {err && <p className="awards__error" role="alert">{err}</p>}
           {feed == null ? <p className="faint">Carregando…</p> : feed.length === 0 ? (
-            <div className="soc-empty"><b>{mine.length ? 'Nada novo nas suas comunidades.' : 'Você ainda não participa de nenhuma comunidade.'}</b><p className="muted">Entre em uma comunidade (ou crie a sua) e o que sair nela aparece aqui, do mais novo para o mais antigo.</p></div>
+            <div className="soc-empty"><b>{mine.length ? 'Nada novo nas suas comunidades.' : 'Você ainda não segue nenhuma comunidade.'}</b><p className="muted">Siga uma comunidade (ou crie a sua) e o que sair nela aparece aqui, do mais novo para o mais antigo.</p></div>
           ) : feed.map((p) => <PostCard key={p.id} post={p} showCommunity />)}
         </div>
         <aside className="cm-friends__side cm-mine__side">
           {mine.length > 0 && <>
-            <span className="kicker">Você participa</span>
+            <span className="kicker">Você segue</span>
             <ul className="cm-mine__list">{mine.map((c) => <li key={c.id}><Link to={`/w/${c.slug}`}><span className="mono faint">w/</span>{c.slug}{c.role === 'dono' && <small className="faint"> · sua</small>}</Link></li>)}</ul>
           </>}
           <Link className="btn ghost sm" to="/comunidade/criar">Criar comunidade</Link>
@@ -112,7 +115,7 @@ function MyCommunities() {
       </div>
       {suggest.length > 0 && (
         <div className="cm-suggest">
-          <span className="kicker">Para participar</span>
+          <span className="kicker">Para seguir</span>
           <div className="cm-tiles">{suggest.map((c) => <CommunityTile key={c.id} c={c} />)}</div>
         </div>
       )}

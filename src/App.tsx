@@ -21,7 +21,8 @@ import { Home } from './pages/Home';
 import { Welcome } from './pages/Welcome';
 import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
-import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityView } from './pages/Communities';
+import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityView, ModHistoryPage } from './pages/Communities';
+import { StudioCommunitiesPage } from './pages/StudioCommunities';
 import { PostEditorPage, PostPage } from './pages/Post';
 import { ClubEditPage, ClubNewPage, ClubPage, ClubsIndexPage } from './pages/Clubs';
 import { JogatinaEditPage, JogatinaNewPage, JogatinaPage } from './pages/Jogatina';
@@ -107,6 +108,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/w/:slug', path))) return <CommunityView key={m.slug} slug={m.slug} />;
   if ((m = match('/w/:slug/editar', path))) return <CommunityEditPage slug={m.slug} />;
   if ((m = match('/w/:slug/escrever', path))) return <PostEditorPage slug={m.slug} />;
+  if ((m = match('/w/:slug/moderacao', path))) return <ModHistoryPage key={m.slug} slug={m.slug} />;
   if ((m = match('/w/:slug/:id/editar', path))) return <PostEditorPage id={m.id} />;
   if ((m = match('/w/:slug/:id', path))) return <PostPage key={m.id} id={m.id} />;
   if (match('/escrever', path)) return <PostEditorPage />;
@@ -123,6 +125,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if (match('/studio/moderacao', path)) return <StudioModerationPage />;
+  if (match('/studio/comunidades', path)) return <StudioCommunitiesPage />;
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} vitrine={m.id} />;

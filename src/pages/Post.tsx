@@ -7,6 +7,7 @@ import {
 } from '../data/communityApi';
 import { ensureRules } from '../data/moderationApi';
 import { ReportButton } from '../components/Moderation';
+import { ModHide } from '../components/CommunityMod';
 import {
   Byline, GameSearchPick, ImageGrid, KindChip, MentionArea, PersonAvatar, PollBox, PostText, ReactionBar, SaveButton, SpoilerNote, SpoilerShield,
   ago, spoilerHint, useProgressOf, usePostCovered,
@@ -91,7 +92,7 @@ function PostBody({ post, setPost, reload, since }: { post: PostFull; setPost: (
               <KindChip kind={post.kind} />
               {post.kind === 'pergunta' && post.answerId && <span className="cm-chip cm-chip--ok"><Icon name="check" size={12} />Dúvida resolvida</span>}
               <SpoilerNote post={post} />
-              {post.hidden && <span className="cm-chip cm-chip--hidden">Fora do ar pela moderação: só você vê</span>}
+              {post.hidden && <span className="cm-chip cm-chip--hidden">{mine ? 'Fora do ar pela moderação: só você vê' : 'Tirada pela moderação: só quem modera vê'}</span>}
             </div>
             {post.title ? <h1 className="cm-post__t">{post.title}</h1> : <h1 className="sr-only">{title}</h1>}
             {post.author.gone && <p className="faint cm-post__gone">Quem começou esta conversa apagou a conta. O texto saiu junto; as respostas continuam.</p>}
@@ -117,7 +118,8 @@ function PostBody({ post, setPost, reload, since }: { post: PostFull; setPost: (
                 {mine && (confirmDel
                   ? <><button className="btn danger-solid sm" onClick={() => void del()}>Apagar de vez</button><button className="btn quiet sm" onClick={() => setConfirmDel(false)}>Cancelar</button></>
                   : <button className="btn quiet sm" onClick={() => setConfirmDel(true)}>Apagar</button>)}
-                {c && (post.canModerate || isAdmin) && <button className="btn quiet sm" onClick={() => void pin()}>{post.pinned ? 'Soltar' : 'Fixar no topo'}</button>}
+                {c && (post.canModerate || isAdmin) && !post.hidden && <button className="btn quiet sm" onClick={() => void pin()}>{post.pinned ? 'Soltar' : 'Fixar no topo'}</button>}
+                {c && post.canModerate && !mine && <ModHide kind="postagem" id={post.id} hidden={post.hidden} onDone={reload} button="btn quiet sm" />}
                 {!mine && post.author.handle && <ReportButton kind="postagem" handle={post.author.handle} refId={post.id} snapshot={{ title, text: post.body.slice(0, 400), slug: c?.slug, community: c?.name ?? 'Praça', game: post.game?.title, photo: post.images.length > 0 }} what={`A postagem “${title}” de @${post.author.handle}${c ? ` em w/${c.slug}` : ' na Praça'}.`} className="btn quiet sm" />}
               </span>
             </div>
@@ -360,6 +362,7 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, onQuote, o
             {canAnswer && !mine && <button className="cm-link" onClick={() => onAnswer(isAnswer ? null : r.id)}>{isAnswer ? 'Desmarcar' : 'Resolveu minha dúvida'}</button>}
             {mine && !editing && <button className="cm-link" onClick={() => setEditing(true)}>Editar</button>}
             {mine && (confirmDel ? <><button className="cm-link cm-link--danger" onClick={() => void del()}>Apagar de vez</button><button className="cm-link" onClick={() => setConfirmDel(false)}>Cancelar</button></> : <button className="cm-link" onClick={() => setConfirmDel(true)}>Apagar</button>)}
+            {post.communityFull && post.canModerate && !mine && <ModHide kind="resposta" id={r.id} hidden={r.hidden} onDone={reload} />}
             {!mine && r.author.handle && <ReportButton kind="resposta" handle={r.author.handle} refId={r.id} snapshot={{ title, text: r.body.slice(0, 400), slug: post.community?.slug, community: post.community?.name ?? 'Praça', postId: post.id }} what={`Uma resposta de @${r.author.handle} em “${title}”.`} className="cm-link" />}
           </div>
         )}

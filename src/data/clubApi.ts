@@ -119,7 +119,7 @@ const draftJson = (d: ClubDraft) => ({
 
 export const clubApi = {
   async list(filter: 'todos' | 'meus' = 'todos', game?: string, community?: string): Promise<Club[]> {
-    if (!supa()) return demo.list(filter, game);
+    if (!supa()) return demo.list(filter, game, community);
     if (filter === 'meus' && !getState().profile) return [];
     return (await rpc<Club[] | null>('club_list', { p_filter: filter, p_game: game ?? null, p_limit: 60, p_community: community ?? null })) ?? [];
   },
@@ -261,10 +261,11 @@ export function demoClubRef(id: string): { slug: string; name: string; member: b
 }
 
 const demo = {
-  list(filter: 'todos' | 'meus', game?: string): Club[] {
+  list(filter: 'todos' | 'meus', game?: string, community?: string): Club[] {
     const db = loadDb();
     let l = db.clubs.filter((c) => !c.hidden);
     if (game) l = l.filter((c) => c.gameId === game || demoGameMini(c.gameId)?.slug === game);
+    if (community) l = l.filter((c) => c.community?.slug === community);
     const out = l.map(clubOut);
     return (filter === 'meus' ? out.filter((c) => c.me) : out).sort((a, b) => (b.lastAt ?? b.createdAt).localeCompare(a.lastAt ?? a.createdAt));
   },

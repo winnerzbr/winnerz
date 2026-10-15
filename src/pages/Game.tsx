@@ -28,6 +28,7 @@ import { localDay } from '../lib/dates';
 import { Backdrop } from '../components/Backdrop';
 import { GameConversations } from '../components/Posts';
 import { GameClubs } from './Clubs';
+import { GameCommunity } from './Communities';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
 const refreshed = new Set<string>();
@@ -254,6 +255,7 @@ function GameView({ gameId }: { gameId: string }) {
 
           <GameConversations gameId={g.id} title={g.title} />
 
+          <GameCommunity gameId={g.id} slug={g.slug} title={g.title} />
           <GameClubs gameId={g.id} slug={g.slug} title={g.title} />
 
           <MediaGallery title={g.title} items={media} gameId={g.id} />

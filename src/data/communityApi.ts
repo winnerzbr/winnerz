@@ -34,8 +34,18 @@ export const GONE: PersonRef = { id: '', handle: null, avatar: null, admin: fals
 export interface Community {
   id: string; slug: string; name: string; description: string; rules: string; cover?: string | null; official: boolean;
   game?: GameMini | null; createdAt: string; hidden: boolean; owner?: PersonRef | null; members: number; posts: number;
-  lastAt?: string | null; role?: 'dono' | 'membro' | null;
+  lastAt?: string | null; role?: 'dono' | 'mod' | 'membro' | null;
+  /** Quem modera (quem criou e quem foi chamado), se você pode moderar, e a porta de entrada. */
+  canModerate?: boolean; mods?: (PersonRef & { role: 'dono' | 'mod' })[]; welcome?: string | null;
+  starters?: { id: string; title: string; kind: PostKind; replies: number }[];
 }
+export type CommunitySort = 'recentes' | 'conversadas' | 'destacadas' | 'semresposta';
+export interface ModLogItem {
+  id: string; action: 'fixar' | 'soltar' | 'tirar' | 'devolver' | 'mod_entrou' | 'mod_saiu' | 'porta' | 'renomear' | 'juntar';
+  kind?: 'postagem' | 'resposta' | 'pessoa' | 'comunidade' | null; targetId?: string | null; reason?: string | null; at: string;
+  actor?: PersonRef | null; person?: PersonRef | null; title?: string | null; post?: string | null; text?: string | null; hiddenNow?: boolean | null;
+}
+export interface ModHistory { community: Community; canModerate: boolean; items: ModLogItem[] }
 export interface Poll { options: { text: string; votes: number }[]; total: number; mine: number | null }
 /**
  * Postagem da Praça (community null) ou de uma comunidade. Título opcional.
@@ -68,7 +78,7 @@ export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[]
 ];
 /** Os cantos da Praça. */
 export interface PracaSide { entrar: Post[]; continuam: Post[]; novos: (PersonRef & { since: string; post?: { id: string; title: string } | null })[] }
-export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[] }
+export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[]; moved?: string }
 /** Avisos do menu: respostas e menções (comunidades, clubes e jogatinas), jogatina chegando e parte do clube que abriu. */
 export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'jogatina' | 'jogatina_resposta' | 'jogatina_mencao' | 'jogatina_convite' | 'parte';
 export interface NewsItem { kind: NewsKind; id: string; ref: string; slug: string; title: string; excerpt?: string | null; at: string; new?: boolean; author?: PersonRef | null }
@@ -153,6 +163,14 @@ const MSG: Record<string, string> = {
   post_empty: 'Escreva alguma coisa (ou ponha uma imagem ou um link).',
   react_kind: 'Essa reação não existe. Atualize a página.',
   target_not_found: 'Não achei. Talvez tenha sido apagado.',
+  mod_protected: 'Quem modera não mexe no que é de quem criou a comunidade nem da administração.',
+  reason_needed: 'Escreva o motivo: ele aparece no histórico da comunidade e para quem escreveu.',
+  site_moderated: 'Isso foi tirado pela moderação do WinnerZ; só ela pode devolver.',
+  handle_not_found: 'Não achei ninguém com esse @.',
+  owner_already: 'Essa pessoa criou a comunidade: já modera.',
+  mod_limit: 'No máximo 10 pessoas na moderação.',
+  merge_same: 'Escolha outra comunidade para juntar.',
+  not_admin: 'Só a administração pode fazer isso.',
 };
 /** Conta apagada: o banco devolve author null; o site mostra "Conta apagada". */
 export function fixAuthors<T>(x: T): T {
@@ -171,6 +189,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/community_hide|community_mod|community_door|community_similar|game_communities|admin_community/i.test(m)) throw new Error('Falta rodar a migração 0035 no Supabase.');
     if (/praca_feed|praca_side|poll_vote|post_save|post_follow|post_read|p_poll/i.test(m)) throw new Error('Falta rodar a migração 0030 no Supabase.');
     if (/p_spoiler_note|my_community_data|reactions_kind_check|club_messages_of/i.test(m)) throw new Error('Falta rodar a migração 0029 no Supabase.');
     if (/communit|post_|reply_|react|game_posts|my_reply_news|replies_seen|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0026 no Supabase.');
@@ -216,13 +235,50 @@ export const communityApi = {
     if (!getState().profile) return [];
     return (await rpc<Community[] | null>('my_communities')) ?? [];
   },
-  async page(slug: string, sort: 'recentes' | 'conversadas' = 'recentes', before?: string): Promise<CommunityPage | null> {
+  /** Se o endereço mudou (renomeada ou juntada), volta só { moved: novo endereço }. */
+  async page(slug: string, sort: CommunitySort = 'recentes', before?: string): Promise<CommunityPage | { moved: string } | null> {
     if (!supa()) return demo.page(slug, sort, before);
-    return rpc<CommunityPage | null>('community_posts', { p_slug: slug, p_sort: sort, p_before: before ?? null, p_limit: 30 });
+    return rpc<CommunityPage | { moved: string } | null>('community_posts', { p_slug: slug, p_sort: sort, p_before: before ?? null, p_limit: 30 });
   },
   async get(slug: string): Promise<Community | null> {
     if (!supa()) return demo.get(slug);
-    return rpc<Community | null>('community_get', { p_slug: slug });
+    const c = await rpc<(Community & { moved?: undefined }) | { moved: string } | null>('community_get', { p_slug: slug });
+    if (c && 'moved' in c && c.moved) return rpc<Community | null>('community_get', { p_slug: c.moved });
+    return c as Community | null;
+  },
+  /** Tirar (com motivo) ou devolver uma postagem ou resposta da comunidade. */
+  async hide(kind: 'postagem' | 'resposta', id: string, on: boolean, reason: string): Promise<void> {
+    if (!supa()) return demo.hide(kind, id, on, reason);
+    await rpc('community_hide', { p_kind: kind, p_id: id, p_on: on, p_reason: reason || null });
+  },
+  async setMod(id: string, handle: string, on: boolean): Promise<Community> {
+    if (!supa()) return demo.setMod(id, handle, on);
+    return rpc<Community>('community_mod_set', { p_id: id, p_handle: handle, p_on: on });
+  },
+  async door(id: string, welcome: string, starters: string[]): Promise<Community> {
+    if (!supa()) return demo.door(id, welcome, starters);
+    return rpc<Community>('community_door', { p_id: id, p_welcome: welcome, p_starters: starters });
+  },
+  async modHistory(slug: string): Promise<ModHistory | null> {
+    if (!supa()) return demo.modHistory(slug);
+    return rpc<ModHistory | null>('community_mod_history', { p_slug: slug, p_limit: 80 });
+  },
+  async similar(name: string, slug: string, gameId: string | null): Promise<Community[]> {
+    if (!supa()) return demo.similar(name, slug, gameId);
+    if (!getState().profile) return [];
+    return (await rpc<Community[] | null>('community_similar', { p_name: name, p_slug: slug, p_game: gameId })) ?? [];
+  },
+  async ofGame(gameIdOrSlug: string): Promise<Community[]> {
+    if (!supa()) return demo.ofGame(gameIdOrSlug);
+    return (await rpc<Community[] | null>('game_communities', { p_game: gameIdOrSlug })) ?? [];
+  },
+  async adminRename(id: string, slug: string, name: string): Promise<Community> {
+    if (!supa()) return demo.adminRename(id, slug, name);
+    return rpc<Community>('admin_community_rename', { p_id: id, p_slug: slug, p_name: name });
+  },
+  async adminMerge(from: string, into: string): Promise<{ moved: number }> {
+    if (!supa()) return demo.adminMerge(from, into);
+    return rpc<{ moved: number }>('admin_community_merge', { p_from: from, p_into: into });
   },
   async create(d: CommunityDraft): Promise<Community> {
     if (!supa()) return demo.create(d);
@@ -373,13 +429,15 @@ async function removeImages(paths: string[]) {
 /* ------------------------------------------------------------------ */
 /* Demonstração                                                         */
 /* ------------------------------------------------------------------ */
-type DComm = { id: string; slug: string; name: string; description: string; rules: string; cover?: string | null; official: boolean; gameId?: string | null; game?: GameMini | null; createdAt: string; owner: string; hidden?: boolean; extra: number };
+type DComm = { id: string; slug: string; name: string; description: string; rules: string; cover?: string | null; official: boolean; gameId?: string | null; game?: GameMini | null; createdAt: string; owner: string; hidden?: boolean; extra: number;
+  mods?: string[]; welcome?: string | null; starters?: string[] };
+type DModLog = { id: string; cid: string; actor: string; action: ModLogItem['action']; kind?: ModLogItem['kind']; targetId?: string | null; person?: string | null; reason?: string | null; title?: string | null; post?: string | null; text?: string | null; at: string };
 type DPoll = { options: string[]; counts: number[]; mine?: number | null };
 type DPost = { id: string; cid: string | null; poll?: DPoll | null; author: string; kind: PostKind; title: string; body: string; gameId?: string | null; game?: GameMini | null; spoiler?: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip?: string | null; pinned: boolean; answerId?: string | null; createdAt: string; editedAt?: string | null; deletedAt?: string | null; hidden?: boolean };
 type DReply = { id: string; postId: string; parentId: string | null; author: string; body: string; createdAt: string; editedAt?: string | null; deletedAt?: string | null; hidden?: boolean };
 type DReact = { mine: ReactionKind[] } & Partial<Record<ReactionKind, number>>;
-type DB = { v: number; comms: DComm[]; posts: DPost[]; replies: DReply[]; reacts: Record<string, DReact>; mine: Record<string, 'dono' | 'membro'>; seenAt: string;
-  saves: Record<string, string>; follows: string[]; reads: Record<string, string> };
+type DB = { v: number; comms: DComm[]; posts: DPost[]; replies: DReply[]; reacts: Record<string, DReact>; mine: Record<string, 'dono' | 'mod' | 'membro'>; seenAt: string;
+  saves: Record<string, string>; follows: string[]; reads: Record<string, string>; d4?: boolean; modlog?: DModLog[]; aliases?: Record<string, string> };
 
 const KEY = 'wz.demo.comunidades';
 const VERSION = 3;
@@ -454,8 +512,24 @@ function seed(): DB {
   return db;
 }
 function loadDb(): DB {
-  try { const x = JSON.parse(localStorage.getItem(KEY) || 'null') as DB | null; if (x && x.v === VERSION) return x; } catch { /* começa de novo */ }
-  const s = seed(); saveDb(s); return s;
+  try { const x = JSON.parse(localStorage.getItem(KEY) || 'null') as DB | null; if (x && x.v === VERSION) return upgradeD4(x); } catch { /* começa de novo */ }
+  const s = upgradeD4(seed()); saveDb(s); return s;
+}
+/** Entrega D: moderação, porta de entrada e histórico nas comunidades de exemplo. */
+function upgradeD4(db: DB): DB {
+  if (db.d4) return db;
+  const er = db.comms.find((c) => c.id === 'c-elden-ring');
+  if (er) Object.assign(er, { mods: ['demo-duda'], welcome: 'Apresente-se jogando: conte em que parte você está. Ninguém é obrigado.', starters: ['p-malenia', 'p-farum'] });
+  const ps = db.comms.find((c) => c.id === 'c-playstation');
+  if (ps) { ps.mods = [ME]; db.mine['c-playstation'] = 'mod'; }
+  db.modlog = [
+    { id: 'ml1', cid: 'c-elden-ring', actor: 'demo-carol', action: 'mod_entrou', kind: 'pessoa', person: 'demo-duda', at: ago(24 * 25) },
+    { id: 'ml2', cid: 'c-elden-ring', actor: 'demo-duda', action: 'tirar', kind: 'resposta', person: 'demo-rafa', reason: 'Spoiler do final sem aviso', title: 'Malenia: vale usar invocação?', post: 'p-malenia', text: 'O final é…', at: ago(24 * 4) },
+    { id: 'ml3', cid: 'c-elden-ring', actor: 'demo-carol', action: 'porta', kind: 'comunidade', at: ago(24 * 2) },
+  ];
+  db.aliases = { eldenring: 'c-elden-ring' };
+  db.d4 = true; saveDb(db);
+  return db;
 }
 function saveDb(db: DB) { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch { throw new Error('O navegador ficou sem espaço para a demonstração. Use imagens menores ou recomece a demonstração.'); } }
 
@@ -494,7 +568,7 @@ const reactOf = (db: DB, k: string): Reactions => {
   for (const x of REACTION_KINDS) out[x] = (r[x] ?? 0) + (r.mine.includes(x) ? 1 : 0);
   return out;
 };
-const liveReplies = (db: DB, postId: string) => db.replies.filter((r) => r.postId === postId && !r.deletedAt && visible(r.author));
+const liveReplies = (db: DB, postId: string) => db.replies.filter((r) => r.postId === postId && !r.deletedAt && visible(r.author) && (!r.hidden || r.author === ME));
 
 function commOut(db: DB, c: DComm): Community {
   const posts = db.posts.filter((p) => p.cid === c.id && !p.deletedAt);
@@ -503,8 +577,13 @@ function commOut(db: DB, c: DComm): Community {
     game: gameMini(c.gameId, c.game), createdAt: c.createdAt, hidden: !!c.hidden, owner: person(c.owner),
     members: c.extra + (db.mine[c.id] ? 1 : 0), posts: posts.length,
     lastAt: posts.map((p) => p.createdAt).sort().pop() ?? null, role: db.mine[c.id] ?? null,
+    canModerate: c.owner === ME || (c.mods ?? []).includes(ME), welcome: c.welcome ?? null,
+    mods: [{ ...person(c.owner), role: 'dono' as const }, ...(c.mods ?? []).filter((m) => m !== c.owner).map((m) => ({ ...person(m), role: 'mod' as const }))],
+    starters: (c.starters ?? []).map((id) => db.posts.find((p) => p.id === id && p.cid === c.id && !p.deletedAt && !p.hidden)).filter((p): p is DPost => !!p)
+      .map((p) => ({ id: p.id, title: p.title || postTitle({ title: null, body: p.body, kind: p.kind }), kind: p.kind, replies: liveReplies(db, p.id).length })),
   };
 }
+const canMod = (c: DComm) => c.owner === ME || (c.mods ?? []).includes(ME);
 function pollOut(p: DPoll): Poll {
   const counts = p.counts.map((n, i) => n + (p.mine === i ? 1 : 0));
   return { options: p.options.map((text, i) => ({ text, votes: counts[i] })), total: counts.reduce((a, b) => a + b, 0), mine: p.mine ?? null };
@@ -523,7 +602,7 @@ function postOut(db: DB, p: DPost, full: boolean, why?: string | null): Post {
     readAt, unread: readAt ? rs.filter((r) => r.author !== ME && r.createdAt > readAt).length : 0, why: why ?? null,
   };
 }
-const livePosts = (db: DB) => db.posts.filter((p) => !p.deletedAt && visible(p.author));
+const livePosts = (db: DB) => db.posts.filter((p) => !p.deletedAt && visible(p.author) && (!p.hidden || p.author === ME));
 function err(code: string): never { throw new Error(MSG[code] ?? code); }
 function checkDraft(d: PostDraft) {
   const t = d.title.trim();
@@ -548,17 +627,119 @@ const demo = {
       .map((c) => commOut(db, c)).sort((a, b) => Number(b.official) - Number(a.official) || b.members - a.members);
   },
   mine(): Community[] { const db = loadDb(); return db.comms.filter((c) => db.mine[c.id]).map((c) => commOut(db, c)); },
-  get(slug: string): Community | null { const db = loadDb(); const c = db.comms.find((x) => x.slug === slug.toLowerCase()); return c ? commOut(db, c) : null; },
-  page(slug: string, sort: 'recentes' | 'conversadas', before?: string): CommunityPage | null {
+  get(slug: string): Community | null {
+    const db = loadDb(); const k = slug.toLowerCase();
+    const c = db.comms.find((x) => x.slug === k) ?? db.comms.find((x) => x.id === db.aliases?.[k]);
+    return c ? commOut(db, c) : null;
+  },
+  page(slug: string, sort: CommunitySort, before?: string): CommunityPage | { moved: string } | null {
     const db = loadDb(); const c = db.comms.find((x) => x.slug === slug.toLowerCase());
-    if (!c) return null;
-    const all = livePosts(db).filter((p) => p.cid === c.id);
+    if (!c) { const a = db.comms.find((x) => x.id === db.aliases?.[slug.toLowerCase()]); return a ? { moved: a.slug } : null; }
+    const mod = canMod(c);
+    const all = db.posts.filter((p) => !p.deletedAt && visible(p.author) && p.cid === c.id && (!p.hidden || mod || p.author === ME));
     const week = Date.now() - 7 * 86_400_000;
     const recent = (p: DPost) => liveReplies(db, p.id).filter((r) => Date.parse(r.createdAt) > week).length;
+    const score = (p: DPost) => { const r = db.reacts[`post:${p.id}`]; return r ? REACTION_KINDS.reduce((a, k) => a + (r[k] ?? 0), 0) + r.mine.length : 0; };
     let list = all.filter((p) => !p.pinned);
     if (sort === 'conversadas') list = list.filter((p) => recent(p) > 0).sort((a, b) => recent(b) - recent(a) || b.createdAt.localeCompare(a.createdAt));
+    else if (sort === 'destacadas') list = list.filter((p) => score(p) > 0).sort((a, b) => score(b) - score(a) || b.createdAt.localeCompare(a.createdAt));
+    else if (sort === 'semresposta') list = list.filter((p) => p.kind === 'pergunta' && !p.answerId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     else list = list.filter((p) => !before || p.createdAt < before).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 30);
-    return { community: commOut(db, c), pinned: all.filter((p) => p.pinned).map((p) => postOut(db, p, false)), posts: list.map((p) => postOut(db, p, false)) };
+    return { community: commOut(db, c), pinned: all.filter((p) => p.pinned && !p.hidden).map((p) => postOut(db, p, false)), posts: list.map((p) => postOut(db, p, false)) };
+  },
+  note(db: DB, c: DComm, x: Omit<DModLog, 'id' | 'cid' | 'actor' | 'at'>) { db.modlog = [{ id: rid(), cid: c.id, actor: ME, at: new Date().toISOString(), ...x }, ...(db.modlog ?? [])]; },
+  hide(kind: 'postagem' | 'resposta', id: string, on: boolean, reason: string) {
+    const db = loadDb();
+    const r = kind === 'resposta' ? db.replies.find((x) => x.id === id) : null;
+    const p = db.posts.find((x) => x.id === (r ? r.postId : id));
+    const c = p?.cid ? db.comms.find((x) => x.id === p.cid) : null;
+    if (!p || !c) err('target_not_found');
+    if (!canMod(c)) err('not_owner');
+    const author = r ? r.author : p!.author;
+    if (c.owner !== ME && (author === c.owner || author === ME)) err('mod_protected');
+    if (on && !reason.trim()) err('reason_needed');
+    if (r) r.hidden = on; else { p!.hidden = on; if (on) p!.pinned = false; }
+    demo.note(db, c, { action: on ? 'tirar' : 'devolver', kind, targetId: id, person: author, reason: reason.trim() || null, title: p!.title || postTitle({ title: null, body: p!.body, kind: p!.kind }), post: p!.id, text: (r ? r.body : p!.body).slice(0, 400) });
+    saveDb(db);
+  },
+  setMod(id: string, handle: string, on: boolean): Community {
+    const db = loadDb(); const c = db.comms.find((x) => x.id === id);
+    if (!c) err('target_not_found');
+    if (c.owner !== ME) err('not_owner');
+    const h = handle.trim().replace(/^@/, '').toLowerCase();
+    const who = DEMO_PEOPLE.find((p) => p.handle.toLowerCase() === h)?.id ?? (h === 'lu' ? 'demo-lu' : null);
+    if (!who) err('handle_not_found');
+    if (who === c.owner) err('owner_already');
+    const mods = new Set(c.mods ?? []);
+    if (on) { if (mods.size >= 10) err('mod_limit'); mods.add(who!); } else mods.delete(who!);
+    c.mods = [...mods];
+    demo.note(db, c, { action: on ? 'mod_entrou' : 'mod_saiu', kind: 'pessoa', person: who });
+    saveDb(db); return commOut(db, c);
+  },
+  door(id: string, welcome: string, starters: string[]): Community {
+    const db = loadDb(); const c = db.comms.find((x) => x.id === id);
+    if (!c) err('target_not_found');
+    if (!canMod(c)) err('not_owner');
+    c.welcome = welcome.trim().slice(0, 160) || null;
+    c.starters = starters.filter((s) => db.posts.some((p) => p.id === s && p.cid === c.id && !p.deletedAt)).slice(0, 3);
+    demo.note(db, c, { action: 'porta', kind: 'comunidade' });
+    saveDb(db); return commOut(db, c);
+  },
+  modHistory(slug: string): ModHistory | null {
+    const db = loadDb(); const c = db.comms.find((x) => x.slug === slug.toLowerCase());
+    if (!c) return null;
+    const mod = canMod(c);
+    return {
+      community: commOut(db, c), canModerate: mod,
+      items: (db.modlog ?? []).filter((l) => l.cid === c.id).map((l) => ({
+        id: l.id, action: l.action, kind: l.kind ?? null, targetId: l.targetId ?? null, reason: l.reason ?? null, at: l.at, actor: person(l.actor),
+        person: l.person && (l.kind === 'pessoa' || mod) ? person(l.person) : null,
+        title: ['fixar', 'soltar'].includes(l.action) || mod ? l.title ?? null : null,
+        post: ['fixar', 'soltar', 'devolver'].includes(l.action) || mod ? l.post ?? null : null,
+        text: mod ? l.text ?? null : null,
+        hiddenNow: l.action === 'tirar' && mod ? !!(db.replies.find((r) => r.id === l.targetId)?.hidden ?? db.posts.find((p) => p.id === l.targetId)?.hidden) : null,
+      })),
+    };
+  },
+  similar(name: string, slug: string, gameId: string | null): Community[] {
+    const db = loadDb();
+    const key = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '').replace(/(brasil|br|oficial|official|comunidade|community|fans|fas|clube|club|grupo)$/, '');
+    const a = key(name), b = key(slug);
+    const like = (x: string, k: string) => k.length >= 3 && (x === k || (k.length >= 4 && (x.includes(k) || k.includes(x))));
+    return db.comms.filter((c) => !c.hidden && ((gameId && c.gameId === gameId) || like(key(c.name), a) || like(key(c.slug), a) || like(key(c.slug), b) || like(key(c.name), b)))
+      .map((c) => commOut(db, c)).slice(0, 5);
+  },
+  ofGame(g: string): Community[] {
+    const db = loadDb();
+    return db.comms.filter((c) => !c.hidden && c.gameId && (c.gameId === g || gameMini(c.gameId)?.slug === g)).map((c) => commOut(db, c)).slice(0, 3);
+  },
+  adminRename(id: string, slug: string, name: string): Community {
+    const db = loadDb(); const c = db.comms.find((x) => x.id === id);
+    if (!c) err('target_not_found');
+    const s = slug.trim().toLowerCase();
+    if (s !== c.slug) {
+      if (!slugOk(s)) err('slug_invalid');
+      if (db.comms.some((x) => x.slug === s)) err('slug_taken');
+      db.aliases = { ...(db.aliases ?? {}), [c.slug]: c.id };
+    }
+    if (name.trim().length < 3) err('name_invalid');
+    demo.note(db, c, { action: 'renomear', kind: 'comunidade' });
+    c.slug = s; c.name = name.trim(); saveDb(db); return commOut(db, c);
+  },
+  adminMerge(from: string, into: string): { moved: number } {
+    const db = loadDb(); const a = db.comms.find((x) => x.id === from); const b = db.comms.find((x) => x.id === into);
+    if (!a || !b) err('target_not_found');
+    if (a.id === b.id) err('merge_same');
+    let n = 0;
+    db.posts.forEach((p) => { if (p.cid === a.id) { p.cid = b.id; p.pinned = false; n++; } });
+    b.mods = [...new Set([...(b.mods ?? []), a.owner, ...(a.mods ?? [])])].filter((m) => m !== b.owner);
+    if (db.mine[a.id] && !db.mine[b.id]) db.mine[b.id] = 'membro';
+    delete db.mine[a.id];
+    db.aliases = { ...(db.aliases ?? {}), [a.slug]: b.id };
+    (db.modlog ?? []).forEach((l) => { if (l.cid === a.id) l.cid = b.id; });
+    demo.note(db, b, { action: 'juntar', kind: 'comunidade' });
+    db.comms = db.comms.filter((x) => x.id !== a.id);
+    saveDb(db); return { moved: n };
   },
   create(d: CommunityDraft): Community {
     const db = loadDb();
@@ -590,10 +771,12 @@ const demo = {
     const db = loadDb(); const p = db.posts.find((x) => x.id === id && !x.deletedAt);
     if (!p || !visible(p.author)) return null;
     const c = p.cid ? db.comms.find((x) => x.id === p.cid) ?? null : null;
-    const thread = db.replies.filter((r) => r.postId === id && visible(r.author) && (!r.deletedAt || db.replies.some((k) => k.parentId === r.id && !k.deletedAt)))
+    if (p.hidden && p.author !== ME && !(c && canMod(c))) return null;
+    const mod = !!c && canMod(c);
+    const thread = db.replies.filter((r) => r.postId === id && visible(r.author) && (!r.hidden || r.author === ME || mod) && (!r.deletedAt || db.replies.some((k) => k.parentId === r.id && !k.deletedAt)))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
       .map((r): Reply => ({ id: r.id, parentId: r.parentId, body: r.deletedAt ? '' : r.body, deleted: !!r.deletedAt, createdAt: r.createdAt, editedAt: r.editedAt ?? null, hidden: !!r.hidden, author: person(r.author), authorCtx: ctxOf(r.author, p.gameId), reactions: reactOf(db, `resposta:${r.id}`) }));
-    return { ...postOut(db, p, true), communityFull: c ? commOut(db, c) : null, canModerate: c ? c.owner === ME : true, thread };
+    return { ...postOut(db, p, true), communityFull: c ? commOut(db, c) : null, canModerate: c ? canMod(c) : true, thread };
   },
   createPost(cid: string | null, d: PostDraft): Post {
     const db = loadDb(); const c = cid ? db.comms.find((x) => x.id === cid) : null;

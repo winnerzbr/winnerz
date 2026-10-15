@@ -67,6 +67,18 @@ async function refund(user: string) {
   await fetch(`${c.url}/rest/v1/rpc/ai_refund`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month() }) }).catch(() => null);
 }
 
+/** Mensagem clara para quando a IA recusa o pedido (sem expor chave nem detalhes da conta). */
+function aiError(status: number, detail: string): string {
+  let type = '', msg = '';
+  try { const j = JSON.parse(detail) as { error?: { type?: string; message?: string } }; type = j.error?.type ?? ''; msg = j.error?.message ?? ''; } catch { /* sem corpo */ }
+  if (status === 429 || status === 529 || type === 'overloaded_error' || type === 'rate_limit_error') return 'A IA está ocupada agora. Tente de novo em instantes.';
+  if (status === 401 || type === 'authentication_error') return 'A chave da IA no servidor foi recusada. Confira a ANTHROPIC_API_KEY na Vercel.';
+  if (status === 403 || type === 'permission_error') return 'A chave da IA no servidor não tem permissão para este modelo.';
+  if (status === 404 || type === 'not_found_error') return 'O modelo de IA configurado não existe. Confira a ANTHROPIC_MODEL na Vercel (ou apague para usar o padrão).';
+  if (/credit balance|billing|purchase credits/i.test(msg)) return 'A conta da IA está sem créditos. Recarregue em console.anthropic.com.';
+  if (status === 400) return 'A IA recusou o pedido (formato). Tente de novo; se continuar, avise a administração.';
+  return 'A IA não respondeu agora. Tente de novo.';
+}
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : '');
 
 /** Dígito verificador (EAN-8, UPC-A, EAN-13, GTIN-14) e formato único: UPC-A vira EAN-13. */
@@ -196,8 +208,9 @@ export default async function handler(req: Req, res: Res) {
     } catch { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
     if (!r.ok) {
       await refund(user);
-      console.error('anthropic', r.status, (await r.text().catch(() => '')).slice(0, 300));
-      return res.status(502).json({ error: r.status === 429 || r.status === 529 ? 'A IA está ocupada agora. Tente de novo em instantes.' : 'A IA não respondeu agora. Tente de novo.' });
+      const detail = await r.text().catch(() => '');
+      console.error('anthropic', r.status, detail.slice(0, 300));
+      return res.status(502).json({ error: aiError(r.status, detail) });
     }
     const out = (await r.json()) as { content?: { type: string; text?: string }[] };
     const text = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text).join('');

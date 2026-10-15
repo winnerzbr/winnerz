@@ -70,7 +70,7 @@ export const PATHS: { k: PracaPath; label: string; icon: string; why: string }[]
 export interface PracaSide { entrar: Post[]; continuam: Post[]; novos: (PersonRef & { since: string; post?: { id: string; title: string } | null })[] }
 export interface CommunityPage { community: Community; pinned: Post[]; posts: Post[] }
 /** Avisos do menu: respostas e menções (comunidades, clubes e jogatinas), jogatina chegando e parte do clube que abriu. */
-export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'jogatina' | 'jogatina_resposta' | 'jogatina_mencao' | 'parte';
+export type NewsKind = 'resposta' | 'acompanhando' | 'clube_resposta' | 'mencao' | 'clube_mencao' | 'jogatina' | 'jogatina_resposta' | 'jogatina_mencao' | 'jogatina_convite' | 'parte';
 export interface NewsItem { kind: NewsKind; id: string; ref: string; slug: string; title: string; excerpt?: string | null; at: string; new?: boolean; author?: PersonRef | null }
 export interface ReplyNews { count: number; items: NewsItem[] }
 export interface PostDraft { kind: PostKind; title: string; body: string; gameId: string | null; spoiler: SpoilerLevel | null; spoilerNote?: string | null; images: string[]; clip: string | null; poll?: string[] | null }

@@ -181,10 +181,12 @@ function Away({ activity, encontros }: { activity: Activity[]; encontros: Jogati
   const resp = count((n) => n.kind === 'resposta' || n.kind === 'clube_resposta' || n.kind === 'jogatina_resposta');
   const menc = count((n) => n.kind === 'mencao' || n.kind === 'clube_mencao' || n.kind === 'jogatina_mencao');
   const acomp = count((n) => n.kind === 'acompanhando');
+  const conv = count((n) => n.kind === 'jogatina_convite');
   const day = Date.now() - 86_400_000;
   const friends = activity.filter((a) => Date.parse(a.at) > day && a.kind !== 'momento').slice(0, 2);
   const tonight = encontros.filter((c) => new Date(c.startsAt).toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }) === new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }));
   const bits: string[] = [];
+  if (conv) bits.push(conv === 1 ? '1 convite para jogatina' : `${conv} convites para jogatinas`);
   if (resp) bits.push(resp === 1 ? '1 resposta para você' : `${resp} respostas para você`);
   if (menc) bits.push(menc === 1 ? '1 menção' : `${menc} menções`);
   if (acomp) bits.push(acomp === 1 ? '1 novidade numa conversa que você acompanha' : `${acomp} novidades em conversas que você acompanha`);
@@ -209,13 +211,14 @@ function NewsList({ items }: { items: NewsItem[] }) {
           const href = n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando' ? `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`
             : n.kind === 'clube_resposta' || n.kind === 'clube_mencao' ? `/clube/${n.slug}#m-${n.id}`
             : n.kind === 'jogatina_resposta' || n.kind === 'jogatina_mencao' ? `/jogatina/${n.slug}#m-${n.id}`
-            : n.kind === 'jogatina' ? `/jogatina/${n.slug}` : `/clube/${n.slug}`;
+            : n.kind === 'jogatina' || n.kind === 'jogatina_convite' ? `/jogatina/${n.slug}` : `/clube/${n.slug}`;
           const who = n.author?.handle ? `@${n.author.handle}` : n.author?.gone ? 'Uma conta apagada' : 'Alguém';
           const line = n.kind === 'resposta' ? <><b>{who}</b> respondeu você em <b>{n.title}</b></>
             : n.kind === 'acompanhando' ? <><b>{who}</b> respondeu em <b>{n.title}</b>, que você acompanha</>
             : n.kind === 'clube_resposta' ? <><b>{who}</b> respondeu você no clube <b>{n.title}</b></>
             : n.kind === 'mencao' ? <><b>{who}</b> mencionou você em <b>{n.title}</b></>
             : n.kind === 'clube_mencao' ? <><b>{who}</b> mencionou você no clube <b>{n.title}</b></>
+            : n.kind === 'jogatina_convite' ? <><b>{who}</b> convidou você para a jogatina <b>{n.title}</b></>
             : n.kind === 'jogatina_resposta' ? <><b>{who}</b> respondeu você na jogatina <b>{n.title}</b></>
             : n.kind === 'jogatina_mencao' ? <><b>{who}</b> mencionou você na jogatina <b>{n.title}</b></>
             : n.kind === 'jogatina' ? <>Jogatina <b>{n.title}</b> {Date.parse(n.at) + 12 * 3600_000 <= Date.now() ? 'está acontecendo' : 'é logo mais'}</>

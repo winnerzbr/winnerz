@@ -10,6 +10,7 @@ import {
 import { ensureRules } from '../data/moderationApi';
 import { ReportButton } from '../components/Moderation';
 import { GroupChat, type ChatCtx } from '../components/GroupChat';
+import { InviteBox, inviteSummary } from '../components/InviteBox';
 import { GameSearchPick, PersonAvatar, PersonLink } from '../components/Posts';
 import { PlayButton } from '../components/PlayButton';
 import { Icon } from '../components/Icon';
@@ -18,6 +19,10 @@ import { plainText } from '../lib/postText';
 import { dayLong, hourLabel, localInput, relDay, spanLabel, whenLabel } from '../lib/when';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
+/** Recado que a tela de marcar deixa para a página da jogatina (resultado dos convites). */
+const FLASH = 'wz.jogatina.recado';
+const setFlash = (t: string) => { try { sessionStorage.setItem(FLASH, t); } catch { /* sem armazenamento: segue sem recado */ } };
+const takeFlash = () => { try { const t = sessionStorage.getItem(FLASH); sessionStorage.removeItem(FLASH); return t ?? ''; } catch { return ''; } };
 const SEAT_COLORS = ['#e2c08d', '#a6d8c8', '#ffb35c', '#a8d4ff', '#b8e6a0', '#f2a8a8', '#d3b8f5', '#f5d77a'];
 const seatColor = (h?: string | null) => SEAT_COLORS[[...(h ?? '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % SEAT_COLORS.length];
 
@@ -110,6 +115,9 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
   const [err, setErr] = useState('');
   const [copied, setCopied] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [handles, setHandles] = useState<string[]>([]);
+  const [note, setNote] = useState(takeFlash);
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
   const me = j.me;
   const owner = j.owner?.id === meId;
@@ -128,6 +136,12 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
   };
   const answer = (r: Rsvp | null) => act(() => jogatinaApi.rsvp(j.id, code, r));
   const invite = j.inviteCode ? `${location.origin}/jogatina/${j.id}?c=${j.inviteCode}` : `${location.origin}/jogatina/${j.id}`;
+  const canInvite = !j.ended && !j.canceled && (owner || isAdmin || (!!me && me.rsvp !== 'nao'));
+  const sendInvites = async () => {
+    setErr(''); setBusy(true);
+    try { const r = await jogatinaApi.invite(j.id, handles); setNote(inviteSummary(r)); setHandles([]); if (r.sent.length) setInviting(false); await reload(); }
+    catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
+  };
   const copy = async () => { try { await navigator.clipboard.writeText(invite); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { window.prompt('Copie o link:', invite); } };
   const tops = j.messages.filter((m) => !m.parentId);
   const questions = tops.filter((m) => m.question);
@@ -178,6 +192,9 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
             </ul>
             {maybe.length > 0 && !j.ended && <p className="jog-seats__maybe faint">Talvez: {maybe.map((p, i) => <span key={p.id}>{i > 0 && ', '}<PersonLink p={p} avatar={false} /></span>)}</p>}
             {j.going > going.length && <small className="faint">e mais {j.going - going.length}</small>}
+            {!j.ended && !j.canceled && j.invites.length > 0 && (
+              <p className="jog-seats__maybe faint">Convidados, sem resposta ainda: {j.invites.map((p, i) => <span key={p.id}>{i > 0 && ', '}<PersonLink p={p} avatar={false} /></span>)}</p>
+            )}
           </section>
 
           <section className="jog-tile jog-answer" aria-labelledby="jog-answer-t">
@@ -199,6 +216,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
               </>
             ) : (
               <>
+                {!me && j.invitedBy && <p className="jog-answer__invited"><PersonAvatar p={j.invitedBy} size={22} /><span><b>@{j.invitedBy.handle ?? 'alguém'}</b> convidou você.</span></p>}
                 <div className="jog-answer__opts" role="group" aria-label="Você vai?">
                   <button className={`btn ${me?.rsvp === 'vou' ? 'primary is-on' : !me ? 'primary' : 'ghost'} jog-answer__big`} aria-pressed={me?.rsvp === 'vou'} disabled={busy || (full && me?.rsvp !== 'vou')} onClick={() => void answer('vou')}>
                     {me?.rsvp === 'vou' ? <><Icon name="check" size={16} /> Você vai</> : full ? 'Vagas esgotadas' : 'Vou participar'}
@@ -207,7 +225,9 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
                   {me && !owner && <button className={`btn ghost${me.rsvp === 'nao' ? ' is-on' : ''}`} aria-pressed={me.rsvp === 'nao'} disabled={busy} onClick={() => void answer('nao')}>Não vou</button>}
                 </div>
                 <button className="btn ghost" onClick={() => downloadIcs(j)}><Icon name="calendario" size={15} /> Agenda</button>
-                <button className="btn ghost" onClick={() => void copy()}>{copied ? 'Link copiado' : 'Convidar'}</button>
+                {canInvite
+                  ? <button className="btn ghost" aria-expanded={inviting} onClick={() => setInviting((x) => !x)}>Convidar</button>
+                  : <button className="btn ghost" onClick={() => void copy()}>{copied ? 'Link copiado' : 'Copiar o link'}</button>}
                 {live && me && j.game && <PlayButton gameId={j.game.id} className="btn" idle="Abrir a sessão" />}
                 {j.liveUrl && <a className="btn ghost" href={j.liveUrl} target="_blank" rel="noopener noreferrer nofollow">{/twitch|youtube|kick/.test(j.liveUrl) ? 'Abrir a live' : /discord/.test(j.liveUrl) ? 'Abrir o Discord' : 'Abrir o link'} ↗</a>}
               </>
@@ -223,6 +243,25 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
             {!(j.ended ? memories : tops).length && <p className="faint">{j.ended ? 'Ninguém guardou memória ainda.' : 'Nenhuma pergunta ainda.'}</p>}
             <a href="#conversa" className="cm-link jog-ask__go">{j.ended ? (me ? 'Guardar uma memória' : 'Ver a conversa') : me ? 'Perguntar' : 'Ver a conversa'} ↓</a>
           </section>
+
+          {(inviting || note) && (
+            <section className="jog-tile jog-invite" aria-labelledby="jog-invite-t">
+              <span className="kicker" id="jog-invite-t">Convidar</span>
+              {note && <p className="jog-invite__note" role="status"><Icon name="check" size={14} /> {note}</p>}
+              {inviting && (
+                <>
+                  <p className="muted">Digite o @ de quem você quer chamar. A pessoa recebe o aviso no site e passa a ver a jogatina{j.access !== 'aberto' ? ', mesmo sendo ' + (j.access === 'amigos' ? 'só para amigos' : 'por convite') : ''}.</p>
+                  <InviteBox value={handles} onChange={setHandles} exclude={[...j.people, ...j.invites].map((p) => (p.handle ?? '').toLowerCase())} />
+                  <div className="jog-invite__acts">
+                    <button className="btn primary sm" disabled={busy || !handles.length} onClick={() => void sendInvites()}>{handles.length > 1 ? `Convidar ${handles.length} pessoas` : 'Enviar convite'}</button>
+                    <button className="btn ghost sm" onClick={() => void copy()}>{copied ? 'Link copiado' : 'Copiar o link'}</button>
+                    <button className="btn quiet sm" onClick={() => { setInviting(false); setHandles([]); }}>Fechar</button>
+                  </div>
+                </>
+              )}
+              {!inviting && note && <button className="cm-link" onClick={() => setNote('')}>Ok</button>}
+            </section>
+          )}
 
           <section className="jog-tile jog-after">
             <span className="kicker">{j.ended ? 'Como foi' : 'Depois da noite'}</span>
@@ -298,7 +337,8 @@ function durLabel(m: number | null): string {
   return m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m / 60)}h${m % 60}` : `${m / 60} h`;
 }
 
-function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: JogatinaDraft & { game?: GameMini | null }; editing?: Jogatina; busy: boolean; err: string; onSubmit: (d: JogatinaDraft) => void }) {
+function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: JogatinaDraft & { game?: GameMini | null }; editing?: Jogatina; busy: boolean; err: string; onSubmit: (d: JogatinaDraft, invites: string[]) => void }) {
+  const [invites, setInvites] = useState<string[]>([]);
   const [game, setGame] = useState<GameMini | null>(initial.game ?? null);
   const [title, setTitle] = useState(initial.title);
   const [titleTouched, setTitleTouched] = useState(!!initial.title);
@@ -325,7 +365,7 @@ function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: Joga
     <form className="cm-form club-form" onSubmit={(e) => {
       e.preventDefault();
       onSubmit({ title: t.trim(), description, gameId: game?.id ?? null, startsAt: startsAt ? new Date(startsAt).toISOString() : null, durationMin: duration || null, platform: platform.trim() || null,
-        maxPeople: max ? Number(max) : null, access, liveUrl: live.trim() || null, communityId: communityId || null, clubId: clubId || null });
+        maxPeople: max ? Number(max) : null, access, liveUrl: live.trim() || null, communityId: communityId || null, clubId: clubId || null }, invites);
     }}>
       <div className="cm-form__f"><span className="kicker">Jogo</span>
         {editing ? <p className="muted">{editing.game?.title} (não muda)</p> : <GameSearchPick value={game} onChange={setGame} label="Jogo da jogatina" />}
@@ -357,6 +397,12 @@ function JogatinaForm({ initial, editing, busy, err, onSubmit }: { initial: Joga
       <fieldset className="cm-form__f cm-spoil"><legend className="kicker">Quem pode vir</legend>
         {JOG_ACCESS.map((a) => <label key={a.k} className={`cm-spoil__o${access === a.k ? ' is-on' : ''}`}><input type="radio" name="acc" checked={access === a.k} onChange={() => setAccess(a.k)} /><b>{a.label}</b><small>{a.hint}{a.k !== 'aberto' && club ? ' Quem está no clube também vê.' : ''}</small></label>)}
       </fieldset>
+      {!editing && (
+        <div className="cm-form__f"><span className="kicker">Convidar pessoas (opcional)</span>
+          <small className="faint">Quem você chamar pelo @ recebe o aviso no site e vê a jogatina, qualquer que seja a entrada escolhida.</small>
+          <InviteBox value={invites} onChange={setInvites} />
+        </div>
+      )}
       {!editing && (clubs.length > 0 || comms.length > 0) && (
         <div className="club-form__row">
           {clubs.length > 0 && (
@@ -410,11 +456,17 @@ export function JogatinaNewPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   if (signedOut) return <main className="page pad narrow"><h1 className="t big">Marcar jogatina</h1><p className="muted lead">Entre na sua conta para marcar uma jogatina.</p><Link className="btn primary" to="/entrar">Entrar</Link></main>;
   if (game === undefined || clubId === undefined || commId === undefined) return <main className="page pad"><p className="faint">Carregando…</p></main>;
-  const submit = async (d: JogatinaDraft) => {
+  const submit = async (d: JogatinaDraft, invites: string[]) => {
     setErr('');
     if (!(await ensureRules())) return;
     setBusy(true);
-    try { const j = await jogatinaApi.create(d); navigate(`/jogatina/${j.id}`); } catch (e) { setErr(errOf(e)); setBusy(false); }
+    let j: Jogatina;
+    try { j = await jogatinaApi.create(d); } catch (e) { setErr(errOf(e)); setBusy(false); return; }
+    // A jogatina já existe: se os convites falharem, o recado aparece na página dela.
+    if (invites.length) {
+      try { setFlash(inviteSummary(await jogatinaApi.invite(j.id, invites))); } catch (e) { setFlash(`A jogatina foi marcada, mas os convites não foram: ${errOf(e)} Use “Convidar” para tentar de novo.`); }
+    }
+    navigate(`/jogatina/${j.id}`);
   };
   return (
     <main className="page pad narrow cm-new">
@@ -424,7 +476,7 @@ export function JogatinaNewPage() {
         <p className="muted lead">Um jogo, um dia e uma hora. Quem vai confirma; antes, as perguntas; depois, as memórias de quem estava lá.</p>
       </header>
       <JogatinaForm initial={{ title: '', description: '', gameId: game?.id ?? null, game, startsAt: null, durationMin: 120, platform: null, maxPeople: null, access: 'aberto', liveUrl: null, communityId: commId, clubId }}
-        busy={busy} err={err} onSubmit={(d) => void submit(d)} />
+        busy={busy} err={err} onSubmit={(d, inv) => void submit(d, inv)} />
     </main>
   );
 }

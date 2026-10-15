@@ -7,6 +7,7 @@ import { getState } from './store';
 import { communityApi, demoGameMini, demoPersonRef, demoReactions, type GameMini, type NewsItem, type PersonRef, type ReplyNews } from './communityApi';
 import { demoClubRef, okRpc, type ClubAccess, type GroupMessage } from './clubApi';
 import { mentionsOf } from '../lib/postText';
+import { DEMO_PEOPLE } from './demoPeople';
 
 export type Rsvp = 'vou' | 'talvez' | 'nao';
 export interface Jogatina {
@@ -14,9 +15,13 @@ export interface Jogatina {
   maxPeople?: number | null; access: ClubAccess; liveUrl?: string | null; ended: boolean; canceled: boolean; now: boolean;
   community?: { slug: string; name: string } | null; club?: { slug: string; name: string } | null; createdAt: string; hidden: boolean;
   owner?: PersonRef | null; going: number; maybe: number; wasThere: number; me?: { rsvp: Rsvp; wasThere: boolean } | null; inviteCode?: string | null;
+  /** Quem convidou você (se alguém convidou) e quantos convidados ainda não responderam. */
+  invitedBy?: PersonRef | null; invited?: number;
 }
 export interface JogPerson extends PersonRef { rsvp: Rsvp; wasThere: boolean; joinedAt: string; journey?: { progress: number | null; completed: boolean | null } | null }
-export interface JogatinaFull extends Jogatina { locked: false; people: JogPerson[]; messages: GroupMessage[] }
+export interface JogInvite extends PersonRef { by?: PersonRef | null; at: string }
+export interface InviteResult { sent: string[]; already: string[]; notFound: string[] }
+export interface JogatinaFull extends Jogatina { locked: false; people: JogPerson[]; messages: GroupMessage[]; invites: JogInvite[] }
 export interface JogatinaLocked { locked: true; id: string; title: string; access: ClubAccess; startsAt: string; game: GameMini | null; owner?: PersonRef | null }
 export interface JogatinaDraft {
   title: string; description: string; gameId: string | null; startsAt: string | null; durationMin: number | null; platform: string | null;
@@ -48,6 +53,9 @@ const MSG: Record<string, string> = {
   not_member: 'Confirme presença (Vou ou Talvez) para participar da conversa.',
   not_owner: 'Só quem marcou a jogatina pode fazer isso.',
   rsvp_invalid: 'Resposta inválida.',
+  invite_not_allowed: 'Responda Vou ou Talvez para convidar outras pessoas.',
+  invite_too_many: 'No máximo 20 pessoas por vez.',
+  invite_limit: 'Você já mandou muitos convites hoje. Volte amanhã.',
 };
 const client = async () => (await import('./supabaseAdapter')).getClient();
 const supa = () => getState().mode === 'supabase';
@@ -86,6 +94,13 @@ export const jogatinaApi = {
   async rsvp(id: string, code: string | null, r: Rsvp | null): Promise<Jogatina> {
     if (!supa()) return demo.rsvp(id, r);
     return rpc<Jogatina>('jogatina_rsvp', { p_id: id, p_code: code, p_rsvp: r });
+  },
+  /** Convida pelo @ (com ou sem a arroba). A pessoa vê a jogatina e recebe o aviso no site. */
+  async invite(id: string, handles: string[]): Promise<InviteResult> {
+    const clean = [...new Set(handles.map((h) => h.trim().replace(/^@/, '').toLowerCase()).filter(Boolean))];
+    if (!clean.length) return { sent: [], already: [], notFound: [] };
+    if (!supa()) return demo.invite(id, clean);
+    return rpc<InviteResult>('jogatina_invite', { p_id: id, p_handles: clean });
   },
   async wasThere(id: string, on: boolean): Promise<Jogatina> {
     if (!supa()) return demo.wasThere(id, on);
@@ -143,9 +158,10 @@ export const jogatinaEnd = (j: Pick<Jogatina, 'startsAt' | 'durationMin'>) => Da
 type DPerson = { id: string; rsvp: Rsvp; wasThere: boolean; joinedAt: string };
 type DJog = Omit<Jogatina, 'game' | 'owner' | 'going' | 'maybe' | 'wasThere' | 'me' | 'ended' | 'now' | 'inviteCode' | 'club' | 'canceled'> & { gameId: string; ownerId: string; clubId: string | null; people: DPerson[]; extra: number; canceledAt?: string | null };
 type DMsg = { id: string; jog: string; parentId: string | null; author: string; question: boolean; body: string; images: string[]; createdAt: string; editedAt?: string | null; deletedAt?: string | null };
-type DB = { v: number; jogs: DJog[]; msgs: DMsg[] };
+type DInvite = { jog: string; user: string; by: string; at: string };
+type DB = { v: number; jogs: DJog[]; msgs: DMsg[]; invites: DInvite[] };
 const KEY = 'wz.demo.jogatinas';
-const VERSION = 2;
+const VERSION = 3;
 const ME = 'demo-me';
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const rid = () => `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
@@ -198,7 +214,8 @@ function seed(): DB {
     x('d1', 'j-derby', 'demo-rafa', 24 * 5 + 1, 'Que noite! Bati o recorde de carros destruídos no estádio.', { images: ['/demo/scene-dderby.webp'] }),
     x('d2', 'j-derby', ME, 24 * 5, 'Valeu pela noite, rafa. Na próxima eu levo o volante.'),
   ];
-  return { v: VERSION, jogs, msgs };
+  const invites: DInvite[] = [{ jog: 'j-agora', user: ME, by: 'demo-duda', at: hoursAgo(1) }];
+  return { v: VERSION, jogs, msgs, invites };
 }
 function loadDb(): DB {
   try { const x = JSON.parse(localStorage.getItem(KEY) || 'null') as DB | null; if (x && x.v === VERSION) return x; } catch { /* começa de novo */ }
@@ -209,6 +226,8 @@ function err(code: string): never { throw new Error(MSG[code] ?? code); }
 
 function out(j: DJog): Jogatina {
   const me = j.people.find((p) => p.id === ME);
+  const inv = loadDb().invites.filter((i) => i.jog === j.id && !j.people.some((p) => p.id === i.user));
+  const mine = loadDb().invites.find((i) => i.jog === j.id && i.user === ME);
   const club = j.clubId ? demoClubRef(j.clubId) : null;
   const canceled = !!j.canceledAt;
   return {
@@ -218,6 +237,7 @@ function out(j: DJog): Jogatina {
     createdAt: j.createdAt, hidden: j.hidden, owner: demoPersonRef(j.ownerId),
     going: j.people.filter((p) => p.rsvp === 'vou').length + j.extra, maybe: j.people.filter((p) => p.rsvp === 'talvez').length,
     wasThere: j.people.filter((p) => p.wasThere).length, me: me ? { rsvp: me.rsvp, wasThere: me.wasThere } : null, inviteCode: j.ownerId === ME ? 'demo' : null,
+    invitedBy: mine ? demoPersonRef(mine.by) : null, invited: inv.length,
   };
 }
 const inClub = (j: DJog) => !!j.clubId && !!demoClubRef(j.clubId)?.member;
@@ -238,9 +258,9 @@ const demo = {
     if (scope.club) l = l.filter((j) => j.clubId && demoClubRef(j.clubId)?.slug === scope.club);
     if (scope.community) l = l.filter((j) => j.community?.slug === scope.community);
     const o = l.map((j) => ({ j, x: out(j) }));
-    const r = filter === 'minhas' ? o.filter(({ x }) => x.me)
+    const r = filter === 'minhas' ? o.filter(({ x }) => x.me || (x.invitedBy && !x.ended && !x.canceled))
       : filter === 'passadas' ? o.filter(({ j, x }) => x.ended && !x.canceled && (x.me || j.access === 'aberto'))
-        : o.filter(({ j, x }) => !x.ended && !x.canceled && (j.access === 'aberto' || x.me || inClub(j)));
+        : o.filter(({ j, x }) => !x.ended && !x.canceled && (j.access === 'aberto' || x.me || x.invitedBy || inClub(j)));
     const xs = r.map(({ x }) => x).sort((a, b) => a.startsAt.localeCompare(b.startsAt));
     return (filter === 'passadas' ? xs.reverse() : xs).slice(0, scope.limit ?? 40);
   },
@@ -251,6 +271,7 @@ const demo = {
     return {
       ...out(j), locked: false,
       people: j.people.map((p) => ({ ...demoPersonRef(p.id), rsvp: p.rsvp, wasThere: p.wasThere, joinedAt: p.joinedAt, journey: null })),
+      invites: db.invites.filter((i) => i.jog === id && !j.people.some((p) => p.id === i.user)).map((i) => ({ ...demoPersonRef(i.user), by: demoPersonRef(i.by), at: i.at })),
       messages: msgs.sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((x) => ({ id: x.id, part: 0, parentId: x.parentId, question: x.question, target: x.parentId ? 'resposta' as const : 'post' as const, body: x.deletedAt ? '' : x.body, images: x.deletedAt ? [] : x.images, deleted: !!x.deletedAt, createdAt: x.createdAt, editedAt: x.editedAt ?? null, hidden: false, author: demoPersonRef(x.author), reactions: demoReactions(x.parentId ? 'resposta' : 'post', x.id) })),
     };
   },
@@ -298,6 +319,21 @@ const demo = {
     if (me) me.rsvp = r; else j.people.push({ id: ME, rsvp: r, wasThere: false, joinedAt: new Date().toISOString() });
     saveDb(db); return out(j);
   },
+  invite(id: string, handles: string[]): InviteResult {
+    const db = loadDb(); const j = db.jogs.find((x) => x.id === id);
+    if (!j) err('target_not_found');
+    if (j.ownerId !== ME && !j.people.some((p) => p.id === ME && p.rsvp !== 'nao')) err('invite_not_allowed');
+    if (handles.length > 20) err('invite_too_many');
+    const r: InviteResult = { sent: [], already: [], notFound: [] };
+    for (const h of handles) {
+      const who = DEMO_PEOPLE.find((p) => p.handle.toLowerCase() === h)?.id ?? (h === 'lu' ? 'demo-lu' : null);
+      if (!who) { r.notFound.push(h); continue; }
+      if (j.people.some((p) => p.id === who)) { r.already.push(h); continue; }
+      if (!db.invites.some((i) => i.jog === id && i.user === who)) db.invites.push({ jog: id, user: who, by: ME, at: new Date().toISOString() });
+      r.sent.push(h);
+    }
+    saveDb(db); return r;
+  },
   wasThere(id: string, on: boolean): Jogatina {
     const db = loadDb(); const j = db.jogs.find((x) => x.id === id);
     const me = j?.people.find((p) => p.id === ME);
@@ -336,8 +372,13 @@ export async function demoJogatinaNews(seenAt: string): Promise<ReplyNews> {
   const myHandle = (demoPersonRef(ME).handle ?? '').toLowerCase();
   for (const j of db.jogs) {
     const me = j.people.find((p) => p.id === ME);
-    if (!me || j.hidden) continue;
+    if (j.hidden) continue;
     const s = Date.parse(j.startsAt);
+    if (!me) {
+      const inv = db.invites.find((i) => i.jog === j.id && i.user === ME);
+      if (inv && !j.canceledAt && jogatinaEnd(j) > now) items.push({ kind: 'jogatina_convite', id: `c:${j.id}`, ref: '', slug: j.id, title: j.title, at: inv.at, author: demoPersonRef(inv.by) });
+      continue;
+    }
     if (me.rsvp !== 'nao' && !j.canceledAt && s - 12 * 3_600_000 <= now && jogatinaEnd(j) > now) items.push({ kind: 'jogatina', id: j.id, ref: '', slug: j.id, title: j.title, at: new Date(s - 12 * 3_600_000).toISOString() });
     for (const x of db.msgs.filter((k) => k.jog === j.id && k.author !== ME && !k.deletedAt && Date.parse(k.createdAt) > now - 30 * 86_400_000)) {
       const parent = x.parentId ? db.msgs.find((k) => k.id === x.parentId) : null;

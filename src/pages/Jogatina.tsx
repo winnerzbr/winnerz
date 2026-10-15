@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { discordApi } from '../data/discordApi';
 import { Link, navigate } from '../lib/router';
 import { useStore } from '../data/store';
 import { communityApi, type Community, type GameMini } from '../data/communityApi';
@@ -463,6 +464,7 @@ export function JogatinaNewPage() {
     setBusy(true);
     let j: Jogatina;
     try { j = await jogatinaApi.create(d); } catch (e) { setErr(errOf(e)); setBusy(false); return; }
+    if (j.access === 'aberto') discordApi.publish('jogatina', j.id);
     // A jogatina já existe: se os convites falharem, o recado aparece na página dela.
     if (invites.length) {
       try { setFlash(inviteSummary(await jogatinaApi.invite(j.id, invites))); } catch (e) { setFlash(`A jogatina foi marcada, mas os convites não foram: ${errOf(e)} Use “Convidar” para tentar de novo.`); }

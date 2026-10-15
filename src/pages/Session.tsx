@@ -1,4 +1,5 @@
 import { ShareCardButton } from '../components/ShareCard';
+import { discordApi } from '../data/discordApi';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
@@ -213,13 +214,14 @@ export function SessionPage() {
               const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
               const before = h.progress ?? 0, after = data.progress ?? before;
               actions.finishSession(session.id, data);
+              discordApi.publish('sessao', session.id);
               const tone = s.prefs.tone;
               if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
               else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
               else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
               navigate(`/jornada/${g.slug}`);
             }}
-            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); setCelebrate({ historyId: h.id }); }}
+            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); setCelebrate({ historyId: h.id }); }}
           />
         </aside>
       )}

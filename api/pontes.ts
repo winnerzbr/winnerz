@@ -311,7 +311,10 @@ export default async function handler(req: Req, res: Res) {
       const accounts = await sel<Account>('linked_accounts?select=user_id,provider,external_id,last_sync_at&order=last_sync_at.asc.nullsfirst&limit=200');
       let done = 0, added = 0;
       for (const a of accounts) { if (Date.now() > until) break; added += await syncOne(a); done += 1; }
-      return res.status(200).json({ accounts: done, added });
+      // Aproveita a rotina diária para atualizar os cargos ligados do Discord (sem gastar outra rotina da Vercel).
+      const host = header(req, 'x-forwarded-host') ?? header(req, 'host');
+      const roles = host ? await fetch(`https://${host}/api/discord?cron=1`, { headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(12_000) }).then((r) => r.ok).catch(() => false) : false;
+      return res.status(200).json({ accounts: done, added, discordRoles: roles });
     }
     const user = await requireUser(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });

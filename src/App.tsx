@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
+import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
 import { usePath, match, Link } from './lib/router';
 import { useStore, openSession } from './data/store';
@@ -105,6 +106,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/clube/:slug', path))) return <ClubPage key={m.slug} slug={m.slug} />;
   if ((m = match('/clube/:slug/editar', path))) return <ClubEditPage slug={m.slug} />;
   if (match('/avisos', path)) return <AvisosPage />;
+  if (match('/discord/ligar', path)) return <DiscordLinkPage />;
   if (match('/jogatina/criar', path)) return <JogatinaNewPage />;
   if ((m = match('/jogatina/:id/editar', path))) return <JogatinaEditPage id={m.id} />;
   if ((m = match('/jogatina/:id', path))) return <JogatinaPage key={m.id} id={m.id} />;

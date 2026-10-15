@@ -1,4 +1,5 @@
 import { celebrateSmall } from '../components/MiniCelebration';
+import { discordApi } from '../data/discordApi';
 import { ShareCardButton } from '../components/ShareCard';
 import { say as toneLine } from '../lib/tone';
 import { ConfirmButton } from '../components/Sheet';
@@ -113,6 +114,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const zerei = () => {
     const h = current;
     actions.completeHistory(h.id);
+    discordApi.publish('zerou', h.id);
     setCelebrating({ ...h });
   };
 

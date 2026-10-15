@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { DiscordSettings } from '../components/DiscordSettings';
 import { BridgeSettings } from '../components/Bridges';
 import { TONES } from '../lib/tone';
 import { actions, useStore } from '../data/store';
@@ -145,6 +146,7 @@ export function Preferences() {
       <OverlaySettings />
 
       <BridgeSettings />
+      <DiscordSettings />
       <CommunitySettings />
       <NotifSettings />
 

@@ -5350,3 +5350,4 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .bridge-row__form { display: flex; gap: 8px; flex-wrap: wrap; }
 .bridge-row__form .field { flex: 1 1 240px; }
 .bridge-row__actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.discord-ava { width: 32px; height: 32px; border-radius: 50%; }

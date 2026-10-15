@@ -16,6 +16,7 @@ import { shrink, toDataUrl } from '../lib/image';
 import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { Previously, CapsuleSheet } from '../components/Retomada';
+import { GoalCard, StopCard } from '../components/Outline';
 import { recapFor, wantsRecap } from '../lib/recap';
 
 type Draft = { kind: 'momento' | 'ponto'; blob?: Blob; preview?: string; title: string; note: string };
@@ -166,6 +167,10 @@ export function SessionPage() {
             <button className="btn primary lg" onClick={() => pickPhoto('momento')}><Icon name="camera" size={20} />Guardar momento</button>
             <button className="btn ghost lg" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
           </div>
+          <div className="session__cards">
+            <GoalCard game={g} history={h} session={session} />
+            <StopCard game={g} history={h} />
+          </div>
           <div className="session__more">
             <button className="btn quiet sm" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={16} />Anotar sem foto</button>
             <button className="btn quiet sm" onClick={() => setFinishing('recado')}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
@@ -197,6 +202,7 @@ export function SessionPage() {
           <FinishForm
             progress={h.progress ?? 0}
             startedAt={session.startedAt}
+            goal={session.goal}
             detailsOpen={finishing === 'recado'}
             onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
             onCancel={() => setFinishing(false)}
@@ -235,13 +241,13 @@ function Elapsed({ since }: { since: string }) {
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
-type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[] };
+type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao' };
 
 /**
  * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
  * A duração é calculada sozinha; o resto fica em "Mais detalhes".
  */
-function FinishForm({ progress, startedAt, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
+function FinishForm({ progress, startedAt, goal, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; goal?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
   const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
@@ -251,12 +257,13 @@ function FinishForm({ progress, startedAt, companions: known, canWho, detailsOpe
   const [note, setNote] = useState('');
   const [feel, setFeel] = useState<string | undefined>();
   const [more, setMore] = useState(!!detailsOpen);
+  const [done, setDone] = useState<'sim' | 'quase' | 'nao' | undefined>();
   // A duração é calculada na hora de finalizar; só fica fixa se a pessoa corrigir.
   const auto = sessionMinutes(startedAt, new Date().toISOString());
   const [mins, setMins] = useState<string | null>(null);
   const typed = mins != null && mins.trim() ? Math.max(1, Math.min(1440, Math.round(Number(mins)))) : undefined;
   const minutes = mins == null ? auto : Number.isFinite(typed) ? typed : undefined;
-  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho });
+  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined });
   return (
     <form className="finish" onSubmit={(e) => { e.preventDefault(); onFinish(data()); }}>
       <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
@@ -266,6 +273,14 @@ function FinishForm({ progress, startedAt, companions: known, canWho, detailsOpe
         <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} maxLength={140} />
         <button type="button" className="btn ghost finish__cam" onClick={() => onPhoto(where)} aria-label="Foto de onde você parou" title="Foto de onde você parou"><Icon name="camera" size={18} /></button>
       </div>
+      {goal && (
+        <div className="finish__goal">
+          <span className="finish__label">Você cumpriu “{goal}”?</span>
+          <div className="chips" role="group" aria-label="Cumpriu o objetivo?">
+            {([['sim', 'Cumpri'], ['quase', 'Quase'], ['nao', 'Fica para a próxima']] as const).map(([k, l]) => <button type="button" key={k} className="chip" aria-pressed={done === k} onClick={() => setDone(done === k ? undefined : k)}>{l}</button>)}
+          </div>
+        </div>
+      )}
       <div className="chips finish__feel" role="group" aria-label="Como foi hoje">
         {FEELINGS.map((f) => <button type="button" key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
       </div>

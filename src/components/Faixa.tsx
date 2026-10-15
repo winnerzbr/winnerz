@@ -322,7 +322,7 @@ export function Faixa({ items, bg, title, play, today, onEdit, full, onExitFull,
     const e = it.e, x = it.session;
     const back = e.kind === 'ponto' && !e.resolved;
     const sub = e.kind === 'sessao' && x
-      ? [x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
+      ? [x.goal ? `${x.goalDone === 'sim' ? '✓' : x.goalDone === 'quase' ? '≈' : '○'} ${x.goal}` : null, x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
       : e.kind === 'carta' ? 'Lacrada até você zerar' : e.quote ? `“${e.quote}”` : e.text ?? '';
     const head = e.kind === 'sessao' && x?.minutes ? durText(x.minutes) : e.title;
     return (

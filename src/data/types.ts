@@ -182,6 +182,8 @@ export interface History {
   startedAt: string;
   completedAt?: string;
   progress?: number; // 0..100, sempre informado pelo usuário
+  /** Em que capítulo do jogo a pessoa está (id da lista montada pela comunidade). */
+  part?: string;
   /** Capítulos narrados pela IA que a pessoa guardou (chave: o capítulo). */
   narrations?: Record<string, { text: string; at: string }>;
   /** Campo antigo (modo de dificuldade); não aparece mais no site. */
@@ -234,6 +236,9 @@ export interface Session {
   companions?: string[];
   /** O progresso (%) informado ao fechar esta sessão, ou o último informado antes dela. */
   progress?: number;
+  /** O objetivo pequeno escolhido para esta sessão e se foi cumprido. */
+  goal?: string;
+  goalDone?: 'sim' | 'quase' | 'nao';
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';

@@ -43,6 +43,9 @@ let v8 = false;
 /** A migração 0037 já rodou? (progresso por sessão e capítulos narrados) */
 let v37 = false;
 export function schemaV37() { return v37; }
+/** A migração 0038 já rodou? (capítulo da História e objetivo da sessão) */
+let v38 = false;
+export function schemaV38() { return v38; }
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -108,12 +111,14 @@ const historyFromRow = (r: any): History => ({
   startedPrecision: r.started_precision ?? undefined, completedPrecision: r.completed_precision ?? undefined,
   hours: r.hours != null ? Number(r.hours) : undefined, note: r.note ?? undefined, capsule: r.capsule ?? undefined,
   narrations: r.narrations && Object.keys(r.narrations).length ? r.narrations : undefined,
+  part: r.part ?? undefined,
 });
 const sessionFromRow = (r: any): Session => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, startedAt: r.started_at,
   endedAt: r.ended_at ?? undefined, minutes: r.minutes ?? undefined, note: r.note ?? undefined,
   whereStopped: r.where_stopped ?? undefined, feeling: r.feeling ?? undefined, companions: r.companions?.length ? r.companions : undefined,
   progress: r.progress ?? undefined,
+  goal: r.goal ?? undefined, goalDone: r.goal_done ?? undefined,
 });
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
@@ -187,12 +192,14 @@ const historyToRow = (h: History) => ({
   ...(v4 ? { started_precision: h.startedPrecision ?? 'dia', completed_precision: h.completedPrecision ?? 'dia', hours: h.hours ?? null, note: h.note ?? null } : {}),
   ...(v8 ? { capsule: h.capsule ?? null } : {}),
   ...(v37 ? { narrations: h.narrations ?? {} } : {}),
+  ...(v38 ? { part: h.part ?? null } : {}),
 });
 const sessionToRow = (x: Session) => ({
   id: x.id, journey_id: x.journeyId, history_id: x.historyId, started_at: x.startedAt, ended_at: x.endedAt ?? null,
   minutes: x.minutes ?? null, note: x.note ?? null, where_stopped: x.whereStopped ?? null, feeling: x.feeling ?? null,
   ...(v8 ? { companions: x.companions?.length ? x.companions : null } : {}),
   ...(v37 ? { progress: x.progress ?? null } : {}),
+  ...(v38 ? { goal: x.goal ?? null, goal_done: x.goalDone ?? null } : {}),
 });
 const eventToRow = (e: TimelineEvent) => {
   const row: Record<string, unknown> = {
@@ -295,6 +302,7 @@ export const supabaseAdapter: Adapter = {
     v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
     v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
     v37 = v8 && !(await sb.from('sessions').select('progress').limit(1)).error && !(await sb.from('histories').select('narrations').limit(1)).error;
+    v38 = v37 && !(await sb.from('sessions').select('goal,goal_done').limit(1)).error && !(await sb.from('histories').select('part').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {

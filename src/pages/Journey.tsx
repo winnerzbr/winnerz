@@ -24,6 +24,7 @@ import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
 import { FitCard, LetterLine } from '../components/Comeback';
+import { OutlineStrip } from '../components/Outline';
 import { Faixa, type FaixaToday } from '../components/Faixa';
 import { PaintedMap } from '../components/PaintedMap';
 import { buildTimeline, weaveEchoes, durText, type TLItem, type ChapterItem, type Compare } from '../lib/chapters';
@@ -266,6 +267,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 onChange={(e) => setProgress(Number(e.target.value))}
                 onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
               <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
+              <OutlineStrip game={game} history={current} />
               <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
               <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>
               <LetterLine historyId={current.id} />

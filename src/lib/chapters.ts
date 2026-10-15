@@ -69,6 +69,8 @@ export function summarize(evs: TimelineEvent[], sessionOf: (id?: ID) => Session 
   const kept = [moments ? count(moments, 'momento guardado', 'momentos guardados') : '', points ? count(points, 'lugar marcado para voltar', 'lugares marcados para voltar') : ''].filter(Boolean);
   if (kept.length) bits.push(cap(kept.join(' e ')) + '.');
   if (evs.some((e) => e.kind === 'carta')) bits.push('Uma carta lacrada para o fim.');
+  const goals = ss.filter((x) => x.goal);
+  if (goals.length) { const hit = goals.filter((x) => x.goalDone === 'sim').length; bits.push(goals.length === 1 ? (hit ? 'Cumpriu o objetivo da sessão.' : 'Uma sessão com objetivo.') : `Cumpriu ${hit} de ${goals.length} objetivos de sessão.`); }
   if (where) bits.push(`Você parou em ${where}.`);
   const feel = ss.map((x) => x.feeling).filter(Boolean);
   if (feel.length >= 2 && feel.every((f) => f === feel[0])) bits.push(`Nas sessões, você disse “${feel[0]!.toLowerCase()}”.`);

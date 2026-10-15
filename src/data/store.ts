@@ -736,7 +736,7 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[] }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao' }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
@@ -744,9 +744,10 @@ export const actions = {
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
     const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known };
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined };
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
-    const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText].filter(Boolean).join(' ') || undefined;
+    const goalText = done.goal ? `Objetivo: ${done.goal}${done.goalDone === 'sim' ? ' (cumprido)' : done.goalDone === 'quase' ? ' (quase)' : done.goalDone === 'nao' ? ' (fica para a próxima)' : ''}.` : '';
+    const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText, goalText].filter(Boolean).join(' ') || undefined;
     const event: TimelineEvent = { id: uid(), journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind: 'sessao', at, title: `Sessão ${n}`, quote: done.note, text };
     dispatch({ type: 'session.finish', session: done, event, progress: data.progress != null ? { historyId: ses.historyId, value: data.progress } : undefined });
   },
@@ -758,6 +759,23 @@ export const actions = {
 
   /** Apaga a sessão (ex.: aberta sem querer). Momentos guardados nela ficam na linha do tempo. */
   deleteSession(sessionId: ID) { track('sessao.apagar'); dispatch({ type: 'session.delete', sessionId }); },
+
+  /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */
+  setHistoryPart(historyId: ID, part: { id: string; pct: number } | null) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    track('jornada.capitulo');
+    dispatch({ type: 'history.update', history: { ...h, part: part?.id, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
+  },
+
+  /** O objetivo pequeno da sessão aberta (vazio tira). */
+  setSessionGoal(sessionId: ID, goal: string) {
+    const ses = state.sessions.find((x) => x.id === sessionId);
+    if (!ses) return;
+    const g = goal.replace(/\s+/g, ' ').trim().slice(0, 140) || undefined;
+    if (g) track('sessao.objetivo');
+    dispatch({ type: 'session.update', session: { ...ses, goal: g, goalDone: undefined } });
+  },
 
   setProgress(historyId: ID, value: number) {
     dispatch({ type: 'progress', historyId, value: Math.max(0, Math.min(100, Math.round(value))) });

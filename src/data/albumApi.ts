@@ -9,7 +9,7 @@ import type { GameMini, PersonRef } from './communityApi';
 import { demoGames } from './demo';
 import { SUPABASE_URL } from '../lib/env';
 import { shrink } from '../lib/image';
-import { drawPack, judgeFinish, type Drawn, type HoldRule, type PackSignals, type Tier } from '../lib/album';
+import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 
 export type PackKind = 'onix' | 'prisma';
 export type PackOrigin = 'jornada' | 'memoria' | 'studio';
@@ -51,6 +51,12 @@ const MSG: Record<string, string> = {
   not_admin: 'Só a administração pode fazer isso.',
   not_found: 'Não achei esse pacote.',
   not_logged: 'Entre na sua conta para ver o seu álbum.',
+  vault_target: 'Essa figurinha não está disponível no Cofre.',
+  vault_tier: 'O Cofre troca só por figurinhas Comuns e Incomuns.',
+  vault_owned: 'Você já tem essa figurinha.',
+  vault_give: 'Escolha as repetidas que entram no Cofre.',
+  vault_not_spare: 'Uma das escolhidas não é mais repetida. Confira e tente de novo.',
+  vault_count: 'A quantidade de repetidas não bate com o que o Cofre pede.',
 };
 const MIGRATION = 'Falta rodar a migração 0053 no Supabase.';
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
@@ -58,6 +64,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
     if (/violates check constraint/i.test(m)) throw new Error('Algum campo está fora do formato. Confira nome, número e textos.');
     throw new Error(m);
@@ -216,6 +223,26 @@ export const albumApi = {
     await new Promise((r) => setTimeout(r, 900));
     const st = await reloadAlbum().catch(() => null);
     return st?.packs.find((p) => p.historyId === historyId) ?? null;
+  },
+  /** Cofre: troca repetidas por uma figurinha que falta. Devolve a figurinha nova (que vai para a bandeja). */
+  async vault(targetId: string, give: VaultGive): Promise<Sticker> {
+    const clean = give.filter((g) => g.n > 0);
+    if (!supa()) {
+      const d = dLoad();
+      const t = d.stickers.find((s) => s.id === targetId && s.active && d.books.some((b) => b.published && b.pages.some((pg) => pg.id === s.pageId)));
+      if (!t) throw new Error(MSG.vault_target);
+      const items = Object.fromEntries(d.items.map((i) => [i.id, i]));
+      const err = vaultCheck(t, clean, items);
+      if (err) throw new Error(MSG[err]);
+      for (const g of clean) { const it = d.items.find((i) => i.id === g.id); if (it) it.qty -= g.n; }
+      const it = d.items.find((i) => i.id === t.id);
+      if (it) it.qty += 1; else d.items.push({ id: t.id, qty: 1, pasted: false });
+      dSave(d); set(dView(d));
+      return t;
+    }
+    const s = await rpc<Sticker>('album_vault', { p_target: targetId, p_give: clean });
+    await reloadAlbum().catch(() => {});
+    return s;
   },
   resetDemo() { try { localStorage.removeItem(DK); } catch { /* sem armazenamento */ } resetAlbumCache(); },
 };

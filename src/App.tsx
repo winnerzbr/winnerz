@@ -149,6 +149,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
   if (match('/album', path)) return lazyPage(<AlbumPage />);
   if (match('/album/pacotes', path)) return lazyPage(<AlbumPage view="pacotes" />);
+  if (match('/album/figurinhas', path)) return lazyPage(<AlbumPage view="figurinhas" />);
+  if (match('/album/cofre', path)) return lazyPage(<AlbumPage view="cofre" />);
   if ((m = match('/album/:slug', path))) return lazyPage(<AlbumPage key={m.slug} slug={m.slug} />);
   if (match('/studio', path)) return <StudioPage />;
   if (match('/studio/album', path)) return lazyPage(<StudioAlbumPage />);

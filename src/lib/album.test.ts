@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { drawPack, judgeFinish, memoryPackDue, neededHours, pastedCount, signalsLine, spares, tierFor, toPaste, type Tier } from './album';
+import { drawPack, judgeFinish, memoryPackDue, neededHours, pastedCount, signalsLine, spares, tierFor, toPaste, personalStickers, vaultCheck, vaultSuggest, type Tier } from './album';
 
 test('tierFor segue as chances 1/7/22/70', () => {
   assert.equal(tierFor(0), 'lendaria');
@@ -74,4 +74,44 @@ test('sinais do pacote retido em português', () => {
   assert.match(l, /zerou 3,3 h depois de começar \(o mínimo era 20 h; o jogo leva 40 h\)/);
   assert.match(l, /1,5 h registradas pelas pontes/);
   assert.match(l, /conta com 1 dia/);
+});
+
+test('Cofre: confere a troca como o banco', () => {
+  const items = { a: { qty: 3, pasted: true }, b: { qty: 2, pasted: false }, c: { qty: 1, pasted: true }, x: { qty: 1, pasted: false } };
+  const comum = { id: 't', tier: 'comum' as Tier };
+  assert.equal(vaultCheck(comum, [{ id: 'a', n: 2 }, { id: 'b', n: 1 }], items), null);
+  assert.equal(vaultCheck(comum, [{ id: 'a', n: 1 }, { id: 'a', n: 1 }, { id: 'b', n: 1 }], items), null);
+  assert.equal(vaultCheck(comum, [{ id: 'a', n: 3 }], items), 'vault_not_spare');
+  assert.equal(vaultCheck(comum, [{ id: 'c', n: 1 }, { id: 'a', n: 2 }], items), 'vault_not_spare');
+  assert.equal(vaultCheck(comum, [{ id: 'a', n: 2 }], items), 'vault_count');
+  assert.equal(vaultCheck(comum, [{ id: 'a', n: 0 }], items), 'vault_give');
+  assert.equal(vaultCheck({ id: 'x', tier: 'comum' }, [{ id: 'a', n: 2 }, { id: 'b', n: 1 }], items), 'vault_owned');
+  assert.equal(vaultCheck({ id: 't', tier: 'rara' }, [], items), 'vault_tier');
+  assert.equal(vaultCheck({ id: 't', tier: 'incomum' }, [{ id: 'a', n: 2 }, { id: 'b', n: 1 }], items), 'vault_count');
+});
+
+test('Cofre: sugestão usa as mais comuns e nunca a última cópia', () => {
+  const pool = [{ id: 'r', tier: 'rara' as Tier, number: 1 }, { id: 'c1', tier: 'comum' as Tier, number: 2 }, { id: 'c2', tier: 'comum' as Tier, number: 3 }, { id: 'i', tier: 'incomum' as Tier, number: 4 }];
+  const items = { r: { qty: 5, pasted: true }, c1: { qty: 2, pasted: true }, c2: { qty: 4, pasted: false }, i: { qty: 3, pasted: true } };
+  assert.deepEqual(vaultSuggest(3, pool, items), [{ id: 'c2', n: 3 }]);
+  assert.deepEqual(vaultSuggest(5, pool, items), [{ id: 'c2', n: 3 }, { id: 'c1', n: 1 }, { id: 'i', n: 1 }]);
+  const all = vaultSuggest(20, pool, items);
+  assert.equal(all.reduce((t, g) => t + g.n, 0), 10);
+  assert.equal(vaultCheck({ id: 'z', tier: 'incomum' }, all, items), null);
+});
+
+test('Minhas páginas: uma por história zerada, com a última foto', () => {
+  const games = { g1: { id: 'g1', slug: 'a', title: 'Astro', cover: 'c1.jpg', backdrop: 'b1.jpg' }, g2: { id: 'g2', slug: 'b', title: 'Brisa', cover: 'c2.jpg' } };
+  const journeys = [{ id: 'j1', gameId: 'g1' }, { id: 'j2', gameId: 'g2' }, { id: 'j3', gameId: 'gx' }];
+  const histories = [
+    { id: 'h1', journeyId: 'j1', state: 'concluida', completedAt: '2026-05-02T12:00:00Z' },
+    { id: 'h2', journeyId: 'j2', state: 'concluida', completedAt: '2026-01-02T12:00:00Z' },
+    { id: 'h3', journeyId: 'j1', state: 'ativa' },
+    { id: 'h4', journeyId: 'j3', state: 'concluida', completedAt: '2026-01-01T12:00:00Z' },
+  ];
+  const events = [{ historyId: 'h1', at: '2026-04-01', image: 'old.jpg' }, { historyId: 'h1', at: '2026-05-01', image: 'new.jpg' }, { historyId: 'h1', at: '2026-05-02' }];
+  const r = personalStickers(histories, journeys, games, events, (iso) => iso ?? 'sem data');
+  assert.deepEqual(r.map((p) => [p.title, p.image]), [['Brisa', 'c2.jpg'], ['Astro', 'new.jpg']]);
+  const r2 = personalStickers(histories, journeys, games, [], (iso) => iso ?? '');
+  assert.equal(r2[1].image, 'b1.jpg');
 });

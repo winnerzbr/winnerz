@@ -102,3 +102,70 @@ export const toPaste = (ids: string[], items: Record<string, ItemLite | undefine
 export const pastedCount = (ids: string[], items: Record<string, ItemLite | undefined>) => ids.filter((id) => items[id]?.pasted).length;
 /** Repetidas: cópias além da que está (ou vai) no álbum. */
 export const spares = (it?: ItemLite) => (it ? Math.max(0, it.qty - 1) : 0);
+
+/* ---- Cofre ------------------------------------------------------------------------------------------- */
+/** Quantas repetidas o Cofre pede por uma figurinha que falta (só Comum e Incomum). */
+export const VAULT_COST: Partial<Record<Tier, number>> = { comum: 3, incomum: 10 };
+export type VaultGive = { id: string; n: number }[];
+export type VaultError = 'vault_tier' | 'vault_owned' | 'vault_give' | 'vault_not_spare' | 'vault_count';
+
+/** Confere uma troca no Cofre do mesmo jeito que o banco: null quando está tudo certo. */
+export function vaultCheck(target: { id: string; tier: Tier }, give: VaultGive, items: Record<string, ItemLite | undefined>): VaultError | null {
+  const need = VAULT_COST[target.tier];
+  if (!need) return 'vault_tier';
+  if ((items[target.id]?.qty ?? 0) > 0) return 'vault_owned';
+  const sum: Record<string, number> = {};
+  for (const g of give) {
+    if (!Number.isInteger(g.n) || g.n < 1) return 'vault_give';
+    sum[g.id] = (sum[g.id] ?? 0) + g.n;
+  }
+  let total = 0;
+  for (const [id, n] of Object.entries(sum)) {
+    if (spares(items[id]) < n) return 'vault_not_spare';
+    total += n;
+  }
+  return total === need ? null : 'vault_count';
+}
+
+/**
+ * Sugestão de repetidas para o Cofre: começa pelas de menor raridade e com mais cópias, sem nunca tocar na última
+ * cópia. Devolve menos do que o pedido quando não há repetidas suficientes.
+ */
+export function vaultSuggest(need: number, pool: { id: string; tier: Tier; number: number }[], items: Record<string, ItemLite | undefined>): VaultGive {
+  const rank = (t: Tier) => TIERS.indexOf(t);
+  const list = pool.map((s) => ({ s, n: spares(items[s.id]) })).filter((x) => x.n > 0)
+    .sort((a, b) => rank(a.s.tier) - rank(b.s.tier) || b.n - a.n || a.s.number - b.s.number);
+  const out: VaultGive = []; let left = need;
+  for (const x of list) {
+    if (left <= 0) break;
+    const n = Math.min(left, x.n); out.push({ id: x.s.id, n }); left -= n;
+  }
+  return out;
+}
+
+/* ---- Minhas páginas ------------------------------------------------------------------------------------ */
+export interface PersonalSticker { id: string; gameId: string; slug: string; title: string; part: string | null; image: string | null; at: string; when: string }
+interface PHist { id: string; journeyId: string; title?: string; ordinal?: number; state: string; completedAt?: string; startedAt?: string; completedPrecision?: string }
+interface PGame { id: string; slug: string; title: string; cover: string; backdrop?: string }
+/**
+ * Cada jogo zerado vira uma figurinha pessoal (não entra em trocas nem em pacotes). A foto é a última que a pessoa
+ * guardou naquela história; sem foto, a arte de fundo do jogo; sem ela, a capa. Ordem: do mais antigo ao mais novo.
+ */
+export function personalStickers(
+  histories: PHist[], journeys: { id: string; gameId: string }[], games: Record<string, PGame | undefined>,
+  events: { historyId: string; at: string; image?: string }[], when: (iso: string | undefined, precision?: string) => string,
+): PersonalSticker[] {
+  const jg = new Map(journeys.map((j) => [j.id, j.gameId]));
+  const shot = new Map<string, { at: string; image: string }>();
+  for (const e of events) if (e.image) { const c = shot.get(e.historyId); if (!c || e.at >= c.at) shot.set(e.historyId, { at: e.at, image: e.image }); }
+  const out: PersonalSticker[] = [];
+  for (const h of histories) {
+    if (h.state !== 'concluida') continue;
+    const g = games[jg.get(h.journeyId) ?? ''];
+    if (!g) continue;
+    const at = h.completedAt ?? h.startedAt ?? '';
+    out.push({ id: h.id, gameId: g.id, slug: g.slug, title: g.title, part: (h.ordinal ?? 1) > 1 && h.title ? h.title : null,
+      image: shot.get(h.id)?.image ?? g.backdrop ?? g.cover ?? null, at, when: when(h.completedAt, h.completedPrecision) });
+  }
+  return out.sort((a, b) => a.at.localeCompare(b.at) || a.title.localeCompare(b.title));
+}

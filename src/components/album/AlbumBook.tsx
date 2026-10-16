@@ -5,7 +5,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { albumApi, artSrc, type AlbumBook as Book, type AlbumState, type Sticker } from '../../data/albumApi';
-import { pastedCount, toPaste, TIER_LABEL } from '../../lib/album';
+import { pastedCount, toPaste, TIER_LABEL, type PersonalSticker } from '../../lib/album';
 import { useStore } from '../../data/store';
 import { coverHTML, esc, logoGold, num3, stickerHTML } from './render';
 import { AURORA, burst, DUST, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
@@ -37,7 +37,14 @@ export function bookPages(book: Book, stickers: Sticker[]): BookPage[] {
 
 const onScreen = (el: Element | null) => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 12 && r.left >= -2 && r.right <= innerWidth + 2 && r.top < innerHeight && r.bottom > 0; };
 
-export function AlbumBook({ book, vol, state, onZoom, onBack }: { book: Book; vol: number; state: AlbumState; onZoom: (s: Sticker, el: HTMLElement) => void; onBack: () => void }) {
+/** Uma figurinha pessoal (Minhas páginas): a foto do jogo zerado, como polaroide presa com fita. */
+function personalHTML(p: PersonalSticker, i: number): string {
+  const r = [-2.2, 1.6, 1.2, -1.4][i % 4];
+  return `<figure class="alb-pol" style="--r:${r}deg"><span class="alb-pol__tape"></span><span class="alb-pol__img">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">` : ''}</span><figcaption><b>${esc(p.title)}</b><small>${p.part ? `${esc(p.part)} · ` : ''}Zerado ${esc(p.when)}</small></figcaption></figure>`;
+}
+export const PERSONAL_PER_PAGE = 4;
+
+export function AlbumBook({ book, vol, state, personal, onZoom, onBack }: { book: Book; vol: number; state: AlbumState; personal?: PersonalSticker[]; onZoom: (s: Sticker, el: HTMLElement) => void; onBack: () => void }) {
   const handle = useStore((s) => s.profile?.name ?? null);
   const pages = useMemo(() => bookPages(book, state.stickers), [book, state.stickers]);
   const items = useMemo(() => Object.fromEntries(state.items.map((i) => [i.id, i])), [state.items]);
@@ -46,7 +53,8 @@ export function AlbumBook({ book, vol, state, onZoom, onBack }: { book: Book; vo
   const byId = useMemo(() => Object.fromEntries(state.stickers.map((s) => [s.id, s])), [state.stickers]);
   const tray = toPaste(ids, items);
   const total = ids.length, have = pastedCount(ids, items);
-  const sig = useMemo(() => JSON.stringify([book.id, book.cover, book.title, pages.map((p) => [p.id, p.title, p.kicker, p.body, p.banner, p.stickers.map((s) => [s.id, s.art, s.name, s.tier])])]), [book, pages]);
+  const sig = useMemo(() => JSON.stringify([book.id, book.cover, book.title, pages.map((p) => [p.id, p.title, p.kicker, p.body, p.banner, p.stickers.map((s) => [s.id, s.art, s.name, s.tier])]),
+    personal?.map((p) => [p.id, p.image, p.title, p.when])]), [book, pages, personal]);
 
   const wrap = useRef<HTMLDivElement>(null);
   const flip = useRef<PageFlip | null>(null);
@@ -76,6 +84,14 @@ export function AlbumBook({ book, vol, state, onZoom, onBack }: { book: Book; vo
       const done = n > 0 && p.stickers.every((s) => it[s.id]?.pasted);
       list.push(`<div class="alb-pg${p.legendary ? ' alb-pg--center' : ''}" data-page="${p.id}">${p.banner && !p.legendary ? `<div class="alb-pg__banner" style="background-image:url('${esc(artSrc(p.banner) ?? '')}')"></div>` : ''}<span class="alb-pg__kick">${esc(p.kicker || (p.legendary ? 'Página lendária' : ''))}</span><h3 class="alb-pg__ttl">${esc(p.title)}</h3>${p.body ? `<p class="alb-pg__desc">${esc(p.body)}</p>` : ''}<div class="alb-slots${p.legendary || n === 1 ? ' alb-slots--one' : n > 3 ? ' alb-slots--many' : ''}">${slots || '<p class="alb-pg__desc">As figurinhas desta página ainda vão chegar.</p>'}</div><span class="alb-pg__num">${String(k + 2).padStart(2, '0')}</span>${done ? '<span class="alb-stamp is-still">Página completa</span>' : ''}</div>`);
     });
+    if (personal) {
+      const n = personal.length;
+      list.push(`<div class="alb-pg alb-pg--center alb-pg--mine" data-mine><span class="alb-pg__kick">Minhas páginas</span><h3 class="alb-pg__ttl">Os jogos que eu zerei</h3><p class="alb-pg__desc">${n ? 'Cada jogo que você zera vira uma figurinha sua, com a última foto que você guardou dele. Elas são só suas: não saem em pacotes e não entram em trocas.' : 'Zere um jogo na Jornada e ele aparece aqui, com a última foto que você guardou dele. Estas figurinhas são só suas.'}</p><span class="alb-pg__kick">${n === 1 ? '1 jogo zerado' : `${n} jogos zerados`}</span></div>`);
+      for (let k = 0; k < n; k += PERSONAL_PER_PAGE) {
+        const chunk = personal.slice(k, k + PERSONAL_PER_PAGE);
+        list.push(`<div class="alb-pg alb-pg--mine"><span class="alb-pg__kick">Minhas páginas</span><div class="alb-mine">${chunk.map((p, i) => personalHTML(p, k + i)).join('')}</div><span class="alb-pg__num">${String(list.length + 1).padStart(2, '0')}</span></div>`);
+      }
+    }
     list.push(`<div class="alb-pg alb-pg--center"><span class="alb-pg__kick">Fim do volume</span><h3 class="alb-pg__ttl">Continua na próxima Temporada</h3><p class="alb-pg__desc">Obrigado por colecionar com o WinnerZ.</p></div>`);
     if ((list.length + 2) % 2 !== 0) list.push(`<div class="alb-pg alb-pg--center"><span class="alb-pg__kick">Anotações</span></div>`);
     list.forEach((html, i) => { const d = add(html); d.firstElementChild!.classList.add((i + 1) % 2 === 1 ? 'alb-pg--l' : 'alb-pg--r'); });
@@ -157,6 +173,12 @@ export function AlbumBook({ book, vol, state, onZoom, onBack }: { book: Book; vo
     if (vis.includes(idx) && onScreen(wellOf(id))) return;
     if (motion) { pf.flip(idx, 'bottom'); await new Promise((r) => setTimeout(r, 1150)); } else pf.turnToPage(idx);
     update();
+  }
+  function goToMine() {
+    const pf = flip.current; if (!pf || pf.getState() !== 'read') return;
+    const idx = [...(host()?.querySelectorAll('.alb-page') ?? [])].findIndex((p) => p.querySelector('[data-mine]'));
+    if (idx < 0) return;
+    if (motion) pf.flip(idx, 'bottom'); else { pf.turnToPage(idx); update(); }
   }
   // Ao chegar com novas na bandeja, vai até a primeira.
   const jumped = useRef(false);
@@ -244,7 +266,10 @@ export function AlbumBook({ book, vol, state, onZoom, onBack }: { book: Book; vo
     <section className="alb-reader" aria-label={book.title}>
       <div className="alb-reader__head">
         <div><span className="alb-kick">Folheie arrastando o canto · {have} de {total} coladas</span><h2 className="alb-reader__title">{book.title}</h2></div>
-        <button className="btn ghost" onClick={onBack}>Voltar à estante</button>
+        <div className="alb-reader__acts">
+          {personal && <button className="btn ghost" onClick={goToMine} disabled={!ready}>Minhas páginas</button>}
+          <button className="btn ghost" onClick={onBack}>Voltar à estante</button>
+        </div>
       </div>
       {err && <p className="awards__error" role="alert">{err}</p>}
       <div className="alb-reader__body">

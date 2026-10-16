@@ -1,12 +1,17 @@
 /**
- * Álbum de figurinhas (etapa A1): a estante com os álbuns da Temporada (o primeiro chega lacrado), o livro aberto
- * e os pacotes (abrir, pedir revisão de um retido). As figurinhas são da família Coroa; o álbum, Forja.
+ * Álbum de figurinhas: a estante com os álbuns da Temporada (o primeiro chega lacrado), o livro aberto (com Minhas
+ * páginas no fim do primeiro), a coleção inteira (Figurinhas), o Cofre das repetidas e os pacotes. As figurinhas são
+ * da família Coroa; o álbum, Forja.
  */
 import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { Link, navigate } from '../lib/router';
 import { useStore } from '../data/store';
 import { albumApi, reloadAlbum, useAlbum, type AlbumBook as Book, type AlbumState, type Pack, type Sticker } from '../data/albumApi';
-import { pastedCount, RULE_TEXT, RULE_TITLE, TIER_LABEL } from '../lib/album';
+import { pastedCount, personalStickers, RULE_TEXT, RULE_TITLE, TIER_LABEL } from '../lib/album';
+import { whenLabel } from '../lib/dates';
+import type { DatePrecision } from '../data/types';
+import { Collection } from '../components/album/Collection';
+import { Vault } from '../components/album/Vault';
 import { AlbumBook, bookPages } from '../components/album/AlbumBook';
 import { PackOpening } from '../components/album/PackOpening';
 import { StickerView, StickerZoom } from '../components/album/StickerView';
@@ -28,7 +33,19 @@ function useCatalogMaps(state: AlbumState | null) {
   }, [state]);
 }
 
-export function AlbumPage({ slug, view }: { slug?: string; view?: 'pacotes' }) {
+type View = 'pacotes' | 'figurinhas' | 'cofre';
+const TITLE: Record<View, string> = { pacotes: 'Pacotes', figurinhas: 'Figurinhas', cofre: 'Cofre' };
+
+/** As figurinhas pessoais (jogos zerados), da Jornada da própria pessoa. */
+function usePersonal() {
+  const histories = useStore((s) => s.histories);
+  const journeys = useStore((s) => s.journeys);
+  const games = useStore((s) => s.games);
+  const events = useStore((s) => s.events);
+  return useMemo(() => personalStickers(histories, journeys, games, events, (iso, p) => whenLabel(iso, (p as DatePrecision | undefined) ?? 'dia')), [histories, journeys, games, events]);
+}
+
+export function AlbumPage({ slug, view }: { slug?: string; view?: View }) {
   const { state, error } = useAlbum();
   const mode = useStore((s) => s.mode);
   const profile = useStore((s) => s.profile);
@@ -41,14 +58,21 @@ export function AlbumPage({ slug, view }: { slug?: string; view?: 'pacotes' }) {
   const closed = state?.packs.filter((p) => p.state === 'fechado') ?? [];
   const books = state ? [...state.books].sort((a, b) => a.season - b.season || a.position - b.position) : [];
   const book = slug ? books.find((b) => b.slug === slug) : undefined;
+  const personal = usePersonal();
+  const mineBook = books.find((b) => b.published);
+  const tabs: [string, string, boolean, number][] = [
+    ['/album', 'Estante', !view, 0], ['/album/figurinhas', 'Figurinhas', view === 'figurinhas', 0], ['/album/cofre', 'Cofre', view === 'cofre', 0], ['/album/pacotes', 'Pacotes', view === 'pacotes', closed.length],
+  ];
 
   const head = (
     <header className="alb-head">
-      <div><span className="alb-kick">Temporada 1 · Álbum WinnerZ</span><h1 className="t big">{view === 'pacotes' ? 'Pacotes' : 'Álbum'}</h1></div>
+      <div><span className="alb-kick">Temporada 1 · Álbum WinnerZ</span><h1 className="t big">{view ? TITLE[view] : 'Álbum'}</h1></div>
       <div className="alb-head__tools">
-        {view === 'pacotes' ? <Link className="btn ghost" to="/album">Estante</Link> : <Link className="btn ghost" to="/album/pacotes">Pacotes{closed.length ? ` (${closed.length})` : ''}</Link>}
         <button className="btn quiet" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? 'Som ligado' : 'Som desligado'}</button>
       </div>
+      <nav className="alb-tabs" aria-label="Seções do álbum">
+        {tabs.map(([to, label, on, n]) => <Link key={to} to={to} className={`alb-tabs__a${on ? ' is-on' : ''}`} aria-current={on ? 'page' : undefined}>{label}{n > 0 && <span className="alb-tabs__n" aria-label={`${n} para abrir`}>{n}</span>}</Link>)}
+      </nav>
     </header>
   );
 
@@ -63,9 +87,13 @@ export function AlbumPage({ slug, view }: { slug?: string; view?: 'pacotes' }) {
       {error && <p className="awards__error" role="alert">{error}</p>}
       {view === 'pacotes'
         ? <PacksView state={state} maps={maps} />
-        : book
-          ? <AlbumBook key={book.id} book={book} vol={books.indexOf(book) + 1} state={state} onZoom={(s, el) => setZoom({ s, el })} onBack={() => navigate('/album')} />
-          : <Shelf books={books} state={state} closed={closed.length} who={profile?.id ?? 'demo'} />}
+        : view === 'figurinhas'
+          ? <Collection state={state} personalCount={personal.length} personalBook={mineBook} onZoom={(s, el) => setZoom({ s, el })} />
+          : view === 'cofre'
+            ? <Vault state={state} section={maps.section} bookOf={maps.bookOf} />
+            : book
+              ? <AlbumBook key={book.id} book={book} vol={books.indexOf(book) + 1} state={state} personal={book.id === mineBook?.id ? personal : undefined} onZoom={(s, el) => setZoom({ s, el })} onBack={() => navigate('/album')} />
+              : <Shelf books={books} state={state} closed={closed.length} who={profile?.id ?? 'demo'} />}
       {zoom && <StickerZoom s={zoom.s} section={maps.section[zoom.s.id]} from={zoom.el} onClose={() => setZoom(null)} />}
     </main>
   );

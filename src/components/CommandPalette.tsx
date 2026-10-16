@@ -16,7 +16,7 @@ const PAGES: [string, string, string][] = [
   ['Estante', '/colecao', 'estante coleção jogos'], ['Estatísticas da coleção', '/colecao/estatisticas', 'estatisticas numeros'], ['Desejos', '/colecao/desejos', 'desejos lista'],
   ['Importar planilha', '/colecao/importar', 'importar planilha excel csv'], ['Importar da Steam', '/colecao/steam', 'importar steam pc horas'], ['Jornada', '/jornada', 'jornada jogando foco'], ['Histórias concluídas', '/jornada/concluidas', 'zerados concluidas historias'], ['Linha do tempo geral', '/jornada/linha-do-tempo', 'linha do tempo tudo historico'], ['Meu ritmo', '/jornada/ritmo', 'ritmo semana estatisticas jornada'],
   ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ['Trilhas', '/jogos/trilhas', 'trilhas sequencia saga ordem'], ['Preferências', '/preferencias', 'preferencias tema escala'],
-  ['WinnerZ Awards', '/eventos/awards', 'awards premio votacao eventos'], ['Álbum de figurinhas', '/album', 'album figurinhas colecionar temporada'], ['Pacotes de figurinhas', '/album/pacotes', 'pacotes abrir figurinhas'],
+  ['WinnerZ Awards', '/eventos/awards', 'awards premio votacao eventos'], ['Álbum de figurinhas', '/album', 'album figurinhas colecionar temporada'], ['Pacotes de figurinhas', '/album/pacotes', 'pacotes abrir figurinhas'], ['Minhas figurinhas', '/album/figurinhas', 'figurinhas colecao repetidas faltam'], ['Cofre do álbum', '/album/cofre', 'cofre repetidas trocar figurinha'],
 ];
 
 export const openSearch = () => window.dispatchEvent(new Event('wz:search'));

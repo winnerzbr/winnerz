@@ -57,6 +57,7 @@ test('filtros restringem e ordenam; o pulado perde peso', () => {
   assert.ok(!ids('alguem').includes('pyre') && ids('alguem').includes('tekken'));
   assert.deepEqual(ids('historia').sort(), ['pyre', 'tlou']);
   assert.ok(ids('desafio').includes('tekken') && ids('desafio').includes('sim'));
+  assert.ok(!ids('desafio').includes('celeste'), 'plataforma sozinho não é desafio');
   assert.ok(ids('pouco').indexOf('sim') > ids('pouco').indexOf('tekken'));
   const novel = recommend(st, 'diferente', { now, hist: {}, seed: 3 });
   assert.ok(novel.every((i) => i.why.some((w) => /Diferente do que/.test(w.text))));
@@ -75,4 +76,7 @@ test('o clima da comunidade manda nos filtros', () => {
   const r = recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe }).find((i) => i.game.id === 'celeste')!;
   assert.ok(r.why.some((w) => w.text === 'Plataforma famoso pela dificuldade.'));
   assert.ok(!ids('historia').includes('tekken'));
+  const calm = (id: string) => (id === 'tekken' ? { relax: 2, challenge: 1, intensity: 1, story: 0, short: 3 } : vibe(id));
+  assert.ok(!recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe: calm }).some((i) => i.game.id === 'tekken'), 'desafio 1 não entra');
+  assert.ok(!recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe, mismatch: { celeste: ['desafio'] } }).some((i) => i.game.id === 'celeste'), 'não combina');
 });

@@ -285,12 +285,14 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
       break;
     }
     case 'desafio':
-      if (v && v.challenge <= 0) return null;
-      if (v && v.challenge >= 2) add(3 + (v.challenge - 2), 'brilho', v.note || 'Conhecido pela dificuldade, pelo que a comunidade diz.');
-      else if (v && v.challenge === 1) add(0.8, 'brilho', 'Pede alguma habilidade, sem ser dos mais difíceis.');
-      else if (d.fits.horror || d.fits.relearn || tags.some((x) => /luta|estrat|t[aá]tic|souls|roguel|plataforma|tiro|corrida|arcade/i.test(x))) add(2.5, 'brilho', d.fits.relearn ? 'Cheio de sistemas para dominar.' : 'Pede reflexo e repetição: o tipo de jogo que testa a habilidade.');
-      else if (h != null && h >= 40) add(1, 'brilho', 'Longo e exigente para ir até o fim.');
-      else return null;
+      // Só entra o que é conhecido pela dificuldade. Sem o clima da comunidade, só gêneros que são desafio por
+      // natureza (plataforma, tiro, aventura e corrida não bastam: há muitos tranquilos, como os LEGO).
+      if (v) {
+        if (v.challenge <= 1) return null;
+        add(3 + (v.challenge - 2), 'brilho', v.note || 'Conhecido pela dificuldade, pelo que a comunidade diz.');
+      } else if (tags.some((x) => /luta|fighting|souls|roguel|bullet|shoot 'em up|estrat|t[aá]tic|ritmo|rhythm/i.test(x)) && !tags.some((x) => /infantil|kids|fam[ií]lia|educa/i.test(x))) {
+        add(2, 'brilho', tags.some((x) => /estrat|t[aá]tic/i.test(x)) ? 'Estratégia: pede planejamento e paciência.' : 'Pede reflexo e repetição: o tipo de jogo que testa a habilidade.');
+      } else return null;
       if (c.journeyId && t.lastFeeling.get(c.journeyId) === 'Quero continuar') add(0.5, 'brilho', '');
       break;
     case 'relaxar': {
@@ -345,12 +347,20 @@ export function reachableGames(s: State, excludeJourneyId?: string, now = Date.n
 }
 
 /** As ideias "ao meu alcance", pontuadas e explicadas, na ordem do dia. */
-export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined } = {}): Idea[] {
+const NKEY = 'wz.oqj.naocombina';
+/** "Não combina com este filtro": a pessoa corrige, e o jogo sai daquele filtro (só neste aparelho). */
+export function loadMismatch(): Record<ID, MoodId[]> { try { return JSON.parse(localStorage.getItem(NKEY) || '{}'); } catch { return {}; } }
+export function markMismatch(gameId: ID, mood: MoodId) {
+  try { const m = loadMismatch(); m[gameId] = [...new Set([...(m[gameId] ?? []), mood])]; localStorage.setItem(NKEY, JSON.stringify(m)); } catch { /* só nesta visita */ }
+}
+
+export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined; mismatch?: Record<ID, MoodId[]> } = {}): Idea[] {
   const now = opts.now ?? Date.now();
   const today = opts.today ?? new Date(now).toISOString().slice(0, 10);
   const hist = opts.hist ?? loadHist();
   const t = tasteProfile(s);
-  const cands = candidates(s, opts.excludeJourneyId, today, now);
+  const mism = opts.mismatch ?? loadMismatch();
+  const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood));
   const r = rnd(opts.seed ?? daySeed(now));
   const scored = cands.map((c) => { const x = score(c, mood, t, s, hist, now, opts.vibe?.(c.game.id)); return x && { c, ...x, jitter: r() }; }).filter((x): x is NonNullable<typeof x> => !!x);
   if (mood === 'surpresa') scored.sort((a, b) => a.jitter - b.jitter);

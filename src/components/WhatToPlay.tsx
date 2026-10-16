@@ -12,7 +12,7 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
-import { MOODS, recommend, reachableGames, noteShown, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { MOODS, recommend, reachableGames, noteShown, markMismatch, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
 import { vibesApi } from '../data/vibesApi';
 import { Icon } from './Icon';
 import { useBackdrop } from './Backdrop';
@@ -145,10 +145,11 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
 
   const reset = () => { setAlt(0); setAsking(false); setNotice(''); };
   const another = () => { if (idea && path === 'alcance') noteShown(idea.game.id, true); setAlt(alt + 1); setNotice(''); track('oqj.outra'); };
-  const later = (kind: 'hoje' | 'semanas' | 'nunca' | 'conheco') => {
+  const later = (kind: 'hoje' | 'semanas' | 'nunca' | 'conheco' | 'filtro') => {
     if (!idea) return;
     const id = idea.game.id;
     setSkipped([...skipped, id]); setAsking(false);
+    if (kind === 'filtro') { markMismatch(id, mood); setNotice(`Anotado: ${idea.game.title} não aparece mais em “${moodDef.label}”.`); track(`oqj.nao-combina.${mood}`); return; }
     if (kind === 'nunca') { actions.setMyGame(id, { wontPlay: true }); setNotice(`${idea.game.title} marcado como “não vou jogar”. Dá para desfazer na ficha do jogo.`); }
     else if (kind === 'conheco') setNotice('Certo, não sugiro de novo nesta visita.');
     else if (idea.known && !(s.schemaV6 || s.mode === 'demo')) setNotice('Certo, fica de fora nesta visita.');
@@ -191,6 +192,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
             {asking ? (
               <div className="what__later" role="group" aria-label="Não agora">
                 <span className="muted">Não agora porque…</span>
+                {path === 'alcance' && mood !== 'surpresa' && <button className="btn ghost sm" onClick={() => later('filtro')}>Não combina com “{moodDef.label}”</button>}
                 <button className="btn ghost sm" onClick={() => later('hoje')}>Hoje não</button>
                 {idea.known && <button className="btn ghost sm" onClick={() => later('semanas')}>Não é o momento (3 semanas)</button>}
                 {idea.known && idea.kind === 'estante' && idea.action === 'play' && <button className="btn ghost sm" onClick={() => later('nunca')}>Não pretendo jogar</button>}

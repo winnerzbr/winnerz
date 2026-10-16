@@ -3,6 +3,7 @@
  * só com o que a pessoa registrou, os silêncios entre um capítulo e outro, lembranças do mesmo dia em
  * anos anteriores e o "Hoje" no fim. Sem React e sem a store, para testar.
  */
+import type { OutlinePart } from './outline';
 import type { DatePrecision, ID, Session, TimelineEvent } from '../data/types';
 
 export const SILENCE_DAYS = 7;
@@ -24,7 +25,9 @@ export type CompareItem = { type: 'compare'; id: 'comparar'; data: Compare; mine
 /** O que você escreveu na comunidade sobre o jogo (postagem ou resposta), na data em que escreveu. */
 export type Talk = { id: string; kind: 'postagem' | 'resposta'; title: string; excerpt?: string | null; spoiler?: boolean; at: string; place: string; link: string; replies?: number };
 export type TalkItem = { type: 'talk'; id: string; talk: Talk; chapter: number };
-export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem | TalkItem;
+/** Um capítulo do jogo (da lista da comunidade ou do rascunho da IA): passado (com a data), atual ou à frente. */
+export type GamePartItem = { type: 'gpart'; id: string; part: OutlinePart; n: number; total: number; state: 'passou' | 'atual' | 'frente'; at?: string; src?: 'voce' | 'steam' | 'ra'; more?: number; chapter: number };
+export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem | TalkItem | GamePartItem;
 
 export type BuildInput = {
   /** Registros da História (ou das Histórias) mostrada, em qualquer ordem. */
@@ -229,4 +232,32 @@ export function weaveTalks(items: TLItem[], talks: Talk[]): TLItem[] {
   }
   flush(null);
   return out;
+}
+
+/**
+ * Põe os capítulos do jogo na linha do tempo: os que a pessoa já alcançou entram na data em que chegou (entre os
+ * registros); os que vêm depois aparecem depois do "Hoje", apagados (até 6; o último diz quantos faltam).
+ */
+export function weaveParts(items: TLItem[], rows: { part: OutlinePart; n: number; total: number; state: 'passou' | 'atual' | 'frente'; at?: string; src?: 'voce' | 'steam' | 'ra' }[]): TLItem[] {
+  if (!rows.length) return items;
+  const dated = rows.filter((r) => r.state !== 'frente' && r.at).sort((a, b) => a.at!.localeCompare(b.at!));
+  const ahead = rows.filter((r) => r.state === 'frente');
+  const out: TLItem[] = [];
+  let chapter = 0;
+  const mk = (r: (typeof rows)[number], more?: number): GamePartItem => ({ type: 'gpart', id: `gp-${r.part.id}`, part: r.part, n: r.n, total: r.total, state: r.state, at: r.at, src: r.src, more, chapter });
+  const flush = (before: string | null) => { while (dated.length && (before == null || dated[0].at! < before)) out.push(mk(dated.shift()!)); };
+  let today = false;
+  for (const it of items) {
+    if (it.type === 'event' && datable(it.e.precision)) flush(it.e.at);
+    if (it.type === 'chapter') { flush(it.from); chapter = it.n; }
+    if (it.type === 'today' || it.type === 'compare') flush(null);
+    out.push(it);
+    if (it.type === 'today') {
+      today = true;
+      const shown = ahead.slice(0, 6);
+      shown.forEach((r, i) => out.push(mk(r, i === shown.length - 1 && ahead.length > shown.length ? ahead.length - shown.length : undefined)));
+    }
+  }
+  flush(null);
+  return today ? out : out.filter((x) => x.type !== 'gpart' || x.state !== 'frente');
 }

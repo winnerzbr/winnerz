@@ -184,6 +184,8 @@ export interface History {
   progress?: number; // 0..100, sempre informado pelo usuário
   /** Em que capítulo do jogo a pessoa está (id da lista montada pela comunidade). */
   part?: string;
+  /** Quando a pessoa chegou a cada capítulo (para a linha do tempo). Fonte: você, a Steam ou o RetroAchievements. */
+  partLog?: { id: string; at: string; src?: 'voce' | 'steam' | 'ra' }[];
   /** Capítulos narrados pela IA que a pessoa guardou (chave: o capítulo). */
   narrations?: Record<string, { text: string; at: string }>;
   /** Campo antigo (modo de dificuldade); não aparece mais no site. */

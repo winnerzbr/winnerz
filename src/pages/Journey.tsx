@@ -30,9 +30,11 @@ import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
 import { FitCard, LetterLine } from '../components/Comeback';
 import { OutlineStrip } from '../components/Outline';
+import { useOutline } from '../data/outlineApi';
+import { partAt, partsTimeline } from '../lib/outline';
 import { Faixa, type FaixaToday } from '../components/Faixa';
 import { PaintedMap } from '../components/PaintedMap';
-import { buildTimeline, weaveEchoes, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
+import { buildTimeline, weaveEchoes, weaveParts, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
 import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
 import { awayLabel } from '../lib/recap';
@@ -180,6 +182,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     const from = ats[0], to = showToday ? null : ats.at(-1);
     return weaveTalks(base, talks.filter((t) => (!from || t.at >= from) && (!to || t.at <= to)));
   }, [allItems, echoes, compare, showToday, current.progress, talks, events]);
+  // Capítulos do jogo: os passados na data em que você chegou, os à frente depois do "Hoje" (só na História em andamento).
+  const outline = useOutline(game.id);
+  const partRows = useMemo(() => {
+    if (!outline?.parts.length || (selHist && selHist.id !== current.id)) return [];
+    return partsTimeline(outline.parts, current.partLog, partAt(outline.parts, current.progress, current.part));
+  }, [outline, current.partLog, current.progress, current.part, selHist, current.id]);
+  const withParts = useMemo(() => weaveParts(woven, partRows), [woven, partRows]);
+  const curPart = partRows.find((r) => r.state === 'atual');
   const narrations = useMemo(() => Object.fromEntries(histories.flatMap((h) => Object.entries(h.narrations ?? {}).map(([k, v]) => [k, v.text]))), [histories]);
   const factsOf = (c: ChapterItem): string[] => allItems.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && x.chapter === c.n && x.e.historyId === c.historyId).map(({ e, session: x }) => {
     const when = eventDate(e, false);
@@ -201,13 +211,13 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
   const groups = FILTERS.find((f) => f[0] === filter)![2];
   const visible = useMemo(() => {
-    if (!groups) return woven;
+    if (!groups) return withParts;
     const kept = allItems.filter((x) => x.type !== 'event' || groups.includes(x.e.kind));
     const used = new Set(kept.filter((x) => x.type === 'event').map((x) => (x as { chapter: number }).chapter));
     return kept.filter((x) => x.type !== 'chapter' || used.has(x.n));
-  }, [allItems, woven, groups]);
+  }, [allItems, withParts, groups]);
   const hasEvents = visible.some((x) => x.type === 'event');
-  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [] } : null;
+  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [], part: curPart ? { n: curPart.n, total: curPart.total, name: curPart.part.name } : undefined } : null;
 
   return (
     <main className="journey">

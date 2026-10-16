@@ -4,6 +4,7 @@ import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventK
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
 import { localDay } from '../lib/dates';
+import { logPart } from '../lib/outline';
 
 /**
  * Store único do app. Todas as telas leem daqui e chamam as ações daqui.
@@ -807,11 +808,12 @@ export const actions = {
   },
 
   /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */
-  setHistoryPart(historyId: ID, part: { id: string; pct: number } | null) {
+  setHistoryPart(historyId: ID, part: { id: string; pct: number } | null, parts?: { id: string; pct: number }[]) {
     const h = state.histories.find((x) => x.id === historyId);
     if (!h) return;
     track('jornada.capitulo');
-    dispatch({ type: 'history.update', history: { ...h, part: part?.id, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
+    const partLog = parts ? logPart(h.partLog, parts, part, new Date().toISOString()) : h.partLog;
+    dispatch({ type: 'history.update', history: { ...h, part: part?.id, partLog: partLog?.length ? partLog : undefined, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
   },
 
   /** "Hoje é para…": a intenção da sessão aberta (sem valor, tira). */

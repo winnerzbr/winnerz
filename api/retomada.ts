@@ -6,6 +6,11 @@
  *   POST /api/retomada  (com login)  { image: "<jpeg em base64>", note?, game, context? }
  *   POST /api/retomada  (com login)  { kind: 'narrar', game, chapter, name, range, summary, facts[] } → { text, used, limit }
  *        Narra um capítulo da Jornada (J2b) só com os fatos enviados; a pessoa guarda ou descarta no site.
+ *   POST /api/retomada  (com login)  { kind: 'capitulos', game: "<id do jogo>" } → { state: 'pronto' | 'rodando' | 'sem_lista' | 'limite' | 'desistiu' }
+ *        Monta o rascunho dos capítulos de um jogo que ainda não tem lista (C1, migração 0058): lê os títulos das
+ *        páginas da wiki do jogo (Fandom e Wikipedia, achadas pelos links do IGDB) e pede a lista à IA. Fica guardada
+ *        para todo mundo, marcada como "Inferido", com o crédito da wiki. Não conta no limite mensal da pessoa;
+ *        há um limite por dia para o site todo (AI_OUTLINE_DAILY, padrão 50).
  *   GET  /api/retomada  (com login)  → { enabled, used, limit }
  *
  * Variáveis na Vercel:
@@ -189,6 +194,162 @@ async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   return res.status(200).json({ done: rows.length, vibes: rows });
 }
 
+/* ---- Capítulos automáticos (C1, migração 0058) --------------------------------------------------------------- */
+
+const UA = 'WinnerZ/1.0 (+https://winnerz.com.br)';
+const OUTLINE_DAILY = () => { const n = Number(process.env.AI_OUTLINE_DAILY ?? 50); return Number.isFinite(n) && n > 0 ? Math.floor(n) : 50; };
+const CHAPTER_RE = /chapter|cap[ií]tulo|walkthrough|detonado|level|fase|mission|miss[aã]o|stage|act\b|episode|epis[oó]dio|story|hist[oó]ria|part\b|parte|day\b|dia\b/i;
+
+let igdbToken: { value: string; expires: number } | null = null;
+async function igdbWebsites(igdbId: number): Promise<string[]> {
+  const id = process.env.TWITCH_CLIENT_ID, secret = process.env.TWITCH_CLIENT_SECRET;
+  if (!id || !secret || !igdbId) return [];
+  if (!igdbToken || igdbToken.expires < Date.now() + 60_000) {
+    const t = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${secret}&grant_type=client_credentials`, { method: 'POST', signal: AbortSignal.timeout(6000) });
+    if (!t.ok) return [];
+    const j = (await t.json()) as { access_token: string; expires_in: number };
+    igdbToken = { value: j.access_token, expires: Date.now() + j.expires_in * 1000 };
+  }
+  const r = await fetch('https://api.igdb.com/v4/websites', { method: 'POST', headers: { 'Client-ID': id, Authorization: `Bearer ${igdbToken.value}`, 'Content-Type': 'text/plain' }, body: `fields url; where game = ${Math.floor(igdbId)}; limit 50;`, signal: AbortSignal.timeout(6000) });
+  if (!r.ok) return [];
+  return ((await r.json()) as { url?: string }[]).map((w) => w.url ?? '').filter(Boolean);
+}
+
+type Wiki = { api: string; page: string; label: string; url: string; license: string };
+/** As wikis do jogo pelos links do IGDB: Fandom primeiro, Wikipedia (inglês ou português) depois. */
+function wikisOf(urls: string[]): Wiki[] {
+  const out: Wiki[] = [];
+  for (const u of urls) {
+    const f = u.match(/^https?:\/\/([a-z0-9-]+)\.fandom\.com(\/[a-z]{2}(?:-[a-z]{2})?)?\/wiki\/([^?#]+)/i);
+    if (f) { out.push({ api: `https://${f[1]}.fandom.com${f[2] ?? ''}/api.php`, page: decodeURIComponent(f[3]), label: `${f[1]} wiki (Fandom)`, url: u, license: 'CC BY-SA' }); continue; }
+    const w = u.match(/^https?:\/\/(en|pt)\.wikipedia\.org\/wiki\/([^?#]+)/i);
+    if (w) out.push({ api: `https://${w[1]}.wikipedia.org/w/api.php`, page: decodeURIComponent(w[2]), label: `Wikipedia (${w[1]})`, url: u, license: 'CC BY-SA' });
+  }
+  const fandom = out.filter((x) => x.api.includes('fandom.com'));
+  return [...fandom.slice(0, 1), ...out.filter((x) => !x.api.includes('fandom.com')).slice(0, 1)];
+}
+
+async function mw(api: string, params: Record<string, string>): Promise<any> {
+  const q = new URLSearchParams({ format: 'json', formatversion: '2', redirects: '1', ...params });
+  try {
+    const r = await fetch(`${api}?${q}`, { headers: { 'User-Agent': UA, 'Api-User-Agent': UA }, signal: AbortSignal.timeout(6000) });
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+
+/** Só títulos: as seções da página do jogo, os links das seções de capítulos e as páginas de capítulos da busca. */
+async function wikiTitles(w: Wiki, title: string): Promise<string> {
+  const lines: string[] = [];
+  const sections = async (page: string) => ((await mw(w.api, { action: 'parse', page, prop: 'sections' }))?.parse?.sections ?? []) as { line: string; index: string }[];
+  const links = async (page: string, section?: string) => ((await mw(w.api, { action: 'parse', page, prop: 'links', ...(section ? { section } : {}) }))?.parse?.links ?? [])
+    .filter((l: any) => (l.ns ?? 0) === 0 && l.exists !== false).map((l: any) => String(l.title));
+  const main = await sections(w.page);
+  if (main.length) lines.push(`Seções da página "${w.page.replace(/_/g, ' ')}": ${main.map((s) => s.line.replace(/<[^>]+>/g, '')).join(' | ')}`);
+  for (const s of main.filter((x) => CHAPTER_RE.test(x.line)).slice(0, 2)) {
+    const l = await links(w.page, s.index);
+    if (l.length) lines.push(`Links na seção "${s.line.replace(/<[^>]+>/g, '')}": ${l.slice(0, 80).join(' | ')}`);
+  }
+  if (w.api.includes('fandom.com')) {
+    const found = ((await mw(w.api, { action: 'query', list: 'search', srsearch: `${title} chapters`, srlimit: '8' }))?.query?.search ?? []).map((x: any) => String(x.title));
+    if (found.length) lines.push(`Páginas achadas na busca: ${found.join(' | ')}`);
+    const hub = found.find((t: string) => /chapters|walkthrough|cap[ií]tulos|levels|missions/i.test(t) && t !== w.page.replace(/_/g, ' '));
+    if (hub) {
+      const hs = await sections(hub);
+      if (hs.length) lines.push(`Seções da página "${hub}": ${hs.map((s) => s.line.replace(/<[^>]+>/g, '')).join(' | ')}`);
+      const hl = await links(hub);
+      if (hl.length) lines.push(`Links na página "${hub}": ${hl.slice(0, 80).join(' | ')}`);
+    }
+  }
+  return lines.join('\n').slice(0, 7000);
+}
+
+const OUTLINE_SYSTEM = `Você monta a lista de capítulos (ou fases, missões, atos) de um videogame, na ordem do jogo, para uma pessoa acompanhar onde está.
+Você recebe o nome do jogo, o tempo típico para zerar e, quando houver, títulos de páginas e seções de uma wiki do jogo (só títulos, sem texto).
+Regras:
+- Use os nomes oficiais dos capítulos como aparecem nas fontes ou no jogo. Traduza só palavras genéricas (Chapter → Capítulo, Day → dia, Prologue → Prólogo, Epilogue → Epílogo, Act → Ato, Mission → Missão). Não invente nomes.
+- Se o jogo não tem capítulos ou fases claras (mundo aberto sem missões numeradas, jogo de corrida, esporte, multijogador) ou se você não conhece a estrutura com segurança, responda {"known": false, "parts": []}.
+- Entre 3 e 40 itens. Se o jogo tiver mais de 40 missões, agrupe por ato ou região.
+- "pct": onde o capítulo começa, de 0 a 100, pelo tempo de jogo (o primeiro é 0, sempre crescente).
+- "minutes": duração típica do capítulo, coerente com o tempo para zerar. Omita se não souber.
+- "spoiler": true quando o nome revela reviravolta, morte, personagem ou lugar que só aparece mais adiante, ou o final. Os primeiros capítulos normalmente não são spoiler.
+- "stop": só se souber como o jogo salva naquele trecho: "qualquer" (salva a qualquer hora), "fim" (salva no fim do capítulo), "pontos" (só em pontos de save), "longe" (pontos de save longe). Senão, omita.
+Responda SÓ com JSON: {"known": true, "confidence": "alta"|"media"|"baixa", "parts": [{"name": "...", "pct": 0, "minutes": 60, "spoiler": false, "stop": "fim"}]}`;
+
+type GameRow = { id: string; title: string; year: number | null; igdb_id: number | null; ttb: { h?: number; n?: number; c?: number } | null; platforms: string[] | null };
+
+async function outline(user: string, body: Record<string, unknown>, res: Res) {
+  const c = db()!;
+  const gameId = typeof body.game === 'string' ? body.game.slice(0, 80) : '';
+  if (!gameId) return res.status(400).json({ error: 'Qual jogo?' });
+  const rpcSvc = async (fn: string, args: Record<string, unknown>) => {
+    const r = await fetch(`${c.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: c.headers, body: JSON.stringify(args) });
+    if (!r.ok) throw new Error(`rpc ${fn} ${r.status}`);
+    return r.json();
+  };
+  let start: string;
+  try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY() }); }
+  catch { return res.status(503).json({ error: 'Falta rodar a migração 0058 no Supabase.' }); }
+  if (start !== 'ok') return res.status(200).json({ state: start === 'pronto' ? 'pronto' : start === 'rodando' ? 'rodando' : start === 'limite' ? 'limite' : 'sem_lista' });
+  const finish = (state: 'feito' | 'sem_lista' | 'erro', note?: string) => rpcSvc('outline_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null);
+  try {
+    const gr = await fetch(`${c.url}/rest/v1/games?select=id,title,year,igdb_id,ttb,platforms&id=eq.${encodeURIComponent(gameId)}`, { headers: c.headers });
+    const g = ((await gr.json()) as GameRow[])[0];
+    if (!g) { await finish('sem_lista', 'jogo não encontrado'); return res.status(200).json({ state: 'sem_lista' }); }
+    // Fontes: as wikis do jogo (só títulos).
+    const wikis = wikisOf(g.igdb_id ? await igdbWebsites(g.igdb_id).catch(() => []) : []);
+    const read: { w: Wiki; text: string }[] = [];
+    for (const w of wikis) { const text = await wikiTitles(w, g.title).catch(() => ''); if (text) read.push({ w, text }); }
+    const ttb = g.ttb?.n ?? g.ttb?.h ?? g.ttb?.c;
+    const prompt = [
+      `Jogo: ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` · ${g.platforms.slice(0, 4).join(', ')}` : ''}.`,
+      ttb ? `Tempo típico para zerar (história principal): ${Math.round(ttb)} horas.` : 'Tempo para zerar: desconhecido.',
+      read.length ? read.map((x) => `Fonte: ${x.w.label} (${x.w.url})\n${x.text}`).join('\n\n') : 'Nenhuma wiki encontrada. Use só o que você sabe com segurança; se não souber, responda known false.',
+    ].join('\n');
+    const ai = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: MODEL(), max_tokens: 3000, system: OUTLINE_SYSTEM, messages: [{ role: 'user', content: prompt }, { role: 'assistant', content: '{"known":' }] }),
+      signal: AbortSignal.timeout(45_000),
+    });
+    if (!ai.ok) { const d = await ai.text().catch(() => ''); console.error('anthropic capitulos', ai.status, d.slice(0, 200)); await finish('erro', `IA ${ai.status}`); return res.status(200).json({ state: 'sem_lista' }); }
+    const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
+    const said = '{"known":' + (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+    let parsed: { known?: boolean; parts?: any[] } | null = null;
+    try { parsed = JSON.parse(said.slice(0, said.lastIndexOf('}') + 1)); } catch { parsed = null; }
+    const parts = cleanOutline(parsed?.known ? parsed.parts : []);
+    if (parts.length < 3) { await finish('sem_lista', parsed ? 'a IA não conhece a estrutura' : 'resposta fora do formato'); return res.status(200).json({ state: 'sem_lista' }); }
+    const sources = read.map((x) => ({ label: x.w.label, url: x.w.url, license: x.w.license }));
+    const stored = await rpcSvc('outline_ai_store', { p_game: gameId, p_parts: parts, p_sources: sources });
+    await finish('feito', stored ? undefined : 'já tinha lista');
+    return res.status(200).json({ state: 'pronto' });
+  } catch (e) {
+    console.error('capitulos', e instanceof Error ? e.message : e);
+    await finish('erro', 'falha');
+    return res.status(200).json({ state: 'sem_lista' });
+  }
+}
+
+/** Confere a lista da IA: nomes curtos, % crescente começando em 0, no máximo 40 capítulos. */
+export function cleanOutline(raw: unknown): { id: string; name: string; pct: number; minutes?: number; spoiler?: boolean; stop?: string }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { id: string; name: string; pct: number; minutes?: number; spoiler?: boolean; stop?: string }[] = [];
+  let last = -1;
+  for (const p of raw.slice(0, 40)) {
+    const name = typeof p?.name === 'string' ? p.name.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
+    if (!name || out.some((x) => x.name.toLowerCase() === name.toLowerCase())) continue;
+    let pct = Math.round(Number(p.pct));
+    if (!Number.isFinite(pct)) pct = last + 1;
+    pct = Math.max(out.length ? last + 1 : 0, Math.min(99, pct));
+    if (!out.length) pct = 0;
+    if (pct > 99) break;
+    const minutes = Number(p.minutes);
+    out.push({ id: `c${out.length + 1}`, name, pct, ...(Number.isFinite(minutes) && minutes >= 1 ? { minutes: Math.min(600, Math.round(minutes)) } : {}),
+      ...(p.spoiler === true && out.length > 0 ? { spoiler: true } : {}), ...(['qualquer', 'fim', 'pontos', 'longe'].includes(p.stop) ? { stop: p.stop } : {}) });
+    last = pct;
+  }
+  return out;
+}
+
 export default async function handler(req: Req, res: Res) {
   try {
     res.setHeader('Cache-Control', 'no-store');
@@ -201,6 +362,7 @@ export default async function handler(req: Req, res: Res) {
     const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { kind?: string; image?: string; note?: string; game?: string; context?: string };
     if (body.kind === 'narrar') return narrate(user, body as Record<string, unknown>, res);
     if (body.kind === 'vibes') return vibes(user, body as Record<string, unknown>, res);
+    if (body.kind === 'capitulos') return outline(user, body as Record<string, unknown>, res);
     const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 

@@ -32,6 +32,9 @@
     },
     "api/discord.ts": {
       "maxDuration": 60
+    },
+    "api/retomada.ts": {
+      "maxDuration": 60
     }
   }
 }

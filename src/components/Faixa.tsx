@@ -17,7 +17,7 @@ import { BrandMark } from './Brand';
 import { PhotoViewer } from './MediaGallery';
 
 export type FaixaPlay = { label: string; now: boolean; onClick: () => void; hint?: string };
-export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean; friends?: { handle: string; state: string }[] };
+export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean; friends?: { handle: string; state: string }[]; part?: { n: number; total: number; name: string } };
 export type FaixaNarrate = { saved: Record<string, string>; left: number; ask: (c: ChapterItem, range: string) => Promise<string>; save: (c: ChapterItem, text: string) => void };
 
 /** "@duda e @carol também jogaram este jogo · 1 já zerou" (sem marcar gênero). */
@@ -46,6 +46,7 @@ function itemDate(it: TLItem): string {
   if (it.type === 'memory') return it.e.at;
   if (it.type === 'echo') return '';
   if (it.type === 'talk') return it.talk.at;
+  if (it.type === 'gpart' && it.at && it.state !== 'frente') return it.at;
   return new Date().toISOString();
 }
 
@@ -54,6 +55,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   full: boolean; onExitFull: () => void; reduced: boolean; light: boolean; narrate?: FaixaNarrate | null;
 }) {
   const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
+  const [openedParts, setOpenedParts] = useState<Set<string>>(() => new Set());
   const [asking, setAsking] = useState<string | null>(null);
   const [aiErr, setAiErr] = useState<{ id: string; text: string } | null>(null);
   const askAi = async (c: ChapterItem) => {
@@ -67,7 +69,9 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   const big = useRef<HTMLDivElement>(null);
   const dust = useRef<HTMLCanvasElement>(null);
   const els = useRef<(HTMLElement | null)[]>([]);
-  const [focus, setFocus] = useState(items.length - 1);
+  // Onde a linha abre: no "Hoje" (os capítulos à frente ficam depois dele), ou no último registro.
+  const home = (() => { const t = items.findIndex((x) => x.type === 'today'); return t >= 0 ? t : items.length - 1; })();
+  const [focus, setFocus] = useState(home);
   const [vertical, setVertical] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
   const [viewer, setViewer] = useState<number | null>(null);
   const [tour, setTour] = useState(false);
@@ -115,7 +119,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   }, [reduced]);
 
   // Abre no fim (o "Hoje" ou o último registro).
-  useLayoutEffect(() => { center(items.length - 1, false); update(); }, [items.length, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => { center(home, false); update(); }, [items.length, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const v = vp.current;
@@ -270,6 +274,19 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         )}
       </article>
     );
+    if (it.type === 'gpart') {
+      const p = it.part, ahead = it.state === 'frente', shown = !ahead || openedParts.has(p.id);
+      const how = it.src === 'steam' ? 'Informado pela Steam' : it.src === 'ra' ? 'Informado pelo RetroAchievements' : 'Você marcou';
+      return (
+        <article key={it.id} {...common} className={`fx-pn fx-ev fx-gpart${ahead ? ' is-ahead' : ''}`} aria-label={`Capítulo ${it.n} de ${it.total}${shown ? `: ${p.name}` : ''}`}>
+          <span className="fx-num" aria-hidden="true">{it.n}</span>
+          <span className="fx-k fx-k--part">{ahead ? 'À frente' : it.state === 'atual' ? 'Você chegou' : 'Passou por aqui'} · Capítulo {it.n} de {it.total}{it.at && !ahead ? ` · ${shortDay(it.at)}` : ''}</span>
+          {shown ? <h3 className="fx-h fx-h--sm">{p.name}</h3> : <button className="fx-gpart__hide" onClick={(ev) => { ev.stopPropagation(); setOpenedParts(new Set([...openedParts, p.id])); }}>{p.spoiler ? 'Nome com spoiler · tocar para ver' : 'Tocar para ver o nome'}</button>}
+          <p className="fx-p">{ahead ? [`Começa em uns ${p.pct}%`, p.minutes ? `leva uns ${durText(p.minutes)}` : ''].filter(Boolean).join(' · ') : how}</p>
+          {it.more ? <small className="fx-src">e mais {it.more} {it.more === 1 ? 'capítulo' : 'capítulos'} até o fim</small> : null}
+        </article>
+      );
+    }
     if (it.type === 'echo') {
       const x = it.echo;
       return (
@@ -336,6 +353,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       <article key={it.id} {...common} className="fx-pn fx-today" aria-label="Hoje">
         <span className="fx-k fx-k--now">Hoje{today?.away != null && today.away > 0 ? ` · última vez ${awayLabel(today.away)}` : ''}</span>
         <h3 className="fx-h">{today?.open ? 'Sessão aberta agora' : today?.where ? <>Você parou em {today.where}</> : 'O próximo instante'}</h3>
+        {today?.part && <span className="fx-sub">Capítulo {today.part.n} de {today.part.total} · {today.part.name}</span>}
         {today?.note && !today.open && <p className="fx-p">“{today.note}”</p>}
         {!!today?.friends?.length && <p className="fx-sub fx-friends"><Icon name="pessoas" size={14} /> {friendsLine(today.friends)}</p>}
         <div className="fx-actions">
@@ -384,7 +402,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       <div className="fx-top">
         {full && <button className="fx-exit" onClick={onExitFull} aria-label="Sair da tela cheia" title="Sair da tela cheia"><Icon name="sairTela" size={18} /></button>}
         <button className="btn ghost sm fx-btn" onClick={() => setTour(!tour)} aria-pressed={tour}>{tour ? '❚❚ Pausar' : '▶ Passeio'}</button>
-        {today && <button className="btn sm fx-btn fx-btn--now" onClick={() => center(items.length - 1)}>Hoje</button>}
+        {today && <button className="btn sm fx-btn fx-btn--now" onClick={() => center(home)}>Hoje</button>}
         {full && <span className="fx-title">{title}</span>}
       </div>
       {narr && (

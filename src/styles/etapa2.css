@@ -5907,3 +5907,28 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .wkc__acts { display: flex; gap: 8px; flex-wrap: wrap; }
 .wkc__foot { margin: 0; font-size: 12.5px; }
 .wkc--skipped { font-size: 13px; margin: 0 0 14px; }
+
+/* Capítulos automáticos (C1): o selo do rascunho da IA e o "montando" */
+.ol-prov { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--now-line); background: var(--now-bg); font-size: 13px; }
+.ol-prov.is-ok { border-style: solid; border-color: var(--line); background: transparent; }
+.ol-prov__tag { display: inline-flex; gap: 6px; align-items: center; font: 600 11px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--now-hi); }
+.ol-prov.is-ok .ol-prov__tag { color: var(--muted); }
+.ol-prov__n { color: var(--muted); }
+.ol-prov__src { color: var(--faint); }
+.ol-prov__src a { color: inherit; }
+.ol-prov__acts { display: inline-flex; gap: 6px; align-items: center; margin-left: auto; }
+.ol-sheet__lead + .ol-reveal + .ol-list + .ol-prov, .ol-list + .ol-prov { margin-top: 12px; }
+.ol-strip--work { justify-content: flex-start; gap: 12px; }
+.ol-work { display: inline-flex; gap: 4px; }
+.ol-work i { width: 7px; height: 7px; border-radius: 50%; background: var(--now); animation: ol-dot 1.2s ease-in-out infinite; }
+.ol-work i:nth-child(2) { animation-delay: .15s; }
+.ol-work i:nth-child(3) { animation-delay: .3s; }
+@keyframes ol-dot { 0%, 100% { opacity: .25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .ol-work i { animation: none; opacity: .7; } }
+
+/* Capítulos do jogo na linha do tempo (C2) */
+.fx-gpart .fx-num { font-size: 38px; }
+.fx-gpart.is-ahead { opacity: .82; }
+.fx-gpart.is-ahead .fx-h { color: var(--muted); }
+.fx-gpart__hide { background: none; border: 1px dashed rgba(255,255,255,.28); border-radius: 10px; padding: 6px 10px; color: inherit; font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.fx-k--part { color: #E2BE84; }

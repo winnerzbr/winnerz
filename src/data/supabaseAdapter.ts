@@ -45,6 +45,7 @@ let v37 = false;
 export function schemaV37() { return v37; }
 /** A migração 0038 já rodou? (capítulo da História e objetivo da sessão) */
 let v38 = false;
+let v58 = false;
 export function schemaV38() { return v38; }
 /** A migração 0039 já rodou? (pontes: Steam e RetroAchievements) */
 let v39 = false;
@@ -118,6 +119,7 @@ const historyFromRow = (r: any): History => ({
   hours: r.hours != null ? Number(r.hours) : undefined, note: r.note ?? undefined, capsule: r.capsule ?? undefined,
   narrations: r.narrations && Object.keys(r.narrations).length ? r.narrations : undefined,
   part: r.part ?? undefined,
+  partLog: Array.isArray(r.part_log) && r.part_log.length ? r.part_log : undefined,
 });
 const sessionFromRow = (r: any): Session => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, startedAt: r.started_at,
@@ -200,6 +202,7 @@ const historyToRow = (h: History) => ({
   ...(v8 ? { capsule: h.capsule ?? null } : {}),
   ...(v37 ? { narrations: h.narrations ?? {} } : {}),
   ...(v38 ? { part: h.part ?? null } : {}),
+  ...(v58 ? { part_log: h.partLog?.length ? h.partLog : null } : {}),
 });
 const sessionToRow = (x: Session) => ({
   id: x.id, journey_id: x.journeyId, history_id: x.historyId, started_at: x.startedAt, ended_at: x.endedAt ?? null,
@@ -313,6 +316,7 @@ export const supabaseAdapter: Adapter = {
     v37 = v8 && !(await sb.from('sessions').select('progress').limit(1)).error && !(await sb.from('histories').select('narrations').limit(1)).error;
     v38 = v37 && !(await sb.from('sessions').select('goal,goal_done').limit(1)).error && !(await sb.from('histories').select('part').limit(1)).error;
     v39 = v38 && !(await sb.from('sessions').select('source').limit(1)).error;
+    v58 = v38 && !(await sb.from('histories').select('part_log').limit(1)).error;
     v43 = v39 && !(await sb.from('sessions').select('intent,intent_met').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;

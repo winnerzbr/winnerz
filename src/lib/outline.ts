@@ -4,7 +4,18 @@
  */
 export type StopKind = 'qualquer' | 'fim' | 'pontos' | 'longe';
 export interface OutlinePart { id: string; name: string; pct: number; minutes?: number; stop?: StopKind; note?: string; spoiler?: boolean }
-export interface GameOutline { gameId: string; parts: OutlinePart[]; version: number; updatedAt?: string | null; edits?: number; editors?: number; canEdit?: boolean; admin?: boolean }
+export interface OutlineSource { label: string; url: string; license?: string }
+export interface GameOutline {
+  gameId: string; parts: OutlinePart[]; version: number; updatedAt?: string | null; edits?: number; editors?: number; canEdit?: boolean; admin?: boolean;
+  /** De onde veio: montada pela comunidade ou rascunho da IA (C1, migração 0058). */
+  origin?: 'comunidade' | 'ia';
+  sources?: OutlineSource[];
+  /** Confirmações desta versão; com 3 (ou uma edição de pessoa), vira "Confirmado pela comunidade". */
+  confirms?: number; confirmed?: boolean; mine?: boolean;
+  /** O rascunho automático: em andamento, feito, sem lista (a IA não conhece) ou erro. */
+  job?: 'rodando' | 'feito' | 'sem_lista' | 'erro' | null;
+}
+export type PartLogEntry = { id: string; at: string; src?: 'voce' | 'steam' | 'ra' };
 
 export const STOP_LABEL: Record<StopKind, string> = {
   qualquer: 'Salva a qualquer hora',
@@ -67,4 +78,26 @@ export function cleanParts(parts: OutlinePart[]): OutlinePart[] {
     .filter((p) => p.name)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 60);
+}
+
+/**
+ * Quando a pessoa chegou a cada capítulo. Marcar um capítulo grava a chegada; marcar um anterior é correção e
+ * apaga as chegadas dali para a frente. Marcar o mesmo de novo não muda nada.
+ */
+export function logPart(log: PartLogEntry[] | undefined, parts: { id: string; pct: number }[], part: { id: string; pct: number } | null, at: string, src: PartLogEntry['src'] = 'voce'): PartLogEntry[] {
+  const cur = (log ?? []).filter((e) => parts.some((p) => p.id === e.id));
+  if (!part) return cur;
+  if (cur.at(-1)?.id === part.id) return cur;
+  const pctOf = (id: string) => parts.find((p) => p.id === id)?.pct ?? 0;
+  const kept = cur.filter((e) => pctOf(e.id) < part.pct && e.id !== part.id);
+  return [...kept, { id: part.id, at, src }].slice(-80);
+}
+
+/** Os capítulos já passados (com a data em que a pessoa chegou), o atual e os que vêm depois, em ordem. */
+export function partsTimeline(parts: OutlinePart[], log: PartLogEntry[] | undefined, cur: OutlinePart | null) {
+  const sorted = [...parts].sort((a, b) => a.pct - b.pct);
+  const curIdx = cur ? sorted.findIndex((p) => p.id === cur.id) : -1;
+  const when = new Map<string, PartLogEntry>();
+  for (const e of log ?? []) if (!when.has(e.id)) when.set(e.id, e);
+  return sorted.map((p, i) => ({ part: p, n: i + 1, total: sorted.length, state: (i < curIdx ? 'passou' : i === curIdx ? 'atual' : 'frente') as 'passou' | 'atual' | 'frente', at: when.get(p.id)?.at, src: when.get(p.id)?.src }));
 }

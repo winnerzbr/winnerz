@@ -3,7 +3,7 @@
  * ver o histórico, editar com a comunidade), o "Dá para parar aqui?" e o "Objetivo desta sessão".
  * Nomes de capítulos à frente de onde você está ficam escondidos até você pedir.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { actions, useStore, lastNote, activeWaypoints } from '../data/store';
 import { outlineApi, useOutline, type OutlineEdit } from '../data/outlineApi';
 import { partAt, nextPart, stopAdvice, goalSuggestions, STOP_LABEL, type OutlinePart, type StopKind, type GameOutline } from '../lib/outline';
@@ -22,17 +22,51 @@ function shownName(p: OutlinePart, i: number, ahead: boolean, reveal: boolean, o
   return null;
 }
 
+/** De onde veio a lista: o selo "Inferido · confira" do rascunho da IA, as confirmações e o crédito da fonte. */
+export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: GameOutline; onEdit?: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  if (outline.origin !== 'ia') return null;
+  const n = outline.confirms ?? 0;
+  const confirm = async () => { setBusy(true); setErr(''); try { await outlineApi.confirm(game.id, outline.version); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu.'); } finally { setBusy(false); } };
+  return (
+    <div className={`ol-prov${outline.confirmed ? ' is-ok' : ''}`}>
+      <span className="ol-prov__tag"><Icon name="brilho" size={12} />{outline.confirmed ? 'Rascunho da IA · confirmado pela comunidade' : 'Inferido pela IA · confira'}</span>
+      {!outline.confirmed && <span className="ol-prov__n">{n} de 3 confirmações</span>}
+      {!!outline.sources?.length && (
+        <span className="ol-prov__src">Fonte: {outline.sources.map((x, i) => <span key={x.url}>{i > 0 ? ', ' : ''}<a href={x.url} target="_blank" rel="noopener noreferrer">{x.label}</a>{x.license ? ` (${x.license})` : ''}</span>)}</span>
+      )}
+      {!outline.confirmed && outline.canEdit && (
+        <span className="ol-prov__acts">
+          {outline.mine ? <span className="faint">Você confirmou</span> : <button className="btn ghost sm" disabled={busy} onClick={() => void confirm()}><Icon name="check" size={13} />Está certo</button>}
+          {onEdit && <button className="btn quiet sm" onClick={onEdit}>Corrigir</button>}
+        </span>
+      )}
+      {err && <small className="form-error" role="alert">{err}</small>}
+    </div>
+  );
+}
+
 export function OutlineStrip({ game, history }: { game: Game; history: History }) {
   const o = useOutline(game.id);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState<false | 'list' | 'edit'>(false);
+  const empty = !!o && !o.parts.length;
+  // Jogo sem capítulos: o servidor monta o rascunho sozinho (uma vez por jogo).
+  useEffect(() => { if (empty) void outlineApi.auto(game.id); }, [empty, game.id]);
   if (!o) return null;
   const parts = o.parts;
   const cur = partAt(parts, history.progress, history.part);
   if (!parts.length) {
+    if (outlineApi.working(game.id) || o.job === 'rodando') return (
+      <div className="ol-strip ol-strip--empty ol-strip--work" role="status">
+        <span className="ol-work" aria-hidden="true"><i /><i /><i /></span>
+        <p className="muted">Montando os capítulos de {game.title}… A IA lê a wiki do jogo e prepara um rascunho para a comunidade conferir.</p>
+      </div>
+    );
     return (
       <div className="ol-strip ol-strip--empty">
         <p className="muted">Este jogo ainda não tem a lista de capítulos.{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
-        {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen(true)}><Icon name="mais" size={14} />Montar os capítulos</button>}
+        {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen('edit')}><Icon name="mais" size={14} />Montar os capítulos</button>}
         {open && <OutlineSheet game={game} history={history} outline={o} startEditing onClose={() => setOpen(false)} />}
       </div>
     );
@@ -50,9 +84,10 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
         <span className="kicker">Capítulo {cur ? parts.indexOf(cur) + 1 : '—'} de {parts.length}</span>
         <b>{cur ? cur.name : 'Em qual capítulo você está?'}</b>
         {cur?.stop && <span className={`ol-stop ol-stop--${stopAdvice(cur).tone}`}>{STOP_LABEL[cur.stop]}</span>}
-        <button className="btn quiet sm" onClick={() => setOpen(true)}>{cur ? 'Mudar de capítulo' : 'Escolher o capítulo'}</button>
+        <button className="btn quiet sm" onClick={() => setOpen('list')}>{cur ? 'Mudar de capítulo' : 'Escolher o capítulo'}</button>
       </div>
-      {open && <OutlineSheet game={game} history={history} outline={o} onClose={() => setOpen(false)} />}
+      <OutlineSource game={game} outline={o} onEdit={() => setOpen('edit')} />
+      {open && <OutlineSheet game={game} history={history} outline={o} startEditing={open === 'edit'} onClose={() => setOpen(false)} />}
     </div>
   );
 }
@@ -66,7 +101,7 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
   const parts = outline.parts;
   const cur = partAt(parts, history.progress, history.part);
   const curPct = cur?.pct ?? history.progress ?? -1;
-  const pick = (p: OutlinePart) => { actions.setHistoryPart(history.id, { id: p.id, pct: p.pct }); onClose(); };
+  const pick = (p: OutlinePart) => { actions.setHistoryPart(history.id, { id: p.id, pct: p.pct }, parts); onClose(); };
   const loadHist = async () => { try { setHist(await outlineApi.history(game.id)); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu para carregar.'); } };
 
   if (editing) return <Sheet title={`Capítulos de ${game.title}`} onClose={onClose} wide><OutlineEditor game={game} outline={outline} onDone={() => setEditing(false)} onClose={onClose} /></Sheet>;
@@ -92,10 +127,11 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
           );
         })}
       </ol>
-      <p className="faint ol-sheet__src">Montado pela comunidade{outline.edits ? ` · ${outline.edits} ${outline.edits === 1 ? 'edição' : 'edições'} de ${outline.editors} ${outline.editors === 1 ? 'pessoa' : 'pessoas'}` : ''}{outline.updatedAt ? ` · atualizado em ${whenLabel(outline.updatedAt, 'dia')}` : ''}. Os % são aproximados.</p>
+      <OutlineSource game={game} outline={outline} onEdit={() => setEditing(true)} />
+      <p className="faint ol-sheet__src">{outline.origin === 'ia' ? (outline.confirmed ? 'Rascunho da IA conferido pela comunidade' : 'Rascunho da IA, montado com os títulos da wiki do jogo') : 'Montado pela comunidade'}{outline.edits ? ` · ${outline.edits} ${outline.edits === 1 ? 'edição' : 'edições'} de ${outline.editors} ${outline.editors === 1 ? 'pessoa' : 'pessoas'}` : ''}{outline.updatedAt ? ` · atualizado em ${whenLabel(outline.updatedAt, 'dia')}` : ''}. Os % são aproximados.</p>
       <div className="sheet__actions">
         {outline.canEdit && <button className="btn ghost" onClick={() => setEditing(true)}><Icon name="caneta" size={15} />Editar a lista</button>}
-        {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null); onClose(); }}>Tirar a marca de capítulo</button>}
+        {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null, parts); onClose(); }}>Tirar a marca de capítulo</button>}
         {!hist && outline.edits ? <button className="btn quiet" onClick={loadHist}>Ver as edições</button> : null}
         <button className="btn primary" onClick={onClose}>Fechar</button>
       </div>

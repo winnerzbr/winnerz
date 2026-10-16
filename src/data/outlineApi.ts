@@ -20,6 +20,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/outline_confirm/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0058 no Supabase.');
     if (/outline_/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0038 no Supabase.');
     throw new Error(m);
   }
@@ -39,14 +40,29 @@ const SEED: Record<string, OutlinePart[]> = {
     { id: 'santa', name: 'O último capítulo', pct: 92, minutes: 120, stop: 'longe', spoiler: true },
   ],
 };
+// Demonstração: um rascunho da IA ainda sem confirmação (para ver o selo "Inferido · confira").
+const AI_SEED: Record<string, OutlinePart[]> = {
+  astro: [
+    { id: 'c1', name: 'Crash Site', pct: 0, minutes: 30, stop: 'qualquer' },
+    { id: 'c2', name: 'Galáxia Tormenta do Bot', pct: 12, minutes: 120, stop: 'fim' },
+    { id: 'c3', name: 'Galáxia Garra do Polvo', pct: 33, minutes: 120, stop: 'fim' },
+    { id: 'c4', name: 'Galáxia Supernova Lunar', pct: 55, minutes: 120, stop: 'fim', spoiler: true },
+    { id: 'c5', name: 'Nebulosa Sombria', pct: 78, minutes: 90, stop: 'fim', spoiler: true },
+    { id: 'c6', name: 'O resgate final', pct: 92, minutes: 45, stop: 'longe', spoiler: true },
+  ],
+};
 const dkey = (g: string) => `wz.demo.outline.${g}`;
 function demoGet(gameId: string): GameOutline {
   try { const v = JSON.parse(localStorage.getItem(dkey(gameId)) || 'null'); if (v) return { ...v, canEdit: true }; } catch { /* sem armazenamento */ }
+  if (AI_SEED[gameId]) return { gameId, parts: AI_SEED[gameId], version: 1, updatedAt: '2026-10-16T12:00:00Z', edits: 0, editors: 0, canEdit: true, origin: 'ia', confirms: 1, confirmed: false, mine: false, job: 'feito',
+    sources: [{ label: 'astrobot wiki (Fandom)', url: 'https://astrobot.fandom.com/wiki/Astro_Bot', license: 'CC BY-SA' }] };
   const parts = SEED[gameId] ?? [];
-  return { gameId, parts, version: parts.length ? 3 : 0, updatedAt: parts.length ? '2026-09-30T20:00:00Z' : null, edits: parts.length ? 3 : 0, editors: parts.length ? 2 : 0, canEdit: true };
+  return { gameId, parts, version: parts.length ? 3 : 0, updatedAt: parts.length ? '2026-09-30T20:00:00Z' : null, edits: parts.length ? 3 : 0, editors: parts.length ? 2 : 0, canEdit: true, origin: 'comunidade', confirmed: true };
 }
 
 const cache = new Map<string, GameOutline | null>();
+const asked = new Set<string>();
+const working = new Set<string>();
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 
@@ -69,7 +85,7 @@ export const outlineApi = {
     if (!supa()) {
       const cur = demoGet(gameId);
       if (cur.version !== version) throw new Error(MSG.outline_conflict);
-      v = { gameId, parts: clean, version: version + 1, updatedAt: new Date().toISOString(), edits: (cur.edits ?? 0) + 1, editors: Math.max(1, cur.editors ?? 0), canEdit: true };
+      v = { gameId, parts: clean, version: version + 1, updatedAt: new Date().toISOString(), edits: (cur.edits ?? 0) + 1, editors: Math.max(1, cur.editors ?? 0), canEdit: true, origin: 'comunidade', confirmed: true, sources: cur.sources };
       try { localStorage.setItem(dkey(gameId), JSON.stringify(v)); } catch { /* só nesta visita */ }
     } else {
       v = ok(await (await client()).rpc('outline_save', { p_game: gameId, p_parts: clean, p_version: version, p_note: note ?? null })) as GameOutline;
@@ -77,6 +93,44 @@ export const outlineApi = {
     cache.set(gameId, v); emit();
     return v;
   },
+  /** "Está certo": confirma o rascunho da IA (3 confirmações viram "Confirmado pela comunidade"). */
+  async confirm(gameId: string, version: number): Promise<GameOutline> {
+    let v: GameOutline;
+    if (!supa()) {
+      const cur = demoGet(gameId);
+      const confirms = (cur.confirms ?? 0) + (cur.mine ? 0 : 1);
+      v = { ...cur, confirms, mine: true, confirmed: confirms >= 3 };
+      try { localStorage.setItem(dkey(gameId), JSON.stringify(v)); } catch { /* só nesta visita */ }
+    } else {
+      v = ok(await (await client()).rpc('outline_confirm', { p_game: gameId, p_version: version })) as GameOutline;
+    }
+    cache.set(gameId, v); emit();
+    return v;
+  },
+  /**
+   * Rascunho automático (C1): pede ao servidor para montar a lista de um jogo sem capítulos. Quando outra pessoa
+   * já pediu, espera a lista aparecer. Uma vez por jogo nesta visita; sem a IA ligada no servidor, não faz nada.
+   */
+  async auto(gameId: string): Promise<GameOutline | null> {
+    if (!supa() || asked.has(gameId)) return cache.get(gameId) ?? null;
+    asked.add(gameId);
+    working.add(gameId); emit();
+    try {
+      const { accessToken } = await import('./supabaseAdapter');
+      const r = await fetch('/api/retomada', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'capitulos', game: gameId }) });
+      const j = r.ok ? ((await r.json()) as { state?: string }) : null;
+      if (j?.state === 'rodando') {
+        for (let i = 0; i < 24; i++) {
+          await new Promise((ok2) => setTimeout(ok2, 5000));
+          const o = await outlineApi.get(gameId, true);
+          if (o?.parts.length || (o?.job && o.job !== 'rodando')) break;
+        }
+      }
+      return await outlineApi.get(gameId, true);
+    } catch { return cache.get(gameId) ?? null; } finally { working.delete(gameId); emit(); }
+  },
+  /** O rascunho automático está sendo montado agora (nesta visita). */
+  working: (gameId: string) => working.has(gameId),
   async history(gameId: string): Promise<OutlineEdit[]> {
     if (!supa()) { const o = demoGet(gameId); return o.version ? [{ id: 'demo', handle: 'duda', at: o.updatedAt ?? new Date().toISOString(), version: o.version, note: 'Exemplo da demonstração', count: o.parts.length }] : []; }
     return ok(await (await client()).rpc('outline_history', { p_game: gameId })) as OutlineEdit[];

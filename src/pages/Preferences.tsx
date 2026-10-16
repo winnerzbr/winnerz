@@ -222,7 +222,7 @@ function OverlaySettings() {
 }
 
 /** Comunidade: aparecer em "Novos por aqui", o jogo ao lado do nome e quais avisos receber. */
-type BoolPref = Exclude<keyof CommunityPrefs, 'dm'>;
+type BoolPref = Exclude<keyof CommunityPrefs, 'dm' | 'presenca'>;
 
 function CommunitySettings() {
   const stored = useStore((s) => s.prefs.comunidade);
@@ -241,6 +241,11 @@ function CommunitySettings() {
       {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
       {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
       {row('eco', true, 'Meus registros como eco para amigos', 'Quem é seu amigo e joga o mesmo jogo vê, na linha do tempo, quando você começou, os momentos das Jornadas que você mostra no perfil e quando zerou. Só até o ponto onde a pessoa está, sem spoiler. Recados, pontos para voltar e cartas nunca aparecem.')}
+      <h3 className="prefs__sub" id="presenca">Presença</h3>
+      <label className="motion motion--switch" data-on={cp.presenca === 'amigos'}>
+        <input type="checkbox" role="switch" className="switch" checked={cp.presenca === 'amigos'} onChange={(e) => { set({ presenca: e.target.checked ? 'amigos' : 'ninguem' }); if (!e.target.checked) void import('../data/presenceApi').then((m) => m.presenceApi.off()); }} />
+        <span><strong>Mostrar aos amigos quando estou online e o que estou jogando</strong><span className="muted">Só amigos (quem se segue de volta) veem. Vale nos dois sentidos: desligado, você também não vê a presença dos outros. "Jogando" vem da sessão aberta no site ou de uma ponte (Steam, RetroAchievements, Playnite).</span></span>
+      </label>
       <h3 className="prefs__sub" id="mensagens">Mensagens diretas</h3>
       <label className="prefs__field">
         <span><strong>Quem pode começar uma conversa com você</strong><span className="muted">Quem não está liberado manda um pedido só (uma mensagem), que fica em Pedidos até você aceitar. Conversas já aceitas continuam.</span></span>

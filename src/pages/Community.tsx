@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FriendsNow } from '../components/Presence';
 import { Link, navigate, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { socialApi, type Activity } from '../data/socialApi';
@@ -119,6 +120,7 @@ export function CommunityPage() {
         </section>
 
         <aside className="praca__side" aria-label="Acontecendo">
+          <FriendsNow />
           {encontros.length > 0 && (
             <section className="cm-side">
               <span className="kicker kicker--now">Acontecendo</span>

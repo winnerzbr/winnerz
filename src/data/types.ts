@@ -336,6 +336,8 @@ export interface CommunityPrefs {
   dm?: 'amigos' | 'seguindo' | 'todos' | 'ninguem';
   /** Mostrar "visto" nas mensagens (vale nos dois sentidos). */
   visto?: boolean;
+  /** Presença para amigos: online e o que está jogando (padrão: ninguém). */
+  presenca?: 'amigos' | 'ninguem';
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

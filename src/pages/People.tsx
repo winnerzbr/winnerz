@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { FriendsNow } from '../components/Presence';
 import { MessageButton } from './Messages';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
@@ -50,6 +51,7 @@ export function PeoplePage() {
         {mode === 'demo' && <p className="faint">Na demonstração, @duda, @carol e @rafa são pessoas de exemplo.</p>}
       </header>
       <GoToProfile />
+      <div className="people__now"><FriendsNow compact /></div>
       <div className="seg studio__tabs people__tabs" role="tablist" aria-label="Listas">
         {TABS.map((t) => <button key={t.k} role="tab" aria-selected={tab === t.k} aria-pressed={tab === t.k} onClick={() => pick(t.k)}>{t.label}{data ? ` (${lists[t.k].length})` : ''}</button>)}
       </div>

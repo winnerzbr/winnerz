@@ -3,6 +3,8 @@
  * No computador, lista e conversa lado a lado; no celular, uma tela de cada vez.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { PresencePill } from '../components/Presence';
+import { usePresenceOf } from '../data/presenceApi';
 import { Link, navigate } from '../lib/router';
 import { useStore } from '../data/store';
 import { dmApi, type DmMessage, type DmOpen, type DmThreadRow } from '../data/dmApi';
@@ -172,7 +174,7 @@ function Conversation({ handle, onChanged }: { handle: string; onChanged: () => 
       <header className="dm__conv-head">
         <Link to="/mensagens" className="icon-btn dm__back" aria-label="Voltar às conversas"><Icon name="voltar" size={18} /></Link>
         <PersonAvatar p={c.person} size={36} />
-        <span className="dm__conv-who"><Link to={`/@${c.person.handle}`}><b>@{c.person.handle}</b></Link>{c.muted && <span className="faint"> · silenciada</span>}</span>
+        <span className="dm__conv-who"><Link to={`/@${c.person.handle}`}><b>@{c.person.handle}</b></Link>{c.muted && <span className="faint"> · silenciada</span>}<ConvPresence handle={handle} /></span>
         {c.thread && (
           <span className="dm__conv-menu">
             <button className="icon-btn" aria-label="Opções da conversa" aria-expanded={menu} onClick={() => setMenu(!menu)}><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" /></svg></button>
@@ -293,4 +295,9 @@ function GamePicker({ onPick, onClose }: { onPick: (g: Game) => void; onClose: (
       </ul>
     </Sheet>
   );
+}
+
+function ConvPresence({ handle }: { handle: string }) {
+  const p = usePresenceOf(handle);
+  return p ? <span className="dm__presence"><PresencePill p={p} /></span> : null;
 }

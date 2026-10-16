@@ -5669,3 +5669,22 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
   .dm__conv { height: calc(100svh - 210px); min-height: 360px; }
   .dm.has-open { padding-top: 8px; }
 }
+
+/* ---- Presença opcional -------------------------------------------------------------------------- */
+.presence-pill { display: inline-flex; align-items: center; gap: 7px; padding: 4px 11px; border-radius: 999px; font-size: 13px; background: var(--field); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); }
+.presence-pill a { color: inherit; font-weight: 600; }
+.presence-pill__dot, .friends-now__dot { width: 8px; height: 8px; border-radius: 50%; background: #3FCF8E; box-shadow: 0 0 0 3px rgba(63, 207, 142, 0.18); flex: none; }
+.presence-pill.is-playing .presence-pill__dot, .friends-now__dot.is-playing { background: var(--now); box-shadow: 0 0 0 3px rgba(255, 178, 91, 0.2); }
+.friends-now ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.friends-now__p { display: flex; align-items: center; gap: 10px; padding: 6px; border-radius: 10px; text-decoration: none; color: inherit; }
+.friends-now__p:hover { background: var(--field); }
+.friends-now__av { position: relative; flex: none; }
+.friends-now__dot { position: absolute; right: -1px; bottom: -1px; box-shadow: 0 0 0 2px var(--surface); }
+.friends-now__t { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13.5px; }
+.friends-now__t small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.friends-now__cv .cover-art { width: 28px; height: 38px; border-radius: 4px; object-fit: cover; display: block; overflow: hidden; }
+.dm__presence { margin-left: 8px; }
+.dm__presence .presence-pill { padding: 2px 8px; font-size: 12px; }
+.pd-id .presence-pill { margin-top: 8px; }
+.people__now:empty { display: none; } .people__now { max-width: 520px; margin: 0 0 18px; } .people__now .cm-side { padding: 14px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.presence-pill { align-self: flex-start; width: max-content; max-width: 100%; }

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { PresencePill } from '../components/Presence';
+import { usePresenceOf } from '../data/presenceApi';
 import { Link, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { CoverArt } from '../components/CoverArt';
@@ -227,6 +229,7 @@ function Hero({ data, owner, preview, onShare, copied, onFollow }: { data: Publi
               {data.followers != null && <span className="pd-chip">{data.followers} {data.followers === 1 ? 'seguidor' : 'seguidores'} · {data.following ?? 0} seguindo</span>}
             </div>
             <h1 className="t pd-name">{data.name}</h1>
+            {!owner && <ProfilePresence handle={data.handle} />}
             {data.bio && <p className="pd-quote">“{data.bio}”</p>}
           </div>
           <div className="pd-id__acts">
@@ -483,4 +486,10 @@ function ProfileShowcases({ data, initial, preview = false }: { data: PublicProf
       <Cabinet key={v.id} items={v.items.map(pubShelfItem)} owner={data.handle} />
     </section>
   );
+}
+
+/** "Online agora" ou "Jogando X" no perfil de um amigo (presença opcional, dos dois lados). */
+function ProfilePresence({ handle }: { handle: string }) {
+  const p = usePresenceOf(handle);
+  return <PresencePill p={p} />;
 }

@@ -150,6 +150,8 @@ function Routes({ path }: { path: string }): ReactNode {
   );
 }
 
+import { usePresencePing } from './data/presenceApi';
+
 export function App() {
   const path = usePath();
   const ready = useStore((s) => s.ready);
@@ -161,6 +163,7 @@ export function App() {
   const profileId = useStore((s) => s.profile?.id);
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
+  usePresencePing();
   // Voltou do e-mail de entrada com um convite guardado: usa o convite (vale também se entrou pelo código).
   useEffect(() => {
     if (mode !== 'supabase' || !profileId || isAdmin || isGuest) return;

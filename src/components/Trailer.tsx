@@ -1,10 +1,11 @@
 /**
  * Trailer da História (J7): o navegador desenha as cenas num canvas e grava em vídeo (MediaRecorder), com uma
- * trilha suave gerada na hora (Web Audio). Nada vai para o servidor. Vertical (stories) ou horizontal.
+ * trilha épica gerada na hora (Web Audio, em lib/trailerMusic). Nada vai para o servidor. Vertical (stories) ou horizontal.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../data/store';
 import { planTrailer, trailerLength, type Scene } from '../lib/trailer';
+import { playTrailerMusic } from '../lib/trailerMusic';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { track } from '../lib/track';
@@ -35,12 +36,50 @@ function wrap(g: CanvasRenderingContext2D, text: string, max: number): string[] 
   return out;
 }
 
-/** Desenha o quadro do instante t (em segundos). */
+type Item = { text: string; font: (sz: number) => string; size: number; color: string; gap?: number; maxLines?: number; maxW?: number; scale?: number };
+
+/** Ajusta o tamanho para caber em maxLines linhas (e na largura) e devolve as linhas já quebradas. */
+function fit(g: CanvasRenderingContext2D, it: Item, maxW: number): { lines: string[]; size: number } {
+  let size = it.size;
+  for (;;) {
+    g.font = it.font(size);
+    const lines = wrap(g, it.text, maxW);
+    const widest = Math.max(...lines.map((l) => g.measureText(l).width));
+    if ((lines.length <= (it.maxLines ?? 9) && widest <= maxW) || size <= it.size * 0.45) return { lines: lines.slice(0, it.maxLines ?? 9), size };
+    size *= 0.92;
+  }
+}
+
+/** Empilha textos de cima para baixo, sem sobrepor, centrados (ou encostados no pé) dentro da faixa [top, bottom]. */
+function stack(g: CanvasRenderingContext2D, items: Item[], x: number, top: number, bottom: number, anchor: 'center' | 'end' | 'start', maxW: number, dy = 0) {
+  const laid = items.map((it) => ({ it, ...fit(g, it, it.maxW ?? maxW) }));
+  const lh = (sz: number) => sz * 1.12;
+  const height = laid.reduce((a, l, i) => a + (i ? l.it.gap ?? 0 : 0) + l.lines.length * lh(l.size), 0);
+  let y = anchor === 'start' ? top : anchor === 'end' ? bottom - height : top + (bottom - top - height) / 2;
+  laid.forEach((l, i) => {
+    if (i) y += l.it.gap ?? 0;
+    g.font = l.it.font(l.size); g.fillStyle = l.it.color;
+    l.lines.forEach((line) => {
+      const base = y + l.size * 0.86 + dy;
+      if (l.it.scale && l.it.scale !== 1) { g.save(); g.translate(x, base - l.size * 0.35); g.scale(l.it.scale, l.it.scale); g.fillText(line, 0, l.size * 0.35); g.restore(); }
+      else g.fillText(line, x, base);
+      y += lh(l.size);
+    });
+  });
+  return y + dy;
+}
+
+/** Desenha o quadro do instante t (em segundos). As medidas partem do lado menor (1080), para os dois formatos. */
 function frame(g: CanvasRenderingContext2D, W: number, H: number, scenes: Scene[], imgs: Map<string, HTMLImageElement | null>, logo: HTMLImageElement | null, t: number) {
   let acc = 0, i = 0;
   while (i < scenes.length - 1 && t >= acc + scenes[i].dur) { acc += scenes[i].dur; i++; }
-  const sc = scenes[i], p = Math.min(1, (t - acc) / sc.dur), u = W / 1080, vert = H > W;
+  const sc = scenes[i], p = Math.min(1, (t - acc) / sc.dur), u = Math.min(W, H) / 1080, vert = H > W;
   g.fillStyle = '#07080A'; g.fillRect(0, 0, W, H);
+  const mono = (sz: number) => `500 ${sz * u}px "IBM Plex Mono", monospace`;
+  const bold = (sz: number) => `800 ${sz * u}px "Archivo", sans-serif`;
+  const reg = (sz: number) => `400 ${sz * u}px "Archivo", sans-serif`;
+  const serif = (sz: number) => `italic 300 ${sz * u}px Georgia, serif`;
+  const textW = vert ? W - 140 * u : Math.min(W - 240 * u, 1500 * u);
   const draw = (s: Scene, alpha: number, local: number) => {
     g.save(); g.globalAlpha = alpha;
     const bg = s.image ? imgs.get(s.image) : null;
@@ -51,59 +90,71 @@ function frame(g: CanvasRenderingContext2D, W: number, H: number, scenes: Scene[
       g.restore();
     }
     const sh = g.createLinearGradient(0, 0, 0, H);
-    sh.addColorStop(0, 'rgba(7,8,10,0.55)'); sh.addColorStop(0.45, 'rgba(7,8,10,0.25)'); sh.addColorStop(1, 'rgba(7,8,10,0.92)');
+    sh.addColorStop(0, 'rgba(7,8,10,0.6)'); sh.addColorStop(0.4, 'rgba(7,8,10,0.38)'); sh.addColorStop(1, 'rgba(7,8,10,0.94)');
     g.fillStyle = sh; g.fillRect(0, 0, W, H);
+    if (s.kind !== 'moment') { g.fillStyle = 'rgba(7,8,10,0.22)'; g.fillRect(0, 0, W, H); }
     const inT = ease(local * 3), y0 = (1 - inT) * 40 * u;
     g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-    const mono = (sz: number) => `500 ${sz * u}px "IBM Plex Mono", monospace`;
-    const bold = (sz: number) => `800 ${sz * u}px "Archivo", sans-serif`;
-    const reg = (sz: number) => `400 ${sz * u}px "Archivo", sans-serif`;
+    g.shadowColor = 'rgba(0,0,0,0.55)'; g.shadowBlur = 18 * u;
     g.globalAlpha = alpha * inT;
     if (s.kind === 'intro') {
-      g.fillStyle = '#FFB25B'; g.font = mono(30); g.fillText('W I N N E R Z   ·   J O R N A D A', W / 2, H * 0.62 + y0);
-      g.fillStyle = '#F2F4F6'; g.font = bold(vert ? 104 : 96);
-      wrap(g, s.title.toUpperCase(), W - 160 * u).slice(0, 3).forEach((l, k) => g.fillText(l, W / 2, H * 0.62 + 110 * u + k * 108 * u + y0));
-      g.fillStyle = '#C9CED4'; g.font = reg(38); g.fillText(s.sub, W / 2, H * (vert ? 0.86 : 0.93) + y0);
+      stack(g, [
+        { text: 'W I N N E R Z   ·   J O R N A D A', font: mono, size: 30, color: '#FFB25B' },
+        { text: s.title.toUpperCase(), font: bold, size: vert ? 104 : 96, color: '#F2F4F6', gap: 26 * u, maxLines: vert ? 3 : 2 },
+        { text: s.sub, font: reg, size: 38, color: '#C9CED4', gap: 30 * u, maxLines: 2 },
+      ], W / 2, H * 0.45, H - (vert ? 170 : 110) * u, 'end', textW, y0);
     } else if (s.kind === 'stats') {
-      const n = s.lines.length, cols = vert ? 1 : n, rows = vert ? n : 1;
+      const n = s.lines.length, cols = vert ? 1 : n;
       s.lines.forEach(([big, small], k) => {
-        const cx = vert ? W / 2 : (W / cols) * (k + 0.5), cy = vert ? H * 0.25 + (H * 0.55 / rows) * (k + 0.5) : H * 0.55;
         const a = ease(local * 3 - k * 0.35); g.globalAlpha = alpha * a;
-        g.fillStyle = '#F2F4F6'; g.font = bold(150); g.fillText(big, cx, cy + (1 - a) * 30 * u);
-        g.fillStyle = '#FFB25B'; g.font = mono(34); g.fillText(small.toUpperCase(), cx, cy + 60 * u);
+        const cx = vert ? W / 2 : (W / cols) * (k + 0.5);
+        const top = vert ? H * 0.2 + (H * 0.6 / n) * k : H * 0.32, bottom = vert ? top + H * 0.6 / n : H * 0.72;
+        stack(g, [
+          { text: big, font: bold, size: n > 3 && !vert ? 130 : 150, color: '#F2F4F6', maxLines: 1 },
+          { text: small.toUpperCase(), font: mono, size: 34, color: '#FFB25B', gap: 10 * u, maxLines: 1 },
+        ], cx, top, bottom, 'center', vert ? textW : W / cols - 60 * u, (1 - a) * 30 * u);
       });
     } else if (s.kind === 'chapter') {
-      g.fillStyle = '#FFE2B8'; g.font = `italic 300 ${150 * u}px Georgia, serif`; g.fillText(['I', 'II', 'III', 'IV', 'V'][s.n - 1] ?? String(s.n), W / 2, H * 0.5 + y0);
-      g.fillStyle = '#FFB25B'; g.font = mono(30); g.fillText(`CAPÍTULO ${s.n}`, W / 2, H * 0.5 + 80 * u + y0);
-      g.fillStyle = '#F2F4F6'; g.font = bold(84);
-      const nl = wrap(g, s.name.toUpperCase(), W - 160 * u).slice(0, 2);
-      nl.forEach((l, k) => g.fillText(l, W / 2, H * 0.5 + 190 * u + k * 90 * u + y0));
-      g.fillStyle = '#E6E9ED'; g.font = reg(38);
-      wrap(g, s.line, W - 220 * u).slice(0, 3).forEach((l, k) => g.fillText(l, W / 2, H * 0.5 + 220 * u + nl.length * 90 * u + k * 52 * u + y0));
+      stack(g, [
+        { text: ['I', 'II', 'III', 'IV', 'V'][s.n - 1] ?? String(s.n), font: serif, size: vert ? 150 : 120, color: '#FFE2B8' },
+        { text: `CAPÍTULO ${s.n}`, font: mono, size: 30, color: '#FFB25B', gap: 6 * u },
+        { text: s.name.toUpperCase(), font: bold, size: vert ? 84 : 76, color: '#F2F4F6', gap: 30 * u, maxLines: 2 },
+        { text: s.line, font: reg, size: 38, color: '#E6E9ED', gap: 26 * u, maxLines: 3, maxW: vert ? W - 200 * u : Math.min(W - 360 * u, 1300 * u) },
+      ], W / 2, H * 0.14, H * 0.9, 'center', textW, y0);
     } else if (s.kind === 'moment') {
       const im = imgs.get(s.image);
       if (im) {
-        const fw = vert ? W * 0.82 : W * 0.5, fh = Math.min(fw * (im.height / im.width), H * (vert ? 0.5 : 0.62)), fx = (W - fw) / 2, fy = H * (vert ? 0.22 : 0.12) + y0;
-        g.save(); g.translate(W / 2, fy + fh / 2); g.rotate((-1.5 + local * 2) * Math.PI / 180); g.translate(-W / 2, -(fy + fh / 2));
+        const ratio = im.height / im.width;
+        let fw: number, fh: number, fx: number, fy: number;
+        if (vert) { fw = W * 0.82; fh = Math.min(fw * ratio, H * 0.48); fx = (W - fw) / 2; fy = H * 0.16; }
+        else { fh = Math.min(H * 0.66, W * 0.46 * ratio); fw = Math.min(W * 0.46, fh / ratio); fx = W * 0.07 + (W * 0.46 - fw) / 2; fy = (H - fh - 92 * u) / 2; }
+        fy += y0;
+        const cx = fx + fw / 2;
+        g.save(); g.shadowBlur = 40 * u; g.translate(cx, fy + fh / 2); g.rotate((-1.5 + local * 2) * Math.PI / 180); g.translate(-cx, -(fy + fh / 2));
         g.fillStyle = '#F6EEDC'; g.fillRect(fx - 18 * u, fy - 18 * u, fw + 36 * u, fh + 110 * u);
+        g.shadowBlur = 0;
         const k = Math.max(fw / im.width, fh / im.height) * (1.02 + local * 0.05), w = im.width * k, h = im.height * k;
         g.save(); g.beginPath(); g.rect(fx, fy, fw, fh); g.clip(); g.drawImage(im, fx + (fw - w) / 2, fy + (fh - h) / 2, w, h); g.restore();
-        g.fillStyle = '#2b241f'; g.font = `700 ${40 * u}px "Archivo", sans-serif`; g.fillText(s.when, W / 2, fy + fh + 66 * u);
+        g.fillStyle = '#2b241f'; g.font = `700 ${40 * u}px "Archivo", sans-serif`; g.fillText(s.when, cx, fy + fh + 66 * u);
         g.restore();
-        g.fillStyle = '#F2F4F6'; g.font = reg(44);
-        wrap(g, s.caption, W - 200 * u).slice(0, 3).forEach((l, k2) => g.fillText(l, W / 2, fy + fh + 200 * u + k2 * 58 * u));
+        const cap: Item = { text: s.caption, font: reg, size: 46, color: '#F2F4F6', maxLines: vert ? 4 : 6 };
+        if (vert) stack(g, [cap], W / 2, fy + fh + 150 * u, H - 120 * u, 'start', W - 180 * u);
+        else { g.textAlign = 'left'; stack(g, [cap], W * 0.6, H * 0.15, H * 0.85, 'center', W * 0.34); }
       }
     } else if (s.kind === 'people') {
-      g.fillStyle = '#FFB25B'; g.font = mono(32); g.fillText('JOGADO COM', W / 2, H * 0.45 + y0);
-      g.fillStyle = '#F2F4F6'; g.font = bold(88);
-      s.names.forEach((n, k) => g.fillText(n.toUpperCase(), W / 2, H * 0.45 + 120 * u + k * 100 * u + y0));
+      stack(g, [
+        { text: 'JOGADO COM', font: mono, size: 32, color: '#FFB25B' },
+        ...s.names.map((n, k): Item => ({ text: n.toUpperCase(), font: bold, size: vert ? 88 : 76, color: '#F2F4F6', gap: (k ? 4 : 30) * u, maxLines: 1 })),
+      ], W / 2, H * 0.15, H * 0.88, 'center', textW, y0);
     } else if (s.kind === 'end') {
-      g.fillStyle = s.done ? '#E2BE84' : '#FFB25B'; g.font = bold(vert ? 210 : 190);
-      g.save(); const sc2 = 0.9 + ease(local * 2) * 0.1; g.translate(W / 2, H * 0.48); g.scale(sc2, sc2); g.fillText(s.done ? 'ZEROU' : 'CONTINUA', 0, 0); g.restore();
-      g.fillStyle = '#F2F4F6'; g.font = bold(56); wrap(g, s.title.toUpperCase(), W - 160 * u).slice(0, 2).forEach((l, k) => g.fillText(l, W / 2, H * 0.48 + 110 * u + k * 64 * u));
-      g.fillStyle = '#C9CED4'; g.font = reg(38); g.fillText(s.when, W / 2, H * 0.48 + 260 * u);
-      if (logo) { const lw = 200 * u, lh = lw * (logo.height / logo.width); g.drawImage(logo, (W - lw) / 2, H - lh - 150 * u, lw, lh); }
-      g.fillStyle = '#9AA1AA'; g.font = mono(30); g.fillText('winnerz.com.br', W / 2, H - 80 * u);
+      const lw = (vert ? 240 : 170) * u, lh = logo ? lw * (logo.height / logo.width) : 0, ly = (vert ? 170 : 70) * u;
+      if (logo) { g.save(); g.shadowBlur = 0; g.drawImage(logo, (W - lw) / 2, ly, lw, lh); g.restore(); }
+      stack(g, [
+        { text: s.done ? 'ZEROU' : 'CONTINUA', font: bold, size: vert ? 210 : 180, color: s.done ? '#E2BE84' : '#FFB25B', maxLines: 1, scale: 0.9 + ease(local * 2) * 0.1 },
+        { text: s.title.toUpperCase(), font: bold, size: vert ? 60 : 54, color: '#F2F4F6', gap: 34 * u, maxLines: 2 },
+        { text: s.when, font: reg, size: 38, color: '#C9CED4', gap: 26 * u, maxLines: 1 },
+      ], W / 2, ly + lh + 40 * u, H - (vert ? 220 : 140) * u, 'center', textW);
+      g.fillStyle = '#9AA1AA'; g.font = mono(30); g.fillText('winnerz.com.br', W / 2, H - (vert ? 110 : 60) * u);
     }
     g.restore();
   };
@@ -114,20 +165,6 @@ function frame(g: CanvasRenderingContext2D, W: number, H: number, scenes: Scene[
   // Barra fina de progresso no pé.
   const total = trailerLength(scenes);
   g.fillStyle = 'rgba(255,178,91,0.9)'; g.fillRect(0, H - 6 * u, W * Math.min(1, t / total), 6 * u);
-}
-
-/** Trilha: um acorde suave que muda a cada cena (nada de música de terceiros). */
-function soundtrack(ctx: AudioContext, dest: AudioNode, scenes: Scene[]) {
-  const master = ctx.createGain(); master.gain.value = 0; master.connect(dest);
-  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900; lp.connect(master);
-  const CH = [[220, 277.18, 329.63], [196, 246.94, 293.66], [174.61, 220, 261.63], [164.81, 207.65, 246.94], [196, 246.94, 329.63]];
-  const oscs = [0, 1, 2].map((k) => { const o = ctx.createOscillator(); o.type = k === 0 ? 'sine' : 'triangle'; const gg = ctx.createGain(); gg.gain.value = k === 0 ? 0.5 : 0.22; o.connect(gg); gg.connect(lp); o.start(); return o; });
-  const now = ctx.currentTime;
-  master.gain.linearRampToValueAtTime(0.16, now + 1.5);
-  let at = now;
-  scenes.forEach((s, i) => { const c = CH[i % CH.length]; oscs.forEach((o, k) => o.frequency.setTargetAtTime(c[k] / (k === 0 ? 2 : 1), at, 0.4)); at += s.dur; });
-  master.gain.setTargetAtTime(0, now + trailerLength(scenes) - 1.2, 0.5);
-  return () => oscs.forEach((o) => { try { o.stop(); } catch { /* já parou */ } });
 }
 
 function pickMime(): string {
@@ -198,7 +235,7 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
       if (music) {
         actx = new AudioContext();
         const dest = actx.createMediaStreamDestination();
-        stopAudio = soundtrack(actx, dest, scenes);
+        stopAudio = playTrailerMusic(actx, dest, scenes);
         dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
       }
       const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
@@ -255,7 +292,7 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
               <button type="button" className="chip" aria-pressed={fmt === 'vertical'} disabled={state === 'gravando'} onClick={() => { setFmt('vertical'); setState('pronto'); }}>Vertical (stories)</button>
               <button type="button" className="chip" aria-pressed={fmt === 'horizontal'} disabled={state === 'gravando'} onClick={() => { setFmt('horizontal'); setState('pronto'); }}>Horizontal</button>
             </div>
-            <label className="share-card__check"><input type="checkbox" checked={music} disabled={state === 'gravando'} onChange={(e) => setMusic(e.target.checked)} /> Com trilha suave (gerada aqui)</label>
+            <label className="share-card__check"><input type="checkbox" checked={music} disabled={state === 'gravando'} onChange={(e) => setMusic(e.target.checked)} /> Com trilha épica (gerada aqui)</label>
             {state === 'gravando' ? (
               <p className="trailer__rec" role="status"><span className="session-pill__dot" aria-hidden="true" /> Gravando… {Math.round(progress * 100)}%. Deixe esta aba aberta e na frente.</p>
             ) : state === 'carregando' ? (

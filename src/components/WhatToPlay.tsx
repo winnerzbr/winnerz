@@ -12,7 +12,8 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
-import { MOODS, recommend, noteShown, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { MOODS, recommend, reachableGames, noteShown, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { vibesApi } from '../data/vibesApi';
 import { Icon } from './Icon';
 import { useBackdrop } from './Backdrop';
 
@@ -123,15 +124,19 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
     return () => { alive = false; };
   }, [path, catKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Clima dos jogos (comunidade, via IA): carrega o que existe e pede o que falta, em segundo plano.
+  const [vibeTick, setVibeTick] = useState(0);
+  useEffect(() => vibesApi.subscribe(() => setVibeTick((n) => n + 1)), []);
+  useEffect(() => { vibesApi.ensure(reachableGames(s, excludeJourneyId)); }, [s.copies.length, s.journeys.length, excludeJourneyId]); // eslint-disable-line react-hooks/exhaustive-deps
   // O que já apareceu nesta visita (em qualquer filtro) vai para o fim: trocar o filtro deve trazer outra cara.
   const seen = useRef(new Set<string>());
   const ideas = useMemo(() => {
     const base = path === 'alcance'
-      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined })
+      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined, vibe: vibesApi.get })
       : [...shuffle(wishIdeas(s, mood, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])];
     const fresh = base.filter((i) => !skipped.includes(i.game.id));
     return [...fresh.filter((i) => !seen.current.has(i.game.id)), ...fresh.filter((i) => seen.current.has(i.game.id))];
-  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed, vibeTick]); // eslint-disable-line react-hooks/exhaustive-deps
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
   useEffect(() => { if (idea) seen.current.add(idea.game.id); }, [idea?.game.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const bg = useBackdrop(idea?.game);

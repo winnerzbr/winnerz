@@ -133,6 +133,62 @@ async function narrate(user: string, body: Record<string, unknown>, res: Res) {
   return res.status(200).json({ text: said, used, limit: LIMIT() });
 }
 
+/* ---- Clima dos jogos: classificação em lote, guardada para todo mundo (migração 0044) -------------------- */
+
+const VIBES_SYSTEM = `Você classifica videogames pelo que a comunidade gamer costuma dizer deles (análises, fóruns, reputação geral).
+Para cada jogo da lista, devolva notas de 0 a 3:
+- relax: o quanto é tranquilo de jogar para descansar (3 = muito relaxante; 0 = nada).
+- challenge: o quanto é conhecido pela dificuldade ou por exigir habilidade (3 = famoso por ser difícil).
+- intensity: ritmo e tensão (3 = frenético, violento ou de terror; 0 = calmo).
+- story: peso da narrativa (3 = a história é o centro).
+- short: o quanto rende em sessões curtas de 20 a 30 minutos (3 = muito).
+E "note": UMA frase curta em português, neutra, sem spoiler, sobre como a comunidade vê o jogo (até 110 caracteres). Se não conhecer o jogo, use notas medianas (relax 1, challenge 1, intensity 1, story 1, short 1) e note vazia.
+Responda SÓ com JSON: {"games":[{"id":"...","relax":0,"challenge":0,"intensity":0,"story":0,"short":0,"note":"..."}]}`;
+
+type VibeIn = { id: string; title: string; year?: number; platforms?: string[]; genres?: string };
+const clamp3 = (v: unknown) => Math.max(0, Math.min(3, Math.round(Number(v) || 0)));
+
+async function vibes(user: string, body: Record<string, unknown>, res: Res) {
+  const c = db()!;
+  const list = (Array.isArray(body.games) ? body.games : []).slice(0, 25).map((g: any): VibeIn | null => (g && typeof g.id === 'string' && typeof g.title === 'string'
+    ? { id: g.id.slice(0, 80), title: g.title.slice(0, 120), year: Number.isFinite(g.year) ? g.year : undefined, platforms: Array.isArray(g.platforms) ? g.platforms.slice(0, 4).map(String) : undefined, genres: typeof g.genres === 'string' ? g.genres.slice(0, 120) : undefined }
+    : null)).filter((x: VibeIn | null): x is VibeIn => !!x);
+  if (!list.length) return res.status(400).json({ error: 'Nenhum jogo para classificar.' });
+  // Só os que ainda não têm clima (o servidor confere; o cliente não decide).
+  const ids = list.map((g) => g.id);
+  const have = await fetch(`${c.url}/rest/v1/game_vibes?select=game_id&game_id=in.(${ids.map((i) => `"${i.replace(/"/g, '')}"`).join(',')})`, { headers: c.headers });
+  if (!have.ok) return res.status(503).json({ error: 'Falta rodar a migração 0044 no Supabase.' });
+  const known = new Set(((await have.json()) as { game_id: string }[]).map((r) => r.game_id));
+  const todo = list.filter((g) => !known.has(g.id));
+  if (!todo.length) return res.status(200).json({ done: 0 });
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(new Date());
+  const r = await fetch(`${c.url}/rest/v1/rpc/vibes_reserve`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_day: day, p_limit: 12 }) });
+  const n = r.ok ? await r.json() : -1;
+  if (typeof n !== 'number') return res.status(429).json({ error: 'Por hoje, a classificação dos jogos já foi pedida muitas vezes. Amanhã continua.' });
+  const text = `Jogos:\n${todo.map((g) => `- id=${g.id} | ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` | ${g.platforms.join(', ')}` : ''}${g.genres ? ` | gêneros IGDB: ${g.genres}` : ''}`).join('\n')}`;
+  const ai = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: MODEL(), max_tokens: 2500, system: VIBES_SYSTEM, messages: [{ role: 'user', content: text }, { role: 'assistant', content: '{"games":[' }] }),
+  });
+  if (!ai.ok) return res.status(502).json({ error: aiError(ai.status, await ai.text()) });
+  const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
+  const said = '{"games":[' + (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+  const tryParse = (t: string): { games?: any[] } | null => { try { return JSON.parse(t); } catch { return null; } };
+  // Resposta cortada no limite: fecha no último jogo completo.
+  const parsed = tryParse(said) ?? tryParse(said.slice(0, said.lastIndexOf(']}') + 2)) ?? tryParse(said.slice(0, said.lastIndexOf('}') + 1) + ']}');
+  if (!parsed) return res.status(502).json({ error: 'A IA não respondeu no formato esperado. Tente de novo.' });
+  const okIds = new Set(todo.map((g) => g.id));
+  const rows = (parsed.games ?? []).filter((g) => g && okIds.has(String(g.id))).map((g) => ({
+    game_id: String(g.id), relax: clamp3(g.relax), challenge: clamp3(g.challenge), intensity: clamp3(g.intensity), story: clamp3(g.story), short: clamp3(g.short),
+    note: typeof g.note === 'string' ? g.note.slice(0, 140) : null, model: MODEL(), updated_at: new Date().toISOString(),
+  }));
+  if (!rows.length) return res.status(200).json({ done: 0 });
+  const w = await fetch(`${c.url}/rest/v1/game_vibes`, { method: 'POST', headers: { ...c.headers, Prefer: 'resolution=ignore-duplicates,return=minimal' }, body: JSON.stringify(rows) });
+  if (!w.ok) return res.status(502).json({ error: 'Não consegui guardar a classificação agora.' });
+  return res.status(200).json({ done: rows.length, vibes: rows });
+}
+
 export default async function handler(req: Req, res: Res) {
   try {
     res.setHeader('Cache-Control', 'no-store');
@@ -144,6 +200,7 @@ export default async function handler(req: Req, res: Res) {
 
     const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { kind?: string; image?: string; note?: string; game?: string; context?: string };
     if (body.kind === 'narrar') return narrate(user, body as Record<string, unknown>, res);
+    if (body.kind === 'vibes') return vibes(user, body as Record<string, unknown>, res);
     const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 

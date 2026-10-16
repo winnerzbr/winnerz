@@ -65,3 +65,14 @@ test('filtros restringem e ordenam; o pulado perde peso', () => {
   assert.equal(daySeed(now), daySeed(now + 3600000));
   assert.notEqual(daySeed(now), daySeed(now + 86400000));
 });
+
+test('o clima da comunidade manda nos filtros', () => {
+  const vibe = (id: string) => ({ tekken: { relax: 0, challenge: 3, intensity: 3, story: 0, short: 3, note: 'Luta exigente.' }, celeste: { relax: 1, challenge: 3, intensity: 1, story: 2, short: 3, note: 'Plataforma famoso pela dificuldade.' }, sim: { relax: 3, challenge: 1, intensity: 0, story: 0, short: 1, note: 'Calmo de construir.' } } as any)[id];
+  const ids = (m: any) => recommend(st, m, { now, hist: {}, seed: 3, vibe }).map((i) => i.game.id);
+  assert.ok(!ids('relaxar').includes('tekken') && !ids('relaxar').includes('celeste'), 'intenso e difícil não relaxam');
+  assert.equal(ids('relaxar')[0], 'sim');
+  assert.ok(ids('desafio').slice(0, 2).includes('celeste') && ids('desafio').includes('tekken'));
+  const r = recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe }).find((i) => i.game.id === 'celeste')!;
+  assert.ok(r.why.some((w) => w.text === 'Plataforma famoso pela dificuldade.'));
+  assert.ok(!ids('historia').includes('tekken'));
+});

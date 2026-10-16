@@ -29,6 +29,7 @@ export const MOODS = [
 ] as const;
 export type MoodId = (typeof MOODS)[number]['id'];
 
+export type Vibe = { relax: number; challenge: number; intensity: number; story: number; short: number; note?: string | null };
 export type Reason = { icon: string; text: string };
 export type Idea = {
   game: Game;
@@ -204,8 +205,9 @@ function candidates(s: State, excludeJourneyId: string | undefined, today: strin
   return out;
 }
 
-function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: number): { score: number; why: Reason[] } | null {
+function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: number, vibe?: Vibe): { score: number; why: Reason[] } | null {
   const why: Reason[] = []; let sc = 0;
+  const v = vibe;
   const add = (w: number, icon: string, text: string) => { sc += w; if (text) why.push({ icon, text }); };
   const g = c.game, d = c.dna, m = s.myGames[g.id];
   const tags = tagsOf(g);
@@ -256,27 +258,36 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
   const h = d.hours;
   switch (mood) {
     case 'pouco':
-      if (d.fits.short) add(2.5, 'relogio', 'Bom em sessões curtas: dá para parar a qualquer hora.');
+      if (v && v.short >= 2) add(2.5, 'relogio', v.note && v.short === 3 ? v.note : 'Rende em sessões curtas, pelo que a comunidade diz.');
+      else if (v && v.short === 0) return null;
+      else if (d.fits.short) add(2.5, 'relogio', 'Bom em sessões curtas: dá para parar a qualquer hora.');
       else if (h != null && h <= 8) add(1.5, 'relogio', `Curto: cerca de ${fmtHours(h)} do começo ao fim.`);
       else if (c.kind === 'andamento' && c.progress != null && c.progress >= 80) add(1, 'relogio', '');
       else sc -= 3;
       if (t.medianMinutes != null && t.medianMinutes <= 60 && d.fits.short) add(0.5, 'relogio', `Cabe numa sessão sua (costumam ter uns ${Math.round(t.medianMinutes)} min).`);
       break;
     case 'noite':
-      if (d.fits.long || (h != null && h >= 20)) add(2, 'play', d.fits.story ? 'Rende numa noite sem pressa, puxado pela história.' : 'Longo, bom para mergulhar com tempo.');
+      if (v && v.story >= 2 && v.short <= 1) add(2.5, 'play', v.note || 'Rende numa noite sem pressa, puxado pela história.');
+      else if (d.fits.long || (h != null && h >= 20)) add(2, 'play', d.fits.story ? 'Rende numa noite sem pressa, puxado pela história.' : 'Longo, bom para mergulhar com tempo.');
       else if (d.fits.short) sc -= 1.5;
       if (c.kind === 'pausado') add(1, 'play', '');
       break;
     case 'historia': {
       const strong = tags.some((x) => /rpg|visual novel|point-and-click|drama|mist[eé]rio|romance|narrativ|aventura gr[aá]fica/i.test(x));
-      if (strong) add(3, 'carta', 'Puxado pela história: gênero e temas indicam uma narrativa contínua.');
+      if (v && v.story <= 0) return null;
+      if (v && v.story >= 2) add(3 + (v.story - 2), 'carta', v.note || 'A história é o centro, pelo que a comunidade diz.');
+      else if (v && v.story === 1) add(1, 'carta', 'Tem história, mas ela não é o centro.');
+      else if (strong) add(3, 'carta', 'Puxado pela história: gênero e temas indicam uma narrativa contínua.');
       else if (d.fits.story) add(1.5, 'carta', 'Aventura: costuma ter uma história para seguir.');
       else return null;
       if (c.kind === 'andamento' && c.note) add(0.5, 'carta', '');
       break;
     }
     case 'desafio':
-      if (d.fits.horror || d.fits.relearn || tags.some((x) => /luta|estrat|t[aá]tic|souls|roguel|plataforma|tiro|corrida|arcade/i.test(x))) add(2.5, 'brilho', d.fits.relearn ? 'Cheio de sistemas para dominar.' : 'Pede reflexo e repetição: o tipo de jogo que testa a habilidade.');
+      if (v && v.challenge <= 0) return null;
+      if (v && v.challenge >= 2) add(3 + (v.challenge - 2), 'brilho', v.note || 'Conhecido pela dificuldade, pelo que a comunidade diz.');
+      else if (v && v.challenge === 1) add(0.8, 'brilho', 'Pede alguma habilidade, sem ser dos mais difíceis.');
+      else if (d.fits.horror || d.fits.relearn || tags.some((x) => /luta|estrat|t[aá]tic|souls|roguel|plataforma|tiro|corrida|arcade/i.test(x))) add(2.5, 'brilho', d.fits.relearn ? 'Cheio de sistemas para dominar.' : 'Pede reflexo e repetição: o tipo de jogo que testa a habilidade.');
       else if (h != null && h >= 40) add(1, 'brilho', 'Longo e exigente para ir até o fim.');
       else return null;
       if (c.journeyId && t.lastFeeling.get(c.journeyId) === 'Quero continuar') add(0.5, 'brilho', '');
@@ -285,8 +296,15 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
       const r = t.rest.get(g.id) ?? 0;
       if (r > 0) add(3, 'coracao', 'Já te descansou antes, quando você jogou para descansar.');
       else if (r < 0) return null;
-      if (d.fits.light) add(1.5, 'lampada', 'Leve: dá para jogar sem pensar muito.');
-      else if (d.fits.horror || d.fits.relearn) sc -= 2;
+      if (v) {
+        // A comunidade manda: intenso ou difícil demais não é para relaxar (a não ser que já tenha te descansado).
+        if ((v.intensity >= 3 || v.challenge >= 3 || (v.relax === 0 && v.intensity >= 2)) && r <= 0) return null;
+        if (v.relax >= 2) add(2 + (v.relax - 2), 'lampada', v.note || 'Tranquilo de jogar, pelo que a comunidade diz.');
+        else if (v.relax === 1 && v.intensity <= 1) add(0.6, 'lampada', 'Calmo, mesmo sem ser dos mais relaxantes.');
+        else sc -= 1.5;
+      } else if (d.fits.light) add(1.5, 'lampada', 'Leve: dá para jogar sem pensar muito.');
+      else if (d.fits.horror || d.fits.relearn || tags.some((x) => /tiro|shooter|luta|terror|souls/i.test(x))) sc -= 2.5;
+      else sc -= 0.5;
       if (c.kind === 'andamento' && c.progress != null && c.progress >= 90) sc += 0.5;
       if (t.period != null && c.lastAt && parts(c.lastAt).h >= 18 && t.period === 3) add(0.3, 'relogio', `Você costuma jogar ${PERIOD[3]}; este já foi companhia nesse horário.`);
       break;
@@ -319,15 +337,20 @@ const metaOf = (c: Cand): string => {
 };
 const monthsAgo = (iso: string) => { const dd = Math.floor((Date.now() - Date.parse(iso)) / 86400000); return dd <= 0 ? 'hoje' : dd === 1 ? 'ontem' : dd < 30 ? `há ${dd} dias` : `há ${monthsWord(dd)}`; };
 
+/** Os jogos ao alcance (para pedir o clima dos que faltam). */
+export function reachableGames(s: State, excludeJourneyId?: string, now = Date.now()): Game[] {
+  return candidates(s, excludeJourneyId, new Date(now).toISOString().slice(0, 10), now).map((c) => c.game);
+}
+
 /** As ideias "ao meu alcance", pontuadas e explicadas, na ordem do dia. */
-export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number } = {}): Idea[] {
+export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined } = {}): Idea[] {
   const now = opts.now ?? Date.now();
   const today = opts.today ?? new Date(now).toISOString().slice(0, 10);
   const hist = opts.hist ?? loadHist();
   const t = tasteProfile(s);
   const cands = candidates(s, opts.excludeJourneyId, today, now);
   const r = rnd(opts.seed ?? daySeed(now));
-  const scored = cands.map((c) => { const x = score(c, mood, t, s, hist, now); return x && { c, ...x, jitter: r() }; }).filter((x): x is NonNullable<typeof x> => !!x);
+  const scored = cands.map((c) => { const x = score(c, mood, t, s, hist, now, opts.vibe?.(c.game.id)); return x && { c, ...x, jitter: r() }; }).filter((x): x is NonNullable<typeof x> => !!x);
   if (mood === 'surpresa') scored.sort((a, b) => a.jitter - b.jitter);
   else scored.sort((a, b) => b.score + b.jitter * 1.2 - (a.score + a.jitter * 1.2));
   // Variedade: evita duas ideias seguidas do mesmo gênero principal.

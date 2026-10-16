@@ -742,7 +742,7 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark; partDone?: PartMark[] }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
@@ -751,7 +751,7 @@ export const actions = {
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
     const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
     const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined,
-      partMarks: data.partTo ? { ...ses.partMarks, to: data.partTo } : ses.partMarks };
+      partMarks: data.partTo || data.partDone?.length ? { ...ses.partMarks, ...(data.partTo ? { to: data.partTo } : {}), ...(data.partDone?.length ? { done: data.partDone.slice(0, 60) } : {}) } : ses.partMarks };
     if (ses.intent && data.intentMet) track(`sessao.intencao.${ses.intent}.${data.intentMet}`);
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
     const goalText = done.goal ? `Objetivo: ${done.goal}${done.goalDone === 'sim' ? ' (cumprido)' : done.goalDone === 'quase' ? ' (quase)' : done.goalDone === 'nao' ? ' (fica para a próxima)' : ''}.` : '';
@@ -829,6 +829,12 @@ export const actions = {
     dispatch({ type: 'session.update', session: { ...ses, partMarks } });
     const h = state.histories.find((x) => x.id === ses.historyId);
     if (mark && part && h && h.part !== part.id) actions.setHistoryPart(h.id, part, parts);
+  },
+
+  /** Jogo aberto (S2): a marca vai para o último item feito, sem mexer no registro de chegadas (que é de jogo linear). */
+  markOpenPart(historyId: ID, partId: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (h && h.part !== partId) dispatch({ type: 'history.update', history: { ...h, part: partId } });
   },
 
   /** "Hoje é para…": a intenção da sessão aberta (sem valor, tira). */

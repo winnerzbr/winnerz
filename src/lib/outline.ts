@@ -173,3 +173,27 @@ export function partsAround(parts: OutlinePart[], cur: OutlinePart | null, ahead
   const i = cur ? sorted.findIndex((p) => p.id === cur.id) : -1;
   return i < 0 ? sorted.slice(0, ahead + 1) : sorted.slice(i, i + 1 + ahead);
 }
+
+/* ---- S2: jogos abertos (etapas, áreas, chefes) ---------------------------------------------------------------- */
+
+/** Jogos sem um caminho único: o fim da sessão pergunta o que você fez, e não onde parou. */
+export const isOpenWorld = (o?: { structure?: Structure | null } | null) => !!o?.structure && ['etapas', 'areas', 'chefes'].includes(o.structure);
+
+/** O que já foi feito nas sessões da História (ids da lista). */
+export function doneIds(sessions: { partMarks?: { done?: { id: string }[] } }[]): Set<string> {
+  return new Set(sessions.flatMap((x) => x.partMarks?.done ?? []).map((m) => m.id));
+}
+
+/** Progresso de jogo aberto: a parte da lista já feita (100 só com tudo feito). */
+export function openProgress(parts: { id: string }[], done: Set<string>): number {
+  if (!parts.length) return 0;
+  const n = parts.filter((p) => done.has(p.id)).length;
+  return n >= parts.length ? 100 : Math.min(99, Math.round((n / parts.length) * 100));
+}
+
+/** Os próximos itens ainda não feitos, a partir de onde você está (atalhos do "O que você fez hoje?"). */
+export function nextOpen(parts: OutlinePart[], cur: OutlinePart | null, done: Set<string>, n = 5): OutlinePart[] {
+  const sorted = [...parts].sort((a, b) => a.pct - b.pct).filter((p) => !done.has(p.id));
+  const from = cur ? sorted.filter((p) => p.pct >= cur.pct) : sorted;
+  return [...from, ...sorted.filter((p) => !from.includes(p))].slice(0, n);
+}

@@ -22,9 +22,9 @@ import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { Previously, CapsuleSheet } from '../components/Retomada';
 import { GoalCard, StopCard } from '../components/Outline';
-import { PartPicker, StartPartCard } from '../components/PartPicker';
+import { DonePicker, PartPicker, StartPartCard } from '../components/PartPicker';
 import { useOutline } from '../data/outlineApi';
-import { partAt } from '../lib/outline';
+import { doneIds, isOpenWorld, openProgress, partAt } from '../lib/outline';
 import type { Game, History, PartMark } from '../data/types';
 import type { OutlinePart } from '../lib/outline';
 import { recapFor, wantsRecap } from '../lib/recap';
@@ -258,7 +258,7 @@ function Elapsed({ since }: { since: string }) {
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
-type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark };
+type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark; partDone?: PartMark[] };
 
 /**
  * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
@@ -290,20 +290,41 @@ function FinishForm({ game, history, onSavePhoto, progress, startedAt, goal, int
   const [shot, setShot] = useState<Blob | null>(null);
   const [keepShot, setKeepShot] = useState(true);
   const choose = (part: OutlinePart, src: NonNullable<PartMark['src']>) => { setChosen({ part, src }); setWhere(part.name); setP(part.pct); };
+  // S2: jogo aberto ("O que você fez hoje?"): marca várias coisas; o progresso é a parte da lista já feita.
+  const open = isOpenWorld(outline) && parts.length > 1;
+  const st = useStore((x) => x);
+  const before = open ? doneIds(sessionsOf(st, history.id)) : new Set<string>();
+  const [picked, setPicked] = useState<{ part: OutlinePart; src: NonNullable<PartMark['src']> }[]>([]);
+  const [find, setFind] = useState('');
+  const toggle = (part: OutlinePart, src: NonNullable<PartMark['src']>) => {
+    const next = picked.some((x) => x.part.id === part.id) ? picked.filter((x) => x.part.id !== part.id) : [...picked, { part, src }];
+    setPicked(next);
+    setP(next.length ? openProgress(parts, new Set([...before, ...next.map((x) => x.part.id)])) : progress);
+  };
+  const doneText = picked.map((x) => x.part.name).join(', ');
   const typeWhere = (t: string) => { setWhere(t); if (chosen && t.trim() !== chosen.part.name) { setChosen(null); setP(progress); } };
-  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined,
-    partTo: chosen ? { id: chosen.part.id, name: chosen.part.name, src: chosen.src } : undefined });
+  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: (open && doneText ? `Fez: ${doneText}`.slice(0, 140) : where.trim()) || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined,
+    partTo: !open && chosen ? { id: chosen.part.id, name: chosen.part.name, src: chosen.src } : undefined,
+    partDone: open && picked.length ? picked.map((x) => ({ id: x.part.id, name: x.part.name, src: x.src })) : undefined });
   const close = (fn: (d: FinishData) => void) => {
     const d = data();
-    if (chosen && outline) actions.setHistoryPart(history.id, { id: chosen.part.id, pct: chosen.part.pct }, parts);
-    if (shot && keepShot) onSavePhoto(shot, where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei');
+    if (!open && chosen && outline) actions.setHistoryPart(history.id, { id: chosen.part.id, pct: chosen.part.pct }, parts);
+    if (open && picked.length) actions.markOpenPart(history.id, [...picked].sort((a, b) => b.part.pct - a.part.pct)[0].part.id);
+    const label = open ? (doneText ? `Hoje: ${doneText}`.slice(0, 120) : 'Onde parei') : where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei';
+    if (shot && keepShot) onSavePhoto(shot, label);
     fn(d);
   };
   return (
     <form className="finish" onSubmit={(e) => { e.preventDefault(); close(onFinish); }}>
       <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
       <p className="finish__dur mono">{minutes ? <>Você jogou <b>{durLabel(minutes)}</b></> : 'Duração não calculada'}<button type="button" className="finish__fix" onClick={() => setMore(true)}>corrigir</button></p>
-      {outline && parts.length > 1 ? (
+      {open && outline ? (
+        <>
+          <span className="finish__label">O que você fez hoje? <span className="faint">({before.size} de {parts.length} feitos antes)</span></span>
+          <DonePicker game={game} outline={outline} cur={cur} done={before} picked={picked} onToggle={toggle} text={find} onText={setFind} onPhoto={setShot} />
+          {shot && <label className="pp__keep"><input type="checkbox" checked={keepShot} onChange={(e) => setKeepShot(e.target.checked)} /> Guardar a foto como momento</label>}
+        </>
+      ) : outline && parts.length > 1 ? (
         <>
           <span className="finish__label">Onde você parou?</span>
           <PartPicker game={game} history={history} outline={outline} cur={cur} chosen={chosen?.part ?? null} text={where} onText={typeWhere} onChoose={choose} mode="fim" onPhoto={setShot}

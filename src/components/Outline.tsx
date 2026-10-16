@@ -23,9 +23,33 @@ function shownName(p: OutlinePart, i: number, ahead: boolean, reveal: boolean, o
 }
 
 /** De onde veio a lista: o selo "Inferido · confira" do rascunho da IA, as confirmações e o crédito da fonte. */
+/** "Tenho o link da wiki": cola o link da página de capítulos, missões, chefes ou do detonado, e a IA monta a lista. */
+export function WikiLink({ game, replacing, onClose }: { game: Game; replacing?: boolean; onClose?: () => void }) {
+  const [url, setUrl] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const send = async () => {
+    if (!url.trim()) return;
+    setBusy(true); setErr('');
+    try { await outlineApi.fromLink(game.id, url); onClose?.(); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu agora.'); } finally { setBusy(false); }
+  };
+  return (
+    <form className="ol-link" onSubmit={(e) => { e.preventDefault(); void send(); }}>
+      <label className="ol-link__label" htmlFor={`wl-${game.id}`}>Link da página {replacing ? 'certa ' : ''}de capítulos, missões, chefes ou do detonado</label>
+      <div className="ol-link__row">
+        <input id={`wl-${game.id}`} className="field" type="url" inputMode="url" placeholder="https://….fandom.com/wiki/…" value={url} onChange={(e) => setUrl(e.target.value)} maxLength={300} disabled={busy} />
+        <button className="btn primary sm" disabled={busy || !url.trim()}>{busy ? 'Lendo a página…' : 'Montar pela página'}</button>
+      </div>
+      <small className="faint">Fandom, Wikipedia, wiki.gg, Fextralife, GameFAQs, IGN, PowerPyx e outros guias. A IA lê só essa página{replacing ? ' e troca o rascunho atual' : ''}; conta 1 no seu limite mensal de IA. Leva até um minuto.</small>
+      {err && <small className="form-error" role="alert">{err}</small>}
+    </form>
+  );
+}
+
 export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: GameOutline; onEdit?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [link, setLink] = useState(false);
   if (outline.origin !== 'ia') return null;
   const n = outline.confirms ?? 0;
   const confirm = async () => { setBusy(true); setErr(''); try { await outlineApi.confirm(game.id, outline.version); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu.'); } finally { setBusy(false); } };
@@ -40,8 +64,10 @@ export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: 
         <span className="ol-prov__acts">
           {outline.mine ? <span className="faint">Você confirmou</span> : <button className="btn ghost sm" disabled={busy} onClick={() => void confirm()}><Icon name="check" size={13} />Está certo</button>}
           {onEdit && <button className="btn quiet sm" onClick={onEdit}>Corrigir</button>}
+          <button className="btn quiet sm" aria-expanded={link} onClick={() => setLink(!link)}><Icon name="link" size={13} />Tenho o link da wiki</button>
         </span>
       )}
+      {link && <WikiLink game={game} replacing onClose={() => setLink(false)} />}
       {err && <small className="form-error" role="alert">{err}</small>}
     </div>
   );
@@ -49,7 +75,7 @@ export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: 
 
 export function OutlineStrip({ game, history }: { game: Game; history: History }) {
   const o = useOutline(game.id);
-  const [open, setOpen] = useState<false | 'list' | 'edit'>(false);
+  const [open, setOpen] = useState<false | 'list' | 'edit' | 'link'>(false);
   const empty = !!o && !o.parts.length;
   // Jogo sem capítulos: o servidor monta o rascunho sozinho (uma vez por jogo).
   useEffect(() => { if (empty) void outlineApi.auto(game.id); }, [empty, game.id]);
@@ -70,8 +96,10 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
       <div className="ol-strip ol-strip--empty">
         <p className="muted">Este jogo ainda não tem a lista de capítulos, missões ou áreas.{why ? ` ${why}` : ''}{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
         {o.admin && <button className="btn quiet sm" onClick={() => void outlineApi.auto(game.id, true)}><Icon name="brilho" size={14} />Tentar com a IA de novo</button>}
+        {o.canEdit && <button className="btn quiet sm" aria-expanded={open === 'link'} onClick={() => setOpen(open === 'link' ? false : 'link')}><Icon name="link" size={14} />Tenho o link da wiki</button>}
         {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen('edit')}><Icon name="mais" size={14} />Montar os capítulos</button>}
-        {open && <OutlineSheet game={game} history={history} outline={o} startEditing onClose={() => setOpen(false)} />}
+        {open === 'link' && <WikiLink game={game} onClose={() => setOpen(false)} />}
+        {open === 'edit' && <OutlineSheet game={game} history={history} outline={o} startEditing onClose={() => setOpen(false)} />}
       </div>
     );
   }
@@ -91,7 +119,7 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
         <button className="btn quiet sm" onClick={() => setOpen('list')}>{cur ? 'Mudar' : 'Escolher onde estou'}</button>
       </div>
       <OutlineSource game={game} outline={o} onEdit={() => setOpen('edit')} />
-      {open && <OutlineSheet game={game} history={history} outline={o} startEditing={open === 'edit'} onClose={() => setOpen(false)} />}
+      {(open === 'list' || open === 'edit') && <OutlineSheet game={game} history={history} outline={o} startEditing={open === 'edit'} onClose={() => setOpen(false)} />}
     </div>
   );
 }

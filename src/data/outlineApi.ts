@@ -52,11 +52,30 @@ const AI_SEED: Record<string, OutlinePart[]> = {
     { id: 'c7', name: 'O resgate final', pct: 92, minutes: 45, stop: 'longe', spoiler: true, group: 'Nebulosa Sombria', kind: 'chefe' },
   ],
 };
+// Demonstração de jogo aberto (S2): etapas por região, com áreas, masmorras e chefes.
+const OPEN_SEED: Record<string, OutlinePart[]> = {
+  elden: [
+    { id: 'e1', name: 'Limgrave', pct: 0, group: 'Limgrave', kind: 'área' },
+    { id: 'e2', name: 'Margit, the Fell Omen', pct: 6, group: 'Limgrave', kind: 'chefe' },
+    { id: 'e3', name: 'Stormveil Castle', pct: 9, group: 'Limgrave', kind: 'masmorra' },
+    { id: 'e4', name: 'Godrick the Grafted', pct: 13, group: 'Limgrave', kind: 'chefe' },
+    { id: 'e5', name: 'Liurnia of the Lakes', pct: 18, group: 'Liurnia', kind: 'área' },
+    { id: 'e6', name: 'Raya Lucaria Academy', pct: 24, group: 'Liurnia', kind: 'masmorra' },
+    { id: 'e7', name: 'Rennala, Queen of the Full Moon', pct: 28, group: 'Liurnia', kind: 'chefe' },
+    { id: 'e8', name: 'Caelid', pct: 32, group: 'Caelid', kind: 'área' },
+    { id: 'e9', name: 'Starscourge Radahn', pct: 38, group: 'Caelid', kind: 'chefe', spoiler: true },
+    { id: 'e10', name: 'Altus Plateau', pct: 45, group: 'Altus', kind: 'área' },
+    { id: 'e11', name: 'Leyndell, Royal Capital', pct: 55, group: 'Leyndell', kind: 'área' },
+    { id: 'e12', name: 'Morgott, the Omen King', pct: 62, group: 'Leyndell', kind: 'chefe', spoiler: true },
+  ],
+};
 const dkey = (g: string) => `wz.demo.outline.${g}`;
 function demoGet(gameId: string): GameOutline {
   try { const v = JSON.parse(localStorage.getItem(dkey(gameId)) || 'null'); if (v) return { ...v, canEdit: true }; } catch { /* sem armazenamento */ }
   if (AI_SEED[gameId]) return { gameId, parts: AI_SEED[gameId], version: 1, updatedAt: '2026-10-16T12:00:00Z', edits: 0, editors: 0, canEdit: true, origin: 'ia', structure: 'fases', confirms: 1, confirmed: false, mine: false, job: 'feito',
     sources: [{ label: 'astrobot wiki (Fandom)', url: 'https://astrobot.fandom.com/wiki/Astro_Bot', license: 'CC BY-SA' }] };
+  if (OPEN_SEED[gameId]) return { gameId, parts: OPEN_SEED[gameId], version: 1, updatedAt: '2026-10-16T12:00:00Z', edits: 0, editors: 0, canEdit: true, origin: 'ia', structure: 'etapas', confirms: 0, confirmed: false, mine: false, job: 'feito',
+    sources: [{ label: 'eldenring.wiki.fextralife.com', url: 'https://eldenring.wiki.fextralife.com/Bosses' }] };
   const parts = SEED[gameId] ?? [];
   return { gameId, parts, version: parts.length ? 3 : 0, updatedAt: parts.length ? '2026-09-30T20:00:00Z' : null, edits: parts.length ? 3 : 0, editors: parts.length ? 2 : 0, canEdit: true, origin: 'comunidade', confirmed: true };
 }
@@ -133,6 +152,25 @@ export const outlineApi = {
       }
       return await outlineApi.get(gameId, true);
     } catch { status.set(gameId, { state: 'erro', reason: 'Sem conexão com o servidor.' }); return cache.get(gameId) ?? null; } finally { working.delete(gameId); emit(); }
+  },
+  /**
+   * "Tenho o link da wiki": a IA monta a lista lendo só a página indicada (wikis e guias conhecidos). Conta 1 no
+   * limite mensal de IA da pessoa e só substitui uma lista que também veio da IA (migração 0062).
+   */
+  async fromLink(gameId: string, url: string): Promise<GameOutline | null> {
+    if (!supa()) {
+      await new Promise((ok) => setTimeout(ok, 700));
+      throw new Error('Na demonstração a IA não lê links. Com a conta, a lista sai da página que você colar.');
+    }
+    const { accessToken } = await import('./supabaseAdapter');
+    {
+      const r = await fetch('/api/retomada', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'capitulos', game: gameId, url: url.trim() }) });
+      const j = (await r.json().catch(() => ({}))) as { state?: string; reason?: string; error?: string; diag?: string };
+      if (!r.ok) throw new Error(j.error ?? 'O servidor não respondeu agora.');
+      if (j.state !== 'pronto') throw new Error(`${j.reason ?? 'Não deu para montar a lista com essa página.'}${j.diag ? ` (${j.diag})` : ''}`);
+      status.delete(gameId);
+      return await outlineApi.get(gameId, true);
+    }
   },
   /**
    * S1: em que item da lista a foto da tela está. A IA só escolhe entre os itens da lista; a pessoa confirma.

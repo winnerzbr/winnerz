@@ -423,6 +423,34 @@ async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fr
   return { game: stored, fresh: !!translated || !original };
 }
 
+/* Chegada ------------------------------------------------------------------------------ */
+/** Plataformas que a Chegada aceita (nomes do IGDB), para não montar consulta com texto qualquer. */
+const ARRIVAL_PLATFORMS = new Set(['PlayStation 5', 'PlayStation 4', 'PlayStation 3', 'PlayStation 2', 'PlayStation', 'PlayStation Portable', 'PlayStation Vita',
+  'Nintendo Switch 2', 'Nintendo Switch', 'Wii U', 'Wii', 'Nintendo GameCube', 'Nintendo 64', 'Super Nintendo Entertainment System', 'Nintendo Entertainment System',
+  'Nintendo 3DS', 'Nintendo DS', 'Game Boy Advance', 'Game Boy', 'Xbox Series X|S', 'Xbox One', 'Xbox 360', 'Xbox', 'PC (Microsoft Windows)',
+  'Sega Mega Drive/Genesis', 'Sega Master System/Mark III', 'Dreamcast', 'Sega Saturn', 'Atari 2600', 'Arcade', 'Android', 'iOS']);
+
+/** Mantém a ordem em que o IGDB respondeu (o cache devolve em outra ordem). */
+const inOrder = (rows: any[], out: any[]) => { const at = new Map(rows.map((r: any, i: number) => [r.id, i])); return out.sort((a: any, b: any) => (at.get(a.igdb_id) ?? 99) - (at.get(b.igdb_id) ?? 99)); };
+
+/** Os clássicos das plataformas marcadas: os mais bem avaliados por muita gente. Sem plataforma, a grade de sempre. */
+async function arrivalClassics(raw: string) {
+  const names = raw.split(',').map((x) => x.trim()).filter((x) => ARRIVAL_PLATFORMS.has(x)).slice(0, 12);
+  if (!names.length) return welcomeGames();
+  const plats = await igdb('platforms', `fields id,name; where name = (${names.map((n) => JSON.stringify(n)).join(',')}); limit 50;`);
+  const ids = plats.map((p: any) => p.id).filter(Number.isInteger);
+  if (!ids.length) return welcomeGames();
+  const rows = await igdb('games', `fields ${LIGHT_FIELDS},total_rating; where platforms = (${ids.join(',')}) & total_rating_count >= 60 & cover != null & version_parent = null & parent_game = null; sort total_rating desc; limit 30;`);
+  return inOrder(rows, await cacheRows(rows));
+}
+
+/** Os lançamentos mais aguardados: quantas pessoas marcaram no IGDB que esperam o jogo (hypes). */
+async function arrivalUpcoming() {
+  const now = Math.floor(Date.now() / 1000);
+  const rows = await igdb('games', `fields ${LIGHT_FIELDS},hypes; where hypes >= 5 & cover != null & version_parent = null & parent_game = null & (first_release_date > ${now} | first_release_date = null); sort hypes desc; limit 16;`);
+  return inOrder(rows, await cacheRows(rows));
+}
+
 /* Explorar ---------------------------------------------------------------------------- */
 const PLATFORM_NAMES = ['PlayStation 5', 'PlayStation 4', 'PlayStation 3', 'PlayStation 2', 'PlayStation', 'PlayStation Portable', 'PlayStation Vita',
   'Nintendo Switch 2', 'Nintendo Switch', 'Wii U', 'Wii', 'Nintendo GameCube', 'Nintendo 64', 'Super Nintendo Entertainment System', 'Nintendo 3DS', 'Nintendo DS', 'Game Boy Advance',
@@ -751,6 +779,11 @@ export default async function handler(req: Req, res: Res) {
       if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
       res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
       return res.status(200).json(r.game);
+    }
+
+    if (req.query.chegada === 'classicos' || req.query.chegada === 'lancamentos') {
+      res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
+      return res.status(200).json(req.query.chegada === 'classicos' ? await arrivalClassics(String(req.query.p ?? '')) : await arrivalUpcoming());
     }
 
     if (req.query.welcome) {

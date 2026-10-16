@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link } from '../lib/router';
-import { useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
+import { Link, navigate } from '../lib/router';
+import { actions, useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
 import type { Game, State } from '../data/types';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
@@ -14,7 +14,7 @@ import { localDay } from '../lib/dates';
 import { radarGames } from './Radar';
 import { awardsApi, phaseOf, publicAt, type Award } from '../data/awards';
 import { isNewcomer } from '../lib/welcome';
-import { Welcome } from './Welcome';
+import { chaptersLeft } from '../lib/arrival';
 import { StopLine } from '../components/Comeback';
 
 const TZ = 'America/Sao_Paulo';
@@ -164,10 +164,32 @@ function AwardsNotice({ award }: { award: Award | null }) {
   );
 }
 
-/** Quem acabou de chegar vê as boas-vindas; os outros, o Início de sempre. Decidido ao abrir a página. */
+/** Quem acabou de chegar vai para a Chegada (uma vez); os outros, o Início de sempre. Decidido ao abrir a página. */
 export function Home() {
-  const [welcome, setWelcome] = useState(() => isNewcomer(getState()));
-  return welcome ? <Welcome onDone={() => setWelcome(false)} /> : <HomeDefault />;
+  const [arrive] = useState(() => { const s = getState(); return isNewcomer(s) && !s.prefs.chegada; });
+  useEffect(() => { if (arrive) navigate('/chegada', { replace: true }); }, [arrive]);
+  return arrive ? null : <HomeDefault />;
+}
+
+/** "Continuar a chegada": quem parou no meio vê os emblemas que faltam. */
+function ArrivalResume() {
+  const c = useStore((x) => x.prefs.chegada);
+  if (!c || c.fim) return null;
+  const left = chaptersLeft(c.passo);
+  return (
+    <div className="page arrive-wrap"><section className="arrive-card" aria-labelledby="arrive-t">
+      <div className="arrive-card__ems" aria-hidden="true">{left.map((x) => <img key={x.key} src={x.img} alt="" />)}</div>
+      <div className="arrive-card__txt">
+        <span className="kicker kicker--now">Sua chegada</span>
+        <b id="arrive-t">{left.length === 1 ? `Falta só ${left[0].label}.` : `Faltam ${left.length} partes: ${left.map((x) => x.label).join(', ')}.`}</b>
+        <span className="muted">Tudo o que você escolheu ficou guardado. Continue de onde parou.</span>
+      </div>
+      <div className="arrive-card__acts">
+        <Link className="btn now" to={`/chegada?passo=${c.passo}`}>Continuar a chegada</Link>
+        <button className="btn quiet sm" onClick={() => actions.setPrefs({ chegada: { ...c, fim: true }, welcomeDone: true })}>Dispensar</button>
+      </div>
+    </section></div>
+  );
 }
 
 function HomeDefault() {
@@ -195,6 +217,7 @@ function HomeDefault() {
 
   return (
     <main className="home">
+      <ArrivalResume />
       {j && game && h ? (
         <section className="hero on-photo" aria-labelledby="hero-title">
           <Backdrop game={game} className="hero__bg kb" />

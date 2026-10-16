@@ -26,7 +26,6 @@ import { CommandPalette } from './components/CommandPalette';
 import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { Home } from './pages/Home';
-import { Welcome } from './pages/Welcome';
 import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
 import { MessagesPage } from './pages/Messages';
@@ -75,13 +74,17 @@ import { invitesApi, pendingInvite, setPendingInvite } from './data/invitesApi';
 import { AwardsRevealPage } from './pages/AwardsReveal';
 
 const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.AlbumPage })));
+const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default: m.ArrivalPage })));
 const StudioAlbumPage = lazy(() => import('./pages/StudioAlbum').then((m) => ({ default: m.StudioAlbumPage })));
 const lazyPage = (node: ReactNode) => <Suspense fallback={<main className="page pad"><p className="faint">Carregando…</p></main>}>{node}</Suspense>;
 
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
-  if (match('/boas-vindas', path)) return <Welcome standalone />;
+  if (match('/chegada', path) || match('/boas-vindas', path)) {
+    const n = Number(new URLSearchParams(path.split('?')[1] ?? '').get('passo'));
+    return <Suspense fallback={<div className="boot" aria-busy="true" />}><ArrivalPage start={Number.isInteger(n) && n >= 0 && n < 14 ? n : undefined} /></Suspense>;
+  }
   if (match('/jornada', path)) return <JourneyIndex />;
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
@@ -199,7 +202,7 @@ export function App() {
   useEffect(() => { if (!ready) return; const t = setTimeout(() => { void backfillGameFacts(); }, 5000); return () => clearTimeout(t); }, [ready]);
 
   // Sessão e apresentação da revelação ocupam a tela toda, sem o menu do site.
-  const isSession = path.startsWith('/sessao') || path.startsWith('/eventos/awards/revelar');
+  const isSession = path.startsWith('/sessao') || path.startsWith('/eventos/awards/revelar') || path.startsWith('/chegada') || path.startsWith('/boas-vindas');
 
   // Overlay do OBS: só o cartão, fundo transparente, sem menu (não espera os seus dados carregarem).
   const ovl = match('/overlay/:k', path);

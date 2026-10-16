@@ -49,7 +49,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências">
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -162,6 +162,12 @@ export function Preferences() {
         <SnipLinks />
         <h3 className="prefs__sub" id="bloqueios">Pessoas bloqueadas e silenciadas</h3>
         <BlockedList />
+      </section>
+
+      <section className="prefs__section" aria-labelledby="chegada">
+        <h2 id="chegada" className="t">A chegada</h2>
+        <p className="muted prefs__p">O passeio da primeira visita: Coleção, Jornada, Jogos, Comunidade e Álbum, em uns 5 minutos. Rever não apaga nada; o que você escolher de novo se soma ao que já tem.</p>
+        <Link className="btn ghost" to="/chegada?passo=1">Rever a chegada</Link>
       </section>
 
       <section className="prefs__section" aria-labelledby="dados">

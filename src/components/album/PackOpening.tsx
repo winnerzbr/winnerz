@@ -13,9 +13,11 @@ import { AURORA, burst, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
 type Phase = 'sealed' | 'opening' | 'torn' | 'rising' | 'fanned' | 'ceremony' | 'done';
 interface Card { el: HTMLButtonElement; d: Drawn; open: boolean; base: { x: number; y: number; r: number } }
 
-export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, onClose }: {
+export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, onClose, labels }: {
   pack: Pack; stickers: Record<string, Sticker>; sections: Record<string, string>; more: number;
   onPaste: (contents: Drawn[]) => void; onNext: () => void; onClose: () => void;
+  /** Textos dos botões quando o pacote abre fora da página de Pacotes (na Chegada, por exemplo). */
+  labels?: { paste?: string; done?: string; later?: string };
 }) {
   const root = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('sealed');
@@ -193,7 +195,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
     <div className="pk" ref={root}>
       <div className="pk__wrap">
         <div className="pk__intro">
-          <span className="alb-kick">{pack.kind === 'prisma' ? 'Pacote especial' : 'Pacote'}{pack.game ? ` · ${pack.game.title}` : pack.origin === 'memoria' ? ' · memória' : ''}</span>
+          <span className="alb-kick">{pack.kind === 'prisma' ? 'Pacote especial' : 'Pacote'}{pack.game ? ` · ${pack.game.title}` : pack.origin === 'memoria' ? ' · memória' : pack.origin === 'boas_vindas' ? ' · boas-vindas' : ''}</span>
           <h2 className="t big">{phase === 'done' ? 'Pacote aberto' : 'Puxe a fita'}</h2>
           <p className="muted">{hint}</p>
           {err && <p className="awards__error" role="alert">{err}</p>}
@@ -201,9 +203,9 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
           <div className="pk__btns">
             {(phase === 'sealed' || phase === 'opening') && <button className="btn ghost" onClick={() => api.current?.quick()} disabled={phase === 'opening'}>Abrir sem puxar</button>}
             {phase === 'fanned' && <button className="btn ghost" onClick={() => api.current?.all()}>Revelar todas</button>}
-            {phase === 'done' && fresh > 0 && <button className="btn now" onClick={() => onPaste(result ?? [])}>Colar no álbum</button>}
+            {phase === 'done' && fresh > 0 && <button className="btn now" onClick={() => onPaste(result ?? [])}>{labels?.paste ?? 'Colar no álbum'}</button>}
             {phase === 'done' && more > 0 && <button className="btn ghost" onClick={onNext}>Abrir outro ({more})</button>}
-            {(phase === 'done' || phase === 'sealed') && <button className="btn quiet" onClick={onClose}>{phase === 'done' ? 'Ver pacotes' : 'Depois'}</button>}
+            {(phase === 'done' || phase === 'sealed') && <button className="btn quiet" onClick={onClose}>{phase === 'done' ? (labels?.done ?? 'Ver pacotes') : (labels?.later ?? 'Depois')}</button>}
           </div>
         </div>
         <div className="pk__stage">

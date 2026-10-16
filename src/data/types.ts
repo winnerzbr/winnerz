@@ -302,6 +302,10 @@ export interface Prefs {
   overlayNonce?: string;
   /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */
   welcomeDone?: boolean;
+  /** A Chegada (primeira visita em 15 telas): a tela onde parou, se terminou e o que ela precisa para continuar. */
+  chegada?: { passo: number; fim?: boolean; jogo?: ID | null; plataforma?: string | null; ups?: ID[]; at?: string };
+  /** Plataformas que a pessoa marcou na Chegada (os botões, como "PS5" ou "Game Pass"). */
+  plataformas?: string[];
   /** Escolhas da Comunidade (o banco lê daqui: profiles.prefs -> 'comunidade'). */
   comunidade?: CommunityPrefs;
   /** "Não encaixou" seguidos: a História e a última sessão em que a pessoa disse "continuar mesmo assim". */

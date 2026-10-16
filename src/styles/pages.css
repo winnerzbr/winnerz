@@ -816,3 +816,13 @@ a.session__back-link:hover { color: var(--ink); }
 .cinema__route svg { pointer-events: none; }
 @media (max-width: 760px) { .cinema__photo--inline { width: 48%; } }
 :root[data-theme='claro'] .hz__mk--today { background: var(--now); box-shadow: 0 0 18px 6px rgba(217, 130, 43, 0.45); }
+
+/* Início: "Continuar a chegada" */
+.arrive-wrap { padding-top: 20px; padding-bottom: 4px; }
+.arrive-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px 22px; align-items: center; margin: 0; padding: 18px 22px; border-radius: 20px; border: 1px solid var(--now-line); background: var(--now-bg); }
+.arrive-card__ems { display: flex; gap: 6px; }
+.arrive-card__ems img { width: 34px; height: 30px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,178,91,.35)); }
+.arrive-card__txt { display: grid; gap: 4px; }
+.arrive-card__txt b { font-size: 17px; }
+.arrive-card__acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+@media (max-width: 760px) { .arrive-card { grid-template-columns: 1fr; } }

@@ -12,7 +12,7 @@ import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 
 export type PackKind = 'onix' | 'prisma';
-export type PackOrigin = 'jornada' | 'memoria' | 'studio';
+export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas';
 export type PackState = 'retido' | 'fechado' | 'aberto' | 'desfeito' | 'negado';
 export interface AlbumPage { id: string; position: number; kicker: string; title: string; body: string; banner: string | null; legendary: boolean }
 export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[] }
@@ -83,6 +83,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/album_welcome_pack/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0057 no Supabase.');
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0056 no Supabase.');
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
@@ -183,6 +184,8 @@ export function useClosedPacks(): number {
   return useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f); }; }, () => (cache ? cache.packs.filter((p) => p.state === 'fechado').length : 0), () => 0);
 }
 export function resetAlbumCache() { cache = null; cacheErr = ''; emit(); }
+/** O estado do álbum agora (sem assinar mudanças). */
+export const albumNow = (): AlbumState | null => cache;
 
 export const albumApi = {
   async open(packId: string): Promise<Drawn[]> {
@@ -246,6 +249,27 @@ export const albumApi = {
     await new Promise((r) => setTimeout(r, 900));
     const st = await reloadAlbum().catch(() => null);
     return st?.packs.find((p) => p.historyId === historyId) ?? null;
+  },
+  /** O pacote de boas-vindas da Chegada (um por conta; criado na primeira vez). */
+  async welcome(): Promise<Pack> {
+    if (!supa()) {
+      const d = dLoad();
+      let p = d.packs.find((x) => x.origin === 'boas_vindas' && x.userHandle === 'voce');
+      if (!p) {
+        p = { id: `demo-k${rid()}`, kind: 'prisma', origin: 'boas_vindas', state: 'fechado', rule: null, reason: 'Boas-vindas ao WinnerZ', historyId: null, game: null,
+          contents: null, createdAt: new Date().toISOString(), openedAt: null, note: null, review: null, userHandle: 'voce', signals: {} };
+        d.packs.push(p); dSave(d); set(dView(d));
+      }
+      return p;
+    }
+    try {
+      const p = await rpc<Pack>('album_welcome_pack');
+      void reloadAlbum().catch(() => {});
+      return p;
+    } catch (e) {
+      if (e instanceof Error && /0053/.test(e.message)) throw new Error('Falta rodar a migração 0057 no Supabase.');
+      throw e;
+    }
   },
   /** Cofre: troca repetidas por uma figurinha que falta. Devolve a figurinha nova (que vai para a bandeja). */
   async vault(targetId: string, give: VaultGive): Promise<Sticker> {

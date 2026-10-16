@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { actions, useStore } from '../data/store';
 import { HANDLE_RE, profileApi } from '../data/profileApi';
 import { BrandMark } from './Brand';
 import { moderationApi, useModeration } from '../data/moderationApi';
+
+const ArrivalGate = lazy(() => import('../pages/Arrival').then((m) => ({ default: m.ArrivalGate })));
 
 /**
  * Primeiro acesso: antes de usar o site, a pessoa escolhe o @, que passa a ser o nome dela no site inteiro
@@ -20,7 +22,14 @@ export function NickGate({ children }: { children: ReactNode }) {
 
   if (need === undefined) return <div className="boot" aria-busy="true"><BrandMark width={64} title="WinnerZ" /></div>;
   if (!need) return <>{children}</>;
-  return <NickSetup suggestion={profile?.name ?? ''} onDone={() => setNeed(false)} />;
+  return <FirstAccess suggestion={profile?.name ?? ''} onDone={() => setNeed(false)} />;
+}
+
+/** Conta nova: a primeira tela da Chegada (o @). Quando a moderação pede outro @, a tela simples explica o motivo. */
+function FirstAccess({ suggestion, onDone }: { suggestion: string; onDone: () => void }) {
+  const modNotice = useModeration()?.notices.find((n) => n.kind === 'trocar_arroba');
+  if (modNotice) return <NickSetup suggestion={suggestion} onDone={onDone} />;
+  return <Suspense fallback={<div className="boot" aria-busy="true"><BrandMark width={64} title="WinnerZ" /></div>}><ArrivalGate suggestion={suggestion} onDone={onDone} /></Suspense>;
 }
 
 function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => void }) {

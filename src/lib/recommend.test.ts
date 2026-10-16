@@ -92,3 +92,11 @@ test('"Para relaxar" só com jogos tranquilos de verdade', () => {
   const st3 = { ...st2, sessions: [...st2.sessions, { id: 'r1', journeyId: 'jt', historyId: 'ht', startedAt: '2026-10-02T21:00:00-03:00', endedAt: '2026-10-02T22:00:00-03:00', intent: 'descansar', intentMet: 'sim' }] };
   assert.ok(recommend(st3, 'relaxar', { now, hist: {}, seed: 3, vibe }).some((i) => i.game.id === 'tlou'));
 });
+
+test('filtros extras se combinam', () => {
+  const ids = (extra: any) => recommend(st, 'surpresa', { now, hist: {}, seed: 3, extra }).map((i) => i.game.id).sort();
+  assert.deepEqual(ids({ platforms: ['PC'] }), ['sim']);
+  assert.deepEqual(ids({ status: ['andamento'] }), ['tlou']);
+  assert.deepEqual(ids({ length: ['curto'], platforms: ['PS5'] }), ['celeste', 'pyre', 'tekken']);
+  assert.deepEqual(ids({ genres: ['Luta', 'RPG'] }), ['pyre', 'tekken']);
+});

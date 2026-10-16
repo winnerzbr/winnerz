@@ -5575,3 +5575,19 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
   .what .what__title { font-size: 24px; line-height: 1; }
   .what .what__info { flex: 1 1 100%; }
 }
+/* "O que jogar hoje?": o caminho (abas) separado do momento e dos filtros extras */
+.what__filters { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.what__flabel { font: 500 11.5px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.what .what__moods { margin: 0; }
+.what__extra-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.what__more { gap: 6px; }
+.what__badge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--now); color: var(--on-accent); font: 700 11px var(--font-ui); }
+.what__active { gap: 6px; background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); color: var(--ink); }
+.what__panel { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 14px; background: var(--field); box-shadow: inset 0 0 0 1px var(--line); }
+.what__panel fieldset { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.what__panel legend { padding: 0; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+.what__panel .chips { gap: 6px; }
+.what__n { margin-left: 6px; font: 500 11px var(--font-mono); color: var(--faint); }
+.chip[aria-pressed='true'] .what__n { color: inherit; opacity: 0.7; }
+.what__hint { margin: 0; font-size: 12.5px; }
+.jindex__aside .what__filters, .home-cols .what__filters { margin-top: 14px; }

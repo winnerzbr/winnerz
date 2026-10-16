@@ -12,7 +12,7 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
-import { MOODS, recommend, reachableGames, noteShown, markMismatch, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { MOODS, LENGTHS, STATUSES, recommend, reachableGames, noteShown, markMismatch, matchesExtra, extraOptions, extraCount, type Extra, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
 import { vibesApi } from '../data/vibesApi';
 import { Icon } from './Icon';
 import { useBackdrop } from './Backdrop';
@@ -34,6 +34,8 @@ function moodReason(mood: MoodId, d: Dna): Reason | null {
   if (mood === 'alguem') { const j = t('junto'); return j ? { icon: 'pessoas', text: j.detail } : null; }
   return null;
 }
+
+const capFirst = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
 function notNow(s: State, gameId: string, today: string) {
   const until = s.myGames[gameId]?.notNowUntil;
@@ -115,6 +117,17 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const [catalog, setCatalog] = useState<{ key: string; items: Idea[]; state: 'loading' | 'ok' | 'error' } | null>(null);
   const catKey = `${mood === 'alguem' ? 'coop' : 'any'}|${mood === 'surpresa'}`;
   const moodDef = MOODS.find((m) => m.id === mood)!;
+  // Filtros extras, combináveis (lembrados neste navegador).
+  const [extra, setExtraState] = useState<Extra>(() => { try { return JSON.parse(localStorage.getItem('wz.oqj.extra') || '{}'); } catch { return {}; } });
+  const [panel, setPanel] = useState(false);
+  const setExtra = (e: Extra) => { setExtraState(e); setAlt(0); setNotice(''); try { localStorage.setItem('wz.oqj.extra', JSON.stringify(e)); } catch { /* só nesta visita */ } };
+  const toggle = <K extends keyof Extra>(k: K, v: NonNullable<Extra[K]>[number]) => {
+    const cur = (extra[k] ?? []) as string[];
+    setExtra({ ...extra, [k]: cur.includes(v as string) ? cur.filter((x) => x !== v) : [...cur, v] });
+    track(`oqj.extra.${k}`);
+  };
+  const opts = useMemo(() => extraOptions(s, excludeJourneyId), [s, excludeJourneyId]);
+  const nExtra = extraCount(extra);
 
   useEffect(() => {
     if (path !== 'descobrir' || catalog?.key === catKey) return;
@@ -132,11 +145,11 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const seen = useRef(new Set<string>());
   const ideas = useMemo(() => {
     const base = path === 'alcance'
-      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined, vibe: vibesApi.get })
-      : [...shuffle(wishIdeas(s, mood, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])];
+      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined, vibe: vibesApi.get, extra })
+      : [...shuffle(wishIdeas(s, mood, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])].filter((i) => matchesExtra(s, i.game, { ...extra, status: undefined }));
     const fresh = base.filter((i) => !skipped.includes(i.game.id));
     return [...fresh.filter((i) => !seen.current.has(i.game.id)), ...fresh.filter((i) => seen.current.has(i.game.id))];
-  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed, vibeTick]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed, vibeTick, extra]); // eslint-disable-line react-hooks/exhaustive-deps
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
   useEffect(() => { if (idea) seen.current.add(idea.game.id); }, [idea?.game.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const bg = useBackdrop(idea?.game);
@@ -173,10 +186,45 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
         <button role="tab" aria-selected={path === 'alcance'} onClick={() => { setPath('alcance'); reset(); }}>Ao meu alcance</button>
         <button role="tab" aria-selected={path === 'descobrir'} onClick={() => { setPath('descobrir'); reset(); track('oqj.descobrir'); }}>Descobrir algo</button>
       </div>
-      <div role="group" aria-label="Como está seu dia (opcional)" className="chips what__moods">
-        {MOODS.map((m) => (
-          <button key={m.id} className="chip" aria-pressed={mood === m.id} onClick={() => { setMood(m.id); setSeed(Math.random()); reset(); track(`oqj.filtro.${m.id}`); }}>{m.label}</button>
-        ))}
+      <div className="what__filters">
+        <span className="what__flabel" id={`${headingId}-mood`}>Como está seu dia?</span>
+        <div role="group" aria-labelledby={`${headingId}-mood`} className="chips what__moods">
+          {MOODS.map((m) => (
+            <button key={m.id} className="chip" aria-pressed={mood === m.id} onClick={() => { setMood(m.id); setSeed(Math.random()); reset(); track(`oqj.filtro.${m.id}`); }}>{m.label}</button>
+          ))}
+        </div>
+        <div className="what__extra-row">
+          <button className="btn quiet sm what__more" aria-expanded={panel} onClick={() => setPanel(!panel)}><Icon name="filtro" size={15} />Mais filtros{nExtra ? <span className="what__badge">{nExtra}</span> : null}</button>
+          {[...(extra.platforms ?? []).map((v) => ['platforms', v, v] as const), ...(extra.genres ?? []).map((v) => ['genres', v, capFirst(v)] as const),
+            ...(extra.length ?? []).map((v) => ['length', v, LENGTHS.find((x) => x.id === v)?.label ?? v] as const),
+            ...(path === 'alcance' ? (extra.status ?? []).map((v) => ['status', v, STATUSES.find((x) => x.id === v)?.label ?? v] as const) : [])].map(([k, v, label]) => (
+            <button key={`${k}:${v}`} className="chip what__active" onClick={() => toggle(k, v as never)} aria-label={`Tirar o filtro ${label}`}>{label}<Icon name="fechar" size={12} /></button>
+          ))}
+          {nExtra > 0 && <button className="btn quiet sm" onClick={() => setExtra({})}>Limpar</button>}
+        </div>
+        {panel && (
+          <div className="what__panel">
+            {opts.platforms.length > 1 && (
+              <fieldset><legend>Plataforma</legend><div className="chips">
+                {opts.platforms.map((o) => <button key={o.id} className="chip" aria-pressed={!!extra.platforms?.includes(o.id)} onClick={() => toggle('platforms', o.id)}>{o.id}<span className="what__n">{o.n}</span></button>)}
+              </div></fieldset>
+            )}
+            {opts.genres.length > 0 && (
+              <fieldset><legend>Gênero e tema</legend><div className="chips">
+                {opts.genres.map((o) => <button key={o.id} className="chip" aria-pressed={!!extra.genres?.includes(o.id)} onClick={() => toggle('genres', o.id)}>{capFirst(o.id)}<span className="what__n">{o.n}</span></button>)}
+              </div></fieldset>
+            )}
+            <fieldset><legend>Duração para zerar</legend><div className="chips">
+              {LENGTHS.map((o) => <button key={o.id} className="chip" aria-pressed={!!extra.length?.includes(o.id)} onClick={() => toggle('length', o.id)}>{o.label}</button>)}
+            </div></fieldset>
+            {path === 'alcance' && (
+              <fieldset><legend>Situação</legend><div className="chips">
+                {STATUSES.map((o) => <button key={o.id} className="chip" aria-pressed={!!extra.status?.includes(o.id)} onClick={() => toggle('status', o.id)}>{o.label}</button>)}
+              </div></fieldset>
+            )}
+            <p className="faint what__hint">Dá para combinar: dentro de um grupo vale qualquer um; entre grupos, todos juntos.</p>
+          </div>
+        )}
       </div>
       {idea ? (
         <div className={`what__pick${bg ? ' has-bg' : ''}`} key={idea.game.id + mood + path} style={bg ? { ['--wbg' as string]: `url("${bg}")` } : undefined}>
@@ -211,7 +259,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
           </div>
         </div>
       ) : (
-        <p className="what__empty">{empty ?? <>Nada por enquanto, e tudo bem. <Link to="/colecao">Adicione jogos à estante</Link> para receber ideias.</>}</p>
+        nExtra > 0 ? <p className="what__empty">Nenhum jogo combina com esses filtros juntos. <button className="btn quiet sm" onClick={() => setExtra({})}>Limpar os filtros</button></p> : <p className="what__empty">{empty ?? <>Nada por enquanto, e tudo bem. <Link to="/colecao">Adicione jogos à estante</Link> para receber ideias.</>}</p>
       )}
       {notice && <p className="what__notice muted" role="status">{notice}</p>}
       {alt >= 3 && <IndecisoBuddy />}

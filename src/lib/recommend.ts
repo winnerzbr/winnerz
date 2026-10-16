@@ -345,6 +345,49 @@ const metaOf = (c: Cand): string => {
 };
 const monthsAgo = (iso: string) => { const dd = Math.floor((Date.now() - Date.parse(iso)) / 86400000); return dd <= 0 ? 'hoje' : dd === 1 ? 'ontem' : dd < 30 ? `há ${dd} dias` : `há ${monthsWord(dd)}`; };
 
+/* ---- Filtros extras (combináveis com o momento) --------------------------------------------- */
+
+export type Extra = { platforms?: string[]; genres?: string[]; length?: ('curto' | 'medio' | 'longo')[]; status?: Idea['kind'][] };
+export const LENGTHS = [
+  { id: 'curto', label: 'Até 10 h' },
+  { id: 'medio', label: '10 a 30 h' },
+  { id: 'longo', label: 'Mais de 30 h' },
+] as const;
+export const STATUSES = [
+  { id: 'andamento', label: 'Em andamento' },
+  { id: 'pausado', label: 'Pausados' },
+  { id: 'estante', label: 'Ainda não comecei' },
+] as const;
+export const extraCount = (e: Extra) => (e.platforms?.length ?? 0) + (e.genres?.length ?? 0) + (e.length?.length ?? 0) + (e.status?.length ?? 0);
+
+/** As plataformas (curtas, como "PS5") das suas cópias de um jogo; sem cópia, as da ficha. */
+function platformsOf(s: State, g: Game): string[] {
+  const own = s.copies.filter((c) => c.gameId === g.id).map((c) => shortPlatform(c.platform));
+  return [...new Set(own.length ? own : g.platforms.map(shortPlatform))];
+}
+const lengthOf = (h?: number) => (h == null ? null : h <= 10 ? 'curto' : h <= 30 ? 'medio' : 'longo');
+
+/** O jogo passa pelos filtros extras? Cada grupo é "qualquer um destes"; grupos diferentes se somam. */
+export function matchesExtra(s: State, g: Game, e: Extra, kind?: Idea['kind']): boolean {
+  if (e.platforms?.length && !platformsOf(s, g).some((p) => e.platforms!.includes(p))) return false;
+  if (e.genres?.length && !tagsOf(g).some((t) => e.genres!.includes(t))) return false;
+  if (e.length?.length) { const l = lengthOf(gameDna(g, s).hours); if (!l || !e.length.includes(l)) return false; }
+  if (e.status?.length && (!kind || !e.status.includes(kind))) return false;
+  return true;
+}
+
+/** As opções que fazem sentido para o que está ao seu alcance (com quantos jogos cada uma tem). */
+export function extraOptions(s: State, excludeJourneyId?: string, now = Date.now()) {
+  const cands = candidates(s, excludeJourneyId, new Date(now).toISOString().slice(0, 10), now);
+  const plat = new Map<string, number>(), gen = new Map<string, number>();
+  for (const c of cands) {
+    for (const p of platformsOf(s, c.game)) plat.set(p, (plat.get(p) ?? 0) + 1);
+    for (const t of tagsOf(c.game)) gen.set(t, (gen.get(t) ?? 0) + 1);
+  }
+  const sort = (m: Map<string, number>) => [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([id, n]) => ({ id, n }));
+  return { platforms: sort(plat), genres: sort(gen).slice(0, 18) };
+}
+
 /** Os jogos ao alcance (para pedir o clima dos que faltam). */
 export function reachableGames(s: State, excludeJourneyId?: string, now = Date.now()): Game[] {
   return candidates(s, excludeJourneyId, new Date(now).toISOString().slice(0, 10), now).map((c) => c.game);
@@ -358,13 +401,13 @@ export function markMismatch(gameId: ID, mood: MoodId) {
   try { const m = loadMismatch(); m[gameId] = [...new Set([...(m[gameId] ?? []), mood])]; localStorage.setItem(NKEY, JSON.stringify(m)); } catch { /* só nesta visita */ }
 }
 
-export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined; mismatch?: Record<ID, MoodId[]> } = {}): Idea[] {
+export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined; mismatch?: Record<ID, MoodId[]>; extra?: Extra } = {}): Idea[] {
   const now = opts.now ?? Date.now();
   const today = opts.today ?? new Date(now).toISOString().slice(0, 10);
   const hist = opts.hist ?? loadHist();
   const t = tasteProfile(s);
   const mism = opts.mismatch ?? loadMismatch();
-  const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood));
+  const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood) && (!opts.extra || matchesExtra(s, c.game, opts.extra, c.kind)));
   const r = rnd(opts.seed ?? daySeed(now));
   const scored = cands.map((c) => { const x = score(c, mood, t, s, hist, now, opts.vibe?.(c.game.id)); return x && { c, ...x, jitter: r() }; }).filter((x): x is NonNullable<typeof x> => !!x);
   if (mood === 'surpresa') scored.sort((a, b) => a.jitter - b.jitter);

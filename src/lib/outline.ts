@@ -14,6 +14,8 @@ export interface GameOutline {
   confirms?: number; confirmed?: boolean; mine?: boolean;
   /** O rascunho automático: em andamento, feito, sem lista (a IA não conhece) ou erro. */
   job?: 'rodando' | 'feito' | 'sem_lista' | 'erro' | null;
+  /** O motivo da última tentativa (quando não deu lista). */
+  jobNote?: string | null;
 }
 export type PartLogEntry = { id: string; at: string; src?: 'voce' | 'steam' | 'ra' };
 

@@ -63,6 +63,8 @@ function demoGet(gameId: string): GameOutline {
 const cache = new Map<string, GameOutline | null>();
 const asked = new Set<string>();
 const working = new Set<string>();
+type AutoState = 'sem_lista' | 'limite' | 'erro';
+const status = new Map<string, { state: AutoState; reason?: string }>();
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((f) => f());
 
@@ -111,14 +113,16 @@ export const outlineApi = {
    * Rascunho automático (C1): pede ao servidor para montar a lista de um jogo sem capítulos. Quando outra pessoa
    * já pediu, espera a lista aparecer. Uma vez por jogo nesta visita; sem a IA ligada no servidor, não faz nada.
    */
-  async auto(gameId: string): Promise<GameOutline | null> {
-    if (!supa() || asked.has(gameId)) return cache.get(gameId) ?? null;
+  async auto(gameId: string, force = false): Promise<GameOutline | null> {
+    if (!supa() || (asked.has(gameId) && !force)) return cache.get(gameId) ?? null;
     asked.add(gameId);
-    working.add(gameId); emit();
+    working.add(gameId); status.delete(gameId); emit();
     try {
       const { accessToken } = await import('./supabaseAdapter');
-      const r = await fetch('/api/retomada', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'capitulos', game: gameId }) });
-      const j = r.ok ? ((await r.json()) as { state?: string }) : null;
+      const r = await fetch('/api/retomada', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'capitulos', game: gameId, force }) });
+      const j = (await r.json().catch(() => null)) as { state?: string; reason?: string; error?: string } | null;
+      if (!r.ok) status.set(gameId, { state: 'erro', reason: j?.error ?? 'O servidor não respondeu agora.' });
+      else if (j?.state && j.state !== 'pronto' && j.state !== 'rodando') status.set(gameId, { state: j.state as AutoState, reason: j.reason });
       if (j?.state === 'rodando') {
         for (let i = 0; i < 24; i++) {
           await new Promise((ok2) => setTimeout(ok2, 5000));
@@ -127,8 +131,10 @@ export const outlineApi = {
         }
       }
       return await outlineApi.get(gameId, true);
-    } catch { return cache.get(gameId) ?? null; } finally { working.delete(gameId); emit(); }
+    } catch { status.set(gameId, { state: 'erro', reason: 'Sem conexão com o servidor.' }); return cache.get(gameId) ?? null; } finally { working.delete(gameId); emit(); }
   },
+  /** Como foi a última tentativa do rascunho automático nesta visita (sem lista, limite do dia ou erro, com o motivo). */
+  autoStatus: (gameId: string) => status.get(gameId),
   /** O rascunho automático está sendo montado agora (nesta visita). */
   working: (gameId: string) => working.has(gameId),
   async history(gameId: string): Promise<OutlineEdit[]> {

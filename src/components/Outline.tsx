@@ -63,9 +63,12 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
         <p className="muted">Montando os capítulos de {game.title}… A IA lê a wiki do jogo e prepara um rascunho para a comunidade conferir.</p>
       </div>
     );
+    const st = outlineApi.autoStatus(game.id);
+    const why = st?.state === 'limite' ? 'O limite de listas automáticas de hoje acabou; amanhã a IA tenta de novo.' : st?.reason ?? (o.job === 'sem_lista' || o.job === 'erro' ? o.jobNote : null);
     return (
       <div className="ol-strip ol-strip--empty">
-        <p className="muted">Este jogo ainda não tem a lista de capítulos.{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
+        <p className="muted">Este jogo ainda não tem a lista de capítulos.{why ? ` ${why}` : ''}{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
+        {o.admin && <button className="btn quiet sm" onClick={() => void outlineApi.auto(game.id, true)}><Icon name="brilho" size={14} />Tentar com a IA de novo</button>}
         {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen('edit')}><Icon name="mais" size={14} />Montar os capítulos</button>}
         {open && <OutlineSheet game={game} history={history} outline={o} startEditing onClose={() => setOpen(false)} />}
       </div>

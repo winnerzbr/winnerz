@@ -286,15 +286,24 @@ async function outline(user: string, body: Record<string, unknown>, res: Res) {
     if (!r.ok) throw new Error(`rpc ${fn} ${r.status}`);
     return r.json();
   };
+  // "Tentar de novo" na hora: só a administração.
+  let force = false;
+  if (body.force === true) {
+    const a = await fetch(`${c.url}/rest/v1/profiles?select=is_admin&id=eq.${user}`, { headers: c.headers }).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+    force = !!(a as { is_admin?: boolean }[])[0]?.is_admin;
+  }
   let start: string;
-  try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY() }); }
-  catch { return res.status(503).json({ error: 'Falta rodar a migração 0058 no Supabase.' }); }
+  try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY(), p_force: force }); }
+  catch {
+    try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY() }); }
+    catch { return res.status(503).json({ error: 'Falta rodar a migração 0058 no Supabase.' }); }
+  }
   if (start !== 'ok') return res.status(200).json({ state: start === 'pronto' ? 'pronto' : start === 'rodando' ? 'rodando' : start === 'limite' ? 'limite' : 'sem_lista' });
-  const finish = (state: 'feito' | 'sem_lista' | 'erro', note?: string) => rpcSvc('outline_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null);
+  const finish = async (state: 'feito' | 'sem_lista' | 'erro', note?: string) => { await rpcSvc('outline_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null); };
   try {
     const gr = await fetch(`${c.url}/rest/v1/games?select=id,title,year,igdb_id,ttb,platforms&id=eq.${encodeURIComponent(gameId)}`, { headers: c.headers });
     const g = ((await gr.json()) as GameRow[])[0];
-    if (!g) { await finish('sem_lista', 'jogo não encontrado'); return res.status(200).json({ state: 'sem_lista' }); }
+    if (!g) { await finish('sem_lista', 'Jogo não encontrado.'); return res.status(200).json({ state: 'sem_lista', reason: 'Jogo não encontrado.' }); }
     // Fontes: as wikis do jogo (só títulos).
     const wikis = wikisOf(g.igdb_id ? await igdbWebsites(g.igdb_id).catch(() => []) : []);
     const read: { w: Wiki; text: string }[] = [];
@@ -311,21 +320,26 @@ async function outline(user: string, body: Record<string, unknown>, res: Res) {
       body: JSON.stringify({ model: MODEL(), max_tokens: 3000, system: OUTLINE_SYSTEM, messages: [{ role: 'user', content: prompt }, { role: 'assistant', content: '{"known":' }] }),
       signal: AbortSignal.timeout(45_000),
     });
-    if (!ai.ok) { const d = await ai.text().catch(() => ''); console.error('anthropic capitulos', ai.status, d.slice(0, 200)); await finish('erro', `IA ${ai.status}`); return res.status(200).json({ state: 'sem_lista' }); }
+    if (!ai.ok) { const d = await ai.text().catch(() => ''); console.error('anthropic capitulos', ai.status, d.slice(0, 200)); const why = aiError(ai.status, d); await finish('erro', why); return res.status(200).json({ state: 'erro', reason: why }); }
     const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
     const said = '{"known":' + (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
     let parsed: { known?: boolean; parts?: any[] } | null = null;
     try { parsed = JSON.parse(said.slice(0, said.lastIndexOf('}') + 1)); } catch { parsed = null; }
     const parts = cleanOutline(parsed?.known ? parsed.parts : []);
-    if (parts.length < 3) { await finish('sem_lista', parsed ? 'a IA não conhece a estrutura' : 'resposta fora do formato'); return res.status(200).json({ state: 'sem_lista' }); }
+    if (parts.length < 3) {
+      const why = !parsed ? 'A IA respondeu fora do formato.' : read.length ? 'A IA não reconheceu capítulos nas páginas da wiki deste jogo.' : 'Não achei uma wiki deste jogo, e a IA não conhece os capítulos com segurança.';
+      await finish(parsed ? 'sem_lista' : 'erro', why);
+      return res.status(200).json({ state: parsed ? 'sem_lista' : 'erro', reason: why });
+    }
     const sources = read.map((x) => ({ label: x.w.label, url: x.w.url, license: x.w.license }));
     const stored = await rpcSvc('outline_ai_store', { p_game: gameId, p_parts: parts, p_sources: sources });
     await finish('feito', stored ? undefined : 'já tinha lista');
     return res.status(200).json({ state: 'pronto' });
   } catch (e) {
     console.error('capitulos', e instanceof Error ? e.message : e);
-    await finish('erro', 'falha');
-    return res.status(200).json({ state: 'sem_lista' });
+    const why = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'A IA demorou demais para responder.' : 'Algo falhou ao montar a lista.';
+    await finish('erro', why);
+    return res.status(200).json({ state: 'erro', reason: why });
   }
 }
 

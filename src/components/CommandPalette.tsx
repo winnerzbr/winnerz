@@ -8,8 +8,9 @@ import { Icon } from './Icon';
 import { norm } from '../lib/importer';
 import { shortPlatform } from '../lib/platforms';
 import { track } from '../lib/track';
+import { searchApi, EMPTY_HITS, type CommunityHits } from '../data/searchApi';
 
-type Item = { key: string; group: string; title: string; meta?: string; to: string; cover?: { title: string; cover: string } };
+type Item = { key: string; group: string; title: string; meta?: string; to: string; cover?: { title: string; cover: string }; icon?: string };
 
 const PAGES: [string, string, string][] = [
   ['Estante', '/colecao', 'estante coleção jogos'], ['Estatísticas da coleção', '/colecao/estatisticas', 'estatisticas numeros'], ['Desejos', '/colecao/desejos', 'desejos lista'],
@@ -43,13 +44,17 @@ function Palette({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState('');
   const [sel, setSel] = useState(0);
   const [remote, setRemote] = useState<Hit[]>([]);
+  const [cm, setCm] = useState<CommunityHits>(EMPTY_HITS);
   const input = useRef<HTMLInputElement>(null);
   const list = useRef<HTMLUListElement>(null);
   useEffect(() => { input.current?.focus(); track('busca.universal'); }, []);
 
   useEffect(() => {
-    if (q.trim().length < 2) { setRemote([]); return; }
-    const t = setTimeout(async () => { const r = await searchGames(q.trim(), []); setRemote(r.source === 'igdb' ? r.hits.slice(0, 6) : []); }, 280);
+    if (q.trim().length < 2) { setRemote([]); setCm(EMPTY_HITS); return; }
+    const t = setTimeout(async () => {
+      const [r, c] = await Promise.all([searchGames(q.trim(), []), searchApi.community(q.trim(), 3).catch(() => EMPTY_HITS)]);
+      setRemote(r.source === 'igdb' ? r.hits.slice(0, 6) : []); setCm(c);
+    }, 280);
     return () => clearTimeout(t);
   }, [q]);
 
@@ -80,8 +85,14 @@ function Palette({ onClose }: { onClose: () => void }) {
     for (const [title, to, words] of PAGES) if (has(title) || norm(words).includes(t)) out.push({ key: `p-${to}`, group: 'Ir para', title, to });
     const known = new Set(mine.map((g) => g.slug));
     for (const h of remote) if (!known.has(h.slug)) out.push({ key: `r-${h.slug}`, group: 'No catálogo', title: h.title, meta: [h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · '), to: `/jogos/${h.slug}`, cover: { title: h.title, cover: h.cover } });
+    for (const p of cm.pessoas) out.push({ key: `u-${p.id}`, group: 'Pessoas', title: `@${p.handle}`, meta: p.bio || undefined, to: `/@${(p.handle ?? '').toLowerCase()}`, icon: 'pessoas' });
+    for (const c of cm.comunidades) out.push({ key: `c-${c.slug}`, group: 'Na comunidade', title: c.name, meta: `Comunidade · ${c.members} ${c.members === 1 ? 'pessoa' : 'pessoas'}`, to: `/w/${c.slug}`, icon: 'comunidade' });
+    for (const p of cm.conversas) out.push({ key: `v-${p.id}`, group: 'Na comunidade', title: p.title, meta: `${p.place}${p.author?.handle ? ` · @${p.author.handle}` : ''}`, to: `/conversa/${p.id}`, icon: 'mensagem' });
+    for (const k of cm.clubes) out.push({ key: `k-${k.slug}`, group: 'Na comunidade', title: k.name, meta: `Clube${k.game ? ` · ${k.game.title}` : ''}`, to: `/clube/${k.slug}`, cover: k.game?.cover ? { title: k.game.title, cover: k.game.cover } : undefined, icon: 'pessoas' });
+    for (const j of cm.jogatinas) out.push({ key: `jg-${j.id}`, group: 'Na comunidade', title: j.title, meta: `Jogatina${j.game ? ` · ${j.game.title}` : ''}`, to: `/jogatina/${j.id}`, cover: j.game?.cover ? { title: j.game.title, cover: j.game.cover } : undefined, icon: 'calendario' });
+    if (q.trim().length >= 2) out.push({ key: 'all', group: 'Mais', title: `Ver todos os resultados para “${q.trim()}”`, to: `/busca?q=${encodeURIComponent(q.trim())}`, icon: 'busca' });
     return out;
-  }, [q, s, remote]);
+  }, [q, s, remote, cm]);
 
   useEffect(() => setSel(0), [q]);
   useEffect(() => { list.current?.querySelector<HTMLElement>(`[data-i="${sel}"]`)?.scrollIntoView({ block: 'nearest' }); }, [sel]);
@@ -99,7 +110,7 @@ function Palette({ onClose }: { onClose: () => void }) {
       <div className="palette" role="dialog" aria-modal="true" aria-label="Busca">
         <div className="palette__field">
           <Icon name="busca" size={18} />
-          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={key} placeholder="Buscar jogo, Jornada, momento ou página" aria-label="Buscar" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-activedescendant={items[sel] ? `pal-${sel}` : undefined} />
+          <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={key} placeholder="Buscar jogo, pessoa, conversa, comunidade ou página" aria-label="Buscar" role="combobox" aria-expanded="true" aria-controls="palette-list" aria-activedescendant={items[sel] ? `pal-${sel}` : undefined} />
           <kbd>Esc</kbd>
         </div>
         <ul id="palette-list" ref={list} className="palette__list" role="listbox">
@@ -109,7 +120,7 @@ function Palette({ onClose }: { onClose: () => void }) {
             return [
               head && <li key={`h-${head}`} className="palette__group" role="presentation">{head}</li>,
               <li key={it.key} id={`pal-${i}`} data-i={i} role="option" aria-selected={i === sel} className="palette__item" onMouseMove={() => setSel(i)} onClick={() => go(it)}>
-                {it.cover ? <span className="palette__cover"><CoverArt game={it.cover} /></span> : <span className="palette__icon"><Icon name="avancar" size={14} /></span>}
+                {it.cover ? <span className="palette__cover"><CoverArt game={it.cover} /></span> : <span className="palette__icon"><Icon name={it.icon ?? 'avancar'} size={14} /></span>}
                 <span className="palette__text"><span className="palette__title">{it.title}</span>{it.meta && <span className="faint">{it.meta}</span>}</span>
               </li>,
             ];

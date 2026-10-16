@@ -1,3 +1,4 @@
+import { SearchPage } from './pages/Search';
 import { useEffect, type ReactNode } from 'react';
 import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
@@ -104,6 +105,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
+  if (match('/busca', path)) return <SearchPage />;
   if (match('/mensagens', path)) return <MessagesPage />;
   if ((m = match('/mensagens/:handle', path))) return <MessagesPage handle={decodeURIComponent(m.handle)} />;
   if (match('/comunidade/comunidades', path)) return <CommunitiesIndexPage />;

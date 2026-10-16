@@ -80,3 +80,15 @@ test('o clima da comunidade manda nos filtros', () => {
   assert.ok(!recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe: calm }).some((i) => i.game.id === 'tekken'), 'desafio 1 não entra');
   assert.ok(!recommend(st, 'desafio', { now, hist: {}, seed: 3, vibe, mismatch: { celeste: ['desafio'] } }).some((i) => i.game.id === 'celeste'), 'não combina');
 });
+
+test('"Para relaxar" só com jogos tranquilos de verdade', () => {
+  const st2 = { ...st, games: { ...st.games, tetris: g('tetris', { title: 'Tetris Effect', genres: 'Puzzle, Music' }), lego: g('lego', { title: 'LEGO Piratas', genres: 'Platform, Adventure' }) },
+    copies: [...st.copies, { id: 'c6', gameId: 'tetris', platform: 'PS5', kind: 'digital' }, { id: 'c7', gameId: 'lego', platform: 'PS3', kind: 'fisico' }] };
+  const ids = (vibe?: any) => recommend(st2, 'relaxar', { now, hist: {}, seed: 3, vibe }).map((i) => i.game.id);
+  assert.deepEqual(ids(), ['tetris'], 'sem clima: só gêneros calmos');
+  const vibe = (id: string) => ({ lego: { relax: 2, challenge: 1, intensity: 1, story: 1, short: 2, note: 'Aventura leve e bem-humorada.' }, tetris: { relax: 2, challenge: 2, intensity: 2, story: 0, short: 3 }, pyre: { relax: 1, challenge: 1, intensity: 1, story: 2, short: 1 } } as any)[id];
+  assert.deepEqual(ids(vibe), ['lego'], 'com clima: relaxa 2+, intensidade até 1');
+  // O que já te descansou entra mesmo assim.
+  const st3 = { ...st2, sessions: [...st2.sessions, { id: 'r1', journeyId: 'jt', historyId: 'ht', startedAt: '2026-10-02T21:00:00-03:00', endedAt: '2026-10-02T22:00:00-03:00', intent: 'descansar', intentMet: 'sim' }] };
+  assert.ok(recommend(st3, 'relaxar', { now, hist: {}, seed: 3, vibe }).some((i) => i.game.id === 'tlou'));
+});

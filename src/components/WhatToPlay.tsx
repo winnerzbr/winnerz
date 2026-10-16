@@ -163,7 +163,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
 
   const empty = path === 'descobrir'
     ? catalog?.state === 'loading' ? 'Procurando no catálogo…' : catalog?.state === 'error' ? 'O catálogo não respondeu agora. Seus Desejos continuam aqui quando houver algum lançado.' : 'Nada novo por aqui agora.'
-    : mood === 'alguem' ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador.' : mood === 'historia' ? 'Nenhum jogo ao seu alcance parece puxado pela história.' : mood === 'desafio' ? 'Nada ao seu alcance parece um desafio por enquanto.' : mood === 'diferente' ? 'Tudo ao seu alcance já é do seu padrão. Que tal “Descobrir algo”?' : null;
+    : mood === 'alguem' ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador.' : mood === 'historia' ? 'Nenhum jogo ao seu alcance parece puxado pela história.' : mood === 'desafio' ? 'Nada ao seu alcance parece um desafio por enquanto.' : mood === 'relaxar' ? 'Nada ao seu alcance parece tranquilo o bastante para relaxar. Quando um jogo te descansar, ele aparece aqui.' : mood === 'diferente' ? 'Tudo ao seu alcance já é do seu padrão. Que tal “Descobrir algo”?' : null;
   const n = ideas.length ? (alt % ideas.length) + 1 : 0;
 
   return (

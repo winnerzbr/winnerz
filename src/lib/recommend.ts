@@ -299,15 +299,19 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
       const r = t.rest.get(g.id) ?? 0;
       if (r > 0) add(3, 'coracao', 'Já te descansou antes, quando você jogou para descansar.');
       else if (r < 0) return null;
-      if (v) {
-        // A comunidade manda: intenso ou difícil demais não é para relaxar (a não ser que já tenha te descansado).
-        if ((v.intensity >= 3 || v.challenge >= 3 || (v.relax === 0 && v.intensity >= 2)) && r <= 0) return null;
-        if (v.relax >= 2) add(2 + (v.relax - 2), 'lampada', v.note || 'Tranquilo de jogar, pelo que a comunidade diz.');
-        else if (v.relax === 1 && v.intensity <= 1) add(0.6, 'lampada', 'Calmo, mesmo sem ser dos mais relaxantes.');
-        else sc -= 1.5;
-      } else if (d.fits.light) add(1.5, 'lampada', 'Leve: dá para jogar sem pensar muito.');
-      else if (d.fits.horror || d.fits.relearn || tags.some((x) => /tiro|shooter|luta|terror|souls/i.test(x))) sc -= 2.5;
-      else sc -= 0.5;
+      // Só entra o que é tranquilo de verdade. O que já te descansou entra sempre (a sua experiência vale mais).
+      if (r <= 0) {
+        if (v) {
+          if (v.relax < 2 || v.intensity > 1 || v.challenge > 2) return null;
+          add(2 + (v.relax - 2), 'lampada', v.note || 'Tranquilo de jogar, pelo que a comunidade diz.');
+        } else {
+          // Sem o clima da comunidade, só gêneros calmos por natureza; plataforma, aventura e ação não bastam.
+          const calm = tags.some((x) => /quebra-cabe|puzzle|simula|cartas|tabuleiro|card|visual novel|point-and-click|festa|party|quiz|infantil|kids|fam[ií]lia|sandbox|educa/i.test(x));
+          const tense = d.fits.horror || tags.some((x) => /terror|horror|luta|fighting|souls|roguel|tiro|shooter|guerra|warfare|sobreviv|survival|bullet|estrat|t[aá]tic|corrida|racing|hack/i.test(x));
+          if (!calm || tense) return null;
+          add(1.5, 'lampada', 'Gênero tranquilo: dá para jogar sem tensão.');
+        }
+      } else if (v?.note && v.relax >= 2) add(0.5, 'lampada', v.note);
       if (c.kind === 'andamento' && c.progress != null && c.progress >= 90) sc += 0.5;
       if (t.period != null && c.lastAt && parts(c.lastAt).h >= 18 && t.period === 3) add(0.3, 'relogio', `Você costuma jogar ${PERIOD[3]}; este já foi companhia nesse horário.`);
       break;

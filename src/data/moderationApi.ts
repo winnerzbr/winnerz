@@ -21,7 +21,7 @@ export const REASONS: { k: ReportReason; label: string; hint: string }[] = [
 ];
 export const REASON_LABEL: Record<ReportReason, string> = Object.fromEntries(REASONS.map((r) => [r.k, r.label])) as Record<ReportReason, string>;
 
-export const KIND_LABEL: Record<ReportKind, string> = { perfil: 'Perfil', jornada: 'Jornada', vitrine: 'Vitrine', momento: 'Foto de momento', museu: 'Museu', comunidade: 'Comunidade', postagem: 'Postagem', resposta: 'Resposta', clube: 'Clube', jogatina: 'Jogatina' };
+export const KIND_LABEL: Record<ReportKind, string> = { perfil: 'Perfil', jornada: 'Jornada', vitrine: 'Vitrine', momento: 'Foto de momento', museu: 'Museu', comunidade: 'Comunidade', postagem: 'Postagem', resposta: 'Resposta', clube: 'Clube', jogatina: 'Jogatina', mensagem: 'Mensagem direta' };
 
 /** Ações possíveis para cada tipo de alvo, na ordem em que aparecem na fila. */
 export const ACTIONS_FOR: Record<ReportKind, ModAction[]> = {
@@ -35,9 +35,10 @@ export const ACTIONS_FOR: Record<ReportKind, ModAction[]> = {
   resposta: ['ocultar', 'avisar', 'suspender', 'arquivar'],
   clube: ['ocultar', 'avisar', 'suspender', 'arquivar'],
   jogatina: ['ocultar', 'avisar', 'suspender', 'arquivar'],
+  mensagem: ['ocultar', 'avisar', 'suspender', 'arquivar'],
 };
 /** Nome da ação "ocultar" conforme onde o conteúdo aparece. */
-export const HIDE_LABEL: Partial<Record<ReportKind, string>> = { comunidade: 'Tirar do ar', postagem: 'Tirar da comunidade', resposta: 'Tirar da conversa', clube: 'Tirar do ar', jogatina: 'Tirar do ar' };
+export const HIDE_LABEL: Partial<Record<ReportKind, string>> = { comunidade: 'Tirar do ar', postagem: 'Tirar da comunidade', resposta: 'Tirar da conversa', clube: 'Tirar do ar', jogatina: 'Tirar do ar', mensagem: 'Tirar da conversa' };
 export const ACTION_LABEL: Record<ModAction, string> = {
   arquivar: 'Arquivar (sem problema)', avisar: 'Avisar a pessoa', ocultar: 'Tirar do perfil', suspender: 'Suspender o perfil',
   limpar_bio: 'Apagar a bio', trocar_arroba: 'Pedir outro @', tirar_imagens: 'Tirar foto e capa',

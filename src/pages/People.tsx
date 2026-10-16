@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { MessageButton } from './Messages';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { socialApi, type People, type Person } from '../data/socialApi';
@@ -64,6 +65,7 @@ export function PeoplePage() {
                 <small className="faint">{tab === 'seguidores' ? (p.mutual ? 'Amigos' : 'Segue você') : p.mutual ? 'Amigos' : 'Você segue'}</small>
               </span>
               <span className="people__acts">
+                {p.handle && <MessageButton handle={p.handle} className="btn sm ghost" />}
                 {tab === 'seguidores' && !p.mutual && p.handle && <button className="btn sm primary" disabled={busy === p.id} onClick={() => void act(p.id, () => socialApi.follow(p.handle!))}>Seguir de volta</button>}
                 {tab === 'seguidores' && <button className="btn sm quiet" disabled={busy === p.id} onClick={() => void act(p.id, () => socialApi.removeFollower(p.id, p.handle))} title="A pessoa não é avisada e pode seguir de novo">Remover</button>}
                 {tab !== 'seguidores' && p.handle && <button className="btn sm ghost" disabled={busy === p.id} onClick={() => void act(p.id, () => socialApi.unfollow(p.handle!))}>Deixar de seguir</button>}

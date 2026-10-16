@@ -6,6 +6,7 @@ import { BrandLockup } from './Brand';
 import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
 import { NotifBell } from './Notifications';
+import { DmButton } from '../pages/Messages';
 
 /** Telas que fazem parte da Comunidade (para acender o pilar). */
 const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
@@ -51,6 +52,7 @@ export function Header() {
           {session && (
             <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" /><span className="session-pill__label">Sessão aberta</span></Link>
           )}
+          <DmButton />
           <NotifBell />
           <div className="appearance" ref={pop}>
             <button className="icon-btn" aria-label="Aparência" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="tema" size={20} /></button>

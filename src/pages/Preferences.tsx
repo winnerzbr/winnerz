@@ -222,12 +222,14 @@ function OverlaySettings() {
 }
 
 /** Comunidade: aparecer em "Novos por aqui", o jogo ao lado do nome e quais avisos receber. */
+type BoolPref = Exclude<keyof CommunityPrefs, 'dm'>;
+
 function CommunitySettings() {
   const stored = useStore((s) => s.prefs.comunidade);
   const cp = stored ?? {};
   // Os avisos são contados no servidor a partir destas escolhas: depois de gravar, recontamos.
   const set = (patch: Partial<CommunityPrefs>) => { actions.setPrefs({ comunidade: { ...cp, ...patch } }); setTimeout(() => void refreshNews(), 1200); };
-  const row = (k: keyof CommunityPrefs, def: boolean, title: string, hint: string) => (
+  const row = (k: BoolPref, def: boolean, title: string, hint: string) => (
     <label className="motion motion--switch" data-on={cp[k] ?? def} key={k}>
       <input type="checkbox" role="switch" className="switch" checked={cp[k] ?? def} onChange={(e) => set({ [k]: e.target.checked })} />
       <span><strong>{title}</strong><span className="muted">{hint}</span></span>
@@ -239,6 +241,17 @@ function CommunitySettings() {
       {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
       {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
       {row('eco', true, 'Meus registros como eco para amigos', 'Quem é seu amigo e joga o mesmo jogo vê, na linha do tempo, quando você começou, os momentos das Jornadas que você mostra no perfil e quando zerou. Só até o ponto onde a pessoa está, sem spoiler. Recados, pontos para voltar e cartas nunca aparecem.')}
+      <h3 className="prefs__sub" id="mensagens">Mensagens diretas</h3>
+      <label className="prefs__field">
+        <span><strong>Quem pode começar uma conversa com você</strong><span className="muted">Quem não está liberado manda um pedido só (uma mensagem), que fica em Pedidos até você aceitar. Conversas já aceitas continuam.</span></span>
+        <select className="field" value={cp.dm ?? 'amigos'} onChange={(e) => set({ dm: e.target.value as CommunityPrefs['dm'] })}>
+          <option value="amigos">Amigos (quem se segue de volta)</option>
+          <option value="seguindo">Quem eu sigo</option>
+          <option value="todos">Qualquer pessoa</option>
+          <option value="ninguem">Ninguém (só conversas já aceitas)</option>
+        </select>
+      </label>
+      {row('visto', true, 'Mostrar “visto”', 'Quem conversa com você vê quando você leu. Desligado, você também não vê o “visto” dos outros.')}
     </section>
   );
 }
@@ -248,7 +261,7 @@ function NotifSettings() {
   const stored = useStore((s) => s.prefs.comunidade);
   const cp = stored ?? {};
   const set = (patch: Partial<CommunityPrefs>) => { actions.setPrefs({ comunidade: { ...cp, ...patch } }); setTimeout(() => void refreshNotifs(), 1200); };
-  const row = (k: keyof CommunityPrefs, title: string, hint: string) => (
+  const row = (k: BoolPref, title: string, hint: string) => (
     <label className="motion motion--switch" data-on={cp[k] ?? true} key={k}>
       <input type="checkbox" role="switch" className="switch" checked={cp[k] ?? true} onChange={(e) => set({ [k]: e.target.checked })} />
       <span><strong>{title}</strong><span className="muted">{hint}</span></span>

@@ -14,6 +14,7 @@ import { formatScore, scaleMax } from '../lib/rating';
 import { shortPlatform } from '../lib/platforms';
 import { ProfileMenu, ReportButton, useRelation } from '../components/Moderation';
 import { AffinityCard, FollowButton } from '../components/Social';
+import { MessageButton } from './Messages';
 import { moderationApi } from '../data/moderationApi';
 
 export const pubShelfItem = (p: PublicPiece, k: number): ShelfItem => (p.t === 'c'
@@ -234,6 +235,7 @@ function Hero({ data, owner, preview, onShare, copied, onFollow }: { data: Publi
               <button className="btn primary" onClick={onShare}>{copied ? 'Link copiado' : 'Compartilhar'}</button>
             </> : <>
               <FollowButton handle={data.handle} onChange={onFollow} />
+              {!preview && <MessageButton handle={data.handle} className="btn ghost" />}
               {links.slice(0, 3).map((l, i) => (
                 <a key={l.url} className="btn ghost" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
               ))}

@@ -332,6 +332,10 @@ export interface CommunityPrefs {
   aviso_pactos?: boolean;
   aviso_mes?: boolean;
   aviso_revisao?: boolean;
+  /** Quem pode começar uma conversa com você (mensagens diretas). */
+  dm?: 'amigos' | 'seguindo' | 'todos' | 'ninguem';
+  /** Mostrar "visto" nas mensagens (vale nos dois sentidos). */
+  visto?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

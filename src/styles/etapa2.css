@@ -5591,3 +5591,81 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .chip[aria-pressed='true'] .what__n { color: inherit; opacity: 0.7; }
 .what__hint { margin: 0; font-size: 12.5px; }
 .jindex__aside .what__filters, .home-cols .what__filters { margin-top: 14px; }
+
+/* ---- Mensagens diretas ------------------------------------------------------------------------ */
+.dm__grid { display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 16px; align-items: start; }
+.dm__side { padding: 14px; display: flex; flex-direction: column; gap: 10px; position: sticky; top: 84px; max-height: calc(100vh - 110px); overflow: auto; }
+.dm__tabs { margin: 0; width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+.dm__tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.dm__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.dm__row { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; text-decoration: none; color: inherit; }
+.dm__row:hover { background: var(--field); }
+.dm__row.is-on { background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); }
+.dm__row-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dm__row-top { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.dm__row-top .faint { font-size: 12px; white-space: nowrap; }
+.dm__row-last { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dm__row.is-unread .dm__row-last { color: var(--ink); font-weight: 600; }
+.dm__dot { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--now); color: var(--on-accent); font: 700 11px/20px var(--font-ui); text-align: center; }
+.dm__muted { display: inline-flex; opacity: 0.7; }
+.dm__empty { margin: 6px 4px; font-size: 14px; line-height: 1.5; }
+.dm__privacy { margin: 6px 4px 0; font-size: 12.5px; }
+.dm__main { padding: 0; min-height: 60vh; display: flex; flex-direction: column; overflow: hidden; }
+.dm__none { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); padding: 40px; }
+.dm__conv { display: flex; flex-direction: column; height: calc(100vh - 150px); min-height: 480px; }
+.dm__conv-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.dm__conv-who { flex: 1; min-width: 0; }
+.dm__conv-who a { color: inherit; text-decoration: none; }
+.dm__back { display: none; }
+.dm__conv-menu { position: relative; }
+.dm__pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 230px; display: flex; flex-direction: column; padding: 6px; border-radius: 12px; background: var(--surface); box-shadow: 0 16px 40px var(--shadow), inset 0 0 0 1px var(--line); }
+.dm__pop button { text-align: left; background: none; border: 0; padding: 10px 12px; border-radius: 8px; color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; }
+.dm__pop button:hover { background: var(--field); }
+.dm__pop .is-danger { color: var(--live); }
+.dm__msgs { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.dm__start { margin: auto; text-align: center; max-width: 46ch; line-height: 1.5; }
+.dm__day { display: flex; justify-content: center; margin: 12px 0 6px; }
+.dm__day span { font: 500 11px var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); padding: 3px 10px; border-radius: 999px; background: var(--field); }
+.dm__b { display: flex; flex-direction: column; align-items: flex-start; max-width: min(78%, 620px); }
+.dm__b.is-mine { align-self: flex-end; align-items: flex-end; }
+.dm__bubble { padding: 9px 13px; border-radius: 16px 16px 16px 4px; background: var(--field); box-shadow: inset 0 0 0 1px var(--line); font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; display: flex; flex-direction: column; gap: 6px; }
+.dm__b.is-mine .dm__bubble { border-radius: 16px 16px 4px 16px; background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); }
+.dm__bubble p { margin: 0; }
+.dm__b.is-deleted p { margin: 0; font-size: 13px; padding: 6px 12px; border-radius: 14px; box-shadow: inset 0 0 0 1px var(--line); }
+.dm__b.is-hidden .dm__bubble { opacity: 0.6; }
+.dm__quote { font-size: 13px; color: var(--muted); padding: 4px 8px; border-left: 2px solid var(--now-line); background: rgba(var(--bg-rgb), 0.35); border-radius: 4px; }
+.dm__meta { display: flex; gap: 10px; align-items: center; font-size: 12px; padding: 2px 6px; opacity: 0.85; }
+.dm__meta .cm-link { font-size: 12px; }
+.dm__game { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 10px; background: rgba(var(--bg-rgb), 0.45); text-decoration: none; color: inherit; min-width: 220px; }
+.dm__game .cover-art { width: 44px; height: 59px; border-radius: 5px; object-fit: cover; flex: none; overflow: hidden; }
+.dm__game > span { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+.dm__game-cta { font-size: 12px; color: var(--now-ink); font-weight: 600; }
+.dm__edit { display: flex; flex-direction: column; gap: 6px; min-width: 240px; }
+.dm__edit span { display: flex; gap: 6px; justify-content: flex-end; }
+.dm__request { margin: 0 16px 12px; padding: 12px 14px; border-radius: 12px; background: var(--now-bg); box-shadow: inset 0 0 0 1px var(--now-line); }
+.dm__request p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+.dm__request-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.dm__note { margin: 0 16px 12px; font-size: 14px; }
+.dm__compose { border-top: 1px solid var(--line); padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 6px; }
+.dm__compose-row { display: flex; gap: 8px; align-items: flex-end; }
+.dm__compose-row textarea { flex: 1; resize: none; min-height: 42px; max-height: 160px; field-sizing: content; }
+.dm__attach { display: flex; gap: 6px; flex-wrap: wrap; }
+.dm__attach-item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 4px 4px 10px; border-radius: 999px; background: var(--field); box-shadow: inset 0 0 0 1px var(--line); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dm__hint { font-size: 11.5px; }
+.dm__err { margin: 0 16px 10px; }
+.dm__picker { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; max-height: 50vh; overflow: auto; }
+.dm__picker button { display: flex; gap: 10px; align-items: center; width: 100%; text-align: left; padding: 6px 8px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; cursor: pointer; }
+.dm__picker button:hover { background: var(--field); }
+.dm__picker .cover-art { width: 34px; height: 46px; border-radius: 4px; object-fit: cover; flex: none; overflow: hidden; }
+.prefs__field { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; }
+.prefs__field > span { display: flex; flex-direction: column; gap: 3px; }
+.prefs__field select { max-width: 360px; }
+@media (max-width: 860px) {
+  .dm__grid { grid-template-columns: 1fr; }
+  .dm.has-open .dm__side, .dm:not(.has-open) .dm__main { display: none; }
+  .dm.has-open .dm__head { display: none; }
+  .dm__side { position: static; max-height: none; }
+  .dm__back { display: inline-grid; }
+  .dm__conv { height: calc(100svh - 210px); min-height: 360px; }
+  .dm.has-open { padding-top: 8px; }
+}

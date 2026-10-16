@@ -54,7 +54,9 @@ export function ExportData() {
       const base = await communityApi.myData().catch(() => null);
       // Os avisos também (sem a migração 0034, ficam de fora).
       const avisos = await notifApi.myData().catch(() => null);
-      const comunidade = base || avisos ? { ...(base ?? {}), ...(avisos ? { avisos } : {}) } : null;
+      // As mensagens diretas que você escreveu (sem a migração 0045, ficam de fora).
+      const mensagens = await import('../data/dmApi').then((m) => m.dmApi.export()).catch(() => []);
+      const comunidade = base || avisos || mensagens.length ? { ...(base ?? {}), ...(avisos ? { avisos } : {}), ...(mensagens.length ? { mensagens } : {}) } : null;
       const { blob, missing } = await buildExport(getState(), (d, t) => setBusy(`Juntando as fotos: ${d} de ${t}…`), comunidade, communityImage);
       download(blob, `winnerz-dados-${today()}.zip`);
       setNote(missing ? `Pronto. ${missing} ${missing === 1 ? 'foto não baixou' : 'fotos não baixaram'} (conexão); tente de novo para incluí-las.` : 'Pronto. O arquivo foi baixado.');

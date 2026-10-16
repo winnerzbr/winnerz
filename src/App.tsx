@@ -25,6 +25,7 @@ import { Home } from './pages/Home';
 import { Welcome } from './pages/Welcome';
 import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
+import { MessagesPage } from './pages/Messages';
 import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityView, ModHistoryPage } from './pages/Communities';
 import { StudioCommunitiesPage } from './pages/StudioCommunities';
 import { PostEditorPage, PostPage } from './pages/Post';
@@ -103,6 +104,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
+  if (match('/mensagens', path)) return <MessagesPage />;
+  if ((m = match('/mensagens/:handle', path))) return <MessagesPage handle={decodeURIComponent(m.handle)} />;
   if (match('/comunidade/comunidades', path)) return <CommunitiesIndexPage />;
   if (match('/comunidade/criar', path)) return <CommunityNewPage />;
   if (match('/comunidade/clubes', path)) return <ClubsIndexPage />;

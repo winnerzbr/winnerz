@@ -5827,3 +5827,14 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .snip-links__list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .snip-links__list li > span { min-width: 0; }
 @media (max-width: 640px) { .snip { padding-top: 20px; } .snip__body { padding: 18px 16px; } }
+
+/* ===== Jornadas da comunidade (ficha do jogo) ===== */
+.gjs__tiles { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 10px; }
+.gjs__tile { margin: 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); display: grid; gap: 8px; align-content: start; }
+.gjs__tile dd { margin: 0; display: grid; gap: 3px; }
+.gjs__tile b { font-size: 28px; line-height: 1; }
+.gjs__tile small { font-size: 12.5px; line-height: 1.35; }
+.gjs__stops { font-size: 14px; }
+.gjs__stops .kicker { margin-right: 8px; }
+.gjs__foot { font-size: 13px; }
+@media (max-width: 640px) { .gjs__tiles { grid-template-columns: 1fr 1fr; } .gjs__tile b { font-size: 22px; } }

@@ -1,3 +1,4 @@
+import { GameJourneyStats } from '../components/GameJourneyStats';
 import { AddToList, GameLists } from './Lists';
 import { useEffect, useMemo, useState } from 'react';
 import { FixSheet } from '../components/FixSheet';
@@ -253,6 +254,8 @@ function GameView({ gameId }: { gameId: string }) {
               {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
             </div>
           </section>
+
+          <GameJourneyStats slug={g.slug} title={g.title} />
 
           <GameConversations gameId={g.id} title={g.title} />
 

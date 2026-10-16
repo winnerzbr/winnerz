@@ -338,6 +338,8 @@ export interface CommunityPrefs {
   visto?: boolean;
   /** Presença para amigos: online e o que está jogando (padrão: ninguém). */
   presenca?: 'amigos' | 'ninguem';
+  /** Contar as suas Jornadas nos números anônimos da ficha de cada jogo (padrão: não). */
+  numeros?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';

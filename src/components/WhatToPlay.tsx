@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore, actions } from '../data/store';
 import { shortPlatform } from '../lib/platforms';
@@ -12,7 +12,7 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
-import { MOODS, recommend, noteShown, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { MOODS, recommend, noteShown, daySeed, type Idea, type MoodId, type Reason } from '../lib/recommend';
 import { Icon } from './Icon';
 import { useBackdrop } from './Backdrop';
 
@@ -123,13 +123,17 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
     return () => { alive = false; };
   }, [path, catKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // O que já apareceu nesta visita (em qualquer filtro) vai para o fim: trocar o filtro deve trazer outra cara.
+  const seen = useRef(new Set<string>());
   const ideas = useMemo(() => {
     const base = path === 'alcance'
       ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined })
-      : [...wishIdeas(s, mood, localDay(), seed), ...(catalog?.key === catKey ? catalog.items : [])];
-    return base.filter((i) => !skipped.includes(i.game.id));
-  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed]);
+      : [...shuffle(wishIdeas(s, mood, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])];
+    const fresh = base.filter((i) => !skipped.includes(i.game.id));
+    return [...fresh.filter((i) => !seen.current.has(i.game.id)), ...fresh.filter((i) => seen.current.has(i.game.id))];
+  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed]); // eslint-disable-line react-hooks/exhaustive-deps
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
+  useEffect(() => { if (idea) seen.current.add(idea.game.id); }, [idea?.game.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const bg = useBackdrop(idea?.game);
   useEffect(() => { if (idea && path === 'alcance') noteShown(idea.game.id); }, [idea?.game.id, path]); // eslint-disable-line react-hooks/exhaustive-deps
   const play = (gameId: string) => { track(`oqj.jogar.${mood}`); playStateFor(s, gameId).go(); };

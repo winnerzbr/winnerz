@@ -298,7 +298,7 @@ function FinishForm({ progress, startedAt, goal, intent, companions: known, canW
           </div>
         </div>
       )}
-      <span className="finish__label finish__feel-q" id="feel-q">Como foi jogar hoje?</span>
+      <span className="finish__label finish__feel-q" id="feel-q">Como foi sua jogatina? :)</span>
       <div className="chips finish__feel" role="group" aria-labelledby="feel-q">
         {FEELINGS.map((f) => <button type="button" key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
       </div>

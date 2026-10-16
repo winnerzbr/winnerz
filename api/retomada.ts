@@ -235,7 +235,7 @@ Escolha a estrutura que o próprio jogo usa:
 - "etapas" (jogos grandes e não lineares, como Elden Ring: misture áreas, masmorras e chefes principais na ordem mais comum, usando "group" para a região e "kind" para o tipo).
 Regras:
 - Liste o caminho principal, na ordem do jogo. Itens opcionais importantes só se ajudarem a pessoa a se localizar (marque "kind": "opcional").
-- Entre 4 e 60 itens. Em jogos com muitas missões pequenas, agrupe (por ato, região ou mundo) e use "group".
+- Entre 4 e 50 itens. Em jogos com muitas missões pequenas, agrupe (por ato, região ou mundo) e use "group".
 - Nomes oficiais em português do Brasil quando o jogo tiver tradução oficial que você conheça; senão, o nome original. Só traduza palavras genéricas (Chapter → Capítulo, Mission → Missão, Act → Ato). Nunca invente nomes.
 - "pct": onde o item começa, de 0 a 100, pelo tempo de jogo da história principal (o primeiro é 0, sempre crescente).
 - "minutes": duração típica do item, coerente com o tempo para zerar. Omita se não souber.
@@ -243,11 +243,11 @@ Regras:
 - "stop": só se souber como o jogo salva ali: "qualquer", "fim", "pontos" (só em pontos de save) ou "longe" (pontos de save longe).
 - "group": a região, o ato ou o mundo do item (até 40 caracteres), quando fizer sentido. "kind": tipo curto do item quando a estrutura mistura coisas (chefe, área, masmorra, opcional).
 - Se depois de pesquisar não houver estrutura clara (jogo de corrida, esporte, multijogador, sandbox sem progressão), responda known false.
-Termine a resposta com UM bloco JSON e nada depois:
+Formato da resposta: depois de pesquisar, NÃO escreva resumo, explicação nem a lista em texto; responda direto com UM bloco JSON compacto e nada depois (omita campos que não souber):
 {"known": true, "structure": "capitulos", "confidence": "alta"|"media"|"baixa", "sources": [{"label": "nome do site", "url": "https://..."}], "parts": [{"name": "...", "pct": 0, "minutes": 60, "spoiler": false, "stop": "fim", "group": "...", "kind": "..."}]}`;
 
 type GameRow = { id: string; title: string; year: number | null; igdb_id: number | null; ttb: { h?: number; n?: number; c?: number } | null; platforms: string[] | null };
-type Block = { type: string; text?: string; name?: string; input?: { query?: string; url?: string }; content?: unknown };
+type Block = { type: string; id?: string; text?: string; name?: string; input?: { query?: string; url?: string }; content?: unknown };
 
 /** Pede a estrutura à IA com busca e leitura na web; continua a conversa quando a API pausa uma busca longa. */
 async function askOutline(prompt: string, deadline: number): Promise<{ text: string; searches: number; fetches: number; stop: string; error?: string }> {
@@ -258,13 +258,13 @@ async function askOutline(prompt: string, deadline: number): Promise<{ text: str
   ];
   let dropped = '';
   let searches = 0, fetches = 0, stop = '', text = '';
-  for (let round = 0; round < 4; round++) {
+  for (let round = 0; round < 6; round++) {
     const left = deadline - Date.now();
     if (left < 6000) return { text, searches, fetches, stop: 'tempo', error: 'A pesquisa demorou demais.' };
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-fetch-2025-09-10' },
-      body: JSON.stringify({ model: OUTLINE_MODEL(), max_tokens: 6000, system: OUTLINE_SYSTEM, ...(tools.length ? { tools } : {}), messages }),
+      body: JSON.stringify({ model: OUTLINE_MODEL(), max_tokens: 12000, system: OUTLINE_SYSTEM, ...(tools.length ? { tools } : {}), messages }),
       signal: AbortSignal.timeout(left - 2000),
     });
     if (!r.ok) {
@@ -278,6 +278,13 @@ async function askOutline(prompt: string, deadline: number): Promise<{ text: str
         round--;
         continue;
       }
+      // A continuação foi recusada (ex.: pesquisa pendente): última tentativa só com o que a IA sabe.
+      if (r.status === 400 && messages.length > 1 && !dropped.includes('continuação')) {
+        messages.splice(0, messages.length, { role: 'user', content: `${prompt}\nA pesquisa na web não está disponível agora: responda com o que você sabe deste jogo.` });
+        tools = [];
+        dropped += `${dropped ? ', ' : ''}continuação`;
+        continue;
+      }
       return { text, searches, fetches, stop: `http ${r.status}${dropped ? ` · sem ${dropped}` : ''}`, error: aiError(r.status, d) };
     }
     const out = (await r.json()) as { content?: Block[]; stop_reason?: string };
@@ -285,10 +292,24 @@ async function askOutline(prompt: string, deadline: number): Promise<{ text: str
     searches += blocks.filter((b) => b.type === 'server_tool_use' && b.name === 'web_search').length;
     fetches += blocks.filter((b) => b.type === 'server_tool_use' && b.name === 'web_fetch').length;
     text = blocks.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('');
-    stop = out.stop_reason ?? '';
-    if (dropped) stop += ` · sem ${dropped}`;
-    if (out.stop_reason !== 'pause_turn') break;
-    messages.push({ role: 'assistant', content: blocks });
+    const why = out.stop_reason ?? '';
+    const client = blocks.filter((b) => b.type === 'tool_use');
+    stop = why + (client.length ? `:${client.map((b) => b.name).join(',')}` : '') + (dropped ? ` · sem ${dropped}` : '');
+    if (why === 'end_turn' || why === 'stop_sequence') break;
+    if (why === 'pause_turn') { messages.push({ role: 'assistant', content: blocks }); continue; }
+    if (why === 'tool_use') {
+      // A IA pediu uma ferramenta que não roda no servidor da API: devolve "indisponível" e pede para seguir.
+      messages.push({ role: 'assistant', content: blocks });
+      if (client.length) messages.push({ role: 'user', content: client.map((b) => ({ type: 'tool_result', tool_use_id: b.id, is_error: true, content: 'Ferramenta indisponível. Use a busca e a leitura de páginas, ou o que você já sabe, e termine com o JSON.' })) });
+      continue;
+    }
+    if (why === 'max_tokens' && !lastJson(text)) {
+      // Escreveu demais antes da lista: pede só o JSON, compacto.
+      messages.push({ role: 'assistant', content: blocks.filter((b) => b.type !== 'text' || (b.text ?? '').trim()) });
+      messages.push({ role: 'user', content: 'A resposta foi cortada. Responda agora SÓ com o bloco JSON completo, compacto (sem espaços), com no máximo 40 itens; omita "minutes" e "stop" se precisar. Não pesquise mais.' });
+      continue;
+    }
+    break;
   }
   return { text, searches, fetches, stop };
 }

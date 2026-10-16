@@ -254,8 +254,9 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
   }
   // Plataforma em que você mais joga.
   if (c.platform && t.topPlatform && c.platform === t.topPlatform && t.platforms.size > 1) add(0.6, 'jogos', `No ${shortPlatform(c.platform)}, onde você mais jogou nos últimos meses.`);
-  // Filtro escolhido.
+  // Filtro escolhido (o motivo do filtro vai na frente dos outros).
   const h = d.hours;
+  const before = why.length;
   switch (mood) {
     case 'pouco':
       if (v && v.short >= 2) add(2.5, 'relogio', v.note && v.short === 3 ? v.note : 'Rende em sessões curtas, pelo que a comunidade diz.');
@@ -320,6 +321,7 @@ function score(c: Cand, mood: MoodId, t: Taste, s: State, hist: Hist, now: numbe
     case 'surpresa':
       break;
   }
+  why.unshift(...why.splice(before));
   // O que foi pulado nos últimos dias perde peso; o que apareceu ontem não volta primeiro.
   const e = hist[g.id];
   if (e?.skipped) sc -= Math.min(3, e.skipped);

@@ -5932,3 +5932,6 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .fx-gpart.is-ahead .fx-h { color: var(--muted); }
 .fx-gpart__hide { background: none; border: 1px dashed rgba(255,255,255,.28); border-radius: 10px; padding: 6px 10px; color: inherit; font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
 .fx-k--part { color: #E2BE84; }
+.ol-group { list-style: none; margin: 14px 0 4px; font: 600 11px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+.ol-kind { display: inline-block; margin-top: 2px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11px; color: var(--muted); text-transform: capitalize; width: max-content; }
+.ol-edit__group { min-width: 0; }

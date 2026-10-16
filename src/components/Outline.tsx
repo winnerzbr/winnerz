@@ -3,10 +3,10 @@
  * ver o histórico, editar com a comunidade), o "Dá para parar aqui?" e o "Objetivo desta sessão".
  * Nomes de capítulos à frente de onde você está ficam escondidos até você pedir.
  */
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { actions, useStore, lastNote, activeWaypoints } from '../data/store';
 import { outlineApi, useOutline, type OutlineEdit } from '../data/outlineApi';
-import { partAt, nextPart, stopAdvice, goalSuggestions, STOP_LABEL, type OutlinePart, type StopKind, type GameOutline } from '../lib/outline';
+import { partAt, nextPart, stopAdvice, goalSuggestions, STOP_LABEL, unitOf, type OutlinePart, type StopKind, type GameOutline } from '../lib/outline';
 import type { Game, History, Session } from '../data/types';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
@@ -55,19 +55,20 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
   useEffect(() => { if (empty) void outlineApi.auto(game.id); }, [empty, game.id]);
   if (!o) return null;
   const parts = o.parts;
+  const u = unitOf(o);
   const cur = partAt(parts, history.progress, history.part);
   if (!parts.length) {
     if (outlineApi.working(game.id) || o.job === 'rodando') return (
       <div className="ol-strip ol-strip--empty ol-strip--work" role="status">
         <span className="ol-work" aria-hidden="true"><i /><i /><i /></span>
-        <p className="muted">Montando os capítulos de {game.title}… A IA lê a wiki do jogo e prepara um rascunho para a comunidade conferir.</p>
+        <p className="muted">Montando a estrutura de {game.title}… A IA pesquisa wikis e detonados e organiza em capítulos, missões ou áreas, para a comunidade conferir. Leva até dois minutos (só na primeira vez).</p>
       </div>
     );
     const st = outlineApi.autoStatus(game.id);
     const why = st?.state === 'limite' ? 'O limite de listas automáticas de hoje acabou; amanhã a IA tenta de novo.' : st?.reason ?? (o.job === 'sem_lista' || o.job === 'erro' ? o.jobNote : null);
     return (
       <div className="ol-strip ol-strip--empty">
-        <p className="muted">Este jogo ainda não tem a lista de capítulos.{why ? ` ${why}` : ''}{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
+        <p className="muted">Este jogo ainda não tem a lista de capítulos, missões ou áreas.{why ? ` ${why}` : ''}{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
         {o.admin && <button className="btn quiet sm" onClick={() => void outlineApi.auto(game.id, true)}><Icon name="brilho" size={14} />Tentar com a IA de novo</button>}
         {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen('edit')}><Icon name="mais" size={14} />Montar os capítulos</button>}
         {open && <OutlineSheet game={game} history={history} outline={o} startEditing onClose={() => setOpen(false)} />}
@@ -84,10 +85,10 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
         })}
       </div>
       <div className="ol-now">
-        <span className="kicker">Capítulo {cur ? parts.indexOf(cur) + 1 : '—'} de {parts.length}</span>
-        <b>{cur ? cur.name : 'Em qual capítulo você está?'}</b>
+        <span className="kicker">{u.one} {cur ? parts.indexOf(cur) + 1 : '—'} de {parts.length}{cur?.group && cur.group !== cur.name ? ` · ${cur.group}` : ''}</span>
+        <b>{cur ? cur.name : 'Onde você está?'}</b>
         {cur?.stop && <span className={`ol-stop ol-stop--${stopAdvice(cur).tone}`}>{STOP_LABEL[cur.stop]}</span>}
-        <button className="btn quiet sm" onClick={() => setOpen('list')}>{cur ? 'Mudar de capítulo' : 'Escolher o capítulo'}</button>
+        <button className="btn quiet sm" onClick={() => setOpen('list')}>{cur ? 'Mudar' : 'Escolher onde estou'}</button>
       </div>
       <OutlineSource game={game} outline={o} onEdit={() => setOpen('edit')} />
       {open && <OutlineSheet game={game} history={history} outline={o} startEditing={open === 'edit'} onClose={() => setOpen(false)} />}
@@ -107,10 +108,11 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
   const pick = (p: OutlinePart) => { actions.setHistoryPart(history.id, { id: p.id, pct: p.pct }, parts); onClose(); };
   const loadHist = async () => { try { setHist(await outlineApi.history(game.id)); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu para carregar.'); } };
 
-  if (editing) return <Sheet title={`Capítulos de ${game.title}`} onClose={onClose} wide><OutlineEditor game={game} outline={outline} onDone={() => setEditing(false)} onClose={onClose} /></Sheet>;
+  const u = unitOf(outline);
+  if (editing) return <Sheet title={`${u.title} de ${game.title}`} onClose={onClose} wide><OutlineEditor game={game} outline={outline} onDone={() => setEditing(false)} onClose={onClose} /></Sheet>;
   return (
-    <Sheet title={`Capítulos de ${game.title}`} onClose={onClose} wide>
-      <p className="muted ol-sheet__lead">Toque no capítulo em que você está: o seu progresso vai para o começo dele (dá para ajustar depois). Os nomes à frente ficam escondidos.</p>
+    <Sheet title={`${u.title} de ${game.title}`} onClose={onClose} wide>
+      <p className="muted ol-sheet__lead">Toque onde você está: o seu progresso vai para o começo dele (dá para ajustar depois). Os nomes à frente ficam escondidos.</p>
       <label className="ol-reveal"><input type="checkbox" checked={reveal} onChange={(e) => setReveal(e.target.checked)} /> Mostrar os nomes à frente (pode ter spoiler; os marcados como spoiler continuam escondidos)</label>
       <ol className="ol-list">
         {parts.map((p, i) => {
@@ -118,23 +120,24 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
           const name = shownName(p, i, ahead, reveal, opened);
           const isCur = cur?.id === p.id;
           return (
-            <li key={p.id} className={`ol-row${isCur ? ' is-cur' : ''}${ahead ? ' is-ahead' : ''}`}>
+            <Fragment key={p.id}>{p.group && p.group !== parts[i - 1]?.group && <li className="ol-group" aria-hidden="true">{p.group}</li>}<li className={`ol-row${isCur ? ' is-cur' : ''}${ahead ? ' is-ahead' : ''}`}>
               <span className="ol-row__n mono">{i + 1}</span>
               <div className="ol-row__body">
-                {name ? <b>{name}</b> : <button className="ol-hidden" onClick={() => setOpened(new Set([...opened, p.id]))} aria-label={`Mostrar o nome do capítulo ${i + 1}`}>{p.spoiler ? 'Nome com spoiler · tocar para ver' : 'Capítulo à frente · tocar para ver'}</button>}
+                {name ? <b>{name}</b> : <button className="ol-hidden" onClick={() => setOpened(new Set([...opened, p.id]))} aria-label={`Mostrar o nome do item ${i + 1}`}>{p.spoiler ? 'Nome com spoiler · tocar para ver' : 'À frente · tocar para ver'}</button>}
+                {p.kind && <span className="ol-kind">{p.kind}</span>}
                 <span className="ol-row__meta">{[`${p.pct}%`, durShort(p.minutes), p.stop ? STOP_LABEL[p.stop] : ''].filter(Boolean).join(' · ')}</span>
                 {p.note && (name || !ahead) && <span className="ol-row__note">{p.note}</span>}
               </div>
               {isCur ? <span className="chip chip--static">Você está aqui</span> : <button className="btn ghost sm" onClick={() => pick(p)}>Estou aqui</button>}
-            </li>
+            </li></Fragment>
           );
         })}
       </ol>
       <OutlineSource game={game} outline={outline} onEdit={() => setEditing(true)} />
-      <p className="faint ol-sheet__src">{outline.origin === 'ia' ? (outline.confirmed ? 'Rascunho da IA conferido pela comunidade' : 'Rascunho da IA, montado com os títulos da wiki do jogo') : 'Montado pela comunidade'}{outline.edits ? ` · ${outline.edits} ${outline.edits === 1 ? 'edição' : 'edições'} de ${outline.editors} ${outline.editors === 1 ? 'pessoa' : 'pessoas'}` : ''}{outline.updatedAt ? ` · atualizado em ${whenLabel(outline.updatedAt, 'dia')}` : ''}. Os % são aproximados.</p>
+      <p className="faint ol-sheet__src">{outline.origin === 'ia' ? (outline.confirmed ? 'Rascunho da IA conferido pela comunidade' : 'Rascunho da IA, montado com pesquisa em wikis e detonados') : 'Montado pela comunidade'}{outline.edits ? ` · ${outline.edits} ${outline.edits === 1 ? 'edição' : 'edições'} de ${outline.editors} ${outline.editors === 1 ? 'pessoa' : 'pessoas'}` : ''}{outline.updatedAt ? ` · atualizado em ${whenLabel(outline.updatedAt, 'dia')}` : ''}. Os % são aproximados.</p>
       <div className="sheet__actions">
         {outline.canEdit && <button className="btn ghost" onClick={() => setEditing(true)}><Icon name="caneta" size={15} />Editar a lista</button>}
-        {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null, parts); onClose(); }}>Tirar a marca de capítulo</button>}
+        {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null, parts); onClose(); }}>Tirar a marca</button>}
         {!hist && outline.edits ? <button className="btn quiet" onClick={loadHist}>Ver as edições</button> : null}
         <button className="btn primary" onClick={onClose}>Fechar</button>
       </div>
@@ -143,7 +146,7 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
         <ul className="ol-hist">
           {hist.map((e) => (
             <li key={e.id}>
-              <span className="mono">{whenLabel(e.at, 'dia')}</span> {e.handle ? `@${e.handle}` : 'conta apagada'} · versão {e.version} · {e.count} {e.count === 1 ? 'capítulo' : 'capítulos'}{e.note ? ` · “${e.note}”` : ''}
+              <span className="mono">{whenLabel(e.at, 'dia')}</span> {e.handle ? `@${e.handle}` : 'conta apagada'} · versão {e.version} · {e.count} {e.count === 1 ? 'item' : 'itens'}{e.note ? ` · “${e.note}”` : ''}
               {outline.admin && e.version !== outline.version && <button className="btn quiet sm" onClick={async () => { try { await outlineApi.revert(game.id, e.id); onClose(); } catch (x) { setErr(x instanceof Error ? x.message : 'Não deu.'); } }}>Voltar para esta</button>}
             </li>
           ))}
@@ -182,6 +185,7 @@ function OutlineEditor({ game, outline, onDone, onClose }: { game: Game; outline
               <option value="">Dá para parar? (não sei)</option>
               {STOPS.map((k) => <option key={k} value={k}>{STOP_LABEL[k]}</option>)}
             </select>
+            <input className="field ol-edit__group" aria-label="Grupo" placeholder="Grupo: região, ato, mundo (opcional)" value={r.group ?? ''} maxLength={40} onChange={(e) => set(r.key, { group: e.target.value || undefined })} />
             <input className="field ol-edit__note" aria-label="Dica curta" placeholder="Dica curta, sem spoiler (opcional)" value={r.note ?? ''} maxLength={140} onChange={(e) => set(r.key, { note: e.target.value })} />
             <label className="ol-edit__chk"><input type="checkbox" checked={!!r.spoiler} onChange={(e) => set(r.key, { spoiler: e.target.checked })} /> O nome é spoiler</label>
             <button type="button" className="btn quiet sm danger" onClick={() => setRows(rows.filter((x) => x.key !== r.key))} aria-label={`Tirar o capítulo ${i + 1}`}>Tirar</button>

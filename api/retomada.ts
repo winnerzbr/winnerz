@@ -7,10 +7,11 @@
  *   POST /api/retomada  (com login)  { kind: 'narrar', game, chapter, name, range, summary, facts[] } → { text, used, limit }
  *        Narra um capítulo da Jornada (J2b) só com os fatos enviados; a pessoa guarda ou descarta no site.
  *   POST /api/retomada  (com login)  { kind: 'capitulos', game: "<id do jogo>" } → { state: 'pronto' | 'rodando' | 'sem_lista' | 'limite' | 'desistiu' }
- *        Monta o rascunho dos capítulos de um jogo que ainda não tem lista (C1, migração 0058): lê os títulos das
- *        páginas da wiki do jogo (Fandom e Wikipedia, achadas pelos links do IGDB) e pede a lista à IA. Fica guardada
- *        para todo mundo, marcada como "Inferido", com o crédito da wiki. Não conta no limite mensal da pessoa;
- *        há um limite por dia para o site todo (AI_OUTLINE_DAILY, padrão 50).
+ *        Monta o rascunho da estrutura de um jogo que ainda não tem lista (C1, migrações 0058 e 0060): a IA pesquisa
+ *        na web (busca e leitura de páginas, começando pelas wikis que o IGDB conhece), escolhe como o jogo se divide
+ *        (capítulos, missões, áreas, chefes, atos…) e devolve a lista. Fica guardada para todo mundo, marcada como
+ *        "Inferido", com o crédito das fontes. Não conta no limite mensal da pessoa; há um limite por dia para o site
+ *        todo (AI_OUTLINE_DAILY, padrão 50). Modelo: ANTHROPIC_OUTLINE_MODEL (padrão claude-sonnet-5-5).
  *   GET  /api/retomada  (com login)  → { enabled, used, limit }
  *
  * Variáveis na Vercel:
@@ -196,88 +197,117 @@ async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   return res.status(200).json({ done: rows.length, vibes: rows });
 }
 
-/* ---- Capítulos automáticos (C1, migração 0058) --------------------------------------------------------------- */
+/* ---- Estrutura do jogo: capítulos, missões, áreas… (C1, migrações 0058 e 0060) ------------------------------- */
 
-const UA = 'WinnerZ/1.0 (+https://winnerz.com.br)';
 const OUTLINE_DAILY = () => { const n = Number(process.env.AI_OUTLINE_DAILY ?? 50); return Number.isFinite(n) && n > 0 ? Math.floor(n) : 50; };
-const CHAPTER_RE = /chapter|cap[ií]tulo|walkthrough|detonado|level|fase|mission|miss[aã]o|stage|act\b|episode|epis[oó]dio|story|hist[oó]ria|part\b|parte|day\b|dia\b/i;
+/** Modelo para montar a estrutura (pesquisa na web e organiza): mais capaz que o padrão, usado uma vez por jogo. */
+const OUTLINE_MODEL = () => process.env.ANTHROPIC_OUTLINE_MODEL || 'claude-sonnet-5-5';
+const STRUCTURES = ['capitulos', 'missoes', 'areas', 'chefes', 'atos', 'episodios', 'fases', 'mundos', 'etapas'];
 
 let igdbToken: { value: string; expires: number } | null = null;
 async function igdbWebsites(igdbId: number): Promise<string[]> {
   const id = process.env.TWITCH_CLIENT_ID, secret = process.env.TWITCH_CLIENT_SECRET;
   if (!id || !secret || !igdbId) return [];
   if (!igdbToken || igdbToken.expires < Date.now() + 60_000) {
-    const t = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${secret}&grant_type=client_credentials`, { method: 'POST', signal: AbortSignal.timeout(6000) });
+    const t = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${secret}&grant_type=client_credentials`, { method: 'POST', signal: AbortSignal.timeout(5000) });
     if (!t.ok) return [];
     const j = (await t.json()) as { access_token: string; expires_in: number };
     igdbToken = { value: j.access_token, expires: Date.now() + j.expires_in * 1000 };
   }
-  const r = await fetch('https://api.igdb.com/v4/websites', { method: 'POST', headers: { 'Client-ID': id, Authorization: `Bearer ${igdbToken.value}`, 'Content-Type': 'text/plain' }, body: `fields url; where game = ${Math.floor(igdbId)}; limit 50;`, signal: AbortSignal.timeout(6000) });
+  const r = await fetch('https://api.igdb.com/v4/websites', { method: 'POST', headers: { 'Client-ID': id, Authorization: `Bearer ${igdbToken.value}`, 'Content-Type': 'text/plain' }, body: `fields url; where game = ${Math.floor(igdbId)}; limit 50;`, signal: AbortSignal.timeout(5000) });
   if (!r.ok) return [];
   return ((await r.json()) as { url?: string }[]).map((w) => w.url ?? '').filter(Boolean);
 }
 
-type Wiki = { api: string; page: string; label: string; url: string; license: string };
-/** As wikis do jogo pelos links do IGDB: Fandom primeiro, Wikipedia (inglês ou português) depois. */
-function wikisOf(urls: string[]): Wiki[] {
-  const out: Wiki[] = [];
-  for (const u of urls) {
-    const f = u.match(/^https?:\/\/([a-z0-9-]+)\.fandom\.com(\/[a-z]{2}(?:-[a-z]{2})?)?\/wiki\/([^?#]+)/i);
-    if (f) { out.push({ api: `https://${f[1]}.fandom.com${f[2] ?? ''}/api.php`, page: decodeURIComponent(f[3]), label: `${f[1]} wiki (Fandom)`, url: u, license: 'CC BY-SA' }); continue; }
-    const w = u.match(/^https?:\/\/(en|pt)\.wikipedia\.org\/wiki\/([^?#]+)/i);
-    if (w) out.push({ api: `https://${w[1]}.wikipedia.org/w/api.php`, page: decodeURIComponent(w[2]), label: `Wikipedia (${w[1]})`, url: u, license: 'CC BY-SA' });
-  }
-  const fandom = out.filter((x) => x.api.includes('fandom.com'));
-  return [...fandom.slice(0, 1), ...out.filter((x) => !x.api.includes('fandom.com')).slice(0, 1)];
+/** As wikis do jogo que o IGDB conhece (Fandom e Wikipedia): viram ponto de partida para a pesquisa. */
+export function wikiHints(urls: string[]): string[] {
+  const fandom = urls.filter((u) => /^https?:\/\/[a-z0-9-]+\.fandom\.com\//i.test(u));
+  const wiki = urls.filter((u) => /^https?:\/\/(en|pt)\.wikipedia\.org\/wiki\//i.test(u));
+  const other = urls.filter((u) => /wiki|guide/i.test(u) && !fandom.includes(u) && !wiki.includes(u));
+  return [...fandom.slice(0, 2), ...wiki.slice(0, 1), ...other.slice(0, 1)];
 }
 
-async function mw(api: string, params: Record<string, string>): Promise<any> {
-  const q = new URLSearchParams({ format: 'json', formatversion: '2', redirects: '1', ...params });
-  try {
-    const r = await fetch(`${api}?${q}`, { headers: { 'User-Agent': UA, 'Api-User-Agent': UA }, signal: AbortSignal.timeout(6000) });
-    return r.ok ? await r.json() : null;
-  } catch { return null; }
-}
-
-/** Só títulos: as seções da página do jogo, os links das seções de capítulos e as páginas de capítulos da busca. */
-async function wikiTitles(w: Wiki, title: string): Promise<string> {
-  const lines: string[] = [];
-  const sections = async (page: string) => ((await mw(w.api, { action: 'parse', page, prop: 'sections' }))?.parse?.sections ?? []) as { line: string; index: string }[];
-  const links = async (page: string, section?: string) => ((await mw(w.api, { action: 'parse', page, prop: 'links', ...(section ? { section } : {}) }))?.parse?.links ?? [])
-    .filter((l: any) => (l.ns ?? 0) === 0 && l.exists !== false).map((l: any) => String(l.title));
-  const main = await sections(w.page);
-  if (main.length) lines.push(`Seções da página "${w.page.replace(/_/g, ' ')}": ${main.map((s) => s.line.replace(/<[^>]+>/g, '')).join(' | ')}`);
-  for (const s of main.filter((x) => CHAPTER_RE.test(x.line)).slice(0, 2)) {
-    const l = await links(w.page, s.index);
-    if (l.length) lines.push(`Links na seção "${s.line.replace(/<[^>]+>/g, '')}": ${l.slice(0, 80).join(' | ')}`);
-  }
-  if (w.api.includes('fandom.com')) {
-    const found = ((await mw(w.api, { action: 'query', list: 'search', srsearch: `${title} chapters`, srlimit: '8' }))?.query?.search ?? []).map((x: any) => String(x.title));
-    if (found.length) lines.push(`Páginas achadas na busca: ${found.join(' | ')}`);
-    const hub = found.find((t: string) => /chapters|walkthrough|cap[ií]tulos|levels|missions/i.test(t) && t !== w.page.replace(/_/g, ' '));
-    if (hub) {
-      const hs = await sections(hub);
-      if (hs.length) lines.push(`Seções da página "${hub}": ${hs.map((s) => s.line.replace(/<[^>]+>/g, '')).join(' | ')}`);
-      const hl = await links(hub);
-      if (hl.length) lines.push(`Links na página "${hub}": ${hl.slice(0, 80).join(' | ')}`);
-    }
-  }
-  return lines.join('\n').slice(0, 7000);
-}
-
-const OUTLINE_SYSTEM = `Você monta a lista de capítulos (ou fases, missões, atos) de um videogame, na ordem do jogo, para uma pessoa acompanhar onde está.
-Você recebe o nome do jogo, o tempo típico para zerar e, quando houver, títulos de páginas e seções de uma wiki do jogo (só títulos, sem texto).
+const OUTLINE_SYSTEM = `Você monta a estrutura de progressão de um videogame para uma pessoa acompanhar, na linha do tempo, onde está no jogo.
+Pesquise antes de responder: use a busca na web e leia uma ou duas páginas boas (a wiki do jogo, um detonado completo, uma lista de capítulos ou missões). Quando receber links de wiki, comece por eles: procure a página de capítulos, missões, walkthrough ou progressão. Use também o que você já sabe do jogo.
+Escolha a estrutura que o próprio jogo usa:
+- "capitulos" (jogos lineares divididos em capítulos), "missoes" (missões numeradas ou principais), "atos", "episodios", "fases" (fases ou níveis), "mundos" (mundos com fases),
+- "areas" (jogos de exploração: regiões na ordem típica), "chefes" (quando o progresso é marcado por chefes),
+- "etapas" (jogos grandes e não lineares, como Elden Ring: misture áreas, masmorras e chefes principais na ordem mais comum, usando "group" para a região e "kind" para o tipo).
 Regras:
-- Use os nomes oficiais dos capítulos como aparecem nas fontes ou no jogo. Traduza só palavras genéricas (Chapter → Capítulo, Day → dia, Prologue → Prólogo, Epilogue → Epílogo, Act → Ato, Mission → Missão). Não invente nomes.
-- Se o jogo não tem capítulos ou fases claras (mundo aberto sem missões numeradas, jogo de corrida, esporte, multijogador) ou se você não conhece a estrutura com segurança, responda {"known": false, "parts": []}.
-- Entre 3 e 40 itens. Se o jogo tiver mais de 40 missões, agrupe por ato ou região.
-- "pct": onde o capítulo começa, de 0 a 100, pelo tempo de jogo (o primeiro é 0, sempre crescente).
-- "minutes": duração típica do capítulo, coerente com o tempo para zerar. Omita se não souber.
-- "spoiler": true quando o nome revela reviravolta, morte, personagem ou lugar que só aparece mais adiante, ou o final. Os primeiros capítulos normalmente não são spoiler.
-- "stop": só se souber como o jogo salva naquele trecho: "qualquer" (salva a qualquer hora), "fim" (salva no fim do capítulo), "pontos" (só em pontos de save), "longe" (pontos de save longe). Senão, omita.
-Responda SÓ com JSON: {"known": true, "confidence": "alta"|"media"|"baixa", "parts": [{"name": "...", "pct": 0, "minutes": 60, "spoiler": false, "stop": "fim"}]}`;
+- Liste o caminho principal, na ordem do jogo. Itens opcionais importantes só se ajudarem a pessoa a se localizar (marque "kind": "opcional").
+- Entre 4 e 60 itens. Em jogos com muitas missões pequenas, agrupe (por ato, região ou mundo) e use "group".
+- Nomes oficiais em português do Brasil quando o jogo tiver tradução oficial que você conheça; senão, o nome original. Só traduza palavras genéricas (Chapter → Capítulo, Mission → Missão, Act → Ato). Nunca invente nomes.
+- "pct": onde o item começa, de 0 a 100, pelo tempo de jogo da história principal (o primeiro é 0, sempre crescente).
+- "minutes": duração típica do item, coerente com o tempo para zerar. Omita se não souber.
+- "spoiler": true quando o nome revela reviravolta, morte, personagem ou lugar que só aparece mais adiante, ou o final.
+- "stop": só se souber como o jogo salva ali: "qualquer", "fim", "pontos" (só em pontos de save) ou "longe" (pontos de save longe).
+- "group": a região, o ato ou o mundo do item (até 40 caracteres), quando fizer sentido. "kind": tipo curto do item quando a estrutura mistura coisas (chefe, área, masmorra, opcional).
+- Se depois de pesquisar não houver estrutura clara (jogo de corrida, esporte, multijogador, sandbox sem progressão), responda known false.
+Termine a resposta com UM bloco JSON e nada depois:
+{"known": true, "structure": "capitulos", "confidence": "alta"|"media"|"baixa", "sources": [{"label": "nome do site", "url": "https://..."}], "parts": [{"name": "...", "pct": 0, "minutes": 60, "spoiler": false, "stop": "fim", "group": "...", "kind": "..."}]}`;
 
 type GameRow = { id: string; title: string; year: number | null; igdb_id: number | null; ttb: { h?: number; n?: number; c?: number } | null; platforms: string[] | null };
+type Block = { type: string; text?: string; name?: string; input?: { query?: string; url?: string }; content?: unknown };
+
+/** Pede a estrutura à IA com busca e leitura na web; continua a conversa quando a API pausa uma busca longa. */
+async function askOutline(prompt: string, deadline: number): Promise<{ text: string; searches: number; fetches: number; stop: string; error?: string }> {
+  const messages: { role: 'user' | 'assistant'; content: unknown }[] = [{ role: 'user', content: prompt }];
+  let tools: Record<string, unknown>[] = [
+    { type: 'web_search_20250305', name: 'web_search', max_uses: 4 },
+    { type: 'web_fetch_20250910', name: 'web_fetch', max_uses: 3, max_content_tokens: 12000 },
+  ];
+  let dropped = '';
+  let searches = 0, fetches = 0, stop = '', text = '';
+  for (let round = 0; round < 4; round++) {
+    const left = deadline - Date.now();
+    if (left < 6000) return { text, searches, fetches, stop: 'tempo', error: 'A pesquisa demorou demais.' };
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-fetch-2025-09-10' },
+      body: JSON.stringify({ model: OUTLINE_MODEL(), max_tokens: 6000, system: OUTLINE_SYSTEM, ...(tools.length ? { tools } : {}), messages }),
+      signal: AbortSignal.timeout(left - 2000),
+    });
+    if (!r.ok) {
+      const d = await r.text().catch(() => '');
+      console.error('anthropic estrutura', r.status, d.slice(0, 300));
+      // Busca ou leitura desligadas na organização (Console): tenta sem a ferramenta recusada, depois só com o que a IA sabe.
+      if (r.status === 400 && tools.length && /tool|web_/i.test(d) && round === 0 && messages.length === 1) {
+        const bad = /web_fetch|fetch/i.test(d) ? 'web_fetch' : /web_search|search/i.test(d) ? 'web_search' : '';
+        tools = bad ? tools.filter((t) => t.name !== bad) : [];
+        dropped += `${dropped ? ', ' : ''}${bad || 'ferramentas'}`;
+        round--;
+        continue;
+      }
+      return { text, searches, fetches, stop: `http ${r.status}${dropped ? ` · sem ${dropped}` : ''}`, error: aiError(r.status, d) };
+    }
+    const out = (await r.json()) as { content?: Block[]; stop_reason?: string };
+    const blocks = out.content ?? [];
+    searches += blocks.filter((b) => b.type === 'server_tool_use' && b.name === 'web_search').length;
+    fetches += blocks.filter((b) => b.type === 'server_tool_use' && b.name === 'web_fetch').length;
+    text = blocks.filter((b) => b.type === 'text').map((b) => b.text ?? '').join('');
+    stop = out.stop_reason ?? '';
+    if (dropped) stop += ` · sem ${dropped}`;
+    if (out.stop_reason !== 'pause_turn') break;
+    messages.push({ role: 'assistant', content: blocks });
+  }
+  return { text, searches, fetches, stop };
+}
+
+/** O último objeto JSON da resposta (a IA escreve antes o que pesquisou). */
+export function lastJson(text: string): Record<string, unknown> | null {
+  const t = text.replace(/```(?:json)?/gi, '');
+  for (let end = t.lastIndexOf('}'); end > 0; end = t.lastIndexOf('}', end - 1)) {
+    let depth = 0;
+    for (let i = end; i >= 0; i--) {
+      if (t[i] === '}') depth++;
+      else if (t[i] === '{' && --depth === 0) {
+        try { const v = JSON.parse(t.slice(i, end + 1)); if (v && typeof v === 'object' && ('parts' in v || 'known' in v)) return v; } catch { /* tenta o anterior */ }
+        break;
+      }
+    }
+  }
+  return null;
+}
 
 async function outline(user: string, body: Record<string, unknown>, res: Res) {
   const c = db()!;
@@ -302,66 +332,68 @@ async function outline(user: string, body: Record<string, unknown>, res: Res) {
   }
   if (start !== 'ok') return res.status(200).json({ state: start === 'pronto' ? 'pronto' : start === 'rodando' ? 'rodando' : start === 'limite' ? 'limite' : 'sem_lista' });
   const finish = async (state: 'feito' | 'sem_lista' | 'erro', note?: string) => { await rpcSvc('outline_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null); };
+  const deadline = Date.now() + 110_000;
   try {
     const gr = await fetch(`${c.url}/rest/v1/games?select=id,title,year,igdb_id,ttb,platforms&id=eq.${encodeURIComponent(gameId)}`, { headers: c.headers });
     const g = ((await gr.json()) as GameRow[])[0];
     if (!g) { await finish('sem_lista', 'Jogo não encontrado.'); return res.status(200).json({ state: 'sem_lista', reason: 'Jogo não encontrado.' }); }
-    // Fontes: as wikis do jogo (só títulos).
-    const wikis = wikisOf(g.igdb_id ? await igdbWebsites(g.igdb_id).catch(() => []) : []);
-    const read: { w: Wiki; text: string }[] = [];
-    for (const w of wikis) { const text = await wikiTitles(w, g.title).catch(() => ''); if (text) read.push({ w, text }); }
+    const hints = wikiHints(g.igdb_id ? await igdbWebsites(g.igdb_id).catch(() => []) : []);
     const ttb = g.ttb?.n ?? g.ttb?.h ?? g.ttb?.c;
     const prompt = [
       `Jogo: ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` · ${g.platforms.slice(0, 4).join(', ')}` : ''}.`,
       ttb ? `Tempo típico para zerar (história principal): ${Math.round(ttb)} horas.` : 'Tempo para zerar: desconhecido.',
-      read.length ? read.map((x) => `Fonte: ${x.w.label} (${x.w.url})\n${x.text}`).join('\n\n') : 'Nenhuma wiki encontrada. Use só o que você sabe com segurança; se não souber, responda known false.',
+      hints.length ? `Wikis do jogo (pelo IGDB):\n${hints.join('\n')}` : 'O IGDB não tem link de wiki para este jogo; pesquise.',
+      'Monte a estrutura de progressão deste jogo.',
     ].join('\n');
-    const ai = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 3000, system: OUTLINE_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
-      signal: AbortSignal.timeout(45_000),
-    });
-    if (!ai.ok) { const d = await ai.text().catch(() => ''); console.error('anthropic capitulos', ai.status, d.slice(0, 200)); const why = aiError(ai.status, d); await finish('erro', why); return res.status(200).json({ state: 'erro', reason: why }); }
-    const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
-    const txt = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
-    const said = txt.slice(Math.max(0, txt.indexOf('{')));
-    let parsed: { known?: boolean; parts?: any[] } | null = null;
-    try { parsed = JSON.parse(said.slice(0, said.lastIndexOf('}') + 1)); } catch { parsed = null; }
-    const parts = cleanOutline(parsed?.known ? parsed.parts : []);
+    const ai = await askOutline(prompt, deadline);
+    const diag = `buscas ${ai.searches} · leituras ${ai.fetches} · ${ai.stop || 'sem fim'}`;
+    if (ai.error) { await finish('erro', `${ai.error} (${diag})`); return res.status(200).json({ state: 'erro', reason: ai.error, diag }); }
+    const parsed = lastJson(ai.text);
+    const parts = cleanOutline(parsed?.known === false ? [] : parsed?.parts);
     if (parts.length < 3) {
-      const why = !parsed ? 'A IA respondeu fora do formato.' : read.length ? 'A IA não reconheceu capítulos nas páginas da wiki deste jogo.' : 'Não achei uma wiki deste jogo, e a IA não conhece os capítulos com segurança.';
-      await finish(parsed ? 'sem_lista' : 'erro', why);
-      return res.status(200).json({ state: parsed ? 'sem_lista' : 'erro', reason: why });
+      const why = !parsed ? 'A IA não devolveu a lista no formato esperado.' : parsed.known === false ? 'Depois de pesquisar, a IA não achou uma estrutura clara para este jogo.' : 'A lista da IA veio curta demais.';
+      console.error('estrutura sem lista', gameId, diag, ai.text.slice(-400));
+      await finish(parsed ? 'sem_lista' : 'erro', `${why} (${diag})`);
+      return res.status(200).json({ state: parsed ? 'sem_lista' : 'erro', reason: why, diag });
     }
-    const sources = read.map((x) => ({ label: x.w.label, url: x.w.url, license: x.w.license }));
-    const stored = await rpcSvc('outline_ai_store', { p_game: gameId, p_parts: parts, p_sources: sources });
-    await finish('feito', stored ? undefined : 'já tinha lista');
-    return res.status(200).json({ state: 'pronto' });
+    const structure = STRUCTURES.includes(String(parsed?.structure)) ? String(parsed!.structure) : 'capitulos';
+    const sources = (Array.isArray(parsed?.sources) ? parsed!.sources : []).slice(0, 4)
+      .map((x: any) => ({ label: clip(x?.label, 60) || 'Fonte', url: typeof x?.url === 'string' && /^https?:\/\//.test(x.url) ? x.url.slice(0, 300) : '' }))
+      .filter((x: { url: string }) => x.url)
+      .map((x: { label: string; url: string }) => ({ ...x, ...(/fandom\.com|wikipedia\.org/i.test(x.url) ? { license: 'CC BY-SA' } : {}) }));
+    let stored: unknown;
+    try { stored = await rpcSvc('outline_ai_store', { p_game: gameId, p_parts: parts, p_sources: sources, p_structure: structure }); }
+    catch { stored = await rpcSvc('outline_ai_store', { p_game: gameId, p_parts: parts, p_sources: sources }); }
+    await finish('feito', stored ? diag : `já tinha lista (${diag})`);
+    return res.status(200).json({ state: 'pronto', diag });
   } catch (e) {
-    console.error('capitulos', e instanceof Error ? e.message : e);
-    const why = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'A IA demorou demais para responder.' : 'Algo falhou ao montar a lista.';
+    console.error('estrutura', e instanceof Error ? e.message : e);
+    const why = e instanceof Error && /timeout|abort/i.test(e.name + e.message) ? 'A pesquisa demorou demais.' : 'Algo falhou ao montar a lista.';
     await finish('erro', why);
     return res.status(200).json({ state: 'erro', reason: why });
   }
 }
 
-/** Confere a lista da IA: nomes curtos, % crescente começando em 0, no máximo 40 capítulos. */
-export function cleanOutline(raw: unknown): { id: string; name: string; pct: number; minutes?: number; spoiler?: boolean; stop?: string }[] {
+type CleanPart = { id: string; name: string; pct: number; minutes?: number; spoiler?: boolean; stop?: string; group?: string; kind?: string };
+/** Confere a lista da IA: nomes curtos, % crescente começando em 0, no máximo 60 itens. */
+export function cleanOutline(raw: unknown): CleanPart[] {
   if (!Array.isArray(raw)) return [];
-  const out: { id: string; name: string; pct: number; minutes?: number; spoiler?: boolean; stop?: string }[] = [];
+  const out: CleanPart[] = [];
   let last = -1;
-  for (const p of raw.slice(0, 40)) {
+  for (const p of raw.slice(0, 60)) {
     const name = typeof p?.name === 'string' ? p.name.replace(/\s+/g, ' ').trim().slice(0, 60) : '';
-    if (!name || out.some((x) => x.name.toLowerCase() === name.toLowerCase())) continue;
+    if (!name || out.some((x) => x.name.toLowerCase() === name.toLowerCase() && (x.group ?? '') === (typeof p?.group === 'string' ? p.group.trim() : ''))) continue;
     let pct = Math.round(Number(p.pct));
     if (!Number.isFinite(pct)) pct = last + 1;
     pct = Math.max(out.length ? last + 1 : 0, Math.min(99, pct));
     if (!out.length) pct = 0;
     if (pct > 99) break;
     const minutes = Number(p.minutes);
+    const group = typeof p.group === 'string' ? p.group.replace(/\s+/g, ' ').trim().slice(0, 40) : '';
+    const kind = typeof p.kind === 'string' ? p.kind.replace(/\s+/g, ' ').trim().toLowerCase().slice(0, 20) : '';
     out.push({ id: `c${out.length + 1}`, name, pct, ...(Number.isFinite(minutes) && minutes >= 1 ? { minutes: Math.min(600, Math.round(minutes)) } : {}),
-      ...(p.spoiler === true && out.length > 0 ? { spoiler: true } : {}), ...(['qualquer', 'fim', 'pontos', 'longe'].includes(p.stop) ? { stop: p.stop } : {}) });
+      ...(p.spoiler === true && out.length > 0 ? { spoiler: true } : {}), ...(['qualquer', 'fim', 'pontos', 'longe'].includes(p.stop) ? { stop: p.stop } : {}),
+      ...(group ? { group } : {}), ...(kind ? { kind } : {}) });
     last = pct;
   }
   return out;

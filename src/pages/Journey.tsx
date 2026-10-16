@@ -31,7 +31,7 @@ import { useBackdrop } from '../components/Backdrop';
 import { FitCard, LetterLine } from '../components/Comeback';
 import { OutlineStrip } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
-import { partAt, partsTimeline } from '../lib/outline';
+import { partAt, partsTimeline, unitOf } from '../lib/outline';
 import { Faixa, type FaixaToday } from '../components/Faixa';
 import { PaintedMap } from '../components/PaintedMap';
 import { buildTimeline, weaveEchoes, weaveParts, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
@@ -368,7 +368,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {!hasEvents && !todayInfo ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
+            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} />
           ) : (
             <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
           )}

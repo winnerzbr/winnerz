@@ -43,18 +43,19 @@ const SEED: Record<string, OutlinePart[]> = {
 // Demonstração: um rascunho da IA ainda sem confirmação (para ver o selo "Inferido · confira").
 const AI_SEED: Record<string, OutlinePart[]> = {
   astro: [
-    { id: 'c1', name: 'Crash Site', pct: 0, minutes: 30, stop: 'qualquer' },
-    { id: 'c2', name: 'Galáxia Tormenta do Bot', pct: 12, minutes: 120, stop: 'fim' },
-    { id: 'c3', name: 'Galáxia Garra do Polvo', pct: 33, minutes: 120, stop: 'fim' },
-    { id: 'c4', name: 'Galáxia Supernova Lunar', pct: 55, minutes: 120, stop: 'fim', spoiler: true },
-    { id: 'c5', name: 'Nebulosa Sombria', pct: 78, minutes: 90, stop: 'fim', spoiler: true },
-    { id: 'c6', name: 'O resgate final', pct: 92, minutes: 45, stop: 'longe', spoiler: true },
+    { id: 'c1', name: 'Crash Site', pct: 0, minutes: 30, stop: 'qualquer', group: 'O começo', kind: 'área' },
+    { id: 'c2', name: 'Skipping Sands', pct: 8, minutes: 25, stop: 'fim', group: 'Galáxia Tormenta do Bot', kind: 'fase' },
+    { id: 'c3', name: 'Bot of War', pct: 18, minutes: 20, stop: 'fim', group: 'Galáxia Tormenta do Bot', kind: 'chefe' },
+    { id: 'c4', name: 'Sky Garden', pct: 30, minutes: 25, stop: 'fim', group: 'Galáxia Garra do Polvo', kind: 'fase' },
+    { id: 'c5', name: 'Galáxia Supernova Lunar', pct: 55, minutes: 120, stop: 'fim', spoiler: true, group: 'Galáxia Supernova Lunar' },
+    { id: 'c6', name: 'Nebulosa Sombria', pct: 78, minutes: 90, stop: 'fim', spoiler: true, group: 'Nebulosa Sombria' },
+    { id: 'c7', name: 'O resgate final', pct: 92, minutes: 45, stop: 'longe', spoiler: true, group: 'Nebulosa Sombria', kind: 'chefe' },
   ],
 };
 const dkey = (g: string) => `wz.demo.outline.${g}`;
 function demoGet(gameId: string): GameOutline {
   try { const v = JSON.parse(localStorage.getItem(dkey(gameId)) || 'null'); if (v) return { ...v, canEdit: true }; } catch { /* sem armazenamento */ }
-  if (AI_SEED[gameId]) return { gameId, parts: AI_SEED[gameId], version: 1, updatedAt: '2026-10-16T12:00:00Z', edits: 0, editors: 0, canEdit: true, origin: 'ia', confirms: 1, confirmed: false, mine: false, job: 'feito',
+  if (AI_SEED[gameId]) return { gameId, parts: AI_SEED[gameId], version: 1, updatedAt: '2026-10-16T12:00:00Z', edits: 0, editors: 0, canEdit: true, origin: 'ia', structure: 'fases', confirms: 1, confirmed: false, mine: false, job: 'feito',
     sources: [{ label: 'astrobot wiki (Fandom)', url: 'https://astrobot.fandom.com/wiki/Astro_Bot', license: 'CC BY-SA' }] };
   const parts = SEED[gameId] ?? [];
   return { gameId, parts, version: parts.length ? 3 : 0, updatedAt: parts.length ? '2026-09-30T20:00:00Z' : null, edits: parts.length ? 3 : 0, editors: parts.length ? 2 : 0, canEdit: true, origin: 'comunidade', confirmed: true };
@@ -120,9 +121,9 @@ export const outlineApi = {
     try {
       const { accessToken } = await import('./supabaseAdapter');
       const r = await fetch('/api/retomada', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'capitulos', game: gameId, force }) });
-      const j = (await r.json().catch(() => null)) as { state?: string; reason?: string; error?: string } | null;
+      const j = (await r.json().catch(() => null)) as { state?: string; reason?: string; error?: string; diag?: string } | null;
       if (!r.ok) status.set(gameId, { state: 'erro', reason: j?.error ?? 'O servidor não respondeu agora.' });
-      else if (j?.state && j.state !== 'pronto' && j.state !== 'rodando') status.set(gameId, { state: j.state as AutoState, reason: j.reason });
+      else if (j?.state && j.state !== 'pronto' && j.state !== 'rodando') status.set(gameId, { state: j.state as AutoState, reason: j.reason && j.diag ? `${j.reason} (${j.diag})` : j.reason });
       if (j?.state === 'rodando') {
         for (let i = 0; i < 24; i++) {
           await new Promise((ok2) => setTimeout(ok2, 5000));

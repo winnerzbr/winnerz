@@ -41,3 +41,15 @@ test('Capítulos na linha do tempo: chegadas, correções e os à frente', () =>
   const noToday = weaveParts(items.slice(0, 2), rows).map((x) => (x.type === 'gpart' ? x.part.id : x.id));
   assert.deepEqual(noToday, ['a', 'e1', 'b', 'e2']);
 });
+
+import { lastJson, wikiHints } from '../../api/retomada';
+
+test('Estrutura da IA: pega o último JSON e guarda grupo e tipo', () => {
+  const t = 'Pesquisei na wiki {"nota": 1}. Aqui está:\n```json\n{"known": true, "structure": "etapas", "parts": [{"name": "Limgrave", "pct": 0}, {"name": "Margit", "pct": 5, "group": "Limgrave", "kind": "Chefe"}]}\n```';
+  const j = lastJson(t);
+  assert.equal(j?.structure, 'etapas');
+  const parts = cleanOutline(j?.parts);
+  assert.deepEqual(parts.map((p) => [p.name, p.group ?? '', p.kind ?? '']), [['Limgrave', '', ''], ['Margit', 'Limgrave', 'chefe']]);
+  assert.equal(lastJson('sem json aqui'), null);
+  assert.deepEqual(wikiHints(['https://eldenring.fandom.com/wiki/Elden_Ring', 'https://en.wikipedia.org/wiki/Elden_Ring', 'https://twitter.com/x']), ['https://eldenring.fandom.com/wiki/Elden_Ring', 'https://en.wikipedia.org/wiki/Elden_Ring']);
+});

@@ -28,13 +28,13 @@
   ],
   "functions": {
     "api/pontes.ts": {
-      "maxDuration": 60
+      "maxDuration": 120
     },
     "api/discord.ts": {
-      "maxDuration": 60
+      "maxDuration": 120
     },
     "api/retomada.ts": {
-      "maxDuration": 60
+      "maxDuration": 120
     }
   }
 }

@@ -3,10 +3,28 @@
  * "Dá para parar aqui?" e as sugestões de objetivo pequeno para a sessão. Sem React e sem a store, para testar.
  */
 export type StopKind = 'qualquer' | 'fim' | 'pontos' | 'longe';
-export interface OutlinePart { id: string; name: string; pct: number; minutes?: number; stop?: StopKind; note?: string; spoiler?: boolean }
+export interface OutlinePart { id: string; name: string; pct: number; minutes?: number; stop?: StopKind; note?: string; spoiler?: boolean;
+  /** A região, o ato ou o mundo do item (quando o jogo se divide assim). */ group?: string;
+  /** Tipo curto quando a estrutura mistura coisas: chefe, área, masmorra, opcional. */ kind?: string }
+
+/** Como o jogo se divide (migração 0060). */
+export type Structure = 'capitulos' | 'missoes' | 'areas' | 'chefes' | 'atos' | 'episodios' | 'fases' | 'mundos' | 'etapas';
+export const UNIT: Record<Structure, { one: string; many: string; title: string }> = {
+  capitulos: { one: 'Capítulo', many: 'capítulos', title: 'Capítulos' },
+  missoes: { one: 'Missão', many: 'missões', title: 'Missões' },
+  areas: { one: 'Área', many: 'áreas', title: 'Áreas' },
+  chefes: { one: 'Chefe', many: 'chefes', title: 'Chefes' },
+  atos: { one: 'Ato', many: 'atos', title: 'Atos' },
+  episodios: { one: 'Episódio', many: 'episódios', title: 'Episódios' },
+  fases: { one: 'Fase', many: 'fases', title: 'Fases' },
+  mundos: { one: 'Mundo', many: 'mundos', title: 'Mundos' },
+  etapas: { one: 'Etapa', many: 'etapas', title: 'Etapas' },
+};
+export const unitOf = (o?: { structure?: Structure | null } | null) => UNIT[o?.structure ?? 'capitulos'] ?? UNIT.capitulos;
 export interface OutlineSource { label: string; url: string; license?: string }
 export interface GameOutline {
   gameId: string; parts: OutlinePart[]; version: number; updatedAt?: string | null; edits?: number; editors?: number; canEdit?: boolean; admin?: boolean;
+  structure?: Structure;
   /** De onde veio: montada pela comunidade ou rascunho da IA (C1, migração 0058). */
   origin?: 'comunidade' | 'ia';
   sources?: OutlineSource[];
@@ -76,7 +94,7 @@ export function goalSuggestions(inp: { note?: string; capsuleNext?: string; wayp
 /** Lista pronta para gravar: nomes aparados, % entre 0 e 100, em ordem. */
 export function cleanParts(parts: OutlinePart[]): OutlinePart[] {
   return parts
-    .map((p) => ({ ...p, name: p.name.replace(/\s+/g, ' ').trim().slice(0, 60), pct: Math.max(0, Math.min(100, Math.round(Number(p.pct) || 0))), note: p.note?.trim().slice(0, 140) || undefined, minutes: p.minutes ? Math.max(1, Math.min(600, Math.round(p.minutes))) : undefined }))
+    .map((p) => ({ ...p, group: p.group?.trim().slice(0, 40) || undefined, kind: p.kind?.trim().toLowerCase().slice(0, 20) || undefined, name: p.name.replace(/\s+/g, ' ').trim().slice(0, 60), pct: Math.max(0, Math.min(100, Math.round(Number(p.pct) || 0))), note: p.note?.trim().slice(0, 140) || undefined, minutes: p.minutes ? Math.max(1, Math.min(600, Math.round(p.minutes))) : undefined }))
     .filter((p) => p.name)
     .sort((a, b) => a.pct - b.pct)
     .slice(0, 60);

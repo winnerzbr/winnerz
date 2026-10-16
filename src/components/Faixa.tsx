@@ -50,7 +50,9 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate }: {
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' } }: {
+  /** Como o jogo se divide: capítulos, missões, áreas, chefes… (o rótulo dos itens do jogo). */
+  unit?: { one: string; many: string };
   items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void; onShare?: (eventId: string) => void;
   full: boolean; onExitFull: () => void; reduced: boolean; light: boolean; narrate?: FaixaNarrate | null;
 }) {
@@ -278,12 +280,12 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       const p = it.part, ahead = it.state === 'frente', shown = !ahead || openedParts.has(p.id);
       const how = it.src === 'steam' ? 'Informado pela Steam' : it.src === 'ra' ? 'Informado pelo RetroAchievements' : 'Você marcou';
       return (
-        <article key={it.id} {...common} className={`fx-pn fx-ev fx-gpart${ahead ? ' is-ahead' : ''}`} aria-label={`Capítulo ${it.n} de ${it.total}${shown ? `: ${p.name}` : ''}`}>
+        <article key={it.id} {...common} className={`fx-pn fx-ev fx-gpart${ahead ? ' is-ahead' : ''}`} aria-label={`${unit.one} ${it.n} de ${it.total}${shown ? `: ${p.name}` : ''}`}>
           <span className="fx-num" aria-hidden="true">{it.n}</span>
-          <span className="fx-k fx-k--part">{ahead ? 'À frente' : it.state === 'atual' ? 'Você chegou' : 'Passou por aqui'} · Capítulo {it.n} de {it.total}{it.at && !ahead ? ` · ${shortDay(it.at)}` : ''}</span>
+          <span className="fx-k fx-k--part">{ahead ? 'À frente' : it.state === 'atual' ? 'Você chegou' : 'Passou por aqui'} · {unit.one} {it.n} de {it.total}{p.group && shown && p.group !== p.name ? ` · ${p.group}` : ''}{it.at && !ahead ? ` · ${shortDay(it.at)}` : ''}</span>
           {shown ? <h3 className="fx-h fx-h--sm">{p.name}</h3> : <button className="fx-gpart__hide" onClick={(ev) => { ev.stopPropagation(); setOpenedParts(new Set([...openedParts, p.id])); }}>{p.spoiler ? 'Nome com spoiler · tocar para ver' : 'Tocar para ver o nome'}</button>}
           <p className="fx-p">{ahead ? [`Começa em uns ${p.pct}%`, p.minutes ? `leva uns ${durText(p.minutes)}` : ''].filter(Boolean).join(' · ') : how}</p>
-          {it.more ? <small className="fx-src">e mais {it.more} {it.more === 1 ? 'capítulo' : 'capítulos'} até o fim</small> : null}
+          {it.more ? <small className="fx-src">e mais {it.more} {it.more === 1 ? unit.one.toLowerCase() : unit.many} até o fim</small> : null}
         </article>
       );
     }
@@ -353,7 +355,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       <article key={it.id} {...common} className="fx-pn fx-today" aria-label="Hoje">
         <span className="fx-k fx-k--now">Hoje{today?.away != null && today.away > 0 ? ` · última vez ${awayLabel(today.away)}` : ''}</span>
         <h3 className="fx-h">{today?.open ? 'Sessão aberta agora' : today?.where ? <>Você parou em {today.where}</> : 'O próximo instante'}</h3>
-        {today?.part && <span className="fx-sub">Capítulo {today.part.n} de {today.part.total} · {today.part.name}</span>}
+        {today?.part && <span className="fx-sub">{unit.one} {today.part.n} de {today.part.total} · {today.part.name}</span>}
         {today?.note && !today.open && <p className="fx-p">“{today.note}”</p>}
         {!!today?.friends?.length && <p className="fx-sub fx-friends"><Icon name="pessoas" size={14} /> {friendsLine(today.friends)}</p>}
         <div className="fx-actions">

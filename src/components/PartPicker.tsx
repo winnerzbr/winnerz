@@ -13,6 +13,8 @@ import { shrink } from '../lib/image';
 import { Icon } from './Icon';
 import { OutlineSheet } from './Outline';
 import { Sheet } from './Sheet';
+import { useVideos } from '../data/videoApi';
+import { PartVideoButton } from './PartVideo';
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const CONF: Record<string, string> = { alta: 'quase certeza', media: 'provável', baixa: 'palpite' };
@@ -109,6 +111,7 @@ export function PartPicker({ game, history, outline, cur, chosen, text, onText, 
 /** Começo da sessão: "Você está em X?" (um toque), mudar pela lista ou pela foto. */
 export function StartPartCard({ game, history, session }: { game: Game; history: History; session: Session }) {
   const o = useOutline(game.id);
+  const vids = useVideos(game.id, (o?.parts.length ?? 0) > 1);
   const [edit, setEdit] = useState(false);
   const [text, setText] = useState('');
   if (!o?.parts.length) return null;
@@ -122,6 +125,7 @@ export function StartPartCard({ game, history, session }: { game: Game; history:
       <section className="ppcard is-set" aria-labelledby="pp-h">
         <span className="kicker kicker--now" id="pp-h">Começou em</span>
         <b className="ppcard__name"><Icon name="check" size={16} /> {from.name}</b>
+        <PartVideoButton gameId={game.id} gameTitle={game.title} part={parts.find((p) => p.id === from.id)} label={u.one} videos={vids} onDark />
         <button className="btn quiet sm" onClick={() => setEdit(true)}>Mudar</button>
       </section>
     );
@@ -135,6 +139,7 @@ export function StartPartCard({ game, history, session }: { game: Game; history:
           <div className="ppcard__row">
             <button className="btn primary sm" onClick={() => choose(cur, 'lista')}>Isso</button>
             <button className="btn ghost sm" onClick={() => setEdit(true)}>Mudar</button>
+            <PartVideoButton gameId={game.id} gameTitle={game.title} part={cur} label={u.one} videos={vids} onDark />
           </div>
         </>
       ) : (

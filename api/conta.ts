@@ -149,7 +149,11 @@ export default async function handler(req: Req, res: Res) {
       const secret = process.env.CRON_SECRET;
       if (!secret) return res.status(503).json({ error: 'Rotina desligada: falta a variável CRON_SECRET na Vercel.' });
       if (header(req, 'authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Sem permissão.' });
-      return res.status(200).json(await purge());
+      // Vídeos dos capítulos achados na busca do YouTube: no máximo 30 dias guardados (migração 0063).
+      const c = db()!;
+      const videos = await fetch(`${c.url}/rest/v1/rpc/video_purge`, { method: 'POST', headers: { ...c.headers, 'Content-Type': 'application/json' }, body: '{}' })
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+      return res.status(200).json({ ...(await purge()), videos });
     }
     const user = await requireUser(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });

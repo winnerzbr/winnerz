@@ -11,6 +11,9 @@ import type { Game, History, Session } from '../data/types';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { whenLabel } from '../lib/dates';
+import { useVideos } from '../data/videoApi';
+import { videosOf } from '../lib/ytLink';
+import { CanalPlaylist, PartVideoButton, VideoSheet } from './PartVideo';
 
 const durShort = (m?: number) => (!m ? '' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`);
 const STOPS: StopKind[] = ['qualquer', 'fim', 'pontos', 'longe'];
@@ -75,6 +78,7 @@ export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: 
 
 export function OutlineStrip({ game, history }: { game: Game; history: History }) {
   const o = useOutline(game.id);
+  const vids = useVideos(game.id, (o?.parts.length ?? 0) > 1);
   const [open, setOpen] = useState<false | 'list' | 'edit' | 'link'>(false);
   const empty = !!o && !o.parts.length;
   // Jogo sem capítulos: o servidor monta o rascunho sozinho (uma vez por jogo).
@@ -116,6 +120,7 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
         <span className="kicker">{u.one} {cur ? parts.indexOf(cur) + 1 : '—'} de {parts.length}{cur?.group && cur.group !== cur.name ? ` · ${cur.group}` : ''}</span>
         <b>{cur ? cur.name : 'Onde você está?'}</b>
         {cur?.stop && <span className={`ol-stop ol-stop--${stopAdvice(cur).tone}`}>{STOP_LABEL[cur.stop]}</span>}
+        <PartVideoButton gameId={game.id} gameTitle={game.title} part={cur} label={`${u.one} ${cur ? parts.indexOf(cur) + 1 : ''}`} videos={vids} />
         <button className="btn quiet sm" onClick={() => setOpen('list')}>{cur ? 'Mudar' : 'Escolher onde estou'}</button>
       </div>
       <OutlineSource game={game} outline={o} onEdit={() => setOpen('edit')} />
@@ -131,6 +136,9 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing, on
   const [opened, setOpened] = useState<Set<string>>(new Set());
   const [hist, setHist] = useState<OutlineEdit[] | null>(null);
   const [err, setErr] = useState('');
+  const [video, setVideo] = useState<OutlinePart | null>(null);
+  const [canal, setCanal] = useState(false);
+  const vids = useVideos(game.id, false);
   const parts = outline.parts;
   const cur = partAt(parts, history.progress, history.part);
   const curPct = cur?.pct ?? history.progress ?? -1;
@@ -157,7 +165,8 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing, on
                 <span className="ol-row__meta">{[`${p.pct}%`, durShort(p.minutes), p.stop ? STOP_LABEL[p.stop] : ''].filter(Boolean).join(' · ')}</span>
                 {p.note && (name || !ahead) && <span className="ol-row__note">{p.note}</span>}
               </div>
-              {isCur ? <span className="chip chip--static">Você está aqui</span> : <button className="btn ghost sm" onClick={() => pick(p)}>Estou aqui</button>}
+              <span className="ol-row__acts">{name && (videosOf(vids?.videos, p.id).length > 0 || (vids?.canEdit && (isCur || !ahead))) && <button className="btn quiet sm ol-row__vid" onClick={() => setVideo(p)} aria-label={`Vídeo de ${name}`} title={videosOf(vids?.videos, p.id).length ? 'Ver o vídeo deste trecho' : 'Pôr um vídeo deste trecho'}><Icon name={videosOf(vids?.videos, p.id).length ? 'play' : 'mais'} size={13} /></button>}
+              {isCur ? <span className="chip chip--static">Você está aqui</span> : <button className="btn ghost sm" onClick={() => pick(p)}>Estou aqui</button>}</span>
             </li></Fragment>
           );
         })}
@@ -168,9 +177,12 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing, on
         {outline.canEdit && <button className="btn ghost" onClick={() => setEditing(true)}><Icon name="caneta" size={15} />Editar a lista</button>}
         {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null, parts); onClose(); }}>Tirar a marca</button>}
         {!hist && outline.edits ? <button className="btn quiet" onClick={loadHist}>Ver as edições</button> : null}
+        {outline.admin && <button className="btn quiet" aria-expanded={canal} onClick={() => setCanal(!canal)}><Icon name="play" size={14} />Detonado do canal</button>}
         <button className="btn primary" onClick={onClose}>Fechar</button>
       </div>
       {err && <p className="form-error" role="alert">{err}</p>}
+      {canal && <CanalPlaylist gameId={game.id} />}
+      {video && <VideoSheet gameId={game.id} gameTitle={game.title} part={video} label={`${u.one} ${parts.indexOf(video) + 1}`} videos={vids} onClose={() => setVideo(null)} />}
       {hist && (
         <ul className="ol-hist">
           {hist.map((e) => (

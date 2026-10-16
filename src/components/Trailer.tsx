@@ -1,11 +1,11 @@
 /**
- * Trailer da História (J7): o navegador desenha as cenas num canvas e grava em vídeo (MediaRecorder), com uma
- * trilha épica gerada na hora (Web Audio, em lib/trailerMusic). Nada vai para o servidor. Vertical (stories) ou horizontal.
+ * Trailer da História (J7): o navegador desenha as cenas num canvas e grava em vídeo (MediaRecorder), com a
+ * trilha do WinnerZ (lib/trailerTrack) mixada pelo Web Audio. Nada vai para o servidor. Vertical (stories) ou horizontal.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../data/store';
 import { planTrailer, trailerLength, type Scene } from '../lib/trailer';
-import { playTrailerMusic } from '../lib/trailerMusic';
+import { fetchTrailerTrack, playTrailerTrack, TRAILER_TRACK } from '../lib/trailerTrack';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { track } from '../lib/track';
@@ -206,6 +206,7 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
     const srcs = [...new Set(scenes.flatMap((x) => ('image' in x && x.image ? [x.image] : [])))];
     const loaded = await Promise.all(srcs.map(load));
     const imgs = new Map(srcs.map((src, i) => [src, loaded[i]]));
+    fetchTrailerTrack().catch(() => null); // já deixa a trilha baixando
     assets.current = { imgs, logo: await load('/brand/forjado.svg') };
     return assets.current;
   };
@@ -224,18 +225,24 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
 
   const record = async () => {
     setErr(''); setState('carregando');
+    // O AudioContext nasce aqui, ainda dentro do toque, para o navegador deixar tocar.
+    const actx = music ? new AudioContext() : null;
     try {
       const a = await prepare();
+      let tune: AudioBuffer | null = null;
+      if (actx) {
+        try { tune = await actx.decodeAudioData((await fetchTrailerTrack()).slice(0)); }
+        catch { setErr('A trilha não carregou agora; o vídeo vai sem música.'); }
+        await actx.resume().catch(() => null);
+      }
       const c = canvas.current!; const [W, H] = SIZE[fmt]; c.width = W; c.height = H;
       const g = c.getContext('2d')!;
       frame(g, W, H, scenes, a.imgs, a.logo, 0);
       const stream = c.captureStream(FPS);
       let stopAudio = () => {};
-      let actx: AudioContext | null = null;
-      if (music) {
-        actx = new AudioContext();
+      if (actx && tune) {
         const dest = actx.createMediaStreamDestination();
-        stopAudio = playTrailerMusic(actx, dest, scenes);
+        stopAudio = playTrailerTrack(actx, dest, tune, scenes);
         dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
       }
       const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
@@ -262,6 +269,7 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
       setUrl((old) => { if (old) URL.revokeObjectURL(old); return URL.createObjectURL(b); });
       setState('feito');
     } catch (e) {
+      actx?.close().catch(() => null);
       setErr(e instanceof Error && /secur|taint/i.test(e.message) ? 'Uma das imagens não permitiu gravar o vídeo. Tente de novo; se continuar, avise a administração.' : 'Não deu para gravar o vídeo neste navegador.');
       setState('erro');
     }
@@ -292,7 +300,7 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
               <button type="button" className="chip" aria-pressed={fmt === 'vertical'} disabled={state === 'gravando'} onClick={() => { setFmt('vertical'); setState('pronto'); }}>Vertical (stories)</button>
               <button type="button" className="chip" aria-pressed={fmt === 'horizontal'} disabled={state === 'gravando'} onClick={() => { setFmt('horizontal'); setState('pronto'); }}>Horizontal</button>
             </div>
-            <label className="share-card__check"><input type="checkbox" checked={music} disabled={state === 'gravando'} onChange={(e) => setMusic(e.target.checked)} /> Com trilha épica (gerada aqui)</label>
+            <label className="share-card__check"><input type="checkbox" checked={music} disabled={state === 'gravando'} onChange={(e) => setMusic(e.target.checked)} /> Com trilha ({TRAILER_TRACK.credit})</label>
             {state === 'gravando' ? (
               <p className="trailer__rec" role="status"><span className="session-pill__dot" aria-hidden="true" /> Gravando… {Math.round(progress * 100)}%. Deixe esta aba aberta e na frente.</p>
             ) : state === 'carregando' ? (

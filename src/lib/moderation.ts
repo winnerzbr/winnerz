@@ -1,6 +1,6 @@
 /** Textos e endereços dos alvos de denúncia (fila do Studio e histórico). */
-export type ReportKind = 'perfil' | 'jornada' | 'vitrine' | 'momento' | 'museu' | 'comunidade' | 'postagem' | 'resposta' | 'clube' | 'jogatina' | 'mensagem';
-export interface Snapshot { handle?: string; bio?: string | null; avatar?: boolean; cover?: boolean; game?: string; slug?: string; title?: string; description?: string | null; quote?: string | null; text?: string | null; intro?: string | null; photo?: boolean; shared?: boolean; hidden?: boolean; community?: string; postId?: string; club?: string | null; jogatina?: string | null; startsAt?: string; to?: string | null }
+export type ReportKind = 'perfil' | 'jornada' | 'vitrine' | 'momento' | 'museu' | 'comunidade' | 'postagem' | 'resposta' | 'clube' | 'jogatina' | 'mensagem' | 'lista';
+export interface Snapshot { handle?: string; bio?: string | null; avatar?: boolean; cover?: boolean; game?: string; slug?: string; title?: string; description?: string | null; quote?: string | null; text?: string | null; intro?: string | null; photo?: boolean; shared?: boolean; hidden?: boolean; community?: string; postId?: string; club?: string | null; jogatina?: string | null; startsAt?: string; to?: string | null; games?: string | null; visibility?: string }
 
 /** O que mostrar sobre o alvo na fila e no histórico. */
 export function targetLabel(kind: ReportKind, s: Snapshot | null | undefined): string {
@@ -15,6 +15,7 @@ export function targetLabel(kind: ReportKind, s: Snapshot | null | undefined): s
     case 'clube': return `Clube “${s.title ?? ''}”${s.game ? ` · ${s.game}` : ''}`;
     case 'jogatina': return `Jogatina “${s.title ?? ''}”${s.game ? ` · ${s.game}` : ''}`;
     case 'mensagem': return `Mensagem direta${s.to ? ` para @${s.to}` : ''}`;
+    case 'lista': return `Lista “${s.title ?? ''}”`;
     case 'resposta': return `Resposta em “${s.title ?? ''}”${s.community ? ` · ${s.community}` : ''}`;
     default: return `Perfil @${s.handle ?? ''}`;
   }
@@ -25,6 +26,7 @@ export function targetLink(kind: ReportKind, handle: string | null, ref: string,
   if (kind === 'jogatina') return `/jogatina/${ref}`;
   // Mensagem direta: não há página para abrir (a moderação vê só o texto denunciado).
   if (kind === 'mensagem') return null;
+  if (kind === 'lista') return `/lista/${ref}`;
   // Postagem ou resposta de jogatina: abre na jogatina.
   if ((kind === 'postagem' || kind === 'resposta') && s?.jogatina) return `/jogatina/${s.jogatina}#m-${ref}`;
   // Postagem ou resposta de clube: abre na conversa do clube.

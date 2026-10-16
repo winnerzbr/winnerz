@@ -96,6 +96,7 @@ export function CommunityPage() {
             <Link to="/comunidade/criar">Criar comunidade</Link>
             <Link to="/comunidade/clubes">Clubes</Link>
             <Link to="/comunidade/pessoas">Pessoas</Link>
+            <Link to="/listas">Listas</Link>
           </div>
         </aside>
 

@@ -143,6 +143,8 @@ function Excerpt({ kind, s }: { kind: QueueItem['kind']; s: QueueItem['snapshot'
     : kind === 'resposta' ? [['Na postagem', s.title], ['Texto', s.text]]
     : kind === 'clube' ? [['Nome', s.title], ['Descrição', s.description], ['Jogo', s.game]]
     : kind === 'jogatina' ? [['Nome', s.title], ['Descrição', s.description], ['Jogo', s.game], ['Quando', s.startsAt ? new Date(s.startsAt).toLocaleString('pt-BR') : null]]
+    : kind === 'mensagem' ? [['Para', s.to ? `@${s.to}` : null], ['Texto', s.text], ['Jogo', s.game]]
+    : kind === 'lista' ? [['Título', s.title], ['Descrição', s.description], ['Jogos e notas', s.games], ['Quem vê', s.visibility]]
     : [['Jogo', s.game]];
   const shown = lines.filter(([, v]) => v);
   if (!shown.length) return null;

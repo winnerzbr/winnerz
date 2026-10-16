@@ -33,6 +33,7 @@ export function notifLine(n: Notif): ReactNode {
     }
     case 'clube_resposta': return <>{who(n)} respondeu você no clube {t}</>;
     case 'clube_mencao': return <>{who(n)} mencionou você no clube {t}</>;
+    case 'lista_convite': return <>{who(n)} convidou você para editar junto a lista {t}</>;
     case 'clube_convite': return <>{who(n)} convidou você para o clube {t}</>;
     case 'clube_jogo': return <>O clube {t} começou um jogo novo{n.excerpt ? <>: <b>{n.excerpt}</b></> : ''}</>;
     case 'clube_jogatina': return <>{who(n)} marcou <b>{n.excerpt}</b> na agenda do clube {t}{str(n.data.startsAt) ? `, ${whenLabel(str(n.data.startsAt))}` : ''}</>;
@@ -69,7 +70,7 @@ export function notifLine(n: Notif): ReactNode {
     default: return <>{t}</>;
   }
 }
-const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', mes: 'calendario', revisao: 'jornada', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
+const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', mes: 'calendario', revisao: 'jornada', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos', lista_convite: 'estante' };
 /** Texto extra embaixo da frase (trecho da mensagem, aviso da moderação). */
 const showExcerpt = (n: Notif) => !!n.excerpt && !['clube_jogo', 'clube_jogatina', 'parte'].includes(n.kind);
 

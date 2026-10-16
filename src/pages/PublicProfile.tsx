@@ -1,3 +1,4 @@
+import { ProfileLists } from './Lists';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PresencePill } from '../components/Presence';
 import { usePresenceOf } from '../data/presenceApi';
@@ -138,6 +139,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 
       <div className={`page pd-body${cur === 'museu' ? ' is-hidden' : ''}`}>
         {cur === 'geral' && <Overview data={data} mine={mine} qs={qs} at={at} goTab={setTab} />}
+        {cur === 'geral' && <ProfileLists handle={data.handle} />}
 
         {cur === 'jornadas' && j && (
           <section className="pp__sec" aria-label="Jornadas">

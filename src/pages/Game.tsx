@@ -1,3 +1,4 @@
+import { AddToList, GameLists } from './Lists';
 import { useEffect, useMemo, useState } from 'react';
 import { FixSheet } from '../components/FixSheet';
 import { fixedFields, fixLabel } from '../lib/fixes';
@@ -257,6 +258,7 @@ function GameView({ gameId }: { gameId: string }) {
 
           <GameCommunity gameId={g.id} slug={g.slug} title={g.title} />
           <GameClubs gameId={g.id} slug={g.slug} title={g.title} />
+          <GameLists slug={g.slug} title={g.title} />
 
           <MediaGallery title={g.title} items={media} gameId={g.id} />
 
@@ -284,6 +286,7 @@ function GameView({ gameId }: { gameId: string }) {
             )}
             {g.source === 'manual' ? <LinkToIgdb game={g} /> : <GameSwapOnPage key={g.id} game={g} />}
             {g.igdbId && <RadarToggle game={g} on={!!mine2.onRadar} />}
+            <AddToList game={{ id: g.id, slug: g.slug, title: g.title, cover: g.cover || null, backdrop: g.backdrop ?? null }} />
           </section>
           <GameDna game={g} />
           {(g.summary || g.themes?.length || g.modes?.length) && (

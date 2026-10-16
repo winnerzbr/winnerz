@@ -5,6 +5,7 @@
 import { getState } from './store';
 import type { PersonRef } from './communityApi';
 import { DEMO_PEOPLE } from './demoPeople';
+import type { GameList } from './listsApi';
 
 export type SearchGame = { title: string; cover?: string | null; slug: string } | null;
 export interface CommunityHits {
@@ -13,8 +14,9 @@ export interface CommunityHits {
   conversas: { id: string; title: string; excerpt: string | null; spoiler: boolean; author: PersonRef | null; at: string; place: string; game: string | null; replies: number }[];
   clubes: { slug: string; name: string; description: string; format: string; game: SearchGame; members: number }[];
   jogatinas: { id: string; title: string; startsAt: string; game: SearchGame; going: number }[];
+  listas: GameList[];
 }
-export const EMPTY_HITS: CommunityHits = { pessoas: [], comunidades: [], conversas: [], clubes: [], jogatinas: [] };
+export const EMPTY_HITS: CommunityHits = { pessoas: [], comunidades: [], conversas: [], clubes: [], jogatinas: [], listas: [] };
 const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 export const searchApi = {
@@ -28,6 +30,7 @@ export const searchApi = {
       return {
         ...EMPTY_HITS,
         pessoas: DEMO_PEOPLE.filter((p) => norm(p.handle).includes(t) || norm(p.bio).includes(t)).slice(0, limit).map((p) => ({ id: p.id, handle: p.handle, avatar: null, bio: p.bio })),
+        listas: await import('./listsApi').then(({ demoListSearch }) => demoListSearch(t, limit)).catch(() => []),
         comunidades: comms.filter((c) => norm(c.name).includes(t) || norm(c.description).includes(t)).slice(0, limit)
           .map((c) => ({ slug: c.slug, name: c.name, description: c.description, official: c.official, members: c.members })),
       };

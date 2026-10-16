@@ -5713,3 +5713,88 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .search__cv { flex: none; width: 40px; }
 .search__cv img, .search__cv .cover { border-radius: 6px; }
 @media (max-width: 640px) { .search__games { grid-template-columns: repeat(3, 1fr); gap: 10px; } .search__games a > span { font-size: 13px; } }
+
+/* ===== H · Listas compartilhadas ===== */
+.glists { max-width: 1100px; }
+.glists__new { margin: 4px 0 18px; }
+.glist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 12px; margin-top: 14px; }
+.glist-grid--tight { margin-top: 0; }
+.glist-card { display: flex; gap: 14px; align-items: center; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: inherit; text-decoration: none; min-width: 0; }
+.glist-card:hover { border-color: var(--now-line); }
+.glist-card__body { display: grid; gap: 4px; min-width: 0; }
+.glist-card__title { font-size: 16px; line-height: 1.25; }
+.glist-card small { font-size: 13px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.glist-card__note { color: var(--ink); font-style: italic; }
+.glist-mosaic { flex: none; width: 76px; height: 100px; display: grid; gap: 2px; border-radius: 9px; overflow: hidden; background: var(--line); }
+.glist-mosaic .cover-art { width: 100%; height: 100%; object-fit: cover; border-radius: 0; display: block; }
+.glist-mosaic--2, .glist-mosaic--4 { grid-template-columns: 1fr 1fr; }
+.glist-mosaic--2 { grid-template-rows: 1fr; }
+.glist-mosaic--3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+.glist-mosaic--3 > :first-child { grid-row: span 2; }
+.glist-mosaic--4 { grid-template-rows: 1fr 1fr; }
+.glist-mosaic__empty { display: grid; place-items: center; color: var(--faint); background: var(--field); }
+
+.glist-form { display: grid; gap: 14px; padding: 18px; margin: 6px 0 18px; max-width: 640px; }
+.glist-form .field-wrap { display: grid; gap: 6px; }
+.glist-form__vis { border: 0; padding: 0; margin: 0; display: grid; gap: 8px; }
+.glist-form__check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.glist-form__acts { display: flex; gap: 8px; justify-content: flex-end; }
+
+.glist { max-width: 900px; }
+.glist__head { display: grid; gap: 10px; margin-bottom: 18px; }
+.glist__title { margin: 4px 0 0; overflow-wrap: anywhere; }
+.glist__desc { margin: 0; max-width: 680px; white-space: pre-line; }
+.glist__meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 14px; }
+.glist__person { display: inline-flex; align-items: center; gap: 8px; color: inherit; font-weight: 600; text-decoration: none; }
+.glist__vis { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: 12px; color: var(--muted); }
+.glist__vis--mod { color: #e08a7a; border-color: #8a3a2c; }
+.glist__acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.glist__people { display: grid; gap: 12px; padding: 16px; margin-bottom: 16px; }
+.glist__people p { margin: 0; }
+.glist__peopleform { display: flex; gap: 8px; }
+.glist__peopleform .field { flex: 1; min-width: 0; }
+.glist__editors { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.glist__editors li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.glist__add { display: grid; gap: 8px; margin-bottom: 18px; position: relative; }
+.glist__add .search__field { margin: 0; }
+.glist__hits { list-style: none; margin: 0; padding: 6px; display: grid; gap: 2px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.glist__hit { display: flex; gap: 12px; align-items: center; width: 100%; padding: 8px; border: 0; border-radius: 10px; background: transparent; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.glist__hit:hover:not(:disabled) { background: var(--field); }
+.glist__hit:disabled { cursor: default; opacity: .65; }
+.glist__hit > span:nth-child(2) { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.glist__hitcv { flex: none; width: 36px; }
+.glist__hitcv .cover-art { border-radius: 5px; }
+.glist__hitact { display: inline-flex; gap: 4px; align-items: center; font-size: 13px; color: var(--accent-ink); white-space: nowrap; }
+.glist__items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.glist__item { display: flex; gap: 14px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.glist__n { flex: none; width: 34px; font-size: 26px; line-height: 1; color: var(--accent-ink); text-align: right; padding-top: 4px; }
+.glist__cover { flex: none; width: 72px; }
+.glist__cover .cover-art { border-radius: 8px; }
+.glist__body { display: grid; gap: 6px; min-width: 0; flex: 1; }
+.glist__game { font-weight: 700; font-size: 17px; color: inherit; text-decoration: none; }
+.glist__note { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+.glist__noteform { display: grid; gap: 8px; }
+.glist__noteform > div { display: flex; gap: 8px; justify-content: flex-end; }
+.glist__itemacts { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.glist__danger { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 14px; }
+
+.addlist { display: grid; gap: 8px; margin-top: 8px; }
+.addlist > .btn { justify-self: start; }
+.addlist__panel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
+.addlist__panel p { margin: 0; }
+.addlist__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 240px; overflow: auto; }
+.addlist__row { display: flex; gap: 10px; align-items: center; width: 100%; padding: 7px 6px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.addlist__row:hover { background: var(--surface); }
+.addlist__check { flex: none; width: 18px; height: 18px; border: 1px solid var(--line); border-radius: 5px; display: grid; place-items: center; color: var(--on-accent); }
+.addlist__row[aria-pressed="true"] .addlist__check { background: var(--accent); border-color: var(--accent); }
+.addlist__new { display: flex; gap: 6px; }
+.addlist__new .field { flex: 1; min-width: 0; padding: 7px 10px; font-size: 14px; }
+.addlist__all { font-size: 13px; }
+
+.pp-lists { display: grid; gap: 12px; margin-top: 28px; }
+@media (max-width: 640px) {
+  .glist__item { gap: 10px; padding: 10px; }
+  .glist__cover { width: 56px; }
+  .glist__n { width: 24px; font-size: 20px; }
+  .glist__game { font-size: 16px; }
+}

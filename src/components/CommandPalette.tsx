@@ -90,6 +90,7 @@ function Palette({ onClose }: { onClose: () => void }) {
     for (const p of cm.conversas) out.push({ key: `v-${p.id}`, group: 'Na comunidade', title: p.title, meta: `${p.place}${p.author?.handle ? ` · @${p.author.handle}` : ''}`, to: `/conversa/${p.id}`, icon: 'mensagem' });
     for (const k of cm.clubes) out.push({ key: `k-${k.slug}`, group: 'Na comunidade', title: k.name, meta: `Clube${k.game ? ` · ${k.game.title}` : ''}`, to: `/clube/${k.slug}`, cover: k.game?.cover ? { title: k.game.title, cover: k.game.cover } : undefined, icon: 'pessoas' });
     for (const j of cm.jogatinas) out.push({ key: `jg-${j.id}`, group: 'Na comunidade', title: j.title, meta: `Jogatina${j.game ? ` · ${j.game.title}` : ''}`, to: `/jogatina/${j.id}`, cover: j.game?.cover ? { title: j.game.title, cover: j.game.cover } : undefined, icon: 'calendario' });
+    for (const l of cm.listas ?? []) out.push({ key: `l-${l.id}`, group: 'Na comunidade', title: l.title, meta: `Lista${l.owner.handle ? ` de @${l.owner.handle}` : ''} · ${l.count} ${l.count === 1 ? 'jogo' : 'jogos'}`, to: `/lista/${l.id}`, cover: l.covers[0] ? { title: l.covers[0].title, cover: l.covers[0].cover ?? '' } : undefined, icon: 'estante' });
     if (q.trim().length >= 2) out.push({ key: 'all', group: 'Mais', title: `Ver todos os resultados para “${q.trim()}”`, to: `/busca?q=${encodeURIComponent(q.trim())}`, icon: 'busca' });
     return out;
   }, [q, s, remote, cm]);

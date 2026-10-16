@@ -13,9 +13,10 @@ import { Icon } from '../components/Icon';
 import { shortPlatform } from '../lib/platforms';
 import { whenLabel } from '../lib/when';
 import { track } from '../lib/track';
+import { ListCard } from './Lists';
 
 const TABS = [
-  ['tudo', 'Tudo'], ['jogos', 'Jogos'], ['pessoas', 'Pessoas'], ['conversas', 'Conversas'], ['comunidades', 'Comunidades'], ['grupos', 'Clubes e jogatinas'], ['acervo', 'Seu acervo'],
+  ['tudo', 'Tudo'], ['jogos', 'Jogos'], ['pessoas', 'Pessoas'], ['conversas', 'Conversas'], ['comunidades', 'Comunidades'], ['grupos', 'Clubes e jogatinas'], ['listas', 'Listas'], ['acervo', 'Seu acervo'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -50,7 +51,7 @@ export function SearchPage() {
   const c = cm ?? EMPTY_HITS;
   const counts: Record<Tab, number> = {
     tudo: 0, jogos: games?.length ?? 0, pessoas: c.pessoas.length, conversas: c.conversas.length, comunidades: c.comunidades.length,
-    grupos: c.clubes.length + c.jogatinas.length, acervo: acervo.length,
+    grupos: c.clubes.length + c.jogatinas.length, listas: c.listas?.length ?? 0, acervo: acervo.length,
   };
   const show = (t: Tab) => tab === 'tudo' || tab === t;
   const lim = (n: number) => (tab === 'tudo' ? n : 100);
@@ -105,6 +106,11 @@ export function SearchPage() {
                   {c.clubes.slice(0, lim(4)).map((k) => <li key={k.slug}><Link to={`/clube/${k.slug}`} className="search__row">{k.game?.cover ? <span className="search__cv"><CoverArt game={{ title: k.game.title, cover: k.game.cover }} /></span> : <span className="search__ic"><Icon name="pessoas" size={16} /></span>}<span><b>{k.name}</b><small className="faint">Clube{k.game ? ` · ${k.game.title}` : ''} · {k.members} {k.members === 1 ? 'pessoa' : 'pessoas'}</small></span></Link></li>)}
                   {c.jogatinas.slice(0, lim(4)).map((j) => <li key={j.id}><Link to={`/jogatina/${j.id}`} className="search__row">{j.game?.cover ? <span className="search__cv"><CoverArt game={{ title: j.game.title, cover: j.game.cover }} /></span> : <span className="search__ic"><Icon name="calendario" size={16} /></span>}<span><b>{j.title}</b><small className="faint">Jogatina · {whenLabel(j.startsAt)} · {j.going} {j.going === 1 ? 'vai' : 'vão'}</small></span></Link></li>)}
                 </ul>
+              </section>
+            )}
+            {show('listas') && (c.listas?.length ?? 0) > 0 && (
+              <section className="search__group"><h2 className="kicker">Listas</h2>
+                <div className="glist-grid glist-grid--tight">{c.listas.slice(0, lim(4)).map((l) => <ListCard key={l.id} l={l} />)}</div>
               </section>
             )}
           </div>

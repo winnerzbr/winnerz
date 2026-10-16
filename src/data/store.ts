@@ -427,6 +427,8 @@ export function closedBy(s: State, e: TimelineEvent): History | null {
 
 /** A migração 0008 (Etapa 4) já rodou? No modo demonstração, sempre. */
 export const hasV8 = (s: State) => s.mode === 'demo' || !!s.schemaV8;
+/** A intenção da sessão pode ser guardada (demonstração ou migração 0043). */
+export const hasV43 = (s: State) => s.mode === 'demo' || !!s.schemaV43;
 
 /** Nomes de quem já jogou com você, dos mais frequentes aos menos (para sugerir na sessão). */
 export function knownCompanions(s: State): string[] {
@@ -739,7 +741,7 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao' }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao' }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
@@ -747,7 +749,8 @@ export const actions = {
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
     const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined };
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined };
+    if (ses.intent && data.intentMet) track(`sessao.intencao.${ses.intent}.${data.intentMet}`);
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
     const goalText = done.goal ? `Objetivo: ${done.goal}${done.goalDone === 'sim' ? ' (cumprido)' : done.goalDone === 'quase' ? ' (quase)' : done.goalDone === 'nao' ? ' (fica para a próxima)' : ''}.` : '';
     const text = [done.whereStopped ? `Parou em: ${done.whereStopped}.` : '', withText, goalText].filter(Boolean).join(' ') || undefined;
@@ -809,6 +812,14 @@ export const actions = {
     if (!h) return;
     track('jornada.capitulo');
     dispatch({ type: 'history.update', history: { ...h, part: part?.id, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
+  },
+
+  /** "Hoje é para…": a intenção da sessão aberta (sem valor, tira). */
+  setSessionIntent(sessionId: ID, intent?: Session['intent']) {
+    const ses = state.sessions.find((x) => x.id === sessionId);
+    if (!ses) return;
+    if (intent) track(`sessao.intencao.${intent}`);
+    dispatch({ type: 'session.update', session: { ...ses, intent, intentMet: undefined } });
   },
 
   /** O objetivo pequeno da sessão aberta (vazio tira). */

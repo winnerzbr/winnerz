@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { MonthRestCard } from '../components/Rest';
+import { ReviewCard } from './Review';
 import { PactList } from '../components/Pacts';
 import { SeasonsSection } from '../components/Seasons';
 import { Link } from '../lib/router';
@@ -198,7 +200,9 @@ export function RhythmPage() {
         </div>
         <SubNav pillar="jornada" />
       </header>
+      <ReviewCard />
       <div id="semana" className="rhythm__week"><WeekCard /></div>
+      <MonthRestCard />
       {r.sessions < 3 ? (
         <div className="card tl-empty"><p className="muted">Ainda há poucas sessões registradas para mostrar um ritmo. Ele aparece aqui sozinho, com o tempo.</p></div>
       ) : (

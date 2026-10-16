@@ -241,6 +241,9 @@ export interface Session {
   goalDone?: 'sim' | 'quase' | 'nao';
   /** Sessão que veio de uma ponte (lida na Steam ou no RetroAchievements). */
   source?: 'steam' | 'ra' | 'playnite';
+  /** "Hoje é para…": a intenção escolhida antes e, no fim, se funcionou. */
+  intent?: 'descansar' | 'divertir' | 'avancar' | 'desafio';
+  intentMet?: 'sim' | 'meio' | 'nao';
 }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';
@@ -305,6 +308,8 @@ export interface Prefs {
   fitDismissed?: Record<ID, ID>;
   /** Temporadas criadas pela pessoa (as estações do ano entram sozinhas). */
   seasons?: { id: string; name: string; from: string; to: string }[];
+  /** Revisão do backlog: o trimestre ("2026-T4") e quando foi feita ou dispensada. */
+  review?: { quarter: string; at: string; how: 'feita' | 'dispensada' };
 }
 
 /** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */
@@ -325,6 +330,8 @@ export interface CommunityPrefs {
   eco?: boolean;
   aviso_semana?: boolean;
   aviso_pactos?: boolean;
+  aviso_mes?: boolean;
+  aviso_revisao?: boolean;
 }
 
 export type Tone = 'tranquila' | 'encorajadora' | 'bem-humorada';
@@ -374,6 +381,8 @@ export interface State {
   schemaV6?: boolean;
   /** A migração 0008 (Etapa 4: Cápsula, companhia, uso da IA) já rodou? */
   schemaV8?: boolean;
+  /** A migração 0043 (intenção da sessão: "jogar como descanso") já rodou? */
+  schemaV43?: boolean;
   /** Administração (monta os Awards). */
   isAdmin?: boolean;
   /** Entrou por um convite: vê o site mesmo com o modo privado ligado (migração 0023). */

@@ -55,6 +55,13 @@ export function notifLine(n: Notif): ReactNode {
       const gs = d.games ?? [], list = gs.length > 1 ? `${gs.slice(0, -1).join(', ')} e ${gs.at(-1)}` : gs[0] ?? '';
       return <>Sua semana: {d.sessions ?? 0} {d.sessions === 1 ? 'sessão' : 'sessões'}{d.minutes ? `, ${d.minutes < 60 ? `${d.minutes} min` : `${Math.round(d.minutes / 6) / 10} h`.replace('.', ',')}` : ''}{list ? <> em <b>{list}</b>{d.more ? ` e mais ${d.more}` : ''}</> : ''}.{d.done?.length ? <> Zerou {d.done.join(', ')}!</> : ''}{d.with?.length ? ` Com ${d.with.slice(0, 3).join(', ')}.` : ''}</>;
     }
+    case 'mes': {
+      const d = n.data as { month?: string; sessions?: number; rest?: number; restOk?: number; restAnswered?: number; top?: string | null };
+      const MES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+      const m = d.month ? MES[Number(d.month.slice(5, 7)) - 1] : 'o mês';
+      return <>Seu {m}: {d.sessions ?? 0} {d.sessions === 1 ? 'sessão' : 'sessões'} com intenção.{d.restAnswered ? <> Descansar funcionou {d.restOk} de {d.restAnswered} {d.restAnswered === 1 ? 'vez' : 'vezes'}.</> : ''}{d.top ? <> Quem mais te descansou: <b>{d.top}</b>.</> : ''}</>;
+    }
+    case 'revisao': return <>Começou um trimestre: hora da <b>revisão do backlog</b>, sem culpa. Poucos minutos para decidir o que continua, o que fica para depois e o que você deixa ir.</>;
     case 'pacto': return <>{who(n)} chamou você para um pacto: {n.data.goal === 'jogar' ? 'jogar' : 'zerar'} {t}{str(n.data.until) ? ` até ${new Date(str(n.data.until) + 'T12:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '')}` : ''}</>;
     case 'pacto_zerou': return <>{who(n)} zerou {t}, do pacto de vocês. GG!</>;
     case 'moderacao': return <><b>Moderação</b></>;
@@ -62,7 +69,7 @@ export function notifLine(n: Notif): ReactNode {
     default: return <>{t}</>;
   }
 }
-const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
+const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', mes: 'calendario', revisao: 'jornada', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos' };
 /** Texto extra embaixo da frase (trecho da mensagem, aviso da moderação). */
 const showExcerpt = (n: Notif) => !!n.excerpt && !['clube_jogo', 'clube_jogatina', 'parte'].includes(n.kind);
 

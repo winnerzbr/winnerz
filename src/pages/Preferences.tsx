@@ -273,6 +273,8 @@ function NotifSettings() {
       {row('aviso_retomada', 'Voltar a um jogo', 'Quando faz 14 dias que você não volta a um jogo que está jogando, com o link para ver onde parou.')}
       {row('aviso_semana', 'Resumo da semana', 'Toda segunda de manhã, a sua semana de jogo. Só chega quando você jogou.')}
       {row('aviso_pactos', 'Pactos', 'Convites de amigos para um pacto e quando alguém do pacto zera.')}
+      {row('aviso_mes', 'Resumo do mês', 'No dia 1º, o mês anterior pela intenção das sessões (descansar, se divertir…). Só chega se você marcou alguma.')}
+      {row('aviso_revisao', 'Revisão do backlog', 'No começo de cada trimestre, o convite para olhar com calma o que está parado.')}
     </section>
   );
 }

@@ -12,6 +12,7 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
+import { restfulGames } from '../lib/rest';
 
 export type Idea = {
   game: Game;
@@ -25,8 +26,8 @@ export type Idea = {
   known: boolean;
 };
 
-export const MOODS = ['Tenho pouco tempo', 'Uma noite inteira', 'Algo leve', 'Com alguém', 'Surpreenda-me'] as const;
-const SHORT = 0, NIGHT = 1, LIGHT = 2, TOGETHER = 3, SURPRISE = 4;
+export const MOODS = ['Tenho pouco tempo', 'Uma noite inteira', 'Algo leve', 'Para descansar', 'Com alguém', 'Surpreenda-me'] as const;
+const SHORT = 0, NIGHT = 1, LIGHT = 2, REST = 3, TOGETHER = 4, SURPRISE = 5;
 
 function hoursLine(d: Dna) {
   if (d.hours == null) return '';
@@ -38,6 +39,7 @@ function moodReason(mood: number, d: Dna): string | null {
   const t = (k: string) => d.traits.find((x) => x.key === k);
   if (mood === SHORT) return t('curtas') ? 'Bom em sessões curtas: dá para parar a qualquer hora.' : d.hours != null && d.hours <= 8 ? `Curto: cerca de ${fmtHours(d.hours)} do começo ao fim.` : null;
   if (mood === NIGHT) return d.fits.story ? 'Puxado pela história: rende numa noite sem pressa.' : d.hours != null && d.hours >= 25 ? 'Longo, bom para mergulhar com tempo.' : null;
+  if (mood === REST) return d.fits.light ? 'Leve: dá para jogar sem pensar muito.' : null;
   if (mood === LIGHT) return d.fits.light ? (t('retomar') ? 'Leve e fácil de retomar, sem muitos sistemas para lembrar.' : 'Leve: começa e termina sem exigir muito.') : null;
   if (mood === TOGETHER) return t('junto')?.detail ?? null;
   return null;
@@ -105,6 +107,16 @@ export function ideasFor(s: State, mood: number, focusId?: string, today = local
     case SHORT: list = [...ideas(going.filter((a) => fit('short')(a.gameId))), ...owned.filter(fit('short')).sort((a, b) => hrs(a) - hrs(b)).slice(0, 40).map(fresh), ...ideas(going.filter((a) => !fit('short')(a.gameId)))]; break;
     case NIGHT: list = [...ideas(paused), ...longFirst.slice(0, 60).map(fresh), ...ideas(going)]; break;
     case LIGHT: list = [...ideas(going.filter((a) => fit('light')(a.gameId))), ...owned.filter(fit('light')).slice(0, 40).map(fresh), ...ideas(paused.filter((a) => fit('light')(a.gameId)))]; break;
+    case REST: {
+      // Primeiro o que já te descansou (pelo "Descansou?" do fim da sessão), depois os leves.
+      const jg = new Map(s.journeys.map((j) => [j.id, j.gameId]));
+      const score = restfulGames(s.sessions, (id) => jg.get(id));
+      const restWhy = (i: Idea) => { const n = score.get(i.game.id) ?? 0; return n > 0 ? { ...i, why: ['Já te descansou antes, quando você jogou para descansar.', ...i.why.filter((w) => !w.startsWith('Leve'))] } : i; };
+      const rank = (g: ID) => (score.get(g) ?? 0) * 10 + (fit('light')(g) ? 1 : 0);
+      const pool = [...going, ...paused].filter((a) => (score.get(a.gameId) ?? 0) >= 0).sort((a, b) => rank(b.gameId) - rank(a.gameId));
+      list = [...pool.filter((a) => rank(a.gameId) > 0).map((a) => restWhy(a.idea)), ...owned.filter(fit('light')).slice(0, 40).map(fresh)];
+      break;
+    }
     case TOGETHER: return [...ideas(going.filter((a) => fit('together')(a.gameId))), ...ideas(paused.filter((a) => fit('together')(a.gameId))), ...owned.filter(fit('together')).slice(0, 40).map(fresh)];
     default: list = shuffle([...owned.map(fresh), ...ideas(paused)], seed);
   }

@@ -10,6 +10,7 @@ import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
 import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
+import { ReviewPage } from './pages/Review';
 import { TrailsPage, TrailPage } from './pages/Trails';
 import { OverlayPage } from './pages/Overlay';
 import { Header, TabBar } from './components/Header';
@@ -76,6 +77,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
   if (match('/jornada/ritmo', path)) return <RhythmPage />;
+  if (match('/jornada/revisao', path)) return <ReviewPage />;
   if ((m = match('/jornada/temporada/:id', path))) return <SeasonPage id={m.id} />;
   if ((m = match('/jornada/:slug/voltar', path))) return <ComebackPage slug={m.slug} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;

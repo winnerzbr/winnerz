@@ -5456,3 +5456,84 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .pn-token__row .field { flex: 1; font-size: 13px; }
 .pn-steps { margin: 4px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .pn-token .faint { margin: 0; font-size: 12.5px; }
+
+/* ---- J6b · Jogar como descanso -------------------------------------------------------------- */
+.intentcard .goalcard__goal { text-transform: none; }
+.finish__intent .finish__label { line-height: 1.4; }
+.restmonth { padding: 22px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 14px; }
+.restmonth__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.restmonth__title { font-size: clamp(22px, 2.6vw, 30px); margin: 4px 0 0; }
+.restmonth__title::first-letter { text-transform: uppercase; }
+.restmonth__nav { display: flex; gap: 4px; }
+.restmonth__nav .btn { min-width: 36px; font-size: 18px; }
+.restmonth__lead { margin: 0; font-size: 17px; line-height: 1.55; max-width: 70ch; }
+.restmonth__empty { margin: 0; max-width: 70ch; line-height: 1.55; }
+.restmonth__bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.restmonth__bars li { display: grid; grid-template-columns: 170px 1fr auto; gap: 12px; align-items: center; }
+.restmonth__lbl { font-size: 14px; }
+.restmonth__bar { display: flex; height: 10px; border-radius: 6px; overflow: hidden; background: var(--line); }
+.restmonth__bar i { display: block; height: 100%; }
+.restmonth__bar .is-sim { background: var(--now); }
+.restmonth__bar .is-meio { background: color-mix(in srgb, var(--now) 45%, transparent); }
+.restmonth__bar .is-nao { background: color-mix(in srgb, var(--muted) 45%, transparent); }
+.restmonth__n { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.restmonth__games ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.restmonth__game { display: flex; gap: 10px; align-items: center; text-decoration: none; color: inherit; padding: 8px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.restmonth__game:hover { box-shadow: inset 0 0 0 1px var(--now-line); }
+.restmonth__game .cover-art { width: 40px; height: 54px; border-radius: 5px; object-fit: cover; flex: none; overflow: hidden; }
+.restmonth__game > span { display: flex; flex-direction: column; gap: 2px; font-size: 14px; min-width: 0; }
+.restmonth__game .muted { font-size: 12.5px; }
+.restmonth__soft { margin: 0; font-size: 14px; }
+.restmonth__feel { margin: 0; color: var(--faint); line-height: 1.6; }
+@media (max-width: 640px) {
+  .restmonth { padding: 16px; }
+  .restmonth__bars li { grid-template-columns: 1fr auto; }
+  .restmonth__bar { grid-column: 1 / -1; order: 3; }
+}
+
+/* ---- J6b · Revisão do backlog --------------------------------------------------------------- */
+.bkrev__invite { padding: 22px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: inset 0 0 0 1px var(--now-line); background: linear-gradient(120deg, var(--now-bg), var(--surface) 70%); }
+.bkrev__invite h2 { font-size: clamp(22px, 2.6vw, 30px); margin: 0; }
+.bkrev__invite p { margin: 0; max-width: 70ch; }
+.bkrev__again { margin: 0 0 18px; font-size: 14px; color: var(--muted); }
+.bkrev__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.bkrev__lead { max-width: 70ch; color: var(--muted); margin: 0 0 14px; }
+.bkrev__progress { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; max-width: 900px; }
+.bkrev__progress .mono { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.bkrev__bar { flex: 1; height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bkrev__bar i { display: block; height: 100%; background: var(--now); transition: width 0.3s; }
+.bkrev__card { display: grid; grid-template-columns: 200px 1fr; gap: 26px; padding: 24px; max-width: 900px; animation: bkrev-in 0.28s ease-out; }
+@keyframes bkrev-in { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .bkrev__card { animation: none; } }
+.bkrev__cover { display: block; border-radius: 10px; overflow: hidden; aspect-ratio: 3 / 4; align-self: start; }
+.bkrev__cover .cover-art, .bkrev__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bkrev__info { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.bkrev__title { font-size: clamp(26px, 3.4vw, 40px); margin: 0; line-height: 1.05; }
+.bkrev__info > p { margin: 0 0 6px; line-height: 1.5; }
+.bkrev__choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+.bkrev__choice { display: flex; flex-direction: column; gap: 3px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 0; background: var(--field); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer; font: inherit; transition: box-shadow 0.15s, background 0.15s; }
+.bkrev__choice:hover, .bkrev__choice:focus-visible { box-shadow: inset 0 0 0 1px var(--now-line); background: var(--now-bg); }
+.bkrev__choice.is-on { box-shadow: inset 0 0 0 2px var(--now); }
+.bkrev__choice b { font-size: 15px; }
+.bkrev__choice span { font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.bkrev__nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.bkrev__summary, .bkrev__done { padding: 24px; max-width: 900px; display: flex; flex-direction: column; gap: 10px; }
+.bkrev__summary h2, .bkrev__done h2 { margin: 0; font-size: clamp(24px, 3vw, 34px); }
+.bkrev__summary > p, .bkrev__done p { margin: 0; max-width: 70ch; line-height: 1.5; }
+.bkrev__group { margin-top: 10px; }
+.bkrev__group ul { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.bkrev__row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); }
+.bkrev__row .cover-art { width: 34px; height: 46px; border-radius: 4px; object-fit: cover; flex: none; overflow: hidden; }
+.bkrev__row-t { flex: 1; display: flex; flex-direction: column; min-width: 0; font-size: 14px; }
+.bkrev__row-t b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bkrev__row-t .muted { font-size: 12.5px; }
+@media (max-width: 640px) {
+  .bkrev__card { grid-template-columns: 1fr; padding: 16px; gap: 14px; }
+  .bkrev__cover { width: 120px; }
+  .bkrev__choices { grid-template-columns: 1fr; }
+  .bkrev__summary, .bkrev__done { padding: 16px; }
+}
+.intentcard { align-self: flex-start; }
+.bkrev__summary .bkrev__group h2 { font: 500 11.5px var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.bkrev__row { flex-wrap: wrap; }
+.bkrev__row-t { flex: 1 1 160px; }

@@ -8,7 +8,7 @@ import type { Game, ID, State, TimelineEvent } from '../data/types';
 const DAY = 86400000;
 const tz = 'America/Sao_Paulo';
 /** Partes da data no fuso de Brasília. */
-function parts(iso: string) {
+export function parts(iso: string) {
   const d = new Date(iso);
   const f = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', weekday: 'short', hour12: false }).formatToParts(d);
   const get = (t: string) => f.find((p) => p.type === t)?.value ?? '';

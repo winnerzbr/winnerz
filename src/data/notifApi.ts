@@ -116,10 +116,10 @@ function load(): DState {
   return { read: [], seenAt: hoursAgo(30), site: [{ id: 's-awards', title: 'As indicações do WinnerZ Awards abrem em breve', body: 'Separe os jogos que marcaram o seu ano.', link: '/awards', at: hoursAgo(26) }] };
 }
 function save(d: DState) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* sem espaço: segue */ } }
-const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' || k === 'pacto' || k === 'pacto_zerou' ? 'amigos' : k === 'lancamento' || k === 'retomada' || k === 'semana' ? 'jornada' : 'sistema');
+const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' || k === 'pacto' || k === 'pacto_zerou' ? 'amigos' : k === 'lancamento' || k === 'retomada' || k === 'semana' || k === 'mes' || k === 'revisao' ? 'jornada' : 'sistema');
 const PREF: Record<string, keyof CommunityPrefs> = {
   reacao: 'aviso_reacoes', seguiu: 'aviso_seguidores', jogatina_convite: 'aviso_convites', clube_convite: 'aviso_convites',
-  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada', semana: 'aviso_semana', pacto: 'aviso_pactos', pacto_zerou: 'aviso_pactos',
+  jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada', semana: 'aviso_semana', mes: 'aviso_mes', revisao: 'aviso_revisao', pacto: 'aviso_pactos', pacto_zerou: 'aviso_pactos',
 };
 function linkOf(n: NewsItem): string {
   if (n.kind === 'resposta' || n.kind === 'mencao' || n.kind === 'acompanhando') return `/conversa/${n.ref}${n.id !== n.ref ? `#r-${n.id}` : ''}`;
@@ -146,6 +146,10 @@ async function demoAll(): Promise<Notif[]> {
   // Resumo da semana passada (segunda de manhã) e o convite de pacto da demonstração.
   { const now = new Date(); const mon = new Date(now); mon.setHours(8, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
     out.push(mk(`semana:${mon.toISOString().slice(0, 10)}`, 'semana', mon.toISOString(), { link: '/jornada/ritmo#semana', data: { sessions: 4, minutes: 370, games: ['The Last of Us Part II', 'Astro Bot'], more: 0, done: [], with: ['Ana'] } }));
+    { const m1 = new Date(now.getFullYear(), now.getMonth(), 1, 9); const pm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      out.push(mk(`mes:${m1.toISOString().slice(0, 7)}`, 'mes', m1.toISOString(), { link: '/jornada/ritmo#mes', data: { month: `${pm.getFullYear()}-${String(pm.getMonth() + 1).padStart(2, '0')}`, sessions: 6, rest: 4, restOk: 3, restAnswered: 4, top: 'Astro Bot' } }));
+      const q1 = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1, 9);
+      out.push(mk(`revisao:${q1.toISOString().slice(0, 7)}`, 'revisao', q1.toISOString(), { link: '/jornada/revisao', data: {} })); }
     out.push(mk('pacto:pacto-demo', 'pacto', hoursAgo(50), { title: 'The Last of Us Part II', link: '/jornada/ritmo#pactos', actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { goal: 'zerar', until: '2026-11-30' } })); }
   // Retomada: jogos em andamento sem sessão há 14 dias ou mais (como o banco faz).
   { const { daysAway, currentHistory, lastSession } = await import('./store'); const gs = getState();

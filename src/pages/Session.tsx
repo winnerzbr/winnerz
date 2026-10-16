@@ -4,7 +4,9 @@ import { discordApi } from '../data/discordApi';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, sessionMinutes } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, hasV43, sessionMinutes } from '../data/store';
+import { IntentCard } from '../components/Rest';
+import { intentOf, MET } from '../lib/rest';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -170,6 +172,7 @@ export function SessionPage() {
             <button className="btn ghost lg" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
           </div>
           <div className="session__cards">
+            {hasV43(s) && <IntentCard session={session} />}
             <GoalCard game={g} history={h} session={session} />
             <StopCard game={g} history={h} />
           </div>
@@ -205,6 +208,7 @@ export function SessionPage() {
             progress={h.progress ?? 0}
             startedAt={session.startedAt}
             goal={session.goal}
+            intent={session.intent}
             detailsOpen={finishing === 'recado'}
             onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
             onCancel={() => setFinishing(false)}
@@ -244,13 +248,13 @@ function Elapsed({ since }: { since: string }) {
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
-type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao' };
+type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao' };
 
 /**
  * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
  * A duração é calculada sozinha; o resto fica em "Mais detalhes".
  */
-function FinishForm({ progress, startedAt, goal, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; goal?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
+function FinishForm({ progress, startedAt, goal, intent, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; goal?: string; intent?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
   const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
@@ -261,12 +265,14 @@ function FinishForm({ progress, startedAt, goal, companions: known, canWho, deta
   const [feel, setFeel] = useState<string | undefined>();
   const [more, setMore] = useState(!!detailsOpen);
   const [done, setDone] = useState<'sim' | 'quase' | 'nao' | undefined>();
+  const [met, setMet] = useState<'sim' | 'meio' | 'nao' | undefined>();
+  const it = intentOf(intent);
   // A duração é calculada na hora de finalizar; só fica fixa se a pessoa corrigir.
   const auto = sessionMinutes(startedAt, new Date().toISOString());
   const [mins, setMins] = useState<string | null>(null);
   const typed = mins != null && mins.trim() ? Math.max(1, Math.min(1440, Math.round(Number(mins)))) : undefined;
   const minutes = mins == null ? auto : Number.isFinite(typed) ? typed : undefined;
-  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined });
+  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined });
   return (
     <form className="finish" onSubmit={(e) => { e.preventDefault(); onFinish(data()); }}>
       <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
@@ -281,6 +287,14 @@ function FinishForm({ progress, startedAt, goal, companions: known, canWho, deta
           <span className="finish__label">Você cumpriu “{goal}”?</span>
           <div className="chips" role="group" aria-label="Cumpriu o objetivo?">
             {([['sim', 'Cumpri'], ['quase', 'Quase'], ['nao', 'Fica para a próxima']] as const).map(([k, l]) => <button type="button" key={k} className="chip" aria-pressed={done === k} onClick={() => setDone(done === k ? undefined : k)}>{l}</button>)}
+          </div>
+        </div>
+      )}
+      {it && (
+        <div className="finish__goal finish__intent">
+          <span className="finish__label">Era para {it.label.toLowerCase()}. {it.ask}</span>
+          <div className="chips" role="group" aria-label={it.ask}>
+            {MET.map((x) => <button type="button" key={x.id} className="chip" aria-pressed={met === x.id} onClick={() => setMet(met === x.id ? undefined : x.id)}>{x.label}</button>)}
           </div>
         </div>
       )}

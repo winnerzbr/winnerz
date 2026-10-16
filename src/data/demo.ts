@@ -109,11 +109,11 @@ export function demoState(): State {
       { id: 'h-mgs2-1', journeyId: 'j-mgs2', ordinal: 1, title: 'Primeira vez', state: 'concluida', startedAt: '2002-03-01T15:00:00-03:00', completedAt: '2003-01-20T18:00:00-03:00', progress: 100 },
     ],
     sessions: [
-      { id: 's-1', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-09-28T21:00:00-03:00', endedAt: '2026-09-28T23:10:00-03:00', note: 'Começar de novo sabendo o que vem é estranho.' },
-      { id: 's-2', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-10-02T21:30:00-03:00', endedAt: '2026-10-02T23:00:00-03:00' },
-      { id: 's-3', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-10-05T20:40:00-03:00', endedAt: '2026-10-05T22:30:00-03:00' },
+      { id: 's-1', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-09-28T21:00:00-03:00', endedAt: '2026-09-28T23:10:00-03:00', intent: 'avancar', intentMet: 'sim', note: 'Começar de novo sabendo o que vem é estranho.' },
+      { id: 's-2', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-10-02T21:30:00-03:00', endedAt: '2026-10-02T23:00:00-03:00', intent: 'avancar', intentMet: 'sim', feeling: 'Adorei' },
+      { id: 's-3', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-10-05T20:40:00-03:00', endedAt: '2026-10-05T22:30:00-03:00', intent: 'descansar', intentMet: 'meio', feeling: 'Foi suficiente por hoje' },
       { id: 's-4', journeyId: 'j-tlou2', historyId: 'h-tlou2-2', startedAt: '2026-10-09T21:00:00-03:00', endedAt: '2026-10-09T22:50:00-03:00', minutes: 110, note: 'Voltar ao cofre trancado no centro antes de seguir viagem. A senha está no bilhete da loja de discos.', whereStopped: 'Seattle, dia 2' },
-      { id: 's-astro-8', journeyId: 'j-astro', historyId: 'h-astro-1', startedAt: '2026-10-07T20:00:00-03:00', endedAt: '2026-10-07T21:10:00-03:00', note: 'Achar os três bots do planeta de gelo.' },
+      { id: 's-astro-8', journeyId: 'j-astro', historyId: 'h-astro-1', startedAt: '2026-10-07T20:00:00-03:00', endedAt: '2026-10-07T21:10:00-03:00', intent: 'descansar', intentMet: 'sim', feeling: 'Adorei', note: 'Achar os três bots do planeta de gelo.' },
     ],
     events: [
       { id: 'e1', journeyId: 'j-tlou2', historyId: 'h-tlou2-1', kind: 'inicio', at: '2020-06-19T22:00:00-03:00', title: 'Primeira vez', text: 'Começou sua primeira História com o jogo.', image: img('scene-tlou-dark') },

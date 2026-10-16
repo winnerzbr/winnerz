@@ -16,6 +16,7 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
     { to: '/jornada/concluidas', label: 'Concluídas' },
     { to: '/jornada/linha-do-tempo', label: 'Linha do tempo' },
     { to: '/jornada/ritmo', label: 'Meu ritmo' },
+    { to: '/jornada/ano', label: 'Seu ano', also: ['/jornada/ano/'] },
   ],
   jogos: [
     { to: '/jogos', label: 'Buscar' },

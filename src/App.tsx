@@ -1,3 +1,4 @@
+import { YearReviewPage } from './pages/YearReview';
 import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
@@ -82,6 +83,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
   if (match('/jornada/ritmo', path)) return <RhythmPage />;
   if (match('/jornada/revisao', path)) return <ReviewPage />;
+  if (match('/jornada/ano', path)) return <YearReviewPage />;
+  if ((m = match('/jornada/ano/:year', path))) return <YearReviewPage year={m.year} />;
   if ((m = match('/jornada/temporada/:id', path))) return <SeasonPage id={m.id} />;
   if ((m = match('/jornada/:slug/voltar', path))) return <ComebackPage slug={m.slug} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;

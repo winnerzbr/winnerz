@@ -248,7 +248,6 @@ function CommunitySettings() {
       {row('novos', false, 'Aparecer em “Novos por aqui”', 'Nas suas primeiras semanas, a Praça mostra você e a sua conversa mais recente para quem quiser dar boas-vindas. Começa desligado.')}
       {row('jogo', false, 'Mostrar o jogo da conversa ao lado do meu nome', 'Numa conversa sobre um jogo que está na sua Jornada, aparece “jogando” ou “zerou” perto do seu @. Começa desligado.')}
       {row('eco', true, 'Meus registros como eco para amigos', 'Quem é seu amigo e joga o mesmo jogo vê, na linha do tempo, quando você começou, os momentos das Jornadas que você mostra no perfil e quando zerou. Só até o ponto onde a pessoa está, sem spoiler. Recados, pontos para voltar e cartas nunca aparecem.')}
-      {row('numeros', false, 'Contar as minhas Jornadas nos números anônimos dos jogos', 'A ficha de cada jogo mostra quantas pessoas zeraram, quanto tempo levam e onde costumam pausar. Sem nome, sem lista de pessoas, e nada aparece com menos de 5 pessoas. Começa desligado.')}
       <h3 className="prefs__sub" id="presenca">Presença</h3>
       <label className="motion motion--switch" data-on={cp.presenca === 'amigos'}>
         <input type="checkbox" role="switch" className="switch" checked={cp.presenca === 'amigos'} onChange={(e) => { set({ presenca: e.target.checked ? 'amigos' : 'ninguem' }); if (!e.target.checked) void import('../data/presenceApi').then((m) => m.presenceApi.off()); }} />

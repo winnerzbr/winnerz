@@ -1,7 +1,6 @@
-/** "Jornadas da comunidade" na ficha do jogo: números anônimos de quem liberou. Nada com menos de 5 pessoas. */
+/** "Jornadas da comunidade" na ficha do jogo: números anônimos de todo mundo que jogou. Nada com menos de 5 pessoas. */
 import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
-import { useStore } from '../data/store';
 import { journeyStatsApi, type JourneyStats } from '../data/journeyStatsApi';
 
 const pct = (a: number | null | undefined, b: number) => (a == null ? null : Math.round((a / b) * 100));
@@ -11,20 +10,19 @@ const hours = (h: number) => `${String(h).replace('.', ',').replace(/,0$/, '')} 
 const mins = (m: number) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60 ? `${m % 60} min` : ''}`.trim());
 
 export function GameJourneyStats({ slug, title }: { slug: string; title: string }) {
-  const counting = useStore((s) => s.prefs.comunidade?.numeros ?? false);
   const [st, setSt] = useState<JourneyStats | null | undefined>(undefined);
   useEffect(() => { let alive = true; journeyStatsApi.get(slug).then((x) => alive && setSt(x)).catch(() => alive && setSt(null)); return () => { alive = false; }; }, [slug]);
   if (!st) return null;
   const foot = (
     <p className="faint gjs__foot">
-      Números de quem liberou nas Preferências{st.pessoas ? ` (${st.pessoas} pessoas)` : ''}, sem nome e sem lista. Abaixo de 5 pessoas, não mostramos.
-      {' '}{counting ? 'As suas Jornadas entram na conta.' : 'As suas não entram.'} <Link to="/preferencias#comunidade">{counting ? 'Mudar' : 'Contar as minhas'}</Link>
+      Números de todo mundo que registrou {title} no WinnerZ, sem nomes e sem lista de pessoas. Abaixo de 5 pessoas, não mostramos.
+      {' '}<Link to="/privacidade">Como funciona</Link>
     </p>
   );
   if (!st.enough) return (
     <section aria-labelledby="gjs" className="cm-gamesec gjs">
       <div className="sec-head"><h2 id="gjs" className="t sec-title">Jornadas da comunidade</h2></div>
-      <p className="muted">Ainda são poucas Jornadas de {title} para mostrar números sem expor ninguém. Quando 5 pessoas que liberaram tiverem este jogo, aparecem aqui quantas zeraram, quanto tempo levam e onde costumam pausar.</p>
+      <p className="muted">Ainda são poucas Jornadas de {title} para mostrar números sem expor ninguém. Quando 5 pessoas tiverem este jogo na Jornada, aparecem aqui quantas zeraram, quanto tempo levam e onde costumam pausar.</p>
       {foot}
     </section>
   );

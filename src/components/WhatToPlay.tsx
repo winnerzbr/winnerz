@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
-import { useStore, currentHistory, lastNote, isOpenState, actions } from '../data/store';
+import { useStore, actions } from '../data/store';
 import { shortPlatform } from '../lib/platforms';
 import { CoverArt } from './CoverArt';
-import type { State, Game, ID } from '../data/types';
-import { ago, dayMonth } from '../lib/format';
+import type { State } from '../data/types';
+import { dayMonth } from '../lib/format';
 import { playStateFor } from './PlayButton';
 import { gameDna, fmtHours, topGenre, type Dna } from '../lib/dna';
 import { localDay } from '../lib/dates';
@@ -12,119 +12,35 @@ import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
 import { track } from '../lib/track';
 import { Buddy, useBuddy } from './Buddy';
-import { restfulGames } from '../lib/rest';
+import { MOODS, recommend, noteShown, type Idea, type MoodId, type Reason } from '../lib/recommend';
+import { Icon } from './Icon';
+import { useBackdrop } from './Backdrop';
 
-export type Idea = {
-  game: Game;
-  meta: string;
-  /** "Por que pode ser para você?": sinais explicáveis, nunca porcentagem de afinidade. */
-  why: string[];
-  cta: string;
-  /** 'play' abre a Jornada; 'open' só abre a ficha (descoberta). */
-  action: 'play' | 'open';
-  /** Está no acervo (dá para "Não pretendo jogar" e lembrar o "Não agora"). */
-  known: boolean;
-};
-
-export const MOODS = ['Tenho pouco tempo', 'Uma noite inteira', 'Algo leve', 'Para descansar', 'Com alguém', 'Surpreenda-me'] as const;
-const SHORT = 0, NIGHT = 1, LIGHT = 2, REST = 3, TOGETHER = 4, SURPRISE = 5;
+export type { Idea } from '../lib/recommend';
 
 function hoursLine(d: Dna) {
   if (d.hours == null) return '';
   return ` Cerca de ${fmtHours(d.hours)} para zerar${d.hoursSource === 'voce' ? ', pela sua estimativa' : ', pela média de quem já jogou'}.`;
 }
 
-/** A razão que pesa para o momento escolhido, a partir do DNA do jogo. */
-function moodReason(mood: number, d: Dna): string | null {
+/** A razão que pesa para o momento escolhido, a partir do DNA do jogo (para os Desejos). */
+function moodReason(mood: MoodId, d: Dna): Reason | null {
   const t = (k: string) => d.traits.find((x) => x.key === k);
-  if (mood === SHORT) return t('curtas') ? 'Bom em sessões curtas: dá para parar a qualquer hora.' : d.hours != null && d.hours <= 8 ? `Curto: cerca de ${fmtHours(d.hours)} do começo ao fim.` : null;
-  if (mood === NIGHT) return d.fits.story ? 'Puxado pela história: rende numa noite sem pressa.' : d.hours != null && d.hours >= 25 ? 'Longo, bom para mergulhar com tempo.' : null;
-  if (mood === REST) return d.fits.light ? 'Leve: dá para jogar sem pensar muito.' : null;
-  if (mood === LIGHT) return d.fits.light ? (t('retomar') ? 'Leve e fácil de retomar, sem muitos sistemas para lembrar.' : 'Leve: começa e termina sem exigir muito.') : null;
-  if (mood === TOGETHER) return t('junto')?.detail ?? null;
+  if (mood === 'pouco') return t('curtas') ? { icon: 'relogio', text: 'Bom em sessões curtas: dá para parar a qualquer hora.' } : d.hours != null && d.hours <= 8 ? { icon: 'relogio', text: `Curto: cerca de ${fmtHours(d.hours)} do começo ao fim.` } : null;
+  if (mood === 'noite') return d.fits.story ? { icon: 'play', text: 'Puxado pela história: rende numa noite sem pressa.' } : d.hours != null && d.hours >= 25 ? { icon: 'play', text: 'Longo, bom para mergulhar com tempo.' } : null;
+  if (mood === 'historia') return d.fits.story ? { icon: 'carta', text: 'Puxado pela história.' } : null;
+  if (mood === 'relaxar') return d.fits.light ? { icon: 'lampada', text: 'Leve: começa e termina sem exigir muito.' } : null;
+  if (mood === 'alguem') { const j = t('junto'); return j ? { icon: 'pessoas', text: j.detail } : null; }
   return null;
 }
 
-function notNow(s: State, gameId: ID, today: string) {
+function notNow(s: State, gameId: string, today: string) {
   const until = s.myGames[gameId]?.notNowUntil;
   return !!until && until > today;
 }
 
-/** "Entre o que já está ao meu alcance": o que está em andamento, pausado ou na estante. */
-export function ideasFor(s: State, mood: number, focusId?: string, today = localDay(), seed = 1): Idea[] {
-  const started = new Set(s.journeys.map((j) => j.gameId));
-  const mine = (g: ID) => s.myGames[g] ?? { gameId: g };
-  const dnaOf = new Map<ID, Dna>();
-  const dna = (g: ID) => dnaOf.get(g) ?? dnaOf.set(g, gameDna(s.games[g], s)).get(g)!;
-  // Exemplar emprestado não está ao alcance (a menos que haja outro exemplar do mesmo jogo em casa).
-  const lent = new Set((s.loans ?? []).filter((l) => !l.returnedOn && l.copyId).map((l) => l.copyId!));
-  const owned = [...new Set(s.copies.filter((c) => !lent.has(c.id)).map((c) => c.gameId))].filter((g) => s.games[g] && !started.has(g) && !mine(g).wontPlay && !notNow(s, g, today));
-  // Prioridade alta primeiro; depois os mais curtos (pela sua estimativa ou pela média do IGDB).
-  const hrs = (g: ID) => dna(g).hours ?? 99;
-  owned.sort((a, b) => (mine(a).priority ?? 2) - (mine(b).priority ?? 2) || hrs(a) - hrs(b));
-
-  const fresh = (gid: ID): Idea => {
-    const c = s.copies.find((x) => x.gameId === gid && !lent.has(x.id)) ?? s.copies.find((x) => x.gameId === gid)!;
-    const d = dna(gid);
-    const why = [
-      mine(gid).priority === 1 ? 'Está na sua lista de prioridade alta.' : null,
-      moodReason(mood, d),
-    ].filter((x): x is string => !!x);
-    if (!why.length) why.push('Está ao seu alcance e você ainda não começou. Ter não obriga, mas pode ser hoje.');
-    return { game: s.games[gid], meta: `${shortPlatform(c.platform)}, ${c.kind === 'fisico' ? 'mídia física' : c.kind === 'assinatura' ? 'assinatura' : 'digital'}. Na sua estante, ainda sem História.${hoursLine(d)}`, why, cta: 'Começar Jornada', action: 'play', known: true };
-  };
-
-  const active = s.journeys.filter((j) => j.id !== focusId && s.games[j.gameId] && !notNow(s, j.gameId, today)).map((j) => {
-    const h = currentHistory(s, j.id);
-    if (!h || !isOpenState(h.state)) return null;
-    const note = lastNote(s, j.id);
-    const last = [...s.sessions].filter((x) => x.journeyId === j.id).sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
-    const paused = h.state === 'pausada';
-    const d = dna(j.gameId);
-    const why = [
-      note?.note ? `Seu último recado: “${note.note}”` : paused ? 'Você pausou sem pressa. Dá para voltar de onde parou.' : 'Você já está no meio desta história. É o retorno mais fácil.',
-      moodReason(mood, d),
-      paused && d.fits.relearn ? 'Pode pedir uns minutos para reaprender os comandos.' : null,
-    ].filter((x): x is string => !!x);
-    return {
-      paused, gameId: j.gameId,
-      idea: {
-        game: s.games[j.gameId],
-        meta: paused ? (h.note ?? j.pausedNote ?? 'Pausado.') : `Em andamento${h.progress != null ? `, ${h.progress}%` : ''}.${last ? ` Última sessão ${ago(last.startedAt)}.` : ''}`,
-        why, cta: paused ? 'Retomar' : 'Continuar', action: 'play', known: true,
-      } as Idea,
-    };
-  }).filter(Boolean) as { paused: boolean; gameId: ID; idea: Idea }[];
-
-  const going = active.filter((a) => !a.paused);
-  const paused = active.filter((a) => a.paused);
-  const ideas = (xs: typeof active) => xs.map((a) => a.idea);
-  const fit = (k: keyof Dna['fits']) => (g: ID) => dna(g).fits[k];
-  const longFirst = [...owned].sort((a, b) => Number(fit('long')(b)) - Number(fit('long')(a)));
-
-  let list: Idea[];
-  switch (mood) {
-    case SHORT: list = [...ideas(going.filter((a) => fit('short')(a.gameId))), ...owned.filter(fit('short')).sort((a, b) => hrs(a) - hrs(b)).slice(0, 40).map(fresh), ...ideas(going.filter((a) => !fit('short')(a.gameId)))]; break;
-    case NIGHT: list = [...ideas(paused), ...longFirst.slice(0, 60).map(fresh), ...ideas(going)]; break;
-    case LIGHT: list = [...ideas(going.filter((a) => fit('light')(a.gameId))), ...owned.filter(fit('light')).slice(0, 40).map(fresh), ...ideas(paused.filter((a) => fit('light')(a.gameId)))]; break;
-    case REST: {
-      // Primeiro o que já te descansou (pelo "Descansou?" do fim da sessão), depois os leves.
-      const jg = new Map(s.journeys.map((j) => [j.id, j.gameId]));
-      const score = restfulGames(s.sessions, (id) => jg.get(id));
-      const restWhy = (i: Idea) => { const n = score.get(i.game.id) ?? 0; return n > 0 ? { ...i, why: ['Já te descansou antes, quando você jogou para descansar.', ...i.why.filter((w) => !w.startsWith('Leve'))] } : i; };
-      const rank = (g: ID) => (score.get(g) ?? 0) * 10 + (fit('light')(g) ? 1 : 0);
-      const pool = [...going, ...paused].filter((a) => (score.get(a.gameId) ?? 0) >= 0).sort((a, b) => rank(b.gameId) - rank(a.gameId));
-      list = [...pool.filter((a) => rank(a.gameId) > 0).map((a) => restWhy(a.idea)), ...owned.filter(fit('light')).slice(0, 40).map(fresh)];
-      break;
-    }
-    case TOGETHER: return [...ideas(going.filter((a) => fit('together')(a.gameId))), ...ideas(paused.filter((a) => fit('together')(a.gameId))), ...owned.filter(fit('together')).slice(0, 40).map(fresh)];
-    default: list = shuffle([...owned.map(fresh), ...ideas(paused)], seed);
-  }
-  return list.length ? list : [...ideas(going), ...ideas(paused), ...owned.slice(0, 60).map(fresh)];
-}
-
 /** "Quero descobrir algo", parte que não precisa de internet: os Desejos já lançados. */
-export function wishIdeas(s: State, mood: number, today = localDay(), seed = 1): Idea[] {
+export function wishIdeas(s: State, mood: MoodId, today = localDay(), seed = 1): Idea[] {
   const owned = new Set(s.copies.map((c) => c.gameId));
   const started = new Set(s.journeys.map((j) => j.gameId));
   const year = Number(today.slice(0, 4));
@@ -136,38 +52,39 @@ export function wishIdeas(s: State, mood: number, today = localDay(), seed = 1):
     const released = g.releasedOn ? g.releasedOn <= today : g.year != null && g.year < year;
     if (!released) continue;
     const d = gameDna(g, s);
-    if (mood === TOGETHER && !d.fits.together) continue;
-    const why = ['Está nos seus Desejos.', moodReason(mood, d)].filter((x): x is string => !!x);
-    out.push({ game: g, meta: `${g.year ?? ''}${g.platforms.length ? `${g.year ? ', ' : ''}${g.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}.${hoursLine(d)}`, why, cta: 'Ver a ficha', action: 'open', known: true });
+    if (mood === 'alguem' && !d.fits.together) continue;
+    if (mood === 'historia' && !d.fits.story) continue;
+    const why = [{ icon: 'desejo', text: 'Está nos seus Desejos.' }, moodReason(mood, d)].filter((x): x is Reason => !!x);
+    out.push({ game: g, meta: `${g.year ?? ''}${g.platforms.length ? `${g.year ? ', ' : ''}${g.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}.${hoursLine(d)}`, why, cta: 'Ver a ficha', action: 'open', known: true, score: 0, kind: 'estante' });
   }
-  return mood === SURPRISE ? shuffle(out, seed) : out;
+  return mood === 'surpresa' ? shuffle(out, seed) : out;
 }
 
 type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number };
 
 /** "Quero descobrir algo", do catálogo do IGDB: bem avaliados no gênero que você mais zera. */
-async function catalogIdeas(s: State, mood: number): Promise<Idea[]> {
+async function catalogIdeas(s: State, mood: MoodId): Promise<Idea[]> {
   const meta = await loadMeta();
   const top = topGenre(s);
   const q = new URLSearchParams({ explore: '1', sort: top ? 'rating' : 'popular', page: '0' });
   const genreId = top && meta?.genres.find((x) => x.name === top.name)?.id;
   if (genreId) q.set('genre', String(genreId));
-  const coop = mood === TOGETHER ? meta?.modes.find((x) => x.name === 'Co-operative')?.id : undefined;
+  const coop = mood === 'alguem' ? meta?.modes.find((x) => x.name === 'Co-operative')?.id : undefined;
   if (coop) q.set('mode', String(coop));
   const r = await fetch(`/api/igdb?${q}`);
   if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return [];
   const rows: Found[] = await r.json();
   const known = new Set(Object.values(s.games).map((g) => g.igdbId).filter(Boolean));
   const why = [
-    genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados dele.` : 'Entre os mais populares.',
-    coop ? 'Possui modo cooperativo.' : null,
-  ].filter((x): x is string => !!x);
+    { icon: 'coracao', text: genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados dele.` : 'Entre os mais populares.' },
+    coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null,
+  ].filter((x): x is Reason => !!x);
   const list = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
     game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
     meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
-    why, cta: 'Ver a ficha', action: 'open', known: false,
+    why, cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
   }));
-  return mood === SURPRISE ? shuffle(list, Math.random()) : list;
+  return mood === 'surpresa' ? shuffle(list, Math.random()) : list;
 }
 
 /** Embaralha sempre igual para a mesma semente: a ideia não troca sozinha quando algo na página atualiza. */
@@ -188,14 +105,15 @@ function IndecisoBuddy() {
 export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJourneyId?: string; headingId?: string }) {
   const s = useStore((x) => x);
   const [path, setPath] = useState<'alcance' | 'descobrir'>('alcance');
-  const [mood, setMood] = useState(0);
+  const [mood, setMood] = useState<MoodId>('surpresa');
   const [seed, setSeed] = useState(() => Math.random());
   const [alt, setAlt] = useState(0);
   const [skipped, setSkipped] = useState<string[]>([]);
   const [asking, setAsking] = useState(false);
   const [notice, setNotice] = useState('');
   const [catalog, setCatalog] = useState<{ key: string; items: Idea[]; state: 'loading' | 'ok' | 'error' } | null>(null);
-  const catKey = `${mood === TOGETHER ? 'coop' : 'any'}|${mood === SURPRISE}`;
+  const catKey = `${mood === 'alguem' ? 'coop' : 'any'}|${mood === 'surpresa'}`;
+  const moodDef = MOODS.find((m) => m.id === mood)!;
 
   useEffect(() => {
     if (path !== 'descobrir' || catalog?.key === catKey) return;
@@ -206,13 +124,18 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   }, [path, catKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ideas = useMemo(() => {
-    const base = path === 'alcance' ? ideasFor(s, mood, excludeJourneyId, localDay(), seed) : [...wishIdeas(s, mood, localDay(), seed), ...(catalog?.key === catKey ? catalog.items : [])];
+    const base = path === 'alcance'
+      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined })
+      : [...wishIdeas(s, mood, localDay(), seed), ...(catalog?.key === catKey ? catalog.items : [])];
     return base.filter((i) => !skipped.includes(i.game.id));
   }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed]);
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
-  const play = (gameId: string) => playStateFor(s, gameId).go();
+  const bg = useBackdrop(idea?.game);
+  useEffect(() => { if (idea && path === 'alcance') noteShown(idea.game.id); }, [idea?.game.id, path]); // eslint-disable-line react-hooks/exhaustive-deps
+  const play = (gameId: string) => { track(`oqj.jogar.${mood}`); playStateFor(s, gameId).go(); };
 
   const reset = () => { setAlt(0); setAsking(false); setNotice(''); };
+  const another = () => { if (idea && path === 'alcance') noteShown(idea.game.id, true); setAlt(alt + 1); setNotice(''); track('oqj.outra'); };
   const later = (kind: 'hoje' | 'semanas' | 'nunca' | 'conheco') => {
     if (!idea) return;
     const id = idea.game.id;
@@ -230,7 +153,8 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
 
   const empty = path === 'descobrir'
     ? catalog?.state === 'loading' ? 'Procurando no catálogo…' : catalog?.state === 'error' ? 'O catálogo não respondeu agora. Seus Desejos continuam aqui quando houver algum lançado.' : 'Nada novo por aqui agora.'
-    : mood === TOGETHER ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador.' : null;
+    : mood === 'alguem' ? 'Nenhum jogo ao seu alcance tem modo cooperativo ou multijogador.' : mood === 'historia' ? 'Nenhum jogo ao seu alcance parece puxado pela história.' : mood === 'desafio' ? 'Nada ao seu alcance parece um desafio por enquanto.' : mood === 'diferente' ? 'Tudo ao seu alcance já é do seu padrão. Que tal “Descobrir algo”?' : null;
+  const n = ideas.length ? (alt % ideas.length) + 1 : 0;
 
   return (
     <section aria-labelledby={headingId} className="card what">
@@ -239,27 +163,28 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
         <button role="tab" aria-selected={path === 'alcance'} onClick={() => { setPath('alcance'); reset(); }}>Ao meu alcance</button>
         <button role="tab" aria-selected={path === 'descobrir'} onClick={() => { setPath('descobrir'); reset(); track('oqj.descobrir'); }}>Descobrir algo</button>
       </div>
-      <div role="group" aria-label="Como está seu dia (opcional)" className="chips">
-        {MOODS.map((l, i) => (
-          <button key={l} className="chip" aria-pressed={mood === i} onClick={() => { setMood(i); setSeed(Math.random()); reset(); }}>{l}</button>
+      <div role="group" aria-label="Como está seu dia (opcional)" className="chips what__moods">
+        {MOODS.map((m) => (
+          <button key={m.id} className="chip" aria-pressed={mood === m.id} onClick={() => { setMood(m.id); setSeed(Math.random()); reset(); track(`oqj.filtro.${m.id}`); }}>{m.label}</button>
         ))}
       </div>
       {idea ? (
-        <div className="what__pick" key={idea.game.id + mood + path}>
+        <div className={`what__pick${bg ? ' has-bg' : ''}`} key={idea.game.id + mood + path} style={bg ? { ['--wbg' as string]: `url("${bg}")` } : undefined}>
+          <div className="what__bg" aria-hidden="true" />
           <Link to={`/jogos/${idea.game.slug}`} className="what__cover" aria-label={`Abrir a ficha de ${idea.game.title}`}><CoverArt game={idea.game} lazy={false} /></Link>
           <div className="what__info">
+            <div className="what__kicker"><span className="kicker">{moodDef.title}</span>{n > 0 && ideas.length > 1 && <span className="mono what__count">ideia {n} de {ideas.length}</span>}</div>
             <div className="t what__title">{idea.game.title}</div>
             <div className="muted what__meta">{idea.meta}</div>
-            <div className="what__why">
-              <strong>Por que pode ser para você?</strong>
-              <ul>{idea.why.map((w) => <li key={w}>{w}</li>)}</ul>
-            </div>
+            <ul className="what__why" aria-label="Por que pode ser para você">
+              {idea.why.map((w) => <li key={w.text}><Icon name={w.icon} size={14} /><span>{w.text}</span></li>)}
+            </ul>
             {asking ? (
               <div className="what__later" role="group" aria-label="Não agora">
                 <span className="muted">Não agora porque…</span>
                 <button className="btn ghost sm" onClick={() => later('hoje')}>Hoje não</button>
                 {idea.known && <button className="btn ghost sm" onClick={() => later('semanas')}>Não é o momento (3 semanas)</button>}
-                {idea.known && idea.action === 'play' && idea.cta === 'Começar Jornada' && <button className="btn ghost sm" onClick={() => later('nunca')}>Não pretendo jogar</button>}
+                {idea.known && idea.kind === 'estante' && idea.action === 'play' && <button className="btn ghost sm" onClick={() => later('nunca')}>Não pretendo jogar</button>}
                 {!idea.known && <button className="btn ghost sm" onClick={() => later('conheco')}>Já conheço</button>}
                 <button className="btn quiet sm" onClick={() => setAsking(false)}>Voltar</button>
               </div>
@@ -268,7 +193,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
                 {idea.action === 'play'
                   ? <button className="btn primary" onClick={() => play(idea.game.id)}>{idea.cta}</button>
                   : <Link className="btn primary" to={`/jogos/${idea.game.slug}`}>{idea.cta}</Link>}
-                <button className="btn ghost" onClick={() => { setAlt(alt + 1); setNotice(''); }}>Outra ideia</button>
+                <button className="btn ghost" onClick={another}>Outra ideia</button>
                 <button className="btn quiet" onClick={() => setAsking(true)}>Não agora</button>
               </div>
             )}

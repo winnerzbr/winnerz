@@ -5,7 +5,7 @@ import type { Game } from '../data/types';
 import type { Hit } from './AddGameDialog';
 import { CoverArt } from './CoverArt';
 import { fetchUniverse, relationTag } from './GameUniverse';
-import { ideasFor } from './WhatToPlay';
+import { recommend } from '../lib/recommend';
 
 type Pick = { key: string; to: string; cover: { title: string; cover: string }; title: string; why: string; tag?: string | null };
 
@@ -38,8 +38,8 @@ export function WhatNext({ game, onPick }: { game: Game; onPick?: () => void }) 
       const tag = relationTag(s, next);
       out.push({ key: 'serie', to: `/jogos/${next.slug}`, cover: next, title: next.title, tag, why: `${next.later ? 'Continua a série' : 'É da mesma série e veio antes; você ainda não zerou'}${tag === 'Na estante' ? ', e já está na sua estante' : tag === 'Desejo' ? ', e está nos seus Desejos' : ''}.` });
     }
-    const idea = ideasFor(s, 1).find((i) => i.game.id !== game.id && i.game.slug !== next?.slug);
-    if (idea) out.push({ key: 'estante', to: `/jogos/${idea.game.slug}`, cover: idea.game, title: idea.game.title, why: idea.why[0] });
+    const idea = recommend(s, 'noite').find((i) => i.game.id !== game.id && i.game.slug !== next?.slug);
+    if (idea) out.push({ key: 'estante', to: `/jogos/${idea.game.slug}`, cover: idea.game, title: idea.game.title, why: idea.why[0].text });
     return out;
   }, [s, next, game.id]);
 

@@ -45,6 +45,7 @@ function itemDate(it: TLItem): string {
   if (it.type === 'silence') return it.from;
   if (it.type === 'memory') return it.e.at;
   if (it.type === 'echo') return '';
+  if (it.type === 'talk') return it.talk.at;
   return new Date().toISOString();
 }
 
@@ -280,6 +281,20 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
           {x.legend && <p className="fx-p">{x.legend}</p>}
           <small className="fx-src">Passou por aqui em {whenLabel(x.at, 'mes')}</small>
           {on && <div className="fx-actions"><Link className="btn quiet sm" to={`/@${x.handle}`} onClick={(ev) => ev.stopPropagation()}>Ver o perfil</Link></div>}
+        </article>
+      );
+    }
+    if (it.type === 'talk') {
+      const t = it.talk;
+      return (
+        <article key={it.id} {...common} className="fx-pn fx-ev fx-talk" aria-label={`Você ${t.kind === 'resposta' ? 'respondeu' : 'escreveu'}: ${t.title}`}>
+          <span className="fx-ic"><Icon name="mensagem" size={16} /></span>
+          <span className="fx-k">{t.kind === 'resposta' ? 'Você respondeu' : 'Você escreveu'} · {whenLabel(t.at, 'dia', { short: true })}</span>
+          <h3 className="fx-h fx-h--sm">{t.title}</h3>
+          {t.excerpt && !t.spoiler && <p className="fx-p">{t.excerpt.length > 140 ? `${t.excerpt.slice(0, 138)}…` : t.excerpt}</p>}
+          {t.spoiler && <small className="fx-src">Conversa com spoiler</small>}
+          <small className="fx-src">{t.place}{t.replies ? ` · ${t.replies} ${t.replies === 1 ? 'resposta' : 'respostas'}` : ''}</small>
+          {on && <div className="fx-actions"><Link className="btn quiet sm" to={t.link} onClick={(ev) => ev.stopPropagation()}>Abrir a conversa</Link></div>}
         </article>
       );
     }

@@ -21,7 +21,10 @@ export type EchoItem = { type: 'echo'; id: string; echo: Echo; chapter: number }
 /** Números de todo mundo que jogou (sem nomes, só a partir de 5 pessoas). */
 export type Compare = { players: number; enough: boolean; playing?: number | null; done?: number; doneSessions?: number | null; doneHours?: number | null; paused?: number; pauseBuckets?: { from: number; count: number }[] };
 export type CompareItem = { type: 'compare'; id: 'comparar'; data: Compare; mine?: number };
-export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem;
+/** O que você escreveu na comunidade sobre o jogo (postagem ou resposta), na data em que escreveu. */
+export type Talk = { id: string; kind: 'postagem' | 'resposta'; title: string; excerpt?: string | null; spoiler?: boolean; at: string; place: string; link: string; replies?: number };
+export type TalkItem = { type: 'talk'; id: string; talk: Talk; chapter: number };
+export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem | TalkItem;
 
 export type BuildInput = {
   /** Registros da História (ou das Histórias) mostrada, em qualquer ordem. */
@@ -205,5 +208,25 @@ export function compareLines(c: Compare, mine?: number): string[] {
   if (c.doneSessions || c.doneHours) out.push(`Quem zerou levou, em geral, ${[c.doneSessions ? `${c.doneSessions} ${c.doneSessions === 1 ? 'sessão' : 'sessões'}` : '', c.doneHours ? `cerca de ${c.doneHours} h` : ''].filter(Boolean).join(', ')}.`);
   if (c.done != null && c.done > 0) out.push(`${c.done} de ${c.players} ${c.players === 1 ? 'pessoa zerou' : 'pessoas zeraram'}.`);
   if (c.playing) out.push(`${c.playing} ${c.playing === 1 ? 'pessoa está jogando' : 'pessoas estão jogando'} agora.`);
+  return out;
+}
+
+/**
+ * Costura as suas conversas sobre o jogo na faixa, pela data: cada uma entra antes do primeiro registro seu que
+ * veio depois dela. As que vêm depois do último registro ficam antes das lembranças e do "Hoje".
+ */
+export function weaveTalks(items: TLItem[], talks: Talk[]): TLItem[] {
+  if (!talks.length) return items;
+  const queue = [...talks].sort((a, b) => a.at.localeCompare(b.at));
+  const out: TLItem[] = [];
+  let chapter = 0;
+  const flush = (before: string | null) => { while (queue.length && (before == null || queue[0].at < before)) { const t = queue.shift()!; out.push({ type: 'talk', id: `talk-${t.id}`, talk: t, chapter }); } };
+  for (const it of items) {
+    if (it.type === 'event' && datable(it.e.precision)) flush(it.e.at);
+    if (it.type === 'memory' || it.type === 'today' || it.type === 'compare') flush(null);
+    if (it.type === 'chapter') { flush(it.from); chapter = it.n; }
+    out.push(it);
+  }
+  flush(null);
   return out;
 }

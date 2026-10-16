@@ -6,7 +6,7 @@
  */
 import { getState } from './store';
 import { DEMO_PEOPLE, demoIsFriend } from './demoPeople';
-import type { Compare, Echo } from '../lib/chapters';
+import type { Compare, Echo, Talk } from '../lib/chapters';
 
 export type EchoFriend = { handle: string; avatar?: string | null; state: 'zerou' | 'jogando' | 'parou' };
 export type Echoes = { friends: EchoFriend[]; echoes: Echo[] };
@@ -45,7 +45,17 @@ function demoEchoes(gameId: string, upto: number | null): Echoes {
 
 const DEMO_COMPARE: Compare = { players: 128, enough: true, playing: 9, done: 54, doneSessions: 23, doneHours: 26, paused: 31, pauseBuckets: [{ from: 10, count: 4 }, { from: 30, count: 6 }, { from: 40, count: 12 }, { from: 60, count: 5 }, { from: 80, count: 4 }] };
 
+const DEMO_TALKS: Record<string, Talk[]> = {
+  tlou2: [{ id: 'demo-t1', kind: 'postagem', title: 'Alguém mais ficou parado no violão da loja de música?', excerpt: 'Fiquei uns minutos só tocando. Que cena.', at: '2026-10-03T10:00:00-03:00', place: 'Praça', link: '/comunidade', replies: 3 }],
+};
+
 export const echoApi = {
+  /** O que você escreveu na comunidade sobre o jogo (migração 0051). Sem ela, a linha do tempo segue sem. */
+  async talks(gameId: string): Promise<Talk[]> {
+    if (!supa()) return DEMO_TALKS[gameId] ?? [];
+    const r = await (await client()).rpc('jornada_conversas', { p_game: gameId });
+    return r.error ? [] : (r.data as Talk[]);
+  },
   async echoes(gameId: string, upto: number | null): Promise<Echoes | null> {
     if (!supa()) return demoEchoes(gameId, upto);
     const r = await (await client()).rpc('jornada_ecos', { p_game: gameId, p_upto: upto });

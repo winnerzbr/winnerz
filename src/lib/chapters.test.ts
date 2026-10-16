@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildTimeline, summarize, weaveEchoes, compareLines } from './chapters';
+import { buildTimeline, summarize, weaveEchoes, weaveTalks, compareLines } from './chapters';
 
 const ev = (id: string, at: string, kind: any, more: any = {}) => ({ id, journeyId: 'j', historyId: 'h', kind, at, title: more.title ?? id, ...more });
 const ses = (id: string, at: string, more: any = {}) => ({ id, journeyId: 'j', historyId: 'h', startedAt: at, endedAt: at, ...more });
@@ -65,4 +65,17 @@ test('a comparação só diz o que os números dizem', () => {
   assert.equal(l[2], 'Quem zerou levou, em geral, 20 sessões, cerca de 25 h.');
   assert.equal(l[3], '12 de 40 pessoas zeraram.');
   assert.deepEqual(compareLines({ players: 6, enough: true, paused: 3, pauseBuckets: [] }), []);
+});
+
+test('conversas entram pela data, antes do registro seguinte e antes do Hoje', () => {
+  const items = buildTimeline({ events, sessions, allEvents: events, gameTitleOf: (j) => titles[j], journeyId: 'j', today: true, now: Date.parse('2026-10-15T12:00:00-03:00') });
+  const talk = (id: string, at: string) => ({ id, kind: 'postagem' as const, title: id, at, place: 'Praça', link: `/conversa/${id}` });
+  const out = weaveTalks(items, [talk('t2', '2026-10-05T12:00:00-03:00'), talk('t1', '2026-09-30T12:00:00-03:00'), talk('t3', '2026-10-14T12:00:00-03:00')]);
+  const ids = out.map((x) => x.id);
+  assert.ok(ids.indexOf('talk-t1') > ids.indexOf('i') && ids.indexOf('talk-t1') < ids.indexOf('m'));
+  // Antes do segundo capítulo (que começa em 12/10), não dentro dele.
+  const c2 = out.findIndex((x, n) => x.type === 'chapter' && n > 0);
+  assert.ok(ids.indexOf('talk-t2') < c2);
+  assert.ok(ids.indexOf('talk-t3') > ids.indexOf('p') && ids.indexOf('talk-t3') < ids.indexOf('hoje'));
+  assert.equal(weaveTalks(items, []), items);
 });

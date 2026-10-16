@@ -31,7 +31,7 @@ import { FitCard, LetterLine } from '../components/Comeback';
 import { OutlineStrip } from '../components/Outline';
 import { Faixa, type FaixaToday } from '../components/Faixa';
 import { PaintedMap } from '../components/PaintedMap';
-import { buildTimeline, weaveEchoes, durText, type TLItem, type ChapterItem, type Compare } from '../lib/chapters';
+import { buildTimeline, weaveEchoes, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
 import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
 import { awayLabel } from '../lib/recap';
@@ -163,11 +163,21 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     echoApi.aiStatus().then((r) => { if (live) setAi(r); }).catch(() => null);
     return () => { live = false; };
   }, [game.id, online]);
+  // O que você escreveu na comunidade sobre o jogo, no período da História mostrada.
+  const [talks, setTalks] = useState<Talk[]>([]);
+  useEffect(() => {
+    if (!online) return;
+    let live = true;
+    echoApi.talks(game.id).then((r) => { if (live) setTalks(r); }).catch(() => null);
+    return () => { live = false; };
+  }, [game.id, online]);
   const woven: TLItem[] = useMemo(() => {
-    if (!showToday) return allItems;
     const cmp = compare?.enough ? { type: 'compare' as const, id: 'comparar' as const, data: compare, mine: current.progress } : null;
-    return weaveEchoes(allItems, echoes?.echoes ?? [], cmp);
-  }, [allItems, echoes, compare, showToday, current.progress]);
+    const base = showToday ? weaveEchoes(allItems, echoes?.echoes ?? [], cmp) : allItems;
+    const ats = events.map((e) => e.at).sort();
+    const from = ats[0], to = showToday ? null : ats.at(-1);
+    return weaveTalks(base, talks.filter((t) => (!from || t.at >= from) && (!to || t.at <= to)));
+  }, [allItems, echoes, compare, showToday, current.progress, talks, events]);
   const narrations = useMemo(() => Object.fromEntries(histories.flatMap((h) => Object.entries(h.narrations ?? {}).map(([k, v]) => [k, v.text]))), [histories]);
   const factsOf = (c: ChapterItem): string[] => allItems.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && x.chapter === c.n && x.e.historyId === c.historyId).map(({ e, session: x }) => {
     const when = eventDate(e, false);

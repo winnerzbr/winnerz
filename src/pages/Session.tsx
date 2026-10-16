@@ -22,6 +22,11 @@ import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { Previously, CapsuleSheet } from '../components/Retomada';
 import { GoalCard, StopCard } from '../components/Outline';
+import { PartPicker, StartPartCard } from '../components/PartPicker';
+import { useOutline } from '../data/outlineApi';
+import { partAt } from '../lib/outline';
+import type { Game, History, PartMark } from '../data/types';
+import type { OutlinePart } from '../lib/outline';
 import { recapFor, wantsRecap } from '../lib/recap';
 
 type Draft = { kind: 'momento' | 'ponto'; blob?: Blob; preview?: string; title: string; note: string };
@@ -173,6 +178,7 @@ export function SessionPage() {
             <button className="btn ghost lg" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
           </div>
           <div className="session__cards">
+            <StartPartCard game={g} history={h} session={session} />
             {hasV43(s) && <IntentCard session={session} />}
             <GoalCard game={g} history={h} session={session} />
             <StopCard game={g} history={h} />
@@ -206,6 +212,9 @@ export function SessionPage() {
       {finishing && (
         <aside className="session__aside" aria-label="Fim da sessão">
           <FinishForm
+            game={g}
+            history={h}
+            onSavePhoto={(blob, title) => saveDraft({ kind: 'momento', blob, preview: URL.createObjectURL(blob), title, note: '' })}
             progress={h.progress ?? 0}
             startedAt={session.startedAt}
             goal={session.goal}
@@ -249,13 +258,13 @@ function Elapsed({ since }: { since: string }) {
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
 }
 
-type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao' };
+type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark };
 
 /**
  * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
  * A duração é calculada sozinha; o resto fica em "Mais detalhes".
  */
-function FinishForm({ progress, startedAt, goal, intent, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { progress: number; startedAt: string; goal?: string; intent?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
+function FinishForm({ game, history, onSavePhoto, progress, startedAt, goal, intent, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { game: Game; history: History; onSavePhoto: (blob: Blob, title: string) => void; progress: number; startedAt: string; goal?: string; intent?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
   const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
@@ -273,16 +282,43 @@ function FinishForm({ progress, startedAt, goal, intent, companions: known, canW
   const [mins, setMins] = useState<string | null>(null);
   const typed = mins != null && mins.trim() ? Math.max(1, Math.min(1440, Math.round(Number(mins)))) : undefined;
   const minutes = mins == null ? auto : Number.isFinite(typed) ? typed : undefined;
-  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined });
+  // S1: com a lista do jogo, "Onde você parou?" acha o item (atalhos, busca ou foto) e move a marca e o progresso.
+  const outline = useOutline(game.id);
+  const parts = outline?.parts ?? [];
+  const cur = partAt(parts, history.progress, history.part);
+  const [chosen, setChosen] = useState<{ part: OutlinePart; src: NonNullable<PartMark['src']> } | null>(null);
+  const [shot, setShot] = useState<Blob | null>(null);
+  const [keepShot, setKeepShot] = useState(true);
+  const choose = (part: OutlinePart, src: NonNullable<PartMark['src']>) => { setChosen({ part, src }); setWhere(part.name); setP(part.pct); };
+  const typeWhere = (t: string) => { setWhere(t); if (chosen && t.trim() !== chosen.part.name) { setChosen(null); setP(progress); } };
+  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: where.trim() || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined,
+    partTo: chosen ? { id: chosen.part.id, name: chosen.part.name, src: chosen.src } : undefined });
+  const close = (fn: (d: FinishData) => void) => {
+    const d = data();
+    if (chosen && outline) actions.setHistoryPart(history.id, { id: chosen.part.id, pct: chosen.part.pct }, parts);
+    if (shot && keepShot) onSavePhoto(shot, where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei');
+    fn(d);
+  };
   return (
-    <form className="finish" onSubmit={(e) => { e.preventDefault(); onFinish(data()); }}>
+    <form className="finish" onSubmit={(e) => { e.preventDefault(); close(onFinish); }}>
       <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
       <p className="finish__dur mono">{minutes ? <>Você jogou <b>{durLabel(minutes)}</b></> : 'Duração não calculada'}<button type="button" className="finish__fix" onClick={() => setMore(true)}>corrigir</button></p>
-      <label htmlFor="parei" className="finish__label">Onde você parou?</label>
-      <div className="finish__where">
-        <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} maxLength={140} />
-        <button type="button" className="btn ghost finish__cam" onClick={() => onPhoto(where)} aria-label="Foto de onde você parou" title="Foto de onde você parou"><Icon name="camera" size={18} /></button>
-      </div>
+      {outline && parts.length > 1 ? (
+        <>
+          <span className="finish__label">Onde você parou?</span>
+          <PartPicker game={game} history={history} outline={outline} cur={cur} chosen={chosen?.part ?? null} text={where} onText={typeWhere} onChoose={choose} mode="fim" onPhoto={setShot}
+            placeholder="Busque na lista ou escreva onde parou" />
+          {shot && <label className="pp__keep"><input type="checkbox" checked={keepShot} onChange={(e) => setKeepShot(e.target.checked)} /> Guardar a foto como momento “Onde parei”</label>}
+        </>
+      ) : (
+        <>
+          <label htmlFor="parei" className="finish__label">Onde você parou?</label>
+          <div className="finish__where">
+            <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} maxLength={140} />
+            <button type="button" className="btn ghost finish__cam" onClick={() => onPhoto(where)} aria-label="Foto de onde você parou" title="Foto de onde você parou"><Icon name="camera" size={18} /></button>
+          </div>
+        </>
+      )}
       {goal && (
         <div className="finish__goal">
           <span className="finish__label">Você cumpriu “{goal}”?</span>
@@ -327,7 +363,7 @@ function FinishForm({ progress, startedAt, goal, intent, companions: known, canW
           </>}
         </div>
       )}
-      <button type="button" className="finish__zerei" onClick={() => onZerei(data())}>Zerei a campanha nesta sessão</button>
+      <button type="button" className="finish__zerei" onClick={() => close(onZerei)}>Zerei a campanha nesta sessão</button>
     </form>
   );
 }

@@ -46,6 +46,7 @@ export function schemaV37() { return v37; }
 /** A migração 0038 já rodou? (capítulo da História e objetivo da sessão) */
 let v38 = false;
 let v58 = false;
+let v61 = false;
 export function schemaV38() { return v38; }
 /** A migração 0039 já rodou? (pontes: Steam e RetroAchievements) */
 let v39 = false;
@@ -128,6 +129,7 @@ const sessionFromRow = (r: any): Session => ({
   progress: r.progress ?? undefined,
   goal: r.goal ?? undefined, goalDone: r.goal_done ?? undefined, source: r.source ?? undefined,
   intent: r.intent ?? undefined, intentMet: r.intent_met ?? undefined,
+  partMarks: r.part_marks && typeof r.part_marks === 'object' && (r.part_marks.from || r.part_marks.to || r.part_marks.done?.length) ? r.part_marks : undefined,
 });
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
@@ -212,6 +214,7 @@ const sessionToRow = (x: Session) => ({
   ...(v38 ? { goal: x.goal ?? null, goal_done: x.goalDone ?? null } : {}),
   ...(v39 ? { source: x.source ?? null } : {}),
   ...(v43 ? { intent: x.intent ?? null, intent_met: x.intentMet ?? null } : {}),
+  ...(v61 ? { part_marks: x.partMarks ?? null } : {}),
 });
 const eventToRow = (e: TimelineEvent) => {
   const row: Record<string, unknown> = {
@@ -318,6 +321,7 @@ export const supabaseAdapter: Adapter = {
     v39 = v38 && !(await sb.from('sessions').select('source').limit(1)).error;
     v58 = v38 && !(await sb.from('histories').select('part_log').limit(1)).error;
     v43 = v39 && !(await sb.from('sessions').select('intent,intent_met').limit(1)).error;
+    v61 = v43 && !(await sb.from('sessions').select('part_marks').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {

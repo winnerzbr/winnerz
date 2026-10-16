@@ -134,6 +134,25 @@ export const outlineApi = {
       return await outlineApi.get(gameId, true);
     } catch { status.set(gameId, { state: 'erro', reason: 'Sem conexão com o servidor.' }); return cache.get(gameId) ?? null; } finally { working.delete(gameId); emit(); }
   },
+  /**
+   * S1: em que item da lista a foto da tela está. A IA só escolhe entre os itens da lista; a pessoa confirma.
+   * Conta no limite mensal de leituras da IA (o mesmo do "adicionar pela câmera").
+   */
+  async fromPhoto(gameId: string, image: Blob, where?: string): Promise<{ picks: { id: string; confidence: 'alta' | 'media' | 'baixa' }[]; seen: string }> {
+    const { toDataUrl } = await import('../lib/image');
+    if (!supa()) {
+      await new Promise((ok) => setTimeout(ok, 900));
+      const o = cache.get(gameId) ?? demoGet(gameId);
+      const sorted = [...(o?.parts ?? [])].sort((a, b) => a.pct - b.pct);
+      const p = sorted[Math.min(sorted.length - 1, 2)];
+      return { picks: p ? [{ id: p.id, confidence: 'media' }] : [], seen: 'Demonstração: aqui a IA diria o que viu na tela.' };
+    }
+    const { accessToken } = await import('./supabaseAdapter');
+    const r = await fetch('/api/reconhecer', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${await accessToken()}` }, body: JSON.stringify({ kind: 'parte', game: gameId, image: await toDataUrl(image), where: where?.trim() || undefined }) });
+    const j = (await r.json().catch(() => ({}))) as { picks?: { id: string; confidence: 'alta' | 'media' | 'baixa' }[]; seen?: string; error?: string };
+    if (!r.ok) throw new Error(j.error ?? 'A IA não respondeu agora. Tente de novo.');
+    return { picks: j.picks ?? [], seen: j.seen ?? '' };
+  },
   /** Como foi a última tentativa do rascunho automático nesta visita (sem lista, limite do dia ou erro, com o motivo). */
   autoStatus: (gameId: string) => status.get(gameId),
   /** O rascunho automático está sendo montado agora (nesta visita). */

@@ -1,6 +1,6 @@
 import { keepFixes } from '../lib/fixes';
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom, PartMark } from './types';
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
 import { localDay } from '../lib/dates';
@@ -742,7 +742,7 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao' }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
@@ -750,7 +750,8 @@ export const actions = {
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
     const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined };
+    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined,
+      partMarks: data.partTo ? { ...ses.partMarks, to: data.partTo } : ses.partMarks };
     if (ses.intent && data.intentMet) track(`sessao.intencao.${ses.intent}.${data.intentMet}`);
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';
     const goalText = done.goal ? `Objetivo: ${done.goal}${done.goalDone === 'sim' ? ' (cumprido)' : done.goalDone === 'quase' ? ' (quase)' : done.goalDone === 'nao' ? ' (fica para a próxima)' : ''}.` : '';
@@ -814,6 +815,20 @@ export const actions = {
     track('jornada.capitulo');
     const partLog = parts ? logPart(h.partLog, parts, part, new Date().toISOString()) : h.partLog;
     dispatch({ type: 'history.update', history: { ...h, part: part?.id, partLog: partLog?.length ? partLog : undefined, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
+  },
+
+  /**
+   * Onde a sessão começou (S1): confirma o item da lista do jogo e, se mudou, move a marca da História
+   * (o progresso vai para o começo do item e a linha do tempo grava a chegada).
+   */
+  setSessionStart(sessionId: ID, mark: PartMark | null, part?: { id: string; pct: number }, parts?: { id: string; pct: number }[]) {
+    const ses = state.sessions.find((x) => x.id === sessionId);
+    if (!ses) return;
+    track('sessao.inicio_estrutura');
+    const partMarks = mark ? { ...ses.partMarks, from: mark } : ses.partMarks?.to || ses.partMarks?.done?.length ? { ...ses.partMarks, from: undefined } : undefined;
+    dispatch({ type: 'session.update', session: { ...ses, partMarks } });
+    const h = state.histories.find((x) => x.id === ses.historyId);
+    if (mark && part && h && h.part !== part.id) actions.setHistoryPart(h.id, part, parts);
   },
 
   /** "Hoje é para…": a intenção da sessão aberta (sem valor, tira). */

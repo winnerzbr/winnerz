@@ -5935,3 +5935,37 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .ol-group { list-style: none; margin: 14px 0 4px; font: 600 11px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
 .ol-kind { display: inline-block; margin-top: 2px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11px; color: var(--muted); text-transform: capitalize; width: max-content; }
 .ol-edit__group { min-width: 0; }
+
+/* S1 · A sessão na estrutura do jogo (PartPicker) */
+.pp { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.pp__quick { gap: 6px; }
+.pp__find { display: flex; gap: 8px; align-items: stretch; }
+.pp__find .field { flex: 1; min-width: 0; }
+.pp__cam { flex: none; width: 52px; padding: 0; justify-content: center; }
+.pp__res { list-style: none; margin: 0; padding: 4px; display: flex; flex-direction: column; gap: 2px; border-radius: 12px; background: var(--surface-2, rgba(255, 255, 255, 0.04)); box-shadow: inset 0 0 0 1px var(--line-2, rgba(255, 255, 255, 0.12)); }
+.pp__res button { width: 100%; display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; padding: 9px 10px; border: 0; border-radius: 9px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pp__res button:hover, .pp__res button:focus-visible { background: rgba(255, 178, 91, 0.12); }
+.pp__res .mono { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.pp__res b { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.pp__res small { grid-column: 2; color: var(--muted); font-size: 12px; }
+.pp__none { margin: 0; font-size: 13px; }
+.pp__photo { position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 10px 40px 10px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line-2, rgba(255, 255, 255, 0.12)); }
+.pp__photo img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; flex: none; }
+.pp__photo > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pp__photo .chips { gap: 6px; }
+.pp__photo .chip small { margin-left: 4px; }
+.pp__x { position: absolute; top: 6px; right: 6px; }
+.pp__all { align-self: flex-start; }
+.pp__keep { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+
+.ppcard { flex: 1 1 100%; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 16px; background: rgba(13, 15, 18, 0.78); box-shadow: inset 0 0 0 1px rgba(230, 233, 237, 0.12); color: #E6E9ED; backdrop-filter: blur(8px); --muted: #AEB4BB; --line-2: rgba(255, 255, 255, 0.16); --surface-2: rgba(255, 255, 255, 0.04); }
+.ppcard .kicker { color: #C9CED4; }
+.ppcard__q { font-size: 17px; color: #F2F4F6; }
+.ppcard__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ppcard .chip { background: rgba(255, 255, 255, 0.06); color: #E6E9ED; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.ppcard .chip[aria-pressed='true'] { background: #FFB25B; color: #07080A; box-shadow: none; }
+.ppcard .field { background: rgba(255, 255, 255, 0.06); color: #F2F4F6; }
+.ppcard > .btn.quiet { align-self: flex-start; }
+.ppcard.is-set { flex-direction: row; flex-wrap: wrap; align-items: center; box-shadow: inset 0 0 0 1px rgba(255, 178, 91, 0.45); }
+.ppcard.is-set .kicker { width: 100%; color: #FFB25B; }
+.ppcard__name { flex: 1; display: flex; gap: 8px; align-items: center; font-size: 16px; color: #F2F4F6; }

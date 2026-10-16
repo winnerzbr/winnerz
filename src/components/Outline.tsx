@@ -96,7 +96,8 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
   );
 }
 
-export function OutlineSheet({ game, history, outline, onClose, startEditing }: { game: Game; history: History; outline: GameOutline; onClose: () => void; startEditing?: boolean }) {
+export function OutlineSheet({ game, history, outline, onClose, startEditing, onPick }: { game: Game; history: History; outline: GameOutline; onClose: () => void; startEditing?: boolean;
+  /** Escolher para um formulário (começo ou fim da sessão) em vez de mover a marca na hora. */ onPick?: (p: OutlinePart) => void }) {
   const [editing, setEditing] = useState(!!startEditing);
   const [reveal, setReveal] = useState(false);
   const [opened, setOpened] = useState<Set<string>>(new Set());
@@ -105,7 +106,7 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing }: 
   const parts = outline.parts;
   const cur = partAt(parts, history.progress, history.part);
   const curPct = cur?.pct ?? history.progress ?? -1;
-  const pick = (p: OutlinePart) => { actions.setHistoryPart(history.id, { id: p.id, pct: p.pct }, parts); onClose(); };
+  const pick = (p: OutlinePart) => { if (onPick) onPick(p); else actions.setHistoryPart(history.id, { id: p.id, pct: p.pct }, parts); onClose(); };
   const loadHist = async () => { try { setHist(await outlineApi.history(game.id)); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu para carregar.'); } };
 
   const u = unitOf(outline);

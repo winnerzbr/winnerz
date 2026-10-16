@@ -246,7 +246,12 @@ export interface Session {
   /** "Hoje é para…": a intenção escolhida antes e, no fim, se funcionou. */
   intent?: 'descansar' | 'divertir' | 'avancar' | 'desafio';
   intentMet?: 'sim' | 'meio' | 'nao';
+  /** Onde a sessão começou e terminou na estrutura do jogo (capítulo, missão, área…; migração 0061). */
+  partMarks?: SessionParts;
 }
+/** Um item da lista do jogo, com o nome do momento (a lista pode mudar depois) e como a pessoa chegou nele. */
+export interface PartMark { id: string; name: string; src?: 'lista' | 'texto' | 'foto' }
+export interface SessionParts { from?: PartMark; to?: PartMark; done?: PartMark[] }
 
 export type EventKind = 'inicio' | 'sessao' | 'momento' | 'ponto' | 'marco' | 'carta';
 export interface TimelineEvent {

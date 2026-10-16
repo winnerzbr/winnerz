@@ -9,16 +9,16 @@ export interface OutlinePart { id: string; name: string; pct: number; minutes?: 
 
 /** Como o jogo se divide (migração 0060). */
 export type Structure = 'capitulos' | 'missoes' | 'areas' | 'chefes' | 'atos' | 'episodios' | 'fases' | 'mundos' | 'etapas';
-export const UNIT: Record<Structure, { one: string; many: string; title: string }> = {
-  capitulos: { one: 'Capítulo', many: 'capítulos', title: 'Capítulos' },
-  missoes: { one: 'Missão', many: 'missões', title: 'Missões' },
-  areas: { one: 'Área', many: 'áreas', title: 'Áreas' },
-  chefes: { one: 'Chefe', many: 'chefes', title: 'Chefes' },
-  atos: { one: 'Ato', many: 'atos', title: 'Atos' },
-  episodios: { one: 'Episódio', many: 'episódios', title: 'Episódios' },
-  fases: { one: 'Fase', many: 'fases', title: 'Fases' },
-  mundos: { one: 'Mundo', many: 'mundos', title: 'Mundos' },
-  etapas: { one: 'Etapa', many: 'etapas', title: 'Etapas' },
+export const UNIT: Record<Structure, { one: string; many: string; title: string; a: 'o' | 'a' }> = {
+  capitulos: { one: 'Capítulo', many: 'capítulos', title: 'Capítulos', a: 'o' },
+  missoes: { one: 'Missão', many: 'missões', title: 'Missões', a: 'a' },
+  areas: { one: 'Área', many: 'áreas', title: 'Áreas', a: 'a' },
+  chefes: { one: 'Chefe', many: 'chefes', title: 'Chefes', a: 'o' },
+  atos: { one: 'Ato', many: 'atos', title: 'Atos', a: 'o' },
+  episodios: { one: 'Episódio', many: 'episódios', title: 'Episódios', a: 'o' },
+  fases: { one: 'Fase', many: 'fases', title: 'Fases', a: 'a' },
+  mundos: { one: 'Mundo', many: 'mundos', title: 'Mundos', a: 'o' },
+  etapas: { one: 'Etapa', many: 'etapas', title: 'Etapas', a: 'a' },
 };
 export const unitOf = (o?: { structure?: Structure | null } | null) => UNIT[o?.structure ?? 'capitulos'] ?? UNIT.capitulos;
 export interface OutlineSource { label: string; url: string; license?: string }
@@ -120,4 +120,56 @@ export function partsTimeline(parts: OutlinePart[], log: PartLogEntry[] | undefi
   const when = new Map<string, PartLogEntry>();
   for (const e of log ?? []) if (!when.has(e.id)) when.set(e.id, e);
   return sorted.map((p, i) => ({ part: p, n: i + 1, total: sorted.length, state: (i < curIdx ? 'passou' : i === curIdx ? 'atual' : 'frente') as 'passou' | 'atual' | 'frente', at: when.get(p.id)?.at, src: when.get(p.id)?.src }));
+}
+
+/* ---- S1: achar o item pelo que a pessoa escreveu ------------------------------------------------------------- */
+
+const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+const ORDINAL_RE = /^(?:cap|capitulo|chapter|ch|missao|mission|m|fase|level|nivel|ato|act|ep|episodio|episode|etapa|mundo|world|area|parte|part)?\s*(\d{1,3})$/;
+/** Distância de edição pequena (até 2), para aceitar erro de digitação em palavras de 4 letras ou mais. */
+function near(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0, j = 0, miss = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++miss > 1) return false;
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return miss + (a.length - i) + (b.length - j) <= 1;
+}
+
+/**
+ * Os itens da lista que combinam com o texto, do mais provável para o menos: sem acento e sem maiúscula,
+ * aceita "cap 3" ou "3" (o terceiro item), palavras pela metade e um erro de digitação. Procura também no grupo.
+ */
+export function findParts(parts: OutlinePart[], query: string, limit = 6): OutlinePart[] {
+  const q = fold(query);
+  if (!q) return [];
+  const sorted = [...parts].sort((a, b) => a.pct - b.pct);
+  const scored = new Map<string, number>();
+  const n = q.match(ORDINAL_RE);
+  if (n) { const p = sorted[Number(n[1]) - 1]; if (p) scored.set(p.id, 70); }
+  const words = q.split(' ').filter(Boolean);
+  for (const p of sorted) {
+    const name = fold(p.name), all = `${name} ${fold(p.group ?? '')}`.trim();
+    const toks = all.split(' ');
+    let s = 0;
+    if (name === q) s = 100;
+    else if (name.startsWith(q)) s = 85;
+    else if (` ${name} `.includes(` ${q} `) || name.includes(q)) s = 75;
+    else {
+      const hit: number[] = words.map((w) => toks.some((t) => t === w) ? 3 : toks.some((t) => t.startsWith(w) && w.length >= 2) ? 2 : w.length >= 4 && toks.some((t) => near(t, w)) ? 1 : 0);
+      if (hit.every((x) => x > 0)) s = 40 + Math.min(20, hit.reduce((a: number, b) => a + b, 0) * 2);
+      else if (hit.filter((x) => x > 0).length >= Math.max(1, Math.ceil(words.length * 0.6)) && words.length > 1) s = 25;
+    }
+    if (s) scored.set(p.id, Math.max(scored.get(p.id) ?? 0, s));
+  }
+  return sorted.filter((p) => scored.has(p.id)).sort((a, b) => scored.get(b.id)! - scored.get(a.id)! || a.pct - b.pct).slice(0, limit);
+}
+
+/** O item atual e os próximos (atalhos do fim da sessão). */
+export function partsAround(parts: OutlinePart[], cur: OutlinePart | null, ahead = 2): OutlinePart[] {
+  const sorted = [...parts].sort((a, b) => a.pct - b.pct);
+  const i = cur ? sorted.findIndex((p) => p.id === cur.id) : -1;
+  return i < 0 ? sorted.slice(0, ahead + 1) : sorted.slice(i, i + 1 + ahead);
 }

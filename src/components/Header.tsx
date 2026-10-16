@@ -17,6 +17,7 @@ const PILLARS = [
   { to: '/jornada', label: 'Jornada', icon: 'jornada', match: '/jornada' },
   { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', match: '/comunidade' },
   { to: '/eventos', label: 'Eventos', icon: 'eventos', match: '/eventos' },
+  { to: '/album', label: 'Álbum', icon: 'album', match: '/album' },
 ];
 
 export function Header() {
@@ -116,7 +117,7 @@ const TABS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
   { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', on: inCommunity },
 ];
-const MORE = ['/jogos', '/eventos', '/preferencias', '/entrar', '/studio'];
+const MORE = ['/jogos', '/eventos', '/album', '/preferencias', '/entrar', '/studio'];
 
 /** No celular, os pilares ficam numa barra fixa embaixo; Jogos, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {
@@ -147,6 +148,7 @@ export function TabBar() {
           <nav className="moremenu" aria-label="Mais seções">
             <Link to="/jogos" className="moremenu__item" aria-current={path.startsWith('/jogos') ? 'page' : undefined}><Icon name="jogos" size={20} /><span><b>Jogos</b><small>Buscar jogos, Radar e o que jogar agora</small></span></Link>
             <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
+            <Link to="/album" className="moremenu__item" aria-current={path.startsWith('/album') ? 'page' : undefined}><Icon name="album" size={20} /><span><b>Álbum</b><small>Figurinhas da Temporada e os seus pacotes</small></span></Link>
             {isAdmin && <Link to="/studio" className="moremenu__item" aria-current={path.startsWith('/studio') ? 'page' : undefined}><Icon name="caneta" size={20} /><span><b>Studio</b><small>Correções, uso dos planos e abertura do site</small></span></Link>}
             {profile
               ? <Link to="/preferencias" className="moremenu__item" aria-current={path.startsWith('/preferencias') ? 'page' : undefined}><span className={`avatar moremenu__avatar${profile.avatar ? ' avatar--img' : ''}`}>{profile.avatar ? <img src={profile.avatar} alt="" /> : profile.initial}</span><span><b>Preferências</b><small>Conta, privacidade e ajustes</small></span></Link>

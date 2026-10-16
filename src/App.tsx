@@ -2,7 +2,7 @@ import { YearReviewPage } from './pages/YearReview';
 import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
-import { useEffect, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
@@ -74,6 +74,10 @@ import { InvitePage } from './pages/Invite';
 import { invitesApi, pendingInvite, setPendingInvite } from './data/invitesApi';
 import { AwardsRevealPage } from './pages/AwardsReveal';
 
+const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.AlbumPage })));
+const StudioAlbumPage = lazy(() => import('./pages/StudioAlbum').then((m) => ({ default: m.StudioAlbumPage })));
+const lazyPage = (node: ReactNode) => <Suspense fallback={<main className="page pad"><p className="faint">Carregando…</p></main>}>{node}</Suspense>;
+
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
@@ -143,7 +147,11 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
+  if (match('/album', path)) return lazyPage(<AlbumPage />);
+  if (match('/album/pacotes', path)) return lazyPage(<AlbumPage view="pacotes" />);
+  if ((m = match('/album/:slug', path))) return lazyPage(<AlbumPage key={m.slug} slug={m.slug} />);
   if (match('/studio', path)) return <StudioPage />;
+  if (match('/studio/album', path)) return lazyPage(<StudioAlbumPage />);
   if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if (match('/studio/moderacao', path)) return <StudioModerationPage />;

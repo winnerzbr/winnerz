@@ -116,7 +116,7 @@ function load(): DState {
   return { read: [], seenAt: hoursAgo(30), site: [{ id: 's-awards', title: 'As indicações do WinnerZ Awards abrem em breve', body: 'Separe os jogos que marcaram o seu ano.', link: '/awards', at: hoursAgo(26) }] };
 }
 function save(d: DState) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* sem espaço: segue */ } }
-const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' || k === 'pacto' || k === 'pacto_zerou' || k === 'lista_convite' ? 'amigos' : k === 'lancamento' || k === 'retomada' || k === 'semana' || k === 'mes' || k === 'revisao' ? 'jornada' : 'sistema');
+const groupOf = (k: string): NotifGroup => (['resposta', 'acompanhando', 'mencao', 'reacao'].includes(k) ? 'comunidade' : k.startsWith('clube_') || k.startsWith('jogatina') || k === 'parte' ? 'grupos' : k === 'seguiu' || k === 'pacto' || k === 'pacto_zerou' || k === 'lista_convite' ? 'amigos' : k === 'lancamento' || k === 'retomada' || k === 'semana' || k === 'mes' || k === 'revisao' || k.startsWith('album_') ? 'jornada' : 'sistema');
 const PREF: Record<string, keyof CommunityPrefs> = {
   reacao: 'aviso_reacoes', seguiu: 'aviso_seguidores', jogatina_convite: 'aviso_convites', clube_convite: 'aviso_convites', lista_convite: 'aviso_convites',
   jogatina_lembrete: 'aviso_lembretes', jogatina_mudou: 'aviso_lembretes', lancamento: 'aviso_lancamentos', retomada: 'aviso_retomada', semana: 'aviso_semana', mes: 'aviso_mes', revisao: 'aviso_revisao', pacto: 'aviso_pactos', pacto_zerou: 'aviso_pactos',

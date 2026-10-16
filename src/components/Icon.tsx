@@ -6,6 +6,7 @@ const paths: Record<string, ReactElement> = {
   jogos: <><path d="M6 9.5h4M8 7.5v4M15.5 9.5h.01M17.5 11.5h.01" /><path d="M7 5.5h10a4 4 0 0 1 4 3.6l.8 5.9a2.6 2.6 0 0 1-4.6 2l-1.9-2.2H8.7L6.8 17a2.6 2.6 0 0 1-4.6-2L3 9.1a4 4 0 0 1 4-3.6z" /></>,
   jornada: <path d="M12 2.5l2.4 7.1 7.1 2.4-7.1 2.4-2.4 7.1-2.4-7.1L2.5 12l7.1-2.4z" strokeLinejoin="round" />,
   comunidade: <><path d="M3.5 4.5h11v8H8l-4.5 3.5z" /><path d="M14.5 8.5h6v8l-3-2.2h-6.5v-1.8" /></>,
+  album: <><path d="M4 4.5h7.5a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 0-1.5-1.5H4z" /><path d="M20 4.5h-7.5" /><path d="M20 4.5v14h-5.5" /><path d="M15.5 8h2v3h-2z" /></>,
   eventos: <path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5l-5.3 2.9 1.2-6-4.5-4.1 6-.7z" strokeLinejoin="round" />,
   busca: <><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></>,
   sino: <><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5h4" /></>,

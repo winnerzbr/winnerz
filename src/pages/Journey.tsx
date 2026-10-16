@@ -3,6 +3,7 @@ import { celebrateSmall } from '../components/MiniCelebration';
 import { TrailerButton } from '../components/Trailer';
 import { PactList } from '../components/Pacts';
 import { discordApi } from '../data/discordApi';
+import { packAfterFinish } from '../components/album/afterFinish';
 import { ShareCardButton } from '../components/ShareCard';
 import { say as toneLine } from '../lib/tone';
 import { ConfirmButton } from '../components/Sheet';
@@ -119,6 +120,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     const h = current;
     actions.completeHistory(h.id);
     discordApi.publish('zerou', h.id);
+    packAfterFinish(h.id, game.id);
     setCelebrating({ ...h });
   };
 

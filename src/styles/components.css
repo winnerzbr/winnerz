@@ -27,6 +27,10 @@ a.session-pill { color: var(--now-ink); }
 .appearance__label { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-top: 16px; }
 .appearance__ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--faint); }
 .appearance__more { display: block; margin-top: 14px; font-size: 13px; font-weight: 600; }
+@media (max-width: 1180px) {
+  .site-header__row { column-gap: 20px; }
+  .pillars { gap: 2px 12px; font-size: 14px; flex-basis: 420px; }
+}
 @media (max-width: 1080px) {
   .search-pill__label, .search-pill__kbd { display: none; }
   .search-pill { width: 44px; padding: 0; justify-content: center; border-color: transparent; background: transparent; }

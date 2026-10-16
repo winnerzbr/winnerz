@@ -1,6 +1,7 @@
 import { ShareCardButton } from '../components/ShareCard';
 import { TrailerButton } from '../components/Trailer';
 import { discordApi } from '../data/discordApi';
+import { packAfterFinish } from '../components/album/afterFinish';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
@@ -226,7 +227,7 @@ export function SessionPage() {
               else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
               navigate(`/jornada/${g.slug}`);
             }}
-            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); setCelebrate({ historyId: h.id }); }}
+            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); packAfterFinish(h.id, g.id); setCelebrate({ historyId: h.id }); }}
           />
         </aside>
       )}

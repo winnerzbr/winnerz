@@ -4,6 +4,7 @@
  *   GET /api/perfil?h=<@>&j=<jogo>&k=<código do link, opcional>
  *   GET /api/perfil?h=<@>&museu=1&k=<código do link, opcional>   → o Museu aberto no perfil (migração 0015)
  *   GET /api/perfil?h=<@>&p=1&k=<código do link, opcional>       → o perfil inteiro, com o mural de cenas (migração 0016)
+ *   GET /api/perfil?t=<código>                                    → um trecho compartilhado da Jornada (migração 0049)
  *
  * Quem decide o que pode ser visto é a função public_journey do banco (migração 0013): ela só devolve a Jornada
  * se a pessoa marcou "Mostrar no meu perfil" e se quem pede pode ver o pilar Jornada. Aqui só assinamos os
@@ -66,6 +67,22 @@ export default async function handler(req: Req, res: Res) {
   if (!c) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   if (req.method && req.method !== 'GET') return res.status(405).json({ error: 'Método não aceito.' });
   const h = one(req.query?.h).slice(0, 40), j = one(req.query?.j).slice(0, 120), k = one(req.query?.k).slice(0, 64);
+  const t = one(req.query?.t).slice(0, 40);
+  if (t) {
+    // Um trecho: quem decide é a snip_get (bloqueio, moderação, suspensão); aqui só assinamos a foto.
+    try {
+      const viewer = await viewerId(c, req);
+      const r = await fetch(`${c.url}/rest/v1/rpc/snip_get`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_token: t, p_viewer: viewer }) });
+      if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: 'Para abrir trechos, rode a migração 0049 no Supabase.' });
+      const data = (await r.json()) as Ev | null;
+      res.setHeader('Cache-Control', 'private, no-store');
+      if (!data) return res.status(404).json({ error: 'not_found' });
+      await signAll(c, [data]);
+      return res.status(200).json(data);
+    } catch {
+      return res.status(500).json({ error: 'Não consegui carregar o trecho.' });
+    }
+  }
   const viewer = h ? await viewerId(c, req) : null;
   if (h && (await blocked(c, h, viewer))) return res.status(404).json({ error: 'not_found' });
   // Com a conta de quem pede, valem as regras de "só amigos" (migração 0025); sem ela, cai na função de sempre.

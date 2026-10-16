@@ -1,3 +1,4 @@
+import { SnipLinks } from './Snip';
 import { useEffect, useState } from 'react';
 import { DiscordSettings } from '../components/DiscordSettings';
 import { BridgeSettings } from '../components/Bridges';
@@ -153,6 +154,8 @@ export function Preferences() {
       <section className="prefs__section" aria-labelledby="perfil">
         <h2 id="perfil" className="t">Perfil e privacidade</h2>
         <ProfileSettings />
+        <h3 className="prefs__sub" id="trechos">Trechos da Jornada com link</h3>
+        <SnipLinks />
         <h3 className="prefs__sub" id="bloqueios">Pessoas bloqueadas e silenciadas</h3>
         <BlockedList />
       </section>

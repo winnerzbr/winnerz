@@ -1,3 +1,4 @@
+import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
 import { useEffect, type ReactNode } from 'react';
@@ -108,6 +109,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
   if (match('/busca', path)) return <SearchPage />;
   if (match('/listas', path)) return <ListsPage />;
+  if ((m = match('/t/:token', path))) return <SnipPage key={m.token} token={m.token} />;
   if ((m = match('/lista/:id', path))) return <ListPage key={m.id} id={m.id} />;
   if (match('/mensagens', path)) return <MessagesPage />;
   if ((m = match('/mensagens/:handle', path))) return <MessagesPage handle={decodeURIComponent(m.handle)} />;

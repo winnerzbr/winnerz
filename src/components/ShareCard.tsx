@@ -11,7 +11,7 @@ const W = 1080, H = 1350;
 const MONTHS = ['jan.', 'fev.', 'mar.', 'abr.', 'mai.', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.'];
 const short = (iso: string) => { const d = new Date(iso); return `${d.getDate()} de ${MONTHS[d.getMonth()]} de ${d.getFullYear()}`; };
 
-function load(src?: string): Promise<HTMLImageElement | null> {
+export function load(src?: string): Promise<HTMLImageElement | null> {
   if (!src) return Promise.resolve(null);
   return new Promise((ok) => {
     const i = new Image();
@@ -21,13 +21,13 @@ function load(src?: string): Promise<HTMLImageElement | null> {
   });
 }
 
-function cover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
+export function cover(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
   const k = Math.max(w / img.width, h / img.height);
   const sw = w / k, sh = h / k;
   ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h);
 }
 
-function wrap(ctx: CanvasRenderingContext2D, text: string, max: number): string[] {
+export function wrap(ctx: CanvasRenderingContext2D, text: string, max: number): string[] {
   const words = text.split(/\s+/); const lines: string[] = []; let cur = '';
   for (const w of words) { const t = cur ? `${cur} ${w}` : w; if (ctx.measureText(t).width > max && cur) { lines.push(cur); cur = w; } else cur = t; }
   if (cur) lines.push(cur);

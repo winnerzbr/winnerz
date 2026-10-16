@@ -1,3 +1,4 @@
+import { SnipShareSheet } from '../components/SnipShare';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { TrailerButton } from '../components/Trailer';
 import { PactList } from '../components/Pacts';
@@ -98,6 +99,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [captures, setCaptures] = useState(false);
   const [editHist, setEditHist] = useState<string | null>(null);
   const [editEvent, setEditEvent] = useState<string | null>(null);
+  const [shareEvent, setShareEvent] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [toast, setToast] = useState<{ id: number; text: string; historyId?: string } | null>(null);
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
@@ -344,7 +346,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {!hasEvents && !todayInfo ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
+            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} />
           ) : (
             <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
           )}
@@ -374,6 +376,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
       {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}
       {editEvent && <EventEditSheet eventId={editEvent} onClose={() => setEditEvent(null)} />}
+      {shareEvent && s.events.some((x) => x.id === shareEvent) && <SnipShareSheet event={s.events.find((x) => x.id === shareEvent)!} game={game} onClose={() => setShareEvent(null)} />}
       {noteFor && <StateNoteSheet historyId={noteFor} onClose={() => setNoteFor(null)} />}
       {toast && <ActionToast key={toast.id} text={toast.text} action={toast.historyId ? 'Escrever por quê' : undefined} onAction={() => setNoteFor(toast.historyId!)} onDone={() => setToast(null)} />}
       {wpViewer !== null && (

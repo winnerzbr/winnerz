@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { actions, useStore, closedBy } from '../data/store';
 import { Sheet, ConfirmButton } from './Sheet';
 import { DateField, type WhenValue } from './DateField';
+import { SnipShareSheet } from './SnipShare';
+import { SHAREABLE } from '../data/snipApi';
+import { Icon } from './Icon';
 
 const NAMES: Record<string, string> = { inicio: 'início', sessao: 'sessão', momento: 'momento', ponto: 'ponto para voltar', marco: 'marco', carta: 'carta' };
 
@@ -17,7 +20,10 @@ export function EventEditSheet({ eventId, onClose }: { eventId: string; onClose:
   const [extra, setExtra] = useState((quoteFirst ? e?.text : e?.quote) ?? '');
   const [when, setWhen] = useState<WhenValue>({ iso: e?.at ?? new Date().toISOString(), precision: e?.precision ?? 'dia' });
   const [dropPhoto, setDropPhoto] = useState(false);
+  const game = useStore((s) => { const ev = s.events.find((x) => x.id === eventId); const j = ev && s.journeys.find((x) => x.id === ev.journeyId); return j ? s.games[j.gameId] : undefined; });
+  const [sharing, setSharing] = useState(false);
   if (!e) return null;
+  if (sharing && game) return <SnipShareSheet event={e} game={game} onClose={() => setSharing(false)} />;
   const save = () => {
     const n = note.trim() || undefined, x = extra.trim() || undefined;
     actions.updateEvent(eventId, {
@@ -31,6 +37,7 @@ export function EventEditSheet({ eventId, onClose }: { eventId: string; onClose:
   };
   return (
     <Sheet title={`Editar ${NAMES[e.kind] ?? 'acontecimento'}`} onClose={onClose} labelId="ev-edit" wide>
+      {SHAREABLE.includes(e.kind) && game && <button type="button" className="btn ghost sm ev-share" onClick={() => setSharing(true)}><Icon name="link" size={15} />Compartilhar este trecho</button>}
       <label htmlFor="ev-title" className="finish__label">Título</label>
       <input id="ev-title" className="field" value={title} onChange={(ev) => setTitle(ev.target.value)} maxLength={80} />
       <label htmlFor="ev-note" className="finish__label">{e.kind === 'sessao' ? 'Recado para a próxima vez' : 'Nota'}</label>

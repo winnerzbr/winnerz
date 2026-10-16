@@ -4,6 +4,7 @@
  * nítido e aceso; os outros recuam, escurecem e desfocam. O fundo alterna as imagens do jogo (capa de fundo, artes e capturas).
  * Horizontal no computador, vertical no celular. Com "reduzir movimento", sem profundidade nem poeira.
  */
+import { SHAREABLE } from '../data/snipApi';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type MouseEvent, type KeyboardEvent } from 'react';
 import { Link } from '../lib/router';
 import { actions } from '../data/store';
@@ -47,8 +48,8 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, full, onExitFull, reduced, light, narrate }: {
-  items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void;
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate }: {
+  items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void; onShare?: (eventId: string) => void;
   full: boolean; onExitFull: () => void; reduced: boolean; light: boolean; narrate?: FaixaNarrate | null;
 }) {
   const [draft, setDraft] = useState<{ id: string; text: string } | null>(null);
@@ -347,6 +348,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, full
             {back && <button className="btn now sm" onClick={(ev) => { ev.stopPropagation(); actions.resolveWaypoint(e.id); }}>Resolver</button>}
             {e.kind === 'ponto' && e.resolved && <span className="fx-k">Resolvido</span>}
             {e.kind !== 'carta' && !full && <button className="btn quiet sm" onClick={(ev) => { ev.stopPropagation(); onEdit(e.id); }}>Editar</button>}
+            {onShare && SHAREABLE.includes(e.kind) && !full && <button className="btn quiet sm" onClick={(ev) => { ev.stopPropagation(); onShare(e.id); }}><Icon name="link" size={13} />Compartilhar</button>}
           </div>
         )}
       </article>

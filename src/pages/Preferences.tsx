@@ -129,6 +129,10 @@ export function Preferences() {
           <input type="checkbox" role="switch" className="switch" checked={!!prefs.light} onChange={(e) => actions.setPrefs({ light: e.target.checked })} />
           <span><strong>Esconder contadores e números</strong><span className="muted">Sem total de sessões, horas, jogos na estante ou quantos você zerou. Fica a história, sem placar. As estatísticas da coleção continuam lá, só se você abrir.</span></span>
         </label>
+        <label className="motion motion--switch" data-on={!prefs.weeklyOff}>
+          <input type="checkbox" role="switch" className="switch" checked={!prefs.weeklyOff} onChange={(e) => actions.setPrefs({ weeklyOff: !e.target.checked })} />
+          <span><strong>Desafio da semana</strong><span className="muted">Um convite leve por semana na Jornada, escolhido pelo que você tem e registra. Sem pontos, sem sequência: se não der, nada acontece. Dá para trocar ou pular.</span></span>
+        </label>
       </section>
 
       <section aria-labelledby="tom" className="prefs__section">

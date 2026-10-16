@@ -1,3 +1,4 @@
+import { WeeklyChallenge } from '../components/WeeklyChallenge';
 import { Buddy, useBuddy } from '../components/Buddy';
 import { BridgeInbox } from '../components/Bridges';
 import { useState, type ReactNode } from 'react';
@@ -121,6 +122,7 @@ export function JourneyIndex() {
             <Group kind="left" title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
           </div>
           <aside className="jindex__aside">
+            <WeeklyChallenge />
             <WhatToPlay excludeJourneyId={principal?.journey.id} headingId="oqj-jornada" />
             {!light && <MonthCard s={s} />}
           </aside>

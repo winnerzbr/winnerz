@@ -310,6 +310,10 @@ export interface Prefs {
   seasons?: { id: string; name: string; from: string; to: string }[];
   /** Revisão do backlog: o trimestre ("2026-T4") e quando foi feita ou dispensada. */
   review?: { quarter: string; at: string; how: 'feita' | 'dispensada' };
+  /** Desafio semanal sem punição: o convite desta semana, as semanas cumpridas e se a pessoa desligou. */
+  weekly?: import('../lib/weekly').WeeklyPick;
+  weeklyDone?: string[];
+  weeklyOff?: boolean;
 }
 
 /** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */

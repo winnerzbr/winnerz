@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '../data/store';
 import { planTrailer, trailerLength, type Scene } from '../lib/trailer';
-import { fetchTrailerTrack, playTrailerTrack, TRAILER_TRACK } from '../lib/trailerTrack';
+import { fetchTrailerTrack, fitScenesToTrack, playTrailerTrack, TRAILER_TRACK } from '../lib/trailerTrack';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { track } from '../lib/track';
@@ -185,7 +185,8 @@ export function TrailerButton({ game, history, className = 'btn ghost lg' }: { g
 function TrailerSheet({ game, history, onClose }: { game: Game; history: History; onClose: () => void }) {
   const s = useStore((x) => x);
   const images = useMemo(() => [...new Set([game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x))], [game]);
-  const scenes = useMemo(() => planTrailer(s, history.id, game, images), [s, history.id, game, images]);
+  // As cenas seguem o compasso da trilha (os cortes caem no tempo da música).
+  const scenes = useMemo(() => fitScenesToTrack(planTrailer(s, history.id, game, images)), [s, history.id, game, images]);
   const [fmt, setFmt] = useState<Fmt>('vertical');
   const [music, setMusic] = useState(true);
   const [state, setState] = useState<'pronto' | 'carregando' | 'gravando' | 'feito' | 'erro'>('pronto');
@@ -240,9 +241,11 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
       frame(g, W, H, scenes, a.imgs, a.logo, 0);
       const stream = c.captureStream(FPS);
       let stopAudio = () => {};
-      if (actx && tune) {
+      let audioStart = -1;
+      if (actx && tune && actx.state === 'running') {
         const dest = actx.createMediaStreamDestination();
-        stopAudio = playTrailerTrack(actx, dest, tune, scenes);
+        const p = playTrailerTrack(actx, dest, tune, scenes);
+        stopAudio = p.stop; audioStart = p.start;
         dest.stream.getAudioTracks().forEach((tr) => stream.addTrack(tr));
       }
       const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
@@ -254,7 +257,8 @@ function TrailerSheet({ game, history, onClose }: { game: Game; history: History
       const t0 = performance.now();
       let raf = 0, stopped = false;
       const tick = () => {
-        const t = (performance.now() - t0) / 1000;
+        // Com música, os quadros seguem o relógio do áudio (assim os cortes ficam colados na batida).
+        const t = actx && audioStart >= 0 ? Math.max(0, actx.currentTime - audioStart) : (performance.now() - t0) / 1000;
         frame(g, W, H, scenes, a.imgs, a.logo, Math.min(t, total));
         setProgress(Math.min(1, t / total));
         if (t >= total + 0.3) { if (!stopped) { stopped = true; rec.stop(); } return; }

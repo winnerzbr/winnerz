@@ -76,7 +76,7 @@ function aiError(status: number, detail: string): string {
   if (status === 403 || type === 'permission_error') return 'A chave da IA no servidor não tem permissão para este modelo.';
   if (status === 404 || type === 'not_found_error') return 'O modelo de IA configurado não existe. Confira a ANTHROPIC_MODEL na Vercel (ou apague para usar o padrão).';
   if (/credit balance|billing|purchase credits/i.test(msg)) return 'A conta da IA está sem créditos. Recarregue em console.anthropic.com.';
-  if (status === 400) return 'A IA recusou o pedido (formato). Tente de novo; se continuar, avise a administração.';
+  if (status === 400) return `A IA recusou o pedido (formato)${msg ? `: ${msg.slice(0, 140)}` : ''}. Tente de novo; se continuar, avise a administração.`;
   return 'A IA não respondeu agora. Tente de novo.';
 }
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : '');
@@ -174,11 +174,13 @@ async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   const ai = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({ model: MODEL(), max_tokens: 2500, system: VIBES_SYSTEM, messages: [{ role: 'user', content: text }, { role: 'assistant', content: '{"games":[' }] }),
+    body: JSON.stringify({ model: MODEL(), max_tokens: 2500, system: VIBES_SYSTEM, messages: [{ role: 'user', content: text }] }),
   });
   if (!ai.ok) return res.status(502).json({ error: aiError(ai.status, await ai.text()) });
   const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
-  const said = '{"games":[' + (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+  // Os modelos novos não aceitam começar a resposta por nós: o JSON vem inteiro e pegamos do primeiro "{".
+  const txt = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+  const said = txt.slice(Math.max(0, txt.indexOf('{')));
   const tryParse = (t: string): { games?: any[] } | null => { try { return JSON.parse(t); } catch { return null; } };
   // Resposta cortada no limite: fecha no último jogo completo.
   const parsed = tryParse(said) ?? tryParse(said.slice(0, said.lastIndexOf(']}') + 2)) ?? tryParse(said.slice(0, said.lastIndexOf('}') + 1) + ']}');
@@ -317,12 +319,13 @@ async function outline(user: string, body: Record<string, unknown>, res: Res) {
     const ai = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: MODEL(), max_tokens: 3000, system: OUTLINE_SYSTEM, messages: [{ role: 'user', content: prompt }, { role: 'assistant', content: '{"known":' }] }),
+      body: JSON.stringify({ model: MODEL(), max_tokens: 3000, system: OUTLINE_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
       signal: AbortSignal.timeout(45_000),
     });
     if (!ai.ok) { const d = await ai.text().catch(() => ''); console.error('anthropic capitulos', ai.status, d.slice(0, 200)); const why = aiError(ai.status, d); await finish('erro', why); return res.status(200).json({ state: 'erro', reason: why }); }
     const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
-    const said = '{"known":' + (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+    const txt = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
+    const said = txt.slice(Math.max(0, txt.indexOf('{')));
     let parsed: { known?: boolean; parts?: any[] } | null = null;
     try { parsed = JSON.parse(said.slice(0, said.lastIndexOf('}') + 1)); } catch { parsed = null; }
     const parts = cleanOutline(parsed?.known ? parsed.parts : []);

@@ -316,6 +316,7 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .pk__badge--dup { background: #23272d; color: #d0d3d8; }
 .pk__ttl { position: absolute; left: 0; right: 0; bottom: 7%; text-align: center; z-index: 9; opacity: 0; transition: opacity .6s; pointer-events: none; font: 800 20px var(--font-title); font-stretch: 125%; letter-spacing: .3em; text-transform: uppercase; color: #ffe7b0; text-shadow: 0 0 18px rgba(255,210,122,.8); padding-inline: 16px; }
 .pk.is-ceremony .pk__ttl { opacity: 1; }
+.pk__err { position: absolute; left: 16px; right: 16px; bottom: 16px; z-index: 10; margin: 0; padding: 12px 14px; border-radius: 12px; background: rgba(40,12,12,.92); border: 1px solid rgba(255,120,100,.45); color: #ffd9d2; font-size: 14px; text-align: center; }
 .pk__status { font: 500 13px var(--font-mono); letter-spacing: .06em; color: var(--gold); min-height: 20px; }
 .pk__btns { display: flex; flex-wrap: wrap; gap: 10px; }
 #alb-fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 95; }

@@ -222,6 +222,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
           </div>
           <div className="pk__cards" />
           <div className="pk__ttl">{title}</div>
+          {err && <p className="pk__err" role="alert">{err}</p>}
         </div>
       </div>
     </div>

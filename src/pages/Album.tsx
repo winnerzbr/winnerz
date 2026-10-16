@@ -142,6 +142,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
   const closed = state.packs.filter((p) => p.state === 'fechado');
   const held = state.packs.filter((p) => p.state === 'retido' || p.state === 'negado');
   const opened = state.packs.filter((p) => p.state === 'aberto').slice(0, 12);
+  const live = state.stickers.some((s) => s.active && state.books.some((b) => b.published && b.pages.some((pg) => pg.id === s.pageId)));
 
   if (opening) {
     const rest = closed.filter((p) => p.id !== opening.id);
@@ -153,6 +154,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
     <div className="alb-packs">
       <section className="alb-packs__sec">
         <h2 className="t">Para abrir</h2>
+        {!live && closed.length > 0 && <p className="alb-note" style={{ marginTop: 12 }}><span><b>O álbum ainda não abriu.</b> <span className="muted">Seus pacotes ficam guardados e podem ser abertos assim que as figurinhas da Temporada forem publicadas.</span></span></p>}
         {closed.length === 0
           ? <p className="muted">Nenhum pacote fechado. Zere um jogo na Jornada para ganhar o próximo.</p>
           : <ul className="alb-packlist">{closed.map((p) => (
@@ -161,7 +163,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
               <div className="alb-packrow__body">
                 <b>{packTitle(p)}</b>
                 <p className="muted">{packWhy(p)} · {dateLabel(p.createdAt)}</p>
-                <div className="alb-packrow__acts"><button className="btn now sm" onClick={() => setOpening(p)}>Abrir</button></div>
+                <div className="alb-packrow__acts"><button className="btn now sm" disabled={!live} onClick={() => setOpening(p)}>Abrir</button></div>
               </div>
             </li>))}</ul>}
       </section>

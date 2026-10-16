@@ -1,18 +1,18 @@
 /**
  * Studio · Álbum: o catálogo da Temporada (álbuns, páginas e figurinhas com a arte), dar pacotes à mão, a fila dos
- * pacotes retidos pelas regras e os pedidos de revisão, com o histórico do que foi feito.
+ * pacotes retidos pelas regras e os pedidos de revisão, com o histórico do que foi feito, e o histórico das trocas.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
-import { artSrc, reloadAlbum, studioAlbumApi, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
+import { artSrc, reloadAlbum, studioAlbumApi, tradeApi, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
 import { RULE_TITLE, signalsLine, TIER_LABEL, TIERS, type Tier } from '../lib/album';
 import { ConfirmButton } from '../components/Sheet';
 import { StickerView } from '../components/album/StickerView';
 import { ensureDefs, num3 } from '../components/album/render';
 
-type Tab = 'catalogo' | 'dar' | StudioView;
+type Tab = 'catalogo' | 'dar' | StudioView | 'trocas';
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace('.', '') : '');
 const at = (h?: string | null) => (h ? `@${h}` : 'alguém');
 
@@ -39,13 +39,14 @@ export function StudioAlbumPage() {
         {mode === 'demo' && <p className="faint">Na demonstração, tudo fica só neste navegador.</p>}
       </header>
       <div className="seg studio__tabs" role="tablist" aria-label="Seções">
-        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}
+        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
       </div>
       {msg && <p className="studio__msg" role="status">{msg}</p>}
       {err && <p className="awards__error" role="alert">{err}</p>}
       {tab === 'catalogo' && <CatalogPanel say={say} fail={fail} />}
       {tab === 'dar' && <GivePanel say={say} fail={fail} />}
       {(tab === 'retidos' || tab === 'revisoes' || tab === 'historico') && <PacksPanel key={tab} view={tab} say={say} fail={fail} onChange={refreshCounts} />}
+      {tab === 'trocas' && <TradesPanel fail={fail} />}
     </main>
   );
 }
@@ -255,5 +256,28 @@ function PackItem({ p, view, after, fail }: { p: StudioPack; view: StudioView; a
         <div className="sa-pack__acts"><ConfirmButton label="Desfazer" confirm="Desfazer este pacote?" onConfirm={() => void act(() => studioAlbumApi.undo(p.id), 'Pacote desfeito.')} /></div>
       )}
     </li>
+  );
+}
+
+/* ---- Trocas (só consulta) ---- */
+const TRADE_STATE: Record<Trade['state'], string> = { aberta: 'Em aberto', aceita: 'Feita', recusada: 'Recusada', cancelada: 'Cancelada', expirada: 'Expirou', falhou: 'Não deu certo' };
+function TradesPanel({ fail }: { fail: (e: unknown) => void }) {
+  const [list, setList] = useState<Trade[] | null>(null);
+  const [cat, setCat] = useState<Record<string, Sticker>>({});
+  useEffect(() => {
+    tradeApi.studio().then(setList).catch((e) => { fail(e); setList([]); });
+    studioAlbumApi.catalog().then((c) => setCat(Object.fromEntries(c.stickers.map((s) => [s.id, s])))).catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!list) return <p className="faint">Carregando…</p>;
+  if (!list.length) return <div className="studio__empty"><b>Nenhuma troca ainda.</b><p className="muted">As propostas entre as pessoas aparecem aqui, com o que cada lado deu e o resultado.</p></div>;
+  const names = (ids: string[]) => ids.map((id) => (cat[id] ? `${num3(cat[id].number)} ${cat[id].name}` : '?')).join(', ');
+  return (
+    <ul className="sa-packs">{list.map((t) => (
+      <li key={t.id} className="sa-pack">
+        <p><b>{at(t.from?.handle)}</b> → <b>{at(t.to?.handle)}</b> · {TRADE_STATE[t.state]} · {when(t.createdAt)}{t.decidedAt ? ` · respondida ${when(t.decidedAt)}` : ''}</p>
+        <p className="sa-signals">{at(t.from?.handle)} dá: {names(t.give)}</p>
+        <p className="sa-signals">{at(t.to?.handle)} dá: {names(t.take)}</p>
+        {t.message && <p className="muted">“{t.message}”</p>}
+      </li>))}</ul>
   );
 }

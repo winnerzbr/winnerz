@@ -509,6 +509,86 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .alb-pol__tape { position: absolute; left: 50%; top: -1.8cqw; width: 14cqw; height: 4.2cqw; transform: translateX(-50%) rotate(calc(var(--r, 0deg) * -2)); background: rgba(240,228,196,.55); box-shadow: 0 .3cqw .6cqw rgba(0,0,0,.2); z-index: 1; }
 @media (max-width: 640px) {
   .alb-tabs { gap: 0; margin-inline: -4px; }
-  .alb-tabs__a { padding: 10px 10px 12px; font-size: 14px; gap: 6px; }
-  .alb-tabs__a.is-on::after { left: 6px; right: 6px; }
+  .alb-tabs__a { flex: 1 0 auto; justify-content: center; padding: 10px 6px 12px; font-size: 13px; gap: 4px; }
+  .alb-tabs__a.is-on::after { left: 4px; right: 4px; }
+  .alb-tabs__n { min-width: 8px; width: 8px; height: 8px; padding: 0; font-size: 0; align-self: flex-start; margin-top: 2px; }
 }
+
+/* ---- A3: trocas ---- */
+.alb-trades { display: grid; gap: 30px; }
+.alb-trades__top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.alb-trades__top > * { padding: 18px 20px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); }
+.alb-switch { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }
+.alb-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.alb-switch__ui { flex: none; position: relative; width: 44px; height: 26px; border-radius: 13px; background: var(--line-2); transition: background .2s; margin-top: 2px; }
+.alb-switch__ui::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); transition: transform .2s; }
+.alb-switch input:checked + .alb-switch__ui { background: linear-gradient(90deg, #8f6630, #e2be84); }
+.alb-switch input:checked + .alb-switch__ui::after { transform: translateX(18px); background: #fff7e6; }
+.alb-switch input:focus-visible + .alb-switch__ui { outline: 2px solid var(--now); outline-offset: 2px; }
+.alb-switch span:last-child { display: grid; gap: 4px; }
+.alb-switch small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.alb-trades__find { display: grid; gap: 8px; align-content: start; }
+.alb-trades__find label { font-size: 13px; }
+.alb-trades__findrow { display: flex; gap: 8px; }
+.alb-trades__findrow .field { flex: 1; min-width: 0; }
+.alb-trades__ok { margin: 0; padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(226,190,132,.4); color: var(--gold); }
+.alb-trades__sec { display: grid; gap: 12px; }
+.alb-trades__sec h2 { margin: 0; }
+.alb-trades__lead { margin: -4px 0 4px; }
+.alb-trades__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 14px; }
+.alb-trade { display: grid; gap: 14px; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); align-content: start; }
+.alb-trades__who { display: flex; gap: 10px; align-items: center; }
+.alb-trades__who > span { display: grid; gap: 2px; font-weight: 600; }
+.alb-trades__who small { font-weight: 400; font-size: 12px; }
+.alb-trades__who a { color: inherit; text-decoration: none; }
+.alb-trades__who a:hover { text-decoration: underline; }
+.alb-trade__msg { margin: 0; font-style: italic; color: var(--muted); }
+.alb-trade__sides { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; align-items: start; }
+.alb-trade__arrow { align-self: center; font-size: 22px; color: var(--gold); }
+.alb-trades__side { display: grid; gap: 8px; min-width: 0; }
+.alb-trades__side small { font-size: 12px; line-height: 1.35; }
+.alb-trades__minis { display: flex; flex-wrap: wrap; gap: 6px; }
+.alb-trades__mini { width: 48px; }
+.alb-trade__acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.alb-trades__hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.alb-trades__hist li { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); font-size: 14px; }
+
+.alb-compose { display: grid; gap: 16px; padding: 20px; border-radius: 20px; border: 1px solid rgba(226,190,132,.45); background: var(--surface); scroll-margin-top: 90px; box-shadow: 0 24px 60px -36px rgba(226,190,132,.45); }
+.alb-compose__head { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+.alb-compose__head h2 { margin: 0; flex: 1; }
+.alb-compose__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.alb-compose__h { margin: 0 0 10px; font: 700 15px var(--font-ui); display: flex; gap: 8px; align-items: baseline; }
+.alb-compose__h small { font: 500 12px var(--font-mono); color: var(--faint); }
+.alb-compose__msg { display: grid; gap: 6px; font-size: 13px; }
+.alb-compose__bal { font-size: 14px; color: var(--muted); }
+.alb-compose .alb-vault__go { position: static; box-shadow: none; }
+.alb-pick { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.alb-pickit { position: relative; width: 100%; display: grid; gap: 6px; padding: 8px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; text-align: left; transition: border-color .15s, transform .15s; }
+.alb-pickit:hover { transform: translateY(-2px); border-color: var(--line-2); }
+.alb-pickit.is-on { border-color: #e2be84; box-shadow: 0 0 0 1px #e2be84; }
+.alb-pickit small { font: 500 11px var(--font-mono); color: var(--muted); }
+.alb-pickit__hint { font-size: 11px; line-height: 1.2; color: var(--now-hi); }
+.alb-pickit__check { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #2a1c0a; background: linear-gradient(180deg, #f3dba0, #c99a55); opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s; z-index: 2; }
+.alb-pickit.is-on .alb-pickit__check { opacity: 1; transform: none; }
+@media (max-width: 760px) {
+  .alb-trades__top, .alb-compose__cols { grid-template-columns: 1fr; }
+  .alb-trade { padding: 14px; }
+  .alb-trades__mini { width: 42px; }
+  .alb-pick { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .alb-compose { padding: 16px; }
+}
+
+/* A troca feita: as cartas se cruzam */
+.alb-swapfx { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: radial-gradient(60% 60% at 50% 45%, rgba(20,16,10,.82), rgba(4,4,6,.94)); animation: alb-fade .25s ease-out; }
+.alb-swapfx__in { display: grid; justify-items: center; gap: 18px; text-align: center; width: min(560px, 100%); }
+.alb-swapfx__lane { position: relative; width: 100%; height: min(200px, 34vw); }
+.alb-swapfx__out, .alb-swapfx__inc { position: absolute; inset: 0; display: flex; justify-content: center; gap: 8px; }
+.alb-swapfx__out > div, .alb-swapfx__inc > div { width: min(110px, 20vw); animation-delay: calc(var(--i) * 70ms) !important; }
+.alb-swapfx__out > div { animation: alb-swapout 1.3s cubic-bezier(.5,0,.3,1) both; }
+.alb-swapfx__inc > div { animation: alb-swapin 1.3s cubic-bezier(.3,.6,.2,1) both; }
+.alb-swapfx.is-done .alb-swapfx__inc > div { animation: alb-swapin 1.3s cubic-bezier(.3,.6,.2,1) both, alb-glow 1.2s 1.3s ease-out both; }
+.alb-swapfx .alb-vaultfx__txt, .alb-swapfx .alb-vaultfx__btns { animation: alb-fade .4s 1.2s both; }
+@keyframes alb-swapout { 0% { transform: translateX(-60%) rotate(-6deg); opacity: 1; } 55% { transform: translateX(10%) translateY(-30px) rotate(8deg) scale(.9); opacity: 1; } 100% { transform: translateX(180%) rotate(18deg) scale(.6); opacity: 0; } }
+@keyframes alb-swapin { 0% { transform: translateX(180%) rotate(16deg) scale(.6); opacity: 0; } 45% { transform: translateX(-10%) translateY(30px) rotate(-6deg) scale(.9); opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes alb-glow { 0% { filter: drop-shadow(0 0 0 rgba(255,210,122,0)); } 40% { filter: drop-shadow(0 0 18px rgba(255,210,122,.8)); } 100% { filter: drop-shadow(0 8px 10px rgba(0,0,0,.42)); } }
+@media (prefers-reduced-motion: reduce) { .alb-swapfx *, .alb-swapfx { animation: none !important; } .alb-swapfx__out { display: none; } }

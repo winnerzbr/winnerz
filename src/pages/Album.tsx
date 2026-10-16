@@ -12,6 +12,7 @@ import { whenLabel } from '../lib/dates';
 import type { DatePrecision } from '../data/types';
 import { Collection } from '../components/album/Collection';
 import { Vault } from '../components/album/Vault';
+import { Trades } from '../components/album/Trades';
 import { AlbumBook, bookPages } from '../components/album/AlbumBook';
 import { PackOpening } from '../components/album/PackOpening';
 import { StickerView, StickerZoom } from '../components/album/StickerView';
@@ -33,8 +34,8 @@ function useCatalogMaps(state: AlbumState | null) {
   }, [state]);
 }
 
-type View = 'pacotes' | 'figurinhas' | 'cofre';
-const TITLE: Record<View, string> = { pacotes: 'Pacotes', figurinhas: 'Figurinhas', cofre: 'Cofre' };
+type View = 'pacotes' | 'figurinhas' | 'cofre' | 'trocas';
+const TITLE: Record<View, string> = { pacotes: 'Pacotes', figurinhas: 'Figurinhas', cofre: 'Cofre', trocas: 'Trocas' };
 
 /** As figurinhas pessoais (jogos zerados), da Jornada da própria pessoa. */
 function usePersonal() {
@@ -45,7 +46,7 @@ function usePersonal() {
   return useMemo(() => personalStickers(histories, journeys, games, events, (iso, p) => whenLabel(iso, (p as DatePrecision | undefined) ?? 'dia')), [histories, journeys, games, events]);
 }
 
-export function AlbumPage({ slug, view }: { slug?: string; view?: View }) {
+export function AlbumPage({ slug, view, with: withHandle }: { slug?: string; view?: View; with?: string }) {
   const { state, error } = useAlbum();
   const mode = useStore((s) => s.mode);
   const profile = useStore((s) => s.profile);
@@ -61,7 +62,7 @@ export function AlbumPage({ slug, view }: { slug?: string; view?: View }) {
   const personal = usePersonal();
   const mineBook = books.find((b) => b.published);
   const tabs: [string, string, boolean, number][] = [
-    ['/album', 'Estante', !view, 0], ['/album/figurinhas', 'Figurinhas', view === 'figurinhas', 0], ['/album/cofre', 'Cofre', view === 'cofre', 0], ['/album/pacotes', 'Pacotes', view === 'pacotes', closed.length],
+    ['/album', 'Estante', !view, 0], ['/album/figurinhas', 'Figurinhas', view === 'figurinhas', 0], ['/album/cofre', 'Cofre', view === 'cofre', 0], ['/album/trocas', 'Trocas', view === 'trocas', state?.tradesIn ?? 0], ['/album/pacotes', 'Pacotes', view === 'pacotes', closed.length],
   ];
 
   const head = (
@@ -71,7 +72,7 @@ export function AlbumPage({ slug, view }: { slug?: string; view?: View }) {
         <button className="btn quiet" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? 'Som ligado' : 'Som desligado'}</button>
       </div>
       <nav className="alb-tabs" aria-label="Seções do álbum">
-        {tabs.map(([to, label, on, n]) => <Link key={to} to={to} className={`alb-tabs__a${on ? ' is-on' : ''}`} aria-current={on ? 'page' : undefined}>{label}{n > 0 && <span className="alb-tabs__n" aria-label={`${n} para abrir`}>{n}</span>}</Link>)}
+        {tabs.map(([to, label, on, n]) => <Link key={to} to={to} className={`alb-tabs__a${on ? ' is-on' : ''}`} aria-current={on ? 'page' : undefined}>{label}{n > 0 && <span className="alb-tabs__n" aria-label={to.endsWith('trocas') ? `${n} recebidas` : `${n} para abrir`}>{n}</span>}</Link>)}
       </nav>
     </header>
   );
@@ -89,6 +90,8 @@ export function AlbumPage({ slug, view }: { slug?: string; view?: View }) {
         ? <PacksView state={state} maps={maps} />
         : view === 'figurinhas'
           ? <Collection state={state} personalCount={personal.length} personalBook={mineBook} onZoom={(s, el) => setZoom({ s, el })} />
+          : view === 'trocas'
+            ? <Trades key={withHandle ?? ''} state={state} section={maps.section} bookOf={maps.bookOf} start={withHandle} />
           : view === 'cofre'
             ? <Vault state={state} section={maps.section} bookOf={maps.bookOf} />
             : book

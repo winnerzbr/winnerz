@@ -169,3 +169,32 @@ export function personalStickers(
   }
   return out.sort((a, b) => a.at.localeCompare(b.at) || a.title.localeCompare(b.title));
 }
+
+/* ---- Trocas ------------------------------------------------------------------------------------------- */
+export const TRADE_MAX = 5;
+/** Lendárias ficam fora das trocas. */
+export const tradeableTier = (t: Tier) => t !== 'lendaria';
+/** O "peso" de um lado da troca (estrelas de raridade), para mostrar se ela está equilibrada. */
+export const tradeWeight = (l: { tier: Tier }[]) => l.reduce((t, s) => t + TIER_STARS[s.tier], 0);
+export function tradeBalance(give: { tier: Tier }[], take: { tier: Tier }[]): 'igual' | 'voce_da_mais' | 'voce_recebe_mais' {
+  const a = tradeWeight(give), b = tradeWeight(take);
+  return a === b ? 'igual' : a > b ? 'voce_da_mais' : 'voce_recebe_mais';
+}
+
+/**
+ * Monta uma troca sugerida: o mesmo número de figurinhas dos dois lados (até 5), começando pelas mais raras que você
+ * recebe e casando cada uma com uma sua da mesma raridade (ou a mais próxima).
+ */
+export function tradeSuggest<T extends { id: string; tier: Tier; number: number }>(give: T[], take: T[], max = TRADE_MAX): { give: T[]; take: T[] } {
+  const rank = (t: Tier) => TIERS.indexOf(t);
+  const n = Math.min(give.length, take.length, max);
+  const want = [...take].sort((a, b) => rank(b.tier) - rank(a.tier) || a.number - b.number).slice(0, n);
+  const pool = [...give].sort((a, b) => a.number - b.number);
+  const out: T[] = [];
+  for (const w of want) {
+    let best = -1;
+    pool.forEach((g, i) => { if (best < 0 || Math.abs(rank(g.tier) - rank(w.tier)) < Math.abs(rank(pool[best].tier) - rank(w.tier))) best = i; });
+    out.push(pool.splice(best, 1)[0]);
+  }
+  return { give: out, take: want };
+}

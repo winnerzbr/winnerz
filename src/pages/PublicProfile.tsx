@@ -241,6 +241,7 @@ function Hero({ data, owner, preview, onShare, copied, onFollow }: { data: Publi
             </> : <>
               <FollowButton handle={data.handle} onChange={onFollow} />
               {!preview && <MessageButton handle={data.handle} className="btn ghost" />}
+              {!preview && <Link className="btn ghost" to={`/album/trocas?com=${encodeURIComponent(data.handle)}`}>Propor troca</Link>}
               {links.slice(0, 3).map((l, i) => (
                 <a key={l.url} className="btn ghost" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
               ))}

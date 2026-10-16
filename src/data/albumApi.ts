@@ -23,7 +23,15 @@ export interface Pack {
   id: string; kind: PackKind; origin: PackOrigin; state: PackState; rule: HoldRule | null; reason: string | null; historyId: string | null;
   game: GameMini | null; contents: Drawn[] | null; createdAt: string; openedAt: string | null; note: string | null; review: PackReview | null;
 }
-export interface AlbumState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: Pack[]; stats: { opened: number; noRare: number } }
+export interface AlbumState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: Pack[]; stats: { opened: number; noRare: number }; tradesIn?: number }
+export type TradeState = 'aberta' | 'aceita' | 'recusada' | 'cancelada' | 'expirada' | 'falhou';
+/** Uma troca. give e take são do ponto de vista de quem propôs (from): give vai de from para to; take, de to para from. */
+export interface Trade { id: string; from: PersonRef | null; to: PersonRef | null; give: string[]; take: string[]; message: string | null; state: TradeState; createdAt: string; decidedAt: string | null; expiresAt: string; mine: boolean }
+export interface TradeBoard { open: boolean; newUntil: string | null; received: Trade[]; sent: Trade[]; history: Trade[] }
+/** Troca sugerida: give são repetidas minhas que faltam à pessoa; take, repetidas dela que faltam a mim. */
+export interface TradeMatch { person: PersonRef; friend: boolean; follow: boolean; give: string[]; take: string[]; pending: boolean }
+export type TradeWhy = 'trade_self' | 'trade_closed' | 'trade_new_other';
+export interface TradePeer { person: PersonRef; why: TradeWhy | null; take: string[]; theyMiss: string[]; pending: boolean }
 export interface StudioPack extends Pack { person: PersonRef | null; grantedBy: PersonRef | null; decidedBy: PersonRef | null; decidedAt: string | null; signals: PackSignals }
 export interface Catalog { books: AlbumBook[]; stickers: Sticker[]; owned: Record<string, number> }
 export type StudioView = 'retidos' | 'revisoes' | 'historico';
@@ -57,6 +65,17 @@ const MSG: Record<string, string> = {
   vault_give: 'Escolha as repetidas que entram no Cofre.',
   vault_not_spare: 'Uma das escolhidas não é mais repetida. Confira e tente de novo.',
   vault_count: 'A quantidade de repetidas não bate com o que o Cofre pede.',
+  trade_new_account: 'Contas novas podem trocar figurinhas depois de 7 dias.',
+  trade_new_other: 'Essa conta é nova e ainda não pode trocar (libera 7 dias depois de criada).',
+  trade_self: 'Essa é a sua conta.',
+  trade_closed: 'Essa pessoa não está aceitando propostas de troca agora.',
+  trade_size: 'Escolha de 1 a 5 figurinhas de cada lado, sem repetir.',
+  trade_limit: 'Você já tem 5 propostas em aberto. Espere uma resposta ou cancele alguma.',
+  trade_pair_open: 'Já existe uma proposta em aberto entre vocês duas contas.',
+  trade_lendaria: 'Lendárias não entram em trocas.',
+  trade_not_spare: 'Uma das suas escolhidas não é mais repetida.',
+  trade_their_spare: 'Uma das figurinhas pedidas não é mais repetida para essa pessoa.',
+  trade_not_open: 'Essa proposta não está mais em aberto.',
 };
 const MIGRATION = 'Falta rodar a migração 0053 no Supabase.';
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
@@ -64,6 +83,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
+    if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0056 no Supabase.');
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
     if (/violates check constraint/i.test(m)) throw new Error('Algum campo está fora do formato. Confira nome, número e textos.');
@@ -82,7 +102,9 @@ const rid = () => Math.random().toString(36).slice(2, 10);
 const gm = (id: string): GameMini | null => { const g = demoGames.find((x) => x.id === id); return g ? { id: g.id, slug: g.slug, title: g.title, cover: g.cover, backdrop: g.backdrop ?? null } : null; };
 const A = (f: string) => `/demo/album/${f}.webp`;
 type DPack = Pack & { userHandle: string; grantedBy?: string | null; decidedAt?: string | null; signals: PackSignals };
-interface DState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: DPack[]; stats: { opened: number; noRare: number }; counted: string[] }
+interface DPeer { handle: string; friend: boolean; follow: boolean; items: Record<string, number> }
+type DTrade = Omit<Trade, 'from' | 'to' | 'mine'> & { fromH: string; toH: string };
+interface DState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: DPack[]; stats: { opened: number; noRare: number }; counted: string[]; peers?: DPeer[]; trades?: DTrade[]; tradeOpen?: boolean }
 
 function seed(): DState {
   const b = 'demo-b1';
@@ -126,7 +148,8 @@ function dLoad(): DState {
 }
 function dSave(d: DState) { try { localStorage.setItem(DK, JSON.stringify(d)); } catch { /* sem armazenamento */ } }
 const dView = (d: DState): AlbumState => ({ books: d.books.filter((b) => b.published || canStudio()), stickers: d.stickers, items: d.items.filter((i) => i.qty > 0),
-  packs: d.packs.filter((p) => p.userHandle === 'voce' && p.state !== 'desfeito').sort((a, b) => b.createdAt.localeCompare(a.createdAt)), stats: d.stats });
+  packs: d.packs.filter((p) => p.userHandle === 'voce' && p.state !== 'desfeito').sort((a, b) => b.createdAt.localeCompare(a.createdAt)), stats: d.stats,
+  tradesIn: dTrades(d).filter((t) => t.toH === 'voce' && t.state === 'aberta').length });
 const dStudioPack = (p: DPack): StudioPack => ({ ...p, person: { id: `demo-${p.userHandle}`, handle: p.userHandle }, grantedBy: p.grantedBy ? { id: 'demo-adm', handle: p.grantedBy } : null,
   decidedBy: p.decidedAt ? { id: 'demo-adm', handle: 'winnerz' } : null, decidedAt: p.decidedAt ?? null });
 const dCatalog = (d: DState): Catalog => ({ books: d.books, stickers: d.stickers, owned: Object.fromEntries(d.items.filter((i) => i.qty > 0).map((i) => [i.id, 1])) });
@@ -143,7 +166,7 @@ function set(s: AlbumState) { cache = s; cacheErr = ''; emit(); }
 async function fetchState(): Promise<AlbumState> {
   if (!supa()) return dView(dLoad());
   const r = await rpc<AlbumState>('album_state');
-  return { books: r.books ?? [], stickers: r.stickers ?? [], items: r.items ?? [], packs: r.packs ?? [], stats: r.stats ?? { opened: 0, noRare: 0 } };
+  return { books: r.books ?? [], stickers: r.stickers ?? [], items: r.items ?? [], packs: r.packs ?? [], stats: r.stats ?? { opened: 0, noRare: 0 }, tradesIn: r.tradesIn ?? 0 };
 }
 export function reloadAlbum(): Promise<AlbumState> {
   loading = fetchState().then((s) => { set(s); return s; }).catch((e) => { cacheErr = e instanceof Error ? e.message : 'Não consegui abrir o álbum agora.'; emit(); throw e; }).finally(() => { loading = null; });
@@ -343,5 +366,123 @@ export const studioAlbumApi = {
       dSave(d); cache = null; return;
     }
     await rpc('studio_pack_decide', { p_pack: id, p_release: release, p_note: note });
+  },
+};
+
+/* ---- Trocas (etapa A3, migração 0056) -------------------------------------------------------------------- */
+const DAY = 86400_000;
+function dPeers(d: DState): DPeer[] {
+  if (!d.peers) d.peers = [
+    { handle: 'lia', friend: true, follow: true, items: { 'demo-s6': 2, 'demo-s8': 3, 'demo-s10': 2, 'demo-s3': 1, 'demo-s13': 2 } },
+    { handle: 'caio', friend: false, follow: true, items: { 'demo-s12': 2, 'demo-s6': 2, 'demo-s1': 2 } },
+    { handle: 'bia', friend: false, follow: false, items: { 'demo-s8': 2, 'demo-s4': 1, 'demo-s12': 3 } },
+  ];
+  return d.peers;
+}
+function dTrades(d: DState): DTrade[] {
+  if (!d.trades) {
+    const at = new Date(Date.now() - 2 * 3600_000).toISOString();
+    d.trades = [{ id: 'demo-t1', fromH: 'caio', toH: 'voce', give: ['demo-s12'], take: ['demo-s9'], message: 'Tenho a Arco de luz sobrando, topa?', state: 'aberta', createdAt: at, decidedAt: null, expiresAt: new Date(Date.parse(at) + 7 * DAY).toISOString() }];
+  }
+  for (const t of d.trades) if (t.state === 'aberta' && Date.parse(t.expiresAt) < Date.now()) { t.state = 'expirada'; t.decidedAt = t.expiresAt; }
+  return d.trades;
+}
+const dPerson = (h: string): PersonRef => ({ id: `demo-${h}`, handle: h === 'voce' ? (getState().profile?.name ?? 'voce') : h });
+const dTradeView = (t: DTrade): Trade => ({ ...t, from: dPerson(t.fromH), to: dPerson(t.toH), mine: t.fromH === 'voce' });
+const dTradeable = (d: DState) => new Set(d.stickers.filter((s) => s.active && s.tier !== 'lendaria' && d.books.some((b) => b.published && b.pages.some((pg) => pg.id === s.pageId))).map((s) => s.id));
+const dMyQty = (d: DState, id: string) => d.items.find((i) => i.id === id)?.qty ?? 0;
+function dMatch(d: DState, p: DPeer) {
+  const ok = dTradeable(d);
+  const give = [...ok].filter((id) => dMyQty(d, id) >= 2 && !(p.items[id] > 0));
+  const take = [...ok].filter((id) => (p.items[id] ?? 0) >= 2 && dMyQty(d, id) === 0);
+  const pending = dTrades(d).some((t) => t.state === 'aberta' && ((t.fromH === 'voce' && t.toH === p.handle) || (t.fromH === p.handle && t.toH === 'voce')));
+  return { give, take, pending };
+}
+function dMove(d: DState, from: 'voce' | DPeer, to: 'voce' | DPeer, id: string) {
+  if (from === 'voce') { const it = d.items.find((i) => i.id === id); if (it) it.qty -= 1; } else from.items[id] = (from.items[id] ?? 0) - 1;
+  if (to === 'voce') { const it = d.items.find((i) => i.id === id); if (it) it.qty += 1; else d.items.push({ id, qty: 1, pasted: false }); } else to.items[id] = (to.items[id] ?? 0) + 1;
+}
+
+export const tradeApi = {
+  async board(): Promise<TradeBoard> {
+    if (!supa()) {
+      const d = dLoad(); const ts = dTrades(d); dPeers(d); dSave(d);
+      const v = ts.map(dTradeView);
+      return { open: d.tradeOpen ?? true, newUntil: null, received: v.filter((t) => !t.mine && t.state === 'aberta'), sent: v.filter((t) => t.mine && t.state === 'aberta'),
+        history: v.filter((t) => t.state !== 'aberta').sort((a, b) => (b.decidedAt ?? b.createdAt).localeCompare(a.decidedAt ?? a.createdAt)) };
+    }
+    const r = await rpc<TradeBoard>('album_trade_state');
+    return { open: r.open ?? true, newUntil: r.newUntil ?? null, received: r.received ?? [], sent: r.sent ?? [], history: r.history ?? [] };
+  },
+  async setOpen(open: boolean): Promise<boolean> {
+    if (!supa()) { const d = dLoad(); d.tradeOpen = open; dSave(d); return open; }
+    return rpc<boolean>('album_trade_prefs_set', { p_open: open });
+  },
+  async matches(): Promise<TradeMatch[]> {
+    if (!supa()) {
+      const d = dLoad();
+      return dPeers(d).map((p) => ({ person: dPerson(p.handle), friend: p.friend, follow: p.follow, ...dMatch(d, p) }))
+        .filter((m) => m.give.length && m.take.length).sort((a, b) => Number(b.friend) - Number(a.friend) || Number(b.follow) - Number(a.follow));
+    }
+    return (await rpc<TradeMatch[]>('album_trade_matches')) ?? [];
+  },
+  async peer(handle: string): Promise<TradePeer> {
+    const h = handle.trim().replace(/^@/, '').toLowerCase();
+    if (!supa()) {
+      const d = dLoad(); const p = dPeers(d).find((x) => x.handle === h);
+      if (h === 'voce' || h === (getState().profile?.name ?? '').toLowerCase()) return { person: dPerson('voce'), why: 'trade_self', take: [], theyMiss: [], pending: false };
+      if (!p) throw new Error(`${MSG.target_not_found} Na demonstração, experimente @lia, @caio ou @bia.`);
+      const m = dMatch(d, p);
+      return { person: dPerson(p.handle), why: null, take: m.take, theyMiss: m.give, pending: m.pending };
+    }
+    return rpc<TradePeer>('album_trade_peer', { p_handle: h });
+  },
+  async propose(handle: string, give: string[], take: string[], message: string): Promise<Trade> {
+    const h = handle.trim().replace(/^@/, '').toLowerCase();
+    if (!supa()) {
+      const d = dLoad(); const p = dPeers(d).find((x) => x.handle === h); const ts = dTrades(d); const ok = dTradeable(d);
+      if (!p) throw new Error(MSG.target_not_found);
+      if (give.length < 1 || give.length > 5 || take.length < 1 || take.length > 5 || new Set(give).size !== give.length || new Set(take).size !== take.length) throw new Error(MSG.trade_size);
+      if (ts.filter((t) => t.fromH === 'voce' && t.state === 'aberta').length >= 5) throw new Error(MSG.trade_limit);
+      if (dMatch(d, p).pending) throw new Error(MSG.trade_pair_open);
+      if ([...give, ...take].some((id) => !ok.has(id))) throw new Error(MSG.trade_lendaria);
+      if (give.some((id) => dMyQty(d, id) < 2)) throw new Error(MSG.trade_not_spare);
+      if (take.some((id) => (p.items[id] ?? 0) < 2)) throw new Error(MSG.trade_their_spare);
+      const at = new Date().toISOString();
+      const t: DTrade = { id: `demo-t${rid()}`, fromH: 'voce', toH: p.handle, give, take, message: message.trim().slice(0, 200) || null, state: 'aberta', createdAt: at, decidedAt: null, expiresAt: new Date(Date.now() + 7 * DAY).toISOString() };
+      ts.push(t); dSave(d); return dTradeView(t);
+    }
+    return rpc<Trade>('album_trade_propose', { p_handle: h, p_give: give, p_take: take, p_message: message });
+  },
+  /** Aceitar ou recusar uma proposta recebida. Aceita: as novas vão para a bandeja. */
+  async answer(id: string, accept: boolean): Promise<Trade> {
+    if (!supa()) {
+      const d = dLoad(); const t = dTrades(d).find((x) => x.id === id);
+      if (!t || t.toH !== 'voce') throw new Error(MSG.not_found);
+      if (t.state !== 'aberta') throw new Error(MSG.trade_not_open);
+      const p = dPeers(d).find((x) => x.handle === t.fromH)!;
+      t.decidedAt = new Date().toISOString();
+      if (!accept) t.state = 'recusada';
+      else if (t.give.some((g) => (p.items[g] ?? 0) < 2) || t.take.some((g) => dMyQty(d, g) < 2)) t.state = 'falhou';
+      else { t.give.forEach((g) => dMove(d, p, 'voce', g)); t.take.forEach((g) => dMove(d, 'voce', p, g)); t.state = 'aceita'; }
+      dSave(d); set(dView(d)); return dTradeView(t);
+    }
+    const t = await rpc<Trade>('album_trade_answer', { p_trade: id, p_accept: accept });
+    await reloadAlbum().catch(() => {});
+    return t;
+  },
+  async cancel(id: string): Promise<Trade> {
+    if (!supa()) {
+      const d = dLoad(); const t = dTrades(d).find((x) => x.id === id);
+      if (!t || t.fromH !== 'voce') throw new Error(MSG.not_found);
+      if (t.state !== 'aberta') throw new Error(MSG.trade_not_open);
+      t.state = 'cancelada'; t.decidedAt = new Date().toISOString(); dSave(d); return dTradeView(t);
+    }
+    return rpc<Trade>('album_trade_cancel', { p_trade: id });
+  },
+  /** Studio: todas as trocas (só consulta). */
+  async studio(): Promise<Trade[]> {
+    if (!supa()) { const d = dLoad(); return dTrades(d).map((t) => ({ ...dTradeView(t), mine: false })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+    return (await rpc<Trade[]>('studio_album_trades')) ?? [];
   },
 };

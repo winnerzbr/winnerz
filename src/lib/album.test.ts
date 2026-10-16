@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { drawPack, judgeFinish, memoryPackDue, neededHours, pastedCount, signalsLine, spares, tierFor, toPaste, personalStickers, vaultCheck, vaultSuggest, type Tier } from './album';
+import { drawPack, judgeFinish, memoryPackDue, neededHours, pastedCount, signalsLine, spares, tierFor, toPaste, personalStickers, tradeBalance, tradeableTier, tradeSuggest, vaultCheck, vaultSuggest, type Tier } from './album';
 
 test('tierFor segue as chances 1/7/22/70', () => {
   assert.equal(tierFor(0), 'lendaria');
@@ -114,4 +114,18 @@ test('Minhas páginas: uma por história zerada, com a última foto', () => {
   assert.deepEqual(r.map((p) => [p.title, p.image]), [['Brisa', 'c2.jpg'], ['Astro', 'new.jpg']]);
   const r2 = personalStickers(histories, journeys, games, [], (iso) => iso ?? '');
   assert.equal(r2[1].image, 'b1.jpg');
+});
+
+test('Trocas: sugestão equilibrada e peso dos lados', () => {
+  const s = (id: string, tier: Tier, number: number) => ({ id, tier, number });
+  const give = [s('a', 'comum', 1), s('b', 'incomum', 2), s('c', 'comum', 3), s('d', 'rara', 4)];
+  const take = [s('x', 'comum', 5), s('y', 'rara', 6)];
+  const r = tradeSuggest(give, take);
+  assert.deepEqual(r.take.map((t) => t.id), ['y', 'x']);
+  assert.deepEqual(r.give.map((t) => t.id), ['d', 'a']);
+  assert.equal(tradeBalance(r.give, r.take), 'igual');
+  assert.equal(tradeBalance([s('a', 'comum', 1)], [s('y', 'rara', 6)]), 'voce_recebe_mais');
+  const many = Array.from({ length: 8 }, (_, i) => s(`g${i}`, 'comum', i));
+  assert.equal(tradeSuggest(many, many).give.length, 5);
+  assert.equal(tradeableTier('lendaria'), false);
 });

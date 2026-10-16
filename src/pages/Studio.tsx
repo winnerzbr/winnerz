@@ -68,7 +68,7 @@ export function StudioPage() {
         <Link to="/studio/correcoes" className="studio__card"><b>Correções</b><span className="muted">{queue == null ? 'Fila do "Algo errado nesta ficha?" e qualidade dos dados.' : queue ? `${queue} ${queue === 1 ? 'sugestão esperando' : 'sugestões esperando'} revisão.` : 'Fila vazia. Painel de qualidade dos dados.'}</span></Link>
         <Link to="/studio/moderacao" className="studio__card"><b>Moderação</b><span className="muted">{reports == null ? 'Denúncias, avisos e o histórico do que foi feito.' : reports ? `${reports} ${reports === 1 ? 'denúncia esperando' : 'denúncias esperando'} revisão.` : 'Nenhuma denúncia esperando.'}</span></Link>
         <Link to="/studio/comunidades" className="studio__card"><b>Comunidades</b><span className="muted">Renomear e juntar comunidades repetidas.</span></Link>
-        <Link to="/studio/album" className="studio__card"><b>Álbum</b><span className="muted">Catálogo de figurinhas, dar pacotes, retidos e revisões.</span></Link>
+        <Link to="/studio/album" className="studio__card"><b>Álbum</b><span className="muted">Catálogo de figurinhas, dar pacotes, retidos, revisões e trocas.</span></Link>
         <Link to="/eventos/awards/admin" className="studio__card"><b>WinnerZ Awards</b><span className="muted">Montar edições, categorias e indicados.</span></Link>
       </nav>
 

@@ -2,8 +2,8 @@
    O azul aceso (--iam) é só dele. Fresta: cantos retos, traço inclinado, nada de cartão arredondado. */
 
 /* Mascote de interface: pose + balão com a fala */
-.iam-vazio { display: grid; grid-template-columns: 116px minmax(0, 1fr); align-items: end; gap: 14px; margin-top: 18px; max-width: 520px; text-align: left; }
-.iam-vazio__pose { width: 116px; height: auto; display: block; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35)); }
+.iam-vazio { display: grid; grid-template-columns: 132px minmax(0, 1fr); align-items: end; gap: 14px; margin-top: 18px; max-width: 520px; text-align: left; }
+.iam-vazio__pose { width: 132px; height: auto; display: block; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35)); }
 .iam-vazio--centro { margin-inline: auto; }
 .iam-fala { position: relative; margin: 0 0 22px; padding: 12px 16px; background: var(--surface-2, var(--field)); border-left: 3px solid var(--iam); font-size: 14px; line-height: 1.5; color: var(--ink-2, var(--ink)); }
 .iam-fala::before { content: ''; position: absolute; left: -11px; bottom: 14px; width: 10px; height: 14px; background: var(--iam); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
@@ -48,10 +48,11 @@ html[data-motion='reduzidas'] .iam-cameo, html[data-motion='reduzidas'] .iam-cam
 .iam-perfil__nums dt { font: 500 11px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .iam-perfil__nums dd { margin: 0; font: 700 18px var(--font-ui); }
 .iam-perfil__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
-.iam-perfil__cols section, .iam-perfil > section { display: flex; flex-direction: column; gap: 14px; }
+.iam-perfil__cols section, .iam-perfil > section:not(.iam-perfil__hero) { display: flex; flex-direction: column; gap: 14px; }
 .iam-perfil__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .iam-perfil__lista li { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--line); }
 .iam-perfil__momentos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .iam-perfil__momentos li { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; background: var(--surface); padding: 16px 12px; }
 .iam-perfil__momentos img { width: 100%; max-width: 150px; height: auto; }
 @media (max-width: 860px) { .iam-perfil__hero, .iam-perfil__cols { grid-template-columns: 1fr; } .iam-perfil__foto { max-width: 360px; } .iam-perfil__momentos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tl-empty .hero__actions { flex-wrap: wrap; }

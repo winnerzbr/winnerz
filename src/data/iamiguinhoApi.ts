@@ -13,8 +13,10 @@ export type Aparicao = { id: string; postId: string; title: string; place: strin
 const client = async () => (await import('./supabaseAdapter')).getClient();
 const supa = () => getState().mode === 'supabase';
 
-/** A pessoa chamou o mascote neste texto? */
-export const chamouIamiguinho = (texto: string) => mentionsOf(texto).some((h) => h.toLowerCase() === 'iamiguinho');
+/** O texto sem as citações ("> ..."): citar quem chamou o mascote não é chamar de novo. */
+export const semCitacao = (texto: string) => texto.split('\n').filter((l) => !/^\s*>/.test(l)).join('\n');
+/** A pessoa chamou o mascote neste texto (fora das citações)? */
+export const chamouIamiguinho = (texto: string) => mentionsOf(semCitacao(texto)).some((h) => h.toLowerCase() === 'iamiguinho');
 
 /* ---- Demonstração: guardado só neste navegador ---- */
 const KEY = 'wz.iamiguinho.respostas';
@@ -39,7 +41,7 @@ export const iamiguinhoApi = {
     if (!supa()) {
       const l = lerDemo();
       if (l.some((x) => x.origem === origem && x.origemId === id)) return null;
-      const r: Demo = { id: `iam-${Date.now()}`, origem, origemId: id, body: respostaDaBiblioteca(texto), createdAt: new Date().toISOString(), canRemove: true, ...onde };
+      const r: Demo = { id: `iam-${Date.now()}`, origem, origemId: id, body: respostaDaBiblioteca(semCitacao(texto)), createdAt: new Date().toISOString(), canRemove: true, ...onde };
       gravarDemo([...l, r]);
       return r;
     }

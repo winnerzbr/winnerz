@@ -79,3 +79,14 @@ test('IAmiguinho @menção: número aleatório e assuntos em que ele não entra'
   assert.equal(assuntoProibido('IAmiguinho, qual a sua arma favorita no Splatoon?'), false);
   assert.ok(FALAS.jogatina.length >= 5 && FALAS.pacote.length >= 5);
 });
+
+test('IAmiguinho @menção: piada passa no modo leve, sem abrir mão de número, nome e palavrão', () => {
+  const op = { max: 280, min: 2, emojis: 1, contexto: 'IAmiguinho conta uma piada', leve: true };
+  assert.equal(checarFala('Na hora H eu sempre travo. Sabe por que eu jogo sozinho? Porque até o tutorial me deu kick kkkk', {}, [], op).ok, true);
+  assert.equal(checarFala('Por que o robô foi ao médico? Estava com três vírus e só um antivírus de teste 😅', {}, [], op).ok, true);
+  assert.equal((checarFala('Eu zerei 30 tutoriais hoje kkkk', {}, [], op) as { porque: string }).porque, 'número');
+  assert.equal((checarFala('Pergunta pro Zé, ele que sabe kkkk', {}, [], op) as { porque: string }).porque, 'nome');
+  assert.equal((checarFala('Que merda de piada, né kkkk', {}, [], op) as { porque: string }).porque, 'palavrão');
+  // Fora do modo leve (cameos), "na hora" e "sozinho" continuam barrados.
+  assert.equal(checarFala('Zerou Hades sozinho! Eu ainda estou no tutorial.', { jogo: 'Hades' }).ok, false);
+});

@@ -63,7 +63,14 @@ export function wishIdeas(s: State, mood: MoodId, today = localDay(), seed = 1):
   return mood === 'surpresa' ? shuffle(out, seed) : out;
 }
 
-type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number };
+type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number; critica?: number; criticas?: number; jogadores?: number };
+const mil = (n: number) => n.toLocaleString('pt-BR');
+/** De onde vem a nota: crítica (agregada de veículos de imprensa) e quantas pessoas avaliaram, ambas do IGDB. */
+function notaReason(x: Found): Reason | null {
+  const crit = x.critica != null && (x.criticas ?? 0) > 0 ? `Crítica ${x.critica} em ${mil(x.criticas!)} ${x.criticas === 1 ? 'análise' : 'análises'}` : '';
+  const jog = (x.jogadores ?? 0) > 0 ? `${mil(x.jogadores!)} ${x.jogadores === 1 ? 'avaliação' : 'avaliações'} de jogadores` : '';
+  return crit || jog ? { icon: 'brilho', text: `${[crit, jog].filter(Boolean).join('; ')} no IGDB.` } : null;
+}
 
 /** "Quero descobrir algo", do catálogo do IGDB: bem avaliados no gênero que você mais zera. */
 async function catalogIdeas(s: State, mood: MoodId): Promise<Idea[]> {
@@ -79,13 +86,13 @@ async function catalogIdeas(s: State, mood: MoodId): Promise<Idea[]> {
   const rows: Found[] = await r.json();
   const known = new Set(Object.values(s.games).map((g) => g.igdbId).filter(Boolean));
   const why = [
-    { icon: 'coracao', text: genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados dele.` : 'Entre os mais populares.' },
+    { icon: 'coracao', text: genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados e conhecidos dele.` : 'Entre os mais populares.' },
     coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null,
   ].filter((x): x is Reason => !!x);
   const list = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
     game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
     meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
-    why, cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
+    why: [...why, notaReason(x)].filter((r): r is Reason => !!r), cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
   }));
   return mood === 'surpresa' ? shuffle(list, Math.random()) : list;
 }

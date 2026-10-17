@@ -474,6 +474,28 @@ async function meta() {
 
 const ints = (v: unknown) => String(v ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0).slice(0, 10);
 
+/**
+ * Nota com reconhecimento: para "Mais bem avaliados" não encher de jogo desconhecido com meia dúzia de notas altas.
+ * 1. Cada nota (crítica e jogadores, ambas do IGDB) é puxada para uma média neutra (70) até ter avaliações
+ *    suficientes: 95 com 15 votos vale perto de 75; 90 com milhares continua 90. A crítica pesa um pouco mais.
+ * 2. O tamanho da base de avaliações soma (ou tira) até ~10 pontos: jogo conhecido sobe, obscuro desce.
+ * O Metacritic não tem API pública; a nota da crítica do IGDB é o agregado de veículos de imprensa.
+ */
+export type NotaIgdb = { aggregated_rating?: number; aggregated_rating_count?: number; rating?: number; rating_count?: number };
+export function notaReconhecida(g: NotaIgdb): { nota: number; qualidade: number } {
+  const M = 70, KC = 6, KU = 60;
+  const nc = g.aggregated_rating != null ? g.aggregated_rating_count ?? 0 : 0;
+  const nu = g.rating != null ? g.rating_count ?? 0 : 0;
+  const critica = (nc * (g.aggregated_rating ?? M) + KC * M) / (nc + KC);
+  const jogadores = (nu * (g.rating ?? M) + KU * M) / (nu + KU);
+  const wc = (nc / (nc + KC)) * 1.25, wu = nu / (nu + KU);
+  const qualidade = wc + wu > 0 ? (critica * wc + jogadores * wu) / (wc + wu) : M;
+  const reconhecimento = Math.min(4, Math.log10(1 + nu + 8 * nc));
+  return { nota: qualidade + 5 * (reconhecimento - 2), qualidade };
+}
+/** Para entrar em "Mais bem avaliados": base mínima de avaliações. */
+export const reconhecido = (g: NotaIgdb & { total_rating_count?: number }) => (g.total_rating_count ?? 0) >= 50 || (g.aggregated_rating_count ?? 0) >= 4;
+
 async function explore(q: Record<string, string | string[] | undefined>) {
   const now = Math.floor(Date.now() / 1000);
   const where: string[] = ['cover != null', 'version_parent = null', 'parent_game = null'];
@@ -488,12 +510,22 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   const sort = String(q.sort ?? 'popular');
   let order = 'total_rating_count desc';
   if (sort === 'popular') where.push('total_rating_count > 3');
-  if (sort === 'rating') { where.push('total_rating_count >= 15'); order = 'total_rating desc'; }
+  if (sort === 'rating') where.push('(total_rating_count >= 50 | aggregated_rating_count >= 4)');
   if (sort === 'recent') { where.push(`first_release_date < ${now}`, 'first_release_date != null'); order = 'first_release_date desc'; }
   if (sort === 'upcoming') { where.push(`first_release_date > ${now}`); order = 'first_release_date asc'; }
   const page = Math.max(0, Math.min(20, Number(q.page) || 0));
-  const rows = await igdb('games', `fields name,slug,first_release_date,cover.image_id,platforms.name,total_rating,total_rating_count; where ${where.join(' & ')}; sort ${order}; limit 36; offset ${page * 36};`);
-  return rows.map((g: any) => ({ ...hit(g), rating: g.total_rating ? Math.round(g.total_rating) : undefined, date: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : undefined }));
+  const fields = 'name,slug,first_release_date,cover.image_id,platforms.name,total_rating,total_rating_count,rating,rating_count,aggregated_rating,aggregated_rating_count';
+  const out = (g: any) => ({
+    ...hit(g), rating: g.total_rating ? Math.round(g.total_rating) : undefined, date: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : undefined,
+    critica: g.aggregated_rating != null && g.aggregated_rating_count ? Math.round(g.aggregated_rating) : undefined, criticas: g.aggregated_rating_count ?? 0, jogadores: g.rating_count ?? 0,
+  });
+  if (sort === 'rating') {
+    // Os 500 mais avaliados com os filtros, ordenados pela nota com reconhecimento; a página sai dessa lista.
+    const rows = await igdb('games', `fields ${fields}; where ${where.join(' & ')}; sort total_rating_count desc; limit 500;`);
+    return rows.filter(reconhecido).map((g: any) => ({ g, n: notaReconhecida(g).nota })).sort((a, b) => b.n - a.n).slice(page * 36, page * 36 + 36).map((x) => out(x.g));
+  }
+  const rows = await igdb('games', `fields ${fields}; where ${where.join(' & ')}; sort ${order}; limit 36; offset ${page * 36};`);
+  return rows.map(out);
 }
 
 /* Universo do jogo ---------------------------------------------------------------------- */

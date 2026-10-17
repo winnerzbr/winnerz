@@ -91,7 +91,7 @@ const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/
 const SYSTEM = `Você ajuda uma pessoa a retomar um videogame depois de um tempo longe.
 Ela manda uma foto da tela (às vezes tirada do celular, torta ou com reflexo) e talvez uma nota.
 Leia o que estiver visível: menu de pausa, mapa, objetivo, missão, inventário, nome de área, legenda.
-Responda SOMENTE com um objeto JSON, sem texto antes ou depois, com estas chaves (strings em português do Brasil, curtas, no máximo 140 caracteres cada; use "" quando a tela não mostrar):
+Responda chamando a ferramenta registrar_retomada, com estas chaves (strings em português do Brasil, curtas, no máximo 140 caracteres cada; use "" quando a tela não mostrar):
 {"where": "onde a pessoa está no jogo (área, capítulo, missão)",
  "doing": "o que ela estava fazendo",
  "next": "o próximo passo indicado na tela (objetivo, marcador)",
@@ -100,6 +100,24 @@ Responda SOMENTE com um objeto JSON, sem texto antes ou depois, com estas chaves
  "confidence": "alta" | "media" | "baixa"}
 Nunca invente nomes, lugares ou objetivos que não estejam na imagem ou na nota. Se não der para ler, deixe vazio e use confidence "baixa".
 Não dê dicas de solução nem spoilers além do que está na tela.`;
+
+const CAPSULE_TOOL = {
+  name: 'registrar_retomada', description: 'Devolve o que a foto da tela mostra para a pessoa retomar o jogo.',
+  input_schema: { type: 'object', required: ['where', 'doing', 'next', 'remember', 'seen', 'confidence'], properties: {
+    where: { type: 'string' }, doing: { type: 'string' }, next: { type: 'string' }, remember: { type: 'string' }, seen: { type: 'string' },
+    confidence: { type: 'string', enum: ['alta', 'media', 'baixa'] },
+  } },
+};
+type AiOut = { content?: { type: string; text?: string; input?: unknown }[]; stop_reason?: string };
+/** A resposta da IA como objeto: pela ferramenta (formato garantido) ou, se vier texto, o primeiro {…} que for JSON válido. */
+function aiJson(out: AiOut): Record<string, unknown> | null {
+  const tool = (out.content ?? []).find((x) => x.type === 'tool_use');
+  if (tool?.input && typeof tool.input === 'object') return tool.input as Record<string, unknown>;
+  const text = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('').replace(/```(?:json)?/gi, '');
+  const a = text.indexOf('{'), b = text.lastIndexOf('}');
+  if (a < 0 || b <= a) return null;
+  try { const v = JSON.parse(text.slice(a, b + 1)); return v && typeof v === 'object' ? v as Record<string, unknown> : null; } catch { return null; }
+}
 
 const NARRATE = `Você escreve a narração curta de um capítulo da jornada de uma pessoa com um videogame.
 Use SOMENTE os fatos enviados. Não invente acontecimentos, lugares, personagens, sentimentos, números nem detalhes do jogo.
@@ -764,7 +782,9 @@ export default async function handler(req: Req, res: Res) {
     if (body.kind === 'vibes') return vibes(user, body as Record<string, unknown>, res);
     if (body.kind === 'capitulos') return outline(user, body as Record<string, unknown>, res);
     if (body.kind === 'videos') return videos(user, body as Record<string, unknown>, res);
-    const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
+    const rawImage = String(body.image ?? '');
+    const imageType = /^data:(image\/(?:jpeg|png|webp|gif));base64,/.exec(rawImage)?.[1] ?? 'image/jpeg';
+    const image = rawImage.replace(/^data:image\/[\w+.-]+;base64,/, '');
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 
     const used = await reserve(user);
@@ -782,8 +802,8 @@ export default async function handler(req: Req, res: Res) {
         method: 'POST',
         headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
-          model: MODEL(), max_tokens: 1500, system: SYSTEM,
-          messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text }] }],
+          model: MODEL(), max_tokens: 1500, system: SYSTEM, tools: [CAPSULE_TOOL], tool_choice: { type: 'tool', name: CAPSULE_TOOL.name },
+          messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: imageType, data: image } }, { type: 'text', text }] }],
         }),
       });
     } catch { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
@@ -793,11 +813,13 @@ export default async function handler(req: Req, res: Res) {
       console.error('anthropic', r.status, detail.slice(0, 300));
       return res.status(502).json({ error: aiError(r.status, detail) });
     }
-    const out = (await r.json()) as { content?: { type: string; text?: string }[] };
-    const raw = (out.content ?? []).filter((c) => c.type === 'text').map((c) => c.text).join('');
-    const json = raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1);
-    let parsed: Record<string, unknown> = {};
-    try { parsed = JSON.parse(json); } catch { await refund(user); return res.status(502).json({ error: 'Não consegui entender a resposta da IA. Tente outra foto.' }); }
+    const out = (await r.json()) as AiOut;
+    const parsed = aiJson(out);
+    if (!parsed) {
+      await refund(user);
+      console.error('anthropic cápsula ilegível', `stop=${out.stop_reason ?? '?'} blocos=${(out.content ?? []).map((x) => x.type).join(',') || 'nenhum'}`);
+      return res.status(502).json({ error: 'A IA não conseguiu ler esta foto agora. Tente de novo.' });
+    }
     return res.status(200).json({
       suggestion: { where: clip(parsed.where, 160), doing: clip(parsed.doing, 160), next: clip(parsed.next, 160), remember: clip(parsed.remember, 160) },
       seen: clip(parsed.seen, 200),

@@ -82,6 +82,40 @@ function aiError(status: number, detail: string): string {
 }
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : '');
 
+type AiOut = { content?: { type: string; text?: string; input?: unknown }[]; stop_reason?: string };
+/** A foto como a IA espera: o tipo vem do próprio data URL (o site manda JPEG, mas não depende disso). */
+function photo(raw: unknown): { data: string; type: string } {
+  const s = String(raw ?? '');
+  const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,/.exec(s);
+  return { data: s.replace(/^data:image\/[\w+.-]+;base64,/, ''), type: m?.[1] ?? 'image/jpeg' };
+}
+/** A resposta da IA como objeto: pela ferramenta (formato garantido) ou, se vier texto, o primeiro {…} que for JSON válido. */
+function aiJson(out: AiOut): Record<string, unknown> | null {
+  const tool = (out.content ?? []).find((x) => x.type === 'tool_use');
+  if (tool?.input && typeof tool.input === 'object') return tool.input as Record<string, unknown>;
+  const text = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('').replace(/```(?:json)?/gi, '');
+  const a = text.indexOf('{'), b = text.lastIndexOf('}');
+  if (a < 0 || b <= a) return null;
+  try { const v = JSON.parse(text.slice(a, b + 1)); return v && typeof v === 'object' ? v as Record<string, unknown> : null; } catch { return null; }
+}
+/** Só o formato da falha vai para o log (nada da foto nem da pessoa). */
+const aiShape = (out: AiOut) => `stop=${out.stop_reason ?? '?'} blocos=${(out.content ?? []).map((x) => x.type).join(',') || 'nenhum'}`;
+const CONF = { type: 'string', enum: ['alta', 'media', 'baixa'] };
+const GAMES_TOOL = {
+  name: 'listar_jogos', description: 'Devolve os jogos identificados na foto.',
+  input_schema: { type: 'object', required: ['games', 'seen'], properties: {
+    games: { type: 'array', maxItems: 24, items: { type: 'object', required: ['title', 'confidence'], properties: { title: { type: 'string' }, platform: { type: 'string' }, barcode: { type: 'string' }, confidence: CONF } } },
+    seen: { type: 'string' },
+  } },
+};
+const PART_TOOL = {
+  name: 'marcar_ponto', description: 'Devolve os itens da lista (pelo número) que batem com a foto, do mais provável para o menos.',
+  input_schema: { type: 'object', required: ['picks', 'seen'], properties: {
+    picks: { type: 'array', maxItems: 3, items: { type: 'object', required: ['n', 'confidence'], properties: { n: { type: 'integer', minimum: 1 }, confidence: CONF } } },
+    seen: { type: 'string' },
+  } },
+};
+
 /** Dígito verificador (EAN-8, UPC-A, EAN-13, GTIN-14) e formato único: UPC-A vira EAN-13. */
 function normalizeCode(raw: unknown): string | null {
   let c = String(raw ?? '').replace(/\D/g, '');
@@ -145,7 +179,7 @@ async function productFor(code: string): Promise<{ title: string; brand?: string
 const SYSTEM = `Você ajuda uma pessoa a cadastrar a coleção de videogames dela.
 Ela manda uma foto (do celular) com uma ou mais caixas, capas, cartuchos ou discos de jogos.
 Identifique cada JOGO visível. Use o que estiver escrito: título na capa ou na lombada, logotipo, faixa da plataforma, selo.
-Responda SOMENTE com um objeto JSON, sem texto antes ou depois:
+Responda chamando a ferramenta listar_jogos, com:
 {"games": [{"title": "nome do jogo como no catálogo internacional (em inglês quando for o nome oficial)",
             "platform": "plataforma, se der para ver (ex.: PlayStation 4, Nintendo Switch, Xbox One); senão \\"\\"",
             "barcode": "os dígitos do código de barras, só se estiverem legíveis na foto; senão \\"\\"",
@@ -159,9 +193,10 @@ Nunca invente um jogo que não dá para ler ou reconhecer: se não der, deixe de
 const PART_SYSTEM = `Você ajuda uma pessoa a marcar em que ponto de um videogame ela está.
 Ela manda uma foto (da tela da TV, do monitor ou um print) e você recebe a lista numerada do jogo (capítulos, missões, áreas, chefes ou etapas, na ordem).
 Use o que estiver na imagem: nome do capítulo ou da missão na tela, menu de pausa, mapa, objetivo, nome da área, chefe na tela, cenário, personagens, e o que você sabe do jogo.
-Escolha SÓ entre os itens da lista. Responda SOMENTE com um objeto JSON, sem texto antes ou depois:
+Escolha SÓ entre os itens da lista, pelo número. Responda chamando a ferramenta marcar_ponto, com:
 {"picks": [{"n": número do item, "confidence": "alta" | "media" | "baixa"}], "seen": "uma frase curta, em português do Brasil, sobre o que você viu (sem revelar nada da história que ainda não aparece na foto)"}
-"picks" tem de 0 a 3 itens, do mais provável para o menos. Se a foto não mostrar o jogo ou não der para saber, devolva "picks": [].`;
+"picks" tem de 0 a 3 itens, do mais provável para o menos. Se a foto não mostrar o jogo ou não der para saber, devolva "picks": [].
+Um chefe, uma região ou um cenário reconhecível conta: se você reconhece o chefe ou o lugar da foto e ele está na lista, escolha esse item.`;
 
 type OutlineRow = { parts: { id: string; name: string; pct: number; group?: string; kind?: string }[]; structure?: string };
 
@@ -169,7 +204,7 @@ async function partFromPhoto(user: string, body: Record<string, unknown>, res: R
   const c = db()!;
   if (!ai) return res.status(503).json({ error: 'A leitura por foto ainda não foi ligada (falta a chave da IA no servidor).' });
   const gameId = clip(body.game, 80);
-  const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
+  const { data: image, type: imageType } = photo(body.image);
   if (!gameId) return res.status(400).json({ error: 'Faltou o jogo.' });
   if (!image || image.length > 3_000_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
   const [orow, grow] = await Promise.all([
@@ -191,9 +226,9 @@ async function partFromPhoto(user: string, body: Record<string, unknown>, res: R
       method: 'POST',
       headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: MODEL(), max_tokens: 400, system: PART_SYSTEM,
+        model: MODEL(), max_tokens: 1024, system: PART_SYSTEM, tools: [PART_TOOL], tool_choice: { type: 'tool', name: PART_TOOL.name },
         messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } },
+          { type: 'image', source: { type: 'base64', media_type: imageType, data: image } },
           { type: 'text', text: `Jogo: ${game.title}${game.year ? ` (${game.year})` : ''}.\nLista (${outline?.structure ?? 'capitulos'}):\n${list}${hint ? `\nA pessoa escreveu: "${hint}"` : ''}\nEm qual item da lista esta foto está?` },
         ] }],
       }),
@@ -206,10 +241,9 @@ async function partFromPhoto(user: string, body: Record<string, unknown>, res: R
     console.error('anthropic parte', r.status, detail.slice(0, 300));
     return res.status(502).json({ error: aiError(r.status, detail) });
   }
-  const out = (await r.json()) as { content?: { type: string; text?: string }[] };
-  const text = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text).join('');
-  let parsed: { picks?: unknown; seen?: unknown } = {};
-  try { parsed = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch { await refund(user); return res.status(502).json({ error: 'Não consegui entender a resposta da IA. Tente outra foto.' }); }
+  const out = (await r.json()) as AiOut;
+  const parsed = aiJson(out) as { picks?: unknown; seen?: unknown } | null;
+  if (!parsed) { await refund(user); console.error('anthropic parte ilegível', aiShape(out)); return res.status(502).json({ error: 'A IA não conseguiu ler esta foto agora. Tente de novo ou escolha na lista.' }); }
   const seen = new Set<string>();
   const picks = (Array.isArray(parsed.picks) ? parsed.picks : []).slice(0, 3).map((x: Record<string, unknown>) => {
     const p = parts[Math.round(Number(x?.n)) - 1];
@@ -255,7 +289,7 @@ export default async function handler(req: Req, res: Res) {
     if (body.kind === 'parte') return await partFromPhoto(user, body, res, ai);
     if (body.kind !== 'foto') return res.status(400).json({ error: 'Pedido desconhecido.' });
     if (!ai) return res.status(503).json({ error: 'O reconhecimento por foto ainda não foi ligado (falta a chave da IA no servidor).' });
-    const image = String(body.image ?? '').replace(/^data:image\/\w+;base64,/, '');
+    const { data: image, type: imageType } = photo(body.image);
     if (!image || image.length > 3_000_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 
     const used = await reserve(user);
@@ -267,8 +301,8 @@ export default async function handler(req: Req, res: Res) {
         method: 'POST',
         headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
-          model: MODEL(), max_tokens: 1500, system: SYSTEM,
-          messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: image } }, { type: 'text', text: 'Quais jogos aparecem nesta foto?' }] }],
+          model: MODEL(), max_tokens: 2000, system: SYSTEM, tools: [GAMES_TOOL], tool_choice: { type: 'tool', name: GAMES_TOOL.name },
+          messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: imageType, data: image } }, { type: 'text', text: 'Quais jogos aparecem nesta foto?' }] }],
         }),
       });
     } catch { await refund(user); return res.status(502).json({ error: 'A IA não respondeu agora. Tente de novo.' }); }
@@ -278,10 +312,9 @@ export default async function handler(req: Req, res: Res) {
       console.error('anthropic', r.status, detail.slice(0, 300));
       return res.status(502).json({ error: aiError(r.status, detail) });
     }
-    const out = (await r.json()) as { content?: { type: string; text?: string }[] };
-    const text = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text).join('');
-    let parsed: { games?: unknown; seen?: unknown } = {};
-    try { parsed = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch { await refund(user); return res.status(502).json({ error: 'Não consegui entender a resposta da IA. Tente outra foto.' }); }
+    const out = (await r.json()) as AiOut;
+    const parsed = aiJson(out) as { games?: unknown; seen?: unknown } | null;
+    if (!parsed) { await refund(user); console.error('anthropic foto ilegível', aiShape(out)); return res.status(502).json({ error: 'A IA não conseguiu ler esta foto agora. Tente de novo.' }); }
     const seenTitles = new Set<string>();
     const games = (Array.isArray(parsed.games) ? parsed.games : []).slice(0, 24).map((g: Record<string, unknown>) => ({
       title: clip(g?.title, 160),

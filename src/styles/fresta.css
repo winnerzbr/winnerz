@@ -554,3 +554,7 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
   .alb-tabs__n { min-width: 0; width: 5px; height: 12px; padding: 0; margin-top: 0; align-self: center; font-size: 0; clip-path: none; transform: skewX(-22deg); box-shadow: 0 0 8px rgba(255, 178, 91, 0.55); }
 }
 @media (max-width: 374px) { .alb-tabs.subnav .alb-tabs__a { font-size: 12px; } }
+
+/* Botões só com ícone (a foto na busca da sessão): o padding padrão da peça espremia o ícone até sumir */
+.btn.pp__cam { width: 56px; padding: 0 0 0 4px; justify-content: center; }
+.btn.pp__cam svg, .btn > svg { flex: none; }

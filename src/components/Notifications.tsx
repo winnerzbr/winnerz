@@ -98,7 +98,7 @@ export function NotifItem({ n, onOpen, compact = false, onToggle }: { n: Notif; 
         </span>
         {!n.read && <span className="notif__dot" aria-label="Não lido" />}
       </button>
-      {onToggle && <button type="button" className="notif__toggle cm-link" onClick={onToggle} title={n.read ? 'Marcar como não lido' : 'Marcar como lido'}>{n.read ? 'Não lido' : 'Lido'}</button>}
+      {onToggle && <button type="button" className="notif__toggle cm-link" onClick={onToggle} title={n.read ? 'Marcar como não lido' : 'Marcar como lido'}>{n.read ? 'Marcar não lido' : 'Marcar lido'}</button>}
     </li>
   );
 }

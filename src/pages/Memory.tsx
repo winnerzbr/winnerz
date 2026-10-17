@@ -171,11 +171,11 @@ function Bars({ values, labels, label, top }: { values: number[]; labels: string
   const max = Math.max(1, ...values);
   const hi = values.indexOf(Math.max(...values));
   return (
-    <div className="rbars" role="img" aria-label={label}>
+    <div className={`rbars${values.length > 8 ? ' rbars--many' : ''}`} role="img" aria-label={label}>
       {values.map((n, i) => (
         <div key={i} className={`rbars__col${n === 0 ? ' is-empty' : ''}${top !== false && n > 0 && i === hi ? ' is-top' : ''}`}>
           <i style={{ height: n ? `${(n / max) * 100}%` : undefined }} title={plural(n, 'sessão', 'sessões')} />
-          <span className="mono">{labels[i]}</span>
+          <span className="mono" data-short={labels[i].split(' ')[0].slice(0, 1)}>{labels[i]}</span>
         </div>
       ))}
     </div>

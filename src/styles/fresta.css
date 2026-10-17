@@ -685,3 +685,108 @@ a.back:hover { color: var(--ink); text-decoration: none; }
 .range.lg::-webkit-slider-thumb { width: 14px; height: 28px; margin-top: -12.5px; box-shadow: none; }
 .range.lg::-moz-range-thumb { width: 14px; height: 28px; }
 .club2-next__t { font-style: normal !important; color: var(--ink) !important; font-family: var(--font-title); font-weight: 800; font-stretch: 125%; text-transform: uppercase; letter-spacing: -0.01em; }
+
+/* ==== R4 · Celular ============================================================================ */
+
+/* Escrever: o rótulo "Onde" fica em cima do campo, que nunca passa da largura */
+.cm-editor__place { display: grid; gap: 6px; justify-items: start; }
+.cm-editor__place .field { width: min(100%, 420px); min-width: 0; }
+/* Sessão: capa e nome empilhados, sem a fileira de baixo cobrir o nome */
+.session__pick button { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.session__pick img { margin: 0; }
+/* Estante: títulos alinhados pelo topo */
+.ctile { align-content: start; }
+/* Mensagens: as suas à direita (o grupo do dia também é uma coluna) */
+.dm__msgs > div:not([class]) { display: flex; flex-direction: column; gap: 6px; }
+
+@media (max-width: 640px) {
+  /* Abas e ações que rolam de lado (mesmo desenho das abas da R2) */
+  .jline__tools, .cm-reply__acts, .agenda__acts {
+    display: flex; flex-wrap: nowrap !important; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; margin-right: -16px; padding-right: 16px; align-items: center;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+  }
+  :is(.jline__tools, .cm-reply__acts, .agenda__acts)[data-end='1'] { -webkit-mask-image: none; mask-image: none; }
+  :is(.jline__tools, .cm-reply__acts, .agenda__acts)::-webkit-scrollbar { display: none; }
+  :is(.jline__tools, .cm-reply__acts, .agenda__acts) > * { flex: none !important; white-space: nowrap; }
+  .agenda__admin { flex-wrap: wrap; gap: 4px 12px; }
+
+  /* Awards: o contador em cima e as categorias embaixo, sem a página rolar de lado */
+  .awbar__row { flex-wrap: wrap; gap: 6px 14px; }
+  .awbar__count { flex: 1 1 100%; min-width: 0; overflow: hidden; }
+  .awbar__cats { flex: 1 1 100%; }
+
+  /* Jornada de um jogo: "Continuar" inteiro; "Jogando agora" na linha de baixo */
+  .jhero__actions .btn.focus-toggle { flex: 1 1 100%; order: 3; }
+  .jhero__actions .btn.primary, .jhero__actions .btn.now { min-width: 0; }
+  /* A régua de capítulos da faixa ganha fundo e não fica por cima do texto */
+  .fx-top { left: 0; right: 0; top: 0; padding: 12px 14px 0; background: #07080A; }
+  .fx-pchips { padding-bottom: 30px; background: linear-gradient(180deg, #07080A 82%, rgba(7, 8, 10, 0)); }
+  /* Pontos para voltar: o botão embaixo do texto */
+  .jcap__wps li { flex-wrap: wrap; }
+  .jcap__wps li > div { flex: 1 1 calc(100% - 100px); }
+  .jcap__wps li > .btn { margin-left: auto; }
+
+  /* Meu ritmo: com muitas barras, só a inicial do mês */
+  .rbars--many { gap: 4px; }
+  .rbars--many .rbars__col span { font-size: 0; }
+  .rbars--many .rbars__col span::after { content: attr(data-short); font-size: 11px; }
+
+  /* Mensagens: sem a dica de teclado; campo com espaço */
+  .dm__hint { display: none; }
+  .dm__compose-row { gap: 6px; }
+  .dm__b { max-width: 86%; }
+
+  /* Praça: a capa do post fica no canto; título, ações e números usam a largura toda */
+  .cm-card { position: relative; }
+  .cm-card__thumb { position: absolute; top: 16px; right: 16px; width: 76px; height: 57px; }
+  .cm-card:has(.cm-card__thumb) :is(.cm-card__top, .cm-card__t, .cm-card__ex) { padding-right: 88px; }
+  .cm-card__meta .cm-save span { display: none; }
+
+  /* Avisos: "Marcar lido" embaixo do texto, sem apertar a linha */
+  .notif { flex-wrap: wrap; }
+  .notif__toggle { flex-basis: 100%; padding-left: 52px; text-align: left; }
+
+  /* Estatísticas: os quatro números numa grade 2 × 2 */
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpi { padding: 14px; }
+  .kpi__n { font-size: 36px; }
+
+  /* Linha do tempo: miniatura à esquerda; data e tipo em cima do título */
+  .gev { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "th d k" "th b b"; gap: 4px 12px; align-items: start; }
+  .gev__d { grid-area: d; width: auto; }
+  .gev__k { grid-area: k; padding: 0; }
+  :is(.gev__th, .gev__cover, .gev__none) { grid-area: th; }
+  .gev__th { width: 76px; height: 56px; }
+  .gev__b { grid-area: b; }
+
+  /* Desejos: as três ações numa linha */
+  .wish-card__actions { flex-wrap: nowrap; }
+  .wish-card__actions .btn { flex: 1 1 auto; min-width: 0; padding-inline: 10px; }
+
+  /* Regras: o número na linha do título */
+  .rules__item { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+
+  /* Seu ano: o cartão cabe na tela */
+  .yrv__stage { min-height: 0; max-height: 68svh; }
+
+  /* Álbum: "Nova para colar" antes do livro */
+  .alb-reader__body { display: flex; flex-direction: column; }
+  .alb-reader .alb-tray { order: -1; margin: 0 0 16px; }
+}
+
+/* Toque: o "•••" e os ícones embaixo das capas com área de 40px ou mais */
+@media (pointer: coarse) {
+  .more > button:not(.btn) { min-width: 44px; min-height: 44px; }
+  .quick__btn { height: 44px; }
+}
+
+/* Barra de baixo: fundo opaco, itens iguais com ícone, a aba ativa com um traço */
+@media (max-width: 860px) {
+  .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .tabbar__item { gap: 4px; font-size: 11px; color: var(--muted); min-width: 0; overflow: hidden; }
+  .tabbar__item svg { display: block; width: 20px; height: 20px; color: var(--muted); filter: none; }
+  .tabbar__item[aria-current='page'] { color: var(--ink); }
+  .tabbar__item[aria-current='page'] svg { color: var(--ink); filter: none; }
+  .tabbar__item[aria-current='page']::before { left: 50%; right: auto; width: 22px; margin-left: -11px; top: 0; height: 3px; background: var(--now); box-shadow: none; transform: skewX(-22deg); }
+}
+.awbar__cats { position: relative; contain: paint; }

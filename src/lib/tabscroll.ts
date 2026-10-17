@@ -3,7 +3,7 @@
  * ao fim, o esmaecido da borda some (data-end). Vale para todas as faixas listadas em ROWS (o mesmo conjunto do CSS).
  */
 const ROWS = ['.subnav', '.studio__tabs', '.import-tabs', '.prefs__nav', '.praca__chips', '.club-filter', '.avisos__chips', '.search__tabs', '.explore__sort',
-  '.awbar__cats', '.club2-tabs__in', '.cm2-sort__chips', '.jline__filters', '.gtl__filter', '.dm__tabs', '.pd-tabs__row', '.cm-index__bar > .seg'].join(', ');
+  '.awbar__cats', '.club2-tabs__in', '.cm2-sort__chips', '.jline__filters', '.gtl__filter', '.dm__tabs', '.pd-tabs__row', '.cm-index__bar > .seg', '.jline__tools', '.cm-reply__acts', '.agenda__acts'].join(', ');
 const ACTIVE = "[aria-current='page'], [aria-current='true'], [aria-selected='true'], [aria-pressed='true'], .is-on";
 
 function mark(el: Element) {

@@ -125,7 +125,7 @@ const TABS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
   { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', on: inCommunity },
 ];
-const MORE = ['/jogos', '/eventos', '/album', '/preferencias', '/entrar', '/studio'];
+const MORE = ['/jogos', '/eventos', '/album', '/preferencias', '/entrar', '/studio', '/sobre', '/regras', '/privacidade', '/codigo'];
 
 /** No celular, os pilares ficam numa barra fixa embaixo; Jogos, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {

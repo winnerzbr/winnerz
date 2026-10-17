@@ -7,6 +7,7 @@ import { searchGames, loadGame, type Hit } from '../components/AddGameDialog';
 import { CoverArt } from '../components/CoverArt';
 import { ConfirmButton } from '../components/Sheet';
 import { fmtWhen } from './Awards';
+import { AwardsAdminPlus } from './AwardsPlus';
 
 /** datetime-local ⇄ ISO, sempre no horário de Brasília. */
 const toLocal = (iso?: string) => {
@@ -79,6 +80,7 @@ export function AwardsAdminPage() {
         </section>
       )}
       {full && <EditionForm key={full.award.id} award={full.award} onSave={(a) => run(async () => { await awardsApi().saveAward(a); await loadList(); }, 'Edição gravada.')} />}
+      {full && <AwardsAdminPlus key={`plus-${full.award.id}`} full={full} run={run} onSaved={() => void loadList()} />}
       {full && (
         <section className="awards-admin__cats" aria-labelledby="cats-h">
           <h2 id="cats-h" className="t">Categorias e indicados</h2>

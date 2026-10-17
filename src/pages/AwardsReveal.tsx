@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, canAdmin, adminResultsOpen, nomineeArt, type AwardFull } from '../data/awards';
+import { awardsApi, awardsPlus, canAdmin, adminResultsOpen, nomineeArt, type AwardFull } from '../data/awards';
 import { fmtWhen, fmtDay, Countdown } from './Awards';
 import { BrandMark } from '../components/Brand';
 
@@ -40,6 +40,11 @@ export function AwardsRevealPage() {
     setSuspense(id);
     timer.current = window.setTimeout(() => { setShown((x) => ({ ...x, [id]: true })); setSuspense(null); }, calm ? 300 : 2800);
   }, [cat, shown, suspense]);
+
+  // E7.4: o overlay do canal acompanha a apresentação (categoria, suspense e vencedor) durante a live.
+  const step = cat ? (shown[cat.id] ? 'vencedor' : suspense === cat.id ? 'indicados' : 'categoria') : 'fim';
+  useEffect(() => { if (open && full) void awardsPlus.reveal(full.award.id, cat?.id ?? null, step); }, [open, full, cat?.id, step]);
+  useEffect(() => () => { if (full) void awardsPlus.reveal(full.award.id, null, 'fim'); }, [full]);
 
   useEffect(() => {
     if (!open) return;

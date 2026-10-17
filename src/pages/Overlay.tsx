@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useStore, openSession, focusJourneys, sessionsOf } from '../data/store';
 import { hourMin } from '../lib/format';
 import { demoDrop } from '../data/albumApi';
+import { awardsApi, awardsPlus } from '../data/awards';
 
 type Drop = { code: string; title: string; endsAt: string; left: number | null; kind: 'pacote' | 'figurinha'; packKind: 'onix' | 'prisma' };
-type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null };
+type Reveal = { award: string; category: string; step: 'categoria' | 'indicados' | 'vencedor'; nominees: { title: string; cover: string | null }[]; winner: { title: string; cover: string | null } | null };
+type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null; reveal?: Reveal | null };
 
 /**
  * Overlay de live: fonte de navegador do OBS (fundo transparente). Atualiza sozinho a cada 20 segundos.
@@ -17,6 +19,21 @@ export function OverlayPage({ k }: { k: string }) {
   const [err, setErr] = useState('');
   const [, tick] = useState(0);
   const [demoD, setDemoD] = useState(() => (k === 'demo' ? demoDrop() : null));
+  const [demoR, setDemoR] = useState<Reveal | null>(null);
+  // Prévia: a revelação que a apresentação deste navegador está mostrando.
+  useEffect(() => {
+    if (k !== 'demo') return;
+    const t = setInterval(async () => {
+      const r = awardsPlus.demoReveal();
+      if (!r || r.step === 'fim' || !r.categoryId) { setDemoR(null); return; }
+      const f = await awardsApi().load(r.awardId).catch(() => null);
+      const c = f?.categories.find((x) => x.id === r.categoryId);
+      if (!f || !c) { setDemoR(null); return; }
+      const top = r.step === 'vencedor' && f.results ? [...c.nominees].sort((a, b) => (f.results![b.id] ?? 0) - (f.results![a.id] ?? 0))[0] : undefined;
+      setDemoR({ award: f.award.title, category: c.name, step: top ? 'vencedor' : r.step === 'vencedor' ? 'indicados' : r.step, nominees: c.nominees.map((n) => ({ title: n.game.title, cover: n.game.cover })), winner: top ? { title: top.game.title, cover: top.game.cover } : null });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [k]);
   useEffect(() => { const t = setInterval(() => { tick((n) => n + 1); if (k === 'demo') setDemoD(demoDrop()); }, 1000); return () => clearInterval(t); }, [k]);
 
   useEffect(() => {
@@ -46,13 +63,15 @@ export function OverlayPage({ k }: { k: string }) {
     const j = open ? s.journeys.find((x) => x.id === open.journeyId) : focusJourneys(s)[0]?.journey;
     const g = j ? s.games[j.gameId] : undefined;
     const m = j ? [...s.events].filter((e) => e.journeyId === j.id && (e.kind === 'momento' || e.kind === 'ponto')).sort((a, b) => b.at.localeCompare(a.at))[0] : undefined;
-    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null, drop: demoD };
+    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null, drop: demoD, reveal: demoR };
   })() : null;
   const d = local ?? data;
 
   if (err) return <div className="ovl ovl--err">{err}</div>;
   const drop = d?.drop && Date.parse(d.drop.endsAt) > Date.now() ? d.drop : null;
   const dropCard = drop && <DropCard key={drop.code} drop={drop} />;
+  const revealCard = d?.reveal && <RevealCard key={`${d.reveal.category}-${d.reveal.step}`} r={d.reveal} />;
+  if (revealCard) return <div className="ovl">{dropCard}{revealCard}</div>;
   if (!d?.game) return dropCard ? <div className="ovl">{dropCard}</div> : <div className="ovl ovl--empty" />;
   return (
     <div className="ovl">
@@ -89,6 +108,24 @@ function DropCard({ drop }: { drop: Drop }) {
       <span className="ovl-drop__where">winnerz.com.br/codigo</span>
       <span className="ovl-drop__time">{Math.floor(sec / 60)}:{String(sec % 60).padStart(2, '0')}</span>
       <span className="ovl-drop__bar" aria-hidden="true"><i style={{ animationDuration: `${sec}s` }} /></span>
+    </div>
+  );
+}
+
+/** A revelação do WinnerZ Awards na tela da live: a categoria, os indicados e, no passo certo, o vencedor. */
+function RevealCard({ r }: { r: Reveal }) {
+  return (
+    <div className={`ovl-aw is-${r.step}`} role="status">
+      <span className="ovl-aw__k">{r.award}</span>
+      <strong className="ovl-aw__cat">{r.category}</strong>
+      {r.winner ? (
+        <div className="ovl-aw__win">
+          {r.winner.cover && <img src={r.winner.cover} alt="" />}
+          <span><span className="ovl-aw__tag">Vencedor</span><b>{r.winner.title}</b></span>
+        </div>
+      ) : (
+        <ul className="ovl-aw__noms">{r.nominees.slice(0, 6).map((n) => <li key={n.title}>{n.cover && <img src={n.cover} alt="" />}<span>{n.title}</span></li>)}</ul>
+      )}
     </div>
   );
 }

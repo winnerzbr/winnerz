@@ -16,6 +16,10 @@ export type Award = {
   /** Quando o resultado aparece para todo mundo no site (depois do vídeo). Vazio = junto com o de cima. */
   publicResultsAt?: string;
   published: boolean;
+  /** E7.4: indicação aberta (quem tem conta sugere até 3 jogos por categoria), antes da votação. Vazio = sem essa fase. */
+  nominationsOpens?: string; nominationsCloses?: string;
+  /** E7.4: a figurinha do álbum que quem votou pega quando o resultado fica público. */
+  stickerId?: string;
 };
 export type AwardGame = { id: string; slug: string; title: string; cover: string; year?: number; developer?: string; backdrop?: string; artworks?: string[]; screenshots?: string[] };
 /** art: a imagem escolhida para a votação (arte oficial ou captura, sem logo); focus: o ponto da imagem que fica à vista ("50% 40%"). */
@@ -31,7 +35,7 @@ export type AwardFull = {
   results: Record<string, number> | null;
 };
 
-export type Phase = 'rascunho' | 'antes' | 'aberta' | 'apurando' | 'resultado';
+export type Phase = 'rascunho' | 'indicacoes' | 'antes' | 'aberta' | 'apurando' | 'resultado';
 const at = (x?: string) => (x ? Date.parse(x) : NaN);
 /** Quando o resultado fica público: a data pública, ou a da administração se não houver. */
 export const publicAt = (a: Award) => a.publicResultsAt ?? a.resultsAt;
@@ -40,9 +44,17 @@ export const publicAt = (a: Award) => a.publicResultsAt ?? a.resultsAt;
 export function phaseOf(a: Award, now = Date.now()): Phase {
   if (!a.published) return 'rascunho';
   if (publicAt(a) && at(publicAt(a)) <= now) return 'resultado';
+  if (nominationsOpen(a, now)) return 'indicacoes';
   if (!a.votingOpens || at(a.votingOpens) > now) return 'antes';
   if ((!a.votingCloses || at(a.votingCloses) > now) && !(a.resultsAt && at(a.resultsAt) <= now)) return 'aberta';
   return 'apurando';
+}
+
+/** A indicação aberta está valendo agora (e a votação ainda não abriu). */
+export function nominationsOpen(a: Award, now = Date.now()) {
+  if (!a.published || !a.nominationsOpens || at(a.nominationsOpens) > now) return false;
+  if (a.nominationsCloses && at(a.nominationsCloses) <= now) return false;
+  return !a.votingOpens || at(a.votingOpens) > now;
 }
 
 /** A administração vê o resultado (na apresentação) só a partir da data marcada; nunca antes. */
@@ -81,6 +93,7 @@ export function nomineeArt(n: Nominee): string {
 const awardFromRow = (r: any): Award => ({
   id: r.id, year: r.year, title: r.title, intro: r.intro ?? undefined, published: !!r.published,
   votingOpens: r.voting_opens ?? undefined, votingCloses: r.voting_closes ?? undefined, resultsAt: r.results_at ?? undefined, publicResultsAt: r.public_results_at ?? undefined,
+  nominationsOpens: r.nominations_opens ?? undefined, nominationsCloses: r.nominations_closes ?? undefined, stickerId: r.sticker_id ?? undefined,
 });
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => { if (r.error) throw new Error(r.error.message); return r.data; };
 
@@ -120,8 +133,15 @@ const supabaseApi: AwardsApi = {
   },
   async saveAward(a) {
     const sb = await getClient();
-    const row = { year: a.year, title: a.title, intro: a.intro ?? null, voting_opens: a.votingOpens ?? null, voting_closes: a.votingCloses ?? null, results_at: a.resultsAt ?? null, public_results_at: a.publicResultsAt ?? null, published: !!a.published };
-    const r = a.id ? await sb.from('awards').update(row).eq('id', a.id).select().single() : await sb.from('awards').insert(row).select().single();
+    const row: Record<string, unknown> = { year: a.year, title: a.title, intro: a.intro ?? null, voting_opens: a.votingOpens ?? null, voting_closes: a.votingCloses ?? null, results_at: a.resultsAt ?? null, public_results_at: a.publicResultsAt ?? null, published: !!a.published };
+    // E7.4 (migração 0070): só manda as colunas novas quando há algo nelas, para a edição simples seguir funcionando sem a 0070.
+    const extra = { nominations_opens: a.nominationsOpens ?? null, nominations_closes: a.nominationsCloses ?? null, sticker_id: a.stickerId ?? null };
+    const write = (x: Record<string, unknown>) => (a.id ? sb.from('awards').update(x).eq('id', a.id).select().single() : sb.from('awards').insert(x).select().single());
+    let r = await write({ ...row, ...extra });
+    if (r.error && /nominations_|sticker_id|schema cache/i.test(r.error.message)) {
+      if (a.nominationsOpens || a.nominationsCloses || a.stickerId) throw new Error('Falta rodar a migração 0070 no Supabase para a indicação aberta e a figurinha da edição.');
+      r = await write(row); // sem a 0070: a edição simples continua funcionando
+    }
     return awardFromRow(ok(r));
   },
   async saveCategory(c) {
@@ -211,3 +231,81 @@ const demoApi: AwardsApi = {
 export function canAdmin() { const s = getState(); return s.isAdmin || s.mode === 'demo'; }
 
 export function awardsApi(): AwardsApi { return getState().mode === 'supabase' ? supabaseApi : demoApi; }
+
+/* ---- E7.4 · Awards completo (migração 0070) ------------------------------------------------------- */
+export type Suggestion = { categoryId: string; game: AwardGame };
+export type SuggestionCount = { categoryId: string; game: AwardGame; n: number };
+export type Winner = { categoryId: string; category: string; game: AwardGame; votes: number };
+export type AwardSticker = { sticker: import('./albumApi').Sticker; claimed: boolean; voted: boolean; open: boolean } | null;
+export type RevealStep = 'categoria' | 'indicados' | 'vencedor' | 'fim';
+
+const MSG70: Record<string, string> = {
+  award_nominations_closed: 'A indicação aberta não está valendo agora.',
+  award_suggest_limit: 'Você já indicou 3 jogos nesta categoria. Tire um para indicar outro.',
+  award_blocked: 'Sua conta está suspensa no momento.',
+  award_not_yet: 'A figurinha da edição chega quando o resultado ficar público.',
+  award_no_vote: 'A figurinha da edição é de quem votou nesta edição.',
+  award_claimed: 'Você já pegou a figurinha desta edição.',
+  not_admin: 'Só a administração pode fazer isso.',
+  not_found: 'Não achei isso.',
+};
+async function rpc70<T>(fn: string, args: Record<string, unknown>): Promise<T> {
+  const r = await (await getClient()).rpc(fn, args);
+  if (r.error) {
+    const m = r.error.message;
+    const k = Object.keys(MSG70).find((x) => m.includes(x));
+    if (k) throw new Error(MSG70[k]);
+    if (/not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0070 no Supabase.');
+    throw new Error(m);
+  }
+  return r.data as T;
+}
+const DK70 = 'wz.awards.demo.e74';
+type D70 = { sug: Record<string, string[]>; claimed: Record<string, boolean>; reveal?: { awardId: string; categoryId: string | null; step: RevealStep } };
+const d70 = (): D70 => { try { return JSON.parse(localStorage.getItem(DK70) || 'null') ?? { sug: {}, claimed: {} }; } catch { return { sug: {}, claimed: {} }; } };
+const s70 = (d: D70) => { try { localStorage.setItem(DK70, JSON.stringify(d)); } catch { /* só nesta visita */ } };
+const demo = () => getState().mode !== 'supabase';
+const gm = (id: string): AwardGame | null => { const g = getState().games[id]; return g ? gameOf(g) : null; };
+
+export const awardsPlus = {
+  async mySuggestions(awardId: string, catIds: string[]): Promise<Suggestion[]> {
+    if (demo()) { const d = d70(); return catIds.flatMap((c) => (d.sug[c] ?? []).map((g) => ({ categoryId: c, game: gm(g)! })).filter((x) => x.game)); }
+    try { return await rpc70<Suggestion[]>('award_my_suggestions', { p_award: awardId }); } catch { return []; }
+  },
+  async suggest(awardId: string, catIds: string[], categoryId: string, game: Game, on: boolean): Promise<Suggestion[]> {
+    if (demo()) {
+      const d = d70(); const cur = d.sug[categoryId] ?? [];
+      if (on && !cur.includes(game.id) && cur.length >= 3) throw new Error(MSG70.award_suggest_limit);
+      d.sug[categoryId] = on ? [...new Set([...cur, game.id])] : cur.filter((x) => x !== game.id); s70(d);
+      return awardsPlus.mySuggestions(awardId, catIds);
+    }
+    return rpc70<Suggestion[]>('award_suggest', { p_category: categoryId, p_game: game.id, p_on: on });
+  },
+  async counts(awardId: string, catIds: string[]): Promise<SuggestionCount[]> {
+    if (demo()) { const d = d70(); return catIds.flatMap((c) => (d.sug[c] ?? []).map((g, i) => ({ categoryId: c, game: gm(g)!, n: 3 - i }))).filter((x) => x.game); }
+    return rpc70<SuggestionCount[]>('award_suggestion_counts', { p_award: awardId });
+  },
+  async winners(awardId: string): Promise<Winner[]> {
+    if (demo()) {
+      const f = await awardsApi().load(awardId);
+      if (!f.results || phaseOf(f.award) !== 'resultado') return [];
+      return f.categories.filter((c) => c.nominees.length).map((c) => { const w = [...c.nominees].sort((a, b) => (f.results![b.id] ?? 0) - (f.results![a.id] ?? 0) || a.position - b.position)[0]; return { categoryId: c.id, category: c.name, game: w.game, votes: f.results![w.id] ?? 0 }; });
+    }
+    try { return await rpc70<Winner[]>('award_winners', { p_award: awardId }); } catch { return []; }
+  },
+  async sticker(awardId: string): Promise<AwardSticker> {
+    if (demo()) return null;
+    try { return await rpc70<AwardSticker>('award_sticker_state', { p_award: awardId }); } catch { return null; }
+  },
+  async claimSticker(awardId: string): Promise<AwardSticker> {
+    const r = await rpc70<AwardSticker>('award_sticker_claim', { p_award: awardId });
+    const { reloadAlbum } = await import('./albumApi'); void reloadAlbum().catch(() => {});
+    return r;
+  },
+  /** A apresentação da revelação diz onde está (o overlay do canal mostra). Falha em silêncio: a apresentação segue. */
+  async reveal(awardId: string, categoryId: string | null, step: RevealStep) {
+    if (demo()) { const d = d70(); d.reveal = { awardId, categoryId, step }; s70(d); return; }
+    try { await rpc70('award_reveal_set', { p_award: awardId, p_category: categoryId, p_step: step }); } catch { /* sem a 0070, só não aparece no overlay */ }
+  },
+  demoReveal: () => (demo() ? d70().reveal ?? null : null),
+};

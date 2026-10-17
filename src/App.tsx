@@ -73,6 +73,7 @@ import { StudioPage } from './pages/Studio';
 import { InvitePage } from './pages/Invite';
 import { invitesApi, pendingInvite, setPendingInvite } from './data/invitesApi';
 import { AwardsRevealPage } from './pages/AwardsReveal';
+import { AwardsHistoryPage } from './pages/AwardsPlus';
 
 const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.AlbumPage })));
 const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default: m.ArrivalPage })));
@@ -151,6 +152,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
+  if (match('/eventos/awards/historico', path)) return <AwardsHistoryPage />;
   // E7.1/E7.2: o endereço curto que a live mostra (winnerz.com.br/codigo e /codigo/XXXX).
   if (match('/codigo', path)) return <GoTo to="/album/pacotes#codigo" />;
   if ((m = match('/codigo/:code', path))) return <GoTo to={`/album/pacotes?codigo=${encodeURIComponent(m.code)}`} />;

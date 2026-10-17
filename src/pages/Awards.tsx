@@ -8,6 +8,7 @@ import { useBackdrop } from '../components/Backdrop';
 import { igdbSize } from '../lib/backdrop';
 import { track } from '../lib/track';
 import { Agenda } from '../components/Agenda';
+import { AwardsNominate, AwardsStickerCard } from './AwardsPlus';
 import type { AgendaItem } from '../data/eventsApi';
 
 const tz = 'America/Sao_Paulo';
@@ -20,6 +21,7 @@ export const fmtHour = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR'
 function phaseLine(a: Award, p: Phase): string {
   switch (p) {
     case 'rascunho': return 'Rascunho: só a administração vê esta edição.';
+    case 'indicacoes': return a.nominationsCloses ? `Indicações abertas até ${fmtWhen(a.nominationsCloses, true)}: sugira até 3 jogos por categoria.` : 'Indicações abertas: sugira até 3 jogos por categoria.';
     case 'antes': return a.votingOpens ? `A votação abre em ${fmtWhen(a.votingOpens, true)}.` : 'A data da votação ainda vai ser anunciada.';
     case 'aberta': return a.votingCloses ? `Votação aberta até ${fmtWhen(a.votingCloses, true)}.` : 'Votação aberta.';
     case 'apurando': return publicAt(a) ? `Votação encerrada. O resultado sai em ${fmtWhen(publicAt(a), true)}.` : 'Votação encerrada. O resultado sai em breve.';
@@ -28,10 +30,11 @@ function phaseLine(a: Award, p: Phase): string {
 }
 
 /** Status curto, em caixa alta, para o selo dos cartões. */
-const PHASE_TAG: Record<Phase, string> = { rascunho: 'Rascunho', antes: 'Em breve', aberta: 'Votação aberta', apurando: 'Votação encerrada', resultado: 'Resultado' };
+const PHASE_TAG: Record<Phase, string> = { rascunho: 'Rascunho', indicacoes: 'Indicações abertas', antes: 'Em breve', aberta: 'Votação aberta', apurando: 'Votação encerrada', resultado: 'Resultado' };
 
 /** Até quando a contagem regressiva conta, em cada fase. */
 function countdownTarget(a: Award, p: Phase): string | undefined {
+  if (p === 'indicacoes') return a.nominationsCloses ?? a.votingOpens;
   if (p === 'antes') return a.votingOpens;
   if (p === 'aberta') return a.votingCloses;
   if (p === 'apurando') return publicAt(a);
@@ -239,7 +242,7 @@ export function AwardsPage() {
             <p className="awhero__line">
               {phase === 'aberta'
                 ? <>{full.voters > 0 && <><span className="mono awhero__num">{full.voters.toLocaleString('pt-BR')}</span> {full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}. </>}Um voto por categoria, e dá para mudar até o fim.</>
-                : <>{phaseLine(full.award, phase)}{full.voters > 0 && phase !== 'antes' && phase !== 'rascunho' ? ` ${full.voters.toLocaleString('pt-BR')} ${full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}.` : ''}</>}
+                : <>{phaseLine(full.award, phase)}{full.voters > 0 && phase !== 'antes' && phase !== 'rascunho' && phase !== 'indicacoes' ? ` ${full.voters.toLocaleString('pt-BR')} ${full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}.` : ''}</>}
             </p>
             {phase === 'aberta' && !logged && <p className="awhero__login"><Link className="btn primary" to="/entrar">Entre para votar</Link> <span>Uma conta, um voto por categoria.</span></p>}
             {phase === 'apurando' && <p className="awhero__note">Ninguém vê a contagem antes da revelação, nem a administração do site muda votos.</p>}
@@ -257,7 +260,7 @@ export function AwardsPage() {
         </div>
       </section>
 
-      {withNominees.length > 0 && (
+      {withNominees.length > 0 && phase !== 'indicacoes' && (
         <div className="awbar">
           <div className="page awbar__row">
             {voting && <div className="awbar__count"><span className="t">{voted}<span className="awbar__of">/{withNominees.length}</span></span><span>votos</span></div>}
@@ -278,9 +281,10 @@ export function AwardsPage() {
       )}
 
       <div className="page awards__body">
-        {withNominees.length === 0 && <div className="card tl-empty"><p className="muted">Os indicados ainda vão ser anunciados.</p></div>}
+        {phase === 'indicacoes' && <AwardsNominate full={full} />}
+        {phase !== 'indicacoes' && withNominees.length === 0 && <div className="card tl-empty"><p className="muted">Os indicados ainda vão ser anunciados.</p></div>}
 
-        {withNominees.map((c, k) => {
+        {phase !== 'indicacoes' && withNominees.map((c, k) => {
           if (!isOpen(c, k)) {
             const head = firstCollapsed;
             firstCollapsed = false;
@@ -365,6 +369,8 @@ export function AwardsPage() {
             </section>
           );
         })}
+        <AwardsStickerCard award={full.award} />
+        <p className="awards__more"><Link className="kicker" to="/eventos/awards/historico">Edições anteriores →</Link></p>
       </div>
     </main>
   );

@@ -40,8 +40,8 @@ export function Burst({ seed, left, big, k = 0.5 }: { seed: number; left: string
 }
 
 /**
- * Nota de 0 a 10, de meio em meio ponto. A barra enche com a cor da nota (vermelho → verde),
- * as marcas acendem uma a uma e, no 10, a barra inteira comemora.
+ * Nota de 0 a 10, de meio em meio ponto: dez traços que acendem um a um (o do meio ponto, pela metade);
+ * no 10, todos comemoram juntos.
  * Por baixo é um campo de faixa normal: teclado e leitor de tela funcionam como sempre.
  */
 export function ScoreSlider({ value, onChange, id }: { value: number; onChange: (v: number) => void; id?: string }) {
@@ -64,14 +64,23 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
         onPointerUp={() => { setDrag(false); setBurst((n) => n + 1); }}
         onPointerCancel={() => setDrag(false)}
       />
-      <div className="score-slider__track" aria-hidden="true">
-        <div className="score-slider__fill" />
-        {Array.from({ length: 11 }, (_, i) => (
-          <span key={i} className={`score-slider__tick${i <= value ? ' is-on' : ''}`} style={{ left: `${i * 10}%`, ['--i' as string]: i } as CSSProperties} />
+      {/* Fresta: dez traços na inclinação do Z, um por ponto; o traço do meio ponto enche pela metade. */}
+      <div className="score-slider__track score-slider__track--tr" aria-hidden="true">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} className={`score-tr${value > i ? ' is-on' : ''}${value > i && value <= i + 1 ? ' is-last' : ''}`}
+            style={{ ['--p' as string]: Math.max(0, Math.min(1, value - i)), ['--i' as string]: i } as CSSProperties} />
         ))}
-        <div className="score-slider__thumb" />
         <Burst seed={burst} left={`${f * 100}%`} big={value === 10} k={f} />
       </div>
     </div>
+  );
+}
+
+/** A mesma nota de 0 a 10 em traços, só para ler (o cartão "Sua nota"). */
+export function ScoreTraces({ value }: { value: number }) {
+  return (
+    <span className="score-traces" aria-hidden="true">
+      {Array.from({ length: 10 }, (_, i) => <span key={i} className="score-tr" style={{ ['--p' as string]: Math.max(0, Math.min(1, value - i)), ['--i' as string]: i } as CSSProperties} />)}
+    </span>
   );
 }

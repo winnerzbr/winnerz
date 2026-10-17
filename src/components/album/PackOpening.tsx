@@ -195,7 +195,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
     <div className="pk" ref={root}>
       <div className="pk__wrap">
         <div className="pk__intro">
-          <span className="alb-kick">{pack.kind === 'prisma' ? 'Pacote especial' : 'Pacote'}{pack.game ? ` · ${pack.game.title}` : pack.origin === 'memoria' ? ' · memória' : pack.origin === 'boas_vindas' ? ' · boas-vindas' : pack.origin === 'codigo' ? ' · código' : ''}</span>
+          <span className="alb-kick">{pack.kind === 'prisma' ? 'Pacote especial' : 'Pacote'}{pack.game ? ` · ${pack.game.title}` : pack.origin === 'memoria' ? ' · memória' : pack.origin === 'boas_vindas' ? ' · boas-vindas' : pack.origin === 'codigo' ? ' · código' : pack.origin === 'twitch' ? ' · Twitch' : ''}</span>
           <h2 className="t big">{phase === 'done' ? 'Pacote aberto' : 'Puxe a fita'}</h2>
           <p className="muted">{hint}</p>
           {err && <p className="awards__error" role="alert">{err}</p>}

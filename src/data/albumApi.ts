@@ -12,7 +12,7 @@ import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 
 export type PackKind = 'onix' | 'prisma';
-export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo';
+export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo' | 'twitch';
 export type PackState = 'retido' | 'fechado' | 'aberto' | 'desfeito' | 'negado';
 export interface AlbumPage { id: string; position: number; kicker: string; title: string; body: string; banner: string | null; legendary: boolean }
 export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[] }

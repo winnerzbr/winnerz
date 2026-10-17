@@ -226,7 +226,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
   );
 }
 const packTitle = (p: Pack) => p.origin === 'boas_vindas' ? 'Pacote de boas-vindas' : (p.kind === 'prisma' ? 'Pacote especial' : 'Pacote') + (p.origin === 'memoria' ? ' de memória' : '');
-const packWhy = (p: Pack) => p.origin === 'boas_vindas' ? 'Presente da sua chegada ao WinnerZ' : p.origin === 'codigo' ? `Código${p.reason ? `: ${p.reason}` : ''}` : p.origin === 'jornada' ? (p.game ? `Por zerar ${p.game.title}` : 'Pela Jornada') : p.origin === 'memoria' ? 'Pelos jogos que você já tinha zerado' : (p.reason ? `Presente do WinnerZ: ${p.reason}` : 'Presente do WinnerZ');
+const packWhy = (p: Pack) => p.origin === 'boas_vindas' ? 'Presente da sua chegada ao WinnerZ' : p.origin === 'codigo' ? `Código${p.reason ? `: ${p.reason}` : ''}` : p.origin === 'twitch' ? 'Pontos do canal na Twitch' : p.origin === 'jornada' ? (p.game ? `Por zerar ${p.game.title}` : 'Pela Jornada') : p.origin === 'memoria' ? 'Pelos jogos que você já tinha zerado' : (p.reason ? `Presente do WinnerZ: ${p.reason}` : 'Presente do WinnerZ');
 function PackThumb({ p }: { p: Pack }) {
   return <span className={`alb-packrow__img${p.kind === 'prisma' ? ' alb-packrow__img--prisma' : ''}`} aria-hidden="true" dangerouslySetInnerHTML={{ __html: logoSvg(p.kind === 'prisma' ? '#16121f' : '#e2be84') }} />;
 }

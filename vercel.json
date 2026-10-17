@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/twitch/volta",
+      "destination": "/api/pontes?twitch=volta"
+    },
+    {
       "source": "/((?!api/|assets/|demo/|modelos/|brand/|vendor/|figurinhas/|favicon|robots\\.txt|version\\.json).*)",
       "destination": "/index.html"
     }

@@ -45,3 +45,24 @@ test('C3: o texto para a IA numera a lista e as conquistas', () => {
   assert.match(t, /2\. Chefe \[chefe\]/);
   assert.match(t, /1\. Fim — Veja o final \(12\.3% dos jogadores\) \[final do jogo\]/);
 });
+
+test('E7.3: o state do login da Twitch só vale assinado e dentro do prazo', async () => {
+  const { signState, readState } = await import('../../api/pontes');
+  const s = await signState({ u: 'user-1', k: 'pessoa', t: 2_000 }, 'segredo');
+  assert.deepEqual(await readState(s, 'segredo', 1_000), { u: 'user-1', k: 'pessoa' });
+  assert.equal(await readState(s, 'segredo', 3_000), null);
+  assert.equal(await readState(s, 'outro', 1_000), null);
+  assert.equal(await readState(s.replace(/^./, 'x'), 'segredo', 1_000), null);
+});
+
+test('E7.3: assinatura do EventSub da Twitch (HMAC do id + data + corpo exato)', async () => {
+  const { eventsubOk, eventsubSecret } = await import('../../api/pontes');
+  const { createHmac } = await import('node:crypto');
+  const id = 'msg-1', ts = '2026-10-17T10:00:00Z', raw = '{"event":{"id":"r1"}}';
+  const sig = `sha256=${createHmac('sha256', await eventsubSecret('chave')).update(id + ts + raw).digest('hex')}`;
+  const now = Date.parse(ts) + 1000;
+  assert.equal(await eventsubOk('chave', id, ts, raw, sig, now), true);
+  assert.equal(await eventsubOk('chave', id, ts, raw + ' ', sig, now), false);
+  assert.equal(await eventsubOk('chave', id, ts, raw, sig, now + 11 * 60_000), false);
+  assert.equal(await eventsubOk('chave', id, ts, raw, 'sha256=00', now), false);
+});

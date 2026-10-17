@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from 'react';
 import { actions, getState, useStore, openSession, journeyForGame, currentHistory } from '../data/store';
 import { bridgeApi, achievementApi, useBridges, BY, PROVIDER_NAME, PLAYNITE_DOWNLOAD, type BridgeItem, type Provider, type NowPlaying } from '../data/bridgeApi';
 import { outlineApi } from '../data/outlineApi';
+import { twitchApi, type MyTwitch } from '../data/twitchApi';
 import { pickMove, isOpenWorld, type PartMove } from '../lib/outline';
 import { refreshGame } from './AddGameDialog';
 import { navigate } from '../lib/router';
@@ -217,6 +218,7 @@ export function BridgeSettings() {
       <BridgeRow provider="steam" placeholder="Link do seu perfil (steamcommunity.com/id/…)" hint="O perfil e os “Detalhes do jogo” precisam estar públicos nas configurações de privacidade da Steam." />
       <BridgeRow provider="ra" placeholder="Seu usuário no RetroAchievements" hint="Conquistas desbloqueadas viram sessões; o status do jogo vira a sugestão de onde você parou." />
       <PlayniteRow />
+      <TwitchRow />
     </section>
   );
 }
@@ -297,6 +299,43 @@ function PlayniteRow() {
       ) : (
         <div className="bridge-row__actions"><button className="btn primary sm" disabled={busy} onClick={gen}>{busy ? 'Gerando…' : 'Gerar a chave e ligar'}</button></div>
       )}
+      {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
+    </div>
+  );
+}
+
+/** E7.3 · Twitch: a recompensa do canal ("Figurinha WinnerZ") resgatada com pontos vira pacote no Álbum. */
+const TW_BACK: Record<string, string> = {
+  ligada: 'Twitch ligada. Os próximos resgates da recompensa do canal viram pacotes no Álbum.',
+  cancelado: 'Você cancelou o login da Twitch.',
+  ocupada: 'Essa conta da Twitch já está ligada a outra conta do WinnerZ.',
+  erro: 'A Twitch não confirmou o login. Tente de novo.',
+};
+function TwitchRow() {
+  const mode = useStore((s) => s.mode);
+  const [tw, setTw] = useState<MyTwitch | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(() => { try { return TW_BACK[new URLSearchParams(window.location.search).get('twitch') ?? ''] ?? ''; } catch { return ''; } });
+  useEffect(() => { twitchApi.mine().then(setTw); }, []);
+  if (!tw && mode === 'supabase') return null; // sem a 0069: a linha fica escondida
+  const link = async () => { setBusy(true); setMsg(''); try { await twitchApi.link(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); setBusy(false); } };
+  const unlink = async () => { setBusy(true); try { await twitchApi.unlink(); setTw(await twitchApi.mine()); setMsg('Twitch desligada.'); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); } setBusy(false); };
+  return (
+    <div className={`bridge-row${tw?.linked ? ' is-on' : ''}`}>
+      <div className="bridge-row__head">
+        <strong>Twitch</strong>
+        {tw?.linked ? <span className="chip chip--static">Ligada como {tw.linked.display ?? tw.linked.login}</span> : <span className="faint">Desligada</span>}
+      </div>
+      <p className="muted bridge-row__p">
+        Resgate a recompensa “{tw?.reward ?? 'Figurinha WinnerZ'}” com os pontos do canal{tw?.channel ? ` (twitch.tv/${tw.channel})` : ''} e ganhe um pacote no Álbum. Resgate feito antes de ligar fica guardado 30 dias.
+        {tw?.linked && tw.packs > 0 ? ` Você já ganhou ${tw.packs} ${tw.packs === 1 ? 'pacote' : 'pacotes'} assim.` : ''}
+      </p>
+      <div className="bridge-row__actions">
+        {tw?.linked
+          ? <button className="btn quiet sm danger" disabled={busy} onClick={() => void unlink()}>Desligar</button>
+          : <button className="btn primary sm" disabled={busy} onClick={() => void link()}>{busy ? 'Abrindo a Twitch…' : 'Ligar a Twitch'}</button>}
+      </div>
+      <p className="faint bridge-row__hint">O login é feito na própria Twitch; o WinnerZ só guarda o seu nome de usuário de lá.</p>
       {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
     </div>
   );

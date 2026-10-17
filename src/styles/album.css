@@ -610,3 +610,5 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .sa-drop__live { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 12px; background: var(--fr-piece); }
 .sa-drop__tag { font: 800 12px var(--font-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--now-ink); }
 .sa-drop__code { font-size: 20px; letter-spacing: .12em; }
+.sa-grid--wide { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+@media (max-width: 860px) { .sa-grid--wide { grid-template-columns: 1fr; } }

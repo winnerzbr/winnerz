@@ -7,20 +7,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
+import { twitchApi, type StudioTwitch } from '../data/twitchApi';
 import { artSrc, codeApi, reloadAlbum, type DropStart, studioAlbumApi, tradeApi, type LiveCode, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
 import { RULE_TITLE, signalsLine, TIER_LABEL, TIERS, type Tier } from '../lib/album';
 import { ConfirmButton } from '../components/Sheet';
 import { StickerView } from '../components/album/StickerView';
 import { ensureDefs, num3 } from '../components/album/render';
 
-type Tab = 'catalogo' | 'dar' | 'codigos' | StudioView | 'trocas';
+type Tab = 'catalogo' | 'dar' | 'codigos' | 'twitch' | StudioView | 'trocas';
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace('.', '') : '');
 const at = (h?: string | null) => (h ? `@${h}` : 'alguém');
 
 export function StudioAlbumPage() {
   useStore((s) => s.isAdmin);
   const mode = useStore((s) => s.mode);
-  const [tab, setTab] = useState<Tab>('catalogo');
+  const [tab, setTab] = useState<Tab>(() => { try { return new URLSearchParams(window.location.search).has('twitch') ? 'twitch' : 'catalogo'; } catch { return 'catalogo'; } });
   const [counts, setCounts] = useState<{ retidos: number; revisoes: number } | null>(null);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
@@ -40,13 +41,14 @@ export function StudioAlbumPage() {
         {mode === 'demo' && <p className="faint">Na demonstração, tudo fica só neste navegador.</p>}
       </header>
       <div className="seg studio__tabs" role="tablist" aria-label="Seções">
-        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('codigos', 'Códigos')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
+        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('codigos', 'Códigos')}{T('twitch', 'Twitch')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
       </div>
       {msg && <p className="studio__msg" role="status">{msg}</p>}
       {err && <p className="awards__error" role="alert">{err}</p>}
       {tab === 'catalogo' && <CatalogPanel say={say} fail={fail} />}
       {tab === 'dar' && <GivePanel say={say} fail={fail} />}
       {tab === 'codigos' && <CodesPanel say={say} fail={fail} />}
+      {tab === 'twitch' && <TwitchPanel say={say} fail={fail} />}
       {(tab === 'retidos' || tab === 'revisoes' || tab === 'historico') && <PacksPanel key={tab} view={tab} say={say} fail={fail} onChange={refreshCounts} />}
       {tab === 'trocas' && <TradesPanel fail={fail} />}
     </main>
@@ -308,7 +310,7 @@ function CodesPanel({ say, fail }: Say) {
   return (
     <>
     <DropBox list={list} stickers={stickers} setList={setList} say={say} fail={fail} />
-    <div className="sa-grid">
+    <div className="sa-grid sa-grid--wide">
       <section className="sa-form">
         <h3>Novo código</h3>
         <p className="muted" style={{ margin: 0 }}>Para dizer ou mostrar na live. Vale uma vez por conta; contas com menos de 7 dias resgatam até 3.</p>
@@ -402,5 +404,49 @@ function DropBox({ list, stickers, setList, say, fail }: Say & { list: LiveCode[
       <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<input className="field" maxLength={200} value={f.note} placeholder="Drop da live de sexta" onChange={(e) => up({ note: e.target.value })} /></label>
       <div className="sa-row"><button className="btn now" disabled={busy || f.note.trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void start()}>{busy ? 'Soltando…' : live ? 'Soltar outro drop' : 'Soltar drop'}</button></div>
     </section>
+  );
+}
+
+/* ---- Twitch: pontos do canal (E7.3) ---- */
+const TW_STATE: Record<string, string> = { entregue: 'entregue', pendente: 'esperando ligar a conta', limite: 'limite do dia' };
+function TwitchPanel({ say, fail }: Say) {
+  const [d, setD] = useState<StudioTwitch | null>(null);
+  const [title, setTitle] = useState('Figurinha WinnerZ');
+  const [kind, setKind] = useState<'onix' | 'prisma'>('onix');
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    const back = (() => { try { return new URLSearchParams(window.location.search).get('twitch'); } catch { return null; } })();
+    if (back === 'ok') say('Canal autorizado. A inscrição dos resgates foi pedida à Twitch.');
+    else if (back === 'erro') fail(new Error('A Twitch não confirmou a autorização do canal (ou a conta não é da administração).'));
+    twitchApi.studio().then((x) => { setD(x); if (x.channel) { setTitle(x.channel.rewardTitle); setKind(x.channel.packKind); } }).catch(fail);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const run = async (f: () => Promise<unknown>) => { setBusy(true); try { await f(); } catch (e) { fail(e); } finally { setBusy(false); } };
+  const ch = d?.channel;
+  return (
+    <div className="sa-grid sa-grid--wide">
+      <section className="sa-form">
+        <h3>Pontos do canal</h3>
+        <p className="muted" style={{ margin: 0 }}>Quem resgata a recompensa abaixo na Twitch e ligou a conta nas Preferências ganha um pacote. Até 5 por dia por pessoa; resgate de quem ainda não ligou fica guardado 30 dias.</p>
+        <p style={{ margin: 0 }}><b>Canal:</b> {ch?.authorized ? `twitch.tv/${ch.login}` : 'ainda não autorizado'}{ch?.subStatus ? ` · inscrição: ${ch.subStatus}` : ''}</p>
+        <div className="sa-row">
+          <button className="btn now" disabled={busy} onClick={() => void run(() => twitchApi.authorizeChannel())}>{ch?.authorized ? 'Autorizar de novo' : 'Autorizar o canal'}</button>
+          {ch?.authorized && <button className="btn ghost" disabled={busy} onClick={() => void run(async () => { say(`Inscrição: ${await twitchApi.resubscribe()}`); setD(await twitchApi.studio()); })}>Refazer a inscrição</button>}
+        </div>
+        <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Nome da recompensa na Twitch (igual ao do painel do canal)
+          <input className="field" value={title} maxLength={45} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <div className="seg" role="group" aria-label="Pacote"><button aria-pressed={kind === 'onix'} onClick={() => setKind('onix')}>Ônix</button><button aria-pressed={kind === 'prisma'} onClick={() => setKind('prisma')}>Prisma</button></div>
+        <div className="sa-row"><button className="btn ghost" disabled={busy || !title.trim()} onClick={() => void run(async () => { setD(await twitchApi.save(title.trim(), kind)); say('Recompensa salva.'); })}>Salvar</button></div>
+        <p className="faint" style={{ margin: 0 }}>No painel da Twitch, crie a recompensa com esse nome e marque “Pular fila de solicitações”. {d ? `${d.links} ${d.links === 1 ? 'pessoa ligou' : 'pessoas ligaram'} a Twitch.` : ''}</p>
+      </section>
+      <section className="sa-side" aria-label="Últimos resgates">
+        <h3 style={{ margin: 0 }}>Últimos resgates</h3>
+        {!d ? <p className="muted">Carregando…</p> : !d.recent.length ? <p className="muted">Nenhum resgate ainda.</p> : (
+          <ul className="sa-packs">{d.recent.map((r, i) => (
+            <li key={i} className="sa-pack"><p><b>{r.login ?? '?'}</b>{r.handle ? ` · @${r.handle}` : ''} · {TW_STATE[r.state] ?? r.state}</p><p className="faint">{r.reward} · {when(r.at)}</p></li>
+          ))}</ul>
+        )}
+      </section>
+    </div>
   );
 }

@@ -8,6 +8,10 @@
  *   POST /api/pontes (com login) { sync: true, force?: true }                  → busca agora (no máximo a cada 10 minutos; com force, a cada 1)
  *   POST /api/pontes (com login) { achievements: "<jogo>" }                   → C3: liga as conquistas do jogo à lista agora (se ainda não tem)
  *   GET  /api/pontes?cron=1  (agendado pela Vercel, uma vez por dia)           → busca de todo mundo que ligou alguma ponte
+ *   POST /api/pontes (com login) { link: "twitch" } | { twitchCanal: true }     → E7.3: endereço do login da Twitch (pessoa | conta do canal)
+ *   GET  /twitch/volta (reescrito para ?twitch=volta)                          → a Twitch devolve o login aqui
+ *   POST /api/pontes?twitch=evento                                             → EventSub da Twitch (resgate com pontos do canal), assinado
+ *   POST /api/pontes (com login, administração) { twitchSub: true }             → refaz a inscrição do EventSub
  *
  * Steam: compara o tempo total de cada jogo com a última leitura; a diferença vira uma sessão que termina no
  * "última vez jogado". RetroAchievements: conquistas desbloqueadas desde a última busca, agrupadas por jogo e por
@@ -17,12 +21,15 @@
  * Variáveis na Vercel: SUPABASE_URL + SUPABASE_SECRET_KEY, STEAM_API_KEY (já usada no importador),
  * RA_API_KEY (chave "Web API" de uma conta do RetroAchievements), TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET (IGDB),
  * CRON_SECRET (a Vercel manda sozinha na rotina diária), ANTHROPIC_API_KEY (C3: ligar as conquistas à lista) e
- * ACH_DAILY_GAMES (opcional, padrão 30 jogos por dia). Precisa da migração 0039 (e da 0065 para as conquistas).
+ * ACH_DAILY_GAMES (opcional, padrão 30 jogos por dia). Precisa da migração 0039 (e da 0065 para as conquistas, da 0069
+ * para a Twitch). A Twitch usa o mesmo app do IGDB (TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET), com o endereço de volta
+ * https://<site>/twitch/volta cadastrado no console da Twitch. Body sem parser automático (a assinatura da Twitch
+ * confere o corpo exato).
  * Nada aqui escreve chaves, tokens ou dados de pessoas no log.
  */
 
 type Req = { method?: string; body?: unknown; query?: Record<string, string | string[] | undefined>; headers?: Record<string, string | string[] | undefined> };
-type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
+type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void; send?: (b: string) => void; end?: (b?: string) => void };
 type Account = { user_id: string; provider: 'steam' | 'ra' | 'playnite'; external_id: string; display?: string | null; last_sync_at?: string | null };
 type Row = Record<string, unknown>;
 
@@ -317,7 +324,7 @@ type Link = { ach_key: string; part_id: string | null; name: string };
 async function rpc(fn: string, args: Row): Promise<unknown> {
   const c = db()!;
   const r = await fetch(`${c.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: c.headers, body: JSON.stringify(args) });
-  if (!r.ok) throw new Error(r.status === 404 ? 'Falta rodar a migração 0065 no Supabase.' : `Banco respondeu ${r.status}`);
+  if (!r.ok) throw new Error(r.status === 404 ? `Falta rodar a migração ${fn.startsWith('twitch') ? '0069' : '0065'} no Supabase.` : `Banco respondeu ${r.status}`);
   return r.json();
 }
 
@@ -499,6 +506,142 @@ async function linkNow(user: string, gameId: string) {
   return { status: 200, json: { state, moves } };
 }
 
+/* ---- E7.3: pontos do canal na Twitch ------------------------------------------------------- */
+const SITE = (req: Req) => (process.env.SITE_URL || `https://${header(req, 'x-forwarded-host') ?? header(req, 'host') ?? 'winnerz.com.br'}`).replace(/\/+$/, '');
+const serverSecret = () => process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+async function hmacHex(key: string, text: string): Promise<string> {
+  const enc = new TextEncoder();
+  const k = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(text)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+/** O "state" do login da Twitch: quem pediu, para quê e até quando, assinado com a chave do servidor. */
+export async function signState(p: { u: string; k: 'pessoa' | 'canal'; t: number }, secret: string): Promise<string> {
+  const body = Buffer.from(JSON.stringify(p)).toString('base64url');
+  return `${body}.${(await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32)}`;
+}
+export async function readState(state: string, secret: string, now = Date.now()): Promise<{ u: string; k: 'pessoa' | 'canal' } | null> {
+  const [body, sig] = String(state ?? '').split('.');
+  if (!body || !sig || sig !== (await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32)) return null;
+  try {
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: string; k?: string; t?: number };
+    if (!p.u || (p.k !== 'pessoa' && p.k !== 'canal') || !p.t || p.t < now) return null;
+    return { u: p.u, k: p.k };
+  } catch { return null; }
+}
+/** O segredo das mensagens do EventSub (derivado da chave do servidor; a Twitch pede de 10 a 100 caracteres). */
+export const eventsubSecret = async (secret: string) => (await hmacHex(secret, 'twitch-eventsub')).slice(0, 48);
+/** Confere a assinatura da Twitch: HMAC-SHA256(id + data + corpo exato). Mensagem com mais de 10 minutos não vale. */
+export async function eventsubOk(secret: string, id: string, ts: string, raw: string, sig: string, now = Date.now()): Promise<boolean> {
+  if (!id || !ts || !sig || !Number.isFinite(Date.parse(ts)) || Math.abs(now - Date.parse(ts)) > 10 * 60_000) return false;
+  const want = `sha256=${await hmacHex(await eventsubSecret(secret), id + ts + raw)}`;
+  if (want.length !== sig.length) return false;
+  let diff = 0;
+  for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ sig.charCodeAt(i);
+  return diff === 0;
+}
+async function appToken(): Promise<string | null> {
+  const id = process.env.TWITCH_CLIENT_ID, secret = process.env.TWITCH_CLIENT_SECRET;
+  if (!id || !secret) return null;
+  if (!token || token.expires < Date.now() + 60_000) {
+    const t = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${secret}&grant_type=client_credentials`, { method: 'POST' });
+    if (!t.ok) return null;
+    const j = (await t.json()) as { access_token: string; expires_in: number };
+    token = { value: j.access_token, expires: Date.now() + j.expires_in * 1000 };
+  }
+  return token.value;
+}
+async function twitchLoginUrl(req: Req, user: string, kind: 'pessoa' | 'canal') {
+  const id = process.env.TWITCH_CLIENT_ID;
+  if (!id || !process.env.TWITCH_CLIENT_SECRET) return { error: 'A Twitch ainda não foi ligada no servidor (TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET).' };
+  const state = await signState({ u: user, k: kind, t: Date.now() + 15 * 60_000 }, serverSecret());
+  const q = new URLSearchParams({ client_id: id, redirect_uri: `${SITE(req)}/twitch/volta`, response_type: 'code', scope: kind === 'canal' ? 'channel:read:redemptions' : '', state, force_verify: 'true' });
+  return { url: `https://id.twitch.tv/oauth2/authorize?${q}` };
+}
+/** (Re)cria a inscrição do EventSub para os resgates do canal. */
+async function twitchSubscribe(req: Req): Promise<string> {
+  const ch = (await sel<{ broadcaster_id: string | null; sub_id: string | null }>('twitch_channel?select=broadcaster_id,sub_id&id=eq.1'))[0];
+  if (!ch?.broadcaster_id) return 'O canal ainda não autorizou o WinnerZ.';
+  const tk = await appToken();
+  if (!tk) return 'A Twitch não respondeu (confira TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET).';
+  const h = { 'Client-Id': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' };
+  if (ch.sub_id) await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${encodeURIComponent(ch.sub_id)}`, { method: 'DELETE', headers: h }).catch(() => null);
+  const r = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', { method: 'POST', headers: h, body: JSON.stringify({
+    type: 'channel.channel_points_custom_reward_redemption.add', version: '1', condition: { broadcaster_user_id: ch.broadcaster_id },
+    transport: { method: 'webhook', callback: `${SITE(req)}/api/pontes?twitch=evento`, secret: await eventsubSecret(serverSecret()) } }) });
+  const j = (await r.json().catch(() => ({}))) as { data?: { id: string; status: string }[]; message?: string };
+  const status = r.ok ? (j.data?.[0]?.status ?? 'pendente') : `erro ${r.status}${j.message ? `: ${j.message}` : ''}`;
+  await patch('twitch_channel', 'id=eq.1', { sub_id: j.data?.[0]?.id ?? null, sub_status: status.slice(0, 60), updated_at: new Date().toISOString() });
+  return status;
+}
+/** A Twitch devolveu o login: liga a conta da pessoa, ou autoriza o canal (só a administração). */
+async function twitchBack(req: Req, res: Res, q: Record<string, string | string[] | undefined>) {
+  const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? '') : String(v ?? ''));
+  const go = (to: string) => { res.setHeader('Location', to); res.status(302); return res.end ? res.end() : res.json({ to }); };
+  const st = await readState(one(q.state), serverSecret());
+  if (!st) return go('/preferencias?twitch=erro#pontes');
+  const back = st.k === 'canal' ? '/studio/album?twitch=' : '/preferencias?twitch=';
+  if (one(q.error) || !one(q.code)) return go(`${back}cancelado${st.k === 'canal' ? '' : '#pontes'}`);
+  const t = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({
+    client_id: process.env.TWITCH_CLIENT_ID ?? '', client_secret: process.env.TWITCH_CLIENT_SECRET ?? '', code: one(q.code), grant_type: 'authorization_code', redirect_uri: `${SITE(req)}/twitch/volta` }) });
+  const tj = (await t.json().catch(() => ({}))) as { access_token?: string };
+  if (!t.ok || !tj.access_token) return go(`${back}erro${st.k === 'canal' ? '' : '#pontes'}`);
+  const u = (await fetch('https://api.twitch.tv/helix/users', { headers: { 'Client-Id': process.env.TWITCH_CLIENT_ID ?? '', Authorization: `Bearer ${tj.access_token}` } }).then((r) => r.json()).catch(() => null)) as { data?: { id: string; login: string; display_name?: string }[] } | null;
+  const me = u?.data?.[0];
+  if (!me?.id) return go(`${back}erro${st.k === 'canal' ? '' : '#pontes'}`);
+  if (st.k === 'canal') {
+    const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${st.u}`))[0];
+    if (!adm?.is_admin) return go('/studio/album?twitch=erro');
+    await upsert('twitch_channel', [{ id: 1, broadcaster_id: me.id, broadcaster_login: me.login.slice(0, 40), updated_at: new Date().toISOString() }], 'id');
+    const status = await twitchSubscribe(req);
+    return go(`/studio/album?twitch=${/^erro/.test(status) ? 'erro' : 'ok'}`);
+  }
+  try { await rpc('twitch_link_set', { p_user: st.u, p_twitch_id: me.id, p_login: me.login, p_display: me.display_name ?? me.login }); }
+  catch { return go('/preferencias?twitch=ocupada#pontes'); }
+  return go('/preferencias?twitch=ligada#pontes');
+}
+const done204 = (res: Res) => { res.status(204); return res.end ? res.end() : res.json({}); };
+/** EventSub: confirma a inscrição, recebe os resgates e anota quando a Twitch desliga a inscrição. */
+async function twitchEvent(req: Req, res: Res, raw: string) {
+  const id = header(req, 'twitch-eventsub-message-id') ?? '', ts = header(req, 'twitch-eventsub-message-timestamp') ?? '';
+  const sig = header(req, 'twitch-eventsub-message-signature') ?? '', type = header(req, 'twitch-eventsub-message-type') ?? '';
+  if (!(await eventsubOk(serverSecret(), id, ts, raw, sig))) return res.status(403).json({ error: 'Assinatura inválida.' });
+  const msg = JSON.parse(raw || '{}') as { challenge?: string; subscription?: { status?: string }; event?: { id?: string; user_id?: string; user_login?: string; redeemed_at?: string; reward?: { title?: string } } };
+  if (type === 'webhook_callback_verification') {
+    await patch('twitch_channel', 'id=eq.1', { sub_status: 'enabled', updated_at: new Date().toISOString() }).catch(() => null);
+    res.setHeader('Content-Type', 'text/plain');
+    res.status(200);
+    return res.send ? res.send(String(msg.challenge ?? '')) : res.end?.(String(msg.challenge ?? ''));
+  }
+  if (type === 'revocation') {
+    await patch('twitch_channel', 'id=eq.1', { sub_status: `revogada: ${msg.subscription?.status ?? '?'}`.slice(0, 60), updated_at: new Date().toISOString() }).catch(() => null);
+    return done204(res);
+  }
+  const ev = msg.event;
+  if (type !== 'notification' || !ev?.id || !ev.user_id) return done204(res);
+  const ch = (await sel<{ reward_title: string }>('twitch_channel?select=reward_title&id=eq.1'))[0];
+  const want = (ch?.reward_title ?? 'Figurinha WinnerZ').trim().toLowerCase();
+  if ((ev.reward?.title ?? '').trim().toLowerCase() !== want) return done204(res);
+  await rpc('twitch_redeemed', { p_id: ev.id, p_twitch_user: ev.user_id, p_login: ev.user_login ?? '', p_reward: ev.reward?.title ?? '', p_at: ev.redeemed_at ?? new Date().toISOString() });
+  return done204(res);
+}
+/**
+ * O corpo exato da requisição: primeiro o fluxo cru (com o parser desligado, ele está inteiro); se a plataforma já
+ * tiver lido, o corpo já interpretado (a assinatura da Twitch pode não bater nesse caso, e o aviso é recusado).
+ */
+async function readRaw(req: Req): Promise<string> {
+  const chunks: Buffer[] = [];
+  const stream = req as unknown as AsyncIterable<Buffer | string> & { readableEnded?: boolean; complete?: boolean };
+  if (typeof stream[Symbol.asyncIterator] === 'function' && !stream.readableEnded) {
+    try { for await (const c of stream) chunks.push(typeof c === 'string' ? Buffer.from(c) : c); } catch { /* sem corpo */ }
+  }
+  if (chunks.length) return Buffer.concat(chunks).toString('utf8');
+  const b = req.body as unknown;
+  if (typeof b === 'string') return b;
+  if (b instanceof Uint8Array) return Buffer.from(b).toString('utf8');
+  if (b && typeof b === 'object') return JSON.stringify(b);
+  return '';
+}
+
 /* ---- Playnite ---------------------------------------------------------------------------- */
 const sha256 = async (t: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
 
@@ -566,6 +709,12 @@ export default async function handler(req: Req, res: Res) {
   if (!db()) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   try {
     const q = req.query ?? {};
+    // E7.3: a volta do login da Twitch e os avisos do EventSub não usam o login do site.
+    if (req.method === 'GET' && q.twitch === 'volta') return await twitchBack(req, res, q);
+    const raw = req.method === 'POST' ? await readRaw(req) : '';
+    if (req.method === 'POST' && q.twitch === 'evento') return await twitchEvent(req, res, raw);
+    let parsed: Record<string, unknown> = {};
+    try { parsed = raw ? JSON.parse(raw) : {}; } catch { return res.status(400).json({ error: 'Pedido em formato inválido.' }); }
     if (req.method === 'GET' && q.cron) {
       const secret = process.env.CRON_SECRET;
       if (!secret) return res.status(503).json({ error: 'Rotina desligada: falta a variável CRON_SECRET na Vercel.' });
@@ -583,14 +732,23 @@ export default async function handler(req: Req, res: Res) {
     // Extensão do Playnite: entra pela chave pessoal, não pelo login do site.
     const pnToken = header(req, 'x-winnerz-token');
     if (pnToken && req.method === 'POST') {
-      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as Parameters<typeof playniteEvent>[1];
+      const body = parsed as Parameters<typeof playniteEvent>[1];
       const r = await playniteEvent(pnToken.trim(), body);
       return res.status(r.status).json(r.json);
     }
     const user = await requireUser(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
     if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
-    const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { link?: string; value?: string; sync?: boolean; force?: boolean; achievements?: string };
+    const body = parsed as { link?: string; value?: string; sync?: boolean; force?: boolean; achievements?: string; twitchCanal?: boolean; twitchSub?: boolean };
+    if (body.link === 'twitch' || body.twitchCanal || body.twitchSub) {
+      if (body.twitchCanal || body.twitchSub) {
+        const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${user}`))[0];
+        if (!adm?.is_admin) return res.status(403).json({ error: 'Só a administração pode fazer isso.' });
+        if (body.twitchSub) return res.status(200).json({ status: await twitchSubscribe(req) });
+      }
+      const r = await twitchLoginUrl(req, user, body.twitchCanal ? 'canal' : 'pessoa');
+      return res.status('error' in r ? 503 : 200).json(r);
+    }
     if (body.link === 'playnite') return res.status(200).json(await linkPlaynite(user));
     if (body.link === 'steam' || body.link === 'ra') {
       const r = body.link === 'steam' ? await linkSteam(user, String(body.value ?? '')) : await linkRa(user, String(body.value ?? ''));
@@ -617,3 +775,6 @@ export default async function handler(req: Req, res: Res) {
     return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
   }
 }
+
+/** A assinatura da Twitch confere o corpo exato: o parser automático fica desligado (o corpo é lido à mão). */
+export const config = { api: { bodyParser: false } };

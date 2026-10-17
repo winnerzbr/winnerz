@@ -149,9 +149,24 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
 
   // Arrastar com o mouse.
   const drag = useRef<{ x: number; y: number; l: number; t: number; moved: boolean } | null>(null);
-  const onDown = (e: PointerEvent) => { if (e.pointerType !== 'mouse' || (e.target as HTMLElement).closest('button,a')) return; const v = vp.current!; drag.current = { x: e.clientX, y: e.clientY, l: v.scrollLeft, t: v.scrollTop, moved: false }; };
-  const onMove = (e: PointerEvent) => { const d = drag.current; if (!d) return; const v = vp.current!; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (Math.abs(dx) + Math.abs(dy) > 5) d.moved = true; v.scrollLeft = d.l - dx; v.scrollTop = d.t - dy; };
-  const onUp = () => { setTimeout(() => { drag.current = null; }, 0); };
+  const onDown = (e: PointerEvent) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || (e.target as HTMLElement).closest('button,a,input,textarea')) return;
+    e.preventDefault(); // sem seleção de texto nem arrastar imagem
+    const v = vp.current!;
+    drag.current = { x: e.clientX, y: e.clientY, l: v.scrollLeft, t: v.scrollTop, moved: false };
+    window.getSelection()?.removeAllRanges();
+  };
+  const onMove = (e: PointerEvent) => {
+    const d = drag.current; if (!d) return;
+    const v = vp.current!; const dx = e.clientX - d.x, dy = e.clientY - d.y;
+    if (!d.moved && Math.abs(dx) + Math.abs(dy) > 5) { d.moved = true; v.classList.add('is-drag'); v.style.scrollSnapType = 'none'; }
+    if (d.moved) { v.scrollLeft = d.l - dx; v.scrollTop = d.t - dy; }
+  };
+  const onUp = () => {
+    const v = vp.current;
+    if (v && drag.current?.moved) { v.classList.remove('is-drag'); v.style.scrollSnapType = ''; }
+    setTimeout(() => { drag.current = null; }, 0);
+  };
 
   // Passeio: avança um painel a cada 3,4 s.
   useEffect(() => {

@@ -6104,3 +6104,10 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .rv__acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 2px; }
 .rv__acts .btn.quiet { color: #C9CED4; padding-inline: 10px; }
 .rv__here { font: 600 10.5px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: #FFB25B; }
+/* Cliques nos painéis: a faixa (plano 3D) não pode ficar por cima dos painéis no teste de clique. */
+.fx-track { pointer-events: none; }
+.fx-track > .fx-pn { pointer-events: auto; }
+.fx-pn[data-on] { z-index: 1; }
+/* Arrastar a faixa com o mouse não seleciona texto. */
+.fx-vp, .fx-vp * { -webkit-user-select: none; user-select: none; }
+.fx-vp.is-drag { cursor: grabbing; }

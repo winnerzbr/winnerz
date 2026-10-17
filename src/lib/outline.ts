@@ -113,6 +113,31 @@ export function logPart(log: PartLogEntry[] | undefined, parts: { id: string; pc
   return [...kept, { id: part.id, at, src }].slice(-80);
 }
 
+/* ---- C3: o avanço que veio das conquistas (Steam, RetroAchievements) ------------------------------------------- */
+
+export type PartMove = { id: string; gameId: string; provider: 'steam' | 'ra'; partId: string; name?: string | null; at: string };
+
+/**
+ * Qual avanço aplicar na História, se algum. Nunca passa por cima de uma marca mais nova que a conquista (qualquer
+ * chegada já registrada depois dela) e, em jogo linear, nunca volta para trás: vale o item mais à frente. Em jogo
+ * aberto (regiões, chefes), vale a conquista mais recente.
+ */
+export function pickMove(parts: { id: string; pct: number }[], open: boolean, h: { part?: string | null; progress?: number | null; partLog?: PartLogEntry[] }, moves: PartMove[]): PartMove | null {
+  const lastAt = Math.max(0, ...(h.partLog ?? []).map((e) => Date.parse(e.at)).filter(Number.isFinite));
+  const pct = new Map(parts.map((p) => [p.id, p.pct]));
+  const valid = moves.filter((m) => pct.has(m.partId) && Date.parse(m.at) > lastAt);
+  if (!valid.length) return null;
+  const t = (m: PartMove) => Date.parse(m.at);
+  if (open) {
+    const last = valid.reduce((a, b) => (t(b) > t(a) ? b : a));
+    return last.partId === h.part ? null : last;
+  }
+  const best = valid.reduce((a, b) => (pct.get(b.partId)! > pct.get(a.partId)! || (pct.get(b.partId) === pct.get(a.partId) && t(b) > t(a)) ? b : a));
+  const cur = partAt(parts as OutlinePart[], h.progress, h.part);
+  if (cur && pct.get(best.partId)! <= cur.pct) return null;
+  return best;
+}
+
 /** Os capítulos já passados (com a data em que a pessoa chegou), o atual e os que vêm depois, em ordem. */
 export function partsTimeline(parts: OutlinePart[], log: PartLogEntry[] | undefined, cur: OutlinePart | null) {
   const sorted = [...parts].sort((a, b) => a.pct - b.pct);

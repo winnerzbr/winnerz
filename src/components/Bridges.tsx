@@ -7,7 +7,9 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { actions, getState, useStore, openSession, journeyForGame, currentHistory } from '../data/store';
-import { bridgeApi, useBridges, BY, PROVIDER_NAME, PLAYNITE_DOWNLOAD, type BridgeItem, type Provider, type NowPlaying } from '../data/bridgeApi';
+import { bridgeApi, achievementApi, useBridges, BY, PROVIDER_NAME, PLAYNITE_DOWNLOAD, type BridgeItem, type Provider, type NowPlaying } from '../data/bridgeApi';
+import { outlineApi } from '../data/outlineApi';
+import { pickMove, isOpenWorld, type PartMove } from '../lib/outline';
 import { refreshGame } from './AddGameDialog';
 import { navigate } from '../lib/router';
 import { durLabel, hourMin, dayMonth } from '../lib/format';
@@ -55,6 +57,35 @@ async function autoRegister() {
   }
 }
 
+/**
+ * C3: os avanços que vieram das conquistas. Vão para a História em andamento (ou em pausa) do jogo; o que não serve
+ * (sem História, jogo zerado, conquista atrás de onde a pessoa está) é marcado como visto e não volta.
+ */
+export async function applyPartMoves() {
+  const moves = await achievementApi.moves().catch(() => [] as PartMove[]);
+  if (!moves.length) return;
+  const byGame = new Map<string, PartMove[]>();
+  for (const m of moves) byGame.set(m.gameId, [...(byGame.get(m.gameId) ?? []), m]);
+  const seen: string[] = [];
+  for (const [gameId, list] of byGame) {
+    const s = getState();
+    const j = journeyForGame(s, gameId);
+    const h = j ? currentHistory(s, j.id) : null;
+    if (!h || (h.state !== 'ativa' && h.state !== 'pausada')) { seen.push(...list.map((m) => m.id)); continue; }
+    const o = await outlineApi.get(gameId).catch(() => null);
+    if (!o) continue; // a lista não carregou agora: tenta na próxima
+    const parts = [...o.parts].sort((a, b) => a.pct - b.pct);
+    const m = pickMove(parts, isOpenWorld(o), h, list);
+    const p = m ? parts.find((x) => x.id === m.partId) : undefined;
+    if (m && p) {
+      if (isOpenWorld(o)) actions.markOpenPart(h.id, p.id);
+      else actions.setHistoryPart(h.id, { id: p.id, pct: p.pct }, parts, { at: m.at, src: m.provider });
+    }
+    seen.push(...list.map((x) => x.id));
+  }
+  await achievementApi.movesDone(seen).catch(() => null);
+}
+
 export function BridgeSync() {
   const mode = useStore((s) => s.mode);
   const logged = useStore((s) => !!s.profile);
@@ -70,6 +101,7 @@ export function BridgeSync() {
       if (!live) return;
       const b = await bridgeApi.status().catch(() => null);
       if (b && live) await autoRegister();
+      if (live) await applyPartMoves();
     };
     const t0 = setTimeout(run, 2500);
     const t = setInterval(run, EVERY);

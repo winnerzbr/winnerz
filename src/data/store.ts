@@ -809,11 +809,12 @@ export const actions = {
   },
 
   /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */
-  setHistoryPart(historyId: ID, part: { id: string; pct: number } | null, parts?: { id: string; pct: number }[]) {
+  setHistoryPart(historyId: ID, part: { id: string; pct: number } | null, parts?: { id: string; pct: number }[],
+    /** C3: o avanço veio de uma conquista (com a data em que ela saiu). */ from?: { at: string; src: 'steam' | 'ra' }) {
     const h = state.histories.find((x) => x.id === historyId);
     if (!h) return;
-    track('jornada.capitulo');
-    const partLog = parts ? logPart(h.partLog, parts, part, new Date().toISOString()) : h.partLog;
+    track(from ? `jornada.capitulo.${from.src}` : 'jornada.capitulo');
+    const partLog = parts ? logPart(h.partLog, parts, part, from?.at ?? new Date().toISOString(), from?.src ?? 'voce') : h.partLog;
     dispatch({ type: 'history.update', history: { ...h, part: part?.id, partLog: partLog?.length ? partLog : undefined, progress: part ? Math.max(0, Math.min(100, Math.round(part.pct))) : h.progress } });
   },
 

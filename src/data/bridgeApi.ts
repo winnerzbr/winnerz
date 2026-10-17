@@ -5,6 +5,10 @@
  */
 import { useEffect, useState } from 'react';
 import { getState } from './store';
+import type { PartMove } from '../lib/outline';
+import { outlineApi } from './outlineApi';
+
+const outlineCache = (gameId: string) => outlineApi.peek(gameId);
 
 export type Provider = 'steam' | 'ra' | 'playnite';
 export type NowPlaying = { provider: Provider; extGame: string; title: string; console?: string | null; detail?: string | null; igdbId?: number | null; gameId?: string | null };
@@ -115,6 +119,58 @@ export const bridgeApi = {
       if (r.error) throw new Error(r.error.message);
     }
     if (current) set({ ...current, items: current.items.filter((i) => i.id !== id) });
+  },
+};
+
+/* ---- C3: avanços pelas conquistas e as ligações de cada jogo ------------------------------- */
+export type AchLink = { provider: 'steam' | 'ra'; key: string; name: string; partId: string | null; origin: 'ia' | 'pessoa' };
+export type AchLinks = { links: AchLink[]; job?: string | null; canEdit: boolean; bridges: Provider[] };
+const NO_0065 = 'Falta rodar a migração 0065 no Supabase.';
+const m65 = (m: string) => (/does not exist|schema cache|could not find/i.test(m) ? NO_0065 : /outline_forbidden/.test(m) ? 'Coloque o jogo na sua Jornada para corrigir.' : /achievement_limit/.test(m) ? 'Muitas correções hoje. Tente amanhã.' : m);
+
+/** Demonstração: três conquistas de exemplo ligadas à lista do jogo, para ver o painel funcionando. */
+const demoAch = new Map<string, AchLinks>();
+function demoLinks(gameId: string): AchLinks {
+  const had = demoAch.get(gameId);
+  if (had) return had;
+  const parts = [...(outlineCache(gameId)?.parts ?? [])].sort((a, b) => a.pct - b.pct);
+  const at = (f: number) => parts[Math.min(parts.length - 1, Math.max(0, Math.round((parts.length - 1) * f)))]?.id ?? null;
+  const d: AchLinks = { job: 'feito', canEdit: true, bridges: ['steam'], links: parts.length < 2 ? [] : [
+    { provider: 'steam', key: 'demo:1', name: 'Primeiros passos (exemplo)', partId: at(0.25), origin: 'ia' },
+    { provider: 'steam', key: 'demo:2', name: 'No meio do caminho (exemplo)', partId: at(0.6), origin: 'ia' },
+    { provider: 'steam', key: 'demo:3', name: 'Colecionador (exemplo)', partId: null, origin: 'ia' },
+  ] };
+  demoAch.set(gameId, d);
+  return d;
+}
+
+export const achievementApi = {
+  /** Os avanços que a ponte leu e o site ainda não aplicou (sem a 0065, nenhum). */
+  async moves(): Promise<PartMove[]> {
+    if (!supa()) return [];
+    const r = await (await client()).rpc('my_part_moves');
+    return r.error ? [] : ((r.data as PartMove[]) ?? []);
+  },
+  async movesDone(ids: string[]) {
+    if (!supa() || !ids.length) return;
+    await (await client()).rpc('part_moves_done', { p_ids: ids });
+  },
+  async links(gameId: string): Promise<AchLinks | null> {
+    if (!supa()) return demoLinks(gameId);
+    const r = await (await client()).rpc('achievement_links', { p_game: gameId });
+    if (r.error) throw new Error(m65(r.error.message));
+    return (r.data as AchLinks) ?? null;
+  },
+  async setLink(gameId: string, l: AchLink, partId: string | null): Promise<AchLinks> {
+    if (!supa()) { const d = demoLinks(gameId); const nd = { ...d, links: d.links.map((x) => (x.key === l.key ? { ...x, partId, origin: 'pessoa' as const } : x)) }; demoAch.set(gameId, nd); return nd; }
+    const r = await (await client()).rpc('achievement_link_set', { p_game: gameId, p_provider: l.provider, p_key: l.key, p_part: partId ?? '' });
+    if (r.error) throw new Error(m65(r.error.message));
+    return r.data as AchLinks;
+  },
+  /** "Ligar as conquistas agora": a IA liga as deste jogo (pelas pontes da pessoa) e lê o que ela já desbloqueou. */
+  async linkNow(gameId: string): Promise<{ state: string; moves?: number; reason?: string }> {
+    if (!supa()) return { state: 'pronto' };
+    return api({ achievements: gameId });
   },
 };
 

@@ -623,3 +623,11 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .sa-drop__code { font-size: 20px; letter-spacing: .12em; }
 .sa-grid--wide { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
 @media (max-width: 860px) { .sa-grid--wide { grid-template-columns: 1fr; } }
+
+/* Tema claro: o espaço da figurinha que falta fica claro, com o número em dourado escuro (o livro segue escuro) */
+:root[data-theme='claro'] .alb-miss { background: linear-gradient(180deg, #e6e8eb, #d9dce0); }
+:root[data-theme='claro'] .alb-miss::before { box-shadow: inset 0 3cqw 8cqw rgba(20, 30, 45, .1), inset 0 0 0 1.6cqw rgba(138, 98, 52, .22); }
+:root[data-theme='claro'] .alb-miss span { color: rgba(138, 98, 52, .55); }
+:root[data-theme='claro'] .alb-target.is-on .alb-miss::before { box-shadow: inset 0 3cqw 8cqw rgba(20, 30, 45, .1), inset 0 0 0 2cqw rgba(180, 95, 6, .7); }
+
+:root[data-theme='claro'] .alb-tier--comum .alb-bar i, :root[data-theme='claro'] .alb-offer--comum .alb-bar i { background: linear-gradient(90deg, #8e959e, #5d646d); }

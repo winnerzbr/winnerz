@@ -26,6 +26,10 @@
   --gold: #E2BE84;
   --brand: #E2BE84;
   --live: #FF5A4E;
+  --danger: #E08A7A;
+  --info: #9FD0FF;
+  --ok: #8FDC9B;
+  --dim: #5D636B;
   --primary: #F2F4F6;
   --primary-hi: #FFFFFF;
   --on-primary: #07080A;
@@ -55,19 +59,23 @@
   --ink: #0B0D10;
   --ink-2: #2a2f36;
   --muted: #555c66;
-  --faint: #6b727c;
+  --faint: #636a74;
   --accent: #B45F06;
   --accent-hi: #9A5205;
   --accent-ink: #9A5205;
   --on-accent: #FFFFFF;
   --now: #B45F06;
   --now-ink: #9A5205;
-  --now-hi: #FFF3E0;
+  --now-hi: #9A5205;
   --now-bg: #fff1df;
   --now-line: #f2c58f;
-  --gold: #9A6E3C;
+  --gold: #8A6234;
   --brand: #9A6E3C;
   --live: #D93A2F;
+  --danger: #A8322A;
+  --info: #1D5F9A;
+  --ok: #1F7A33;
+  --dim: #A3AAB3;
   --primary: #0B0D10;
   --primary-hi: #2a2f36;
   --on-primary: #FFFFFF;
@@ -103,7 +111,15 @@ button, input, textarea, select { font: inherit; color: inherit; }
   --accent: #FFB25B; --accent-ink: #FFB25B; --now: #FFB25B; --now-ink: #FFB25B;
   --line-2: #474D55; --surface-2: #1b1e22; --brand: #E2BE84; --gold: #E2BE84;
   --primary: #F2F4F6; --primary-hi: #FFFFFF; --on-primary: #07080A;
+  --danger: #E08A7A; --info: #9FD0FF; --ok: #8FDC9B; --dim: #5D636B;
   color: var(--ink);
+}
+/* No tema claro a área sobre foto termina escura (o degradê de baixo vai para o preto, não para o fundo claro),
+   com uma borda definida para a página. No escuro o fundo segue o da página (a intensidade do preto é ajustável). */
+:root[data-theme='claro'] .on-photo {
+  --bg: #07080a; --bg-rgb: 7, 8, 10; --surface: #0d0f12; --field: #0b0d10; --line: #1c1f24;
+  --faint: #9AA1AA; --on-accent: #07080A; --now-hi: #FFF3E0; --now-bg: #17120b; --now-line: #5C4325; --shadow: rgba(0, 0, 0, 0.55);
+  --fr-piece: rgba(27, 30, 34, 0.92); --fr-piece-hi: rgba(42, 46, 52, 0.95);
 }
 
 /* Tipografia

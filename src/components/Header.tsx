@@ -53,7 +53,7 @@ export function Header() {
           </button>
           <nav className="pillars" aria-label="Pilares">{PILLARS.slice(0, 3).map(pillar)}</nav>
         </div>
-        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandMark width={66} /></Link>
+        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandMark width={66} split /></Link>
         <div className="site-header__side site-header__side--r">
           <nav className="pillars" aria-label="Mais pilares">{PILLARS.slice(3).map(pillar)}</nav>
           <div className="site-header__tools">

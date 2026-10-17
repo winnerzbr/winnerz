@@ -381,10 +381,22 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 .rate-card .stars--10 { margin: 4px 0 2px; }
 
 /* Logo do menu: ao passar o mouse, o W e o Z se afastam e se juntam como ímã, com um impacto dourado */
-.site-header__logo .bm-w, .site-header__logo .bm-z { transform-box: view-box; }
+.site-header__logo .brand-mark { overflow: visible; }
+.site-header__logo .bm-w, .site-header__logo .bm-z, .site-header__logo .bm-tip { transform-box: view-box; }
 .site-header__logo:hover .bm-w, .site-header__logo:focus-visible .bm-w { animation: wz-join-w 0.95s cubic-bezier(0.3, 0, 0.2, 1) both; }
 .site-header__logo:hover .bm-z, .site-header__logo:focus-visible .bm-z { animation: wz-join-z 0.95s cubic-bezier(0.3, 0, 0.2, 1) both; }
+.site-header__logo:hover .bm-tip, .site-header__logo:focus-visible .bm-tip { animation: wz-join-tip 0.95s cubic-bezier(0.3, 0, 0.2, 1) both; }
 .site-header__logo:hover .brand-mark, .site-header__logo:focus-visible .brand-mark { animation: wz-impact 0.95s ease-out both; }
+/* A ponta do Z: some logo que as letras se afastam, viaja escondida com o Z e reaparece cravada no W no impacto */
+@keyframes wz-join-tip {
+  0% { transform: translateX(0); opacity: 1; }
+  12% { transform: translateX(20px); opacity: 0; }
+  38% { transform: translateX(66px); opacity: 0; }
+  50% { transform: translateX(16px); opacity: 0; }
+  55% { transform: translateX(-10px); opacity: 1; }
+  64% { transform: translateX(4px); opacity: 1; }
+  74%, 100% { transform: translateX(0); opacity: 1; }
+}
 @keyframes wz-join-w {
   0% { transform: translateX(0); }
   38% { transform: translateX(-66px); }
@@ -405,5 +417,5 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
   72% { transform: scale(0.98); filter: drop-shadow(0 0 4px rgba(226, 190, 132, 0.35)); }
   100% { transform: scale(1); filter: none; }
 }
-:root[data-motion='reduzidas'] .site-header__logo .bm-w, :root[data-motion='reduzidas'] .site-header__logo .bm-z, :root[data-motion='reduzidas'] .site-header__logo .brand-mark { animation: none !important; }
-@media (prefers-reduced-motion: reduce) { .site-header__logo .bm-w, .site-header__logo .bm-z, .site-header__logo .brand-mark { animation: none !important; } }
+:root[data-motion='reduzidas'] .site-header__logo .bm-w, :root[data-motion='reduzidas'] .site-header__logo .bm-z, :root[data-motion='reduzidas'] .site-header__logo .bm-tip, :root[data-motion='reduzidas'] .site-header__logo .brand-mark { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .site-header__logo .bm-w, .site-header__logo .bm-z, .site-header__logo .bm-tip, .site-header__logo .brand-mark { animation: none !important; } }

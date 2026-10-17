@@ -6111,3 +6111,5 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 /* Arrastar a faixa com o mouse não seleciona texto. */
 .fx-vp, .fx-vp * { -webkit-user-select: none; user-select: none; }
 .fx-vp.is-drag { cursor: grabbing; }
+/* A faixa para onde você deixa (sem ímã); quem ajeita no centro é o código, só quando um painel fica perto. */
+.fx .fx-vp, .fx.is-vert .fx-vp { scroll-snap-type: none; }

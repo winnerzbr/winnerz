@@ -93,6 +93,8 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   const itemsRef = useRef(items);
   itemsRef.current = items;
   const lastId = useRef<string | null>(null);
+  /** Quanto o painel em foco está fora do centro (px): a faixa para onde você deixou, sem puxar. */
+  const lastDelta = useRef(0);
   const photos = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image), [items]);
   const chapters = useMemo(() => items.filter((x): x is ChapterItem => x.type === 'chapter'), [items]);
   const opens = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'popen' }> => x.type === 'popen'), [items]);
@@ -122,24 +124,37 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         if (!vert) { el.style.setProperty('--ry', (-Math.sign(d) * Math.min(1, ad / 900) * 9).toFixed(1) + 'deg'); el.style.setProperty('--tz', (-k * 140).toFixed(0) + 'px'); }
         el.style.setProperty('--px', (d * -0.03).toFixed(1) + 'px');
       }
-      if (ad < bd) { bd = ad; best = i; }
+      if (ad < bd) { bd = ad; best = i; lastDelta.current = d; }
     });
     if (big.current && !reduced) big.current.style.transform = `translateX(${(-v.scrollLeft * 0.35).toFixed(1)}px)`;
     lastId.current = itemsRef.current[best]?.id ?? null;
     if (best !== focusRef.current) setFocus(best);
   }, [reduced]);
 
-  const snapBack = useRef<number | undefined>(undefined);
-  const center = useCallback((i: number, smooth = true) => {
+  /** Leva o painel i para o centro (ou para "offset" px fora dele). */
+  const center = useCallback((i: number, smooth = true, offset = 0) => {
     const v = vp.current, el = els.current[i];
     if (!v || !el) return;
     const vert = window.innerWidth <= 640;
-    // Sem o "ímã" durante o salto: senão o navegador puxa de volta para o painel em que estava encaixado.
-    v.style.scrollSnapType = 'none';
-    v.scrollTo({ left: vert ? 0 : el.offsetLeft + el.offsetWidth / 2 - v.clientWidth / 2, top: vert ? el.offsetTop + el.offsetHeight / 2 - v.clientHeight / 2 : 0, behavior: smooth && !reduced ? 'smooth' : 'instant' });
-    clearTimeout(snapBack.current);
-    snapBack.current = window.setTimeout(() => { if (!drag.current) v.style.scrollSnapType = ''; }, smooth && !reduced ? 900 : 80);
+    v.scrollTo({ left: vert ? 0 : el.offsetLeft + el.offsetWidth / 2 - v.clientWidth / 2 - offset, top: vert ? el.offsetTop + el.offsetHeight / 2 - v.clientHeight / 2 - offset : 0, behavior: smooth && !reduced ? 'smooth' : 'instant' });
   }, [reduced]);
+
+  // Quando a faixa para (soltou o arraste, a roda ou o dedo): se um painel ficou perto do centro, ele se ajeita no
+  // centro; senão, a faixa fica exatamente onde você deixou.
+  const settle = useCallback(() => {
+    const v = vp.current;
+    if (!v || drag.current) return;
+    const vert = window.innerWidth <= 640;
+    const mid = vert ? v.scrollTop + v.clientHeight / 2 : v.scrollLeft + v.clientWidth / 2;
+    let best = -1, bd = Infinity, size = 0;
+    els.current.forEach((el, i) => {
+      if (!el) return;
+      const c = vert ? el.offsetTop + el.offsetHeight / 2 : el.offsetLeft + el.offsetWidth / 2;
+      const ad = Math.abs(c - mid);
+      if (ad < bd) { bd = ad; best = i; size = vert ? el.offsetHeight : el.offsetWidth; }
+    });
+    if (best >= 0 && bd > 2 && bd < Math.min(110, size * 0.2)) center(best);
+  }, [center]);
 
   // Abre no fim (o "Hoje" ou o último registro). Quando a lista muda (chegou um eco, você marcou outro capítulo),
   // continua no mesmo painel: o capítulo à frente que virou o atual ("gp-x" → "po-x") segue em foco.
@@ -151,8 +166,11 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       i = items.findIndex((x) => x.id === id);
       if (i < 0 && /^(gp|po)-/.test(id)) { const pid = id.slice(3); i = items.findIndex((x) => x.id === `po-${pid}` || x.id === `gp-${pid}`); }
     }
+    const first = !opened.current;
     opened.current = true;
-    center(i >= 0 ? i : home, false); update();
+    // Na primeira vez, abre no "Hoje". Depois, o mesmo painel fica no mesmo lugar da tela.
+    if (i >= 0) center(i, false, lastDelta.current); else if (first || !id) center(home, false);
+    update();
   }, [items, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
@@ -160,14 +178,15 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     const v = vp.current;
     if (!v) return;
     let raf = 0;
-    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); };
+    let still = 0;
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(update); clearTimeout(still); still = window.setTimeout(settle, 170); };
     v.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     // Roda do mouse vira rolagem lateral no computador.
     const wheel = (e: WheelEvent) => { if (window.innerWidth > 640 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { v.scrollLeft += e.deltaY; e.preventDefault(); } };
     v.addEventListener('wheel', wheel, { passive: false });
-    return () => { v.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); v.removeEventListener('wheel', wheel); cancelAnimationFrame(raf); };
-  }, [update]);
+    return () => { v.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); v.removeEventListener('wheel', wheel); cancelAnimationFrame(raf); clearTimeout(still); };
+  }, [update, settle]);
 
   // Arrastar com o mouse.
   const drag = useRef<{ x: number; y: number; l: number; t: number; moved: boolean } | null>(null);
@@ -181,13 +200,14 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   const onMove = (e: PointerEvent) => {
     const d = drag.current; if (!d) return;
     const v = vp.current!; const dx = e.clientX - d.x, dy = e.clientY - d.y;
-    if (!d.moved && Math.abs(dx) + Math.abs(dy) > 5) { d.moved = true; v.classList.add('is-drag'); v.style.scrollSnapType = 'none'; }
+    if (!d.moved && Math.abs(dx) + Math.abs(dy) > 5) { d.moved = true; v.classList.add('is-drag'); }
     if (d.moved) { v.scrollLeft = d.l - dx; v.scrollTop = d.t - dy; }
   };
   const onUp = () => {
     const v = vp.current;
-    if (v && drag.current?.moved) { v.classList.remove('is-drag'); v.style.scrollSnapType = ''; }
-    setTimeout(() => { drag.current = null; }, 0);
+    const moved = !!drag.current?.moved;
+    if (v && moved) v.classList.remove('is-drag');
+    setTimeout(() => { drag.current = null; if (moved) settle(); }, 0);
   };
 
   // Passeio: avança um painel a cada 3,4 s.

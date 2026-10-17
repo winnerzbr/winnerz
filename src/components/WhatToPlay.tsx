@@ -3,10 +3,11 @@ import { Link } from '../lib/router';
 import { useStore, actions } from '../data/store';
 import { shortPlatform } from '../lib/platforms';
 import { CoverArt } from './CoverArt';
-import type { State } from '../data/types';
+import type { Game, State } from '../data/types';
+import { formatScore } from '../lib/rating';
 import { dayMonth } from '../lib/format';
 import { playStateFor } from './PlayButton';
-import { gameDna, fmtHours, topGenre, type Dna } from '../lib/dna';
+import { gameDna, fmtHours, type Dna } from '../lib/dna';
 import { localDay } from '../lib/dates';
 import { loadMeta } from '../lib/igdbMeta';
 import { pt } from '../lib/igdbPt';
@@ -72,29 +73,88 @@ function notaReason(x: Found): Reason | null {
   return crit || jog ? { icon: 'brilho', text: `${[crit, jog].filter(Boolean).join('; ')} no IGDB.` } : null;
 }
 
-/** "Quero descobrir algo", do catálogo do IGDB: bem avaliados no gênero que você mais zera. */
-async function catalogIdeas(s: State, mood: MoodId): Promise<Idea[]> {
+/** Conta e ordena (do mais comum ao menos). */
+function contagem(nomes: string[]): [string, number][] {
+  const m = new Map<string, number>();
+  for (const n of nomes) if (n) m.set(n, (m.get(n) ?? 0) + 1);
+  return [...m].sort((a, b) => b[1] - a[1]);
+}
+const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
+
+/** Jogos que a pessoa amou (avaliou bem ou favoritou), para "Parecido com X". */
+function amados(s: State): { g: Game; como: string }[] {
+  const out: { g: Game; como: string }[] = []; const vistos = new Set<string>();
+  const add = (id: string, como: string) => { const g = s.games[id]; if (g?.igdbId && !vistos.has(id)) { vistos.add(id); out.push({ g, como }); } };
+  for (const r of s.reviews.filter((x) => x.mine && x.rating.normalized >= 80).sort((x, y) => y.rating.normalized - x.rating.normalized)) add(r.gameId, `avaliou com ${formatScore(r.rating.normalized, s.prefs.scale)}`);
+  for (const id of s.favorites) add(id, 'favoritou');
+  return out;
+}
+
+type Fonte = { q: Record<string, string>; why: Reason };
+
+/**
+ * "Quero descobrir algo", do catálogo do IGDB, por vários caminhos do seu gosto: os dois gêneros que você mais
+ * zera, o tema mais frequente, parecidos com jogos que você amou, a década que você mais zerou e a plataforma
+ * da sua coleção. As listas se alternam, para cada ideia trazer um motivo diferente. Todas usam a nota com
+ * reconhecimento (só jogo conhecido e bem avaliado).
+ */
+async function catalogIdeas(s: State, mood: MoodId, seed = Math.random()): Promise<Idea[]> {
   const meta = await loadMeta();
-  const top = topGenre(s);
-  const q = new URLSearchParams({ explore: '1', sort: top ? 'rating' : 'popular', page: '0' });
-  const genreId = top && meta?.genres.find((x) => x.name === top.name)?.id;
-  if (genreId) q.set('genre', String(genreId));
+  const doneIds = new Set(s.journeys.filter((j) => s.histories.some((h) => h.journeyId === j.id && h.state === 'concluida')).map((j) => j.gameId));
+  const done = [...doneIds].map((id) => s.games[id]).filter((g): g is Game => !!g);
+  const fontes: Fonte[] = [];
+
+  const generos = contagem(done.flatMap((g) => (g.genres ?? '').split(/,\s*/)).filter((x) => x !== 'Indie'));
+  generos.slice(0, 2).forEach(([nome, n], i) => {
+    const id = meta?.genres.find((x) => x.name === nome)?.id;
+    if (!id) return;
+    fontes.push({ q: { genre: String(id) }, why: i === 0
+      ? { icon: 'coracao', text: `${pt(nome)} é o gênero que você mais zerou (${plural(n, 'jogo', 'jogos')}), e este é dos mais bem avaliados e conhecidos dele.` }
+      : { icon: 'coracao', text: `Você também zera bastante ${pt(nome)} (${plural(n, 'jogo', 'jogos')}). Este é um dos destaques do gênero.` } });
+  });
+  const tema = contagem(done.flatMap((g) => g.themes ?? []))[0];
+  const temaId = tema && tema[1] >= 2 ? meta?.themes.find((x) => x.name === tema[0])?.id : undefined;
+  if (tema && temaId) fontes.push({ q: { theme: String(temaId) }, why: { icon: 'brilho', text: `${pt(tema[0])} aparece em ${plural(tema[1], 'jogo', 'jogos')} que você zerou. Este é dos mais aclamados com esse tema.` } });
+  for (const a of shuffle(amados(s), seed).slice(0, 2)) fontes.push({ q: { like: String(a.g.igdbId) }, why: { icon: 'jornada', text: `Parecido com ${a.g.title}, que você ${a.como}.` } });
+  const decada = contagem(done.filter((g) => g.year).map((g) => String(Math.floor(g.year! / 10) * 10)))[0];
+  if (decada && decada[1] >= 3) {
+    const d = Number(decada[0]); const nome = d < 2000 ? `anos ${String(d).slice(2)}` : `anos ${d}`;
+    fontes.push({ q: { from: String(d), to: String(d + 9) }, why: { icon: 'relogio', text: `Dos ${nome}, a década dos jogos que você mais zerou (${decada[1]}).` } });
+  }
+  const plat = contagem(s.copies.map((c) => c.platform))[0];
+  const platId = plat ? meta?.platforms.find((p) => p.name === plat[0] || shortPlatform(p.name) === plat[0])?.id : undefined;
+  if (plat && platId) fontes.push({ q: { platform: String(platId) }, why: { icon: 'jogos', text: `Dos mais aclamados no ${shortPlatform(plat[0])}, onde está a maior parte da sua coleção.` } });
+  if (!fontes.length) fontes.push({ q: {}, why: { icon: 'coracao', text: 'Entre os mais aclamados e conhecidos do catálogo.' } });
+
   const coop = mood === 'alguem' ? meta?.modes.find((x) => x.name === 'Co-operative')?.id : undefined;
-  if (coop) q.set('mode', String(coop));
-  const r = await fetch(`/api/igdb?${q}`);
-  if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return [];
-  const rows: Found[] = await r.json();
   const known = new Set(Object.values(s.games).map((g) => g.igdbId).filter(Boolean));
-  const why = [
-    { icon: 'coracao', text: genreId && top ? `${pt(top.name)} é o gênero que você mais zerou (${top.count} ${top.count === 1 ? 'jogo' : 'jogos'}), e este é dos mais bem avaliados e conhecidos dele.` : 'Entre os mais populares.' },
-    coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null,
-  ].filter((x): x is Reason => !!x);
-  const list = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
-    game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
-    meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
-    why: [...why, notaReason(x)].filter((r): r is Reason => !!r), cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
+  const listas = await Promise.all(fontes.map(async (f) => {
+    const q = new URLSearchParams({ explore: '1', sort: 'rating', page: '0', ...f.q });
+    if (coop) q.set('mode', String(coop));
+    try {
+      const r = await fetch(`/api/igdb?${q}`);
+      if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return [];
+      const rows: Found[] = await r.json();
+      const lista = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
+        game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
+        meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
+        why: [f.why, coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null, notaReason(x)].filter((r): r is Reason => !!r),
+        cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
+      }));
+      // "Surpreenda-me" embaralha; nos outros, os melhores de cada caminho vêm primeiro.
+      return mood === 'surpresa' ? shuffle(lista, seed) : lista;
+    } catch { return []; }
   }));
-  return mood === 'surpresa' ? shuffle(list, Math.random()) : list;
+  // Alterna os caminhos (um de cada vez, começando por um diferente a cada visita), sem repetir jogo.
+  const out: Idea[] = []; const vistos = new Set<number>();
+  const inicio = Math.floor(seed * listas.length);
+  for (let i = 0; out.length < 60 && listas.some((l) => l.length > i); i++) {
+    for (let k = 0; k < listas.length; k++) {
+      const x = listas[(inicio + k) % listas.length][i];
+      if (x && !vistos.has(x.game.igdbId!)) { vistos.add(x.game.igdbId!); out.push(x); }
+    }
+  }
+  return out;
 }
 
 /** Embaralha sempre igual para a mesma semente: a ideia não troca sozinha quando algo na página atualiza. */
@@ -140,7 +200,7 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
     if (path !== 'descobrir' || catalog?.key === catKey) return;
     let alive = true;
     setCatalog({ key: catKey, items: [], state: 'loading' });
-    catalogIdeas(s, mood).then((items) => alive && setCatalog({ key: catKey, items, state: 'ok' })).catch(() => alive && setCatalog({ key: catKey, items: [], state: 'error' }));
+    catalogIdeas(s, mood, seed).then((items) => alive && setCatalog({ key: catKey, items, state: 'ok' })).catch(() => alive && setCatalog({ key: catKey, items: [], state: 'error' }));
     return () => { alive = false; };
   }, [path, catKey]); // eslint-disable-line react-hooks/exhaustive-deps
 

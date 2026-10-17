@@ -9,7 +9,8 @@
  *   POST /api/igdb {facts:[ids]}     → só tempo para zerar, data, temas e modos de fichas que já existem
  *   GET /api/igdb?slug=elden-ring    → ficha completa pelo slug do IGDB (abre qualquer jogo)
  *   GET /api/igdb?meta=1             → listas para os filtros (gêneros, plataformas, modos)
- *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, plataforma, época, modo e ordem
+ *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, tema, plataforma, época, modo e ordem
+ *                                      (like=<id>: só os parecidos com esse jogo)
  *   GET /api/igdb?related=119133     → universo do jogo: franquia, DLCs, remakes, parecidos
  *   GET /api/igdb?radar=1,2,3        → Radar: próxima data de cada jogo, com a precisão real (dia, mês, trimestre, ano)
  *   POST /api/igdb {radarLink:true}  → (com login) endereço assinado do calendário do Radar
@@ -504,6 +505,14 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   if (platform.length) where.push(`platforms = (${platform.join(',')})`);
   if (mode.length) where.push(`game_modes = (${mode.join(',')})`);
   if (theme.length) where.push(`themes = (${theme.join(',')})`);
+  // like=<id>: os "parecidos" de um jogo, segundo o IGDB (para "Parecido com X, que você amou").
+  const like = ints(q.like)[0];
+  if (like) {
+    const base = await igdb('games', `where id = ${like}; fields similar_games; limit 1;`);
+    const similar = ((base[0]?.similar_games ?? []) as number[]).slice(0, 40);
+    if (!similar.length) return [];
+    where.push(`id = (${similar.join(',')})`);
+  }
   const from = Number(q.from), to = Number(q.to);
   if (from > 1950) where.push(`first_release_date >= ${Math.floor(Date.UTC(from, 0, 1) / 1000)}`);
   if (to > 1950) where.push(`first_release_date < ${Math.floor(Date.UTC(to + 1, 0, 1) / 1000)}`);

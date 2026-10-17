@@ -211,11 +211,21 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .alb-well.is-target::before { animation: alb-target 1.4s ease-in-out infinite; }
 .alb-well.is-near { transform: scale(1.06); }
 @keyframes alb-target { 50% { box-shadow: inset 0 2cqw 5cqw rgba(0,0,0,.9), inset 0 0 0 1.3cqw rgba(255,214,140,.95), inset 0 0 9cqw rgba(255,200,110,.45); } }
-/* Página completa: um selo menor, no rodapé da página (na altura do número), sem cobrir as figurinhas coladas */
-.alb-stamp { position: absolute; z-index: 6 !important; left: 50%; top: calc(100% - 9.4cqw); transform: translate(-50%, -50%) rotate(-4deg); pointer-events: none; opacity: 0; padding: 1.5cqw 3.8cqw; clip-path: polygon(7% 0, 93% 0, 100% 50%, 93% 100%, 7% 100%, 0 50%); background: linear-gradient(180deg, #f6e2b0, #c99a55); color: #1a1206; font: 800 2.7cqw var(--font-title); font-stretch: 125%; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; box-shadow: 0 .6cqw 1.4cqw rgba(0,0,0,.45); }
-.alb-stamp.on { animation: alb-stamp .7s cubic-bezier(.2,.9,.3,1.4) forwards; }
-.alb-stamp.is-still { opacity: 1; }
-@keyframes alb-stamp { 0% { opacity: 0; transform: translate(-50%, -50%) rotate(-4deg) scale(2); } 60% { opacity: 1; transform: translate(-50%, -50%) rotate(-4deg) scale(.94); } 100% { opacity: 1; transform: translate(-50%, -50%) rotate(-4deg) scale(1); } }
+/* Página completa: um selo reto no rodapé, centralizado na linha do número
+   (na página lendária, onde o número fica no centro, o selo vai logo acima dele). Um traço dourado com o ✓ e o texto em mono. */
+.alb-stamp { position: absolute; z-index: 6 !important; top: calc(100% - 9.4cqw); left: 50%; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 1.5cqw; pointer-events: none; opacity: 0; }
+.alb-pg--center .alb-stamp { top: calc(100% - 15cqw); }
+.alb-stamp i { display: grid; place-items: center; width: 5.6cqw; height: 4cqw; color: #1a1206; background: linear-gradient(180deg, #f6e2b0, #c99a55); clip-path: polygon(24% 0, 100% 0, 76% 100%, 0 100%); box-shadow: 0 .4cqw 1cqw rgba(0,0,0,.4); }
+.alb-stamp svg { width: 2.4cqw; height: 2.4cqw; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.alb-stamp b { font: 600 2.7cqw var(--font-mono); letter-spacing: .2em; text-transform: uppercase; color: #e2be84; white-space: nowrap; }
+.alb-stamp.on, .alb-stamp.is-still { opacity: 1; }
+.alb-stamp.on i { animation: alb-stamp-i .5s cubic-bezier(.2,.9,.3,1.4) both; }
+.alb-stamp.on path { stroke-dasharray: 30; animation: alb-stamp-v .35s .3s ease-out both; }
+.alb-stamp.on b { animation: alb-stamp-b .55s .3s ease-out both; }
+@keyframes alb-stamp-i { 0% { opacity: 0; transform: scale(0); } 60% { opacity: 1; transform: scale(1.3); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes alb-stamp-v { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+@keyframes alb-stamp-b { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .alb-stamp.on i, .alb-stamp.on b, .alb-stamp.on path { animation: none; } }
 .alb-trace { position: absolute; left: 3.2cqw; top: 3.2cqw; width: calc(100% - 6.4cqw); height: calc(100% - 6.4cqw); z-index: 5 !important; pointer-events: none; overflow: visible; }
 .alb-trace rect { fill: none; stroke: #e2be84; stroke-width: 2; stroke-dasharray: 4000; stroke-dashoffset: 4000; }
 .alb-trace.on rect { animation: alb-trace 1.6s ease-out forwards; }

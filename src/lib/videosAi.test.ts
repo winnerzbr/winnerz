@@ -62,3 +62,20 @@ test('IA pode ligar cada item a um candidato diferente', () => {
     { partId: 'g', lang: 'en', videoId: 'bbbbbbbbbbb', start: 600 },
   ]);
 });
+
+import { videoDirect } from '../../api/retomada';
+test('ligação direta: marcações e títulos que citam o item, só de candidatos do jogo', () => {
+  const cands = {
+    pt: [{ key: 'P1', kind: 'pl' as const, id: 'PLx', title: 'ELDEN RING PLATINA', channel: 'C', items: [{ videoId: 'aaaaaaaaaaa', title: 'ELDEN RING PLATINA #5 - BLAIDD E PATCHES' }, { videoId: 'ccccccccccc', title: 'ELDEN RING #6 - GODRICK, O ENXERTADO' }] }],
+    en: [
+      { key: 'V1', kind: 'v' as const, id: 'bbbbbbbbbbb', title: 'Elden Ring All Bosses In Order', channel: 'C', seconds: 9000, ts: [{ s: 0, label: 'Margit, the Fell Omen' }, { s: 600, label: 'Godrick the Grafted' }, { s: 900, label: 'Rennala' }] },
+      { key: 'V2', kind: 'v' as const, id: 'ddddddddddd', title: 'Dark Souls 3 All Bosses', channel: 'C', seconds: 9000, ts: [{ s: 5, label: 'Godrick' }, { s: 9, label: 'X' }, { s: 19, label: 'Y' }] },
+    ],
+  };
+  const rows = videoDirect(cands, [{ id: 'm', name: 'Margit, the Fell Omen' }, { id: 'g', name: 'Godrick the Grafted' }, { id: 'l', name: 'Limgrave' }], 'Elden Ring');
+  assert.deepEqual(rows, [
+    { partId: 'g', lang: 'pt', videoId: 'ccccccccccc', start: 0 },
+    { partId: 'm', lang: 'en', videoId: 'bbbbbbbbbbb', start: 0 },
+    { partId: 'g', lang: 'en', videoId: 'bbbbbbbbbbb', start: 600 },
+  ]);
+});

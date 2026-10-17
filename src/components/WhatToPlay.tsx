@@ -58,13 +58,16 @@ export function wishIdeas(s: State, mood: MoodId, today = localDay(), seed = 1):
     const d = gameDna(g, s);
     if (mood === 'alguem' && !d.fits.together) continue;
     if (mood === 'historia' && !d.fits.story) continue;
+    // "Tenho pouco tempo": nada longo nem de gênero denso; "Para relaxar": nada de terror ou sobrevivência.
+    if (mood === 'pouco' && (d.hours != null ? d.hours > 12 : /role-playing|rpg|strategy|simulator|estrat|simula/i.test(g.genres ?? ''))) continue;
+    if (mood === 'relaxar' && (g.themes ?? []).some((t) => /horror|survival|terror|sobreviv/i.test(t))) continue;
     const why = [{ icon: 'desejo', text: 'Está nos seus Desejos.' }, moodReason(mood, d)].filter((x): x is Reason => !!x);
     out.push({ game: g, meta: `${g.year ?? ''}${g.platforms.length ? `${g.year ? ', ' : ''}${g.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}.${hoursLine(d)}`, why, cta: 'Ver a ficha', action: 'open', known: true, score: 0, kind: 'estante' });
   }
   return mood === 'surpresa' ? shuffle(out, seed) : out;
 }
 
-type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number; critica?: number; criticas?: number; jogadores?: number };
+type Found = { igdbId: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; rating?: number; critica?: number; criticas?: number; jogadores?: number; horas?: number };
 const mil = (n: number) => n.toLocaleString('pt-BR');
 /** De onde vem a nota: crítica (agregada de veículos de imprensa) e quantas pessoas avaliaram, ambas do IGDB. */
 function notaReason(x: Found): Reason | null {
@@ -92,6 +95,20 @@ function amados(s: State): { g: Game; como: string }[] {
 
 type Fonte = { q: Record<string, string>; why: Reason };
 
+/** Gêneros conhecidos do IGDB para "Algo diferente" (o que a pessoa quase nunca zera). */
+const GENEROS_DIFERENTES = ['Adventure', 'Role-playing (RPG)', 'Shooter', 'Platform', 'Strategy', 'Racing', 'Fighting', 'Puzzle', 'Sport', 'Simulator', 'Point-and-click', "Hack and slash/Beat 'em up", 'Turn-based strategy (TBS)', 'Real Time Strategy (RTS)', 'Tactical', 'Visual Novel'];
+/** O filtro do dia que o catálogo entende (gêneros, temas e tempo para zerar, no servidor). */
+const HUMOR_CATALOGO: Partial<Record<MoodId, string>> = { pouco: 'pouco', noite: 'noite', historia: 'historia', desafio: 'desafio', relaxar: 'relaxar' };
+/** Por que a ideia serve para o filtro escolhido. */
+function humorReason(mood: MoodId, x: Found): Reason | null {
+  if (mood === 'pouco') return { icon: 'relogio', text: x.horas ? `Curto: cerca de ${fmtHours(x.horas)} para zerar, pela média do IGDB.` : 'De gênero que rende em sessões curtas.' };
+  if (mood === 'noite') return x.horas ? { icon: 'play', text: `Longo: cerca de ${fmtHours(x.horas)} para zerar, bom para mergulhar.` } : null;
+  if (mood === 'historia') return { icon: 'carta', text: 'De gênero que vive de história: aventura, RPG ou visual novel.' };
+  if (mood === 'desafio') return { icon: 'escudo', text: 'De gênero que costuma cobrar habilidade.' };
+  if (mood === 'relaxar') return { icon: 'lampada', text: 'De gênero tranquilo, sem susto nem pressa.' };
+  return null;
+}
+
 /**
  * "Quero descobrir algo", do catálogo do IGDB, por vários caminhos do seu gosto: os dois gêneros que você mais
  * zera, o tema mais frequente, parecidos com jogos que você amou, a década que você mais zerou e a plataforma
@@ -105,7 +122,16 @@ async function catalogIdeas(s: State, mood: MoodId, seed = Math.random()): Promi
   const fontes: Fonte[] = [];
 
   const generos = contagem(done.flatMap((g) => (g.genres ?? '').split(/,\s*/)).filter((x) => x !== 'Indie'));
-  generos.slice(0, 2).forEach(([nome, n], i) => {
+  if (mood === 'diferente') {
+    // Fora do padrão: gêneros conhecidos que a pessoa quase nunca zera (no máximo um jogo).
+    const conta = new Map(generos);
+    for (const nome of shuffle(GENEROS_DIFERENTES.filter((g) => (conta.get(g) ?? 0) <= 1), seed).slice(0, 3)) {
+      const id = meta?.genres.find((x) => x.name === nome)?.id;
+      const n = conta.get(nome) ?? 0;
+      if (id) fontes.push({ q: { genre: String(id) }, why: { icon: 'brilho', text: `Fora do seu padrão: você ${n ? 'zerou só 1 jogo' : 'ainda não zerou nenhum jogo'} de ${pt(nome)}. Este é dos mais aclamados do gênero.` } });
+    }
+  }
+  if (mood !== 'diferente') generos.slice(0, 2).forEach(([nome, n], i) => {
     const id = meta?.genres.find((x) => x.name === nome)?.id;
     if (!id) return;
     fontes.push({ q: { genre: String(id) }, why: i === 0
@@ -114,16 +140,16 @@ async function catalogIdeas(s: State, mood: MoodId, seed = Math.random()): Promi
   });
   const tema = contagem(done.flatMap((g) => g.themes ?? []))[0];
   const temaId = tema && tema[1] >= 2 ? meta?.themes.find((x) => x.name === tema[0])?.id : undefined;
-  if (tema && temaId) fontes.push({ q: { theme: String(temaId) }, why: { icon: 'brilho', text: `${pt(tema[0])} aparece em ${plural(tema[1], 'jogo', 'jogos')} que você zerou. Este é dos mais aclamados com esse tema.` } });
-  for (const a of shuffle(amados(s), seed).slice(0, 2)) fontes.push({ q: { like: String(a.g.igdbId) }, why: { icon: 'jornada', text: `Parecido com ${a.g.title}, que você ${a.como}.` } });
+  if (mood !== 'diferente' && tema && temaId) fontes.push({ q: { theme: String(temaId) }, why: { icon: 'brilho', text: `${pt(tema[0])} aparece em ${plural(tema[1], 'jogo', 'jogos')} que você zerou. Este é dos mais aclamados com esse tema.` } });
+  for (const a of mood === 'diferente' ? [] : shuffle(amados(s), seed).slice(0, 2)) fontes.push({ q: { like: String(a.g.igdbId) }, why: { icon: 'jornada', text: `Parecido com ${a.g.title}, que você ${a.como}.` } });
   const decada = contagem(done.filter((g) => g.year).map((g) => String(Math.floor(g.year! / 10) * 10)))[0];
-  if (decada && decada[1] >= 3) {
+  if (mood !== 'diferente' && decada && decada[1] >= 3) {
     const d = Number(decada[0]); const nome = d < 2000 ? `anos ${String(d).slice(2)}` : `anos ${d}`;
     fontes.push({ q: { from: String(d), to: String(d + 9) }, why: { icon: 'relogio', text: `Dos ${nome}, a década dos jogos que você mais zerou (${decada[1]}).` } });
   }
   const plat = contagem(s.copies.map((c) => c.platform))[0];
   const platId = plat ? meta?.platforms.find((p) => p.name === plat[0] || shortPlatform(p.name) === plat[0])?.id : undefined;
-  if (plat && platId) fontes.push({ q: { platform: String(platId) }, why: { icon: 'jogos', text: `Dos mais aclamados no ${shortPlatform(plat[0])}, onde está a maior parte da sua coleção.` } });
+  if (mood !== 'diferente' && plat && platId) fontes.push({ q: { platform: String(platId) }, why: { icon: 'jogos', text: `Dos mais aclamados no ${shortPlatform(plat[0])}, onde está a maior parte da sua coleção.` } });
   if (!fontes.length) fontes.push({ q: {}, why: { icon: 'coracao', text: 'Entre os mais aclamados e conhecidos do catálogo.' } });
 
   const coop = mood === 'alguem' ? meta?.modes.find((x) => x.name === 'Co-operative')?.id : undefined;
@@ -131,6 +157,8 @@ async function catalogIdeas(s: State, mood: MoodId, seed = Math.random()): Promi
   const listas = await Promise.all(fontes.map(async (f) => {
     const q = new URLSearchParams({ explore: '1', sort: 'rating', page: '0', ...f.q });
     if (coop) q.set('mode', String(coop));
+    const humor = HUMOR_CATALOGO[mood];
+    if (humor) q.set('humor', humor);
     try {
       const r = await fetch(`/api/igdb?${q}`);
       if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return [];
@@ -138,7 +166,7 @@ async function catalogIdeas(s: State, mood: MoodId, seed = Math.random()): Promi
       const lista = rows.filter((x) => !known.has(x.igdbId)).map((x): Idea => ({
         game: { id: `igdb-${x.igdbId}`, slug: x.slug, igdbId: x.igdbId, title: x.title, cover: x.cover, year: x.year, platforms: x.platforms ?? [] },
         meta: `${x.year ?? ''}${x.platforms?.length ? `${x.year ? ', ' : ''}${x.platforms.slice(0, 3).map(shortPlatform).join(', ')}` : ''}. Fora do seu acervo.`,
-        why: [f.why, coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null, notaReason(x)].filter((r): r is Reason => !!r),
+        why: [f.why, humorReason(mood, x), coop ? { icon: 'pessoas', text: 'Possui modo cooperativo.' } : null, notaReason(x)].filter((r): r is Reason => !!r),
         cta: 'Ver a ficha', action: 'open', known: false, score: 0, kind: 'estante',
       }));
       // "Surpreenda-me" embaralha; nos outros, os melhores de cada caminho vêm primeiro.
@@ -182,7 +210,8 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const [asking, setAsking] = useState(false);
   const [notice, setNotice] = useState('');
   const [catalog, setCatalog] = useState<{ key: string; items: Idea[]; state: 'loading' | 'ok' | 'error' } | null>(null);
-  const catKey = `${mood === 'alguem' ? 'coop' : 'any'}|${mood === 'surpresa'}`;
+  // O catálogo muda com o filtro do dia (gênero, tema e tempo para zerar no servidor).
+  const catKey = mood;
   const moodDef = MOODS.find((m) => m.id === mood)!;
   // Filtros extras, combináveis (lembrados neste navegador).
   const [extra, setExtraState] = useState<Extra>(() => { try { return JSON.parse(localStorage.getItem('wz.oqj.extra') || '{}'); } catch { return {}; } });

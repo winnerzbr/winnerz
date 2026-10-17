@@ -44,12 +44,18 @@ async function getToken() {
 }
 
 async function igdb(endpoint: string, body: string) {
-  const r = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
-    method: 'POST',
-    headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${await getToken()}`, 'Content-Type': 'text/plain' },
-    body,
-  });
-  if (!r.ok) throw new Error(`O catálogo respondeu ${r.status}`);
+  let r: Response | null = null;
+  // O IGDB aceita 4 pedidos por segundo: num 429, espera um pouco e tenta de novo (até 3 vezes).
+  for (let i = 0; i < 4; i++) {
+    r = await fetch(`https://api.igdb.com/v4/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Client-ID': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${await getToken()}`, 'Content-Type': 'text/plain' },
+      body,
+    });
+    if (r.status !== 429) break;
+    await new Promise((ok) => setTimeout(ok, 350 * (i + 1)));
+  }
+  if (!r || !r.ok) throw new Error(`O catálogo respondeu ${r?.status ?? 0}`);
   return r.json() as Promise<any[]>;
 }
 
@@ -497,9 +503,31 @@ export function notaReconhecida(g: NotaIgdb): { nota: number; qualidade: number 
 /** Para entrar em "Mais bem avaliados": base mínima de avaliações. */
 export const reconhecido = (g: NotaIgdb & { total_rating_count?: number }) => (g.total_rating_count ?? 0) >= 50 || (g.aggregated_rating_count ?? 0) >= 4;
 
+/**
+ * O "Como está seu dia?" no catálogo (ids de gênero e tema do IGDB, que são fixos):
+ * com = precisa ter um destes gêneros; sem = não pode ter nenhum; semTemas = não pode ter nenhum destes temas.
+ * Para "pouco" e "noite" ainda vale o tempo médio para zerar (game_time_to_beats), quando o IGDB tem.
+ */
+export const HUMOR: Record<string, { com?: number[]; sem?: number[]; semTemas?: number[]; maxHoras?: number; minHoras?: number }> = {
+  // Fighting, Platform, Puzzle, Racing, Sport, Quiz, Pinball, Arcade, Card & Board, Hack and slash, Shooter, Music
+  pouco: { com: [4, 8, 9, 10, 14, 26, 30, 33, 35, 25, 5, 7], sem: [12, 13, 15, 11, 16, 36, 34, 24], semTemas: [38, 41], maxHoras: 12 },
+  noite: { sem: [26, 30], minHoras: 8 },
+  // Adventure, RPG, Visual Novel, Point-and-click
+  historia: { com: [31, 12, 34, 2], sem: [4, 14, 10, 9, 33, 35, 26, 30, 36], semTemas: [40] },
+  // Platform, Fighting, Shooter, Strategy, Tactical, RTS, Hack and slash, TBS, Arcade
+  desafio: { com: [8, 4, 5, 15, 24, 11, 25, 16, 33], semTemas: [35, 40] },
+  // Puzzle, Simulator, Point-and-click, Card & Board, Music, Quiz, Pinball
+  relaxar: { com: [9, 13, 2, 35, 7, 26, 30], sem: [4, 5], semTemas: [19, 21, 39, 20] },
+};
+
 async function explore(q: Record<string, string | string[] | undefined>) {
   const now = Math.floor(Date.now() / 1000);
   const where: string[] = ['cover != null', 'version_parent = null', 'parent_game = null'];
+  const humor = HUMOR[String(q.humor ?? '')];
+  if (humor?.com) where.push(`genres = (${humor.com.join(',')})`);
+  // As exclusões (gêneros e temas do humor, e nunca conteúdo erótico, tema 42) são feitas aqui no código.
+  const semG = new Set(humor?.sem ?? []), semT = new Set([42, ...(humor?.semTemas ?? [])]);
+  const passa = (g: any) => !(g.genres ?? []).some((x: number) => semG.has(x)) && !(g.themes ?? []).some((x: number) => semT.has(x));
   const genre = ints(q.genre), platform = ints(q.platform), mode = ints(q.mode), theme = ints(q.theme);
   if (genre.length) where.push(`genres = (${genre.join(',')})`);
   if (platform.length) where.push(`platforms = (${platform.join(',')})`);
@@ -523,7 +551,7 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   if (sort === 'recent') { where.push(`first_release_date < ${now}`, 'first_release_date != null'); order = 'first_release_date desc'; }
   if (sort === 'upcoming') { where.push(`first_release_date > ${now}`); order = 'first_release_date asc'; }
   const page = Math.max(0, Math.min(20, Number(q.page) || 0));
-  const fields = 'name,slug,first_release_date,cover.image_id,platforms.name,total_rating,total_rating_count,rating,rating_count,aggregated_rating,aggregated_rating_count';
+  const fields = 'name,slug,first_release_date,cover.image_id,platforms.name,total_rating,total_rating_count,rating,rating_count,aggregated_rating,aggregated_rating_count,genres,themes';
   const out = (g: any) => ({
     ...hit(g), rating: g.total_rating ? Math.round(g.total_rating) : undefined, date: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : undefined,
     critica: g.aggregated_rating != null && g.aggregated_rating_count ? Math.round(g.aggregated_rating) : undefined, criticas: g.aggregated_rating_count ?? 0, jogadores: g.rating_count ?? 0,
@@ -531,10 +559,25 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   if (sort === 'rating') {
     // Os 500 mais avaliados com os filtros, ordenados pela nota com reconhecimento; a página sai dessa lista.
     const rows = await igdb('games', `fields ${fields}; where ${where.join(' & ')}; sort total_rating_count desc; limit 500;`);
-    return rows.filter(reconhecido).map((g: any) => ({ g, n: notaReconhecida(g).nota })).sort((a, b) => b.n - a.n).slice(page * 36, page * 36 + 36).map((x) => out(x.g));
+    let ranked = rows.filter((g: any) => reconhecido(g) && passa(g)).map((g: any) => ({ g, n: notaReconhecida(g).nota })).sort((a, b) => b.n - a.n);
+    const horas = new Map<number, number>();
+    if (humor?.maxHoras || humor?.minHoras) {
+      // Tempo médio para zerar (história principal) dos 150 primeiros; sem o dado, vale o filtro de gênero.
+      const ids = ranked.slice(0, 150).map((x) => x.g.id);
+      try {
+        const ttb = ids.length ? await igdb('game_time_to_beats', `where game_id = (${ids.join(',')}); fields game_id,normally; limit 500;`) : [];
+        for (const t of ttb) if (t.normally) horas.set(t.game_id, t.normally / 3600);
+      } catch { /* sem o tempo: segue só com os gêneros */ }
+      ranked = ranked.slice(0, 150).filter((x) => {
+        const h = horas.get(x.g.id);
+        if (h == null) return true; // sem o dado, vale só o filtro de gênero
+        return (!humor.maxHoras || h <= humor.maxHoras) && (!humor.minHoras || h >= humor.minHoras);
+      });
+    }
+    return ranked.slice(page * 36, page * 36 + 36).map((x) => ({ ...out(x.g), horas: horas.has(x.g.id) ? Math.max(1, Math.round(horas.get(x.g.id)!)) : undefined }));
   }
   const rows = await igdb('games', `fields ${fields}; where ${where.join(' & ')}; sort ${order}; limit 36; offset ${page * 36};`);
-  return rows.map(out);
+  return rows.filter(passa).map(out);
 }
 
 /* Universo do jogo ---------------------------------------------------------------------- */

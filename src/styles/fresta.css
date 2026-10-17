@@ -179,14 +179,15 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 /* ---- Menu: o logo no centro, apoiado no horizonte; as seções dos dois lados ---------------- */
 .site-header { border-bottom: 0; }
 .site-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--fr-hair) 8%, var(--fr-hair) 92%, transparent); pointer-events: none; }
-.site-header__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 0; padding-top: 0; padding-bottom: 0; min-height: 84px; }
-.site-header__side { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; min-width: 0; }
+.site-header__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 0; padding-top: 0; padding-bottom: 0; min-height: 84px; }
+.site-header__side { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-width: 0; }
 .site-header__side--l { padding-right: 44px; }
 .site-header__side--r { padding-left: 44px; }
-.site-header__logo { padding-bottom: 10px; }
+/* Tudo centralizado na altura do menu; só o fio da seção atual fica na linha de baixo. */
+.site-header__logo { align-self: center; padding: 0; display: flex; align-items: center; }
 .site-header__logo .brand-mark { width: 66px; height: auto; }
-.site-header .pillars { flex: none; flex-wrap: nowrap; gap: 34px; justify-content: flex-start; font-size: 15px; }
-.site-header .pillars a { min-height: 0; padding: 0 0 22px; color: var(--muted); white-space: nowrap; transition: color 0.2s; }
+.site-header .pillars { flex: none; flex-wrap: nowrap; gap: 34px; justify-content: flex-start; font-size: 15px; align-self: stretch; align-items: stretch; }
+.site-header .pillars a { display: flex; align-items: center; min-height: 0; padding: 0; color: var(--muted); white-space: nowrap; transition: color 0.2s; }
 .site-header .pillars a::after {
   content: ''; position: absolute; left: -14px; right: -14px; bottom: -0.5px; width: auto; height: 1px; margin: 0; border-radius: 0;
   background: var(--ink); box-shadow: none; transform: scaleX(0); transition: transform 0.35s var(--fr-ease);
@@ -195,11 +196,11 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 .site-header .pillars a:hover::after { transform: scaleX(1); }
 .site-header .pillars a[aria-current='page'] { color: var(--ink); font-weight: 700; }
 .site-header .pillars a[aria-current='page']::after { height: 2px; background: var(--horizon); box-shadow: 0 0 10px rgba(255, 178, 91, 0.5); transform: none; }
-.hdr-search { display: inline-flex; align-items: center; gap: 12px; padding: 0 0 22px; border: 0; background: none; color: var(--faint); font: 400 14.5px/1 var(--font-ui); cursor: pointer; white-space: nowrap; }
+.hdr-search { display: inline-flex; align-items: center; gap: 12px; padding: 0; min-height: 44px; border: 0; background: none; color: var(--faint); font: 400 14.5px/1 var(--font-ui); cursor: pointer; white-space: nowrap; }
 .hdr-search svg { display: none; }
 .hdr-search:hover { color: var(--ink); }
 .hdr-search:hover .tr { background: var(--ink); }
-.site-header__tools { padding-bottom: 12px; gap: 2px; }
+.site-header__tools { padding-bottom: 0; gap: 2px; }
 .session-pill { height: 34px; padding: 0 22px 0 14px; border: 0; border-radius: 0; background: var(--now-bg); color: var(--now-ink); font: 700 13px/1 var(--font-ui); letter-spacing: 0; text-transform: none; clip-path: polygon(0 0, 100% 0, calc(100% - 13px) 100%, 0 100%); }
 .session-pill__dot { border-radius: 0; width: 5px; height: 13px; transform: skewX(-22deg); background: var(--now); box-shadow: 0 0 8px rgba(255, 178, 91, 0.6); }
 .site-header .avatar { width: 36px; height: 36px; margin-left: 8px; }
@@ -230,13 +231,11 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 @media (max-width: 760px) {
   .site-header__row { min-height: 60px; padding-top: env(safe-area-inset-top); padding-bottom: 0; }
   .site-header__side--l, .site-header__side--r { padding: 0; }
-  .site-header__logo { padding-bottom: 8px; }
   .site-header__logo .brand-mark { width: 46px; }
-  .hdr-search { padding: 0 0 14px; min-height: 44px; align-items: flex-end; }
   .hdr-search svg { display: none; }
   .hdr-search__label { display: inline; font-size: 13.5px; }
   .hdr-search__more { display: none; }
-  .site-header__tools { padding-bottom: 8px; margin-left: auto; }
+  .site-header__tools { margin-left: auto; }
   .site-header .avatar { width: 32px; height: 32px; font-size: 13px; }
   .site-header .session-pill { padding: 0 16px 0 12px; }
 

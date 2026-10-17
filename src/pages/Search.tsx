@@ -53,6 +53,9 @@ export function SearchPage() {
     tudo: 0, jogos: games?.length ?? 0, pessoas: c.pessoas.length, conversas: c.conversas.length, comunidades: c.comunidades.length,
     grupos: c.clubes.length + c.jogatinas.length, listas: c.listas?.length ?? 0, acervo: acervo.length,
   };
+  // Em "Tudo", o jogo que já está no seu acervo não se repete em "Jogos".
+  const mine = new Set(acervo.map((g) => g.slug));
+  const jogos = (games ?? []).filter((h) => tab !== 'tudo' || !mine.has(h.slug));
   const show = (t: Tab) => tab === 'tudo' || tab === t;
   const lim = (n: number) => (tab === 'tudo' ? n : 100);
   const loading = games === null || cm === null;
@@ -80,9 +83,9 @@ export function SearchPage() {
                 <ul className="search__games">{acervo.slice(0, lim(8)).map((g) => <li key={g.id}><Link to={s.journeys.some((j) => j.gameId === g.id) ? `/jornada/${g.slug}` : `/jogos/${g.slug}`}><CoverArt game={g} /><span>{g.title}</span></Link></li>)}</ul>
               </section>
             )}
-            {show('jogos') && (games?.length ?? 0) > 0 && (
+            {show('jogos') && jogos.length > 0 && (
               <section className="search__group"><h2 className="kicker">Jogos</h2>
-                <ul className="search__games">{games!.slice(0, lim(8)).map((h) => <li key={h.slug}><Link to={`/jogos/${h.slug}`}><CoverArt game={{ title: h.title, cover: h.cover }} /><span>{h.title}<small className="faint">{[h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · ')}</small></span></Link></li>)}</ul>
+                <ul className="search__games">{jogos.slice(0, lim(8)).map((h) => <li key={h.slug}><Link to={`/jogos/${h.slug}`}><CoverArt game={{ title: h.title, cover: h.cover }} /><span>{h.title}<small className="faint">{[h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · ')}</small></span></Link></li>)}</ul>
               </section>
             )}
             {show('pessoas') && c.pessoas.length > 0 && (

@@ -104,6 +104,7 @@ export function SteamImportPage() {
     <main className="page pad importer steam">
       <header className="page-head">
         <div className="page-head__text">
+          <Link className="back" to="/colecao/importar">← Importar planilha</Link>
           <h1 className="t big">Importar da Steam</h1>
           <p className="muted lead">Os jogos da sua conta entram na estante como cópias digitais de PC. O tempo jogado fica guardado como “Informado pela Steam”. Nenhuma Jornada é criada: horas não dizem se você zerou, e isso é você quem conta.</p>
         </div>

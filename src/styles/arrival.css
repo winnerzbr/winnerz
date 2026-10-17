@@ -470,3 +470,13 @@
   .ar-sbar { gap: 10px; padding: 12px 12px 12px 16px; }
   .ar-sbar .ar-zb { padding: 0 12px; font-size: 11px; }
 }
+/* Refino R5: a Chegada no desenho do site (cantos retos, botão com lasca, rótulos sem mono). Continua escura, de cinema. */
+.ar-album,.ar-bt,.ar-buddy,.ar-capsule,.ar-card,.ar-case,.ar-cd,.ar-chip,.ar-cmc,.ar-cv,.ar-drop,.ar-ghost,.ar-ic,.ar-in,.ar-ln,.ar-mini-shelf,.ar-note,.ar-opt,.ar-own,.ar-poster,.ar-res,.ar-sbar,.ar-scene,.ar-search,.ar-seg,.ar-shine,.ar-slider,.ar-slt,.ar-spo,.ar-st,.ar-sw,.ar-tag,.ar-tg,.ar-tip,.ar-tray,.ar-wall,.ar-way,.ar-when,.ar-zb,.ar-zb2,.ar-handle,.ar-blur,.ar-glass,.ar-plate,.ar-polar{border-radius:0!important}
+.ar-zb{clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);padding-right:34px;font-stretch:112%;letter-spacing:.02em;text-transform:none;font-size:14px}
+.ar-zbA{background:#F2F4F6;color:#07080A}
+.ar-zbA:hover{background:#fff}
+.ar-zbA:disabled{background:#1b1e22;color:#7D848D}
+.ar-kick{font-family:'Archivo',system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:#E2BE84}
+.ar-kick::before{content:'';width:4px;height:13px;background:currentColor;opacity:.6;transform:skewX(-22deg)}
+.ar-lbl,.ar-tag{font-family:'Archivo',system-ui,sans-serif;font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;color:#9AA1AA}
+.ar-big{text-transform:uppercase}

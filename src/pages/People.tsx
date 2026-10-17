@@ -23,6 +23,13 @@ export function PeoplePage() {
   }, []);
   useEffect(() => { document.title = 'Pessoas · Comunidade · WinnerZ'; }, []);
   useEffect(() => { if (mode === 'demo' || signed) void load(); }, [mode, signed, load]);
+  // Sem aba pedida no endereço: abre na primeira que tem gente (amigos, depois seguindo, depois seguidores).
+  useEffect(() => {
+    if (!data || location.hash.slice(1)) return;
+    const f = data.following.filter((p) => p.mutual).length;
+    const first = f ? 'amigos' : data.following.length ? 'seguindo' : data.followers.length ? 'seguidores' : 'amigos';
+    setTab(first);
+  }, [data]);
 
   if (mode === 'supabase' && !signed) return (
     <main className="page pad narrow"><h1 className="t big">Pessoas</h1><p className="muted lead">Entre na sua conta para seguir pessoas e ver seus amigos.</p><Link className="btn primary" to="/entrar">Entrar</Link></main>

@@ -20,6 +20,7 @@ export function TrashPage() {
     <main className="page pad trash">
       <header className="page-head">
         <div className="page-head__text">
+          <Link className="back" to="/colecao">← Estante</Link>
           <h1 className="t big">Lixeira</h1>
           <p className="muted lead">O que você tira da coleção fica aqui por {DAYS} dias. Depois disso, sai de vez.</p>
         </div>

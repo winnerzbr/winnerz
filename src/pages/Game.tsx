@@ -387,14 +387,14 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
       <div className="editor__score">
         <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>
         {scale === 'TEN_POINT' ? (
-          <div className="editor__ten">
+          <div className={`editor__ten${!existing && !touched ? ' is-unset' : ''}`}>
             <ScoreSlider id="nota" value={value} onChange={setValue} />
-            <AnimatedScore value={value} max={10} />
+            {!existing && !touched ? <span className="editor__unset">Arraste para dar a nota</span> : <AnimatedScore value={value} max={10} />}
           </div>
         ) : (
-          <div className="editor__stars">
+          <div className={`editor__stars${!existing && !touched ? " is-unset" : ""}`}>
             <StarInput value={value} onChange={setValue} labelledBy="nota-label" />
-            <AnimatedScore value={value} max={max} />
+            {!existing && !touched ? <span className="editor__unset">Toque para dar a nota</span> : <AnimatedScore value={value} max={max} />}
           </div>
         )}
         {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre as estrelas ou clique. Dá para dar meia estrela.</p>}

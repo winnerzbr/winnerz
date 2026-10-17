@@ -55,6 +55,7 @@ export function RepairPage() {
     <main className="page pad importer">
       <header className="page-head">
         <div className="page-head__text">
+          <Link className="back" to="/colecao">← Estante</Link>
           <h1 className="t big">Arrumar repetidos</h1>
         </div>
         <SubNav pillar="colecao" />

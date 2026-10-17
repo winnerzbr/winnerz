@@ -79,7 +79,7 @@ export function ComebackPage({ slug }: { slug: string }) {
               {h && h.state !== 'concluida' && <button className="btn quiet sm" onClick={() => setCapsule(true)}>{h.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button>}
             </div>
           </section>
-          <Previously journeyId={journey.id} always />
+          <Previously journeyId={journey.id} always hideNote={next ?? null} />
         </div>
         <aside className="comeback__aside">
           {sessions.length > 0 && (
@@ -90,7 +90,7 @@ export function ComebackPage({ slug }: { slug: string }) {
                   <li key={x.id}>
                     <span className="mono comeback__when">{longDay(x.startedAt)}{x.minutes ? ` · ${durLabel(x.minutes)}` : ''}</span>
                     {x.whereStopped && <span><Icon name="pin" size={13} /> {x.whereStopped}</span>}
-                    {x.note && <span className="quote">“{x.note}”</span>}
+                    {x.note && x.note !== next && <span className="quote">“{x.note}”</span>}
                     {x.feeling && <span className="chip chip--static">{x.feeling}</span>}
                   </li>
                 ))}

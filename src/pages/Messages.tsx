@@ -71,6 +71,8 @@ export function MessagesPage({ handle }: { handle?: string }) {
   const [err, setErr] = useState('');
   const load = useCallback(async () => { try { setRows(await dmApi.list()); setErr(''); } catch (e) { setErr(errOf(e)); setRows([]); } }, []);
   useEffect(() => { if (!signedOut) void load(); track('mensagens.abrir'); }, [load, signedOut]);
+  // Ao ler uma conversa (dmApi.read avisa), a lista atualiza e o selo de não lida some.
+  useEffect(() => dmApi.subscribe(() => { if (!signedOut) void load(); }), [load, signedOut]);
   useEffect(() => {
     const t = setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 20_000);
     return () => clearInterval(t);

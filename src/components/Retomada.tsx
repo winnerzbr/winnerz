@@ -22,7 +22,7 @@ export const CAPSULE_FIELDS: { key: keyof Omit<Capsule, 'ai' | 'updatedAt'>; lab
  * "Anteriormente na sua Jornada…": aparece quando você volta depois de alguns dias (ou com a História pausada).
  * `always` mostra mesmo sem a distância (ex.: no começo da sessão, quando há algo registrado).
  */
-export function Previously({ journeyId, always = false, showCapsule = true, onEditCapsule }: { journeyId: ID; always?: boolean; showCapsule?: boolean; onEditCapsule?: () => void }) {
+export function Previously({ journeyId, always = false, showCapsule = true, onEditCapsule, hideNote }: { journeyId: ID; always?: boolean; showCapsule?: boolean; onEditCapsule?: () => void; hideNote?: string | null }) {
   const s = useStore((x) => x);
   const r = recapFor(s, journeyId);
   if (!r || !r.any || (!always && !wantsRecap(r))) return null;
@@ -43,7 +43,7 @@ export function Previously({ journeyId, always = false, showCapsule = true, onEd
       {(r.last?.whereStopped || r.last?.note) && (
         <div className="previously__last">
           {r.last.whereStopped && <p><span className="muted">Você parou em</span> {r.last.whereStopped}</p>}
-          {r.last.note && <p className="quote">“{r.last.note}”</p>}
+          {r.last.note && r.last.note !== hideNote && <p className="quote">“{r.last.note}”</p>}
         </div>
       )}
       <PreviouslyPart journeyId={journeyId} />

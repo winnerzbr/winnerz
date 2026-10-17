@@ -111,12 +111,14 @@ export function RadarPage() {
             </section>
           )}
 
-          <div className="radar__empty">
-            <span className="radar__empty-dot" aria-hidden="true" />
-            <strong>{games.length === 0 ? 'Nada no Radar ainda' : 'Nada mais no horizonte por enquanto'}</strong>
-            <span className="muted">Acompanhe um jogo pela ficha dele e a data aparece aqui assim que for anunciada.</span>
-            <Link className="btn ghost sm" to="/jogos/explorar?ordem=upcoming">Explorar o que está em breve →</Link>
-          </div>
+          {games.length === 0 && cands.length === 0 ? (
+            <div className="radar__empty">
+              <span className="radar__empty-dot" aria-hidden="true" />
+              <strong>Nada no Radar ainda</strong>
+              <span className="muted">Acompanhe um jogo pela ficha dele e a data aparece aqui assim que for anunciada.</span>
+              <Link className="btn ghost sm" to="/jogos/explorar?ordem=upcoming">Explorar o que está em breve →</Link>
+            </div>
+          ) : <Link className="arrow-link radar__more" to="/jogos/explorar?ordem=upcoming">Explorar o que está em breve →</Link>}
         </div>
 
         <CalendarBlock count={games.length} />

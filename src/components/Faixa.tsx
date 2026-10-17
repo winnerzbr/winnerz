@@ -89,6 +89,10 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   const [tour, setTour] = useState(false);
   const focusRef = useRef(focus);
   focusRef.current = focus;
+  // O painel em foco pelo id (o índice muda quando a lista muda).
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const lastId = useRef<string | null>(null);
   const photos = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image), [items]);
   const chapters = useMemo(() => items.filter((x): x is ChapterItem => x.type === 'chapter'), [items]);
   const opens = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'popen' }> => x.type === 'popen'), [items]);
@@ -121,18 +125,36 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       if (ad < bd) { bd = ad; best = i; }
     });
     if (big.current && !reduced) big.current.style.transform = `translateX(${(-v.scrollLeft * 0.35).toFixed(1)}px)`;
+    lastId.current = itemsRef.current[best]?.id ?? null;
     if (best !== focusRef.current) setFocus(best);
   }, [reduced]);
 
+  const snapBack = useRef<number | undefined>(undefined);
   const center = useCallback((i: number, smooth = true) => {
     const v = vp.current, el = els.current[i];
     if (!v || !el) return;
     const vert = window.innerWidth <= 640;
-    v.scrollTo({ left: vert ? 0 : el.offsetLeft + el.offsetWidth / 2 - v.clientWidth / 2, top: vert ? el.offsetTop + el.offsetHeight / 2 - v.clientHeight / 2 : 0, behavior: smooth && !reduced ? 'smooth' : 'auto' });
+    // Sem o "ímã" durante o salto: senão o navegador puxa de volta para o painel em que estava encaixado.
+    v.style.scrollSnapType = 'none';
+    v.scrollTo({ left: vert ? 0 : el.offsetLeft + el.offsetWidth / 2 - v.clientWidth / 2, top: vert ? el.offsetTop + el.offsetHeight / 2 - v.clientHeight / 2 : 0, behavior: smooth && !reduced ? 'smooth' : 'instant' });
+    clearTimeout(snapBack.current);
+    snapBack.current = window.setTimeout(() => { if (!drag.current) v.style.scrollSnapType = ''; }, smooth && !reduced ? 900 : 80);
   }, [reduced]);
 
-  // Abre no fim (o "Hoje" ou o último registro).
-  useLayoutEffect(() => { center(home, false); update(); }, [items.length, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Abre no fim (o "Hoje" ou o último registro). Quando a lista muda (chegou um eco, você marcou outro capítulo),
+  // continua no mesmo painel: o capítulo à frente que virou o atual ("gp-x" → "po-x") segue em foco.
+  const opened = useRef(false);
+  useLayoutEffect(() => {
+    const id = lastId.current;
+    let i = -1;
+    if (opened.current && id) {
+      i = items.findIndex((x) => x.id === id);
+      if (i < 0 && /^(gp|po)-/.test(id)) { const pid = id.slice(3); i = items.findIndex((x) => x.id === `po-${pid}` || x.id === `gp-${pid}`); }
+    }
+    opened.current = true;
+    center(i >= 0 ? i : home, false); update();
+  }, [items, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   useEffect(() => {
     const v = vp.current;

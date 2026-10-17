@@ -18,6 +18,7 @@ import { WhatToPlay } from '../components/WhatToPlay';
 import { Backdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
 import { StopLine, FitCard } from '../components/Comeback';
+import { MascoteVazio } from '../components/IAmiguinho';
 
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
 
@@ -106,6 +107,7 @@ export function JourneyIndex() {
           <p className="t" style={{ fontSize: 30, color: 'var(--ink)' }}>Nenhuma Jornada ainda</p>
           <p className="muted">Escolha um jogo e toque em Jogar. A primeira História começa sem formulário.</p>
           <div className="hero__actions"><Link className="btn primary" to="/colecao">Abrir sua estante</Link><Link className="btn ghost" to="/jogos">Buscar um jogo</Link></div>
+          <MascoteVazio momento="jornada-vazia" />
         </div>
       )}
 

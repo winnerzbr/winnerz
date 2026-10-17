@@ -14,6 +14,7 @@ import { Icon } from '../components/Icon';
 import { ReportButton, useMyHandle } from '../components/Moderation';
 import type { GameMini, PersonRef } from '../data/communityApi';
 import { track } from '../lib/track';
+import { MascoteVazio } from '../components/IAmiguinho';
 
 const at = (p: PersonRef) => (p.handle ? `/@${p.handle.toLowerCase()}` : '#');
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
@@ -121,7 +122,7 @@ export function ListsPage() {
         {!creating && <button className="btn primary sm" onClick={() => setCreating(true)}><Icon name="mais" size={16} />Nova lista</button>}
       </div>
       {err && <p className="awards__error" role="alert">{err}</p>}
-      {data == null ? <p className="faint">Carregando…</p> : list.length === 0 ? <div className="soc-empty"><p className="muted">{EMPTY[tab]}</p></div>
+      {data == null ? <p className="faint">Carregando…</p> : list.length === 0 ? <div className="soc-empty"><p className="muted">{EMPTY[tab]}</p><MascoteVazio momento="listas-vazias" /></div>
         : <div className="glist-grid">{list.map((l) => <ListCard key={l.id} l={l} showOwner={tab !== 'minhas'} />)}</div>}
     </main>
   );
@@ -193,7 +194,7 @@ export function ListPage({ id }: { id: string }) {
       {people && l.role === 'dona' && <EditorsPanel l={l} onChange={() => void load()} />}
       {err && <p className="awards__error" role="alert">{err}</p>}
       {can && <AddGame list={l} onAdded={onAdded} />}
-      {l.items.length === 0 ? <div className="soc-empty"><p className="muted">{can ? 'A lista está vazia. Procure um jogo acima para começar.' : 'Esta lista ainda não tem jogos.'}</p></div> : (
+      {l.items.length === 0 ? <div className="soc-empty"><p className="muted">{can ? 'A lista está vazia. Procure um jogo acima para começar.' : 'Esta lista ainda não tem jogos.'}</p>{can && <MascoteVazio momento="listas-vazias" />}</div> : (
         <ol className={`glist__items${l.ranked ? ' is-ranked' : ''}`}>
           {l.items.map((it, n) => <ItemRow key={it.game.slug} it={it} n={n} last={n === l.items.length - 1} list={l} can={can} busy={busy} onMove={move}
             onRemove={() => void run(() => listsApi.removeGame(l.id, it.game.slug))}

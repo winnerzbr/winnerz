@@ -16,6 +16,7 @@ import { Link } from '../lib/router';
 import type { CommunityPrefs } from '../data/types';
 import { refreshNews } from '../data/communityApi';
 import { refreshNotifs } from '../data/notifApi';
+import { MODOS } from '../lib/iamiguinho';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -65,7 +66,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências" ref={navRef}>
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -159,6 +160,22 @@ export function Preferences() {
             <label key={t.id} className="motion" data-on={(prefs.tone ?? 'encorajadora') === t.id}>
               <input type="radio" name="tom" checked={(prefs.tone ?? 'encorajadora') === t.id} onChange={() => actions.setPrefs({ tone: t.id })} />
               <span><strong>{t.label}</strong><span className="muted">{t.desc} Ex.: “{t.sample}”</span></span>
+            </label>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="iamiguinho" className="prefs__section">
+        <h2 id="iamiguinho" className="t">IAmiguinho</h2>
+        <div className="iam-pref">
+          <img src="/brand/iamiguinho/cara-sorriso-confiante.webp" alt="" width={72} height={72} />
+          <p className="muted">O mascote do WinnerZ. Ele aparece de vez em quando para comemorar, fazer graça de si mesmo e ocupar as telas vazias. As falas são escritas pela equipe. <Link to="/@iamiguinho">Conheça o IAmiguinho</Link></p>
+        </div>
+        <div role="radiogroup" aria-labelledby="iamiguinho" className="motions">
+          {MODOS.map((m) => (
+            <label key={m.id} className="motion" data-on={(prefs.iamiguinho ?? 'normal') === m.id}>
+              <input type="radio" name="iamiguinho" checked={(prefs.iamiguinho ?? 'normal') === m.id} onChange={() => actions.setPrefs({ iamiguinho: m.id })} />
+              <span><strong>{m.label}</strong><span className="muted">{m.desc}</span></span>
             </label>
           ))}
         </div>

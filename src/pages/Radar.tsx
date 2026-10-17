@@ -10,6 +10,7 @@ import { localDay } from '../lib/dates';
 import { shortPlatform } from '../lib/platforms';
 import { accessToken } from '../data/supabaseAdapter';
 import { track } from '../lib/track';
+import { MascoteVazio, Cameo } from '../components/IAmiguinho';
 
 export function radarGames(s: State): Game[] {
   return Object.values(s.myGames).filter((m) => m.onRadar && s.games[m.gameId]).map((m) => s.games[m.gameId]);
@@ -111,12 +112,14 @@ export function RadarPage() {
             </section>
           )}
 
+          {games.some((g) => { const r = g.igdbId ? info[g.igdbId] : undefined; return !!r?.day && r.status === 'previsto' && daysUntil(r.day, today) >= 0 && daysUntil(r.day, today) <= 7; }) && <Cameo motivo="radar" />}
           {games.length === 0 && cands.length === 0 ? (
             <div className="radar__empty">
               <span className="radar__empty-dot" aria-hidden="true" />
               <strong>Nada no Radar ainda</strong>
               <span className="muted">Acompanhe um jogo pela ficha dele e a data aparece aqui assim que for anunciada.</span>
               <Link className="btn ghost sm" to="/jogos/explorar?ordem=upcoming">Explorar o que está em breve →</Link>
+              <MascoteVazio momento="radar-vazio" />
             </div>
           ) : <Link className="arrow-link radar__more" to="/jogos/explorar?ordem=upcoming">Explorar o que está em breve →</Link>}
         </div>

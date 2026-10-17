@@ -303,6 +303,8 @@ export interface Prefs {
   backdrops?: Record<ID, string>;
   /** Tom das celebrações e mensagens. */
   tone?: Tone;
+  /** Aparições do IAmiguinho: Normal, Discreto, Só quando eu chamar ou Desativado. */
+  iamiguinho?: 'normal' | 'discreto' | 'chamar' | 'desativado';
   /** Modo leve: esconde contadores e números (sessões, horas, porcentagens). */
   light?: boolean;
   /** Segredo do endereço do overlay (trocar invalida o endereço antigo). */

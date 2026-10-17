@@ -628,7 +628,7 @@ function Releases({ list, ups, setUps }: { list: Game[] | null; ups: Game[]; set
           })}
         </div>
       )}
-      <div className="ar-buddy"><img src="/brand/iamiguinho-icon.webp" alt="" /><span><b>IAmiguinho</b>Lançamento chegando. Eu já separei o lanche.</span></div>
+      <div className="ar-buddy"><img src="/brand/iamiguinho/cara-curioso.webp" alt="" /><span><b>IAmiguinho</b>Lançamento chegando. Eu já separei o lanche.</span></div>
     </>
   );
 }

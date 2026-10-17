@@ -4,6 +4,7 @@ import { useStore } from '../data/store';
 import { FILTERS, notifApi, type Notif, type NotifFilter } from '../data/notifApi';
 import { NotifItem } from '../components/Notifications';
 import { dayKey } from '../lib/when';
+import { MascoteVazio } from '../components/IAmiguinho';
 
 const isFilter = (x: string | null): x is NotifFilter => !!x && FILTERS.some((f) => f.k === x);
 
@@ -59,7 +60,7 @@ export function AvisosPage() {
       </nav>
       {err && <p className="awards__error" role="alert">{err}</p>}
       {items == null ? <p className="faint">Carregando…</p> : items.length === 0
-        ? <div className="soc-empty"><b>{f === 'naolidos' ? 'Tudo lido.' : 'Nenhum aviso aqui ainda.'}</b><p className="muted">Quando alguém responder, mencionar, convidar ou seguir você, o aviso aparece aqui e no sino.</p></div>
+        ? <div className="soc-empty"><b>{f === 'naolidos' ? 'Tudo lido.' : 'Nenhum aviso aqui ainda.'}</b><p className="muted">Quando alguém responder, mencionar, convidar ou seguir você, o aviso aparece aqui e no sino.</p><MascoteVazio momento="avisos-vazios" /></div>
         : groups.map(([g, l]) => (
           <section key={g} className="avisos__g" aria-label={g}>
             <h2 className="club__h3">{g}</h2>

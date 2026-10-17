@@ -3,6 +3,7 @@ import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
+import { Carregando, MascoteVazio, ProtecaoErro } from './components/IAmiguinho';
 import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
@@ -78,7 +79,8 @@ import { AwardsHistoryPage } from './pages/AwardsPlus';
 const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.AlbumPage })));
 const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default: m.ArrivalPage })));
 const StudioAlbumPage = lazy(() => import('./pages/StudioAlbum').then((m) => ({ default: m.StudioAlbumPage })));
-const lazyPage = (node: ReactNode) => <Suspense fallback={<main className="page pad"><p className="faint">Carregando…</p></main>}>{node}</Suspense>;
+const IAmiguinhoPage = lazy(() => import('./pages/IAmiguinho').then((m) => ({ default: m.IAmiguinhoPage })));
+const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}</Suspense>;
 
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
@@ -168,6 +170,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if (match('/studio/moderacao', path)) return <StudioModerationPage />;
   if (match('/studio/comunidades', path)) return <StudioCommunitiesPage />;
+  if ((m = match('/:handle', path)) && m.handle.toLowerCase() === '@iamiguinho') return lazyPage(<IAmiguinhoPage />);
   if ((m = match('/:handle', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/museu', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicMuseumPage handle={m.handle.slice(1)} />;
   if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} vitrine={m.id} />;
@@ -180,6 +183,7 @@ function Routes({ path }: { path: string }): ReactNode {
           <p className="muted lead">Esse endereço não existe, ou mudou de lugar.</p>
         </div>
       </header>
+      <MascoteVazio momento="nao-encontrada" />
       <Link className="btn primary" to="/">Voltar ao início</Link>
     </main>
   );
@@ -255,7 +259,7 @@ export function App() {
       <ForgottenSession />
       <BridgeSync />
       <DropBanner hidden={isSession || path.startsWith('/album/pacotes')} />
-      <Routes path={path} />
+      <ProtecaoErro chave={path}><Routes path={path} /></ProtecaoErro>
       {!isSession && (
         <footer className="site-footer">
           {/* Fresta: o logo pousado no horizonte, como no topo; os links ficam embaixo da linha, separados por traços. */}

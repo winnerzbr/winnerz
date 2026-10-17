@@ -9,6 +9,7 @@ import './styles/pages.css';
 import './styles/etapa2.css';
 import './styles/album.css';
 import './styles/fresta.css';
+import './styles/iamiguinho.css';
 
 
 async function boot() {

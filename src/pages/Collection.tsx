@@ -15,6 +15,7 @@ import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms
 import { titleKey } from '../lib/importer';
 import { collectionCsv, download } from '../lib/exportData';
 import { LoanPanel, loanDate, overdue } from '../components/LoanPanel';
+import { MascoteVazio } from '../components/IAmiguinho';
 
 type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial' | 'emprestados';
 type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
@@ -226,6 +227,7 @@ export function Collection() {
             <button className="btn primary" onClick={() => setAdding('nome')}><Icon name="mais" size={16} />Adicionar o primeiro jogo</button>
             <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
           </div>
+          <MascoteVazio momento="colecao-vazia" />
         </div>
       ) : list.length === 0 ? (
         <p className="card tl-empty">Nada aqui com esses filtros.</p>

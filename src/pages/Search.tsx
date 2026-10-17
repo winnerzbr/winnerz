@@ -14,6 +14,7 @@ import { shortPlatform } from '../lib/platforms';
 import { whenLabel } from '../lib/when';
 import { track } from '../lib/track';
 import { ListCard } from './Lists';
+import { MascoteVazio } from '../components/IAmiguinho';
 
 const TABS = [
   ['tudo', 'Tudo'], ['jogos', 'Jogos'], ['pessoas', 'Pessoas'], ['conversas', 'Conversas'], ['comunidades', 'Comunidades'], ['grupos', 'Clubes e jogatinas'], ['listas', 'Listas'], ['acervo', 'Seu acervo'],
@@ -75,7 +76,7 @@ export function SearchPage() {
       )}
       {q0.trim().length < 2 ? <p className="muted">Escreva pelo menos duas letras. Dica: <kbd>Ctrl</kbd>+<kbd>K</kbd> abre a busca rápida de qualquer página.</p>
         : loading ? <p className="muted">Procurando…</p>
-        : none ? <p className="muted">Nada encontrado para “{q0}”. Tente outra palavra, sem acento ou só parte do nome.</p>
+        : none ? <div className="search__none"><p className="muted">Nada encontrado para “{q0}”. Tente outra palavra, sem acento ou só parte do nome.</p><MascoteVazio momento="busca-vazia" /></div>
         : (
           <div className="search__groups">
             {show('acervo') && acervo.length > 0 && (

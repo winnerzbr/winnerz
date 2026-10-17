@@ -34,6 +34,8 @@
   --primary-hi: #FFFFFF;
   --on-primary: #07080A;
   --ai: #B8C4D6;
+  --iam: #7FE3FF;
+  --iam-deep: #1F4FD8;
   --shadow: rgba(0, 0, 0, 0.55);
   --ledge1: #2a2e34;
   --ledge2: #1a1d21;
@@ -80,6 +82,8 @@
   --primary-hi: #2a2f36;
   --on-primary: #FFFFFF;
   --ai: #3D5A80;
+  --iam: #1F4FD8;
+  --iam-deep: #1F4FD8;
   --shadow: rgba(20, 30, 45, 0.16);
   --ledge1: #cfd4da;
   --ledge2: #b9bfc7;

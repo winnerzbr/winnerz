@@ -1,0 +1,57 @@
+/* IAmiguinho, fase 1: mascote de interface, balão de cameo, Preferências e perfil oficial.
+   O azul aceso (--iam) é só dele. Fresta: cantos retos, traço inclinado, nada de cartão arredondado. */
+
+/* Mascote de interface: pose + balão com a fala */
+.iam-vazio { display: grid; grid-template-columns: 116px minmax(0, 1fr); align-items: end; gap: 14px; margin-top: 18px; max-width: 520px; text-align: left; }
+.iam-vazio__pose { width: 116px; height: auto; display: block; filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35)); }
+.iam-vazio--centro { margin-inline: auto; }
+.iam-fala { position: relative; margin: 0 0 22px; padding: 12px 16px; background: var(--surface-2, var(--field)); border-left: 3px solid var(--iam); font-size: 14px; line-height: 1.5; color: var(--ink-2, var(--ink)); }
+.iam-fala::before { content: ''; position: absolute; left: -11px; bottom: 14px; width: 10px; height: 14px; background: var(--iam); clip-path: polygon(100% 0, 100% 100%, 0 100%); }
+.iam-fala__quem { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; font: 600 12px/1.2 var(--font-ui); letter-spacing: 0.02em; color: var(--iam); }
+.iam-selo { display: inline-block; font: 500 10px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 3px 9px 3px 6px; background: var(--piece, var(--field)); clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+.iam-selo--forte { color: var(--ink); }
+.tl-empty .iam-vazio, .soc-empty .iam-vazio, .radar__empty .iam-vazio { margin-inline: 0; }
+.radar__empty .iam-vazio { align-self: stretch; }
+.search__none { display: flex; flex-direction: column; gap: 4px; }
+.notfound .iam-vazio { margin: 4px 0 24px; }
+
+/* Balão de cameo no canto */
+.iam-cameo { position: fixed; z-index: 60; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px)); width: min(380px, calc(100vw - 32px)); display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 10px 12px 12px; background: var(--surface); border-left: 3px solid var(--iam); box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45); animation: iam-entra 0.42s cubic-bezier(0.2, 0.8, 0.3, 1.15) both; }
+.iam-cameo__cara { width: 64px; height: 64px; object-fit: contain; animation: iam-flutua 3.2s ease-in-out infinite; }
+.iam-cameo__txt { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
+.iam-cameo__x { align-self: start; width: 32px; height: 32px; border: 0; background: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.iam-cameo__x:hover, .iam-cameo__x:focus-visible { color: var(--ink); }
+@keyframes iam-entra { from { opacity: 0; transform: translateY(18px) rotate(1.5deg); } to { opacity: 1; transform: none; } }
+@keyframes iam-flutua { 50% { transform: translateY(-4px) rotate(-2deg); } }
+@media (max-width: 760px) { .iam-cameo { right: 12px; left: 12px; width: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .iam-cameo, .iam-cameo__cara { animation: none; } }
+html[data-motion='reduzidas'] .iam-cameo, html[data-motion='reduzidas'] .iam-cameo__cara { animation: none; }
+
+/* Preferências */
+.iam-pref { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: center; margin: 4px 0 14px; }
+.iam-pref img { width: 56px; height: 56px; object-fit: contain; }
+.iam-pref p { margin: 0; }
+
+/* Perfil oficial */
+.iam-perfil { display: flex; flex-direction: column; gap: 48px; }
+.iam-perfil__hero { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: clamp(24px, 4vw, 56px); align-items: center; }
+.iam-perfil__foto { background: radial-gradient(60% 55% at 50% 45%, color-mix(in srgb, var(--iam) 22%, transparent), transparent 70%), var(--surface); padding: 24px; display: grid; place-items: center; }
+.iam-perfil__foto img { width: 100%; max-width: 300px; height: auto; filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.45)); }
+.iam-perfil__id { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.iam-perfil__id h1 { margin: 0; }
+.iam-perfil__handle { margin: 0; font: 500 14px var(--font-mono); color: var(--iam); }
+.iam-perfil__selos { display: flex; gap: 8px; margin: 2px 0 6px; }
+.iam-perfil__id .lead { margin: 0; max-width: 46ch; }
+.iam-perfil__como { margin: 0; max-width: 62ch; font-size: 14px; }
+.iam-perfil__nums { display: flex; flex-wrap: wrap; gap: 10px 28px; margin: 8px 0 0; }
+.iam-perfil__nums div { display: flex; flex-direction: column; gap: 2px; }
+.iam-perfil__nums dt { font: 500 11px var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.iam-perfil__nums dd { margin: 0; font: 700 18px var(--font-ui); }
+.iam-perfil__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.iam-perfil__cols section, .iam-perfil > section { display: flex; flex-direction: column; gap: 14px; }
+.iam-perfil__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.iam-perfil__lista li { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--line); }
+.iam-perfil__momentos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.iam-perfil__momentos li { display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center; background: var(--surface); padding: 16px 12px; }
+.iam-perfil__momentos img { width: 100%; max-width: 150px; height: auto; }
+@media (max-width: 860px) { .iam-perfil__hero, .iam-perfil__cols { grid-template-columns: 1fr; } .iam-perfil__foto { max-width: 360px; } .iam-perfil__momentos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

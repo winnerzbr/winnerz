@@ -4,7 +4,7 @@ import { starFill, scoreHue } from '../lib/rating';
 /** Fresta: cada "estrela" é um traço na inclinação do Z (22°). O preenchimento parcial continua igual. */
 const STAR = 'M12.5 2h6.5L11.5 22H5z';
 
-function Star({ fill, size, delay }: { fill: number; size: number; delay?: number }) {
+export function Star({ fill, size, delay }: { fill: number; size: number; delay?: number }) {
   return (
     <span className="star" style={{ width: size, height: size }}>
       <svg viewBox="0 0 24 24" className="star__off"><path d={STAR} /></svg>
@@ -22,6 +22,16 @@ export function Stars({ normalized, size = 18 }: { normalized: number; size?: nu
   return (
     <span className="stars" aria-hidden="true" style={{ gap: Math.round(size * 0.18) }}>
       {[0, 1, 2, 3, 4].map((i) => <Star key={i} size={size} fill={Math.max(0, Math.min(1, value - i))} />)}
+    </span>
+  );
+}
+
+/** A nota de 0 a 10 em dez traços (um por ponto), só para ler. Mesmo desenho e mesma cor das estrelas. */
+export function Traces10({ normalized, size = 18 }: { normalized: number; size?: number }) {
+  const value = normalized / 100; // 0..10
+  return (
+    <span className="stars stars--10" aria-hidden="true" style={{ gap: Math.round(size * 0.08) }}>
+      {Array.from({ length: 10 }, (_, i) => <Star key={i} size={size} fill={Math.max(0, Math.min(1, value - i))} />)}
     </span>
   );
 }
@@ -97,7 +107,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
 }
 
 /** Pulso no formato da estrela onde a nota parou: quanto maior a nota, maior, mais forte e mais brilhante. */
-function StarPulse({ seed, size, k, big }: { seed: number; size: number; k: number; big?: boolean }) {
+export function StarPulse({ seed, size, k, big }: { seed: number; size: number; k: number; big?: boolean }) {
   return (
     <span key={seed} className="star-pulse" style={{ ['--k' as string]: k, width: size, height: size } as CSSProperties} aria-hidden="true">
       {(big ? [0, 1] : [0]).map((n) => (

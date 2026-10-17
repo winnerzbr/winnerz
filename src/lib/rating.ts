@@ -40,6 +40,8 @@ export function formatScore(normalized: number, scale: Scale, opts: { average?: 
   if (opts.average) s = v.toFixed(1);
   else if (Math.round(v * 2) === v * 2) s = v.toFixed(1);
   else s = v.toFixed(2);
+  // Nota cheia (10, 9, 8…) aparece sem o decimal: "9", não "9,0".
+  if (/\.0+$/.test(s)) s = s.replace(/\.0+$/, '');
   return s.replace('.', ',');
 }
 

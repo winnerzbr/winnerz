@@ -18,7 +18,10 @@ test('recusa valores fora da grade', () => {
 test('conversão de exibição não arredonda a opinião', () => {
   assert.equal(formatScore(850, 'FIVE_STAR'), '4,25');
   assert.equal(formatScore(750, 'FIVE_STAR'), '3,75');
-  assert.equal(formatScore(900, 'TEN_POINT'), '9,0');
+  assert.equal(formatScore(900, 'TEN_POINT'), '9');
+  assert.equal(formatScore(1000, 'TEN_POINT'), '10');
+  assert.equal(formatScore(800, 'FIVE_STAR'), '4');
+  assert.equal(formatScore(900, 'TEN_POINT', { average: true }), '9');
   assert.equal(formatScore(900, 'FIVE_STAR'), '4,5');
   assert.equal(formatScore(950, 'FIVE_STAR'), '4,75');
 });

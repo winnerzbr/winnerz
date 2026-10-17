@@ -14,8 +14,8 @@ import { GameSwapOnPage } from '../components/GameSwap';
 import { CoverArt } from '../components/CoverArt';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
-import { Stars, StarInput } from '../components/Stars';
-import { ScoreSlider, AnimatedScore, ScoreTraces } from '../components/ScoreInput';
+import { Stars, StarInput, Traces10 } from '../components/Stars';
+import { ScoreSlider, AnimatedScore } from '../components/ScoreInput';
 import { Icon } from '../components/Icon';
 import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
@@ -216,7 +216,7 @@ function GameView({ gameId }: { gameId: string }) {
               {mine ? (
                 <>
                   <div className="t rate-card__v">{formatScore(mine.rating.normalized, scale)}</div>
-                  {scale === 'FIVE_STAR' ? <Stars normalized={mine.rating.normalized} /> : <ScoreTraces value={mine.rating.normalized / 100} />}
+                  {scale === 'FIVE_STAR' ? <Stars normalized={mine.rating.normalized} /> : <Traces10 normalized={mine.rating.normalized} />}
                   <span className="muted rate-card__n">{originalLabel(mine.rating, scale) ?? `Dada em ${mineDate}`}</span>
                 </>
               ) : (

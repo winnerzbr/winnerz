@@ -353,10 +353,7 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 
 /* ===== F3: página do jogo, Coleção, Comunidade e o resto do site ============================= */
 
-/* Notas: cada "estrela" vira um traço na inclinação do Z, em platina (âmbar fica para o agora) */
-:root { --star-off: rgba(230, 233, 237, 0.16); --star-on: #E8EBEE; }
-:root[data-theme='claro'] { --star-off: rgba(11, 13, 16, 0.14); --star-on: #0B0D10; }
-.on-photo { --star-on: #F2F4F6; --star-off: rgba(230, 233, 237, 0.2); }
+/* Notas: cada "estrela" vira um traço na inclinação do Z; a cor continua âmbar */
 .star path { stroke-width: 0; }
 
 /* Avatares: quadrado com contorno branco fino, como no menu */
@@ -372,20 +369,13 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 .ghero__chip + .ghero__chip { margin-left: -7px; }
 .pph__avatar, .avedit__now { box-shadow: none; background: var(--fr-piece); color: var(--ink); outline-width: 2px; outline-offset: -2px; }
 
-/* Nota de 0 a 10: dez traços, um por ponto (o meio ponto enche pela metade); platina, como as notas em traços */
-.score-slider { padding: 0 14px; height: 48px; }
-.score-slider__track--tr { display: flex; align-items: stretch; gap: 7px; height: 30px; background: none !important; box-shadow: none !important; outline-offset: 10px; }
-.score-tr { position: relative; flex: 1; overflow: hidden; background: var(--star-off); transform: skewX(-22deg); transition: transform 0.25s var(--fr-ease); }
-.score-tr::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: calc(var(--p, 0) * 100%); background: var(--star-on); transition: width 0.3s var(--fr-ease); transition-delay: calc(var(--i) * 22ms); }
-.score-slider.is-dragging .score-tr::after { transition-delay: 0s; transition-duration: 0.08s; }
-.score-slider.is-dragging .score-tr.is-last, .score-slider__input:hover + .score-slider__track .score-tr.is-last { transform: skewX(-22deg) scaleY(1.18); }
-.score-slider__input:focus-visible + .score-slider__track--tr { outline: 2px solid var(--ink); outline-offset: 10px; }
-.score-slider.is-max .score-tr::after { animation: fr-max 0.9s var(--fr-ease) both; animation-delay: calc(var(--i) * 40ms); }
-@keyframes fr-max { 0% { filter: brightness(1); } 40% { filter: brightness(1.6) drop-shadow(0 0 8px rgba(255, 255, 255, 0.6)); } 100% { filter: brightness(1); } }
-@media (max-width: 640px) { .score-slider__track--tr { gap: 5px; height: 26px; } }
-.score-traces { display: flex; gap: 6px; height: 18px; max-width: 260px; margin: 6px 0 4px; }
-.score-traces .score-tr { flex: 1; }
-.score-traces, .score-slider { --star-on: var(--ink); --star-off: color-mix(in srgb, var(--ink) 16%, transparent); }
-/* As notas em traços são platina em todo lugar (os cartões de nota e a nota em estrelas para escrever pintavam de âmbar) */
-.rate-card, .review__score, .star-input { --star-on: var(--ink); --star-off: color-mix(in srgb, var(--ink) 16%, transparent); }
-.on-photo .rate-card, .on-photo .review__score { --star-on: #F2F4F6; }
+
+/* Nota de 0 a 10: dez traços com o mesmo desenho, a mesma cor e as mesmas animações da nota em estrelas.
+   O campo de faixa fica escondido, só para o teclado e o leitor de tela; o mouse e o dedo usam os traços. */
+.score-slider { position: relative; flex: 1; min-width: 200px; height: auto; padding: 0; display: flex; align-items: center; }
+.score-slider__input { position: absolute; left: 0; top: 50%; inset: auto; width: 1px; height: 1px; opacity: 0; pointer-events: none; z-index: 0; }
+.score-row.star-input { display: flex; width: 100%; margin: 0; padding: 6px 0; border-radius: 0; }
+.score-row__cell { flex: 1; display: flex; justify-content: center; }
+.score-slider__input:focus-visible + .score-row { outline: 2px solid var(--now); outline-offset: 6px; }
+.stars--10 { flex-wrap: nowrap; }
+.rate-card .stars--10 { margin: 4px 0 2px; }

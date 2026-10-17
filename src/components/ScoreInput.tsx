@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { Star, StarPulse } from './Stars';
 import { scoreHue } from '../lib/rating';
 
 const fmt = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1)).replace('.', ',');
@@ -40,47 +41,71 @@ export function Burst({ seed, left, big, k = 0.5 }: { seed: number; left: string
 }
 
 /**
- * Nota de 0 a 10, de meio em meio ponto: dez traços que acendem um a um (o do meio ponto, pela metade);
- * no 10, todos comemoram juntos.
- * Por baixo é um campo de faixa normal: teclado e leitor de tela funcionam como sempre.
+ * Nota de 0 a 10, de meio em meio ponto: dez traços, com a mesma lógica e as mesmas animações da nota em estrelas
+ * (preenche ao passar o mouse, o traço onde a nota parou pulsa, no 10 todos fazem a onda).
+ * Para o teclado e o leitor de tela continua um campo de faixa normal (setas, Home, End).
  */
 export function ScoreSlider({ value, onChange, id }: { value: number; onChange: (v: number) => void; id?: string }) {
-  const [drag, setDrag] = useState(false);
-  const [burst, setBurst] = useState(0);
-  const last = useRef(value);
-  const f = value / 10;
+  const box = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [pop, setPop] = useState(0);
+  const [w, setW] = useState(0);
+  const shown = hover ?? value;
+  const prev = useRef(value);
+  const [dir, setDir] = useState<1 | -1>(1);
+  useEffect(() => { if (value !== prev.current) { setDir(value > prev.current ? 1 : -1); prev.current = value; } }, [value]);
   useEffect(() => {
-    if (value !== last.current && !drag) setBurst((n) => n + 1);
-    last.current = value;
-  }, [value, drag]);
-  const style = { ['--score-h' as string]: scoreHue(f), ['--f' as string]: `${f * 100}%`, ['--k' as string]: f } as CSSProperties;
+    const el = box.current; if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width)); ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const live = dragging || hover !== null;
+  const size = Math.max(18, Math.min(36, Math.floor((w || 360) / 10)));
+
+  const fromX = (clientX: number) => {
+    const r = box.current!.getBoundingClientRect();
+    const x = Math.max(0, Math.min(r.width, clientX - r.left));
+    if (x < r.width * 0.025) return 0; // bem na borda esquerda: zero
+    return Math.min(10, Math.max(0.5, Math.ceil((x / r.width) * 20) / 2));
+  };
+  const commit = (v: number) => { if (v !== value) { onChange(v); setPop((n) => n + 1); } };
+  const down = (e: PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    input.current?.focus({ preventScroll: true });
+    setDragging(true);
+    const v = fromX(e.clientX); setHover(v); commit(v);
+  };
+  const move = (e: PointerEvent<HTMLDivElement>) => { const v = fromX(e.clientX); setHover(v); if (dragging) commit(v); };
+  const up = (e: PointerEvent<HTMLDivElement>) => { setDragging(false); if (e.pointerType !== 'mouse') setHover(null); };
+  const leave = () => { setHover(null); };
+
   return (
-    <div className={`score-slider${drag ? ' is-dragging' : ''}${value === 10 ? ' is-max' : ''}`} style={style}>
+    <div className="score-slider">
       <input
-        id={id} className="score-slider__input" type="range" min={0} max={10} step={0.5} value={value}
+        ref={input} id={id} className="score-slider__input" type="range" min={0} max={10} step={0.5} value={value}
         aria-valuetext={`${fmt(value)} de 10`}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onPointerDown={() => setDrag(true)}
-        onPointerUp={() => { setDrag(false); setBurst((n) => n + 1); }}
-        onPointerCancel={() => setDrag(false)}
+        onChange={(e) => { const v = Number(e.target.value); if (v !== value) { onChange(v); setPop((n) => n + 1); } }}
       />
-      {/* Fresta: dez traços na inclinação do Z, um por ponto; o traço do meio ponto enche pela metade. */}
-      <div className="score-slider__track score-slider__track--tr" aria-hidden="true">
-        {Array.from({ length: 10 }, (_, i) => (
-          <span key={i} className={`score-tr${value > i ? ' is-on' : ''}${value > i && value <= i + 1 ? ' is-last' : ''}`}
-            style={{ ['--p' as string]: Math.max(0, Math.min(1, value - i)), ['--i' as string]: i } as CSSProperties} />
-        ))}
-        <Burst seed={burst} left={`${f * 100}%`} big={value === 10} k={f} />
+      <div
+        ref={box} aria-hidden="true"
+        className={`star-input score-row${dragging ? ' is-dragging' : ''}${hover !== null ? ' is-preview' : ''}${live ? ' is-live' : ''}${value === 10 && !live ? ' is-max' : ''}`}
+        onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={leave}
+        style={{ ['--score-h' as string]: scoreHue(shown / 10), ['--k' as string]: shown / 10 } as CSSProperties}
+      >
+        {Array.from({ length: 10 }, (_, i) => {
+          const fill = Math.max(0, Math.min(1, shown - i));
+          const at = Math.ceil(value) === i + 1;
+          return (
+            // O traço onde a nota parou "pula" quando a nota muda (a chave nova reinicia a animação).
+            <span key={at ? `${i}-${pop}` : i} className={`star-input__cell score-row__cell${pop > 0 && at ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
+              <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 9 - i) * 35} />
+              {pop > 0 && !dragging && at && <StarPulse seed={pop} size={size} k={value / 10} big={value === 10} />}
+            </span>
+          );
+        })}
       </div>
     </div>
-  );
-}
-
-/** A mesma nota de 0 a 10 em traços, só para ler (o cartão "Sua nota"). */
-export function ScoreTraces({ value }: { value: number }) {
-  return (
-    <span className="score-traces" aria-hidden="true">
-      {Array.from({ length: 10 }, (_, i) => <span key={i} className="score-tr" style={{ ['--p' as string]: Math.max(0, Math.min(1, value - i)), ['--i' as string]: i } as CSSProperties} />)}
-    </span>
   );
 }

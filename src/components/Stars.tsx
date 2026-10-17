@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { starFill, scoreHue } from '../lib/rating';
 
-/** Estrela de cinco pontas com cantos arredondados (o traço da mesma cor arredonda as pontas). */
-const STAR = 'M12 2.8l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 16.8l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z';
+/** Fresta: cada "estrela" é um traço na inclinação do Z (22°). O preenchimento parcial continua igual. */
+const STAR = 'M12.5 2h6.5L11.5 22H5z';
 
 function Star({ fill, size, delay }: { fill: number; size: number; delay?: number }) {
   return (

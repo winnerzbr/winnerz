@@ -350,3 +350,24 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 .session__back { border-radius: 0; }
 /* Rótulo que já traz a bolinha de "ao vivo": sem o traço na frente */
 .kicker:has(> .live-dot, > .session-pill__dot, > i:first-child)::before { content: none; }
+
+/* ===== F3: página do jogo, Coleção, Comunidade e o resto do site ============================= */
+
+/* Notas: cada "estrela" vira um traço na inclinação do Z, em platina (âmbar fica para o agora) */
+:root { --star-off: rgba(230, 233, 237, 0.16); --star-on: #E8EBEE; }
+:root[data-theme='claro'] { --star-off: rgba(11, 13, 16, 0.14); --star-on: #0B0D10; }
+.on-photo { --star-on: #F2F4F6; --star-off: rgba(230, 233, 237, 0.2); }
+.star path { stroke-width: 0; }
+
+/* Avatares: quadrado com contorno branco fino, como no menu */
+.soc-av, .discord-ava, .fx-ava, .review__avatar, .pph__avatar, .avedit__now { border-radius: 0 !important; outline: 1px solid var(--ink); outline-offset: -1px; }
+.review__avatar, .pph__avatar { outline-color: #E6E9ED; }
+.soc-av img, .discord-ava img, .fx-ava img, .pph__avatar img, .avedit__now img { border-radius: 0; }
+.pd-avatar { border-radius: 0; background: var(--fr-piece); color: #E6E9ED; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); outline: 2px solid #E6E9ED; outline-offset: -2px; }
+.pd-avatar--img img { border-radius: 0; }
+
+/* Etiquetas do topo do jogo (plataformas, gêneros): lascas */
+.ghero__chip { --c: 12px; padding: 0 calc(8px + var(--c)); background: rgba(7, 8, 10, 0.55); clip-path: polygon(var(--c) 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%); }
+.ghero__chips { gap: 0; }
+.ghero__chip + .ghero__chip { margin-left: -7px; }
+.pph__avatar, .avedit__now { box-shadow: none; background: var(--fr-piece); color: var(--ink); outline-width: 2px; outline-offset: -2px; }

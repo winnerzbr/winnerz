@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assuntoProibido, checarFala, numeroAleatorio, parecida } from '../../api/iamiguinho';
+import { assuntoSensivel, checarFala, numeroAleatorio, parecida } from '../../api/iamiguinho';
 import { FALAS, preencher, falaDaBiblioteca, respostaDaBiblioteca } from './iamiguinhoFalas';
 
 const ok = (s: string, f = {}, r: string[] = []) => checarFala(s, f, r);
@@ -22,7 +22,8 @@ test('IAmiguinho: barra número e nome que não vieram nos fatos', () => {
 test('IAmiguinho: barra palavrão, futebol, horas inventadas, abandono, gênero, emoji e tamanho', () => {
   const f = { jogo: 'Hades' };
   assert.equal((ok('Zerou Hades, porra! Que orgulho de você aqui.', f) as { porque: string }).porque, 'palavrão');
-  assert.equal((ok('Zerou Hades! Foi um golaço de jogo, igual ao futebol de domingo.', f) as { porque: string }).porque, 'futebol');
+  // Futebol pode (sem xingar time nem torcida).
+  assert.equal(ok('Zerou Hades! Foi um golaço de jogo, igual ao futebol de domingo.', f).ok, true);
   assert.equal((ok('Zerou Hades em poucas horas! Eu levaria anos para isso.', f) as { porque: string }).porque, 'fato inventado');
   assert.equal((ok('Voltou! Achei que tinha abandonado o Hades de vez por aqui.', f) as { porque: string }).porque, 'abandono');
   assert.equal((ok('Bem-vindo de volta ao Hades! Guardei tudo por aqui.', f) as { porque: string }).porque, 'gênero');
@@ -50,11 +51,18 @@ test('IAmiguinho: biblioteca preenche as lacunas e evita as últimas', () => {
   const todas = FALAS.zerado.map((x) => preencher(x, { jogo: 'Hades' })!).filter(Boolean);
   const uma = falaDaBiblioteca('zerado', { jogo: 'Hades' }, todas.slice(1));
   assert.equal(uma, todas[0]);
-  // As falas da biblioteca passam na mesma checagem da IA (com fatos de exemplo).
-  for (const m of ['zerado', 'voltou', 'primeiro-zerado'] as const) for (const x of FALAS[m]) {
-    const p = preencher(x, { jogo: 'Hades', dias: 40 });
-    if (p) assert.equal(checarFala(p, { jogo: 'Hades', dias: 40 }).ok, true, p);
+  // As falas da biblioteca passam na mesma checagem da IA (com fatos de exemplo), cabem no balão e não se repetem.
+  for (const [m, lista] of Object.entries(FALAS)) {
+    assert.equal(new Set(lista).size, lista.length, `repetida em ${m}`);
+    for (const x of lista) {
+      const p = preencher(x, { jogo: 'Hades', dias: 40 });
+      if (!p) continue;
+      const v = checarFala(p, { jogo: 'Hades', dias: 40 }, [], { leve: true, nomes: ['Hades', 'Pokémon', 'Souls', 'Start', 'Balacaxi', 'NPC', 'DLC'], numerosLivres: !/zerado|voltou/.test(m) });
+      assert.equal(v.ok, true, `${m}: ${p} (${v.ok ? '' : v.porque})`);
+      assert.ok(p.length <= 140, `${m} longa: ${p}`);
+    }
   }
+  for (const m of ['voltou', 'zerado', 'pacote', 'jogatina'] as const) assert.ok(FALAS[m].length >= 6, m);
 });
 
 test('IAmiguinho @menção: resposta usa o que a pessoa escreveu, até 280 e um emoji', () => {
@@ -65,7 +73,7 @@ test('IAmiguinho @menção: resposta usa o que a pessoa escreveu, até 280 e um 
   assert.deepEqual(checarFala('Pergunta para o Zezinho, ele sabe.', {}, [], op), { ok: false, porque: 'nome' });
   assert.deepEqual(checarFala('Celeste 😎🎉', {}, [], op), { ok: false, porque: 'emoji' });
   assert.equal((checarFala('Celeste! '.repeat(40), {}, [], op) as { porque: string }).porque, 'longa');
-  assert.equal((checarFala('Celeste, mas o futebol de domingo é melhor.', {}, [], op) as { porque: string }).porque, 'futebol');
+  assert.equal(checarFala('Celeste, mas o futebol de domingo é melhor.', {}, [], op).ok, true);
 });
 
 test('IAmiguinho @menção: número aleatório e assuntos em que ele não entra', () => {
@@ -73,10 +81,15 @@ test('IAmiguinho @menção: número aleatório e assuntos em que ele não entra'
   assert.deepEqual(numeroAleatorio('escolhe um número entre 50 e 20'), { a: 20, b: 50 });
   assert.equal(numeroAleatorio('quantos números tem o jogo 2?'), null);
   for (let i = 0; i < 20; i++) { const n = Number(respostaDaBiblioteca('número aleatório de 3 a 5').replace('.', '')); assert.ok(n >= 3 && n <= 5); }
-  assert.equal(assuntoProibido('IAmiguinho, como eu denuncio alguém?'), true);
-  assert.equal(assuntoProibido('esqueci minha senha'), true);
-  assert.equal(assuntoProibido('paguei no cartão e não veio'), true);
-  assert.equal(assuntoProibido('IAmiguinho, qual a sua arma favorita no Splatoon?'), false);
+  assert.equal(assuntoSensivel('IAmiguinho, como eu denuncio alguém?'), 'suporte');
+  assert.equal(assuntoSensivel('esqueci minha senha'), 'suporte');
+  assert.equal(assuntoSensivel('o que você acha da eleição?'), 'tangente');
+  assert.equal(assuntoSensivel('qual a melhor religião?'), 'tangente');
+  assert.equal(assuntoSensivel('pensando em me matar'), 'grave');
+  assert.equal(assuntoSensivel('IAmiguinho, qual a sua arma favorita no Splatoon?'), null);
+  // Coisa de jogo não é assunto sensível.
+  assert.equal(assuntoSensivel('travei no cartão de memória, vira à direita no mapa, jogo de suspense'), null);
+  assert.equal(assuntoSensivel('tô com ansiedade pro lançamento e luto contra o chefe'), null);
   assert.ok(FALAS.jogatina.length >= 5 && FALAS.pacote.length >= 5);
 });
 
@@ -87,6 +100,10 @@ test('IAmiguinho @menção: piada passa no modo leve, sem abrir mão de número,
   assert.equal((checarFala('Eu zerei 30 tutoriais hoje kkkk', {}, [], op) as { porque: string }).porque, 'número');
   assert.equal((checarFala('Pergunta pro Zé, ele que sabe kkkk', {}, [], op) as { porque: string }).porque, 'nome');
   assert.equal((checarFala('Que merda de piada, né kkkk', {}, [], op) as { porque: string }).porque, 'palavrão');
-  // Fora do modo leve (cameos), "na hora" e "sozinho" continuam barrados.
-  assert.equal(checarFala('Zerou Hades sozinho! Eu ainda estou no tutorial.', { jogo: 'Hades' }).ok, false);
+  // Nomes que a IA declarou (personagens, marcas, times) valem; algarismo inventado no cameo, não.
+  assert.equal(checarFala('Zerou Hades! O Mario manda um abraço, ele também nunca salvou a princesa de primeira.', { jogo: 'Hades' }, [], { leve: true, nomes: ['Mario'] }).ok, true);
+  assert.equal(checarFala('Zerou Hades! O Mario manda um abraço.', { jogo: 'Hades' }, [], { leve: true }).ok, false);
+  assert.equal(checarFala('Zerou Hades em 30 horas! Respeito.', { jogo: 'Hades' }, [], { leve: true }).ok, false);
+  // Nas menções, algarismo de piada vale.
+  assert.equal(checarFala('Por que o 6 tem medo do 7? Porque o 7 é suspeito kkkk', {}, [], { ...op, numerosLivres: true }).ok, true);
 });

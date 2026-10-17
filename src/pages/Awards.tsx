@@ -134,9 +134,9 @@ export function EventsIndex() {
 
   return (
     <main className="events">
-      <section className="page events__head">
-        <h1 className="t events__title">Eventos</h1>
-        <p className="events__lead">Os momentos em que a comunidade se encontra: votações, revelações e noites para assistir junto.</p>
+      <section className="page pad events__head">
+        <h1 className="t big events__title">Eventos</h1>
+        <p className="muted lead events__lead">Os momentos em que a comunidade se encontra: votações, revelações e noites para assistir junto.</p>
       </section>
 
       <section className="page">
@@ -236,7 +236,7 @@ export function AwardsPage() {
         <div className="awhero__shade" aria-hidden="true" />
         <div className="page awhero__row">
           <div className="awhero__text">
-            <Link to="/eventos" className="kicker awhero__back">← Eventos</Link>
+            <Link to="/eventos" className="back awhero__back">← Eventos</Link>
             <div className="awhero__brand"><AwardsMark width={120} relief /><h1 className="t awhero__title" aria-label={full.award.title}>{shortTitle(full.award.title)}</h1></div>
             {full.award.intro && <p className="awhero__intro">{full.award.intro}</p>}
             <p className="awhero__line">

@@ -74,7 +74,7 @@ export function CommunitiesIndexPage() {
   return (
     <main className="page pad cm-index">
       <header className="studio__head">
-        <Link to="/comunidade" className="faint">← Comunidade</Link>
+        <Link to="/comunidade" className="back">← Comunidade</Link>
         <h1 className="t big">Comunidades</h1>
         <p className="muted lead">Espaços por assunto: um jogo, uma plataforma, um jeito de jogar. Qualquer pessoa pode criar a sua.</p>
       </header>
@@ -195,7 +195,7 @@ export function CommunityNewPage() {
   return (
     <main className="page pad narrow cm-new">
       <header className="studio__head">
-        <Link to="/comunidade/comunidades" className="faint">← Comunidades</Link>
+        <Link to="/comunidade/comunidades" className="back">← Comunidades</Link>
         <h1 className="t big">Criar comunidade</h1>
         <p className="muted lead">Você vira dono da comunidade: edita, troca a capa, monta a porta de entrada e chama quem ajuda a moderar. As regras do WinnerZ valem em todas.</p>
       </header>
@@ -220,7 +220,7 @@ export function CommunityEditPage({ slug }: { slug: string }) {
   return (
     <main className="page pad narrow cm-new">
       <header className="studio__head">
-        <Link to={`/w/${c.slug}`} className="faint">← {c.name}</Link>
+        <Link to={`/w/${c.slug}`} className="back">← {c.name}</Link>
         <h1 className="t big">{owner ? 'Editar' : 'Moderar'}</h1>
         {!owner && <p className="muted lead">Você ajuda a moderar w/{c.slug}: monta a porta de entrada, fixa, tira e devolve conversas. Nome, capa e combinados ficam com quem criou.</p>}
       </header>
@@ -400,7 +400,7 @@ export function CommunityView({ slug }: { slug: string }) {
         {art && <img className="cm2-hero__bg" src={art} alt="" aria-hidden="true" />}
         <div className="cm2-hero__shade" aria-hidden="true" />
         <div className="page cm2-hero__in">
-          <Link to="/comunidade/comunidades" className="cm-hero__back">← Comunidades</Link>
+          <Link to="/comunidade/comunidades" className="back cm-hero__back">← Comunidades</Link>
           <div className="cm2-hero__row">
             <span className="cm2-hero__av" aria-hidden="true">{cover ? <img src={cover} alt="" /> : <span>{c.name.slice(0, 1)}</span>}</span>
             <div className="cm2-hero__tx">
@@ -558,7 +558,7 @@ export function ModHistoryPage({ slug }: { slug: string }) {
   return (
     <main className="page pad narrow cm-modhist">
       <header className="studio__head">
-        <Link to={`/w/${c.slug}`} className="faint">← w/{c.slug}</Link>
+        <Link to={`/w/${c.slug}`} className="back">← w/{c.slug}</Link>
         <h1 className="t big">Moderação de {c.name}</h1>
         <p className="muted lead">Tudo o que quem modera fez aqui, com o motivo. O texto do que saiu do ar só aparece para quem modera.</p>
       </header>

@@ -173,7 +173,7 @@ export function ShowcasePage({ id }: { id: string }) {
 
   return (
     <main className="page pad vitrine">
-      <Link to="/colecao/vitrines" className="kicker vitrine__back">← Vitrines</Link>
+      <Link to="/colecao/vitrines" className="back vitrine__back">← Vitrines</Link>
       <header className="vitrine__head">
         <span className="kicker">{sc.kind === 'inteligente' ? `Sempre em dia · ${ruleLabel(sc.rule)}` : 'Montada por você'} · {pieces.length} {pieces.length === 1 ? 'peça' : 'peças'}</span>
         {editing ? (

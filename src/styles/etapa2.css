@@ -2091,9 +2091,9 @@ a.gev { color: var(--ink); }
 
 /* Eventos */
 .events { padding-bottom: 24px; }
-.events__head { padding-top: 56px; display: flex; flex-direction: column; gap: 14px; }
-.events__title { font-size: 64px; line-height: 0.9; letter-spacing: -0.02em; }
-.events__lead { margin: 0; font-size: 17px; line-height: 1.5; color: var(--muted); max-width: 640px; }
+.events__head { padding-bottom: 0; display: flex; flex-direction: column; gap: 16px; }
+.events__title { letter-spacing: -0.02em; }
+.events__lead { margin: 0; max-width: 640px; }
 .evcard { position: relative; overflow: hidden; margin-top: 40px; border-radius: 16px; min-height: 480px; display: flex; flex-direction: column; justify-content: flex-end; background: #07080A; color: #E6E9ED; box-shadow: inset 0 0 0 1px rgba(226, 190, 132, 0.3); }
 .evcard__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.55) saturate(0.85); }
 .evcard__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7, 8, 10, 0.96) 0%, rgba(7, 8, 10, 0.6) 55%, rgba(7, 8, 10, 0.3)), linear-gradient(0deg, rgba(7, 8, 10, 0.9), rgba(7, 8, 10, 0) 50%); }
@@ -2120,7 +2120,7 @@ a.gev { color: var(--ink); }
 .evdate--soon .evdate__sub { font-size: 14px; }
 .evdate__ring { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--dim); margin: 0 8px; flex: none; }
 @media (max-width: 760px) {
-  .events__title { font-size: 44px; }
+
   .evcard { min-height: 0; margin-top: 28px; }
   .evcard__body { padding: 24px; gap: 24px; padding-top: 120px; }
   .evcard__line { bottom: auto; top: 96px; }

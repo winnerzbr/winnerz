@@ -152,7 +152,7 @@ export function TrailPage({ slug }: { slug: string }) {
         <div className="trail-hero__fade" aria-hidden="true" />
         <div className="page trail-hero__row">
           <div className="trail-hero__text">
-            <Link to="/jogos/trilhas" className="kicker trail__back">← Trilhas</Link>
+            <Link to="/jogos/trilhas" className="back trail__back">← Trilhas</Link>
             {!editingNow && <h1 className="t trail-hero__title">{t.title}</h1>}
             {editingNow && <h1 className="t trail-hero__title">Editando a trilha</h1>}
             <p className="trail-hero__lead">{t.intro ? `${t.intro} ` : ''}{t.items.length} {t.items.length === 1 ? 'jogo' : 'jogos'}{span}.{done && !s.prefs.light ? ` Você já zerou ${done}.` : ''}</p>

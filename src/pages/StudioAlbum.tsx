@@ -35,7 +35,7 @@ export function StudioAlbumPage() {
   return (
     <main className="page pad studio">
       <header className="studio__head">
-        <Link to="/studio" className="faint">← Studio</Link>
+        <Link to="/studio" className="back">← Studio</Link>
         <h1 className="t big">Álbum</h1>
         <p className="muted lead">Catálogo da Temporada, pacotes dados à mão, códigos de live e os pacotes que as regras seguraram.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, tudo fica só neste navegador.</p>}

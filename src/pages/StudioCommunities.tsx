@@ -20,7 +20,7 @@ export function StudioCommunitiesPage() {
   return (
     <main className="page pad studio">
       <header className="studio__head">
-        <Link to="/studio" className="faint">← Studio</Link>
+        <Link to="/studio" className="back">← Studio</Link>
         <h1 className="t big">Comunidades</h1>
         <p className="muted lead">Renomeie uma comunidade (o endereço antigo continua levando para o novo) ou junte duas repetidas: as conversas, quem segue, as jogatinas e os clubes passam para a que fica, e quem criou a outra passa a moderar.</p>
       </header>

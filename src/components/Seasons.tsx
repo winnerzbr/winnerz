@@ -89,7 +89,7 @@ export function SeasonPage({ id }: { id: string }) {
     <main className="page pad season">
       <header className="page-head">
         <div className="page-head__text">
-          <Link to="/jornada/ritmo" className="kicker">← Meu ritmo</Link>
+          <Link to="/jornada/ritmo" className="back">← Meu ritmo</Link>
           <h1 className="t big">{season.name}</h1>
           <p className="muted lead">{seasonRange(season)}{season.auto ? ' · estação do ano' : ''}</p>
         </div>

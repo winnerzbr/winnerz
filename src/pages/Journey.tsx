@@ -251,7 +251,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         <div className="jhero__shade" aria-hidden="true" />
         <div className="jhero__fade" aria-hidden="true" />
         <div className="page jhero__in">
-          <Link to="/jornada" className="kicker jhero__back">← Jornada</Link>
+          <Link to="/jornada" className="back jhero__back">← Jornada</Link>
           <div className="jhero__row">
             <Link to={`/jogos/${game.slug}`} className="jhero__cover" aria-label="Abrir a ficha do jogo"><CoverArt game={game} lazy={false} /></Link>
             <div className="jhero__info">

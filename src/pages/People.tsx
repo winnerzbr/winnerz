@@ -45,7 +45,7 @@ export function PeoplePage() {
   return (
     <main className="page pad people">
       <header className="studio__head">
-        <Link to="/comunidade" className="faint">← Comunidade</Link>
+        <Link to="/comunidade" className="back">← Comunidade</Link>
         <h1 className="t big">Pessoas</h1>
         <p className="muted lead">Seguir não precisa de aprovação. Quando os dois se seguem, vocês viram amigos.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, @duda, @carol e @rafa são pessoas de exemplo.</p>}

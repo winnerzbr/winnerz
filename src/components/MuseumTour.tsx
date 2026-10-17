@@ -102,7 +102,7 @@ export function MuseumTour({ title, intro, owner, rooms, onClose, onList, back }
 
       <div className="mtour__top">
         <div className="mtour__where">
-          {back ? <Link className="kicker mtour__back" to={back}>← @{owner} · visita guiada</Link> : <span className="kicker">Visita guiada · museu de @{owner}</span>}
+          {back ? <Link className="back mtour__back" to={back}>← @{owner} · visita guiada</Link> : <span className="kicker">Visita guiada · museu de @{owner}</span>}
           <span className="kicker mtour__pos" aria-live="polite">{cur ? `Peça ${i + 1} de ${total}` : `${groups.length} ${groups.length === 1 ? 'sala' : 'salas'} · ${total} ${total === 1 ? 'peça' : 'peças'}`}</span>
         </div>
         <div className="mtour__tools">

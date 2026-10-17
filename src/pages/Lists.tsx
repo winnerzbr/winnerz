@@ -109,14 +109,16 @@ export function ListsPage() {
   return (
     <main className="page pad glists">
       <header className="studio__head">
-        <Link to="/comunidade" className="faint">← Comunidade</Link>
+        <Link to="/comunidade" className="back">← Comunidade</Link>
         <h1 className="t big">Listas</h1>
         <p className="muted lead">Listas de jogos para guardar, compartilhar e montar junto com amigos.</p>
       </header>
-      {creating ? <ListForm onSaved={(l) => navigate(`/lista/${l.id}`)} onCancel={() => setCreating(false)} />
-        : <button className="btn primary sm glists__new" onClick={() => setCreating(true)}><Icon name="mais" size={16} />Nova lista</button>}
-      <div className="seg studio__tabs" role="tablist" aria-label="Listas">
-        {(['minhas', 'comigo', 'salvas'] as Tab[]).map((t) => <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => pick(t)}>{t === 'minhas' ? 'Suas' : t === 'comigo' ? 'Com você' : 'Salvas'}{data ? ` (${data[t].length})` : ''}</button>)}
+      {creating && <ListForm onSaved={(l) => navigate(`/lista/${l.id}`)} onCancel={() => setCreating(false)} />}
+      <div className="cm-index__bar glists__bar">
+        <div className="seg studio__tabs" role="tablist" aria-label="Listas">
+          {(['minhas', 'comigo', 'salvas'] as Tab[]).map((t) => <button key={t} role="tab" aria-selected={tab === t} aria-pressed={tab === t} onClick={() => pick(t)}>{t === 'minhas' ? 'Suas' : t === 'comigo' ? 'Com você' : 'Salvas'}{data ? ` (${data[t].length})` : ''}</button>)}
+        </div>
+        {!creating && <button className="btn primary sm" onClick={() => setCreating(true)}><Icon name="mais" size={16} />Nova lista</button>}
       </div>
       {err && <p className="awards__error" role="alert">{err}</p>}
       {data == null ? <p className="faint">Carregando…</p> : list.length === 0 ? <div className="soc-empty"><p className="muted">{EMPTY[tab]}</p></div>
@@ -163,7 +165,7 @@ export function ListPage({ id }: { id: string }) {
   return (
     <main className="page pad glist">
       <header className="glist__head">
-        <Link to="/listas" className="faint">← Listas</Link>
+        <Link to="/listas" className="back">← Listas</Link>
         {editing ? <ListForm initial={l} canVisibility={l.role === 'dona'} onSaved={() => { setEditing(false); void load(); }} onCancel={() => setEditing(false)} /> : (
           <>
             <h1 className="t big glist__title">{l.title}</h1>

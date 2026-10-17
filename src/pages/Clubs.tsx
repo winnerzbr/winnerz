@@ -89,7 +89,7 @@ export function ClubsIndexPage() {
   return (
     <main className="page pad cm-index">
       <header className="studio__head">
-        <Link to="/comunidade" className="faint">← Comunidade</Link>
+        <Link to="/comunidade" className="back">← Comunidade</Link>
         <h1 className="t big">Clubes</h1>
         <p className="muted lead">Grupos que continuam: um jogo de cada vez, no ritmo de cada clube, com agenda de jogatinas e as memórias de cada jogo. Para uma noite só, <Link to="/jogatina/criar">marque uma jogatina</Link>.</p>
       </header>
@@ -256,7 +256,7 @@ export function ClubNewPage() {
   return (
     <main className="page pad narrow cm-new">
       <header className="studio__head">
-        <Link to="/comunidade/clubes" className="faint">← Clubes</Link>
+        <Link to="/comunidade/clubes" className="back">← Clubes</Link>
         <h1 className="t big">Criar clube</h1>
         <p className="muted lead">Um grupo que continua: começa com um jogo e pode trocar depois. Quem entra ganha o jogo na Jornada, e o progresso de cada um aparece no clube (se a pessoa deixar).</p>
       </header>
@@ -280,7 +280,7 @@ export function ClubEditPage({ slug }: { slug: string }) {
   };
   return (
     <main className="page pad narrow cm-new">
-      <header className="studio__head"><Link to={`/clube/${c.slug}`} className="faint">← {c.name}</Link><h1 className="t big">Editar</h1></header>
+      <header className="studio__head"><Link to={`/clube/${c.slug}`} className="back">← {c.name}</Link><h1 className="t big">Editar</h1></header>
       <ClubForm initial={{ slug: c.slug, name: c.name, description: c.description, format: c.format, gameId: c.game?.id ?? null, game: c.game, access: c.access, maxMembers: c.maxMembers ?? null, communityId: null, schedule: c.schedule ?? null, liveUrl: c.liveUrl ?? null, parts: c.parts }}
         editing={c} busy={busy} err={err} onSubmit={(d) => void submit(d)} />
     </main>
@@ -369,7 +369,7 @@ function ClubView({ c, code, reload }: { c: ClubFull; code: string | null; reloa
         {art && <img className="club2-hero__bg" src={art} alt="" aria-hidden="true" />}
         <div className="club2-hero__shade" aria-hidden="true" />
         <div className="page club2-hero__in">
-          <Link to="/comunidade/clubes" className="cm-hero__back">← Clubes</Link>
+          <Link to="/comunidade/clubes" className="back cm-hero__back">← Clubes</Link>
           <span className="club2-hero__kicker mono">Clube · ritmo {fmt?.label.toLowerCase()}{c.community ? <> · ligado a <Link to={`/w/${c.community.slug}`}>w/{c.community.slug}</Link></> : null}{c.access !== 'aberto' ? ` · ${c.access === 'amigos' ? 'só amigos' : 'por convite'}` : ''}</span>
           <h1 className="t club2-hero__t">{c.name}</h1>
           <div className="club2-hero__row">

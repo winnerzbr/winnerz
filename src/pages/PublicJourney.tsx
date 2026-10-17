@@ -59,7 +59,7 @@ export function PublicJourneyPage({ handle, slug }: { handle: string; slug: stri
         {bg && <img className="pjh__bg" src={bg} alt="" />}
         <div className="pjh__shade" aria-hidden="true" />
         <div className="page pjh__inner">
-          <Link to={back} className="kicker pjh__back">← A Jornada de @{data.handle}</Link>
+          <Link to={back} className="back pjh__back">← A Jornada de @{data.handle}</Link>
           <h1 className="t pjh__title">{data.game.title}</h1>
           <p className="pjh__meta">{[data.game.developer, data.game.year].filter(Boolean).join(', ')}</p>
           <ReportButton kind="jornada" handle={data.handle} refId={data.game.slug} snapshot={{ game: data.game.title, slug: data.game.slug }} what={`A Jornada de @${data.handle} com ${data.game.title}: os textos, as fotos e os marcos.`} label="Denunciar a Jornada" className="pjh__report" />

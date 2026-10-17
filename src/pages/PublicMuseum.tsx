@@ -52,7 +52,7 @@ export function PublicMuseumPage({ handle }: { handle: string }) {
   }
   return (
     <main className="page pad museum pmuseum">
-      <span className="pmuseum__nav"><Link to={back} className="kicker vitrine__back">← @{data.handle}</Link><button className="btn ghost sm" onClick={() => { setList(false); scrollTo(0, 0); }}>Fazer a visita guiada</button></span>
+      <span className="pmuseum__nav"><Link to={back} className="back vitrine__back">← @{data.handle}</Link><button className="btn ghost sm" onClick={() => { setList(false); scrollTo(0, 0); }}>Fazer a visita guiada</button></span>
       <header className="museum__hero">
         <span className="kicker">Museu pessoal de @{data.handle}</span>
         <h1 className="t museum__title">{data.title || `O museu de ${data.name}`}</h1>

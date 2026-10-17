@@ -173,15 +173,21 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/:handle/vitrines/:id', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicProfilePage handle={m.handle.slice(1)} vitrine={m.id} />;
   if ((m = match('/:handle/:slug', path)) && m.handle.startsWith('@') && m.handle.length > 1) return <PublicJourneyPage handle={m.handle.slice(1)} slug={m.slug} />;
   return (
-    <main className="page" style={{ padding: '96px 32px' }}>
-      <h1 className="t" style={{ fontSize: 72 }}>Página não encontrada</h1>
-      <p className="muted">Esse endereço não existe. <Link to="/">Voltar ao início</Link></p>
+    <main className="page pad notfound">
+      <header className="page-head">
+        <div className="page-head__text">
+          <h1 className="t big">Página não encontrada</h1>
+          <p className="muted lead">Esse endereço não existe, ou mudou de lugar.</p>
+        </div>
+      </header>
+      <Link className="btn primary" to="/">Voltar ao início</Link>
     </main>
   );
 }
 
 import { usePresencePing } from './data/presenceApi';
 import { installCoverTilt } from './lib/coverTilt';
+import { installTabScroll } from './lib/tabscroll';
 
 export function App() {
   const path = usePath();
@@ -196,6 +202,7 @@ export function App() {
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
   // Capas em grade inclinam seguindo o mouse (Fresta).
   useEffect(() => installCoverTilt(), []);
+  useEffect(() => installTabScroll(), []);
   usePresencePing();
   // Voltou do e-mail de entrada com um convite guardado: usa o convite (vale também se entrou pelo código).
   useEffect(() => {

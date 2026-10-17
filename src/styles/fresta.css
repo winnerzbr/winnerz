@@ -558,3 +558,88 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 /* Botões só com ícone (a foto na busca da sessão): o padding padrão da peça espremia o ícone até sumir */
 .btn.pp__cam { width: 56px; padding: 0 0 0 4px; justify-content: center; }
 .btn.pp__cam svg, .btn > svg { flex: none; }
+
+/* ==== R2 · Peças únicas ======================================================================= */
+
+/* Cabeçalho de página: as abas do pilar na primeira linha (à esquerda) e as ações à direita, na mesma linha;
+   embaixo, o título e o subtítulo. Assim as abas ficam no mesmo lugar em todas as páginas do pilar. */
+.page-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text act"; align-items: end; gap: 22px 32px; margin-bottom: 36px; }
+.page-head:has(.subnav) { grid-template-areas: "nav nav" "text act"; }
+.page-head__side { display: contents; }
+.page-head > .subnav, .page-head__side > .subnav { grid-area: nav; justify-self: start; margin: 0; max-width: 100%; }
+.page-head__side > :not(.subnav), .page-head > :not(.page-head__text):not(.subnav):not(.page-head__side) { grid-area: act; justify-self: end; margin: 0; }
+.page-head__text { grid-area: text; max-width: 860px; }
+.page-head__text .lead { margin-top: 16px; }
+.studio__head { gap: 10px; margin-bottom: 28px; }
+@media (max-width: 640px) {
+  .page-head, .page-head:has(.subnav) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "text" "act"; gap: 16px; }
+  .page-head:has(.subnav) { grid-template-areas: "nav" "text" "act"; }
+  .page-head__side > :not(.subnav), .page-head > :not(.page-head__text):not(.subnav):not(.page-head__side) { justify-self: start; }
+}
+
+/* Voltar: um só desenho. Seta + texto, cinza, sem sublinhado. */
+a.back { display: inline-flex; align-items: center; gap: 8px; width: max-content; max-width: 100%; font: 500 14px/1.3 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--muted); text-decoration: none; }
+a.back:hover { color: var(--ink); text-decoration: none; }
+
+/* Abas e filtros no celular: uma linha que rola de lado, com a borda esmaecida e a aba ativa à vista (tabscroll.ts). */
+@media (max-width: 640px) {
+  .subnav, .studio__tabs, .import-tabs, .prefs__nav, .praca__chips, .club-filter, .avisos__chips, .search__tabs, .explore__sort,
+  .awbar__cats, .club2-tabs__in, .cm2-sort__chips, .jline__filters, .gtl__filter, .dm__tabs, .pd-tabs__row, .cm-index__bar > .seg {
+    display: flex; flex-wrap: nowrap !important; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; overscroll-behavior-x: contain;
+    max-width: none; width: auto; margin-right: -16px; padding-right: 16px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent);
+  }
+  :is(.subnav, .studio__tabs, .import-tabs, .prefs__nav, .praca__chips, .club-filter, .avisos__chips, .search__tabs, .explore__sort,
+  .awbar__cats, .club2-tabs__in, .cm2-sort__chips, .jline__filters, .gtl__filter, .dm__tabs, .pd-tabs__row, .cm-index__bar > .seg)[data-end='1'] { -webkit-mask-image: none; mask-image: none; }
+  :is(.subnav, .studio__tabs, .import-tabs, .prefs__nav, .praca__chips, .club-filter, .avisos__chips, .search__tabs, .explore__sort,
+  .awbar__cats, .club2-tabs__in, .cm2-sort__chips, .jline__filters, .gtl__filter, .dm__tabs, .pd-tabs__row, .cm-index__bar > .seg)::-webkit-scrollbar { display: none; }
+  :is(.subnav, .studio__tabs, .import-tabs, .prefs__nav, .praca__chips, .club-filter, .avisos__chips, .search__tabs, .explore__sort,
+  .awbar__cats, .club2-tabs__in, .cm2-sort__chips, .jline__filters, .gtl__filter, .dm__tabs, .pd-tabs__row, .cm-index__bar > .seg) > * { flex: none !important; white-space: nowrap; }
+  /* com rolagem, os contadores do Álbum voltam a caber */
+  .alb-tabs__n { min-width: 18px; width: auto; height: 18px; padding: 0 5px; font-size: 11px; transform: none; box-shadow: none; clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%); }
+}
+.seg button, .subnav a { white-space: nowrap; }
+
+/* Botões desativados: cinza e legíveis nos dois temas, sem a lasca. */
+.btn:disabled, .btn:disabled:hover, .btn[aria-disabled='true'] { opacity: 1; filter: none; cursor: not-allowed; background: var(--fr-piece) !important; color: var(--faint) !important; }
+.btn.primary:disabled, .btn.now:disabled, .btn.danger-solid:disabled { border-right-width: 0 !important; clip-path: polygon(0 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%); }
+.btn.quiet:disabled { background: transparent !important; }
+.btn:disabled::before { content: none; }
+
+/* Ação discreta (texto): um fio embaixo diz que é clicável; ao passar o mouse, o fio fica forte. */
+.btn.quiet:not(.icon):not(:has(> svg:only-child)) { text-decoration: underline; text-decoration-thickness: 1px; text-decoration-color: var(--line-2); text-underline-offset: 5px; }
+.btn.quiet:not(.icon):not(:has(> svg:only-child)):hover { text-decoration-color: currentColor; }
+.btn.quiet[aria-pressed='true'] { text-decoration: none; }
+
+/* Interruptor: trilho com o estado à vista. Desligado: trilho de peça com fio e traço cinza à esquerda;
+   ligado: trilho cheio (como a aba ativa) e o traço à direita. */
+.switch { width: 52px !important; height: 28px !important; flex: none; border-radius: 0; background: var(--fr-piece); box-shadow: inset 0 0 0 1.5px var(--line-2); cursor: pointer; }
+.switch::after { top: 4px; left: 4px; width: 20px; height: 20px; border-radius: 0; background: var(--faint); clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%); transition: left .2s var(--fr-ease), background-color .2s; }
+.switch:checked { background: var(--primary); box-shadow: none; }
+.switch:checked::after { left: 28px; background: var(--on-primary); }
+.switch:focus-visible { outline: 2px solid var(--now); outline-offset: 2px; }
+
+/* Opção escolhida (tipo de postagem, ritmo, quem pode entrar…): o mesmo destaque da aba ativa. */
+.cm-kinds__o.is-on, .cm-spoil__o.is-on, .cm-door-edit__list label.is-on, .bkrev__choice.is-on, .praca__tile.is-on, .cfcard__opt[aria-checked='true'], .squal__g.is-on {
+  background: var(--primary) !important; color: var(--on-primary) !important; box-shadow: none !important; border-color: transparent !important;
+}
+:is(.cm-kinds__o, .cm-spoil__o, .cm-door-edit__list label, .bkrev__choice, .praca__tile, .cfcard__opt, .squal__g):is(.is-on, [aria-checked='true']) :is(small, span, p, .muted, .faint) { color: inherit !important; opacity: .78; }
+.praca__path.is-on { background: var(--fr-piece-hi); color: var(--ink); box-shadow: inset 3px 0 0 var(--ink); }
+
+/* Caixas de marcar e de escolha: quadradas, no desenho do site. */
+:where(input[type='checkbox']:not(.switch), input[type='radio']) {
+  -webkit-appearance: none; appearance: none; display: inline-grid; place-content: center; flex: none;
+  width: 18px; height: 18px; margin: 0; border-radius: 0; vertical-align: middle; cursor: pointer;
+  background: var(--field); box-shadow: inset 0 0 0 1.5px var(--line-2); transition: background-color .15s, box-shadow .15s;
+}
+:where(input[type='checkbox']:not(.switch), input[type='radio']):hover { box-shadow: inset 0 0 0 1.5px var(--ink-2); }
+:where(input[type='checkbox']:not(.switch), input[type='radio']):checked { background: var(--primary); box-shadow: none; }
+:where(input[type='checkbox']:not(.switch)):checked::before { content: ''; width: 11px; height: 9px; background: var(--on-primary); clip-path: polygon(0 52%, 14% 38%, 40% 62%, 86% 0, 100% 14%, 40% 92%); }
+:where(input[type='radio']):checked::before { content: ''; width: 8px; height: 8px; background: var(--on-primary); }
+:where(input[type='checkbox']:not(.switch), input[type='radio']):focus-visible { outline: 2px solid var(--now); outline-offset: 2px; }
+:where(input[type='checkbox']:not(.switch), input[type='radio']):disabled { opacity: .5; cursor: not-allowed; }
+
+/* Barra com abas + botão de criar: abas à esquerda, botão à direita. */
+.cm-index__bar { justify-content: space-between; align-items: center; }
+.glists__bar { justify-content: flex-start; gap: 12px 28px; margin-bottom: 18px; }
+:is(.cm-kinds__o, .cm-spoil__o, .cm-door-edit__list label, .bkrev__choice, .praca__tile, .cfcard__opt, .squal__g):is(.is-on, [aria-checked='true']) b { color: inherit !important; }

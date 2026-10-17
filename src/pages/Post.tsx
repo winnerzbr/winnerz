@@ -509,7 +509,7 @@ function PostEditor({ place: startPlace, orig, startGame, startKind, fixedPlace 
   return (
     <main className="page pad cm-editor">
       <header className="studio__head">
-        <Link to={back} className="faint">← {place ? place.name : 'Praça'}</Link>
+        <Link to={back} className="back">← {place ? place.name : 'Praça'}</Link>
         <h1 className="t big">{orig ? 'Editar' : 'Escrever'}</h1>
         {fixedPlace || !places.length
           ? <p className="muted lead">{place ? <>Em <b>w/{place.slug}</b>. {place.official ? 'Comunidade oficial: só o canal publica.' : 'Aparece na comunidade e na Praça.'}</> : <>Na <b>Praça</b>: todo mundo da comunidade vê.</>}</p>

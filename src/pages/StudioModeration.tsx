@@ -46,7 +46,7 @@ export function StudioModerationPage() {
   return (
     <main className="page pad studio">
       <header className="studio__head">
-        <Link to="/studio" className="faint">← Studio</Link>
+        <Link to="/studio" className="back">← Studio</Link>
         <h1 className="t big">Moderação</h1>
         <p className="muted lead">Denúncias sobre o que as pessoas mostram no perfil e nas comunidades. Cada ação avisa a pessoa e pode ser desfeita no histórico.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, você mesmo denuncia, modera e recebe os avisos, para ver como tudo fica.</p>}

@@ -6,7 +6,7 @@ import { BrandMark } from '../components/Brand';
 export function AboutPage({ standalone = false }: { standalone?: boolean }) {
   useEffect(() => { document.title = 'Sobre · WinnerZ'; }, []);
   return (
-    <main className={`page pad narrow privacy about${standalone ? ' privacy--alone' : ''}`}>
+    <main className={`page pad narrow privacy about-page${standalone ? ' privacy--alone' : ''}`}>
       {standalone && <Link to="/" className="privacy__brand" aria-label="WinnerZ"><BrandMark width={48} /></Link>}
       <p className="kicker kicker--now">Sobre</p>
       <h1 className="t privacy__title">Sobre o WinnerZ</h1>

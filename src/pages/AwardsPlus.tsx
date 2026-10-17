@@ -128,7 +128,7 @@ export function AwardsHistoryPage() {
   }, []);
   return (
     <main className="page pad awhist">
-      <Link to="/eventos/awards" className="kicker">← WinnerZ Awards</Link>
+      <Link to="/eventos/awards" className="back">← WinnerZ Awards</Link>
       <h1 className="t big">Edições anteriores</h1>
       {list === null ? <p className="muted">Carregando…</p> : !list.length ? <p className="muted lead">A primeira edição ainda não terminou. Os vencedores de cada ano ficam guardados aqui.</p> : list.map(({ award, winners }) => {
         const [top, ...rest] = winners;

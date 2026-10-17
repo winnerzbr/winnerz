@@ -162,7 +162,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
   return (
     <main className={`jog${live ? ' is-now' : ''}${j.ended ? ' is-past' : ''}${j.canceled ? ' is-canceled' : ''}`}>
       <div className="page jog__in">
-        <Link to={j.club ? `/clube/${j.club.slug}` : '/comunidade?c=jogatinas'} className="faint jog__back">← {j.club ? clubLabel(j.club.name) : 'Jogatinas'}</Link>
+        <Link to={j.club ? `/clube/${j.club.slug}` : '/comunidade?c=jogatinas'} className="back jog__back">← {j.club ? clubLabel(j.club.name) : 'Jogatinas'}</Link>
         {j.hidden && <p className="cm-hero__hidden">Fora do ar por decisão da moderação. Só você ainda consegue abrir.</p>}
         <div className="jog-bento">
           <section className="jog-tile jog-when" aria-label="Quando">
@@ -474,7 +474,7 @@ export function JogatinaNewPage() {
   return (
     <main className="page pad narrow cm-new">
       <header className="studio__head">
-        <Link to="/comunidade?c=jogatinas" className="faint">← Jogatinas</Link>
+        <Link to="/comunidade?c=jogatinas" className="back">← Jogatinas</Link>
         <h1 className="t big">Marcar jogatina</h1>
         <p className="muted lead">Um jogo, um dia e uma hora. Quem vai confirma; antes, as perguntas; depois, as memórias de quem estava lá.</p>
       </header>
@@ -499,7 +499,7 @@ export function JogatinaEditPage({ id }: { id: string }) {
   };
   return (
     <main className="page pad narrow cm-new">
-      <header className="studio__head"><Link to={`/jogatina/${j.id}`} className="faint">← {j.title}</Link><h1 className="t big">Editar jogatina</h1></header>
+      <header className="studio__head"><Link to={`/jogatina/${j.id}`} className="back">← {j.title}</Link><h1 className="t big">Editar jogatina</h1></header>
       <JogatinaForm initial={{ title: j.title, description: j.description, gameId: j.game?.id ?? null, game: j.game, startsAt: j.startsAt, durationMin: j.durationMin, platform: j.platform ?? null, maxPeople: j.maxPeople ?? null, access: j.access, liveUrl: j.liveUrl ?? null, communityId: null, clubId: null }}
         editing={j} busy={busy} err={err} onSubmit={(d) => void submit(d)} />
     </main>

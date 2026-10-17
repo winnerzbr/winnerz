@@ -46,7 +46,7 @@ export function ComebackPage({ slug }: { slug: string }) {
         <Backdrop game={game} className="comeback__bg kb" />
         <div className="comeback__shade" aria-hidden="true" />
         <div className="page comeback__in">
-          <Link to={`/jornada/${game.slug}`} className="kicker comeback__back">← Jornada</Link>
+          <Link to={`/jornada/${game.slug}`} className="back comeback__back">← Jornada</Link>
           <div className="comeback__row">
             <span className="comeback__cover"><CoverArt game={game} lazy={false} /></span>
             <div className="comeback__text">

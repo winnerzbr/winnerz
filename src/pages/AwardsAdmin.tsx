@@ -56,7 +56,7 @@ export function AwardsAdminPage() {
 
   return (
     <main className="page pad awards-admin">
-      <Link to="/eventos/awards" className="faint">← WinnerZ Awards</Link>
+      <Link to="/eventos/awards" className="back">← WinnerZ Awards</Link>
       <h1 className="t big">Montar o Awards</h1>
       <div className="awards-admin__bar">
         {awards && awards.length > 0 && (

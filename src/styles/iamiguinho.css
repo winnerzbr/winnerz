@@ -56,3 +56,34 @@ html[data-motion='reduzidas'] .iam-cameo, html[data-motion='reduzidas'] .iam-cam
 .iam-perfil__momentos img { width: 100%; max-width: 150px; height: auto; }
 @media (max-width: 860px) { .iam-perfil__hero, .iam-perfil__cols { grid-template-columns: 1fr; } .iam-perfil__foto { max-width: 360px; } .iam-perfil__momentos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tl-empty .hero__actions { flex-wrap: wrap; }
+
+/* ---- M5: respostas a @iamiguinho no fio ---- */
+.iam-resp { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 12px; padding: 10px 12px; background: color-mix(in srgb, var(--iam) 7%, transparent); border-left: 2px solid var(--iam); scroll-margin-top: 120px; }
+.iam-resp__av { width: 32px; height: 32px; object-fit: contain; }
+.iam-resp__b { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.iam-resp__by { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13px; }
+.iam-resp__nome { font-weight: 700; color: var(--iam); text-decoration: none; }
+.iam-resp__nome:hover { text-decoration: underline; }
+.iam-selo--ia { color: var(--iam); }
+.iam-resp__t { margin: 0; font-size: 15px; line-height: 1.5; color: var(--ink); overflow-wrap: anywhere; }
+.iam-resp__acts { display: flex; gap: 12px; }
+.iam-resp--pensando { align-items: center; }
+.iam-dots i { font-style: normal; animation: iam-ponto 1.2s infinite; }
+.iam-dots i:nth-child(2) { animation-delay: .15s; } .iam-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes iam-ponto { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.cm-replies__kids--iam { margin: 0; padding: 0; border: 0; }
+
+/* ---- M5: "IAmiguinho passou por aqui", espiando pela lateral de um card ---- */
+.iam-espia { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 104px; align-items: end; gap: 8px; margin-top: 14px; padding: 12px 0 0 14px; background: color-mix(in srgb, var(--iam) 8%, var(--surface)); border-left: 3px solid var(--iam); overflow: hidden; }
+.iam-espia__t { margin: 0 0 12px; font-size: 14px; line-height: 1.45; color: var(--ink); padding-right: 4px; }
+.iam-espia__pose { width: 120px; height: auto; margin: 16px -16px -30px 0; justify-self: end; animation: iam-espia 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2) both; }
+.iam-espia__x { position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; border: 0; background: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; z-index: 1; }
+@keyframes iam-espia { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .iam-espia__pose, .iam-dots i { animation: none; } }
+html[data-motion='reduzidas'] .iam-espia__pose, html[data-motion='reduzidas'] .iam-dots i { animation: none; }
+
+/* ---- M5: aparições públicas no perfil ---- */
+.iam-aparicoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.iam-aparicoes a { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--surface); border-left: 2px solid var(--iam); text-decoration: none; color: var(--ink); }
+.iam-aparicoes a:hover { background: color-mix(in srgb, var(--iam) 8%, var(--surface)); }
+.iam-aparicoes small { color: var(--muted); }

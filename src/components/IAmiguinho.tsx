@@ -63,13 +63,36 @@ export function Cameo({ motivo, quando = true, escopo = '' }: { motivo: Cameo; q
  * ao montar; "atraso" deixa a tela respirar antes (por exemplo, logo depois de fechar a comemoração).
  */
 export function CameoJornada({ motivo, escopo, fatos, atraso = 0 }: { motivo: Cameo; escopo: string; fatos: Fatos; atraso?: number }) {
+  const fala = useCameoPedido(motivo, escopo, fatos, atraso);
+  return fala ? <CameoBalao motivo={motivo} fala={fala} /> : null;
+}
+
+/** Pede a fala de um cameo uma vez, ao montar (o portão do aparelho, o do servidor e a fala da IA ou da biblioteca). */
+function useCameoPedido(motivo: Cameo, escopo: string, fatos: Fatos, atraso = 0): string | null {
   const [fala, setFala] = useState<string | null>(null);
   useEffect(() => {
     let vivo = true;
     const t = setTimeout(() => { void pedirCameo(motivo, escopo, fatos).then((f) => { if (vivo) setFala(f); }); }, atraso);
     return () => { vivo = false; clearTimeout(t); };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return fala ? <CameoBalao motivo={motivo} fala={fala} /> : null;
+  return fala;
+}
+
+/**
+ * "IAmiguinho passou por aqui" (M5): um cartão pequeno, com ele espiando pela lateral de um card (por exemplo, numa
+ * jogatina com vaga). Não cobre nada e fecha no ×. Segue o modo e os intervalos como qualquer cameo.
+ */
+export function Espiando({ motivo, escopo = '', fatos = {} }: { motivo: Cameo; escopo?: string; fatos?: Fatos }) {
+  const fala = useCameoPedido(motivo, escopo, fatos, 400);
+  const [fechado, setFechado] = useState(false);
+  if (!fala || fechado) return null;
+  return (
+    <aside className="iam-espia" aria-label="IAmiguinho passou por aqui">
+      <p className="iam-espia__t"><span className="iam-fala__quem">IAmiguinho passou por aqui <span className="iam-selo">Mascote</span></span>{fala}</p>
+      <img className="iam-espia__pose" src={posePath('espiando')} alt="" width={120} height={116} loading="lazy" decoding="async" />
+      <button type="button" className="iam-espia__x" aria-label="Fechar o IAmiguinho" onClick={() => setFechado(true)}>×</button>
+    </aside>
+  );
 }
 
 /** Carregamento: depois de 1,5 s sem resposta, ele aparece planando. */

@@ -28,7 +28,10 @@ export const POSE: Record<Interface, string> = {
   'busca-vazia': 'mapa', 'nao-encontrada': 'mapa', erro: 'cabo', carregando: 'planando',
 };
 /** A cara (cabeça 3D com a expressão) de cada cameo (public/brand/iamiguinho/cara-*.webp). */
-export const CARA: Record<Cameo, string> = { indeciso: 'pensando', voltou: 'feliz', 'primeiro-zerado': 'comemorando', zerado: 'comemorando', radar: 'curioso', cofre: 'surpreso' };
+export const CARA: Record<Cameo, string> = {
+  indeciso: 'pensando', voltou: 'feliz', 'primeiro-zerado': 'comemorando', zerado: 'comemorando', radar: 'curioso', cofre: 'surpreso',
+  pacote: 'surpreso', repetida: 'piscando', pagina: 'orgulhoso', awards: 'orgulhoso', jogatina: 'sorriso-confiante',
+};
 export const posePath = (p: string) => `/brand/iamiguinho/pose-${p}.webp`;
 export const caraPath = (c: string) => `/brand/iamiguinho/cara-${c}.webp`;
 
@@ -36,11 +39,11 @@ export const caraPath = (c: string) => `/brand/iamiguinho/cara-${c}.webp`;
 const KEY = 'wz.iamiguinho.v1';
 const DIA = 86400000;
 /** Intervalo mínimo de cada motivo, em dias. */
-export const INTERVALO: Record<Cameo, number> = { indeciso: 1, voltou: 7, 'primeiro-zerado': 36500, zerado: 36500, radar: 3, cofre: 30 };
+export const INTERVALO: Record<Cameo, number> = { indeciso: 1, voltou: 7, 'primeiro-zerado': 36500, zerado: 36500, radar: 3, cofre: 30, pacote: 3, repetida: 5, pagina: 36500, awards: 36500, jogatina: 3 };
 /** Marcos: os únicos que aparecem no modo Discreto. */
-export const MARCO: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true };
+export const MARCO: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true, awards: true };
 /** Momentos que a pessoa acabou de viver: furam o "um por visita" e o intervalo geral (cada um continua com o seu). */
-export const ESPECIAL: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true, zerado: true };
+export const ESPECIAL: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true, zerado: true, pagina: true, awards: true };
 let mostrouNestaVisita = false;
 
 function ler(): Record<string, number> { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') ?? {}; } catch { return {}; } }

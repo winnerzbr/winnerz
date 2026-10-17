@@ -19,6 +19,7 @@ import { Icon } from '../components/Icon';
 import { gameBySlug } from '../components/AddGameDialog';
 import { plainText } from '../lib/postText';
 import { dayLong, hourLabel, localInput, relDay, spanLabel, whenLabel } from '../lib/when';
+import { Espiando } from '../components/IAmiguinho';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 /** Recado que a tela de marcar deixa para a página da jogatina (resultado dos convites). */
@@ -192,6 +193,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
             </ul>
             {maybe.length > 0 && !j.ended && <p className="jog-seats__maybe faint">Talvez: {maybe.map((p, i) => <span key={p.id}>{i > 0 && ', '}<PersonLink p={p} avatar={false} /></span>)}</p>}
             {j.going > going.length && <small className="faint">e mais {j.going - going.length}</small>}
+            {!j.ended && !j.canceled && !full && !started && (!me || me.rsvp !== 'vou') && <Espiando motivo="jogatina" />}
             {!j.ended && !j.canceled && j.invites.length > 0 && (
               <p className="jog-seats__maybe faint">Convidados, sem resposta ainda: {j.invites.map((p, i) => <span key={p.id}>{i > 0 && ', '}<PersonLink p={p} avatar={false} /></span>)}</p>
             )}

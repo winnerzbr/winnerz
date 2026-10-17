@@ -5,7 +5,7 @@
 /** Momentos de interface: ele ocupa o lugar do conteúdo que ainda não existe. */
 export type Interface = 'jornada-vazia' | 'colecao-vazia' | 'listas-vazias' | 'radar-vazio' | 'avisos-vazios' | 'busca-vazia' | 'nao-encontrada' | 'erro' | 'carregando';
 /** Cameos: aparecem sozinhos, num balão no canto. */
-export type Cameo = 'indeciso' | 'voltou' | 'primeiro-zerado' | 'zerado' | 'radar' | 'cofre';
+export type Cameo = 'indeciso' | 'voltou' | 'primeiro-zerado' | 'zerado' | 'radar' | 'cofre' | 'pacote' | 'repetida' | 'pagina' | 'awards' | 'jogatina';
 /** Os fatos que uma fala pode usar. Nada além disto chega à IA. */
 export type Fatos = { jogo?: string; dias?: number };
 
@@ -106,6 +106,47 @@ export const FALAS: Record<Interface | Cameo, string[]> = {
     'Mais um jogo para esperar. Minha especialidade.',
   ],
   cofre: ['Coleção grande, hein? Eu só tenho um cartucho, e é de hélice.'],
+  pacote: [
+    'Pacote aberto! Eu abri um ontem. Veio só o papel, mas o papel era bonito.',
+    'Que figurinhas boas! Eu tentei abrir o meu com a hélice e ele saiu voando.',
+    'Novidade no álbum! Eu ainda procuro aquela figurinha que nunca sai para mim.',
+    'Abriu! Eu faço um barulhinho de suspense toda vez. Fiz agora, você não ouviu, mas fiz.',
+    'Olha só que pacote. Eu guardo os meus fechados para não me decepcionar.',
+    'Figurinha nova é sempre festa. Eu comemoro até quando vem a que eu já tenho.',
+    'Pacote aberto! Agora é colar. Eu colo torto, mas colo com carinho.',
+    'Boa! Se sobrar alguma, eu adoto. Coleciono repetidas para elas não ficarem sozinhas.',
+  ],
+  repetida: [
+    'Veio repetida? Ótimo! Agora você tem duas vezes a mesma decepção.',
+    'Todas repetidas! Eu coleciono essas. Para elas não ficarem sozinhas.',
+    'Repetidas também contam. Para trocar, para o Cofre e para eu fingir que são minhas.',
+    'Repetida de novo? Eu tenho uma pilha assim. Chamo de coleção.',
+    'Nada novo desta vez. Eu abri um pacote só de repetidas e me senti em casa.',
+    'Repetidas! Pelo menos já sabe onde elas ficam. Eu nunca sei onde colei as minhas.',
+  ],
+  pagina: [
+    'Página completa! Eu tinha essa figurinha. Acho. Onde eu deixei mesmo?',
+    'Fechou a página! Eu fiquei com o polegar colado na minha. Detalhe técnico.',
+    'Página inteira! Vou admirar de longe para não amassar nada.',
+    'Que página bonita. A minha tem um buraco no meio que eu chamo de estilo.',
+    'Completa! Eu bateria palmas, mas três dedos fazem um barulho esquisito.',
+  ],
+  awards: [
+    'Eu votei também. Meu voto foi anulado por eu não ser uma pessoa. Preconceito contra mascotes.',
+    'Voto registrado! Eu ensaiei um discurso de agradecimento, caso alguém vote em mim.',
+    'Votou! Eu fiquei com a cédula na mão tentando entender onde dobra.',
+    'Que bom ter o seu voto. Eu segurei o troféu para ver o peso. É pesado. Devolvi.',
+    'Voto dado! Eu ainda estou decidindo o meu. Faz três edições.',
+    'Obrigado pelo voto! Não é para mim, eu sei. Mas agradeço mesmo assim.',
+  ],
+  jogatina: [
+    'Tem vaga? Prometo não carregar o time. Principalmente porque não consigo.',
+    'Ainda tem lugar aqui! Se faltar gente, eu levo o controle ao contrário, mas levo.',
+    'Vaga aberta! Eu já cheguei atrasado em três jogatinas. Hoje vou chegar atrasado nesta.',
+    'Tem cadeira sobrando. Eu sentaria, mas a hélice bate no teto.',
+    'Jogatina com vaga! Quem vier ganha um amigo e um jogador ruim. Eu sou os dois.',
+    'Ainda dá para entrar. Eu pedi vaga uma vez e me colocaram de torcida. Gostei.',
+  ],
 };
 
 export const sortear = (lista: string[]) => lista[Math.floor(Math.random() * lista.length)];
@@ -127,3 +168,27 @@ export function falaDaBiblioteca(motivo: Interface | Cameo, f: Fatos = {}, evita
   return sortear(novas.length ? novas : prontas);
 }
 
+
+/* ---- @iamiguinho: o plano B das respostas (quando a IA não está ligada ou não respondeu) ------------------------ */
+export const MENCAO: { splatoon: string[]; geral: string[] } = {
+  splatoon: [
+    'Splatoon? Meu assunto! Eu sou ótimo. Pelo menos na minha cabeça, que é onde eu jogo melhor kkkk',
+    'Aerospray, Clash Blaster, Sploosh: domino todas. Dominar é uma palavra forte, mas eu uso.',
+    'Splatoon é comigo. Eu pinto o mapa todo. Do meu time, sem querer, mas pinto.',
+  ],
+  geral: [
+    'Fui chamado! Cheguei atrasado, como sempre, e a resposta ficou no caminho. Me chama de novo daqui a pouco?',
+    'Opa, apareci! Eu ia responder direito, mas a hélice embolou nos fios. Tenta de novo depois?',
+    'Estou aqui! Pensei tanto que a cabeça esquentou. Volto já, depois que esfriar.',
+  ],
+};
+/** Uma fala do plano B para uma @menção (o número aleatório, ele responde sério e certinho). */
+export function respostaDaBiblioteca(pergunta: string): string {
+  const p = pergunta.toLowerCase();
+  const n = /n[uú]mero[^0-9]{0,40}(\d{1,6})\D{1,12}(\d{1,6})/.exec(p);
+  if (n && /aleat|sorte|qualquer|escolh/.test(p)) {
+    const a = Math.min(+n[1], +n[2]), b = Math.max(+n[1], +n[2]);
+    return `${a + Math.floor(Math.random() * (b - a + 1))}.`;
+  }
+  return sortear(/splatoon|aerospray|sploosh|clash blaster/.test(p) ? MENCAO.splatoon : MENCAO.geral);
+}

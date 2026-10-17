@@ -4,7 +4,10 @@
  * postagens: ele não compete com as pessoas. É uma página fixa; o @ já é reservado no banco (0024).
  */
 import { Link } from '../lib/router';
+import { useEffect, useState } from 'react';
 import { posePath } from '../lib/iamiguinho';
+import { iamiguinhoApi, type Aparicao } from '../data/iamiguinhoApi';
+import { ago } from '../components/Posts';
 
 const TUTORIAIS = [
   { jogo: 'Tutorial de um jogo de luta', nota: 'Zerado na terceira tentativa. O boneco de treino revidou.' },
@@ -73,8 +76,31 @@ export function IAmiguinhoPage() {
 
       <section aria-labelledby="iam-aparicoes">
         <h2 id="iam-aparicoes" className="t">Aparições públicas</h2>
-        <p className="muted">Quando o IAmiguinho começar a responder a quem chamar @iamiguinho em lugares públicos, as respostas aparecem aqui. As aparições na Jornada de cada pessoa são privadas e nunca entram nesta lista.</p>
+        <Aparicoes />
       </section>
     </main>
+  );
+}
+
+/** As respostas dele a quem chamou @iamiguinho em conversas abertas. Cameos na Jornada de alguém nunca entram aqui. */
+function Aparicoes() {
+  const [lista, setLista] = useState<Aparicao[] | null>(null);
+  useEffect(() => { let vivo = true; void iamiguinhoApi.aparicoes().then((l) => { if (vivo) setLista(l); }).catch(() => { if (vivo) setLista([]); }); return () => { vivo = false; }; }, []);
+  if (lista === null) return <p className="faint">Carregando…</p>;
+  if (!lista.length) return <p className="muted">Ninguém chamou @iamiguinho numa conversa aberta ainda. Quando chamarem, as respostas dele aparecem aqui. As aparições na Jornada de cada pessoa são privadas e nunca entram nesta lista.</p>;
+  return (
+    <>
+      <p className="muted">Respostas a quem chamou @iamiguinho na Praça e nas comunidades. As aparições na Jornada de cada pessoa são privadas e nunca entram aqui.</p>
+      <ul className="iam-aparicoes">
+        {lista.map((a) => (
+          <li key={a.id}>
+            <Link to={`/conversa/${a.postId}${a.anchor ? `#${a.anchor}` : ''}`}>
+              <small>{a.place} · “{a.title}” · {ago(a.createdAt)}</small>
+              <span>{a.body}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }

@@ -10,6 +10,7 @@ import { useStore } from '../../data/store';
 import { coverHTML, esc, logoGold, num3, stickerHTML } from './render';
 import { AURORA, burst, DUST, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
 import { StickerView, lightFollow, lightReset } from './StickerView';
+import { CameoJornada } from '../IAmiguinho';
 
 /* St.PageFlip vem como script (MIT), em /vendor/page-flip. */
 interface PageFlip {
@@ -63,6 +64,8 @@ export function AlbumBook({ book, vol, state, personal, onZoom, onBack }: { book
   const live = useRef({ items, tray, byId, section, onZoom });
   live.current = { items, tray, byId, section, onZoom };
   const [status, setStatus] = useState('Capa');
+  /** Página que acabou de fechar: o IAmiguinho dá os parabéns (uma vez por página). */
+  const [fechou, setFechou] = useState<string | null>(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [ready, setReady] = useState(false);
@@ -211,6 +214,7 @@ export function AlbumBook({ book, vol, state, personal, onZoom, onBack }: { book
       const r = stp.getBoundingClientRect(); setTimeout(() => burst(r.left + r.width / 2, r.top + r.height / 2, GOLD, 60, 6), 260);
     }, motion ? 1500 : 0);
     setStatus('Página completa');
+    if (pg.dataset.page) setFechou(pg.dataset.page);
   }
   function fly(id: string, from: HTMLElement): Promise<void> {
     return new Promise((done) => {
@@ -266,6 +270,7 @@ export function AlbumBook({ book, vol, state, personal, onZoom, onBack }: { book
 
   return (
     <section className="alb-reader" aria-label={book.title}>
+      {fechou && <CameoJornada key={fechou} motivo="pagina" escopo={fechou} fatos={{}} atraso={2600} />}
       <div className="alb-reader__head">
         <div><span className="alb-kick">Folheie arrastando o canto · {have} de {total} coladas</span><h2 className="alb-reader__title">{book.title}</h2></div>
         <div className="alb-reader__acts">

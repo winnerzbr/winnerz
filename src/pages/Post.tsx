@@ -18,6 +18,7 @@ import { Icon } from '../components/Icon';
 import { shrink } from '../lib/image';
 import { plainText, quoteOf } from '../lib/postText';
 import { clearDraft, readDraft, useDraft } from '../lib/draft';
+import { chamouIamiguinho, iamiguinhoApi, type MascoteResposta } from '../data/iamiguinhoApi';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 
@@ -232,6 +233,30 @@ function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: Po
   const [replyTo, setReplyTo] = useState<{ top: string; quote: string; nonce: number } | null>(null);
   const [folded, setFolded] = useState<Set<string>>(() => new Set());
   const [order, setOrder] = useState<'ordem' | 'uteis'>('ordem');
+  // IAmiguinho (M5): as respostas dele quando alguém chama @iamiguinho, e "pensando" enquanto a resposta não chega.
+  const [mascote, setMascote] = useState<MascoteResposta[]>([]);
+  const [pensando, setPensando] = useState<string | null>(null);
+  const chamado = useRef(false);
+  const onde = { postId: post.id, title: postTitle(post), place: post.community?.name ?? 'Praça' };
+  useEffect(() => { let vivo = true; void iamiguinhoApi.fio(post.id).then((l) => { if (vivo) setMascote(l); }); return () => { vivo = false; }; }, [post.id, post.thread.length]);
+  const chamar = async (origem: 'post' | 'resposta', id: string, texto: string) => {
+    if (!chamouIamiguinho(texto)) return;
+    setPensando(id);
+    try { const r = await iamiguinhoApi.chamar(origem, id, texto, onde); if (r) setMascote((l) => (l.some((x) => x.id === r.id) ? l : [...l, r])); } finally { setPensando(null); }
+  };
+  // Quem escreveu a postagem chamando @iamiguinho chega aqui logo depois de publicar: a resposta é pedida uma vez.
+  useEffect(() => {
+    if (chamado.current || post.author.id !== me || Date.now() - Date.parse(post.createdAt) > 30 * 60_000) return;
+    if (!chamouIamiguinho(`${post.title ?? ''}\n${post.body}`)) return;
+    chamado.current = true;
+    void iamiguinhoApi.fio(post.id).then((l) => { if (!l.some((x) => x.origem === 'post')) void chamar('post', post.id, `${post.title ?? ''}\n${post.body}`); });
+  }, [post.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const doMascote = (id: string) => mascote.filter((m) => m.origemId === id);
+  const tirar = async (id: string) => { await iamiguinhoApi.tirar(id); setMascote((l) => l.filter((x) => x.id !== id)); };
+  const mascoteItems = (id: string) => [
+    ...doMascote(id).map((m) => <li key={m.id}><MascoteItem m={m} onRemove={() => void tirar(m.id)} /></li>),
+    ...(pensando === id ? [<li key="pensando"><MascotePensando /></li>] : []),
+  ];
   const kids = (id: string) => post.thread.filter((r) => r.parentId === id);
   const isNew = (r: Reply) => !!since && r.createdAt > since && r.author.id !== me && !r.deleted;
   const tops = useMemo(() => {
@@ -246,8 +271,9 @@ function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: Po
   const answer = post.answerId ? post.thread.find((r) => r.id === post.answerId) : undefined;
   const canAnswer = post.kind === 'pergunta' && post.author.id === me;
   const count = post.thread.filter((r) => !r.deleted).length;
-  const sent = async () => { setReplyTo(null); await reload(); void refreshNews(); };
-  const people = useMemo(() => [...new Set([post.author, ...post.thread.map((r) => r.author)].filter((p) => p.handle && !p.gone && p.id !== me).map((p) => p.handle!))], [post, me]);
+  const sent = async (r?: Reply, texto?: string) => { setReplyTo(null); await reload(); void refreshNews(); if (r && texto) void chamar('resposta', r.id, texto); };
+  const people = useMemo(() => [...new Set([post.author, ...post.thread.map((r) => r.author)].filter((p) => p.handle && !p.gone && p.id !== me).map((p) => p.handle!)), 'iamiguinho'], [post, me]);
+  const doPost = mascoteItems(post.id);
   const open = (top: string, quote = '') => setReplyTo({ top, quote, nonce: Date.now() });
   const fold = (id: string) => setFolded((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const item = (r: Reply, top: Reply) => (
@@ -283,19 +309,22 @@ function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: Po
               <button className="cm-link" onClick={() => flashTo(`r-${answer.id}`)}>Ver na conversa</button>
             </div>
           )}
-          {tops.length === 0 ? <p className="muted cm-thread__empty">Ninguém respondeu ainda.</p> : (
+          {tops.length === 0 && doPost.length === 0 ? <p className="muted cm-thread__empty">Ninguém respondeu ainda.</p> : (
             <ol className="cm-replies">
+              {doPost.length > 0 && <li className="cm-replies__top"><ol className="cm-replies__kids cm-replies__kids--iam">{doPost}</ol></li>}
               {tops.map((r) => {
                 const ks = kids(r.id);
                 const isFolded = folded.has(r.id);
+                const iam = mascoteItems(r.id);
                 return (
                   <li key={r.id} className="cm-replies__top">
                     {r.id === firstNewTop && <div className="cm-newline" id="novas" role="separator">{newCount === 1 ? '1 resposta nova' : `${newCount} respostas novas`} desde a sua última visita</div>}
                     {item(r, r)}
                     {isFolded && ks.length > 0 && <button className="cm-folded" onClick={() => fold(r.id)}>{ks.length} {ks.length === 1 ? 'resposta recolhida' : 'respostas recolhidas'} · Mostrar</button>}
-                    {((!isFolded && ks.length > 0) || replyTo?.top === r.id) && (
+                    {((!isFolded && (ks.length > 0 || iam.length > 0)) || replyTo?.top === r.id) && (
                       <ol className="cm-replies__kids">
-                        {!isFolded && ks.map((k) => <li key={k.id}>{item(k, r)}</li>)}
+                        {!isFolded && iam}
+                        {!isFolded && ks.map((k) => [<li key={k.id}>{item(k, r)}</li>, ...mascoteItems(k.id)])}
                         {replyTo?.top === r.id && <li><Composer key={replyTo.nonce} postId={post.id} parentId={r.id} onSent={sent} onCancel={() => setReplyTo(null)} autoFocus initial={replyTo.quote} people={people} placeholder={r.author.handle ? `Responder a @${r.author.handle}` : 'Responder'} /></li>}
                       </ol>
                     )}
@@ -372,9 +401,38 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, onQuote, o
   );
 }
 
+/** A resposta do IAmiguinho no fio: avatar oficial, selo de mascote e marca de IA; não é comentário de pessoa. */
+function MascoteItem({ m, onRemove }: { m: MascoteResposta; onRemove: () => void }) {
+  const [confirm, setConfirm] = useState(false);
+  return (
+    <div className="iam-resp" id={`iam-${m.id}`}>
+      <img className="iam-resp__av" src="/brand/iamiguinho/icone-96.webp" alt="" width={32} height={32} />
+      <div className="iam-resp__b">
+        <div className="iam-resp__by">
+          <Link to="/@iamiguinho" className="iam-resp__nome">IAmiguinho</Link>
+          <span className="iam-selo">Mascote</span><span className="iam-selo iam-selo--ia" title="Resposta escrita por IA">IA</span>
+          <span className="faint">{ago(m.createdAt)}</span>
+        </div>
+        <p className="iam-resp__t">{m.body}</p>
+        {m.canRemove && (confirm
+          ? <span className="iam-resp__acts"><button className="cm-link cm-link--danger" onClick={onRemove}>Tirar do ar</button><button className="cm-link" onClick={() => setConfirm(false)}>Cancelar</button></span>
+          : <span className="iam-resp__acts"><button className="cm-link" onClick={() => setConfirm(true)}>Tirar esta resposta</button></span>)}
+      </div>
+    </div>
+  );
+}
+function MascotePensando() {
+  return (
+    <div className="iam-resp iam-resp--pensando" role="status">
+      <img className="iam-resp__av" src="/brand/iamiguinho/cara-pensando.webp" alt="" width={32} height={32} />
+      <p className="iam-resp__t faint">IAmiguinho está pensando<span className="iam-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></p>
+    </div>
+  );
+}
+
 const agoShort = (t: number | null) => (t ? `Rascunho salvo ${ago(new Date(t).toISOString())}` : '');
 
-function Composer({ postId, parentId, onSent, onCancel, placeholder, people, initial = '', autoFocus = false }: { postId: string; parentId: string | null; onSent: () => Promise<void>; onCancel?: () => void; placeholder: string; people: string[]; initial?: string; autoFocus?: boolean }) {
+function Composer({ postId, parentId, onSent, onCancel, placeholder, people, initial = '', autoFocus = false }: { postId: string; parentId: string | null; onSent: (r?: Reply, texto?: string) => Promise<void>; onCancel?: () => void; placeholder: string; people: string[]; initial?: string; autoFocus?: boolean }) {
   // Rascunho automático: volta se a página fechar no meio da resposta (a citação nova tem prioridade).
   const key = `r:${postId}:${parentId ?? 'topo'}`;
   const [text, setText] = useState(() => initial || readDraft<string>(key) || '');
@@ -386,7 +444,7 @@ function Composer({ postId, parentId, onSent, onCancel, placeholder, people, ini
     setErr('');
     if (!(await ensureRules())) return;
     setBusy(true);
-    try { await communityApi.reply(postId, parentId, text); clearDraft(key); setText(''); await onSent(); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
+    try { const r = await communityApi.reply(postId, parentId, text); clearDraft(key); setText(''); await onSent(r, text); } catch (e) { setErr(errOf(e)); } finally { setBusy(false); }
   };
   return (
     <div className={`cm-compose${parentId ? ' cm-compose--kid' : ''}`}>

@@ -742,7 +742,7 @@ function AlbumStep({ pack, onDone }: { pack: Pack | null; onDone: (n: number) =>
   );
   return (
     <div className="ar-pkhost">
-      <PackOpening pack={pack} stickers={byId} sections={sections} more={0} labels={{ paste: 'Guardar no álbum', done: 'Continuar', later: 'Abrir depois' }}
+      <PackOpening pack={pack} stickers={byId} sections={sections} more={0} mascote={false} labels={{ paste: 'Guardar no álbum', done: 'Continuar', later: 'Abrir depois' }}
         onPaste={(c) => { const fresh = [...new Set(c.filter((d) => !d.dup).map((d) => d.id))]; setN(c.length); void paste(fresh).then(() => onDone(c.length)); }}
         onNext={() => onDone(n || openedCount())} onClose={() => onDone(n || openedCount())} />
     </div>

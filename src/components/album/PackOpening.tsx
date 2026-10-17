@@ -9,15 +9,18 @@ import { TIER_LABEL, type Drawn } from '../../lib/album';
 import { buildPack, DEFAULT_LIGHT, shadePack, type PackRender } from './packArt';
 import { mysteryHTML, stickerHTML } from './render';
 import { AURORA, burst, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
+import { CameoJornada } from '../IAmiguinho';
 
 type Phase = 'sealed' | 'opening' | 'torn' | 'rising' | 'fanned' | 'ceremony' | 'done';
 interface Card { el: HTMLButtonElement; d: Drawn; open: boolean; base: { x: number; y: number; r: number } }
 
-export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, onClose, labels }: {
+export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, onClose, labels, mascote = true }: {
   pack: Pack; stickers: Record<string, Sticker>; sections: Record<string, string>; more: number;
   onPaste: (contents: Drawn[]) => void; onNext: () => void; onClose: () => void;
   /** Textos dos botões quando o pacote abre fora da página de Pacotes (na Chegada, por exemplo). */
   labels?: { paste?: string; done?: string; later?: string };
+  /** O IAmiguinho comenta o pacote depois de aberto (na Chegada, ele já está na tela e fica quieto). */
+  mascote?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('sealed');
@@ -193,6 +196,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
 
   return (
     <div className="pk" ref={root}>
+      {mascote && phase === 'done' && result && result.length > 0 && <CameoJornada motivo={fresh === 0 ? 'repetida' : 'pacote'} escopo="" fatos={{}} atraso={1200} />}
       <div className="pk__wrap">
         <div className="pk__intro">
           <span className="alb-kick">{pack.kind === 'prisma' ? 'Pacote especial' : 'Pacote'}{pack.game ? ` · ${pack.game.title}` : pack.origin === 'memoria' ? ' · memória' : pack.origin === 'boas_vindas' ? ' · boas-vindas' : pack.origin === 'codigo' ? ' · código' : pack.origin === 'twitch' ? ' · Twitch' : ''}</span>

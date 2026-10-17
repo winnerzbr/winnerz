@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checarFala, parecida } from '../../api/iamiguinho';
-import { FALAS, preencher, falaDaBiblioteca } from './iamiguinhoFalas';
+import { assuntoProibido, checarFala, numeroAleatorio, parecida } from '../../api/iamiguinho';
+import { FALAS, preencher, falaDaBiblioteca, respostaDaBiblioteca } from './iamiguinhoFalas';
 
 const ok = (s: string, f = {}, r: string[] = []) => checarFala(s, f, r);
 
@@ -55,4 +55,27 @@ test('IAmiguinho: biblioteca preenche as lacunas e evita as últimas', () => {
     const p = preencher(x, { jogo: 'Hades', dias: 40 });
     if (p) assert.equal(checarFala(p, { jogo: 'Hades', dias: 40 }).ok, true, p);
   }
+});
+
+test('IAmiguinho @menção: resposta usa o que a pessoa escreveu, até 280 e um emoji', () => {
+  const op = { max: 280, min: 2, emojis: 1, contexto: 'IAmiguinho, Hollow Knight ou Celeste? Joguei 3 horas ontem.' };
+  assert.equal(checarFala('Celeste. Escolhi pela montanha, que eu também nunca subi kkkk 😎', {}, [], op).ok, true);
+  assert.equal(checarFala('Hollow Knight! Três horas é pouco, eu passo 3 horas só no menu.', {}, [], op).ok, true);
+  assert.deepEqual(checarFala('Celeste! Eu zerei em 40 segundos.', {}, [], op), { ok: false, porque: 'número' });
+  assert.deepEqual(checarFala('Pergunta para o Zezinho, ele sabe.', {}, [], op), { ok: false, porque: 'nome' });
+  assert.deepEqual(checarFala('Celeste 😎🎉', {}, [], op), { ok: false, porque: 'emoji' });
+  assert.equal((checarFala('Celeste! '.repeat(40), {}, [], op) as { porque: string }).porque, 'longa');
+  assert.equal((checarFala('Celeste, mas o futebol de domingo é melhor.', {}, [], op) as { porque: string }).porque, 'futebol');
+});
+
+test('IAmiguinho @menção: número aleatório e assuntos em que ele não entra', () => {
+  assert.deepEqual(numeroAleatorio('@iamiguinho me dá um número aleatório de 1 a 10'), { a: 1, b: 10 });
+  assert.deepEqual(numeroAleatorio('escolhe um número entre 50 e 20'), { a: 20, b: 50 });
+  assert.equal(numeroAleatorio('quantos números tem o jogo 2?'), null);
+  for (let i = 0; i < 20; i++) { const n = Number(respostaDaBiblioteca('número aleatório de 3 a 5').replace('.', '')); assert.ok(n >= 3 && n <= 5); }
+  assert.equal(assuntoProibido('IAmiguinho, como eu denuncio alguém?'), true);
+  assert.equal(assuntoProibido('esqueci minha senha'), true);
+  assert.equal(assuntoProibido('paguei no cartão e não veio'), true);
+  assert.equal(assuntoProibido('IAmiguinho, qual a sua arma favorita no Splatoon?'), false);
+  assert.ok(FALAS.jogatina.length >= 5 && FALAS.pacote.length >= 5);
 });

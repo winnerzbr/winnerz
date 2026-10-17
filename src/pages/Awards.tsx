@@ -10,6 +10,7 @@ import { track } from '../lib/track';
 import { Agenda } from '../components/Agenda';
 import { AwardsNominate, AwardsStickerCard } from './AwardsPlus';
 import type { AgendaItem } from '../data/eventsApi';
+import { CameoJornada } from '../components/IAmiguinho';
 
 const tz = 'America/Sao_Paulo';
 export const fmtWhen = (iso?: string, withTime = false) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'long', ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}), timeZone: tz }) : '');
@@ -172,6 +173,8 @@ export function AwardsPage() {
   const s = useStore((x) => x);
   const { full, setFull, error, setError, reload } = useFull(award);
   const [saving, setSaving] = useState<string | null>(null);
+  /** Depois do primeiro voto da edição, o IAmiguinho conta que também tentou votar (uma vez por edição). */
+  const [votou, setVotou] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const bg = useAwardBg(full);
   useEffect(() => { track('eventos.awards'); }, []);
@@ -212,7 +215,7 @@ export function AwardsPage() {
     const mv = { ...full.myVotes };
     if (next) mv[c.id] = next; else delete mv[c.id];
     setFull({ ...full, myVotes: mv });
-    try { await awardsApi().vote(c.id, next); track('awards.voto'); }
+    try { await awardsApi().vote(c.id, next); track('awards.voto'); if (next) setVotou(true); }
     catch (e) { setError(e instanceof Error ? e.message : 'O voto não foi gravado.'); reload(); }
     finally { setSaving(null); }
   };
@@ -231,6 +234,7 @@ export function AwardsPage() {
 
   return (
     <main className="awards">
+      {votou && <CameoJornada motivo="awards" escopo={full.award.id} fatos={{}} atraso={900} />}
       <section className="awhero on-photo">
         {bg && <img className="awhero__bg" src={bg} alt="" />}
         <div className="awhero__shade" aria-hidden="true" />

@@ -123,7 +123,7 @@ export function StartPartCard({ game, history, session }: { game: Game; history:
   if (from && !edit) {
     return (
       <section className="ppcard is-set" aria-labelledby="pp-h">
-        <span className="kicker kicker--now" id="pp-h">Começou em</span>
+        <span className="kicker" id="pp-h">Começou em</span>
         <b className="ppcard__name"><Icon name="check" size={16} /> {from.name}</b>
         <PartVideoButton gameId={game.id} gameTitle={game.title} part={parts.find((p) => p.id === from.id)} label={u.one} videos={vids} onDark />
         <button className="btn quiet sm" onClick={() => setEdit(true)}>Mudar</button>

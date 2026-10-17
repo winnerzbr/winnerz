@@ -317,7 +317,7 @@ export function ConcludedPage() {
         const list = done.filter((d) => d.year === y);
         return (
           <section key={String(y)} className="concluded__year" aria-labelledby={`ano-${y}`}>
-            <div className="yr"><h2 id={`ano-${y}`} className="mono">{y ?? 'Sem data'}</h2><i aria-hidden="true" /><span className="kicker">{list.length} {list.length === 1 ? 'História' : 'Histórias'}</span></div>
+            <div className="yr"><h2 id={`ano-${y}`} className="t">{y ?? 'Sem data'}</h2><i aria-hidden="true" /><span className="kicker">{list.length} {list.length === 1 ? 'História' : 'Histórias'}</span></div>
             <ul className="concluded__list">
               {list.map(({ h, g, review, sess, moments }) => (
                 <li key={h.id}>

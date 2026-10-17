@@ -32,7 +32,7 @@ export function SnipPage({ token }: { token: string }) {
         <div className="snip__body">
           <Link to={`/jogos/${v.game.slug}`} className="snip__game">
             <span className="snip__cover"><CoverArt game={{ title: v.game.title, cover: v.game.cover ?? '' }} /></span>
-            <span><small className="kicker kicker--now">{SNIP_KICKER[v.kind] ?? 'Trecho'} · {date}</small><b>{v.game.title}</b>{v.history.ordinal > 1 && <small className="faint">{v.history.title}</small>}</span>
+            <span><small className="kicker">{SNIP_KICKER[v.kind] ?? 'Trecho'} · {date}</small><b>{v.game.title}</b>{v.history.ordinal > 1 && <small className="faint">{v.history.title}</small>}</span>
           </Link>
           <h1 className="t snip__title">{v.title}</h1>
           {v.quote && <blockquote className="snip__quote">“{v.quote}”</blockquote>}

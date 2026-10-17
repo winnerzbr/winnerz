@@ -92,7 +92,7 @@ function ModCard({ item, onDone, onError }: { item: QueueItem; onDone: (a: ModAc
   return (
     <li className="modcard">
       <div className="modcard__head">
-        <span className="kicker kicker--now">{KIND_LABEL[item.kind]}</span>
+        <span className="kicker">{KIND_LABEL[item.kind]}</span>
         <b className="modcard__t">{targetLabel(item.kind, s)}</b>
         <span className="muted modcard__who">{item.handle ? <>de <Link to={`/@${item.handle.toLowerCase()}`}>@{item.handle}</Link></> : 'conta sem @'}{item.history ? ` · ${item.history} ${item.history === 1 ? 'decisão anterior' : 'decisões anteriores'}` : ''}{item.suspendedUntil ? ` · suspensa até ${day(item.suspendedUntil)}` : ''}</span>
       </div>

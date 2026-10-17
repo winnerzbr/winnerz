@@ -65,7 +65,7 @@ export function ComebackPage({ slug }: { slug: string }) {
       <div className="page comeback__body">
         <div className="comeback__main">
           <section className="card comeback__next" aria-labelledby="cb-next">
-            <h2 id="cb-next" className="kicker kicker--now">Seu próximo passo</h2>
+            <h2 id="cb-next" className="kicker">Seu próximo passo</h2>
             {next ? (
               <>
                 <p className="comeback__goal">{next}</p>

@@ -56,7 +56,7 @@ export function CommunityPage() {
 
   if (!can) return (
     <main className="page pad narrow praca-out">
-      <span className="kicker kicker--now">Comunidade</span>
+      <span className="kicker">Comunidade</span>
       <h1 className="t big">Praça</h1>
       <p className="muted lead">É onde as conversas acontecem: perguntas, dicas, enquetes, o que chegou na coleção e as jogatinas. Entre na sua conta para participar.</p>
       <Link className="btn primary" to="/entrar">Entrar</Link>
@@ -102,7 +102,7 @@ export function CommunityPage() {
 
         <section className="praca__main" aria-labelledby="praca-t">
           <header className="praca__head">
-            <span className="kicker kicker--now">{today()}</span>
+            <span className="kicker">{today()}</span>
             <h1 id="praca-t" className="t praca__t">Praça</h1>
           </header>
           <Away activity={activity} encontros={encontros} />

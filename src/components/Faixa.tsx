@@ -319,7 +319,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
             <p className="fx-p fx-ai__text">{draft.text}</p>
             <small className="fx-src">Inferido · narrado pela IA só com o que você registrou. Guarde se gostou.</small>
             <div className="fx-actions">
-              <button className="btn now sm" onClick={() => { narrate?.save(it, draft.text); setDraft(null); }}>Guardar</button>
+              <button className="btn primary sm" onClick={() => { narrate?.save(it, draft.text); setDraft(null); }}>Guardar</button>
               <button className="btn ghost sm fx-btn" onClick={() => setDraft(null)}>Descartar</button>
             </div>
           </div>

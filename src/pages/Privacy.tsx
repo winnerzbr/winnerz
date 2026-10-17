@@ -10,7 +10,7 @@ export function PrivacyPage({ standalone = false }: { standalone?: boolean }) {
   return (
     <main className={`page pad narrow privacy${standalone ? ' privacy--alone' : ''}`}>
       {standalone && <Link to="/" className="privacy__brand" aria-label="WinnerZ"><BrandMark width={48} /></Link>}
-      <p className="kicker kicker--now">Atualizada em {UPDATED}</p>
+      <p className="kicker">Atualizada em {UPDATED}</p>
       <h1 className="t privacy__title">Privacidade</h1>
       <p className="privacy__lead">O WinnerZ guarda as suas histórias com jogos. Elas são suas: você vê tudo o que guardamos, leva tudo embora quando quiser e apaga quando quiser.</p>
 

@@ -11,7 +11,7 @@ export function RulesPage({ standalone = false }: { standalone?: boolean }) {
   return (
     <main className={`page pad narrow privacy rules${standalone ? ' privacy--alone' : ''}`}>
       {standalone && <Link to="/" className="privacy__brand" aria-label="WinnerZ"><BrandMark width={48} /></Link>}
-      <p className="kicker kicker--now">Atualizadas em {updated}</p>
+      <p className="kicker">Atualizadas em {updated}</p>
       <h1 className="t privacy__title">Regras da comunidade</h1>
       <p className="privacy__lead">O WinnerZ é um lugar para guardar histórias com jogos e, se você quiser, mostrar algumas delas. Para isso funcionar para todo mundo, combinamos cinco coisas.</p>
 

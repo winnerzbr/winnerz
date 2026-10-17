@@ -175,7 +175,7 @@ export function TrailPage({ slug }: { slug: string }) {
         <div className="trail__cols">
           {nextUp && !editingNow && (
             <article className="trail-next">
-              <span className="kicker kicker--now">Próximo no seu caminho</span>
+              <span className="kicker">Próximo no seu caminho</span>
               <Link to={`/jogos/${nextUp.game.slug}`} className="trail-next__cover"><CoverArt game={nextUp.game} /></Link>
               <h2 className="t trail-next__title">{nextUp.game.title}</h2>
               <p className="muted trail-next__meta">{[nextCopy?.platform ?? nextLocal?.platforms[0], nextUp.game.year, nextStatus === 'Na estante' ? 'Na sua estante' : nextStatus === 'Jogando' ? 'Na sua Jornada' : nextStatus === 'Desejo' ? 'Nos seus desejos' : null].filter(Boolean).join(' · ')}</p>

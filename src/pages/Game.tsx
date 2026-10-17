@@ -212,7 +212,7 @@ function GameView({ gameId }: { gameId: string }) {
               {count > 0 && <p className="faint rate-card__note">As médias usam a nota original de cada pessoa, sem arredondar.</p>}
             </article>
             <article className="rate-card rate-card--mine">
-              <h2 className="kicker kicker--now">Sua nota</h2>
+              <h2 className="kicker">Sua nota</h2>
               {mine ? (
                 <>
                   <div className="t rate-card__v">{formatScore(mine.rating.normalized, scale)}</div>
@@ -269,7 +269,7 @@ function GameView({ gameId }: { gameId: string }) {
 
         <aside className="game-aside">
           <section className="side-card relation" aria-labelledby="relacao">
-            <h2 id="relacao" className="kicker kicker--now">Sua relação com este jogo</h2>
+            <h2 id="relacao" className="kicker">Sua relação com este jogo</h2>
             <div className="kv"><span className="muted">Jornada</span>{j ? <Link to={`/jornada/${g.slug}`} className="kv__v">{journeyValue}</Link> : <span className="kv__v">{journeyValue}</span>}</div>
             <div className="kv"><span className="muted">Coleção</span>{owned.length ? <Link to="/colecao" className="kv__v">{owned.map((c) => `${shortPlatform(c.platform)} · ${kindLabel(c.kind)}`).join('; ')}</Link> : <span className="kv__v">{wished ? 'Nos seus desejos' : 'Não está na estante'}</span>}</div>
             <div className="kv">

@@ -67,7 +67,7 @@ function NickSetup({ suggestion, onDone }: { suggestion: string; onDone: () => v
       <div className="nick__glow" aria-hidden="true" />
       <form className="nick__box" onSubmit={(e) => { e.preventDefault(); void go(); }}>
         <BrandMark width={56} className="nick__logo" />
-        <span className="kicker kicker--now">{modNotice ? 'Aviso da moderação' : 'Primeiro acesso'}</span>
+        <span className="kicker">{modNotice ? 'Aviso da moderação' : 'Primeiro acesso'}</span>
         <h1 className="t nick__title">{modNotice ? 'Escolha um novo @' : 'Escolha o seu @'}</h1>
         <p className="nick__lead">{modNotice ? modNotice.text : 'É o seu nome no WinnerZ: aparece no cabeçalho, nas suas análises e no endereço do seu perfil. Dá para trocar depois em Preferências.'}</p>
         <label className="nick__field">

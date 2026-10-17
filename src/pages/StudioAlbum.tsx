@@ -129,7 +129,7 @@ function BookForm({ book, onSave, onDelete, fail }: { book: AlbumBook; onSave: (
       </div>
       <ArtField label="capa" value={book.cover} onChange={(v) => void onSave({ id: book.id, cover: v }, 'Capa trocada.')} fail={fail} />
       <div className="sa-row">
-        <button className="btn now sm" onClick={() => void onSave({ id: book.id, ...d }, 'Álbum salvo.')}>Salvar</button>
+        <button className="btn primary sm" onClick={() => void onSave({ id: book.id, ...d }, 'Álbum salvo.')}>Salvar</button>
         <button className="btn ghost sm" onClick={() => void onSave({ id: book.id, published: !book.published }, book.published ? 'Álbum voltou a ser rascunho.' : 'Álbum publicado: já entra nos pacotes.')}>{book.published ? 'Despublicar' : 'Publicar'}</button>
         <ConfirmButton label="Apagar álbum" confirm="Apagar mesmo?" onConfirm={onDelete} />
       </div>
@@ -154,7 +154,7 @@ function PageCard({ page, stickers, owned, onSave, onDelete, onAdd, onEdit, fail
       </div>
       <ArtField label="faixa do topo" value={page.banner} onChange={(v) => void onSave({ id: page.id, banner: v }, 'Faixa trocada.')} fail={fail} />
       <div className="sa-row">
-        {dirty && <button className="btn now sm" onClick={() => void onSave({ id: page.id, ...d }, 'Página salva.')}>Salvar página</button>}
+        {dirty && <button className="btn primary sm" onClick={() => void onSave({ id: page.id, ...d }, 'Página salva.')}>Salvar página</button>}
         <ConfirmButton label="Apagar página" confirm="Apagar mesmo?" onConfirm={onDelete} />
       </div>
       <div className="sa-stickers">
@@ -189,7 +189,7 @@ function StickerForm({ s, books, owned, onSave, onDelete, onClose, fail }: { s: 
           <label className="faint" style={{ fontSize: 13 }}><input type="checkbox" checked={d.active ?? true} onChange={(e) => setD({ ...d, active: e.target.checked })} /> Entra nos pacotes</label>
           <p className="faint" style={{ fontSize: 13, margin: 0 }}>A arte ideal tem proporção 5:7 (por exemplo 1000 × 1400). O nome e o número ficam por cima, como texto.</p>
           <div className="sa-row">
-            <button className="btn now sm" disabled={!d.name || (d.name?.trim().length ?? 0) < 2 || !d.number} onClick={() => onSave(d)}>Salvar</button>
+            <button className="btn primary sm" disabled={!d.name || (d.name?.trim().length ?? 0) < 2 || !d.number} onClick={() => onSave(d)}>Salvar</button>
             <button className="btn quiet sm" onClick={onClose}>Cancelar</button>
             {onDelete && <ConfirmButton label={owned ? 'Tirar dos pacotes' : 'Apagar'} confirm={owned ? 'Já tem gente com ela. Tirar dos pacotes?' : 'Apagar mesmo?'} onConfirm={onDelete} />}
           </div>
@@ -221,7 +221,7 @@ function GivePanel({ say, fail }: Say) {
       </div>
       <div className="seg" role="group" aria-label="Tipo"><button aria-pressed={kind === 'onix'} onClick={() => setKind('onix')}>Ônix (padrão)</button><button aria-pressed={kind === 'prisma'} onClick={() => setKind('prisma')}>Prisma (especial)</button></div>
       <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<textarea className="field" maxLength={200} value={reason} placeholder="Ex.: o pacote de Elden Ring não veio por um erro nosso." onChange={(e) => setReason(e.target.value)} /></label>
-      <div className="sa-row"><button className="btn now" disabled={busy || !handle.trim() || reason.trim().length < 3} onClick={() => void go()}>{busy ? 'Dando…' : qty === 1 ? 'Dar pacote' : `Dar ${qty} pacotes`}</button></div>
+      <div className="sa-row"><button className="btn primary" disabled={busy || !handle.trim() || reason.trim().length < 3} onClick={() => void go()}>{busy ? 'Dando…' : qty === 1 ? 'Dar pacote' : `Dar ${qty} pacotes`}</button></div>
     </section>
   );
 }
@@ -252,7 +252,7 @@ function PackItem({ p, view, after, fail }: { p: StudioPack; view: StudioView; a
       {held && view !== 'historico' && (
         <div className="sa-pack__acts">
           <input className="field" style={{ flex: '1 1 220px' }} maxLength={300} value={note} placeholder="Nota para a pessoa (obrigatória para negar)" onChange={(e) => setNote(e.target.value)} />
-          <button className="btn now sm" disabled={busy} onClick={() => void act(() => studioAlbumApi.decide(p.id, true, note), `Pacote liberado para ${at(p.person?.handle)}.`)}>Liberar</button>
+          <button className="btn primary sm" disabled={busy} onClick={() => void act(() => studioAlbumApi.decide(p.id, true, note), `Pacote liberado para ${at(p.person?.handle)}.`)}>Liberar</button>
           {p.state === 'retido' && <button className="btn ghost sm" disabled={busy || note.trim().length < 3} onClick={() => void act(() => studioAlbumApi.decide(p.id, false, note), 'Pacote negado. A pessoa recebe a nota.')}>Negar</button>}
         </div>
       )}
@@ -338,7 +338,7 @@ function CodesPanel({ say, fail }: Say) {
           <label>Termina<input className="field" type="datetime-local" value={local(f.endsAt)} onChange={(e) => up({ endsAt: fromLocal(e.target.value) })} /></label>
         </div>
         <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<input className="field" maxLength={200} value={f.note ?? ''} placeholder="Live de sexta: zeramos Elden Ring" onChange={(e) => up({ note: e.target.value })} /></label>
-        <div className="sa-row"><button className="btn now" disabled={busy || (f.note ?? '').trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void create()}>{busy ? 'Criando…' : 'Criar código'}</button></div>
+        <div className="sa-row"><button className="btn primary" disabled={busy || (f.note ?? '').trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void create()}>{busy ? 'Criando…' : 'Criar código'}</button></div>
       </section>
       <section className="sa-side" aria-label="Códigos">
         {!list ? <p className="muted">Carregando…</p> : !list.length ? <p className="muted">Nenhum código ainda.</p> : (
@@ -402,7 +402,7 @@ function DropBox({ list, stickers, setList, say, fail }: Say & { list: LiveCode[
         )}
       </div>
       <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<input className="field" maxLength={200} value={f.note} placeholder="Drop da live de sexta" onChange={(e) => up({ note: e.target.value })} /></label>
-      <div className="sa-row"><button className="btn now" disabled={busy || f.note.trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void start()}>{busy ? 'Soltando…' : live ? 'Soltar outro drop' : 'Soltar drop'}</button></div>
+      <div className="sa-row"><button className="btn primary" disabled={busy || f.note.trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void start()}>{busy ? 'Soltando…' : live ? 'Soltar outro drop' : 'Soltar drop'}</button></div>
     </section>
   );
 }
@@ -429,7 +429,7 @@ function TwitchPanel({ say, fail }: Say) {
         <p className="muted" style={{ margin: 0 }}>Quem resgata a recompensa abaixo na Twitch e ligou a conta nas Preferências ganha um pacote. Até 5 por dia por pessoa; resgate de quem ainda não ligou fica guardado 30 dias.</p>
         <p style={{ margin: 0 }}><b>Canal:</b> {ch?.authorized ? `twitch.tv/${ch.login}` : 'ainda não autorizado'}{ch?.subStatus ? ` · inscrição: ${ch.subStatus}` : ''}</p>
         <div className="sa-row">
-          <button className="btn now" disabled={busy} onClick={() => void run(() => twitchApi.authorizeChannel())}>{ch?.authorized ? 'Autorizar de novo' : 'Autorizar o canal'}</button>
+          <button className="btn primary" disabled={busy} onClick={() => void run(() => twitchApi.authorizeChannel())}>{ch?.authorized ? 'Autorizar de novo' : 'Autorizar o canal'}</button>
           {ch?.authorized && <button className="btn ghost" disabled={busy} onClick={() => void run(async () => { say(`Inscrição: ${await twitchApi.resubscribe()}`); setD(await twitchApi.studio()); })}>Refazer a inscrição</button>}
         </div>
         <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Nome da recompensa na Twitch (igual ao do painel do canal)

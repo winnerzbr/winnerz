@@ -141,7 +141,7 @@ function NextRelease({ u }: { u?: Upcoming }) {
       <Backdrop game={u.game} className="next-release__bg" />
       <span className="next-release__shade" aria-hidden="true" />
       <span className="next-release__body">
-        <span className="next-release__text"><span className="kicker kicker--now">No seu Radar · {stamp(u.day + 'T15:00:00Z')}</span><span className="t next-release__title">{u.title}</span></span>
+        <span className="next-release__text"><span className="kicker">No seu Radar · {stamp(u.day + 'T15:00:00Z')}</span><span className="t next-release__title">{u.title}</span></span>
         <span className="next-release__days"><span className="t">{u.days}</span><span className="kicker">dias</span></span>
       </span>
     </Link>
@@ -180,7 +180,7 @@ function ArrivalResume() {
     <div className="page arrive-wrap"><section className="arrive-card" aria-labelledby="arrive-t">
       <div className="arrive-card__ems" aria-hidden="true">{left.map((x) => <img key={x.key} src={x.img} alt="" />)}</div>
       <div className="arrive-card__txt">
-        <span className="kicker kicker--now">Sua chegada</span>
+        <span className="kicker">Sua chegada</span>
         <b id="arrive-t">{left.length === 1 ? `Falta só ${left[0].label}.` : `Faltam ${left.length} partes: ${left.map((x) => x.label).join(', ')}.`}</b>
         <span className="muted">Tudo o que você escolheu ficou guardado. Continue de onde parou.</span>
       </div>
@@ -283,7 +283,7 @@ function HomeDefault() {
             <figure className="memory on-photo">
               {memory.image && <img src={memory.image} alt="" />}
               <figcaption>
-                <span className="kicker kicker--now">{capitalize(ago(memory.at))}</span>
+                <span className="kicker">{capitalize(ago(memory.at))}</span>
                 {memory.quote && <div className="quote">“{memory.quote}”</div>}
                 <div className="memory__meta">{memory.title}, {s.games[s.journeys.find((x) => x.id === memory.journeyId)?.gameId ?? '']?.title}, {dayMonthYear(memory.at)}</div>
               </figcaption>

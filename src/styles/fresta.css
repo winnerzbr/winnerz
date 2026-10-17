@@ -643,3 +643,45 @@ a.back:hover { color: var(--ink); text-decoration: none; }
 .cm-index__bar { justify-content: space-between; align-items: center; }
 .glists__bar { justify-content: flex-start; gap: 12px 28px; margin-bottom: 18px; }
 :is(.cm-kinds__o, .cm-spoil__o, .cm-door-edit__list label, .bkrev__choice, .praca__tile, .cfcard__opt, .squal__g):is(.is-on, [aria-checked='true']) b { color: inherit !important; }
+
+/* ==== R3 · Pente-fino Fresta ================================================================== */
+
+/* Âmbar só para "agora": rótulos, números e realces que não são agora ficam neutros (ou no dourado da marca). */
+.kicker--gold { color: var(--gold); }
+.rules__n { color: var(--muted); }
+.trail-card__count, .trail-hero__prog .mono { color: var(--ink-2); }
+.studio__verdict { border-left-color: var(--line-2); }
+.studio__verdict.is-hot { border-left-color: var(--now); }
+.pd-common .kicker, .vcab__det .kicker, .what__kicker .kicker, .club--recorrente .club2-hero__kicker { color: var(--muted); }
+.club-chip--recorrente, :root[data-theme='claro'] .club-chip--recorrente { color: var(--ink-2); }
+.jog-after .kicker, .club2-hz__m.is-done .club2-hz__k { color: var(--muted); }
+.rcard__dot { display: none; }
+
+/* Cantos retos, sem círculos */
+.evcard, .evcard__count { border-radius: 0; }
+.hwcard__icon, .notif__ic, .dna__ic, .trail-new__plus, .cmf__ic, .fx-ic { border-radius: 0; }
+.ctile__fav { border-radius: 0; clip-path: polygon(25% 0, 100% 0, 75% 100%, 0 100%); width: 24px; }
+.barlist__bar::after { content: none; }
+.barlist li.is-top .barlist__bar { background: var(--now); }
+.range::-webkit-slider-thumb { border-radius: 0; width: 12px; height: 22px; margin-top: -10px; background: var(--ink); box-shadow: none; }
+.range::-moz-range-thumb { border-radius: 0; width: 12px; height: 22px; background: var(--ink); box-shadow: none; }
+.yrv__stage { border-radius: 0; }
+
+/* Sem contorno tracejado: o vazio é uma peça, como o resto */
+.radar__empty, .trail-new, .jog-seat.is-empty, .alb-empty, .cm-editor__add, .sa-add { border: 0 !important; border-radius: 0; background: var(--fr-piece); }
+.radar__empty-dot { display: none; }
+
+/* Cores fora da paleta viram peças neutras */
+.jog-seat { background: var(--fr-piece); }
+.jog-seat a { color: var(--ink); }
+.ctile__badge--loan { color: var(--ink) !important; background: var(--fr-piece-hi) !important; }
+.hwcard__icon { color: var(--ink-2); box-shadow: inset 0 0 0 1.5px var(--line-2); }
+
+/* Tipografia: rótulos sem o espaçamento de mono; Eventos sem mono (o Awards mantém o seu) */
+.cm-thread__head .cm-thread__t { font-size: 13px; letter-spacing: 0; text-transform: none; }
+.events .kicker:not(.evcard .kicker) { font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.events .kicker:not(.evcard .kicker)::before { content: ''; }
+:root[data-theme='claro'] .hwcard__plat { color: hsl(var(--h), 45%, 32%); }
+.range.lg::-webkit-slider-thumb { width: 14px; height: 28px; margin-top: -12.5px; box-shadow: none; }
+.range.lg::-moz-range-thumb { width: 14px; height: 28px; }
+.club2-next__t { font-style: normal !important; color: var(--ink) !important; font-family: var(--font-title); font-weight: 800; font-stretch: 125%; text-transform: uppercase; letter-spacing: -0.01em; }

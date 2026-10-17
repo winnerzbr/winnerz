@@ -8,7 +8,7 @@ export function AboutPage({ standalone = false }: { standalone?: boolean }) {
   return (
     <main className={`page pad narrow privacy about-page${standalone ? ' privacy--alone' : ''}`}>
       {standalone && <Link to="/" className="privacy__brand" aria-label="WinnerZ"><BrandMark width={48} /></Link>}
-      <p className="kicker kicker--now">Sobre</p>
+      <p className="kicker">Sobre</p>
       <h1 className="t privacy__title">Sobre o WinnerZ</h1>
       <p className="privacy__lead">O WinnerZ é onde jogos viram histórias: a Jornada de cada jogo que você joga, a coleção que você tem e o que você achou de cada um, tudo num lugar só.</p>
 

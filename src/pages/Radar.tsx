@@ -103,7 +103,7 @@ export function RadarPage() {
                         <Link to={`/jogos/${g.slug}`} className="t rcard__title">{g.title}</Link>
                         <span className="muted">{[(i?.platforms.length ? i.platforms : g.platforms).slice(0, 3).map(shortPlatform).join(', '), i?.label || 'Data ainda não conferida'].filter(Boolean).join(' · ')}</span>
                       </div>
-                      <button className="btn now rcard__btn" disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(g.id)}><span className="rcard__dot" aria-hidden="true" />Acompanhar</button>
+                      <button className="btn primary rcard__btn" disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(g.id)}><span className="rcard__dot" aria-hidden="true" />Acompanhar</button>
                     </li>
                   );
                 })}

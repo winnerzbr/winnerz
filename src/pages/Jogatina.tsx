@@ -25,8 +25,6 @@ const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo 
 const FLASH = 'wz.jogatina.recado';
 const setFlash = (t: string) => { try { sessionStorage.setItem(FLASH, t); } catch { /* sem armazenamento: segue sem recado */ } };
 const takeFlash = () => { try { const t = sessionStorage.getItem(FLASH); sessionStorage.removeItem(FLASH); return t ?? ''; } catch { return ''; } };
-const SEAT_COLORS = ['#e2c08d', '#a6d8c8', '#ffb35c', '#a8d4ff', '#b8e6a0', '#f2a8a8', '#d3b8f5', '#f5d77a'];
-const seatColor = (h?: string | null) => SEAT_COLORS[[...(h ?? '?')].reduce((a, c) => a + c.charCodeAt(0), 0) % SEAT_COLORS.length];
 
 /** Status da jogatina em uma linha: "Faltam 1 h 20 · até 23h", "Acontecendo agora · até 23h", "Aconteceu ontem". */
 function statusLine(j: Jogatina, now: number): string {
@@ -319,7 +317,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
 
 function Seat({ p, owner }: { p: JogPerson; owner: boolean }) {
   return (
-    <li className="jog-seat" style={{ background: seatColor(p.handle) }}>
+    <li className="jog-seat">
       <Link to={p.handle && !p.gone ? `/@${p.handle.toLowerCase()}` : '#'} title={owner ? 'Marcou a jogatina' : undefined}>
         <PersonAvatar p={p} size={34} />
         <small>@{p.handle ?? 'conta apagada'}</small>

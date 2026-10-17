@@ -60,7 +60,7 @@ export function RulesHost() {
     <Layer>
     <div className="modal-back" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="modal rules-ask" role="dialog" aria-modal="true" aria-labelledby="rules-ask-t">
-        <span className="kicker kicker--now">Antes de mostrar para os outros</span>
+        <span className="kicker">Antes de mostrar para os outros</span>
         <h2 id="rules-ask-t" className="t rules-ask__t">As regras da comunidade</h2>
         <p className="muted rules-ask__lead">É a primeira vez que você deixa algo público. São cinco combinados, bem curtos:</p>
         <ol className="rules-ask__list">

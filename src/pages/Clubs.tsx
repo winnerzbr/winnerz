@@ -525,7 +525,7 @@ function FirstTimeBar({ c, onFinish }: { c: ClubFull; onFinish: (v: boolean) => 
       </div>
       {finished.length > 0 && (
         <div className="club-first__stars">
-          <span className="kicker kicker--now">Zeraram pela primeira vez aqui</span>
+          <span className="kicker">Zeraram pela primeira vez aqui</span>
           <ul>{finished.map((p) => <li key={p.id}><PersonLink p={p} /><small className="faint">{ago(p.finishedAt)}</small></li>)}</ul>
         </div>
       )}
@@ -634,7 +634,7 @@ function NextCard({ c, reload }: { c: ClubFull; reload: () => Promise<void> }) {
   };
   return (
     <section className="cm-side club2-next">
-      <span className="kicker kicker--now">Agenda do clube</span>
+      <span className="kicker">Agenda do clube</span>
       <Link to={`/jogatina/${j.id}`} className="club2-next__t">{j.title}</Link>
       <small className="muted">{whenLabel(j.startsAt)} · {j.going} {j.going === 1 ? 'vai' : 'vão'}{j.platform ? ` · ${j.platform}` : ''}</small>
       {c.me && (j.me?.rsvp === 'vou'

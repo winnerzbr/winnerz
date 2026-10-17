@@ -124,7 +124,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 
       {data.friendsOnly && !mine && (
         <div className="page"><div className="pd-friendsonly" role="note">
-          <span className="kicker kicker--now">Só para amigos</span>
+          <span className="kicker">Só para amigos</span>
           <p>Parte do perfil de @{data.handle} é só para amigos. Siga @{data.handle}: quando @{data.handle} seguir você de volta, vocês viram amigos e o resto aparece aqui.</p>
         </div></div>
       )}

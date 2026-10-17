@@ -151,7 +151,7 @@ function ThisConversation({ post }: { post: PostFull }) {
   };
   return (
     <section className="cm-side cm-thisconv" aria-label="Esta conversa">
-      <span className="kicker kicker--now">Esta conversa</span>
+      <span className="kicker">Esta conversa</span>
       <div className="cm-thisconv__row"><SaveButton post={post} /></div>
       <label className="cm-thisconv__row cm-thisconv__sw">
         <span><Icon name="sino" size={15} />Acompanhar respostas</span>
@@ -278,7 +278,7 @@ function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: Po
           </div>
           {answer && !answer.deleted && (
             <div className="cm-answer">
-              <span className="kicker kicker--now"><Icon name="check" size={12} /> Resolveu a dúvida{post.author.handle ? ` de @${post.author.handle}` : ''}</span>
+              <span className="kicker"><Icon name="check" size={12} /> Resolveu a dúvida{post.author.handle ? ` de @${post.author.handle}` : ''}</span>
               <ReplyItem r={answer} post={post} isAnswer canAnswer={canAnswer} onAnswer={onAnswer} onReply={() => open(answer.parentId ?? answer.id)} reload={reload} compact />
               <button className="cm-link" onClick={() => flashTo(`r-${answer.id}`)}>Ver na conversa</button>
             </div>

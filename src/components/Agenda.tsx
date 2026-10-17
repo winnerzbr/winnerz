@@ -73,7 +73,7 @@ export function Agenda({ extra, admin }: { extra: AgendaItem[]; admin: boolean }
             <label className="agenda__f agenda__f--wide">Nota<input className="field" value={edit.note ?? ''} maxLength={300} placeholder="Primeira vez no DLC, sem guia." onChange={(e) => setEdit({ ...edit, note: e.target.value })} /></label>
           </div>
           <div className="agenda__formacts">
-            <button className="btn now" disabled={busy || edit.title.trim().length < 3}>{busy ? 'Salvando…' : edit.id ? 'Salvar' : 'Marcar na agenda'}</button>
+            <button className="btn primary" disabled={busy || edit.title.trim().length < 3}>{busy ? 'Salvando…' : edit.id ? 'Salvar' : 'Marcar na agenda'}</button>
             <button type="button" className="btn quiet" onClick={() => { setEdit(null); setErr(''); }}>Cancelar</button>
           </div>
         </form>

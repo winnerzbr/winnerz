@@ -404,7 +404,7 @@ export function CommunityView({ slug }: { slug: string }) {
           <div className="cm2-hero__row">
             <span className="cm2-hero__av" aria-hidden="true">{cover ? <img src={cover} alt="" /> : <span>{c.name.slice(0, 1)}</span>}</span>
             <div className="cm2-hero__tx">
-              <span className={`kicker${c.official ? ' kicker--now' : ''}`}>{c.official ? 'Comunidade oficial do canal' : c.game ? `Comunidade · ${c.game.title}` : 'Comunidade'}</span>
+              <span className={`kicker${c.official ? ' kicker--gold' : ''}`}>{c.official ? 'Comunidade oficial do canal' : c.game ? `Comunidade · ${c.game.title}` : 'Comunidade'}</span>
               <h1 className="t cm2-hero__t">{c.name}</h1>
               <span className="mono cm2-hero__meta">{meta}</span>
             </div>
@@ -432,7 +432,7 @@ export function CommunityView({ slug }: { slug: string }) {
               {door ? (
                 <section className="cm-door" aria-label="Porta de entrada">
                   <div className="cm-door__card">
-                    <span className="kicker kicker--now">01 · Porta de entrada</span>
+                    <span className="kicker">01 · Porta de entrada</span>
                     <b>{ruleLines.length ? 'Combinados daqui' : 'Regras essenciais'}</b>
                     <p className="muted">{ruleLines.length ? ruleLines.slice(0, 2).join(' ') : 'Valem as regras do WinnerZ: respeito, spoiler só com aviso, sem spam.'}</p>
                     <button className="cm-link" onClick={() => setTab('sobre')}>Ler tudo</button>
@@ -509,7 +509,7 @@ export function CommunityView({ slug }: { slug: string }) {
         </div>
         <aside className="cm-view__side">
           <section className="cm-side cm2-side--jog">
-            <span className="kicker kicker--now">Jogatinas desta comunidade</span>
+            <span className="kicker">Jogatinas desta comunidade</span>
             {jogs == null ? <p className="faint">Carregando…</p> : jogs.length ? <div className="jog-cards jog-cards--side">{jogs.slice(0, 3).map((j) => <JogatinaTile key={j.id} j={j} compact />)}</div> : <p className="faint">Nenhuma marcada.</p>}
             {!signedOut && <Link className="btn ghost sm" to={`/jogatina/criar?w=${c.slug}${c.game ? `&jogo=${encodeURIComponent(c.game.slug)}` : ''}`}><Icon name="mais" size={14} />Marcar uma jogatina</Link>}
           </section>

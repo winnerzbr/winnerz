@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { Link, usePath } from '../lib/router';
 import { Icon } from './Icon';
 import { actions, useStore, openSession } from '../data/store';
-import { BrandLockup } from './Brand';
+import { BrandMark } from './Brand';
 import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
 import { NotifBell } from './Notifications';
@@ -37,60 +37,68 @@ export function Header() {
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
   }, [open]);
 
+  const pillar = (p: (typeof PILLARS)[number]) => (
+    <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && inCommunity(path)) ? 'page' : undefined}>
+      <Icon name={p.icon} />{p.label}
+    </Link>
+  );
+
+  // Fresta: o logo fica no centro, apoiado na linha do horizonte, com as seções dos dois lados.
   return (
     <header className="site-header">
       <div className="page site-header__row">
-        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandLockup /></Link>
-        <nav className="pillars" aria-label="Pilares">
-          {PILLARS.map((p) => (
-            <Link key={p.to} to={p.to} aria-current={path.startsWith(p.match) || (p.to === '/comunidade' && inCommunity(path)) ? 'page' : undefined}>
-              <Icon name={p.icon} />{p.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="site-header__tools">
-          <button className="search-pill" aria-label="Buscar (Ctrl+K)" title="Buscar (Ctrl+K)" onClick={openSearch}><Icon name="busca" size={18} /><span className="search-pill__label">Buscar</span><kbd className="search-pill__kbd">Ctrl K</kbd></button>
-          {session && (
-            <Link to="/sessao" className="session-pill"><span className="session-pill__dot" aria-hidden="true" /><span className="session-pill__label">Sessão aberta</span></Link>
-          )}
-          <DmButton />
-          <NotifBell />
-          <div className="appearance" ref={pop}>
-            <button className="icon-btn" aria-label="Aparência" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="tema" size={20} /></button>
-            {open && (
-              <div role="dialog" aria-label="Aparência" className="appearance__panel">
-                <div className="appearance__title">Aparência</div>
-                <div className="seg" role="group" aria-label="Tema" style={{ display: 'flex' }}>
-                  <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'escuro'} onClick={() => actions.setPrefs({ theme: 'escuro' })}>Escuro</button>
-                  <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>Claro</button>
+        <div className="site-header__side site-header__side--l">
+          <button className="hdr-search" aria-label="Buscar jogos (atalho /)" title="Buscar (/ ou Ctrl+K)" onClick={openSearch}>
+            <Icon name="busca" size={18} /><span className="hdr-search__label">Buscar<span className="hdr-search__more"> jogos</span></span><span className="tr" aria-hidden="true" />
+          </button>
+          <nav className="pillars" aria-label="Pilares">{PILLARS.slice(0, 3).map(pillar)}</nav>
+        </div>
+        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandMark width={66} /></Link>
+        <div className="site-header__side site-header__side--r">
+          <nav className="pillars" aria-label="Mais pilares">{PILLARS.slice(3).map(pillar)}</nav>
+          <div className="site-header__tools">
+            {session && (
+              <Link to="/sessao" className="session-pill" aria-label="Sessão aberta"><span className="session-pill__dot" aria-hidden="true" /><span className="session-pill__label">Sessão aberta</span></Link>
+            )}
+            <DmButton />
+            <NotifBell />
+            <div className="appearance" ref={pop}>
+              <button className="icon-btn" aria-label="Aparência" aria-expanded={open} onClick={() => setOpen(!open)}><Icon name="tema" size={20} /></button>
+              {open && (
+                <div role="dialog" aria-label="Aparência" className="appearance__panel">
+                  <div className="appearance__title">Aparência</div>
+                  <div className="seg" role="group" aria-label="Tema" style={{ display: 'flex' }}>
+                    <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'escuro'} onClick={() => actions.setPrefs({ theme: 'escuro' })}>Escuro</button>
+                    <button style={{ flex: 1 }} aria-pressed={prefs.theme === 'claro'} onClick={() => actions.setPrefs({ theme: 'claro' })}>Claro</button>
+                  </div>
+                  {prefs.theme === 'escuro' && (
+                    <>
+                      <label htmlFor="preto-header" className="appearance__label">Intensidade do preto <span>{prefs.black}%</span></label>
+                      <input id="preto-header" className="range" type="range" min={0} max={100} value={prefs.black}
+                        style={{ ['--p' as string]: `${prefs.black}%` }}
+                        onChange={(e) => actions.setPrefs({ black: Number(e.target.value) })} />
+                      <div className="appearance__ends"><span>Grafite</span><span>Preto absoluto</span></div>
+                    </>
+                  )}
+                  {prefs.theme === 'claro' && (
+                    <>
+                      <label htmlFor="branco-header" className="appearance__label">Intensidade do branco <span>{prefs.white ?? 70}%</span></label>
+                      <input id="branco-header" className="range" type="range" min={0} max={100} value={prefs.white ?? 70}
+                        style={{ ['--p' as string]: `${prefs.white ?? 70}%` }}
+                        onChange={(e) => actions.setPrefs({ white: Number(e.target.value) })} />
+                      <div className="appearance__ends"><span>Cinza suave</span><span>Branco puro</span></div>
+                    </>
+                  )}
+                  <Link to="/preferencias" onClick={() => setOpen(false)} className="appearance__more">Mais preferências</Link>
                 </div>
-                {prefs.theme === 'escuro' && (
-                  <>
-                    <label htmlFor="preto-header" className="appearance__label">Intensidade do preto <span>{prefs.black}%</span></label>
-                    <input id="preto-header" className="range" type="range" min={0} max={100} value={prefs.black}
-                      style={{ ['--p' as string]: `${prefs.black}%` }}
-                      onChange={(e) => actions.setPrefs({ black: Number(e.target.value) })} />
-                    <div className="appearance__ends"><span>Grafite</span><span>Preto absoluto</span></div>
-                  </>
-                )}
-                {prefs.theme === 'claro' && (
-                  <>
-                    <label htmlFor="branco-header" className="appearance__label">Intensidade do branco <span>{prefs.white ?? 70}%</span></label>
-                    <input id="branco-header" className="range" type="range" min={0} max={100} value={prefs.white ?? 70}
-                      style={{ ['--p' as string]: `${prefs.white ?? 70}%` }}
-                      onChange={(e) => actions.setPrefs({ white: Number(e.target.value) })} />
-                    <div className="appearance__ends"><span>Cinza suave</span><span>Branco puro</span></div>
-                  </>
-                )}
-                <Link to="/preferencias" onClick={() => setOpen(false)} className="appearance__more">Mais preferências</Link>
-              </div>
+              )}
+            </div>
+            {profile ? (
+              <Link to="/preferencias" aria-label="Seu perfil e preferências" className={`avatar${profile.avatar ? ' avatar--img' : ''}`}>{profile.avatar ? <img src={profile.avatar} alt="" /> : profile.initial}</Link>
+            ) : (
+              <Link to="/entrar" className="btn ghost sm">Entrar</Link>
             )}
           </div>
-          {profile ? (
-            <Link to="/preferencias" aria-label="Seu perfil e preferências" className={`avatar${profile.avatar ? ' avatar--img' : ''}`}>{profile.avatar ? <img src={profile.avatar} alt="" /> : profile.initial}</Link>
-          ) : (
-            <Link to="/entrar" className="btn ghost sm">Entrar</Link>
-          )}
         </div>
       </div>
     </header>

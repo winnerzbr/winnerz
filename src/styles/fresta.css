@@ -1,0 +1,289 @@
+/* WinnerZ — Fresta
+   A linguagem visual própria do WinnerZ, tirada do próprio logo:
+   - o traço: a diagonal do Z e as pontas das barras caem a 22°;
+   - a fresta: o vão fino entre as peças do logo separa as coisas, no lugar de contornos cinza;
+   - o horizonte: um fio apagado em todo o site, que só acende em âmbar no "agora".
+   Cor: base neutra; platina para o que é seu e para a ação principal; âmbar só no agora;
+   ouro só na marca e nos troféus. Cantos retos, sem pílulas.
+   Este arquivo vem por último e substitui as formas antigas (pílulas, círculos, contornos). */
+
+:root {
+  --fr-cut: 18px;            /* quanto a ponta corta na horizontal (22° numa peça de 46 px) */
+  --fr-lasca: 10px;          /* largura da lasca solta */
+  --fr-gap: 5px;             /* a fresta entre a peça e a lasca */
+  --fr-piece: var(--surface-2);
+  --fr-piece-hi: #262a30;
+  --fr-hair: rgba(230, 233, 237, 0.16);
+  --fr-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+:root[data-theme='claro'] { --fr-piece-hi: #d9dde2; --fr-hair: rgba(11, 13, 16, 0.16); }
+.on-photo { --fr-piece: rgba(27, 30, 34, 0.92); --fr-piece-hi: rgba(42, 46, 52, 0.95); --fr-hair: rgba(230, 233, 237, 0.2); }
+
+/* ---- O traço ------------------------------------------------------------------------------ */
+.tr { display: inline-block; flex: none; width: 5px; height: 14px; background: var(--line-2); transform: skewX(-22deg); vertical-align: -2px; }
+.tr.me { background: var(--ink); }
+.tr.now { background: var(--now); box-shadow: 0 0 8px rgba(255, 178, 91, 0.55); }
+.tr.au { background: linear-gradient(170deg, #fff0cc, #c9985c); }
+
+/* ---- Rótulos: sai a fonte mono espaçada, entra traço + texto comum ------------------------ */
+.kicker { font-family: var(--font-ui); font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; }
+.kicker::before { content: ''; display: inline-block; width: 4px; height: 0.95em; margin-right: 0.6em; background: currentColor; opacity: 0.5; transform: skewX(-22deg); vertical-align: -0.12em; }
+a.kicker::before, button.kicker::before, .kicker:empty::before { content: none; }
+/* No WinnerZ Awards (e na revelação) os rótulos continuam como hoje: em maiúsculas, com a cena dos indicados intacta. */
+.awards .kicker, .events .kicker, .reveal .kicker, .rvc .kicker { font-family: var(--font-mono); font-size: 12px; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; }
+.awards .kicker::before, .events .kicker::before, .reveal .kicker::before, .rvc .kicker::before { content: none; }
+
+/* ---- Botões ------------------------------------------------------------------------------ */
+/* Peça reta com a ponta direita cortada a 22°. O principal ainda leva a lasca solta depois da fresta.
+   A forma é um recorte (clip-path), então as cores que cada tela já dava aos botões continuam valendo. */
+.btn {
+  --c: var(--fr-cut);
+  position: relative; overflow: hidden; isolation: isolate;
+  border: 0; border-radius: 0;
+  font: 700 14.5px/1.1 var(--font-ui); font-stretch: 100%; letter-spacing: 0; text-transform: none;
+  padding: 0 calc(20px + var(--c)) 0 20px;
+  background: var(--fr-piece); color: var(--ink);
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%);
+  transition: background-color 0.25s, color 0.2s, clip-path 0.4s var(--fr-ease), filter 0.25s;
+}
+.btn:active { transform: none; }
+.btn.sm { --c: 16px; min-height: 40px; font-size: 13.5px; padding: 0 calc(16px + var(--c)) 0 16px; }
+.btn.lg { --c: 21px; min-height: 54px; font-size: 16px; padding: 0 calc(26px + var(--c)) 0 26px; }
+
+/* Brilho que passa na inclinação do Z ao passar o mouse */
+.btn::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 38%; z-index: -1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0));
+  transform: skewX(-22deg);
+}
+.btn:hover::after { animation: fr-sheen 0.75s var(--fr-ease); }
+@keyframes fr-sheen { from { left: -60%; } to { left: 130%; } }
+
+/* Principal: platina + lasca. O desenho é um só recorte: peça, fresta e lasca. */
+.btn.primary, a.btn.primary, .btn.now, a.btn.now, .btn.danger-solid {
+  padding-right: calc(20px + var(--fr-lasca) + var(--fr-gap) + var(--c));
+  clip-path: polygon(0 0,
+    calc(100% - var(--fr-lasca) - var(--fr-gap)) 0, calc(100% - var(--fr-lasca) - var(--fr-gap) - var(--c)) 100%,
+    calc(100% - var(--fr-lasca) - var(--c)) 100%, calc(100% - var(--fr-lasca)) 0,
+    100% 0, calc(100% - var(--c)) 100%, 0 100%);
+}
+.btn.sm.primary, .btn.sm.now { padding-right: calc(16px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
+.btn.lg.primary, .btn.lg.now { padding-right: calc(26px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
+.btn.primary, a.btn.primary { background: var(--primary); color: var(--on-primary); }
+.btn.primary::after, .btn.now::after { background: linear-gradient(90deg, rgba(11, 12, 14, 0), rgba(11, 12, 14, 0.14), rgba(11, 12, 14, 0)); }
+/* Ao passar o mouse a fresta abre: a peça recua e a lasca fica solta na frente. */
+.btn.primary:hover, .btn.now:hover, .btn.danger-solid:hover {
+  clip-path: polygon(0 0,
+    calc(100% - var(--fr-lasca) - var(--fr-gap) - 7px) 0, calc(100% - var(--fr-lasca) - var(--fr-gap) - 7px - var(--c)) 100%,
+    calc(100% - var(--fr-lasca) - var(--c)) 100%, calc(100% - var(--fr-lasca)) 0,
+    100% 0, calc(100% - var(--c)) 100%, 0 100%);
+}
+.btn.primary:hover, a.btn.primary:hover { background: var(--primary-hi); color: var(--on-primary); }
+.btn.primary:active, .btn.now:active { clip-path: polygon(0 0,
+    calc(100% - var(--fr-lasca) - var(--fr-gap)) 0, calc(100% - var(--fr-lasca) - var(--fr-gap) - var(--c)) 100%,
+    calc(100% - var(--fr-lasca) - var(--c)) 100%, calc(100% - var(--fr-lasca)) 0,
+    100% 0, calc(100% - var(--c)) 100%, 0 100%); transition-duration: 0.1s; }
+/* "Agora" (sessão aberta, ao vivo): a peça é platina e só a lasca é âmbar. A troca de cor cai dentro da fresta. */
+.btn.now, a.btn.now, .btn.now:hover, a.btn.now:hover {
+  color: var(--on-primary);
+  background: linear-gradient(112deg, transparent 50%, var(--now) 50%) right / calc(2 * var(--fr-lasca) + var(--fr-gap) + var(--c)) 100% no-repeat, var(--primary);
+}
+.btn.now:hover { filter: drop-shadow(0 0 10px rgba(255, 178, 91, 0.35)); }
+
+/* Secundário: a peça escura cortada; ao passar o mouse uma linha platina corre por baixo. */
+.btn.ghost { background: var(--fr-piece); border: 0; }
+.btn.ghost::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ink);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.45s var(--fr-ease);
+}
+.btn.ghost:hover { background: var(--fr-piece-hi); }
+.btn.ghost:hover::before { transform: scaleX(1); }
+
+/* Discreto: só o texto. Ícone: quadrado, sem corte. */
+.btn.quiet, a.btn.quiet { background: transparent; clip-path: none; padding: 0 12px; }
+.btn.quiet::after { content: none; }
+.btn.icon { clip-path: none; padding: 0; }
+.btn.danger { background: var(--fr-piece); }
+.btn[aria-pressed='true'] { background: var(--primary); color: var(--on-primary); border: 0; }
+.btn:disabled, .btn:disabled:hover { opacity: 0.45; filter: none; }
+.btn:disabled::after { content: none; }
+.btn:focus-visible { outline: none; box-shadow: inset 0 -3px 0 var(--now); }
+/* Telas que pintavam o contorno do botão sobre foto: agora a peça é que muda. */
+.ghero__actions .btn.ghost, .jhero__actions .btn.ghost, .focus__actions .btn.ghost, .wish-card__actions .btn.ghost,
+.reveal__actions .btn.ghost, .awhero__admin .btn.ghost { background: rgba(27, 30, 34, 0.86); }
+.ghero__actions .btn[aria-pressed='true'], .ghero__actions .btn.is-fav, .ghero__actions .btn.is-radar { background: #F2F4F6; color: #07080A; }
+
+/* Link com traço: o traço anda para a frente */
+.lk { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); text-decoration: none; }
+.lk .tr { transition: transform 0.3s var(--fr-ease), background-color 0.3s; }
+.lk:hover { color: var(--ink); }
+.lk:hover .tr { transform: translateX(5px) skewX(-22deg); background: var(--ink); }
+
+/* Botão de ícone: quadrado, sem círculo */
+.icon-btn { border-radius: 0; }
+.icon-btn:hover { background: var(--fr-piece); }
+
+/* ---- Filtros e alternadores: lascas de uma barra só --------------------------------------- */
+.seg { background: none; box-shadow: none; padding: 0; gap: 0; border-radius: 0; }
+.seg button {
+  --c: 15px;
+  min-height: 38px; padding: 0 calc(12px + var(--c)); margin-left: -10px; border-radius: 0;
+  background: var(--fr-piece); color: var(--muted);
+  clip-path: polygon(var(--c) 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%);
+  transition: background-color 0.2s, color 0.2s;
+}
+.seg button:first-child { margin-left: 0; padding-left: 16px; clip-path: polygon(0 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%); }
+.seg button:last-child { padding-right: 16px; clip-path: polygon(var(--c) 0, 100% 0, 100% 100%, 0 100%); }
+.seg button:only-child { clip-path: none; }
+.seg button:hover { background: var(--fr-piece-hi); color: var(--ink); }
+.seg button[aria-pressed='true'], .seg button[aria-selected='true'] { background: var(--primary); color: var(--on-primary); font-weight: 700; }
+
+/* Ficha solta: a mesma lasca, com as duas pontas na inclinação do Z */
+.chip {
+  --c: 14px;
+  min-height: 38px; padding: 0 calc(10px + var(--c)); border: 0; border-radius: 0;
+  background: var(--fr-piece); color: var(--ink-2);
+  clip-path: polygon(var(--c) 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%);
+  transition: background-color 0.2s, color 0.2s;
+}
+.chip:hover { background: var(--fr-piece-hi); color: var(--ink); }
+.chip[aria-pressed='true'] { background: var(--primary); color: var(--on-primary); }
+
+/* ---- Cartões e campos -------------------------------------------------------------------- */
+.card { border: 0; border-radius: 0; }
+.field, textarea.field {
+  border-radius: 0; border: 0; border-bottom: 1px solid var(--line-2);
+  background: var(--surface); transition: border-color 0.2s;
+}
+.field:focus { outline: none; border-bottom-color: var(--ink); }
+.field:focus-visible { outline: none; box-shadow: inset 0 -1px 0 var(--ink); }
+
+/* ---- Interruptor: uma fenda com o traço dentro --------------------------------------------- */
+.switch { width: 58px !important; height: 28px !important; border-radius: 0; background: var(--field); box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.55), inset 0 0 0 1px var(--line); }
+.switch::after {
+  top: 0; left: 3px; width: 26px; height: 28px; border-radius: 0; background: var(--line-2);
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+.switch:checked { background: var(--fr-piece-hi); }
+.switch:checked::after { left: 29px; background: var(--ink); }
+
+/* ---- Avatar: quadrado com contorno branco fino; contador: lasca âmbar pequena --------------- */
+.avatar { border-radius: 0; background: var(--fr-piece); color: var(--ink); outline: 1.5px solid var(--ink); outline-offset: -1.5px; font-size: 15px; font-weight: 800; }
+a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
+.avatar--img img { border-radius: 0; }
+.notif-bell__n {
+  top: 4px; right: -4px; min-width: 18px; height: 13px; padding: 0 6px; border-radius: 0; box-shadow: none;
+  font: 800 9.5px/13px var(--font-ui); clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+}
+
+/* ---- Menu: o logo no centro, apoiado no horizonte; as seções dos dois lados ---------------- */
+.site-header { border-bottom: 0; }
+.site-header::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--fr-hair) 8%, var(--fr-hair) 92%, transparent); pointer-events: none; }
+.site-header__row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 0; padding-top: 0; padding-bottom: 0; min-height: 84px; }
+.site-header__side { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; min-width: 0; }
+.site-header__side--l { padding-right: 44px; }
+.site-header__side--r { padding-left: 44px; }
+.site-header__logo { padding-bottom: 10px; }
+.site-header__logo .brand-mark { width: 66px; height: auto; }
+.site-header .pillars { flex: none; flex-wrap: nowrap; gap: 34px; justify-content: flex-start; font-size: 15px; }
+.site-header .pillars a { min-height: 0; padding: 0 0 22px; color: var(--muted); white-space: nowrap; transition: color 0.2s; }
+.site-header .pillars a::after {
+  content: ''; position: absolute; left: -14px; right: -14px; bottom: -0.5px; width: auto; height: 1px; margin: 0; border-radius: 0;
+  background: var(--ink); box-shadow: none; transform: scaleX(0); transition: transform 0.35s var(--fr-ease);
+}
+.site-header .pillars a:hover { color: var(--ink); }
+.site-header .pillars a:hover::after { transform: scaleX(1); }
+.site-header .pillars a[aria-current='page'] { color: var(--ink); font-weight: 700; }
+.site-header .pillars a[aria-current='page']::after { height: 2px; background: var(--horizon); box-shadow: 0 0 10px rgba(255, 178, 91, 0.5); transform: none; }
+.hdr-search { display: inline-flex; align-items: center; gap: 12px; padding: 0 0 22px; border: 0; background: none; color: var(--faint); font: 400 14.5px/1 var(--font-ui); cursor: pointer; white-space: nowrap; }
+.hdr-search svg { display: none; }
+.hdr-search:hover { color: var(--ink); }
+.hdr-search:hover .tr { background: var(--ink); }
+.site-header__tools { padding-bottom: 12px; gap: 2px; }
+.session-pill { height: 34px; padding: 0 22px 0 14px; border: 0; border-radius: 0; background: var(--now-bg); color: var(--now-ink); font: 700 13px/1 var(--font-ui); letter-spacing: 0; text-transform: none; clip-path: polygon(0 0, 100% 0, calc(100% - 13px) 100%, 0 100%); }
+.session-pill__dot { border-radius: 0; width: 5px; height: 13px; transform: skewX(-22deg); background: var(--now); box-shadow: 0 0 8px rgba(255, 178, 91, 0.6); }
+.site-header .avatar { width: 36px; height: 36px; margin-left: 8px; }
+.appearance__panel { border: 0; border-radius: 0; top: 50px; background: var(--surface); box-shadow: 0 24px 50px var(--shadow), inset 0 1px 0 var(--fr-hair); }
+
+@media (max-width: 1240px) {
+  .site-header .pillars { gap: 22px; font-size: 14px; }
+  .site-header__side--l { padding-right: 30px; }
+  .site-header__side--r { padding-left: 30px; }
+  .session-pill__label { display: none; }
+  .session-pill { padding: 0 18px 0 12px; }
+}
+@media (max-width: 1060px) {
+  .hdr-search__label { display: none; }
+  .hdr-search svg { display: block; }
+  .site-header .appearance { display: none; }
+  .site-header .pillars { gap: 16px; font-size: 13.5px; }
+  .site-header__side--l { padding-right: 22px; }
+  .site-header__side--r { padding-left: 22px; }
+  .site-header__logo .brand-mark { width: 54px; }
+}
+@media (max-width: 900px) and (min-width: 761px) {
+  .site-header .dm-btn { display: none; }
+  .site-header .pillars { gap: 12px; font-size: 13px; }
+}
+
+/* ---- Celular: busca à esquerda, logo no centro, avatar à direita; barra de baixo só com texto */
+@media (max-width: 760px) {
+  .site-header__row { min-height: 60px; padding-top: env(safe-area-inset-top); padding-bottom: 0; }
+  .site-header__side--l, .site-header__side--r { padding: 0; }
+  .site-header__logo { padding-bottom: 8px; }
+  .site-header__logo .brand-mark { width: 46px; }
+  .hdr-search { padding: 0 0 14px; min-height: 44px; align-items: flex-end; }
+  .hdr-search svg { display: none; }
+  .hdr-search__label { display: inline; font-size: 13.5px; }
+  .hdr-search__more { display: none; }
+  .site-header__tools { padding-bottom: 8px; margin-left: auto; }
+  .site-header .avatar { width: 32px; height: 32px; font-size: 13px; }
+  .site-header .session-pill { padding: 0 16px 0 12px; }
+
+  .tabbar { padding: 0 6px env(safe-area-inset-bottom); border-top: 0; }
+  .tabbar::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--fr-hair); }
+  .tabbar__item { font-size: 12.5px; color: var(--muted); }
+  .tabbar__item svg { display: none; }
+  .tabbar__item[aria-current='page'] { color: var(--ink); font-weight: 700; }
+  .tabbar__item[aria-current='page']::before { content: ''; position: absolute; left: 8px; right: 8px; top: -0.5px; height: 2px; background: var(--horizon); box-shadow: 0 0 10px rgba(255, 178, 91, 0.5); }
+}
+
+/* ---- Aviso: uma placa que entra, com o traço platina ------------------------------------- */
+.toast { border: 0; border-radius: 0; background: var(--fr-piece-hi); padding: 13px 34px 13px 16px; clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+.toast::before { content: ''; flex: none; width: 5px; height: 18px; background: var(--ink); transform: skewX(-22deg); }
+.toast svg { display: none; }
+.toast__btn { text-decoration: none; font-weight: 700; color: var(--ink); padding-left: 10px; }
+.toast__btn:hover { color: var(--now-ink); }
+
+/* ---- Gaveta: cantos retos, fio no topo e a alça de dois traços ----------------------------- */
+.sheet { border-radius: 0; border: 0; box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 var(--fr-hair); }
+.sheet__grip { position: relative; width: 22px; height: 12px; border-radius: 0; background: none; margin: 2px auto 8px; }
+.sheet__grip::before, .sheet__grip::after { content: ''; position: absolute; top: 0; width: 4px; height: 12px; background: var(--line-2); transform: skewX(-22deg); }
+.sheet__grip::before { left: 5px; }
+.sheet__grip::after { left: 13px; }
+@media (min-width: 700px) { .sheet { border-radius: 0; border: 0; } }
+@media (min-width: 761px) { .sheet--center { border-radius: 0; border: 0; } }
+
+/* ---- Rodapé: o logo pousado no horizonte; links embaixo, separados por traços --------------- */
+.site-footer { margin-top: 110px; }
+.site-footer::before { content: none; }
+.site-footer__in { display: flex; flex-direction: column; align-items: center; gap: 0; padding-top: 0; padding-bottom: 44px; text-align: center; }
+.site-footer__in .brand-mark { width: 72px; height: auto; margin-bottom: 10px; }
+.site-footer__line { align-self: stretch; height: 1px; background: linear-gradient(90deg, transparent, var(--fr-hair) 10%, var(--fr-hair) 90%, transparent); }
+.site-footer p.site-footer__tag { margin: 20px 0 0; font-size: 15px; color: var(--ink-2); }
+.site-footer__nav { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px 24px; margin-top: 14px; }
+.site-footer__nav .site-footer__link { margin: 0; font-size: 14px; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 24px; }
+.site-footer__nav .site-footer__link + .site-footer__link::before { content: ''; width: 4px; height: 11px; background: var(--line-2); transform: skewX(-22deg); }
+.site-footer__nav .site-footer__link:hover { color: var(--ink); }
+.site-footer .site-footer__src { margin-top: 12px; font-size: 12.5px; color: var(--faint); }
+
+/* ---- Menos movimento ----------------------------------------------------------------------- */
+:root[data-motion='reduzidas'] .btn::after, :root[data-motion='reduzidas'] .btn.ghost::before { display: none; }
+@media (prefers-reduced-motion: reduce) { .btn::after, .btn.ghost::before { display: none; } }
+
+/* Botões lado a lado nos topos: o texto não quebra; se não couber, o botão desce para a linha de baixo. */
+.focus__actions .btn, .jhero__actions .btn, .ghero__actions .btn { white-space: nowrap; }
+@media (max-width: 760px) {
+  .btn.lg { --c: 18px; min-height: 50px; font-size: 15px; padding: 0 calc(18px + var(--c)) 0 18px; }
+  .btn.lg.primary, .btn.lg.now { padding-right: calc(18px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
+}

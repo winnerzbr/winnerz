@@ -8,6 +8,7 @@ import './styles/components.css';
 import './styles/pages.css';
 import './styles/etapa2.css';
 import './styles/album.css';
+import './styles/fresta.css';
 
 
 async function boot() {

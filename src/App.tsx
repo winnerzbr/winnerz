@@ -239,12 +239,17 @@ export function App() {
       <Routes path={path} />
       {!isSession && (
         <footer className="site-footer">
-          <div className="page">
-            <BrandMark width={56} title="WinnerZ" />
-            <div className="site-footer__txt">
-              <p>Onde jogos viram histórias. <Link to="/sobre" className="site-footer__link">Sobre</Link> <Link to="/privacidade" className="site-footer__link">Privacidade</Link> <Link to="/regras" className="site-footer__link">Regras</Link></p>
-              <p className="site-footer__src">Dados e imagens dos jogos: <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer">IGDB.com</a></p>
-            </div>
+          {/* Fresta: o logo pousado no horizonte, como no topo; os links ficam embaixo da linha, separados por traços. */}
+          <div className="page site-footer__in">
+            <BrandMark width={72} title="WinnerZ" />
+            <span className="site-footer__line" aria-hidden="true" />
+            <p className="site-footer__tag">Onde jogos viram histórias.</p>
+            <nav className="site-footer__nav" aria-label="Rodapé">
+              <Link to="/sobre" className="site-footer__link">Sobre</Link>
+              <Link to="/privacidade" className="site-footer__link">Privacidade</Link>
+              <Link to="/regras" className="site-footer__link">Regras</Link>
+            </nav>
+            <p className="site-footer__src">Dados e imagens dos jogos: <a href="https://www.igdb.com" target="_blank" rel="noopener noreferrer">IGDB.com</a></p>
           </div>
         </footer>
       )}

@@ -38,6 +38,11 @@ export function VideoSheet({ gameId, gameTitle, part, label, videos, onClose }: 
     setBusy(true); setErr('');
     try { await videoApi.set(gameId, part.id, u); setEditing(false); setUrl(''); setI(0); setShown(!!u); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu agora.'); } finally { setBusy(false); }
   };
+  const hide = async () => {
+    if (!v) return;
+    setBusy(true); setErr('');
+    try { await videoApi.hide(gameId, part.id, v.videoId); setI(0); setShown(false); } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu agora.'); } finally { setBusy(false); }
+  };
   return (
     <Sheet title={`${label}: ${part.name}`} onClose={onClose} wide>
       {v ? (
@@ -77,9 +82,11 @@ export function VideoSheet({ gameId, gameTitle, part, label, videos, onClose }: 
         <div className="sheet__actions pv-acts">
           <button className="btn quiet sm" onClick={() => setEditing(true)}><Icon name="link" size={13} />{v ? 'Trocar o vídeo' : 'Pôr um vídeo'}</button>
           {mine && <button className="btn quiet sm" disabled={busy} onClick={() => void save('')}>Tirar o escolhido</button>}
+          {v && v.source !== 'pessoa' && (v.source !== 'canal' || videos?.admin) && <button className="btn quiet sm" disabled={busy} onClick={() => void hide()}>Não é deste trecho</button>}
           <button className="btn primary" onClick={onClose}>Fechar</button>
         </div>
       ))}
+      {err && !editing && <p className="form-error" role="alert">{err}</p>}
       {!videos?.canEdit && <div className="sheet__actions"><button className="btn primary" onClick={onClose}>Fechar</button></div>}
     </Sheet>
   );
@@ -104,6 +111,7 @@ export function CanalPlaylist({ gameId, onDone }: { gameId: string; onDone?: () 
         <button className="btn primary sm" disabled={busy || !url.trim()}>{busy ? 'Ligando…' : 'Ligar ao jogo'}</button>
       </div>
       <small className="faint">A IA distribui os vídeos da playlist pelos itens da lista; os do canal aparecem primeiro.</small>
+      <button type="button" className="btn quiet sm" disabled={busy} onClick={async () => { setBusy(true); setMsg(null); try { setMsg({ ok: true, text: await videoApi.redo(gameId) }); } catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : 'Não deu agora.' }); } finally { setBusy(false); } }}>Buscar os vídeos automáticos de novo</button>
       {msg && <small className={msg.ok ? 'muted' : 'form-error'} role={msg.ok ? 'status' : 'alert'}>{msg.text}</small>}
     </form>
   );

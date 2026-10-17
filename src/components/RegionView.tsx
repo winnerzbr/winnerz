@@ -3,7 +3,7 @@
  * andamento de cada uma na linha do horizonte, e a região escolhida com o que tem nela (feito, o próximo, o resto e o
  * que tem spoiler, coberto) e as suas sessões ali. Regiões ainda longe ficam com o nome escondido.
  */
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { History, Session } from '../data/types';
 import type { GameOutline, OutlinePart } from '../lib/outline';
 import { partAt } from '../lib/outline';
@@ -17,8 +17,9 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 type Region = { key: string; name: string; items: OutlinePart[]; done: number; sessions: Session[]; from?: string; to?: string; minutes: number };
 
-export function RegionView({ outline, history, sessions, images, play, today, video }: {
-  outline: GameOutline; history: History; sessions: Session[]; images: string[];
+export function RegionView({ outline, history, sessions, images, play, today, video, title, full = false, onExitFull }: {
+  outline: GameOutline; history: History; sessions: Session[]; images: string[]; title?: string;
+  /** Tela cheia (como a faixa): Esc ou o botão saem. */ full?: boolean; onExitFull?: () => void;
   play: { label: string; now: boolean; onClick: () => void }; today: { open: boolean; note?: string } | null;
   video?: (part: OutlinePart, label: string) => ReactNode;
 }) {
@@ -56,6 +57,16 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
   const region = regions.find((r) => r.key === (sel ?? curKey)) ?? regions[0];
   const ri = regions.indexOf(region);
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!full) return;
+    box.current?.requestFullscreen?.().catch(() => {});
+    const onChange = () => { if (!document.fullscreenElement) onExitFull?.(); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') onExitFull?.(); };
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('fullscreenchange', onChange); document.removeEventListener('keydown', esc); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); };
+  }, [full, onExitFull]);
   if (!region) return null;
   const next = region.items.find((p) => !doneAt.has(p.id));
   const isCur = region.key === curKey;
@@ -69,7 +80,13 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
   const nOf = (x: Session) => sessions.filter((y) => y.startedAt <= x.startedAt).length;
 
   return (
-    <div className="rv">
+    <div ref={box} className={`rv${full ? ' is-full' : ''}`}>
+      {full && (
+        <div className="rv__fullbar">
+          <span className="rv__label">{title}</span>
+          <button className="btn ghost sm" onClick={onExitFull}><Icon name="sairTela" size={16} />Sair da tela cheia</button>
+        </div>
+      )}
       <nav className="rv__list" aria-label="Regiões">
         {named.map((r, i) => {
           const pct = r.items.length ? (r.done / r.items.length) * 100 : 0;

@@ -35,3 +35,14 @@ test('resposta da IA: só vídeos dos candidatos, itens da lista e minutos da de
   assert.deepEqual(videoRows({ pt: { source: 'P9', map: [{ n: 1, item: 1 }] } }, cands, ['j']), []);
   assert.deepEqual(videoRows(null, cands, ['j']), []);
 });
+
+import { titleMatches } from '../../api/retomada';
+test('título do vídeo precisa falar do item', () => {
+  assert.equal(titleMatches('Godrick the Grafted', 'ELDEN RING PLATINA #5 - MEIO-LOBO BLAIDD AMIGO E PATCHES'), false);
+  assert.equal(titleMatches('Godrick the Grafted', 'Elden Ring #6 - Godrick, o Enxertado (chefe)'), true);
+  assert.equal(titleMatches('Liurnia of the Lakes', 'ELDEN RING #9 - Chegando em Liurnia dos Lagos'), true);
+  assert.equal(titleMatches('Seattle, dia 2', 'The Last of Us 2 - Seattle Day 2 - Part 7'), true);
+  assert.equal(titleMatches('Seattle, dia 2', 'The Last of Us 2 - Seattle Day 1'), false);
+  assert.equal(titleMatches('Rennala, Queen of the Full Moon', 'Rennala Boss Fight'), true);
+  assert.equal(titleMatches('Jackson', 'Part 1'), false);
+});

@@ -19,12 +19,14 @@ const MSG: Record<string, string> = {
   outline_forbidden: 'Só quem tem o jogo na Jornada pode trocar o vídeo.',
   video_part: 'Este item não está mais na lista.',
   video_invalid: 'Esse link não parece de um vídeo do YouTube.',
-  video_limit: 'Você já trocou muitos vídeos hoje. Tente amanhã.',
+  video_limit: 'Você já mexeu em muitos vídeos hoje. Tente amanhã.',
+  video_canal: 'O detonado do canal só a administração tira.',
 };
 const nice = (e: unknown) => {
   const m = e instanceof Error ? e.message : String((e as { message?: string })?.message ?? e);
   const k = Object.keys(MSG).find((x) => m.includes(x));
   if (k) return new Error(MSG[k]);
+  if (/part_video_hide/i.test(m)) return new Error('Falta rodar a migração 0064 no Supabase.');
   if (/part_videos|part_video_set|function .* does not exist|PGRST202/i.test(m)) return new Error('Falta rodar a migração 0063 no Supabase.');
   return new Error('Não deu agora. Tente de novo.');
 };
@@ -89,6 +91,27 @@ export const videoApi = {
     if (error) throw nice(error);
     cache.set(gameId, data as VideoState); emit();
     return data as VideoState;
+  },
+  /** "Não é deste trecho": o vídeo some daquele item para todo mundo (e a busca não o põe ali de novo). */
+  async hide(gameId: string, partId: string, videoId: string): Promise<VideoState> {
+    if (!supa()) {
+      const cur = demoGet(gameId);
+      const v = { ...cur, videos: cur.videos.filter((x) => !(x.partId === partId && x.videoId === videoId)) };
+      try { localStorage.setItem(dkey(gameId), JSON.stringify(v)); } catch { /* sem armazenamento */ }
+      cache.set(gameId, v); emit();
+      return v;
+    }
+    const { data, error } = await (await client()).rpc('part_video_hide', { p_game: gameId, p_part: partId, p_video: videoId });
+    if (error) throw nice(error);
+    cache.set(gameId, data as VideoState); emit();
+    return data as VideoState;
+  },
+  /** Administração: busca os vídeos do jogo de novo (troca os automáticos). */
+  async redo(gameId: string): Promise<string> {
+    const j = await videoApi.auto(gameId, true);
+    await videoApi.get(gameId, true).catch(() => null);
+    if (!j) throw new Error('O servidor não respondeu agora.');
+    return [j.state === 'pronto' ? 'Vídeos buscados de novo' : j.reason ?? `Resultado: ${j.state}`, j.diag].filter(Boolean).join(' · ');
   },
   /** Administração: liga uma playlist do canal WinnerZ ao jogo; a IA distribui os vídeos pelos itens. */
   async canal(gameId: string, playlistUrl: string): Promise<string> {

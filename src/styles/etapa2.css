@@ -6097,3 +6097,7 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 }
 .previously__part { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .previously__part p { margin: 0; }
+.rv.is-full { position: fixed; inset: 0; z-index: 300; flex-wrap: wrap; align-content: flex-start; padding: 20px 24px 28px; background: #07080A; color: #E6E9ED; overflow: auto; --surface: #0d0f12; --surface-2: #14171b; --line: #1c1f24; --line-2: #2c3036; --ink: #E6E9ED; --ink-2: #C9CED4; --muted: #9AA1AA; --faint: #7D848D; --now: #FFB25B; --now-bg: #17120b; }
+.rv.is-full .rv__main { min-height: calc(100vh - 110px); }
+.rv__fullbar { flex: 1 1 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+@media (max-width: 860px) { .rv.is-full { flex-wrap: nowrap; padding: 14px; } .rv.is-full .rv__fullbar, .rv.is-full .rv__list { flex: none; } .rv.is-full .rv__main { min-height: 0; flex: none; } }

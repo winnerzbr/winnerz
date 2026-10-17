@@ -381,7 +381,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 <button aria-pressed={mode === 'mapa'} onClick={() => setMode('mapa')}>Mapa</button>
               </div>}
               <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
-              {mode === 'faixa' && !(byStructure && openWorld) && <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>}
+              {(mode === 'faixa' || (byStructure && openWorld)) && <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>}
             </div>
           </div>
           <div className="chips jline__filters" role="group" aria-label="Mostrar na linha">
@@ -390,7 +390,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
 
           {byStructure && openWorld && outline ? (
-            <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} />
+            <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} />
           ) : !hasEvents && !todayInfo && !byStructure ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' && byStructure ? (

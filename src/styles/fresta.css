@@ -41,14 +41,17 @@ a.kicker::before, button.kicker::before, .kicker:empty::before { content: none; 
   position: relative; overflow: hidden; isolation: isolate;
   border: 0; border-radius: 0;
   font: 700 14.5px/1.1 var(--font-ui); font-stretch: 100%; letter-spacing: 0; text-transform: none;
-  padding: 0 calc(20px + var(--c)) 0 20px;
+  padding: 0 20px;
+  /* O espaço do corte (e da lasca) fica numa borda transparente à direita, e não no padding:
+     assim as telas que mudam o padding do botão não empurram o texto para dentro do corte. */
+  border-right: var(--c) solid transparent !important;
   background: var(--fr-piece); color: var(--ink);
   clip-path: polygon(0 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%);
   transition: background-color 0.25s, color 0.2s, clip-path 0.4s var(--fr-ease), filter 0.25s;
 }
 .btn:active { transform: none; }
-.btn.sm { --c: 16px; min-height: 40px; font-size: 13.5px; padding: 0 calc(16px + var(--c)) 0 16px; }
-.btn.lg { --c: 21px; min-height: 54px; font-size: 16px; padding: 0 calc(26px + var(--c)) 0 26px; }
+.btn.sm { --c: 16px; min-height: 40px; font-size: 13.5px; padding: 0 16px; }
+.btn.lg { --c: 21px; min-height: 54px; font-size: 16px; padding: 0 26px; }
 
 /* Brilho que passa na inclinação do Z ao passar o mouse */
 .btn::after {
@@ -61,14 +64,12 @@ a.kicker::before, button.kicker::before, .kicker:empty::before { content: none; 
 
 /* Principal: platina + lasca. O desenho é um só recorte: peça, fresta e lasca. */
 .btn.primary, a.btn.primary, .btn.now, a.btn.now, .btn.danger-solid {
-  padding-right: calc(20px + var(--fr-lasca) + var(--fr-gap) + var(--c));
+  border-right-width: calc(var(--fr-lasca) + var(--fr-gap) + var(--c)) !important;
   clip-path: polygon(0 0,
     calc(100% - var(--fr-lasca) - var(--fr-gap)) 0, calc(100% - var(--fr-lasca) - var(--fr-gap) - var(--c)) 100%,
     calc(100% - var(--fr-lasca) - var(--c)) 100%, calc(100% - var(--fr-lasca)) 0,
     100% 0, calc(100% - var(--c)) 100%, 0 100%);
 }
-.btn.sm.primary, .btn.sm.now { padding-right: calc(16px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
-.btn.lg.primary, .btn.lg.now { padding-right: calc(26px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
 .btn.primary, a.btn.primary { background: var(--primary); color: var(--on-primary); }
 .btn.primary::after, .btn.now::after { background: linear-gradient(90deg, rgba(11, 12, 14, 0), rgba(11, 12, 14, 0.14), rgba(11, 12, 14, 0)); }
 /* Ao passar o mouse a fresta abre: a peça recua e a lasca fica solta na frente. */
@@ -86,23 +87,23 @@ a.kicker::before, button.kicker::before, .kicker:empty::before { content: none; 
 /* "Agora" (sessão aberta, ao vivo): a peça é platina e só a lasca é âmbar. A troca de cor cai dentro da fresta. */
 .btn.now, a.btn.now, .btn.now:hover, a.btn.now:hover {
   color: var(--on-primary);
-  background: linear-gradient(112deg, transparent 50%, var(--now) 50%) right / calc(2 * var(--fr-lasca) + var(--fr-gap) + var(--c)) 100% no-repeat, var(--primary);
+  background: linear-gradient(112deg, transparent 50%, var(--now) 50%) right / calc(2 * var(--fr-lasca) + var(--fr-gap) + var(--c)) 100% no-repeat border-box, var(--primary);
 }
 .btn.now:hover { filter: drop-shadow(0 0 10px rgba(255, 178, 91, 0.35)); }
 
 /* Secundário: a peça escura cortada; ao passar o mouse uma linha platina corre por baixo. */
 .btn.ghost { background: var(--fr-piece); border: 0; }
 .btn.ghost::before {
-  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ink);
+  content: ''; position: absolute; left: 0; right: calc(-1 * var(--c)); bottom: 0; height: 2px; background: var(--ink);
   transform: scaleX(0); transform-origin: left; transition: transform 0.45s var(--fr-ease);
 }
 .btn.ghost:hover { background: var(--fr-piece-hi); }
 .btn.ghost:hover::before { transform: scaleX(1); }
 
 /* Discreto: só o texto. Ícone: quadrado, sem corte. */
-.btn.quiet, a.btn.quiet { background: transparent; clip-path: none; padding: 0 12px; }
+.btn.quiet, a.btn.quiet { background: transparent; clip-path: none; padding: 0 12px; border-right-width: 0 !important; }
 .btn.quiet::after { content: none; }
-.btn.icon { clip-path: none; padding: 0; }
+.btn.icon { clip-path: none; padding: 0; border-right-width: 0 !important; }
 .btn.danger { background: var(--fr-piece); }
 .btn[aria-pressed='true'] { background: var(--primary); color: var(--on-primary); border: 0; }
 .btn:disabled, .btn:disabled:hover { opacity: 0.45; filter: none; }
@@ -283,6 +284,14 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 /* Botões lado a lado nos topos: o texto não quebra; se não couber, o botão desce para a linha de baixo. */
 .focus__actions .btn, .jhero__actions .btn, .ghero__actions .btn { white-space: nowrap; }
 @media (max-width: 760px) {
-  .btn.lg { --c: 18px; min-height: 50px; font-size: 15px; padding: 0 calc(18px + var(--c)) 0 18px; }
-  .btn.lg.primary, .btn.lg.now { padding-right: calc(18px + var(--fr-lasca) + var(--fr-gap) + var(--c)); }
+  .btn.lg { --c: 18px; min-height: 50px; font-size: 15px; padding: 0 18px; }
+}
+
+/* Tamanhos que as telas tinham reduzido para o texto em caixa alta: em texto comum, 13 px é o mínimo. */
+.jindex__aside .what__actions .btn, .fr__tools .btn, .trail-next__actions .btn { font-size: 13px; }
+@media (max-width: 760px) {
+  .hero__actions .btn { white-space: nowrap; font-size: 13.5px; padding: 0 14px; }
+  .collection__tools .btn { font-size: 12.5px; padding: 0 10px; }
+  .gal__topactions .btn { font-size: 12.5px; }
+  .journey__cta .btn.lg { font-size: 14px; }
 }

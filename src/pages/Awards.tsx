@@ -7,6 +7,8 @@ import { FORJADO_PATH } from '../components/Brand';
 import { useBackdrop } from '../components/Backdrop';
 import { igdbSize } from '../lib/backdrop';
 import { track } from '../lib/track';
+import { Agenda } from '../components/Agenda';
+import type { AgendaItem } from '../data/eventsApi';
 
 const tz = 'America/Sao_Paulo';
 export const fmtWhen = (iso?: string, withTime = false) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'long', ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}), timeZone: tz }) : '');
@@ -112,11 +114,14 @@ export function EventsIndex() {
   const cats = full ? full.categories.filter((c) => c.nominees.length).length : 0;
   const target = award && p ? countdownTarget(award, p) : undefined;
 
-  const dates: { at: string; title: string; sub: string }[] = [];
-  if (award?.votingOpens && p === 'antes') dates.push({ at: award.votingOpens, title: 'Abertura da votação', sub: `às ${fmtHour(award.votingOpens)}` });
-  if (award?.votingCloses) dates.push({ at: award.votingCloses, title: 'Fim da votação', sub: `às ${fmtHour(award.votingCloses)}` });
-  if (award && publicAt(award)) dates.push({ at: publicAt(award)!, title: 'Noite da revelação', sub: `Resultado abre às ${fmtHour(publicAt(award)!)}, ao vivo` });
-  const now = Date.now();
+  // As datas da edição entram na agenda junto com os eventos do canal.
+  const awardItems: AgendaItem[] = [];
+  const ai = (id: string, title: string, at: string, endsAt: string | null, note: string): AgendaItem => ({ id: `${award?.id}-${id}`, source: 'awards', kind: 'awards', title, startsAt: at, endsAt, link: '/eventos/awards', game: null, note, canceled: false });
+  if (award && p && p !== 'rascunho') {
+    if (award.votingOpens) awardItems.push(ai('abre', `${award.title}: abertura da votação`, award.votingOpens, null, 'A votação abre no site.'));
+    if (award.votingCloses) awardItems.push(ai('fecha', `${award.title}: fim da votação`, award.votingCloses, null, 'Último dia para votar.'));
+    if (publicAt(award)) awardItems.push(ai('noite', `${award.title}: noite da revelação`, publicAt(award)!, new Date(Date.parse(publicAt(award)!) + 2 * 3600_000).toISOString(), 'Resultado ao vivo.'));
+  }
 
   let line = 'A próxima edição ainda vai ser anunciada.';
   if (award && p) {
@@ -151,15 +156,7 @@ export function EventsIndex() {
         </article>
       </section>
 
-      <section className="page evdates">
-        {dates.map((d) => (
-          <div key={d.title} className={`evdate${Date.parse(d.at) < now ? ' is-past' : ''}`}>
-            <span className={`evdate__day${d.title === 'Fim da votação' && p === 'aberta' ? ' is-next' : ''}`}>{fmtDay(d.at)}</span>
-            <div><div className="evdate__title">{d.title}</div><div className="evdate__sub">{d.sub}</div></div>
-          </div>
-        ))}
-        <div className="evdate evdate--soon"><span className="evdate__ring" aria-hidden="true" /><div className="evdate__sub">Próximos eventos aparecem aqui.</div></div>
-      </section>
+      <Agenda extra={awardItems} admin={canAdmin()} />
     </main>
   );
 }

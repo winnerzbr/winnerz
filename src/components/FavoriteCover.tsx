@@ -56,3 +56,31 @@ export function FavoriteButton({ fav, onClick, burst, labels = ['Favoritar', 'Fa
     </button>
   );
 }
+
+/**
+ * A mesma animação de favoritar da ficha do jogo, para capas em grade (Explorar, Buscar):
+ * a capa inclina e o rastro de energia percorre a borda. Devolve se está rodando agora.
+ */
+export function useFavoriteBurst(burst: number, on: boolean) {
+  const [running, setRunning] = useState(false);
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (!burst || !on) return;
+    setRunning(false);
+    const a = requestAnimationFrame(() => setRunning(true));
+    const t = setTimeout(() => setRunning(false), 1700);
+    return () => { cancelAnimationFrame(a); clearTimeout(t); };
+  }, [burst]); // eslint-disable-line react-hooks/exhaustive-deps
+  return running;
+}
+
+/** O rastro de energia por dentro da borda da capa (a capa corta o que passa para fora). */
+export function CoverEnergy() {
+  return (
+    <svg className="fav-cover__energy cover-energy" aria-hidden="true">
+      <rect className="tail" x="2" y="2" pathLength={100} />
+      <rect className="core" x="2" y="2" pathLength={100} />
+    </svg>
+  );
+}

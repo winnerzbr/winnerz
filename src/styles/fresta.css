@@ -423,3 +423,31 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 /* Explorar: "Nota" e "IGDB" em duas linhas ao lado do número */
 .cover-grid__score { align-items: center; gap: 6px; }
 .cover-grid__score i { white-space: pre-line; line-height: 1.05; font-size: 9.5px; }
+
+/* Capas em grade (Explorar, Buscar, Coleção, perfil, listas): inclinam seguindo o mouse, com um ponto de luz */
+.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover {
+  position: relative; transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(0);
+  transition: transform 0.5s var(--fr-ease), box-shadow 0.35s; will-change: transform;
+}
+.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover {
+  transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px);
+}
+.is-tilt { transition: transform 0.12s linear, box-shadow 0.35s; box-shadow: 0 24px 44px rgba(0, 0, 0, 0.55) !important; }
+.is-tilt::after {
+  content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 58%);
+  mix-blend-mode: soft-light;
+}
+
+/* Favoritar no Explorar: a capa dá a mesma inclinada da ficha e o rastro de energia corre pela borda */
+.cover-grid__cover.is-fav-run { animation: fr-fav-tilt 1.35s cubic-bezier(0.3, 0.7, 0.2, 1); }
+@keyframes fr-fav-tilt {
+  0% { transform: perspective(820px); }
+  22% { transform: perspective(820px) rotateX(9deg) rotateY(-16deg) scale(1.04); }
+  52% { transform: perspective(820px) rotateX(-6deg) rotateY(11deg) scale(1.06); }
+  78% { transform: perspective(820px) rotateX(2deg) rotateY(-3deg) scale(1.02); }
+  100% { transform: perspective(820px); }
+}
+.cover-energy { inset: 0; width: 100%; height: 100%; z-index: 4; }
+.cover-energy rect { width: calc(100% - 4px); height: calc(100% - 4px); }
+:root[data-motion='discretas'] .cover-grid__cover.is-fav-run, :root[data-motion='reduzidas'] .cover-grid__cover.is-fav-run { animation: none; }

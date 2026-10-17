@@ -11,6 +11,7 @@ import { Backdrop } from '../components/Backdrop';
 import { backdropCandidates } from '../lib/backdrop';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { recordPastNow } from '../components/PastPlay';
+import { useFavoriteBurst, CoverEnergy } from '../components/FavoriteCover';
 
 const hitOf = (g: Game): Hit => ({ igdbId: g.igdbId, slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g });
 
@@ -212,10 +213,12 @@ function useGameActions(hit: Hit, say: (t: string) => void) {
 /** Capa com ações rápidas: coleção, favorito e desejo, sem precisar abrir a ficha. */
 export function GameTile({ hit, onAdd, say, pill, meta }: { hit: Hit; onAdd: (h: Hit) => void; say: (t: string) => void; pill?: { big: string; small: string; dim?: boolean }; meta?: string }) {
   const { owned, fav, wished, status, busy, pop, open, favorite, wish, moreItems } = useGameActions(hit, say);
+  const favRun = useFavoriteBurst(pop, fav);
   return (
     <div className="cover-grid__item">
-      <button className="cover-grid__cover" onClick={open} aria-busy={busy === 'open'} aria-label={`Abrir a ficha de ${hit.title}`}>
+      <button className={`cover-grid__cover${favRun ? ' is-fav-run' : ''}`} onClick={open} aria-busy={busy === 'open'} aria-label={`Abrir a ficha de ${hit.title}`}>
         <CoverArt game={{ title: hit.title, cover: hit.cover }} platform={hit.platforms[0]} />
+        {favRun && <CoverEnergy />}
         {status && <span className={`cover-grid__own${status.now ? ' is-now' : ''}`}>{status.label}</span>}
         {pill && <span className={`cover-grid__score${pill.dim ? ' is-dim' : ''}`}><b>{pill.big}</b><i>{pill.small}</i></span>}
       </button>

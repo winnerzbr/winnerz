@@ -175,6 +175,7 @@ function Routes({ path }: { path: string }): ReactNode {
 }
 
 import { usePresencePing } from './data/presenceApi';
+import { installCoverTilt } from './lib/coverTilt';
 
 export function App() {
   const path = usePath();
@@ -187,6 +188,8 @@ export function App() {
   const profileId = useStore((s) => s.profile?.id);
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
+  // Capas em grade inclinam seguindo o mouse (Fresta).
+  useEffect(() => installCoverTilt(), []);
   usePresencePing();
   // Voltou do e-mail de entrada com um convite guardado: usa o convite (vale também se entrou pelo código).
   useEffect(() => {

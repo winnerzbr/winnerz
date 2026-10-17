@@ -824,3 +824,31 @@ body:has(.login__art) .site-footer__in > svg, body:has(.login__art) .site-footer
 .club2-hz__undo { position: static; display: block; width: max-content; margin: 6px 0 0 auto; }
 /* Jogatina: cartões da segunda linha com a altura do conteúdo */
 .jog-bento > .jog-tile:not(.jog-when):not(.jog-art) { align-self: start; }
+
+/* ==== R6 · Computador ========================================================================= */
+/* Preferências: o menu marca a seção na tela */
+.prefs__nav a[aria-current='true'] { background: var(--fr-piece); color: var(--ink); box-shadow: inset 3px 0 0 var(--ink); }
+/* Estatísticas: cartões da mesma linha com a mesma altura (sem buraco) */
+.stats__grid { align-items: stretch; }
+/* Opções em grade de 12: 4 por linha; quando sobram 3 no fim, elas dividem a linha (7 = 4 + 3, 4 = 4) */
+@media (min-width: 641px) {
+  .cm-kinds__opts { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .cm-kinds__opts > * { grid-column: span 3; }
+  .cm-kinds__opts > :nth-child(n+5):nth-last-child(-n+3) { grid-column: span 4; }
+  .cm-kinds__opts > :nth-child(5):last-child { grid-column: span 12; }
+}
+/* Jornadas da comunidade (Ficha): o último bloco ocupa o que sobra da linha */
+.gjs__tile:last-child:nth-child(odd) { grid-column: span 2; }
+/* Studio: os cinco cartões numa linha */
+.studio__cards { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+/* Álbum: capítulos lado a lado; pacotes e trocas usam a largura */
+@media (min-width: 900px) {
+  .alb-col__book { grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); align-items: start; }
+  .alb-col__book > :not(.alb-col__page) { grid-column: 1 / -1; }
+}
+.alb-packlist { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.alb-trades__list { grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); }
+/* Comunidades: três colunas, cartões menos apertados */
+.cm-tiles { grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); }
+/* Início: "O que jogar hoje" na largura toda, embaixo das três colunas */
+.home-what { padding-top: 28px; }

@@ -188,6 +188,7 @@ function Routes({ path }: { path: string }): ReactNode {
 import { usePresencePing } from './data/presenceApi';
 import { installCoverTilt } from './lib/coverTilt';
 import { installTabScroll } from './lib/tabscroll';
+import { installStickySides } from './lib/stickside';
 
 export function App() {
   const path = usePath();
@@ -203,6 +204,7 @@ export function App() {
   // Capas em grade inclinam seguindo o mouse (Fresta).
   useEffect(() => installCoverTilt(), []);
   useEffect(() => installTabScroll(), []);
+  useEffect(() => installStickySides(), []);
   usePresencePing();
   // Voltou do e-mail de entrada com um convite guardado: usa o convite (vale também se entrou pelo código).
   useEffect(() => {

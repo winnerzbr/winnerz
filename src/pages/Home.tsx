@@ -310,7 +310,6 @@ function HomeDefault() {
               <Link to="/jornada" className="arrow-link">Todas as Jornadas →</Link>
             </div>
           )}
-          <WhatToPlay excludeJourneyId={j?.id} />
         </section>
 
         <section className="home-col" aria-labelledby="col-proximo">
@@ -339,6 +338,7 @@ function HomeDefault() {
           )}
         </section>
       </div>
+      <div className="page home-what"><WhatToPlay excludeJourneyId={j?.id} /></div>
     </main>
   );
 }

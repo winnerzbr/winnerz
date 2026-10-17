@@ -77,6 +77,12 @@ export function MessagesPage({ handle }: { handle?: string }) {
     const t = setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 20_000);
     return () => clearInterval(t);
   }, [load]);
+  // No computador, sem conversa aberta, abre a mais recente (no celular a lista vem primeiro).
+  useEffect(() => {
+    if (handle || !rows?.length || !window.matchMedia('(min-width: 861px)').matches) return;
+    const first = rows.find((r) => r.pending !== 'recebido' && r.person.handle);
+    if (first) navigate(`/mensagens/${encodeURIComponent(first.person.handle!)}`, { replace: true });
+  }, [rows, handle]);
   if (signedOut) return <main className="page pad"><h1 className="t big">Mensagens</h1><p className="muted">Entre na sua conta para conversar. <Link to="/entrar">Entrar</Link></p></main>;
   const reqs = (rows ?? []).filter((r) => r.pending === 'recebido');
   const convs = (rows ?? []).filter((r) => r.pending !== 'recebido');

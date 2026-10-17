@@ -1,5 +1,5 @@
 import { SnipLinks } from './Snip';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DiscordSettings } from '../components/DiscordSettings';
 import { BridgeSettings } from '../components/Bridges';
 import { TONES } from '../lib/tone';
@@ -43,12 +43,28 @@ export function Preferences() {
     await (await getClient()).auth.signOut();
   };
 
+  // O menu lateral marca a seção que está na tela.
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const nav = navRef.current; if (!nav) return;
+    const links = [...nav.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')];
+    const targets = links.map((a) => document.getElementById(a.hash.slice(1))).filter((x): x is HTMLElement => !!x);
+    const mark = () => {
+      let cur = targets[0]?.id;
+      for (const t of targets) if (t.getBoundingClientRect().top < window.innerHeight * 0.45) cur = t.id;
+      links.forEach((a) => (a.hash.slice(1) === cur ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+    };
+    mark();
+    window.addEventListener('scroll', mark, { passive: true });
+    return () => window.removeEventListener('scroll', mark);
+  }, []);
+
   return (
     <main className="page pad prefs">
       <aside className="prefs__aside">
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
-        <nav className="prefs__nav" aria-label="Seções das preferências">
+        <nav className="prefs__nav" aria-label="Seções das preferências" ref={navRef}>
           <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>

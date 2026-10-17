@@ -19,7 +19,7 @@ export function installCoverTilt(): () => void {
   let last: { x: number; y: number } | null = null;
 
   const reset = (el: HTMLElement) => {
-    el.classList.remove('is-tilt');
+    el.classList.remove('is-ctilt');
     el.style.removeProperty('--rx'); el.style.removeProperty('--ry');
     el.style.removeProperty('--gx'); el.style.removeProperty('--gy');
   };
@@ -41,7 +41,7 @@ export function installCoverTilt(): () => void {
     if (el !== cur) {
       if (cur) reset(cur);
       cur = el;
-      if (cur && !reduced()) cur.classList.add('is-tilt'); else cur = null;
+      if (cur && !reduced()) cur.classList.add('is-ctilt'); else cur = null;
     }
     if (!cur) return;
     last = { x: e.clientX, y: e.clientY };

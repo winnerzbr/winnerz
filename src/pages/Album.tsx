@@ -71,7 +71,7 @@ export function AlbumPage({ slug, view, with: withHandle }: { slug?: string; vie
       <div className="alb-head__tools">
         <button className="btn quiet" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? 'Som ligado' : 'Som desligado'}</button>
       </div>
-      <nav className="alb-tabs" aria-label="Seções do álbum">
+      <nav className="subnav alb-tabs" aria-label="Seções do álbum">
         {tabs.map(([to, label, on, n]) => <Link key={to} to={to} className={`alb-tabs__a${on ? ' is-on' : ''}`} aria-current={on ? 'page' : undefined}>{label}{n > 0 && <span className="alb-tabs__n" aria-label={to.endsWith('trocas') ? `${n} recebidas` : `${n} para abrir`}>{n}</span>}</Link>)}
       </nav>
     </header>
@@ -111,7 +111,7 @@ function Shelf({ books, state, closed, who }: { books: Book[]; state: AlbumState
   return (
     <>
       {closed > 0 && (
-        <div className="alb-note"><span><b>{closed === 1 ? 'Você tem 1 pacote para abrir.' : `Você tem ${closed} pacotes para abrir.`}</b> <span className="muted">Puxe a fita e veja o que saiu.</span></span><Link className="btn now" to="/album/pacotes">Abrir</Link></div>
+        <div className="alb-note alb-note--now"><span><b>{closed === 1 ? 'Você tem 1 pacote para abrir.' : `Você tem ${closed} pacotes para abrir.`}</b> <span className="muted">Puxe a fita e veja o que saiu.</span></span><Link className="btn now" to="/album/pacotes">Abrir</Link></div>
       )}
       <div className="alb-shelf">
         {books.map((b, i) => {

@@ -432,8 +432,8 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 .cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover {
   transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px);
 }
-.is-tilt { transition: transform 0.12s linear, box-shadow 0.35s; box-shadow: 0 24px 44px rgba(0, 0, 0, 0.55) !important; }
-.is-tilt::after {
+.is-ctilt { transition: transform 0.12s linear, box-shadow 0.35s; box-shadow: 0 24px 44px rgba(0, 0, 0, 0.55) !important; }
+.is-ctilt::after {
   content: ''; position: absolute; inset: 0; z-index: 3; pointer-events: none;
   background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 58%);
   mix-blend-mode: soft-light;
@@ -451,3 +451,104 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 .cover-energy { inset: 0; width: 100%; height: 100%; z-index: 4; }
 .cover-energy rect { width: calc(100% - 4px); height: calc(100% - 4px); }
 :root[data-motion='discretas'] .cover-grid__cover.is-fav-run, :root[data-motion='reduzidas'] .cover-grid__cover.is-fav-run { animation: none; }
+
+/* ==== F4 · Álbum: a página fala a mesma língua do site ======================================
+   Figurinhas, capa, lacre, pacotes, porta do Cofre e o livro continuam objetos dourados.
+   O que é interface em volta deles (abas, rótulos, cards, etiquetas) vira peça, traço e lasca. */
+.alb-kick { font: 600 13px/1.3 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.alb-kick::before, .alb-col__pagehead span::before, .alb-note > span:first-child::before, .alb-trades__ok::before {
+  content: ''; display: inline-block; width: 4px; height: 0.95em; margin-right: 0.6em; background: currentColor; opacity: 0.5; transform: skewX(-22deg); vertical-align: -0.12em;
+}
+/* nas cerimônias (Cofre abrindo, troca feita, figurinha ampliada) o rótulo segue gravado em dourado */
+.alb-vaultfx .alb-kick, .alb-swapfx .alb-kick, .alb-zoom .alb-kick { font: 500 11px/1.2 var(--font-mono); letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); }
+.alb-vaultfx .alb-kick::before, .alb-swapfx .alb-kick::before, .alb-zoom .alb-kick::before { content: none; }
+
+/* Abas: a mesma barra de lascas da Coleção; o contador vira uma lasca âmbar */
+.alb-tabs.subnav { flex: 1 0 100%; width: auto; margin: 6px 0 0; border-bottom: 0; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.alb-tabs.subnav .alb-tabs__a { gap: 8px; }
+.alb-tabs__a.is-on::after { content: none; }
+.alb-tabs__n {
+  min-width: 18px; height: 16px; padding: 0 6px; border-radius: 0; background: var(--now); color: #1b1206;
+  font: 800 10.5px/16px var(--font-ui); clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+}
+
+/* Cards: peça reta, sem contorno */
+.alb-note, .alb-empty, .alb-tray, .alb-col__sum, .alb-offer, .alb-target, .alb-spare, .alb-vault__go, .alb-packrow,
+.alb-trades__top > *, .alb-trade, .alb-trades__hist li, .alb-trades__ok, .alb-compose, .pk__stage, .pk__err,
+.sa-book, .sa-form, .sa-pack, .sa-page, .sa-add, .sa-art img { border: 0; border-radius: 0; }
+.alb-empty, .alb-trades__ok, .alb-trades__hist li { background: var(--surface); }
+.sa-page { background: var(--fr-piece); }
+.alb-note { padding: 14px 18px; background: var(--surface); }
+.alb-note b { color: var(--ink); }
+.alb-note > span:first-child { flex: 1 1 280px; }
+.alb-note > span:first-child::before { width: 5px; height: 14px; opacity: 1; background: var(--line-2); }
+/* "Você tem pacotes para abrir" é agora: o horizonte acende em âmbar */
+.alb-note--now { background: linear-gradient(90deg, rgba(255, 178, 91, 0), var(--now) 22%, var(--now) 78%, rgba(255, 178, 91, 0)) top / 100% 1px no-repeat, var(--surface); }
+.alb-note--now > span:first-child::before { background: var(--now); box-shadow: 0 0 8px rgba(255, 178, 91, 0.55); }
+.alb-trades__ok { color: var(--ink); }
+
+/* O escolhido ganha um filete platina no lugar do brilho dourado */
+.alb-offer, .alb-target, .alb-spare, .alb-pickit { transition: background-color 0.2s, outline-color 0.2s, transform 0.15s; }
+.alb-offer.is-on, .alb-target.is-on, .alb-spare.is-on, .alb-pickit.is-on, .sa-book[aria-pressed='true'] { box-shadow: none; outline: 1.5px solid var(--ink); outline-offset: -1.5px; }
+.alb-target:hover, .alb-pickit:hover { border-color: transparent; background: var(--fr-piece-hi); }
+.alb-compose { box-shadow: inset 0 2px 0 var(--ink); }
+
+/* Números: texto comum com algarismos alinhados */
+.alb-vol__meta, .alb-vol__draft, .alb-status, .alb-tray__it small, .alb-tier__n, .alb-col__pagehead small, .alb-compose__h small,
+.alb-pickit small, .alb-vault__count, .alb-step output, .pk__status, .sa-signals, .sa-sticker small {
+  font-family: var(--font-ui); font-variant-numeric: tabular-nums; letter-spacing: 0; text-transform: none;
+}
+.alb-vol__meta, .alb-tier__n, .alb-col__pagehead small, .alb-compose__h small { font-weight: 600; }
+.alb-vol__draft { font-size: 12px; }
+.alb-status, .pk__status { font-size: 13px; font-weight: 600; color: var(--muted); }
+.alb-col__pagehead span { font: 600 13px/1.3 var(--font-ui); letter-spacing: 0; text-transform: none; color: var(--muted); }
+.alb-vault__have b { color: var(--ink); }
+.alb-vault__count { font-weight: 800; }
+.alb-vault__count.is-ok { color: var(--ink); }
+.alb-trade__arrow { color: var(--muted); }
+.alb-pickit__hint { color: var(--now-ink); }
+
+/* Barras: retas; a cor é o material da figurinha (Prata, Ouro, Ametista, Holográfica), o resto é platina */
+.alb-bar { border-radius: 0; }
+.alb-bar i { background: var(--ink-2); }
+.alb-tier--incomum .alb-bar i, .alb-offer--incomum .alb-bar i { background: linear-gradient(90deg, #8f6630, #f3dba0); }
+
+/* Etiquetas: lascas pequenas. "Na bandeja" e as repetidas pedem ação, então ficam em âmbar */
+.alb-tag {
+  --c: 5px; height: 22px; padding: 0 12px; border: 0; border-radius: 0; background: var(--fr-piece); color: var(--muted);
+  font: 600 12px/1 var(--font-ui); clip-path: polygon(var(--c) 0, 100% 0, calc(100% - var(--c)) 100%, 0 100%);
+}
+.alb-tag--ok { background: var(--fr-piece-hi); color: var(--ink); }
+.alb-tag--tray { background: var(--now); color: #1b1206; }
+.alb-tag--tray:hover { filter: brightness(1.08); }
+.alb-tag--dup { background: var(--fr-piece); color: var(--now-ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.alb-card.is-tray > .wsw { outline: 1px dashed var(--now); outline-offset: 4px; border-radius: 0; }
+
+/* Cofre: passos numerados em lasca, seletor − / + em duas lascas */
+.alb-vault__n {
+  width: 34px; height: 30px; padding-right: 5px; box-sizing: border-box; border-radius: 0; background: var(--primary); color: var(--on-primary);
+  font: 800 14px var(--font-ui); clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+}
+.alb-step { gap: 2px; border-radius: 0; box-shadow: none; }
+.alb-step button { width: 38px; height: 36px; border-radius: 0; background: var(--fr-piece); transition: background-color 0.2s; }
+.alb-step button:first-child { padding-right: 6px; clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%); }
+.alb-step button:last-child { padding-left: 6px; clip-path: polygon(9px 0, 100% 0, 100% 100%, 0 100%); }
+.alb-step button:not(:disabled):hover { background: var(--fr-piece-hi); }
+.alb-step output { min-width: 26px; font-weight: 700; }
+.alb-pickit { border: 0; border-radius: 0; background: var(--fr-piece); }
+.alb-pickit__check { border-radius: 0; background: var(--primary); color: var(--on-primary); }
+
+/* Interruptor "Aceito propostas": a mesma fenda com o traço dentro */
+.alb-switch__ui { width: 58px; height: 28px; margin-top: 0; border-radius: 0; background: var(--field); box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.55), inset 0 0 0 1px var(--line); }
+.alb-switch__ui::after { left: 3px; top: 0; width: 26px; height: 28px; border-radius: 0; background: var(--line-2); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); transition: transform 0.2s var(--fr-ease), background-color 0.2s; }
+.alb-switch input:checked + .alb-switch__ui { background: var(--fr-piece-hi); }
+.alb-switch input:checked + .alb-switch__ui::after { transform: translateX(26px); background: var(--ink); }
+
+@media (max-width: 640px) {
+  .alb-tabs.subnav { margin-inline: 0; }
+  .alb-tabs.subnav .alb-tabs__a { --c: 10px; flex: 1 0 auto; gap: 5px; min-height: 36px; padding: 0 calc(2px + var(--c)); margin-left: -7px; font-size: 13px; }
+  .alb-tabs.subnav .alb-tabs__a:first-child { margin-left: 0; padding-left: 10px; }
+  .alb-tabs.subnav .alb-tabs__a:last-child { padding-right: 10px; }
+  .alb-tabs__n { min-width: 0; width: 5px; height: 12px; padding: 0; margin-top: 0; align-self: center; font-size: 0; clip-path: none; transform: skewX(-22deg); box-shadow: 0 0 8px rgba(255, 178, 91, 0.55); }
+}
+@media (max-width: 374px) { .alb-tabs.subnav .alb-tabs__a { font-size: 12px; } }

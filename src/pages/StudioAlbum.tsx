@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
-import { artSrc, codeApi, reloadAlbum, studioAlbumApi, tradeApi, type LiveCode, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
+import { artSrc, codeApi, reloadAlbum, type DropStart, studioAlbumApi, tradeApi, type LiveCode, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
 import { RULE_TITLE, signalsLine, TIER_LABEL, TIERS, type Tier } from '../lib/album';
 import { ConfirmButton } from '../components/Sheet';
 import { StickerView } from '../components/album/StickerView';
@@ -306,6 +306,8 @@ function CodesPanel({ say, fail }: Say) {
   const stickers = (cat?.stickers ?? []).filter((x) => x.active).sort((a, b) => a.season - b.season || a.number - b.number);
   const now = Date.now();
   return (
+    <>
+    <DropBox list={list} stickers={stickers} setList={setList} say={say} fail={fail} />
     <div className="sa-grid">
       <section className="sa-form">
         <h3>Novo código</h3>
@@ -357,5 +359,48 @@ function CodesPanel({ say, fail }: Say) {
         )}
       </section>
     </div>
+    </>
+  );
+}
+
+/* ---- Drop na live (E7.2) ---- */
+function DropBox({ list, stickers, setList, say, fail }: Say & { list: LiveCode[] | null; stickers: Sticker[]; setList: (l: LiveCode[]) => void }) {
+  const [f, setF] = useState<DropStart>({ title: '', minutes: 5, maxUses: null, kind: 'pacote', packKind: 'onix', qty: 1, stickerId: null, note: '' });
+  const [busy, setBusy] = useState(false);
+  const [, tick] = useState(0);
+  const live = (list ?? []).find((c) => c.source === 'drop' && c.active && c.endsAt && Date.parse(c.endsAt) > Date.now() && (c.maxUses == null || c.uses < c.maxUses));
+  useEffect(() => { if (!live) return; const t = setInterval(() => tick((n) => n + 1), 1000); return () => clearInterval(t); }, [live]);
+  const up = (p: Partial<DropStart>) => setF((x) => ({ ...x, ...p }));
+  const start = async () => { setBusy(true); try { const l = await codeApi.dropStart(f); setList(l); say(`Drop no ar: ${l[0]?.code ?? ''}. Ele aparece no overlay do OBS e no aviso do site.`); } catch (e) { fail(e); } finally { setBusy(false); } };
+  const stop = async () => { setBusy(true); try { setList(await codeApi.dropStop()); say('Drop encerrado.'); } catch (e) { fail(e); } finally { setBusy(false); } };
+  const sec = live?.endsAt ? Math.max(0, Math.round((Date.parse(live.endsAt) - Date.now()) / 1000)) : 0;
+  return (
+    <section className="sa-form sa-drop" aria-label="Drop na live">
+      <h3>Drop na live</h3>
+      {live ? (
+        <div className="sa-drop__live" role="status">
+          <span className="sa-drop__tag">No ar</span>
+          <b className="mono sa-drop__code">{live.code}</b>
+          <span>{live.title} · {live.uses}{live.maxUses != null ? ` de ${live.maxUses}` : ''} {live.uses === 1 ? 'resgate' : 'resgates'} · faltam {Math.floor(sec / 60)}:{String(sec % 60).padStart(2, '0')}</span>
+          <button className="btn ghost sm" disabled={busy} onClick={() => void stop()}>Encerrar drop</button>
+        </div>
+      ) : <p className="muted" style={{ margin: 0 }}>O código aparece no seu overlay do OBS (Preferências › Overlay de live) e o site avisa "Drop no ar" para quem está com ele aberto. Soltar outro encerra o anterior.</p>}
+      <div className="sa-row">
+        <label>Nome na tela<input className="field" value={f.title} maxLength={80} placeholder="Drop da live" onChange={(e) => up({ title: e.target.value })} /></label>
+        <label className="sa-short">Minutos<input className="field" type="number" min={1} max={60} value={f.minutes} onChange={(e) => up({ minutes: Math.max(1, Math.min(60, Number(e.target.value) || 5)) })} /></label>
+        <label className="sa-short">Limite<input className="field" type="number" min={1} placeholder="sem" value={f.maxUses ?? ''} onChange={(e) => up({ maxUses: e.target.value ? Math.max(1, Number(e.target.value)) : null })} /></label>
+      </div>
+      <div className="sa-row">
+        <div className="seg" role="group" aria-label="O que dá"><button aria-pressed={f.kind === 'pacote' && f.packKind === 'onix'} onClick={() => up({ kind: 'pacote', packKind: 'onix' })}>Pacote Ônix</button><button aria-pressed={f.kind === 'pacote' && f.packKind === 'prisma'} onClick={() => up({ kind: 'pacote', packKind: 'prisma' })}>Prisma</button><button aria-pressed={f.kind === 'figurinha'} onClick={() => up({ kind: 'figurinha' })}>Figurinha</button></div>
+        {f.kind === 'figurinha' && (
+          <select className="field" aria-label="Figurinha" value={f.stickerId ?? ''} onChange={(e) => up({ stickerId: e.target.value || null })} style={{ flex: '1 1 200px' }}>
+            <option value="">Escolha a figurinha…</option>
+            {stickers.map((x) => <option key={x.id} value={x.id}>{num3(x.number)} · {x.name} ({TIER_LABEL[x.tier]})</option>)}
+          </select>
+        )}
+      </div>
+      <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<input className="field" maxLength={200} value={f.note} placeholder="Drop da live de sexta" onChange={(e) => up({ note: e.target.value })} /></label>
+      <div className="sa-row"><button className="btn now" disabled={busy || f.note.trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void start()}>{busy ? 'Soltando…' : live ? 'Soltar outro drop' : 'Soltar drop'}</button></div>
+    </section>
   );
 }

@@ -1,17 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useStore, openSession, focusJourneys, sessionsOf } from '../data/store';
 import { hourMin } from '../lib/format';
+import { demoDrop } from '../data/albumApi';
 
-type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null };
+type Drop = { code: string; title: string; endsAt: string; left: number | null; kind: 'pacote' | 'figurinha'; packKind: 'onix' | 'prisma' };
+type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null };
 
 /**
  * Overlay de live: fonte de navegador do OBS (fundo transparente). Atualiza sozinho a cada 20 segundos.
  * `/overlay/demo` mostra o que está neste navegador (para testar o visual).
+ * E7.2: no overlay do canal, o drop de figurinhas no ar entra por cima, com o código e a contagem.
  */
 export function OverlayPage({ k }: { k: string }) {
   const s = useStore((x) => x);
   const [data, setData] = useState<Data | null>(null);
   const [err, setErr] = useState('');
+  const [, tick] = useState(0);
+  const [demoD, setDemoD] = useState(() => (k === 'demo' ? demoDrop() : null));
+  useEffect(() => { const t = setInterval(() => { tick((n) => n + 1); if (k === 'demo') setDemoD(demoDrop()); }, 1000); return () => clearInterval(t); }, [k]);
 
   useEffect(() => {
     document.documentElement.classList.add('is-overlay');
@@ -30,7 +36,7 @@ export function OverlayPage({ k }: { k: string }) {
       } catch { /* sem rede: tenta de novo no próximo ciclo */ }
     };
     void load();
-    const t = setInterval(load, 20000);
+    const t = setInterval(load, 10000);
     return () => { alive = false; clearInterval(t); };
   }, [k]);
 
@@ -40,14 +46,17 @@ export function OverlayPage({ k }: { k: string }) {
     const j = open ? s.journeys.find((x) => x.id === open.journeyId) : focusJourneys(s)[0]?.journey;
     const g = j ? s.games[j.gameId] : undefined;
     const m = j ? [...s.events].filter((e) => e.journeyId === j.id && (e.kind === 'momento' || e.kind === 'ponto')).sort((a, b) => b.at.localeCompare(a.at))[0] : undefined;
-    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null };
+    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null, drop: demoD };
   })() : null;
   const d = local ?? data;
 
   if (err) return <div className="ovl ovl--err">{err}</div>;
-  if (!d?.game) return <div className="ovl ovl--empty" />;
+  const drop = d?.drop && Date.parse(d.drop.endsAt) > Date.now() ? d.drop : null;
+  const dropCard = drop && <DropCard key={drop.code} drop={drop} />;
+  if (!d?.game) return dropCard ? <div className="ovl">{dropCard}</div> : <div className="ovl ovl--empty" />;
   return (
     <div className="ovl">
+      {dropCard}
       <div className="ovl__card">
         {d.game.cover && <img className="ovl__cover" src={d.game.cover} alt="" />}
         <div className="ovl__info">
@@ -63,6 +72,23 @@ export function OverlayPage({ k }: { k: string }) {
         )}
         <img className="ovl__logo" src="/brand/forjado.svg" alt="WinnerZ" />
       </div>
+    </div>
+  );
+}
+
+/** O drop na tela da live: o código grande, o endereço curto e o tempo que falta. */
+function DropCard({ drop }: { drop: Drop }) {
+  const sec = Math.max(0, Math.round((Date.parse(drop.endsAt) - Date.now()) / 1000));
+  const what = drop.kind === 'figurinha' ? 'uma figurinha' : drop.packKind === 'prisma' ? 'um pacote especial' : 'um pacote de figurinhas';
+  return (
+    <div className="ovl-drop" role="status">
+      <span className="ovl-drop__tag"><i aria-hidden="true" />Drop no ar</span>
+      <strong className="ovl-drop__title">{drop.title}</strong>
+      <span className="ovl-drop__what">Vale {what}{drop.left != null ? ` · restam ${drop.left}` : ''}</span>
+      <span className="ovl-drop__code">{drop.code}</span>
+      <span className="ovl-drop__where">winnerz.com.br/codigo</span>
+      <span className="ovl-drop__time">{Math.floor(sec / 60)}:{String(sec % 60).padStart(2, '0')}</span>
+      <span className="ovl-drop__bar" aria-hidden="true"><i style={{ animationDuration: `${sec}s` }} /></span>
     </div>
   );
 }

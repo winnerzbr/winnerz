@@ -5,7 +5,8 @@
  *   POST /api/overlay {link:true}   (com login) → { path: "/overlay/<id>.<assinatura>" }
  *   GET  /api/overlay?k=<id>.<sig>             → dados públicos mínimos para o overlay
  *
- * Só sai o que aparece na tela da live: título e capa do jogo, horário de início da sessão, o último momento.
+ * Só sai o que aparece na tela da live: título e capa do jogo, horário de início da sessão, o último momento e, no
+ * overlay do canal (conta da administração), o drop de figurinhas no ar (E7.2, migração 0067).
  */
 
 type Req = { method?: string; query: Record<string, string | string[] | undefined>; body?: unknown; headers?: Record<string, string | string[] | undefined> };
@@ -81,14 +82,21 @@ export default async function handler(req: Req, res: Res) {
     const [user, nonce, sig] = k.split('.');
     if (!user || !UUID.test(user) || !nonce || !/^[0-9a-f]{16}$/.test(nonce) || sig !== (await sign(`${user}.${nonce}`))) return res.status(403).json({ error: 'Endereço do overlay inválido.' });
 
-    const [profile] = await get(`profiles?select=prefs&id=eq.${q(user)}`);
+    const [profile] = await get(`profiles?select=prefs,is_admin&id=eq.${q(user)}`);
     if (profile?.prefs?.overlayNonce !== nonce) return res.status(403).json({ error: 'Este endereço foi trocado. Gere o novo nas Preferências.' });
+    // E7.2: no overlay do canal (conta da administração), o drop no ar aparece com o código e a contagem.
+    let drop: unknown = null;
+    if (profile?.is_admin) {
+      const now = new Date().toISOString();
+      const [c] = await get(`album_codes?select=code,title,ends_at,max_uses,uses,kind,pack_kind&source=eq.drop&active=is.true&starts_at=lte.${q(now)}&ends_at=gt.${q(now)}&order=starts_at.desc&limit=1`);
+      if (c && (c.max_uses == null || c.uses < c.max_uses)) drop = { code: c.code, title: c.title, endsAt: c.ends_at, left: c.max_uses == null ? null : Math.max(0, c.max_uses - c.uses), kind: c.kind, packKind: c.pack_kind };
+    }
     const [open] = await get(`sessions?select=journey_id,started_at&user_id=eq.${q(user)}&ended_at=is.null&order=started_at.desc&limit=1`);
     const prefs = profile?.prefs ?? {};
     const focus: unknown[] = Array.isArray(prefs.focusIds) ? prefs.focusIds : prefs.focusJourneyId ? [prefs.focusJourneyId] : [];
     // Nada do que vem das preferências entra num filtro sem conferir: só um id no formato certo.
     const candidate = [open?.journey_id, ...focus].find((x): x is string => typeof x === 'string' && UUID.test(x));
-    const empty = { game: null, session: null, moment: null };
+    const empty = { game: null, session: null, moment: null, drop };
     if (!candidate) return res.status(200).json(empty);
     const [journey] = await get(`journeys?select=id,game_id&id=eq.${q(candidate)}&user_id=eq.${q(user)}`);
     if (!journey) return res.status(200).json(empty);
@@ -101,6 +109,7 @@ export default async function handler(req: Req, res: Res) {
       game: game ? { title: game.title, cover: game.cover } : null,
       session: open && open.journey_id === jid ? { startedAt: open.started_at, number: sessions.length } : null,
       moment: moment ? { title: moment.title, image: await signedPhoto(user, moment.image_path), kind: moment.kind } : null,
+      drop,
     });
   } catch (err) {
     return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });

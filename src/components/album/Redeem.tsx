@@ -18,7 +18,7 @@ export function Redeem({ onPacks, bookOf, section }: { onPacks: (p: Pack[]) => v
   const [err, setErr] = useState('');
   const [got, setGot] = useState<Redeemed | null>(null);
   const [done, setDone] = useState('');
-  useEffect(() => { if (fromUrl()) document.getElementById('alb-code')?.focus(); }, []);
+  useEffect(() => { if (fromUrl() || window.location.hash === '#codigo') { const el = document.getElementById('alb-code'); el?.focus({ preventScroll: true }); el?.scrollIntoView({ block: 'center' }); } }, []);
 
   const go = async (e?: FormEvent) => {
     e?.preventDefault();

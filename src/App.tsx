@@ -6,7 +6,8 @@ import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
-import { usePath, match, Link } from './lib/router';
+import { DropBanner } from './components/album/DropBanner';
+import { usePath, match, Link, navigate } from './lib/router';
 import { useStore, openSession } from './data/store';
 import { applyPrefs } from './lib/theme';
 import { BrandMark } from './components/Brand';
@@ -150,6 +151,9 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;
+  // E7.1/E7.2: o endereço curto que a live mostra (winnerz.com.br/codigo e /codigo/XXXX).
+  if (match('/codigo', path)) return <GoTo to="/album/pacotes#codigo" />;
+  if ((m = match('/codigo/:code', path))) return <GoTo to={`/album/pacotes?codigo=${encodeURIComponent(m.code)}`} />;
   if (match('/album', path)) return lazyPage(<AlbumPage />);
   if (match('/album/pacotes', path)) return lazyPage(<AlbumPage view="pacotes" />);
   if (match('/album/figurinhas', path)) return lazyPage(<AlbumPage view="figurinhas" />);
@@ -239,6 +243,7 @@ export function App() {
       <ModerationBanner />
       <ForgottenSession />
       <BridgeSync />
+      <DropBanner hidden={isSession || path.startsWith('/album/pacotes')} />
       <Routes path={path} />
       {!isSession && (
         <footer className="site-footer">
@@ -264,4 +269,10 @@ export function App() {
       <CommandPalette />
     </NickGate>
   );
+}
+
+/** Leva para outro endereço sem deixar o atual no histórico. */
+function GoTo({ to }: { to: string }) {
+  useEffect(() => { navigate(to, { replace: true }); }, [to]);
+  return null;
 }

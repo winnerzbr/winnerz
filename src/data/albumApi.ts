@@ -95,6 +95,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
     if (/album_welcome_pack/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0057 no Supabase.');
+    if (/album_drop|studio_drop/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0067 no Supabase.');
     if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0066 no Supabase.');
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0056 no Supabase.');
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
@@ -540,7 +541,43 @@ function dCodes(d: DState): LiveCode[] {
   return d.codes;
 }
 
+/* ---- E7.2 · Drop na live (migração 0067) ---- */
+export interface DropNow { id: string; title: string; endsAt: string; kind: 'pacote' | 'figurinha'; packKind: PackKind; left: number | null; mine: boolean }
+export interface DropStart { title: string; minutes: number; maxUses?: number | null; kind: 'pacote' | 'figurinha'; packKind: PackKind; qty?: number; stickerId?: string | null; note: string }
+function dDropLive(d: DState): LiveCode | undefined {
+  const now = Date.now();
+  return dCodes(d).filter((c) => c.source === 'drop' && c.active && Date.parse(c.startsAt) <= now && c.endsAt && Date.parse(c.endsAt) > now && (c.maxUses == null || c.uses < c.maxUses))
+    .sort((a, b) => b.startsAt.localeCompare(a.startsAt))[0];
+}
+/** Demonstração: o drop no ar deste navegador, com o código (o overlay de teste mostra). */
+export function demoDrop(): (DropNow & { code: string }) | null {
+  if (supa()) return null;
+  const d = dLoad(); const c = dDropLive(d);
+  return c ? { id: c.id, code: c.code, title: c.title ?? 'Drop na live', endsAt: c.endsAt!, kind: c.kind, packKind: c.packKind, left: c.maxUses == null ? null : c.maxUses - c.uses, mine: (d.codeUses ?? []).includes(c.id) } : null;
+}
+
 export const codeApi = {
+  /** O drop no ar agora, sem o código (ele só aparece na tela da live). */
+  async dropNow(): Promise<DropNow | null> {
+    if (!supa()) { const x = demoDrop(); if (!x) return null; const { code: _c, ...rest } = x; return rest; }
+    try { return await rpc<DropNow | null>('album_drop_now'); } catch { return null; }
+  },
+  async dropStart(p: DropStart): Promise<LiveCode[]> {
+    if (!supa()) {
+      if (p.note.trim().length < 3) throw new Error(MSG.pack_reason);
+      const d = dLoad(); const list = dCodes(d); const now = new Date();
+      for (const c of list) if (c.source === 'drop' && c.endsAt && Date.parse(c.endsAt) > now.getTime()) c.endsAt = now.toISOString();
+      list.push({ id: `demo-c${rid()}`, code: newCode(), source: 'drop', title: p.title.trim() || 'Drop na live', kind: p.kind, packKind: p.packKind, qty: Math.max(1, Math.min(5, p.qty ?? 1)),
+        stickerId: p.kind === 'figurinha' ? p.stickerId ?? null : null, maxUses: p.maxUses ?? null, uses: 0, startsAt: now.toISOString(),
+        endsAt: new Date(now.getTime() + Math.max(1, Math.min(60, p.minutes)) * 60000).toISOString(), note: p.note.trim(), active: true, createdAt: now.toISOString() });
+      dSave(d); return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+    return rpc<LiveCode[]>('studio_drop_start', { p });
+  },
+  async dropStop(): Promise<LiveCode[]> {
+    if (!supa()) { const d = dLoad(); const list = dCodes(d); const now = new Date().toISOString(); for (const c of list) if (c.source === 'drop' && c.endsAt && c.endsAt > now) c.endsAt = now; dSave(d); return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+    return rpc<LiveCode[]>('studio_drop_stop');
+  },
   /** Resgatar um código: o pacote vai para Pacotes; a figurinha, para a bandeja. */
   async redeem(raw: string): Promise<Redeemed> {
     const code = cleanCode(raw);

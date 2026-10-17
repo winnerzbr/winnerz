@@ -419,3 +419,7 @@ a.session__back-link, .session__back-link { font: 600 14px/1 var(--font-ui); fon
 }
 :root[data-motion='reduzidas'] .site-header__logo .bm-w, :root[data-motion='reduzidas'] .site-header__logo .bm-z, :root[data-motion='reduzidas'] .site-header__logo .bm-tip, :root[data-motion='reduzidas'] .site-header__logo .brand-mark { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .site-header__logo .bm-w, .site-header__logo .bm-z, .site-header__logo .bm-tip, .site-header__logo .brand-mark { animation: none !important; } }
+
+/* Explorar: "Nota" e "IGDB" em duas linhas ao lado do número */
+.cover-grid__score { align-items: center; gap: 6px; }
+.cover-grid__score i { white-space: pre-line; line-height: 1.05; font-size: 9.5px; }

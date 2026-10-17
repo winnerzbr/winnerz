@@ -136,11 +136,11 @@ export function GamesExplore() {
   );
 }
 
-/** Pílula no canto da capa: a nota do IGDB, ou a data quando o jogo ainda não saiu. */
+/** Etiqueta no canto da capa: a nota do IGDB ("Nota" / "IGDB" em duas linhas), ou a data quando o jogo ainda não saiu. */
 function pillOf(h: Found, sort: string): { big: string; small: string; dim?: boolean } | undefined {
   const future = h.date && h.date > new Date().toISOString().slice(0, 10);
   if ((sort === 'upcoming' || future) && h.date) return { big: new Date(`${h.date}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', ''), small: 'Em breve' };
-  if (h.rating) return { big: (h.rating / 10).toFixed(1).replace(/\.0$/, '').replace('.', ','), small: 'Nota' };
+  if (h.rating) return { big: (h.rating / 10).toFixed(1).replace(/\.0$/, '').replace('.', ','), small: 'Nota\nIGDB' };
   return undefined;
 }
 

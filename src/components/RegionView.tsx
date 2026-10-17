@@ -17,11 +17,12 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 type Region = { key: string; name: string; items: OutlinePart[]; done: number; sessions: Session[]; from?: string; to?: string; minutes: number };
 
-export function RegionView({ outline, history, sessions, images, play, today, video, title, full = false, onExitFull }: {
+export function RegionView({ outline, history, sessions, images, play, today, video, title, full = false, onExitFull, onPickPart }: {
   outline: GameOutline; history: History; sessions: Session[]; images: string[]; title?: string;
   /** Tela cheia (como a faixa): Esc ou o botão saem. */ full?: boolean; onExitFull?: () => void;
   play: { label: string; now: boolean; onClick: () => void }; today: { open: boolean; note?: string } | null;
   video?: (part: OutlinePart, label: string) => ReactNode;
+  /** "Estou aqui": muda onde você está no jogo. */ onPickPart?: (part: OutlinePart) => void;
 }) {
   const parts = useMemo(() => [...outline.parts].sort((a, b) => a.pct - b.pct), [outline.parts]);
   // Quando cada item foi feito: a primeira sessão que o marcou.
@@ -126,7 +127,10 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
                   {covered
                     ? <button type="button" className="rv__cover" onClick={() => setOpened(new Set([...opened, p.id]))}>Com spoiler · tocar para ver</button>
                     : <b>{done ? '✓ ' : ''}{p.name}</b>}
-                  {!covered && video?.(p, p.kind ? p.kind[0].toUpperCase() + p.kind.slice(1) : 'Trecho')}
+                  <span className="rv__acts">
+                    {!covered && video?.(p, p.kind ? p.kind[0].toUpperCase() + p.kind.slice(1) : 'Trecho')}
+                    {cur?.id === p.id ? <span className="rv__here">Você está aqui</span> : onPickPart && <button type="button" className="btn quiet sm" onClick={() => onPickPart(p)}>Estou aqui</button>}
+                  </span>
                 </li>
               );
             })}

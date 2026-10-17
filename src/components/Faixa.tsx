@@ -52,11 +52,15 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video }: {
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList }: {
   /** S3 · "Por capítulo": a lista do jogo (a régua vira a linha do horizonte por capítulo) e onde você está (%). */
   parts?: { list: OutlinePart[]; now: number | null } | null;
   /** "▶ Ver este trecho" de um item da lista (quando ele tem vídeo). */
   video?: (part: OutlinePart, label: string) => ReactNode;
+  /** "Estou aqui": muda o capítulo da História (e o progresso vai junto). */
+  onPickPart?: (part: OutlinePart) => void;
+  /** Abre a lista inteira do jogo para escolher. */
+  onOpenList?: () => void;
   /** Como o jogo se divide: capítulos, missões, áreas, chefes… (o rótulo dos itens do jogo). */
   unit?: { one: string; many: string };
   items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void; onShare?: (eventId: string) => void;
@@ -301,6 +305,8 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
             <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
               {it.state === 'atual' && !today?.open && <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={() => play.onClick()}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>}
               {video?.(p, `${unit.one} ${it.n}`)}
+              {it.state === 'passou' && onPickPart && <button className="btn ghost sm fx-btn" onClick={() => onPickPart(p)}>Estou aqui</button>}
+              {it.state === 'atual' && onOpenList && <button className="btn ghost sm fx-btn" onClick={() => onOpenList()}>Mudar</button>}
               {p.stop && it.state === 'atual' && <span className="fx-src">{({ qualquer: 'Salva a qualquer hora', fim: 'Melhor parar no fim', pontos: 'Só em pontos de save', longe: 'Pontos de save longe' } as Record<string, string>)[p.stop]}</span>}
             </div>
           )}
@@ -317,6 +323,12 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
           {shown ? <h3 className="fx-h fx-h--sm">{p.name}</h3> : <button className="fx-gpart__hide" onClick={(ev) => { ev.stopPropagation(); setOpenedParts(new Set([...openedParts, p.id])); }}>{p.spoiler ? 'Nome com spoiler · tocar para ver' : 'Tocar para ver o nome'}</button>}
           <p className="fx-p">{ahead ? [`Começa em uns ${p.pct}%`, p.minutes ? `leva uns ${durText(p.minutes)}` : ''].filter(Boolean).join(' · ') : how}</p>
           {it.more ? <small className="fx-src">e mais {it.more} {it.more === 1 ? unit.one.toLowerCase() : unit.many} até o fim</small> : null}
+          {on && ahead && onPickPart && (
+            <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
+              <button className="btn ghost sm fx-btn" onClick={() => onPickPart(p)}>Cheguei aqui</button>
+              {onOpenList && <button className="btn quiet sm" onClick={() => onOpenList()}>Ver a lista</button>}
+            </div>
+          )}
         </article>
       );
     }

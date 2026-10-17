@@ -29,7 +29,7 @@ import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
 import { FitCard, LetterLine } from '../components/Comeback';
-import { OutlineStrip } from '../components/Outline';
+import { OutlineSheet, OutlineStrip } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
 import { isOpenWorld, partAt, partsTimeline, unitOf, type OutlinePart } from '../lib/outline';
 import { useVideos } from '../data/videoApi';
@@ -233,6 +233,13 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     const base = groups ? woven.filter((x) => x.type !== 'event' || groups.includes(x.e.kind)) : woven;
     return byParts(base, { parts: outline.parts, log: current.partLog, cur: partAt(outline.parts, current.progress, current.part), sessionOf: (id) => (id ? s.sessions.find((x) => x.id === id) : undefined) });
   }, [byStructure, openWorld, outline, woven, groups, current.partLog, current.progress, current.part, s.sessions]);
+  // "Estou aqui" na linha do tempo: muda o capítulo da História (o progresso vai para o começo dele).
+  const [listOpen, setListOpen] = useState(false);
+  const pickPart = (p: OutlinePart) => {
+    if (!outline) return;
+    if (openWorld) actions.markOpenPart(current.id, p.id);
+    else actions.setHistoryPart(current.id, { id: p.id, pct: p.pct }, outline.parts);
+  };
   const videoOf = (p: OutlinePart, label: string) => <PartVideoButton gameId={game.id} gameTitle={game.title} part={p} label={label} videos={vids} onDark />;
   const u = unitOf(outline);
   const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [], part: curPart ? { n: curPart.n, total: curPart.total, name: curPart.part.name } : undefined } : null;
@@ -390,11 +397,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
 
           {byStructure && openWorld && outline ? (
-            <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} />
+            <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
           ) : !hasEvents && !todayInfo && !byStructure ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' && byStructure ? (
-            <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} />
+            <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} />
           ) : mode === 'faixa' ? (
             <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} />
           ) : (
@@ -423,6 +430,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>
       )}
+      {listOpen && outline && <OutlineSheet game={game} history={current} outline={outline} onClose={() => setListOpen(false)} />}
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
       {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}
       {editEvent && <EventEditSheet eventId={editEvent} onClose={() => setEditEvent(null)} />}

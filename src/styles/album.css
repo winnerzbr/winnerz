@@ -201,7 +201,9 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .alb-pg__mark { width: 40cqw; }
 .alb-slots { margin-block: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4.5cqw 3.4cqw; align-items: start; }
 .alb-slots--one { grid-template-columns: minmax(0, 40cqw); justify-content: center; margin-top: 4cqw; }
-.alb-slots--many { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3.4cqw 2.6cqw; }
+.alb-slots--many { grid-template-columns: repeat(3, 23.5cqw); justify-content: center; gap: 2.6cqw 4cqw; margin-block: 3.4cqw auto; }
+.alb-slots--many .alb-slot { gap: 1.4cqw; }
+.alb-slots--many .alb-slot__cap { font-size: 2.2cqw; line-height: 1.25; }
 .alb-slot { display: flex; flex-direction: column; align-items: center; gap: 2cqw; min-width: 0; position: relative; }
 .alb-slot__cap { text-align: center; font: 500 2.4cqw/1.35 var(--font-mono); letter-spacing: .06em; color: #9d9686; }
 .alb-slot__cap b { display: block; font-weight: 600; color: #e6dfcf; }

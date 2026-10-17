@@ -8,3 +8,4 @@ dist
 # Extensão do Playnite (compilada no GitHub)
 playnite/**/bin/
 playnite/**/obj/
+art/figurinhas/out/

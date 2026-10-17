@@ -124,6 +124,7 @@ function seed(): DState {
   const b = 'demo-b1';
   const pg = (i: number, kicker: string, title: string, body: string, banner: string, legendary = false): AlbumPage => ({ id: `demo-p${i}`, position: i, kicker, title, body, banner: A(banner), legendary });
   const pages = [
+    { ...pg(0, 'Capítulo 01', 'Vila inicial', 'Toda jornada sai de algum lugar. Esta sai daqui, com o mapa ainda em branco.', 'x'), banner: '/figurinhas/t1/casa-da-lareira.webp' },
     pg(1, 'Capítulo 01', 'Portais da floresta', 'Passagens que só aparecem para quem continua andando.', 'copa'),
     pg(2, 'Capítulo 02', 'Ruínas e descobertas', 'O que ficou de pé depois de tudo.', 'ruinas'),
     pg(3, 'Capítulo 03', 'Reinos esquecidos', 'Cada mundo é um convite.', 'reinos'),
@@ -138,11 +139,14 @@ function seed(): DState {
     st(7, 3, 1, 'Reinos esquecidos', 'rara', 'reinos'), st(8, 3, 2, 'Rio de jade', 'incomum', 'rio'), st(9, 3, 3, 'Flores do vale', 'comum', 'flores'),
     st(10, 4, 1, 'Castelo das nuvens', 'rara', 'castelo'), st(11, 4, 2, 'Ilha flutuante', 'lendaria', 'nuvens'), st(12, 4, 3, 'Arco de luz', 'incomum', 'arco'),
     st(13, 5, 1, 'Confluência', 'lendaria', 'confluencia'),
+    ...([['casa-da-lareira', 'Casa da lareira', 'comum'], ['moinho-do-vale', 'Moinho do vale', 'comum'], ['poco-dos-desejos', 'Poço dos desejos', 'comum'], ['ponte-de-pedra', 'Ponte de pedra', 'comum'], ['placa-da-encruzilhada', 'Placa da encruzilhada', 'comum'], ['mapa-em-branco', 'Mapa em branco', 'incomum']] as const)
+      .map(([f, name, tier], i): Sticker => ({ id: `demo-v${i + 1}`, season: 1, number: i + 1, name, tier, art: `/figurinhas/t1/${f}.webp`, credit: 'Arte: WinnerZ', pageId: 'demo-p0', slot: i + 1, active: true })),
   ];
   const items: AlbumItem[] = [
     { id: 'demo-s1', qty: 1, pasted: true }, { id: 'demo-s2', qty: 2, pasted: true }, { id: 'demo-s4', qty: 1, pasted: true },
     { id: 'demo-s5', qty: 1, pasted: true }, { id: 'demo-s7', qty: 1, pasted: true }, { id: 'demo-s9', qty: 3, pasted: true },
-    { id: 'demo-s11', qty: 1, pasted: true }, { id: 'demo-s3', qty: 1, pasted: false },
+    { id: 'demo-s11', qty: 1, pasted: true }, { id: 'demo-s3', qty: 1, pasted: true },
+    ...[1, 2, 3, 4, 5, 6].map((i) => ({ id: `demo-v${i}`, qty: 1, pasted: true })),
   ];
   const base = { reason: null, historyId: null, contents: null, openedAt: null, note: null, review: null, userHandle: 'voce', signals: {} };
   const packs: DPack[] = [

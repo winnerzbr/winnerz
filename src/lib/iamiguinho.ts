@@ -1,7 +1,9 @@
 /**
- * IAmiguinho, fase 1 (sem IA): as falas escritas por nós, as poses e caras de cada momento, o modo escolhido nas
- * Preferências e o portão dos cameos (no máximo um por dia no modo Normal, um por semana no Discreto, e cada motivo
- * com o seu intervalo). A ficha do personagem é o documento "IAmiguinho — ficha do personagem".
+ * IAmiguinho: as falas escritas por nós (com lacunas para fatos, como {jogo} e {dias}), as poses e caras de cada
+ * momento, o modo escolhido nas Preferências e o portão dos cameos (no máximo um por dia no modo Normal, um por
+ * semana no Discreto, e cada motivo com o seu intervalo). Fase 2 (M4): nos cameos de jogo zerado e de Retomada, a
+ * fala pode vir da IA pela /api/iamiguinho, que confere o intervalo em todos os aparelhos; se não vier, a biblioteca.
+ * A ficha do personagem é o documento "IAmiguinho — ficha do personagem".
  * Regras da voz: humor de incompetência, sempre dele; fatos só os que o site tem; até ~140 caracteres; sem palavrão.
  */
 import { getState } from '../data/store';
@@ -15,68 +17,10 @@ export const MODOS: { id: IamigModo; label: string; desc: string }[] = [
 ];
 export const modoAtual = (): IamigModo => (getState().prefs.iamiguinho ?? 'normal') as IamigModo;
 
-/** Momentos de interface: ele ocupa o lugar do conteúdo que ainda não existe. */
-export type Interface = 'jornada-vazia' | 'colecao-vazia' | 'listas-vazias' | 'radar-vazio' | 'avisos-vazios' | 'busca-vazia' | 'nao-encontrada' | 'erro' | 'carregando';
-/** Cameos: aparecem sozinhos, num balão no canto. */
-export type Cameo = 'indeciso' | 'voltou' | 'primeiro-zerado' | 'radar' | 'cofre';
-
-export const FALAS: Record<Interface | Cameo, string[]> = {
-  'jornada-vazia': [
-    'Nenhuma Jornada ainda. Eu também não tenho, mas a minha é porque não passei do tutorial.',
-    'Linha do tempo em branco. Escolhe um jogo que eu seguro a lanterna.',
-    'Ainda nada por aqui. Se precisar de alguém para começar jogos, sou especialista. Terminar é outro departamento.',
-  ],
-  'colecao-vazia': [
-    'Estante nova, cheirinho de madeira. Qual vai ser o primeiro jogo?',
-    'Estante vazia. Eu emprestaria os meus, mas só tenho tutoriais.',
-  ],
-  'listas-vazias': [
-    'Lista vazia. Eu faria uma, mas ia esquecer o nome dela no meio.',
-    'Nenhuma lista ainda. Prometo não palpitar. Muito.',
-  ],
-  'radar-vazio': [
-    'Radar limpo. Esperar jogo é minha especialidade, só me fala qual.',
-    'Nada no Radar. Eu fico de olho mesmo assim, com a hélice ligada.',
-  ],
-  'avisos-vazios': [
-    'Tudo em silêncio por aqui. Aproveitei para cochilar.',
-    'Nenhum aviso. Até eu fiquei sem assunto, e isso é raro.',
-  ],
-  'busca-vazia': [
-    'Procurei em todo lugar. Bom, em dois lugares. Tenta outro nome?',
-    'Não achei nada. Mas achei uma meia que eu tinha perdido.',
-  ],
-  'nao-encontrada': [
-    'Eu jurava que tinha uma página aqui. Meu mapa está de cabeça para baixo de novo.',
-    'Esse caminho não está no meu mapa. Volto com você para o início?',
-  ],
-  erro: [
-    'Fui ajudar e desliguei um cabo. Tenta de novo daqui a pouco?',
-    'Tropecei no fio. Já estou ligando de volta, prometo.',
-  ],
-  carregando: [
-    'Girando a hélice para ir mais rápido. Não ajuda, mas fica bonito.',
-    'Carregando. Eu ajudaria, mas da última vez desliguei o roteador.',
-  ],
-  indeciso: [
-    'Três ideias e nada? Eu escolho jogo pelo tamanho da caixa. Funciona metade das vezes.',
-    'Indecisão também é estado de jogo: pausado na tela de seleção.',
-    'Se fosse eu, escolhia o que tem o tutorial mais curto. Por motivos óbvios.',
-  ],
-  voltou: [
-    'Olha quem voltou! Guardei tudo direitinho. Até o recado que você nem lembra que escreveu.',
-    'Que bom te ver de volta. O jogo não andou sem você, juro. Eu tentei, mas não andou.',
-  ],
-  'primeiro-zerado': [
-    'Primeira história no mural! A minha ainda está no tutorial, mas a sua vai ganhar moldura.',
-    'Zerou! Eu sabia que você conseguia. Quer dizer... eu esperava. Sabia é uma palavra forte.',
-  ],
-  radar: [
-    'Lançamento chegando. Eu já separei o lanche.',
-    'Mais um jogo para esperar. Minha especialidade.',
-  ],
-  cofre: ['Coleção grande, hein? Eu só tenho um cartucho, e é de hélice.'],
-};
+export { FALAS, preencher, falaDaBiblioteca, sortear } from './iamiguinhoFalas';
+export type { Interface, Cameo, Fatos } from './iamiguinhoFalas';
+import type { Interface, Cameo, Fatos } from './iamiguinhoFalas';
+import { falaDaBiblioteca } from './iamiguinhoFalas';
 
 /** A pose de corpo inteiro de cada momento de interface (public/brand/iamiguinho/pose-*.webp). */
 export const POSE: Record<Interface, string> = {
@@ -84,18 +28,19 @@ export const POSE: Record<Interface, string> = {
   'busca-vazia': 'mapa', 'nao-encontrada': 'mapa', erro: 'cabo', carregando: 'planando',
 };
 /** A cara (cabeça 3D com a expressão) de cada cameo (public/brand/iamiguinho/cara-*.webp). */
-export const CARA: Record<Cameo, string> = { indeciso: 'pensando', voltou: 'feliz', 'primeiro-zerado': 'comemorando', radar: 'curioso', cofre: 'surpreso' };
+export const CARA: Record<Cameo, string> = { indeciso: 'pensando', voltou: 'feliz', 'primeiro-zerado': 'comemorando', zerado: 'comemorando', radar: 'curioso', cofre: 'surpreso' };
 export const posePath = (p: string) => `/brand/iamiguinho/pose-${p}.webp`;
 export const caraPath = (c: string) => `/brand/iamiguinho/cara-${c}.webp`;
-
-export const sortear = (lista: string[]) => lista[Math.floor(Math.random() * lista.length)];
 
 /* ---- Portão dos cameos ---------------------------------------------------------------------------------------- */
 const KEY = 'wz.iamiguinho.v1';
 const DIA = 86400000;
 /** Intervalo mínimo de cada motivo, em dias. */
-const INTERVALO: Record<Cameo, number> = { indeciso: 1, voltou: 7, 'primeiro-zerado': 36500, radar: 3, cofre: 30 };
-const MARCO: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true };
+export const INTERVALO: Record<Cameo, number> = { indeciso: 1, voltou: 7, 'primeiro-zerado': 36500, zerado: 36500, radar: 3, cofre: 30 };
+/** Marcos: os únicos que aparecem no modo Discreto. */
+export const MARCO: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true };
+/** Momentos que a pessoa acabou de viver: furam o "um por visita" e o intervalo geral (cada um continua com o seu). */
+export const ESPECIAL: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true, zerado: true };
 let mostrouNestaVisita = false;
 
 function ler(): Record<string, number> { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}') ?? {}; } catch { return {}; } }
@@ -108,12 +53,55 @@ export function liberarCameo(motivo: Cameo, escopo = ''): boolean {
   const modo = modoAtual();
   if (modo === 'chamar' || modo === 'desativado') return false;
   if (modo === 'discreto' && !MARCO[motivo]) return false;
-  if (mostrouNestaVisita) return false;
+  if (mostrouNestaVisita && !ESPECIAL[motivo]) return false;
   const visto = ler(); const agora = Date.now(); const k = `${motivo}${escopo ? `:${escopo}` : ''}`;
   if (visto[k] && agora - visto[k] < INTERVALO[motivo] * DIA) return false;
   const geral = visto['_ultimo'] ?? 0;
-  if (!MARCO[motivo] && agora - geral < (modo === 'discreto' ? 6.5 : 0.8) * DIA) return false;
+  if (!ESPECIAL[motivo] && agora - geral < (modo === 'discreto' ? 6.5 : 0.8) * DIA) return false;
   visto[k] = agora; visto['_ultimo'] = agora; mostrouNestaVisita = true;
   try { localStorage.setItem(KEY, JSON.stringify(visto)); } catch { /* sem memória: pode aparecer de novo, tudo bem */ }
   return true;
 }
+
+/* ---- Fase 2: a fala da IA nos cameos da Jornada ---------------------------------------------------------------- */
+const RECENTES = 'wz.iamiguinho.falas';
+function recentes(): string[] { try { const v = JSON.parse(localStorage.getItem(RECENTES) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string').slice(0, 8) : []; } catch { return []; } }
+function lembrar(fala: string) { try { localStorage.setItem(RECENTES, JSON.stringify([fala, ...recentes().filter((x) => x !== fala)].slice(0, 8))); } catch { /* tudo bem */ } }
+
+/**
+ * Pede a fala de um cameo da Jornada. Primeiro o portão deste aparelho (modo, visita, intervalos); com login, a
+ * /api/iamiguinho confere o intervalo nos outros aparelhos e tenta a fala da IA, já checada. Se o servidor disser que
+ * outro aparelho já mostrou, nada aparece; se ele não responder, entra a biblioteca.
+ */
+export async function pedirCameo(motivo: Cameo, escopo: string, fatos: Fatos): Promise<string | null> {
+  if (!liberarCameo(motivo, escopo)) return null;
+  const evitar = recentes();
+  let fala: string | null = null;
+  if (getState().mode === 'supabase') {
+    try {
+      const { accessToken } = await import('../data/supabaseAdapter');
+      const token = await accessToken();
+      if (token) {
+        const r = await fetch('/api/iamiguinho', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ motivo, escopo, fatos, recentes: evitar }) });
+        if (r.ok) {
+          const j = (await r.json()) as { mostrar?: boolean; fala?: string | null };
+          if (j.mostrar === false) return null;
+          fala = typeof j.fala === 'string' && j.fala ? j.fala : null;
+        }
+      }
+    } catch { /* sem servidor: biblioteca */ }
+  }
+  fala ??= falaDaBiblioteca(motivo, fatos, evitar);
+  lembrar(fala);
+  return fala;
+}
+
+/** A comemoração da sessão leva para a Jornada; o parabéns do IAmiguinho vai junto, uma vez. */
+let zeradoPendente: string | null = null;
+export const marcarZerado = (historyId: string) => { zeradoPendente = historyId; };
+/** Lido ao abrir a Jornada (o modo estrito do React pode ler duas vezes seguidas; por isso some só depois). */
+export const consumirZerado = (): string | null => {
+  const v = zeradoPendente;
+  if (v) setTimeout(() => { if (zeradoPendente === v) zeradoPendente = null; }, 0);
+  return v;
+};

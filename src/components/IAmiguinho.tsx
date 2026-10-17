@@ -5,14 +5,14 @@
 import { Component, useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../data/store';
-import { CARA, FALAS, POSE, caraPath, liberarCameo, posePath, sortear, type Cameo, type Interface } from '../lib/iamiguinho';
+import { CARA, POSE, caraPath, falaDaBiblioteca, liberarCameo, pedirCameo, posePath, type Cameo, type Fatos, type Interface } from '../lib/iamiguinho';
 
 const useModo = () => useStore((s) => s.prefs.iamiguinho ?? 'normal');
 
 /** Ele no lugar do conteúdo: pose de corpo inteiro e um balão com a fala. Com o modo Desativado, some. */
 export function MascoteVazio({ momento, className = '' }: { momento: Interface; className?: string }) {
   const modo = useModo();
-  const [fala] = useState(() => sortear(FALAS[momento]));
+  const [fala] = useState(() => falaDaBiblioteca(momento));
   if (modo === 'desativado') return null;
   return (
     <div className={`iam-vazio ${className}`}>
@@ -49,12 +49,26 @@ export function CameoBalao({ motivo, fala, onDone }: { motivo: Cameo; fala: stri
 
 /** Decide uma vez, ao abrir a tela, se o cameo aparece por este motivo (respeita o modo e os intervalos). */
 export function useCameo(motivo: Cameo, quando: boolean, escopo = ''): string | null {
-  const [fala] = useState(() => (quando && liberarCameo(motivo, escopo) ? sortear(FALAS[motivo]) : null));
+  const [fala] = useState(() => (quando && liberarCameo(motivo, escopo) ? falaDaBiblioteca(motivo) : null));
   return fala;
 }
 
 export function Cameo({ motivo, quando = true, escopo = '' }: { motivo: Cameo; quando?: boolean; escopo?: string }) {
   const fala = useCameo(motivo, quando, escopo);
+  return fala ? <CameoBalao motivo={motivo} fala={fala} /> : null;
+}
+
+/**
+ * Cameo da Jornada (M4): pede a fala (IA checada ou biblioteca) e mostra o balão quando ela chega. Decide uma vez,
+ * ao montar; "atraso" deixa a tela respirar antes (por exemplo, logo depois de fechar a comemoração).
+ */
+export function CameoJornada({ motivo, escopo, fatos, atraso = 0 }: { motivo: Cameo; escopo: string; fatos: Fatos; atraso?: number }) {
+  const [fala, setFala] = useState<string | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    const t = setTimeout(() => { void pedirCameo(motivo, escopo, fatos).then((f) => { if (vivo) setFala(f); }); }, atraso);
+    return () => { vivo = false; clearTimeout(t); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return fala ? <CameoBalao motivo={motivo} fala={fala} /> : null;
 }
 

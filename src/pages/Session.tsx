@@ -20,6 +20,7 @@ import { BrandMark } from '../components/Brand';
 import { shrink, toDataUrl } from '../lib/image';
 import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
+import { marcarZerado } from '../lib/iamiguinho';
 import { Previously, CapsuleSheet } from '../components/Retomada';
 import { GoalCard, StopCard } from '../components/Outline';
 import { DonePicker, PartPicker, StartPartCard } from '../components/PartPicker';
@@ -90,7 +91,7 @@ export function SessionPage() {
   useEffect(() => { if (finishing && window.innerWidth < 1100) document.querySelector('.session__aside')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [finishing]);
 
   // Depois de zerar a sessão fecha; a celebração continua na tela.
-  if (celebrate) return <Celebrated historyId={celebrate.historyId} onClose={() => { const h = s.histories.find((x) => x.id === celebrate.historyId); const j = h && s.journeys.find((x) => x.id === h.journeyId); navigate(j ? `/jornada/${s.games[j.gameId].slug}` : '/'); }} />;
+  if (celebrate) return <Celebrated historyId={celebrate.historyId} onClose={() => { marcarZerado(celebrate.historyId); const h = s.histories.find((x) => x.id === celebrate.historyId); const j = h && s.journeys.find((x) => x.id === h.journeyId); navigate(j ? `/jornada/${s.games[j.gameId].slug}` : '/'); }} />;
 
   if (!session) {
     return (

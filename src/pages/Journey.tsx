@@ -8,7 +8,8 @@ import { ShareCardButton } from '../components/ShareCard';
 import { say as toneLine } from '../lib/tone';
 import { ConfirmButton } from '../components/Sheet';
 import { CapsuleSheet, CAPSULE_FIELDS } from '../components/Retomada';
-import { Buddy, useBuddy } from '../components/Buddy';
+import { CameoJornada } from '../components/IAmiguinho';
+import { consumirZerado } from '../lib/iamiguinho';
 import { CaptureImportSheet } from '../components/CaptureImport';
 import { recapFor } from '../lib/recap';
 import { WhatNext } from '../components/WhatNext';
@@ -100,6 +101,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [histSel, setHistSel] = useState<number>(current.ordinal);
   const [full, setFull] = useState(false);
   const [celebrating, setCelebrating] = useState<History | null>(null);
+  /** Depois de fechar a comemoração (aqui ou na sessão), o IAmiguinho dá os parabéns no canto. */
+  const [posZerado, setPosZerado] = useState<string | null>(() => consumirZerado());
   const [saved, setSaved] = useState(0);
   const [wpViewer, setWpViewer] = useState<number | null>(null);
   const [progress, setProgress] = useState(current.progress ?? 0);
@@ -415,7 +418,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         <Celebration
           title={toneLine('zerou', s.prefs.tone)}
           subtitle={`${game.title}${celebrating.ordinal > 1 ? `, sua ${celebrating.title}` : ''}. De ${dayMonthYear(celebrating.startedAt)} a hoje. ${toneLine('zerouSub', s.prefs.tone)}`}
-          onClose={() => setCelebrating(null)}
+          onClose={() => { setPosZerado(celebrating.id); setCelebrating(null); }}
         >
           <div className="celebration__gifts">
             <PersonalSticker image={stickerImage} title={celebrating.ordinal > 1 ? `Fim da ${celebrating.title}` : 'Primeira vez'} />
@@ -431,6 +434,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <WhatNext game={game} onPick={() => setCelebrating(null)} />
         </Celebration>
       )}
+      {posZerado && !celebrating && <CameoZerado key={posZerado} historyId={posZerado} journeyId={journeyId} />}
       {listOpen && outline && <OutlineSheet game={game} history={current} outline={outline} onClose={() => setListOpen(false)} />}
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
       {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}
@@ -448,9 +452,24 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
 const dur = (m: number) => durLabel(m);
 
-/** Depois de um mês longe do jogo, o mascote dá as boas-vindas (no máximo uma vez por semana por jogo). */
+/**
+ * Retomada: depois de um mês longe do jogo, o IAmiguinho dá as boas-vindas com os dias reais (no máximo uma vez por
+ * semana por jogo). A fala pode vir da IA, só com o nome do jogo e os dias.
+ */
 function BackBuddy({ journeyId }: { journeyId: string }) {
   const s = useStore((x) => x);
   const r = recapFor(s, journeyId);
-  return <Buddy line={useBuddy('voltou', (r?.daysAway ?? 0) >= 30, journeyId)} className="buddy--card" />;
+  const j = s.journeys.find((x) => x.id === journeyId);
+  const dias = r?.daysAway ?? 0;
+  return dias >= 30 && j ? <CameoJornada motivo="voltou" escopo={journeyId} fatos={{ jogo: s.games[j.gameId]?.title, dias }} /> : null;
+}
+
+/** Jogo zerado: o primeiro da vida é um marco (aparece até no modo Discreto); os outros, um por História. */
+function CameoZerado({ historyId, journeyId }: { historyId: string; journeyId: string }) {
+  const s = useStore((x) => x);
+  const h = s.histories.find((x) => x.id === historyId);
+  const j = s.journeys.find((x) => x.id === journeyId);
+  if (!h || !j || h.journeyId !== journeyId) return null;
+  const primeira = s.histories.filter((x) => x.state === 'concluida').length <= 1;
+  return <CameoJornada motivo={primeira ? 'primeiro-zerado' : 'zerado'} escopo={primeira ? '' : historyId} fatos={{ jogo: s.games[j.gameId]?.title }} atraso={700} />;
 }

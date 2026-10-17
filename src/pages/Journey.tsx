@@ -263,13 +263,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               )}
               <h1 id="jtitle" className="t jhero__title">{game.title}</h1>
               {!light && (
-                <dl className="jstats">
-                  <div><dd className="t">{histories.length}</dd><dt>{histories.length === 1 ? 'História' : 'Histórias'}</dt></div>
-                  <div><dd className="t">{totalSessions}</dd><dt>{totalSessions === 1 ? 'Sessão' : 'Sessões'}</dt></div>
-                  {/* A tela se adapta ao que você registra: contadores zerados não aparecem. */}
-                  {moments > 0 && <div><dd className="t">{moments}</dd><dt>{moments === 1 ? 'Momento' : 'Momentos'}</dt></div>}
-                  {waypoints.length > 0 && <div><dd className="t jstats__now">{waypoints.length}</dd><dt>Para voltar</dt></div>}
-                </dl>
+                // Fresta: os números entram numa frase, no lugar de "número grande + legenda".
+                // A tela se adapta ao que você registra: contadores zerados não aparecem.
+                <p className="jstats-line">
+                  {totalSessions > 0
+                    ? <>Você jogou <b>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}</b>{histories.length > 1 && <> em <b>{histories.length} histórias</b></>}{moments > 0 && <> e guardou <b>{moments} {moments === 1 ? 'momento' : 'momentos'}</b></>}.</>
+                    : <>Nenhuma sessão ainda.</>}
+                  {waypoints.length > 0 && <> <span className="jstats-line__now"><b>{waypoints.length}</b> {waypoints.length === 1 ? 'ponto' : 'pontos'} para voltar.</span></>}
+                </p>
               )}
             </div>
             <div className="jhero__actions">

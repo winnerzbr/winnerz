@@ -46,3 +46,19 @@ test('título do vídeo precisa falar do item', () => {
   assert.equal(titleMatches('Rennala, Queen of the Full Moon', 'Rennala Boss Fight'), true);
   assert.equal(titleMatches('Jackson', 'Part 1'), false);
 });
+
+test('IA pode ligar cada item a um candidato diferente', () => {
+  const cands = {
+    pt: [],
+    en: [
+      { key: 'P1', kind: 'pl' as const, id: 'PLx', title: 'Walkthrough', channel: 'C', items: [{ videoId: 'aaaaaaaaaaa', title: 'Elden Ring - Limgrave Exploration' }] },
+      { key: 'V1', kind: 'v' as const, id: 'bbbbbbbbbbb', title: 'All Bosses', channel: 'C', seconds: 9000, ts: [{ s: 0, label: 'Margit, the Fell Omen' }, { s: 600, label: 'Godrick the Grafted' }, { s: 1200, label: 'Rennala' }] },
+    ],
+  };
+  const rows = videoRows({ en: [{ n: 1, source: 'P1', item: 1 }, { n: 2, source: 'V1', t: '10:00' }, { n: 3, source: 'V1', t: '0:00' }] }, cands,
+    [{ id: 'l', name: 'Limgrave' }, { id: 'g', name: 'Godrick the Grafted' }, { id: 's', name: 'Stormveil Castle' }]);
+  assert.deepEqual(rows, [
+    { partId: 'l', lang: 'en', videoId: 'aaaaaaaaaaa', start: 0 },
+    { partId: 'g', lang: 'en', videoId: 'bbbbbbbbbbb', start: 600 },
+  ]);
+});

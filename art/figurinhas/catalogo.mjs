@@ -2,8 +2,9 @@
  * Catálogo da Temporada 1: "Mundos para explorar". Fonte única para a arte, o plano, a migração e os prompts.
  * 20 páginas de 6 (14 de Mundos e 6 da Casa WinnerZ) e a página lendária, que guarda a figurinha da edição do
  * WinnerZ Awards (fora dos pacotes; vai para quem vota).
- * Raridades: 70 Comuns, 30 Incomuns, 15 Raras, 5 Lendárias. Comum e Incomum: arte em vetor (gravura de horizonte),
- * feita aqui. Rara e Lendária: arte pintada, gerada a partir do prompt de cada uma.
+ * Raridades: 70 Comuns, 30 Incomuns, 15 Raras, 5 Lendárias. A arte é de Heverton, que usa as imagens geradas pelos
+ * prompts (prompts.mjs) como referência: Comum e Incomum em gravura de horizonte, Rara e Lendária pintadas. As
+ * figurinhas gráficas (sem arte pintada) são feitas em código.
  * `old` é o número da figurinha atual (0054) que esta substitui no mesmo registro: quem tem continua tendo.
  */
 export const BOOK = { slug: 'mundos', title: 'Mundos para explorar', subtitle: 'Temporada 1' };
@@ -153,7 +154,7 @@ const LIST = [
   [17, 'Backlog', C, 'Pilha de caixas de jogo esperando a vez'],
   [17, 'Ampulheta', C, 'Ampulheta com areia dourada: horas jogadas'],
   [17, 'Retomada', C, 'Controle empoeirado sendo pego de novo'],
-  [17, 'Zerado', I, 'Tela de créditos subindo, controle no colo'],
+  [17, 'Zerado', I, 'Tela de créditos subindo: "Obrigado por jogar"'],
   // 18 · Coleção
   [18, 'A estante', C, 'Estante cheia de caixas de jogo, lombadas coloridas'],
   [18, 'Cartucho soprado', C, 'Cartucho genérico sendo soprado'],
@@ -169,7 +170,7 @@ const LIST = [
   [19, 'Avatar', C, 'Avatares quadrados de contorno branco, lado a lado'],
   [19, 'Roda de conversa', I, 'Pessoas sentadas em roda, balões acima delas'],
   // 20 · WinnerZ Awards
-  [20, 'Cédula de voto', C, 'Cédula marcada caindo na urna'],
+  [20, 'Cédula de voto', C, 'A cédula do WinnerZ Awards, com o voto marcado'],
   [20, 'Tapete', C, 'Tapete escuro com filete dourado subindo a escada'],
   [20, 'Plateia', C, 'Plateia no escuro, silhuetas e luzes de celular'],
   [20, 'Envelope', I, 'Envelope dourado lacrado com o WZ'],
@@ -177,7 +178,10 @@ const LIST = [
   [20, 'O troféu', L, 'O troféu do WinnerZ Awards: placa de cristal com a bússola dourada, sob o holofote', 13],
 ];
 
-export const STICKERS = LIST.map(([page, name, tier, scene, old], i) => ({ number: i + 1, page, name, tier, scene, old: old ?? null, art: tier === 'comum' || tier === 'incomum' ? 'vetor' : 'pintada' }));
+/** Figurinhas sem arte pintada (tipografia, interface, logo): feitas em código. As outras: arte de Heverton. */
+export const GRAFICAS = new Set([69, 71, 85, 87, 88, 89, 102, 111, 113, 115]);
+
+export const STICKERS = LIST.map(([page, name, tier, scene, old], i) => ({ number: i + 1, page, name, tier, scene, old: old ?? null, art: GRAFICAS.has(i + 1) ? 'grafica' : 'heverton' }));
 
 /** A página lendária: a figurinha da edição do Awards (não sai em pacote). */
 export const LEGENDARY_PAGE = { kicker: 'Página lendária', title: 'Confluência', body: 'A figurinha da edição do WinnerZ Awards. Vai para quem vota.' };

@@ -5,11 +5,12 @@
  * Horizontal no computador, vertical no celular. Com "reduzir movimento", sem profundidade nem poeira.
  */
 import { SHAREABLE } from '../data/snipApi';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type MouseEvent, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent, type MouseEvent, type KeyboardEvent, type ReactNode } from 'react';
 import { Link } from '../lib/router';
 import { actions } from '../data/store';
 import type { TLItem, ChapterItem } from '../lib/chapters';
-import { chapterOf, durText, compareLines } from '../lib/chapters';
+import { chapterOf, durText, compareLines, partPositions } from '../lib/chapters';
+import type { OutlinePart } from '../lib/outline';
 import { whenLabel } from '../lib/dates';
 import { awayLabel } from '../lib/recap';
 import { Icon, Compass } from './Icon';
@@ -41,6 +42,7 @@ const range = (c: ChapterItem) => { const a = shortDay(c.from), b = shortDay(c.t
 
 function itemDate(it: TLItem): string {
   if (it.type === 'chapter') return it.from;
+  if (it.type === 'popen') return it.from ?? '';
   if (it.type === 'event') return it.e.at;
   if (it.type === 'silence') return it.from;
   if (it.type === 'memory') return it.e.at;
@@ -50,7 +52,11 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' } }: {
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video }: {
+  /** S3 · "Por capítulo": a lista do jogo (a régua vira a linha do horizonte por capítulo) e onde você está (%). */
+  parts?: { list: OutlinePart[]; now: number | null } | null;
+  /** "▶ Ver este trecho" de um item da lista (quando ele tem vídeo). */
+  video?: (part: OutlinePart, label: string) => ReactNode;
   /** Como o jogo se divide: capítulos, missões, áreas, chefes… (o rótulo dos itens do jogo). */
   unit?: { one: string; many: string };
   items: TLItem[]; bg: string; images?: string[]; title: string; play: FaixaPlay; today: FaixaToday | null; onEdit: (eventId: string) => void; onShare?: (eventId: string) => void;
@@ -81,6 +87,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   focusRef.current = focus;
   const photos = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image), [items]);
   const chapters = useMemo(() => items.filter((x): x is ChapterItem => x.type === 'chapter'), [items]);
+  const opens = useMemo(() => items.filter((x): x is Extract<TLItem, { type: 'popen' }> => x.type === 'popen'), [items]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -202,13 +209,14 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   // Régua: cada painel avança um passo, mais um pouco pelo tempo que passou (raiz dos dias, para as pausas
   // longas aparecerem sem esmagar o resto). O "Hoje" fica no fim.
   const posMap = useMemo(() => {
+    if (parts) return partPositions(items, parts.list, parts.now);
     const m = new Map<string, number>();
     let acc = 0, prev: number | null = null;
     const raw = items.map((it) => { const t = Date.parse(itemDate(it)); const gap = prev == null || !Number.isFinite(t) ? 0 : Math.max(0, (t - prev) / 86_400_000); if (Number.isFinite(t)) prev = t; acc += (m.size ? 1 : 0) + Math.sqrt(gap) / 2; m.set(it.id, acc); return acc; });
     const max = Math.max(1, raw[raw.length - 1] ?? 1);
     for (const [k, v] of m) m.set(k, (v / max) * 100);
     return m;
-  }, [items]);
+  }, [items, parts]);
   const pos = (it: TLItem) => posMap.get(it.id) ?? 0;
   // Rótulos dos capítulos sem se encostar.
   const labels = useMemo(() => {
@@ -276,6 +284,29 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         )}
       </article>
     );
+    if (it.type === 'popen') {
+      const p = it.part, pre = it.state === 'antes';
+      const img = ambients.length ? ambients[(Math.max(1, it.n) - 1) % ambients.length] : bg;
+      const when = it.from ? (it.state === 'atual' ? `desde ${shortDay(it.from)}` : it.to && shortDay(it.to) !== shortDay(it.from) ? `${shortDay(it.from)} – ${shortDay(it.to)}` : shortDay(it.from)) : '';
+      const facts = [when, it.sessions ? `${it.sessions} ${it.sessions === 1 ? 'sessão' : 'sessões'}` : '', it.minutes ? durText(it.minutes) : '', it.moments ? `${it.moments} ${it.moments === 1 ? 'momento' : 'momentos'}` : ''].filter(Boolean).join(' · ');
+      return (
+        <article key={it.id} {...common} className={`fx-pn fx-chap fx-popen${it.state === 'atual' ? ' is-now' : ''}`} aria-label={pre ? 'Antes de marcar os capítulos' : `${unit.one} ${it.n} de ${it.total}: ${p.name}`}>
+          <div className="fx-bg" style={{ backgroundImage: `url(${img})` }} /><div className="fx-sh" />
+          {!pre && <span className="fx-num">{it.n}</span>}
+          <span className={`fx-k${it.state === 'atual' ? ' fx-k--now' : ''}`}>{pre ? 'Antes de marcar' : `${unit.one} ${it.n} de ${it.total} · ${it.state === 'atual' ? 'você está aqui' : 'passou'}`}{p.group && p.group !== p.name ? ` · ${p.group}` : ''}</span>
+          <h3 className="fx-h">{p.name}</h3>
+          {facts && <span className="fx-sub">{facts}</span>}
+          <p className="fx-p">{it.summary}</p>
+          {on && !pre && (
+            <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
+              {it.state === 'atual' && !today?.open && <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={() => play.onClick()}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>}
+              {video?.(p, `${unit.one} ${it.n}`)}
+              {p.stop && it.state === 'atual' && <span className="fx-src">{({ qualquer: 'Salva a qualquer hora', fim: 'Melhor parar no fim', pontos: 'Só em pontos de save', longe: 'Pontos de save longe' } as Record<string, string>)[p.stop]}</span>}
+            </div>
+          )}
+        </article>
+      );
+    }
     if (it.type === 'gpart') {
       const p = it.part, ahead = it.state === 'frente', shown = !ahead || openedParts.has(p.id);
       const how = it.src === 'steam' ? 'Informado pela Steam' : it.src === 'ra' ? 'Informado pelo RetroAchievements' : 'Você marcou';
@@ -394,7 +425,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   return (
     <section ref={stage} tabIndex={-1} onKeyDown={key} className={`fx${full ? ' is-full' : ''}${reduced ? ' is-reduced' : ''}${vertical ? ' is-vert' : ''}${ambients.length ? ' has-imgs' : ''}`} aria-label="Linha do tempo. Use as setas para andar entre os registros.">
       <div className="fx-amb" aria-hidden="true">{ambients.map((src) => <div key={src} className={`fx-amb__a${src === ambient ? ' on' : ''}`} style={{ backgroundImage: `url(${src})` }} />)}</div>
-      {!vertical && <div ref={big} className="fx-big" aria-hidden="true">{chapters.map((c, i) => <span key={c.id} style={{ left: `${i * 1500 + 200}px` }}>{c.name}</span>)}</div>}
+      {!vertical && <div ref={big} className="fx-big" aria-hidden="true">{(parts ? opens.map((c) => ({ id: c.id, name: c.part.name })) : chapters).map((c, i) => <span key={c.id} style={{ left: `${i * 1500 + 200}px` }}>{c.name}</span>)}</div>}
       <canvas ref={dust} className="fx-dust" aria-hidden="true" />
       <div className="fx-spot" aria-hidden="true" />
       <div ref={vp} className="fx-vp" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
@@ -413,7 +444,49 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
           <small>{narrate?.saved[narr.id] ? 'Inferido · narrado pela IA' : 'Resumo do site · só com o que você registrou'}</small>
         </div>
       )}
-      {!vertical && (
+      {vertical && parts && (
+        <nav className="fx-pchips" aria-label={`${unit.many[0].toUpperCase()}${unit.many.slice(1)} do jogo`}>
+          {[...parts.list].sort((a, b) => a.pct - b.pct).map((p, i) => {
+            const opened = opens.find((o) => o.part.id === p.id);
+            const target = items.findIndex((x) => (x.type === 'popen' || x.type === 'gpart') && x.part.id === p.id);
+            if (target < 0) return null;
+            return <button key={p.id} type="button" className={`fx-pchip${opened?.state === 'atual' ? ' is-now' : ''}${!opened ? ' is-ahead' : ''}`} aria-current={opened?.state === 'atual' ? 'step' : undefined} onClick={() => center(target)}>
+              <small>{i + 1}{opened?.state === 'atual' ? ' · aqui' : opened ? ' ✓' : ''}</small>{opened ? p.name : '••••'}
+            </button>;
+          })}
+        </nav>
+      )}
+      {!vertical && parts && (
+        <div className="fx-ruler fx-ruler--parts" role="navigation" aria-label={`${unit.many[0].toUpperCase()}${unit.many.slice(1)} do jogo`}>
+          <div className="fx-hz" aria-hidden="true">
+            <i className="fx-hz__lit" style={{ width: `${parts.now ?? 0}%` }} />
+            {items.map((it) => it.type === 'event' ? <i key={it.id} className={`fx-hz__dot fx-hz__dot--${it.e.kind}${it.e.kind === 'ponto' && !it.e.resolved ? ' a' : ''}`} style={{ left: `${pos(it)}%` }} /> : null)}
+            {parts.now != null && today && <i className="fx-hz__now" style={{ left: `${parts.now}%` }} />}
+            <i className="fx-hz__hd" style={{ left: `${cur ? pos(cur) : 0}%` }} />
+          </div>
+          {(() => {
+            const sorted = [...parts.list].sort((a, b) => a.pct - b.pct);
+            const curOpen = opens.find((o) => o.state === 'atual');
+            const curN = curOpen?.n ?? 0;
+            return sorted.map((p, i) => {
+              const opened = opens.find((o) => o.part.id === p.id);
+              const ahead = !opened && (curN ? i + 1 > curN : true);
+              const end = sorted[i + 1]?.pct ?? 100;
+              const target = items.findIndex((x) => (x.type === 'popen' || x.type === 'gpart') && x.part.id === p.id);
+              const narrow = end - p.pct < 6;
+              return (
+                <button key={p.id} type="button" className={`fx-hz__part${opened?.state === 'atual' ? ' is-now' : ''}${ahead ? ' is-ahead' : ''}`} style={{ left: `${p.pct}%`, width: `${Math.max(0.5, end - p.pct)}%` }}
+                  onClick={() => { if (target >= 0) center(target); }} disabled={target < 0} title={ahead ? `${unit.one} ${i + 1}` : `${unit.one} ${i + 1}: ${p.name}`}>
+                  <span className="fx-hz__tick" aria-hidden="true" />
+                  {!narrow && <span className="fx-hz__lb">{i + 1}{ahead ? '' : ` · ${p.name}`}</span>}
+                  {!narrow && !ahead && opened?.from && <small className="fx-hz__dt">{opened.state === 'atual' ? `desde ${shortDay(opened.from)}` : shortDay(opened.from)}</small>}
+                </button>
+              );
+            });
+          })()}
+        </div>
+      )}
+      {!vertical && !parts && (
         <div className="fx-ruler" onClick={onRuler} role="presentation">
           <div className="fx-ruler__fill" style={{ width: `${cur ? pos(cur) : 0}%` }} />
           {labels.map(({ c, p }, i) => <span key={c.id} className="fx-ruler__lb" style={{ left: `${p}%`, transform: i === 0 ? 'none' : undefined }}>{shortDay(c.from)}</span>)}

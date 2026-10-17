@@ -3,7 +3,7 @@
  * só com o que a pessoa registrou, os silêncios entre um capítulo e outro, lembranças do mesmo dia em
  * anos anteriores e o "Hoje" no fim. Sem React e sem a store, para testar.
  */
-import type { OutlinePart } from './outline';
+import type { OutlinePart, PartLogEntry } from './outline';
 import type { DatePrecision, ID, Session, TimelineEvent } from '../data/types';
 
 export const SILENCE_DAYS = 7;
@@ -27,7 +27,9 @@ export type Talk = { id: string; kind: 'postagem' | 'resposta'; title: string; e
 export type TalkItem = { type: 'talk'; id: string; talk: Talk; chapter: number };
 /** Um capítulo do jogo (da lista da comunidade ou do rascunho da IA): passado (com a data), atual ou à frente. */
 export type GamePartItem = { type: 'gpart'; id: string; part: OutlinePart; n: number; total: number; state: 'passou' | 'atual' | 'frente'; at?: string; src?: 'voce' | 'steam' | 'ra'; more?: number; chapter: number };
-export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem | TalkItem | GamePartItem;
+/** S3 · Abertura de um capítulo (missão, fase…) do jogo na linha do tempo "Por capítulo", com o que você fez nele. */
+export type PartOpenItem = { type: 'popen'; id: string; part: OutlinePart; n: number; total: number; state: 'passou' | 'atual' | 'antes'; from?: string; to?: string; sessions: number; minutes: number; moments: number; summary: string; chapter: number };
+export type TLItem = ChapterItem | EventItem | SilenceItem | MemoryItem | TodayItem | EchoItem | CompareItem | TalkItem | GamePartItem | PartOpenItem;
 
 export type BuildInput = {
   /** Registros da História (ou das Histórias) mostrada, em qualquer ordem. */
@@ -260,4 +262,108 @@ export function weaveParts(items: TLItem[], rows: { part: OutlinePart; n: number
   }
   flush(null);
   return today ? out : out.filter((x) => x.type !== 'gpart' || x.state !== 'frente');
+}
+
+/**
+ * S3 · A linha do tempo "Por capítulo": os capítulos do jogo viram as divisões. Cada registro vai para o capítulo em
+ * que você estava naquela hora (o começo marcado na sessão ou a última chegada antes dele); o que veio antes da
+ * primeira marca fica em "Antes de marcar". O "Hoje" fecha o capítulo atual, e os que vêm depois aparecem à frente,
+ * apagados (até 6). Os outros painéis (silêncios, ecos, conversas) vão para o capítulo do registro seguinte.
+ */
+export function byParts(items: TLItem[], o: { parts: OutlinePart[]; log?: PartLogEntry[]; cur: OutlinePart | null; sessionOf: (id?: ID) => Session | undefined }): TLItem[] {
+  const parts = [...o.parts].sort((a, b) => a.pct - b.pct);
+  if (parts.length < 2) return items;
+  const ids = new Set(parts.map((p) => p.id));
+  const idx = new Map(parts.map((p, i) => [p.id, i]));
+  const log = [...(o.log ?? [])].filter((e) => ids.has(e.id)).sort((a, b) => a.at.localeCompare(b.at));
+  const curIdx = o.cur ? idx.get(o.cur.id) ?? -1 : -1;
+  const at = (iso: string): string | null => { let id: string | null = null; for (const e of log) { if (e.at <= iso) id = e.id; else break; } return id; };
+  const BEFORE = '__antes';
+  const partOfEvent = (it: EventItem): string => {
+    const from = it.session?.partMarks?.from?.id;
+    if (from && ids.has(from)) return from;
+    const byLog = at(it.e.at);
+    if (byLog) return byLog;
+    if (!log.length) return o.cur?.id ?? BEFORE;
+    return BEFORE;
+  };
+  // Cada item vai para um grupo; os que não são registros seguem o próximo registro (ou o fim).
+  const groups = new Map<string, TLItem[]>();
+  const push = (k: string, it: TLItem) => groups.set(k, [...(groups.get(k) ?? []), it]);
+  let pending: TLItem[] = [];
+  let lastKey = o.cur?.id ?? BEFORE;
+  for (const it of items) {
+    if (it.type === 'chapter' || it.type === 'gpart' || it.type === 'popen') continue;
+    if (it.type === 'event') {
+      const k = partOfEvent(it);
+      for (const x of pending) push(k, x);
+      pending = [];
+      push(k, it);
+      lastKey = k;
+    } else pending.push(it);
+  }
+  const tailKey = o.cur?.id ?? lastKey;
+  for (const x of pending) push(tailKey, x);
+
+  const open = (p: OutlinePart, n: number, state: PartOpenItem['state'], list: TLItem[]): PartOpenItem => {
+    const evs = list.filter((x): x is EventItem => x.type === 'event').map((x) => x.e);
+    const sm = summarize(evs, o.sessionOf);
+    const arrived = log.find((e) => e.id === p.id)?.at;
+    const dated = evs.filter((e) => datable(e.precision)).map((e) => e.at).sort();
+    return { type: 'popen', id: `po-${p.id}`, part: p, n, total: parts.length, state, from: arrived ?? dated[0], to: dated.at(-1), sessions: sm.sessions, minutes: sm.minutes,
+      moments: evs.filter((e) => e.kind === 'momento').length, summary: evs.length ? sm.text : state === 'atual' ? 'Você chegou aqui. O que você fizer agora entra neste capítulo.' : 'Você passou por aqui sem registrar nada.', chapter: n };
+  };
+  const out: TLItem[] = [];
+  const before = groups.get(BEFORE);
+  if (before?.length) {
+    const pseudo: OutlinePart = { id: BEFORE, name: 'Antes de marcar', pct: 0 };
+    out.push({ ...open(pseudo, 0, 'antes', before), id: 'po-antes' }, ...before.map((x) => withChapter(x, 0)));
+  }
+  const lastWithItems = Math.max(curIdx, ...parts.map((p, i) => (groups.get(p.id)?.length ? i : -1)));
+  for (let i = 0; i <= lastWithItems; i++) {
+    const p = parts[i], list = groups.get(p.id) ?? [];
+    const state = i === curIdx ? 'atual' : 'passou';
+    if (!list.length && i !== curIdx && !log.some((e) => e.id === p.id) && curIdx >= 0 && i < curIdx) {
+      out.push(open(p, i + 1, 'passou', []));
+      continue;
+    }
+    out.push(open(p, i + 1, state, list), ...list.map((x) => withChapter(x, i + 1)));
+  }
+  const hasToday = out.some((x) => x.type === 'today');
+  const ahead = parts.slice(lastWithItems + 1);
+  if (hasToday && ahead.length) {
+    const shown = ahead.slice(0, 6);
+    shown.forEach((p, k) => out.push({ type: 'gpart', id: `gp-${p.id}`, part: p, n: parts.indexOf(p) + 1, total: parts.length, state: 'frente', more: k === shown.length - 1 && ahead.length > shown.length ? ahead.length - shown.length : undefined, chapter: parts.indexOf(p) + 1 }));
+  }
+  return out;
+}
+const withChapter = (x: TLItem, n: number): TLItem => ('chapter' in x && typeof x.chapter === 'number' ? { ...x, chapter: n } as TLItem : x);
+
+/** Onde cada painel fica na régua "Por capítulo" (0 a 100): a abertura no começo do capítulo, os registros espalhados
+ *  dentro dele, o "Hoje" no seu progresso e os capítulos à frente no começo de cada um. */
+export function partPositions(items: TLItem[], parts: OutlinePart[], now: number | null): Map<string, number> {
+  const sorted = [...parts].sort((a, b) => a.pct - b.pct);
+  const startOf = (id: string) => sorted.find((p) => p.id === id)?.pct ?? 0;
+  const endOf = (id: string) => { const i = sorted.findIndex((p) => p.id === id); return i >= 0 ? sorted[i + 1]?.pct ?? 100 : sorted[0]?.pct ?? 0; };
+  const m = new Map<string, number>();
+  let k = 0;
+  while (k < items.length) {
+    const it = items[k];
+    if (it.type === 'popen') {
+      const a = it.part.id === '__antes' ? 0 : startOf(it.part.id), b = it.part.id === '__antes' ? Math.max(0, sorted[0]?.pct ?? 0) : endOf(it.part.id);
+      m.set(it.id, a);
+      let j = k + 1;
+      const inside: TLItem[] = [];
+      while (j < items.length && items[j].type !== 'popen' && items[j].type !== 'gpart') { inside.push(items[j]); j++; }
+      inside.forEach((x, q) => {
+        if (x.type === 'today' && now != null) m.set(x.id, Math.max(a, Math.min(b, now)));
+        else m.set(x.id, a + ((b - a) * (q + 1)) / (inside.length + 1));
+      });
+      k = j;
+    } else {
+      m.set(it.id, it.type === 'gpart' ? it.part.pct : it.type === 'today' && now != null ? now : 0);
+      k++;
+    }
+  }
+  return m;
 }

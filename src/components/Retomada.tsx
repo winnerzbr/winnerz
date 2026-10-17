@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { actions, useStore, hasV8 } from '../data/store';
+import { actions, useStore, hasV8, currentHistory } from '../data/store';
+import { useOutline } from '../data/outlineApi';
+import { useVideos } from '../data/videoApi';
+import { partAt, unitOf } from '../lib/outline';
+import { PartVideoButton } from './PartVideo';
 import type { Capsule, ID } from '../data/types';
 import { recapFor, wantsRecap, awayLabel } from '../lib/recap';
 import { shrink, toDataUrl } from '../lib/image';
@@ -42,6 +46,7 @@ export function Previously({ journeyId, always = false, showCapsule = true, onEd
           {r.last.note && <p className="quote">“{r.last.note}”</p>}
         </div>
       )}
+      <PreviouslyPart journeyId={journeyId} />
       {r.points.length > 0 && (
         <div className="previously__points">
           <div className="muted previously__k">Pontos para voltar</div>
@@ -170,5 +175,26 @@ export function CapsuleSheet({ historyId, gameTitle, onClose }: { historyId: ID;
         <button className="btn quiet" onClick={onClose}>Cancelar</button>
       </div>
     </Sheet>
+  );
+}
+
+/** S3 · Onde você está na lista do jogo, com "▶ Ver este trecho" para lembrar como era (quando o item tem vídeo). */
+function PreviouslyPart({ journeyId }: { journeyId: ID }) {
+  const s = useStore((x) => x);
+  const j = s.journeys.find((x) => x.id === journeyId);
+  const game = j ? s.games[j.gameId] : undefined;
+  const h = j ? currentHistory(s, j.id) : undefined;
+  const o = useOutline(game?.id);
+  const vids = useVideos(game?.id, (o?.parts.length ?? 0) > 1);
+  if (!game || !h || !o || o.parts.length < 2) return null;
+  const cur = partAt(o.parts, h.progress, h.part);
+  if (!cur) return null;
+  const u = unitOf(o);
+  const n = [...o.parts].sort((a, b) => a.pct - b.pct).findIndex((p) => p.id === cur.id) + 1;
+  return (
+    <div className="previously__part">
+      <p><span className="muted">{u.one} {n} de {o.parts.length}</span> {cur.name}</p>
+      <PartVideoButton gameId={game.id} gameTitle={game.title} part={cur} label={`${u.one} ${n}`} videos={vids} />
+    </div>
   );
 }

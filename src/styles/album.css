@@ -592,3 +592,16 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 @keyframes alb-swapin { 0% { transform: translateX(180%) rotate(16deg) scale(.6); opacity: 0; } 45% { transform: translateX(-10%) translateY(30px) rotate(-6deg) scale(.9); opacity: 1; } 100% { transform: none; opacity: 1; } }
 @keyframes alb-glow { 0% { filter: drop-shadow(0 0 0 rgba(255,210,122,0)); } 40% { filter: drop-shadow(0 0 18px rgba(255,210,122,.8)); } 100% { filter: drop-shadow(0 8px 10px rgba(0,0,0,.42)); } }
 @media (prefers-reduced-motion: reduce) { .alb-swapfx *, .alb-swapfx { animation: none !important; } .alb-swapfx__out { display: none; } }
+
+/* ---- E7.1: "Tenho um código" ---- */
+.alb-code { display: grid; gap: 14px; padding: 18px 20px; background: var(--surface); scroll-margin-top: 90px; }
+.alb-code__form { display: grid; gap: 6px; }
+.alb-code__label { font: 700 16px/1.2 var(--font-ui); }
+.alb-code__hint { margin: 0; font-size: 13.5px; }
+.alb-code__row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 6px; }
+.alb-code__input { flex: 1 1 220px; max-width: 360px; font: 700 18px/1 var(--font-ui); letter-spacing: 0.12em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.alb-code__won { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; }
+.alb-code__card { width: 92px; flex: none; animation: alb-rise .7s cubic-bezier(.2,.9,.25,1.2) both; }
+.alb-code__won p { margin: 0; display: grid; gap: 3px; flex: 1 1 220px; }
+.alb-code__won b { font: 800 18px/1.15 var(--font-title); font-stretch: 125%; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .alb-code__card { animation: none; } }

@@ -16,6 +16,7 @@ import { Trades } from '../components/album/Trades';
 import { AlbumBook, bookPages } from '../components/album/AlbumBook';
 import { PackOpening } from '../components/album/PackOpening';
 import { StickerView, StickerZoom } from '../components/album/StickerView';
+import { Redeem } from '../components/album/Redeem';
 import { coverHTML, ensureDefs, logoSvg } from '../components/album/render';
 import { burst, GOLD, HOLO, reduceMotion, setSound, sfx, useSound } from '../components/album/fx';
 
@@ -69,6 +70,7 @@ export function AlbumPage({ slug, view, with: withHandle }: { slug?: string; vie
     <header className="alb-head">
       <div><span className="alb-kick">Temporada 1 · Álbum WinnerZ</span><h1 className="t big">{view ? TITLE[view] : 'Álbum'}</h1></div>
       <div className="alb-head__tools">
+        {view !== 'pacotes' && <Link className="btn quiet" to="/album/pacotes#codigo">Tenho um código</Link>}
         <button className="btn quiet" aria-pressed={sound} onClick={() => setSound(!sound)}>{sound ? 'Som ligado' : 'Som desligado'}</button>
       </div>
       <nav className="subnav alb-tabs" aria-label="Seções do álbum">
@@ -183,6 +185,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
   }
   return (
     <div className="alb-packs">
+      <Redeem bookOf={maps.bookOf} section={maps.section} onPacks={(ps) => { if (live && ps[0]) setOpening(ps[0]); }} />
       <section className="alb-packs__sec">
         <h2 className="t">Para abrir</h2>
         {!live && closed.length > 0 && <p className="alb-note" style={{ marginTop: 12 }}><span><b>O álbum ainda não abriu.</b> <span className="muted">Seus pacotes ficam guardados e podem ser abertos assim que as figurinhas da Temporada forem publicadas.</span></span></p>}
@@ -223,7 +226,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
   );
 }
 const packTitle = (p: Pack) => p.origin === 'boas_vindas' ? 'Pacote de boas-vindas' : (p.kind === 'prisma' ? 'Pacote especial' : 'Pacote') + (p.origin === 'memoria' ? ' de memória' : '');
-const packWhy = (p: Pack) => p.origin === 'boas_vindas' ? 'Presente da sua chegada ao WinnerZ' : p.origin === 'jornada' ? (p.game ? `Por zerar ${p.game.title}` : 'Pela Jornada') : p.origin === 'memoria' ? 'Pelos jogos que você já tinha zerado' : (p.reason ? `Presente do WinnerZ: ${p.reason}` : 'Presente do WinnerZ');
+const packWhy = (p: Pack) => p.origin === 'boas_vindas' ? 'Presente da sua chegada ao WinnerZ' : p.origin === 'codigo' ? `Código${p.reason ? `: ${p.reason}` : ''}` : p.origin === 'jornada' ? (p.game ? `Por zerar ${p.game.title}` : 'Pela Jornada') : p.origin === 'memoria' ? 'Pelos jogos que você já tinha zerado' : (p.reason ? `Presente do WinnerZ: ${p.reason}` : 'Presente do WinnerZ');
 function PackThumb({ p }: { p: Pack }) {
   return <span className={`alb-packrow__img${p.kind === 'prisma' ? ' alb-packrow__img--prisma' : ''}`} aria-hidden="true" dangerouslySetInnerHTML={{ __html: logoSvg(p.kind === 'prisma' ? '#16121f' : '#e2be84') }} />;
 }

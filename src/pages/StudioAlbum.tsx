@@ -1,18 +1,19 @@
 /**
  * Studio · Álbum: o catálogo da Temporada (álbuns, páginas e figurinhas com a arte), dar pacotes à mão, a fila dos
  * pacotes retidos pelas regras e os pedidos de revisão, com o histórico do que foi feito, e o histórico das trocas.
+ * E7.1: os códigos de live (pacote ou figurinha, com validade, limite de usos e motivo).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
-import { artSrc, reloadAlbum, studioAlbumApi, tradeApi, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
+import { artSrc, codeApi, reloadAlbum, studioAlbumApi, tradeApi, type LiveCode, type Trade, type AlbumBook, type AlbumPage, type Catalog, type PackKind, type Sticker, type StudioPack, type StudioView } from '../data/albumApi';
 import { RULE_TITLE, signalsLine, TIER_LABEL, TIERS, type Tier } from '../lib/album';
 import { ConfirmButton } from '../components/Sheet';
 import { StickerView } from '../components/album/StickerView';
 import { ensureDefs, num3 } from '../components/album/render';
 
-type Tab = 'catalogo' | 'dar' | StudioView | 'trocas';
+type Tab = 'catalogo' | 'dar' | 'codigos' | StudioView | 'trocas';
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace('.', '') : '');
 const at = (h?: string | null) => (h ? `@${h}` : 'alguém');
 
@@ -35,16 +36,17 @@ export function StudioAlbumPage() {
       <header className="studio__head">
         <Link to="/studio" className="faint">← Studio</Link>
         <h1 className="t big">Álbum</h1>
-        <p className="muted lead">Catálogo da Temporada, pacotes dados à mão e os pacotes que as regras seguraram.</p>
+        <p className="muted lead">Catálogo da Temporada, pacotes dados à mão, códigos de live e os pacotes que as regras seguraram.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, tudo fica só neste navegador.</p>}
       </header>
       <div className="seg studio__tabs" role="tablist" aria-label="Seções">
-        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
+        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('codigos', 'Códigos')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
       </div>
       {msg && <p className="studio__msg" role="status">{msg}</p>}
       {err && <p className="awards__error" role="alert">{err}</p>}
       {tab === 'catalogo' && <CatalogPanel say={say} fail={fail} />}
       {tab === 'dar' && <GivePanel say={say} fail={fail} />}
+      {tab === 'codigos' && <CodesPanel say={say} fail={fail} />}
       {(tab === 'retidos' || tab === 'revisoes' || tab === 'historico') && <PacksPanel key={tab} view={tab} say={say} fail={fail} onChange={refreshCounts} />}
       {tab === 'trocas' && <TradesPanel fail={fail} />}
     </main>
@@ -279,5 +281,81 @@ function TradesPanel({ fail }: { fail: (e: unknown) => void }) {
         <p className="sa-signals">{at(t.to?.handle)} dá: {names(t.take)}</p>
         {t.message && <p className="muted">“{t.message}”</p>}
       </li>))}</ul>
+  );
+}
+
+/* ---- Códigos de live (E7.1) ---- */
+const SOURCE_LABEL: Record<LiveCode['source'], string> = { studio: 'Studio', drop: 'Drop na live', twitch: 'Pontos do canal' };
+const local = (iso?: string | null) => { if (!iso) return ''; const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
+const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null);
+function CodesPanel({ say, fail }: Say) {
+  const [list, setList] = useState<LiveCode[] | null>(null);
+  const [cat, setCat] = useState<Catalog | null>(null);
+  const [f, setF] = useState<Partial<LiveCode>>({ kind: 'pacote', packKind: 'onix', qty: 1 });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { codeApi.list().then(setList).catch(fail); studioAlbumApi.catalog().then(setCat).catch(() => setCat(null)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const up = (p: Partial<LiveCode>) => setF((x) => ({ ...x, ...p }));
+  const link = (c: LiveCode) => `${window.location.origin}/album/pacotes?codigo=${c.code}`;
+  const copy = async (t: string, m: string) => { try { await navigator.clipboard.writeText(t); say(m); } catch { say(t); } };
+  const create = async () => {
+    setBusy(true);
+    try { const l = await codeApi.save(f); setList(l); say(`Código ${l[0]?.code ?? ''} criado.`); setF({ kind: f.kind, packKind: f.packKind, qty: 1 }); }
+    catch (e) { fail(e); } finally { setBusy(false); }
+  };
+  const toggle = async (c: LiveCode) => { try { setList(await codeApi.save({ ...c, active: !c.active })); say(c.active ? `Código ${c.code} desligado.` : `Código ${c.code} ligado de novo.`); } catch (e) { fail(e); } };
+  const stickers = (cat?.stickers ?? []).filter((x) => x.active).sort((a, b) => a.season - b.season || a.number - b.number);
+  const now = Date.now();
+  return (
+    <div className="sa-grid">
+      <section className="sa-form">
+        <h3>Novo código</h3>
+        <p className="muted" style={{ margin: 0 }}>Para dizer ou mostrar na live. Vale uma vez por conta; contas com menos de 7 dias resgatam até 3.</p>
+        <div className="sa-row">
+          <label>Código (vazio: sorteado)<input className="field" value={f.code ?? ''} placeholder="WZ7KQ2M9" maxLength={24} onChange={(e) => up({ code: e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '') })} /></label>
+          <label>Nome (só no Studio)<input className="field" value={f.title ?? ''} maxLength={80} placeholder="Live de sexta" onChange={(e) => up({ title: e.target.value })} /></label>
+        </div>
+        <div className="seg" role="group" aria-label="O que dá"><button aria-pressed={f.kind === 'pacote'} onClick={() => up({ kind: 'pacote' })}>Pacote</button><button aria-pressed={f.kind === 'figurinha'} onClick={() => up({ kind: 'figurinha' })}>Figurinha</button></div>
+        {f.kind === 'pacote' ? (
+          <div className="sa-row">
+            <div className="seg" role="group" aria-label="Tipo de pacote"><button aria-pressed={f.packKind === 'onix'} onClick={() => up({ packKind: 'onix' })}>Ônix</button><button aria-pressed={f.packKind === 'prisma'} onClick={() => up({ packKind: 'prisma' })}>Prisma</button></div>
+            <label className="sa-short">Pacotes por pessoa<input className="field" type="number" min={1} max={5} value={f.qty ?? 1} onChange={(e) => up({ qty: Math.max(1, Math.min(5, Number(e.target.value) || 1)) })} /></label>
+          </div>
+        ) : (
+          <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Figurinha
+            <select className="field" value={f.stickerId ?? ''} onChange={(e) => up({ stickerId: e.target.value || null })}>
+              <option value="">Escolha…</option>
+              {stickers.map((x) => <option key={x.id} value={x.id}>{num3(x.number)} · {x.name} ({TIER_LABEL[x.tier]})</option>)}
+            </select>
+          </label>
+        )}
+        <div className="sa-row">
+          <label className="sa-short">Limite de usos<input className="field" type="number" min={1} placeholder="sem limite" value={f.maxUses ?? ''} onChange={(e) => up({ maxUses: e.target.value ? Math.max(1, Number(e.target.value)) : null })} /></label>
+          <label>Começa<input className="field" type="datetime-local" value={local(f.startsAt)} onChange={(e) => up({ startsAt: fromLocal(e.target.value) ?? undefined })} /></label>
+          <label>Termina<input className="field" type="datetime-local" value={local(f.endsAt)} onChange={(e) => up({ endsAt: fromLocal(e.target.value) })} /></label>
+        </div>
+        <label className="sa-row" style={{ display: 'grid', gap: 4, fontSize: 13, color: 'var(--muted)' }}>Motivo (a pessoa vê)<input className="field" maxLength={200} value={f.note ?? ''} placeholder="Live de sexta: zeramos Elden Ring" onChange={(e) => up({ note: e.target.value })} /></label>
+        <div className="sa-row"><button className="btn now" disabled={busy || (f.note ?? '').trim().length < 3 || (f.kind === 'figurinha' && !f.stickerId)} onClick={() => void create()}>{busy ? 'Criando…' : 'Criar código'}</button></div>
+      </section>
+      <section className="sa-side" aria-label="Códigos">
+        {!list ? <p className="muted">Carregando…</p> : !list.length ? <p className="muted">Nenhum código ainda.</p> : (
+          <ul className="sa-packs">{list.map((c) => {
+            const over = (c.endsAt && Date.parse(c.endsAt) <= now) || (c.maxUses != null && c.uses >= c.maxUses);
+            const st = c.kind === 'figurinha' ? stickers.find((x) => x.id === c.stickerId) : undefined;
+            return (
+              <li key={c.id} className="sa-pack">
+                <p><b className="mono">{c.code}</b> · {SOURCE_LABEL[c.source]}{c.title ? ` · ${c.title}` : ''}{!c.active ? ' · desligado' : over ? ' · encerrado' : ''}</p>
+                <p className="muted">{c.kind === 'figurinha' ? `Figurinha ${st ? `${num3(st.number)} · ${st.name}` : ''}` : `${c.qty} ${c.packKind === 'prisma' ? 'Prisma' : 'Ônix'}`} · {c.uses}{c.maxUses != null ? ` de ${c.maxUses}` : ''} {c.uses === 1 ? 'uso' : 'usos'}{c.endsAt ? ` · até ${when(c.endsAt)}` : ''}</p>
+                <p className="faint">“{c.note}”</p>
+                <div className="sa-pack__acts">
+                  <button className="btn quiet sm" onClick={() => void copy(c.code, `Código ${c.code} copiado.`)}>Copiar código</button>
+                  <button className="btn quiet sm" onClick={() => void copy(link(c), 'Link de resgate copiado.')}>Copiar link</button>
+                  <button className="btn ghost sm" onClick={() => void toggle(c)}>{c.active ? 'Desligar' : 'Ligar'}</button>
+                </div>
+              </li>
+            );
+          })}</ul>
+        )}
+      </section>
+    </div>
   );
 }

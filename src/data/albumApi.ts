@@ -12,7 +12,7 @@ import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 
 export type PackKind = 'onix' | 'prisma';
-export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas';
+export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo';
 export type PackState = 'retido' | 'fechado' | 'aberto' | 'desfeito' | 'negado';
 export interface AlbumPage { id: string; position: number; kicker: string; title: string; body: string; banner: string | null; legendary: boolean }
 export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[] }
@@ -76,6 +76,17 @@ const MSG: Record<string, string> = {
   trade_not_spare: 'Uma das suas escolhidas não é mais repetida.',
   trade_their_spare: 'Uma das figurinhas pedidas não é mais repetida para essa pessoa.',
   trade_not_open: 'Essa proposta não está mais em aberto.',
+  code_unknown: 'Esse código não existe. Confira as letras e os números.',
+  code_expired: 'Esse código já venceu.',
+  code_used: 'Você já usou esse código.',
+  code_full: 'Esse código já foi usado por todo mundo que podia.',
+  code_tries: 'Muitas tentativas erradas. Espere uma hora e tente de novo.',
+  code_new_account: 'Contas novas resgatam até 3 códigos na primeira semana.',
+  code_blocked: 'Sua conta está suspensa no momento.',
+  code_sticker: 'Essa figurinha não está disponível.',
+  code_format: 'O código precisa de 4 a 24 letras ou números.',
+  code_taken: 'Já existe um código igual.',
+  code_dates: 'O fim precisa ser depois do começo.',
 };
 const MIGRATION = 'Falta rodar a migração 0053 no Supabase.';
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
@@ -84,6 +95,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
     if (/album_welcome_pack/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0057 no Supabase.');
+    if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0066 no Supabase.');
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0056 no Supabase.');
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
@@ -105,7 +117,7 @@ const A = (f: string) => `/demo/album/${f}.webp`;
 type DPack = Pack & { userHandle: string; grantedBy?: string | null; decidedAt?: string | null; signals: PackSignals };
 interface DPeer { handle: string; friend: boolean; follow: boolean; items: Record<string, number> }
 type DTrade = Omit<Trade, 'from' | 'to' | 'mine'> & { fromH: string; toH: string };
-interface DState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: DPack[]; stats: { opened: number; noRare: number }; counted: string[]; peers?: DPeer[]; trades?: DTrade[]; tradeOpen?: boolean }
+interface DState { books: AlbumBook[]; stickers: Sticker[]; items: AlbumItem[]; packs: DPack[]; stats: { opened: number; noRare: number }; counted: string[]; peers?: DPeer[]; trades?: DTrade[]; tradeOpen?: boolean; codes?: LiveCode[]; codeUses?: string[] }
 
 function seed(): DState {
   const b = 'demo-b1';
@@ -508,5 +520,79 @@ export const tradeApi = {
   async studio(): Promise<Trade[]> {
     if (!supa()) { const d = dLoad(); return dTrades(d).map((t) => ({ ...dTradeView(t), mine: false })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
     return (await rpc<Trade[]>('studio_album_trades')) ?? [];
+  },
+};
+
+/* ---- E7.1 · Códigos de live (migração 0066) ---------------------------------------------------------------- */
+export type CodeSource = 'studio' | 'drop' | 'twitch';
+export interface LiveCode {
+  id: string; code: string; source: CodeSource; title: string | null; kind: 'pacote' | 'figurinha'; packKind: PackKind; qty: number; stickerId: string | null;
+  maxUses: number | null; uses: number; startsAt: string; endsAt: string | null; note: string; active: boolean; createdAt: string;
+}
+export interface Redeemed { kind: 'pacote' | 'figurinha'; packs: Pack[]; sticker: Sticker | null; note: string }
+/** "wz-7kq 2m9" → "WZ-7KQ2M9": o mesmo jeito que o banco limpa. */
+export const cleanCode = (v: string) => v.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 24);
+const ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const newCode = () => `WZ${Array.from(crypto.getRandomValues(new Uint8Array(7)), (b) => ABC[b % 32]).join('')}`;
+function dCodes(d: DState): LiveCode[] {
+  if (!d.codes) d.codes = [{ id: 'demo-c1', code: 'WZLIVE', source: 'studio', title: 'Live de exemplo', kind: 'pacote', packKind: 'prisma', qty: 1, stickerId: null, maxUses: null, uses: 0,
+    startsAt: new Date(Date.now() - DAY).toISOString(), endsAt: null, note: 'Código da live de exemplo', active: true, createdAt: new Date(Date.now() - DAY).toISOString() }];
+  return d.codes;
+}
+
+export const codeApi = {
+  /** Resgatar um código: o pacote vai para Pacotes; a figurinha, para a bandeja. */
+  async redeem(raw: string): Promise<Redeemed> {
+    const code = cleanCode(raw);
+    if (code.length < 4) throw new Error(MSG.code_unknown);
+    if (!supa()) {
+      const d = dLoad(); const c = dCodes(d).find((x) => x.code === code);
+      const now = Date.now();
+      if (!c || !c.active || Date.parse(c.startsAt) > now) throw new Error(MSG.code_unknown);
+      if (c.endsAt && Date.parse(c.endsAt) <= now) throw new Error(MSG.code_expired);
+      if ((d.codeUses ?? []).includes(c.id)) throw new Error(MSG.code_used);
+      if (c.maxUses != null && c.uses >= c.maxUses) throw new Error(MSG.code_full);
+      d.codeUses = [...(d.codeUses ?? []), c.id]; c.uses += 1;
+      if (c.kind === 'figurinha') {
+        const st = d.stickers.find((x) => x.id === c.stickerId && x.active);
+        if (!st) throw new Error(MSG.code_sticker);
+        const it = d.items.find((i) => i.id === st.id);
+        if (it) it.qty += 1; else d.items.push({ id: st.id, qty: 1, pasted: false });
+        dSave(d); set(dView(d));
+        return { kind: 'figurinha', packs: [], sticker: st, note: c.note };
+      }
+      const packs: DPack[] = Array.from({ length: c.qty }, () => ({ id: `demo-k${rid()}`, kind: c.packKind, origin: 'codigo' as const, state: 'fechado' as const, rule: null, reason: c.note, historyId: null, game: null,
+        contents: null, createdAt: new Date().toISOString(), openedAt: null, note: null, review: null, userHandle: 'voce', signals: {} }));
+      d.packs.push(...packs); dSave(d); set(dView(d));
+      return { kind: 'pacote', packs, sticker: null, note: c.note };
+    }
+    const r = await rpc<Redeemed & { error?: string }>('album_redeem', { p_code: code });
+    if (r.error) throw new Error(MSG[r.error] ?? MSG.code_unknown);
+    await reloadAlbum().catch(() => {});
+    return r;
+  },
+  async list(): Promise<LiveCode[]> {
+    if (!supa()) { const d = dLoad(); const c = dCodes(d); dSave(d); return [...c].sort((a, b) => b.createdAt.localeCompare(a.createdAt)); }
+    return rpc<LiveCode[]>('studio_codes');
+  },
+  /** Cria (sem id) ou edita (validade, limite, motivo, ligado). Código vazio: o banco sorteia um. */
+  async save(c: Partial<LiveCode>): Promise<LiveCode[]> {
+    if (!supa()) {
+      const d = dLoad(); const list = dCodes(d);
+      const note = (c.note ?? '').trim();
+      if (note.length < 3) throw new Error(MSG.pack_reason);
+      if (c.endsAt && Date.parse(c.endsAt) <= Date.parse(c.startsAt ?? new Date().toISOString())) throw new Error(MSG.code_dates);
+      if (c.id) { const cur = list.find((x) => x.id === c.id); if (cur) Object.assign(cur, { title: c.title ?? cur.title, maxUses: c.maxUses ?? null, endsAt: c.endsAt ?? null, note, active: c.active ?? cur.active }); }
+      else {
+        const code = c.code ? cleanCode(c.code) : newCode();
+        if (code.length < 4) throw new Error(MSG.code_format);
+        if (list.some((x) => x.code === code)) throw new Error(MSG.code_taken);
+        if (c.kind === 'figurinha' && !d.stickers.some((x) => x.id === c.stickerId)) throw new Error(MSG.code_sticker);
+        list.push({ id: `demo-c${rid()}`, code, source: 'studio', title: c.title ?? null, kind: c.kind ?? 'pacote', packKind: c.packKind ?? 'onix', qty: Math.max(1, Math.min(5, c.qty ?? 1)),
+          stickerId: c.kind === 'figurinha' ? c.stickerId ?? null : null, maxUses: c.maxUses ?? null, uses: 0, startsAt: c.startsAt ?? new Date().toISOString(), endsAt: c.endsAt ?? null, note, active: true, createdAt: new Date().toISOString() });
+      }
+      dSave(d); return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    }
+    return rpc<LiveCode[]>('studio_code_save', { p: c });
   },
 };

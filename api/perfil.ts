@@ -26,8 +26,23 @@ function db() {
 
 type Ev = { imagePath?: string | null; image?: string };
 
-/** Assina por 1 hora os caminhos das fotos e troca imagePath por image (nunca devolve o caminho). */
-async function signAll(c: { url: string; headers: Record<string, string> }, items: Ev[]) {
+/** Id da conta dona do @ (para só assinar fotos que estão na pasta dela). */
+async function ownerOf(c: { url: string; headers: Record<string, string> }, handle: string | null | undefined): Promise<string | null> {
+  if (!handle) return null;
+  try {
+    // O @ vale sem diferença de maiúsculas (como nas funções do banco); confere o igual exato depois do ilike.
+    const r = await fetch(`${c.url}/rest/v1/profiles?select=id,handle&handle=ilike.${encodeURIComponent(handle)}&limit=20`, { headers: c.headers });
+    const rows = r.ok ? ((await r.json()) as { id?: string; handle?: string }[]) : [];
+    return rows.find((x) => x.handle?.toLowerCase() === handle.toLowerCase())?.id ?? null;
+  } catch { return null; }
+}
+
+/**
+ * Assina por 1 hora os caminhos das fotos e troca imagePath por image (nunca devolve o caminho).
+ * Só assina o que está na pasta do dono do perfil ("<id>/..."): uma foto de outra pessoa nunca sai daqui.
+ */
+async function signAll(c: { url: string; headers: Record<string, string> }, items: Ev[], owner: string | null) {
+  for (const e of items) if (e.imagePath && (!owner || !e.imagePath.startsWith(`${owner}/`))) delete e.imagePath;
   const paths = [...new Set(items.map((e) => e.imagePath).filter((x): x is string => !!x))];
   let map = new Map<string, string>();
   if (paths.length) {
@@ -74,10 +89,10 @@ export default async function handler(req: Req, res: Res) {
       const viewer = await viewerId(c, req);
       const r = await fetch(`${c.url}/rest/v1/rpc/snip_get`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_token: t, p_viewer: viewer }) });
       if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: 'Para abrir trechos, rode a migração 0049 no Supabase.' });
-      const data = (await r.json()) as Ev | null;
+      const data = (await r.json()) as (Ev & { owner?: { handle?: string } }) | null;
       res.setHeader('Cache-Control', 'private, no-store');
       if (!data) return res.status(404).json({ error: 'not_found' });
-      await signAll(c, [data]);
+      await signAll(c, [data], await ownerOf(c, data.owner?.handle));
       return res.status(200).json(data);
     } catch {
       return res.status(500).json({ error: 'Não consegui carregar o trecho.' });
@@ -100,7 +115,7 @@ export default async function handler(req: Req, res: Res) {
       const data = (await r.json()) as { mural?: Ev[] } | null;
       res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
       if (!data) return res.status(404).json({ error: 'not_found' });
-      await signAll(c, data.mural ?? []);
+      await signAll(c, data.mural ?? [], await ownerOf(c, h));
       if (data.mural) data.mural = data.mural.filter((e) => e.image);
       return res.status(200).json(data);
     } catch {
@@ -114,7 +129,7 @@ export default async function handler(req: Req, res: Res) {
       const data = (await r.json()) as { rooms?: { pieces?: Ev[] }[] } | null;
       res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
       if (!data) return res.status(404).json({ error: 'not_found' });
-      await signAll(c, (data.rooms ?? []).flatMap((x) => x.pieces ?? []));
+      await signAll(c, (data.rooms ?? []).flatMap((x) => x.pieces ?? []), await ownerOf(c, h));
       return res.status(200).json(data);
     } catch {
       return res.status(500).json({ error: 'Não consegui carregar o Museu.' });
@@ -127,7 +142,7 @@ export default async function handler(req: Req, res: Res) {
     const data = (await r.json()) as { events?: Ev[] } | null;
     res.setHeader('Cache-Control', viewer ? 'private, no-store' : 'private, max-age=60');
     if (!data) return res.status(404).json({ error: 'not_found' });
-    await signAll(c, data.events ?? []);
+    await signAll(c, data.events ?? [], await ownerOf(c, h));
     return res.status(200).json(data);
   } catch {
     return res.status(500).json({ error: 'Não consegui carregar a Jornada.' });

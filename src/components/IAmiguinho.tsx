@@ -1,37 +1,65 @@
 /**
  * IAmiguinho na tela: o mascote de interface (telas vazias, 404, erro, carregamento), o balão de cameo no canto, o
  * cartão espiando e a proteção contra erro que mostra ele com o cabo na mão. As falas e as regras estão em
- * lib/iamiguinho. M6: a hélice gira de verdade (camadas separadas em public/brand/iamiguinho/anim), ele respira, um
- * toque faz a hélice engasgar, cinco deixam ele tonto, e nas épocas de festa ele aparece enfeitado.
+ * lib/iamiguinho. M6: a hélice gira de verdade (camadas separadas em public/brand/iamiguinho/anim), ele respira, o
+ * rosto é vivo (pisca, olha para os lados e muda de expressão), um toque faz a hélice engasgar, cinco deixam ele tonto,
+ * e nas épocas de festa ele aparece enfeitado.
  */
-import { Component, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Component, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useStore } from '../data/store';
 import { CARA, CUTUCAR, POSE, TONTO, epocaAtual, falaDaBiblioteca, liberarCameo, pedirCameo, sortear, type Cameo, type Epoca, type Fatos, type Interface } from '../lib/iamiguinho';
 import { HELICE } from '../lib/iamiguinhoHelice';
+import { TELA } from '../lib/iamiguinhoTela';
+import { dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
 
 const useModo = () => useStore((s) => s.prefs.iamiguinho ?? 'normal');
 
 /* ---- A figura animada ------------------------------------------------------------------------------------------ */
 
 type Estado = 'normal' | 'engasgo' | 'tonto';
+const movimentoReduzido = () => {
+  try { return document.documentElement.dataset.motion === 'reduzidas' || window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+};
 /**
- * Uma imagem dele (pose-* ou cara-*) com a hélice girando por cima do corpo, no eixo e na inclinação de cada imagem.
- * Com "animações reduzidas" fica parada, igual à imagem original. Com onCutucar, vira botão: um toque engasga a hélice
- * (trava, dá um tranco e solta fumaça); cinco toques em poucos segundos deixam ele tonto.
+ * Uma imagem dele (pose-* ou cara-*) com a hélice girando por cima do corpo, no eixo e na inclinação de cada imagem, e
+ * o rosto desenhado na tela: pisca, olha para os lados, de vez em quando faz outra cara, fica curioso com o mouse em
+ * cima, surpreso com um toque e tonto com cinco. Com "animações reduzidas" fica parado (o rosto só muda nos toques).
+ * expressao troca a cara de repouso da imagem.
  */
-export function Figura({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '' }: {
+export function Figura({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '', expressao }: {
   img: string; className?: string; width: number; height: number; parada?: boolean; enfeite?: boolean;
-  onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string;
+  onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string; expressao?: Expressao;
 }) {
   const [estado, setEstado] = useState<Estado>('normal');
+  const [cara, setCara] = useState<Expressao | null>(null);
   const toques = useRef<number[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
   const [epoca] = useState<Epoca | null>(() => (enfeite ? epocaAtual() : null));
-  const src = estado === 'tonto' && img.startsWith('cara-') ? 'cara-tonto' : img;
+  const [atraso] = useState(() => `${(-Math.random() * 9).toFixed(2)}s`);
+  const fid = `iam-b${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
+  const src = img;
   const h = HELICE[src];
+  const t = h ? TELA[src] : undefined;
+  const base = expressao ?? expressaoDe(src);
+  // De vez em quando, outra cara por um instante.
+  useEffect(() => {
+    if (!t || parada || base === 'sonolento') return;
+    let volta: ReturnType<typeof setTimeout> | undefined;
+    let proximo: ReturnType<typeof setTimeout>;
+    const agenda = () => {
+      proximo = setTimeout(() => {
+        const e = document.visibilityState === 'visible' && !movimentoReduzido() ? dePassagem(base) : null;
+        if (e) { setCara((c) => c ?? e); volta = setTimeout(() => setCara((c) => (c === e ? null : c)), 1900); }
+        agenda();
+      }, 7000 + Math.random() * 8000);
+    };
+    agenda();
+    return () => { clearTimeout(proximo); clearTimeout(volta); };
+  }, [t, parada, base]);
   const tap = () => {
+    if (estado === 'tonto') return; // deixa ele se recuperar
     const agora = Date.now();
     toques.current = [...toques.current.filter((t) => agora - t < 4000), agora];
     const tonto = toques.current.length >= 5;
@@ -41,19 +69,26 @@ export function Figura({ img, className = '', width, height, parada = false, enf
     timer.current = setTimeout(() => setEstado('normal'), tonto ? 2800 : 1400);
     onCutucar?.(tonto);
   };
+  const espiar = (e: { pointerType: string }) => { if (e.pointerType === 'mouse' && !parada && base !== 'sonolento') setCara(base === 'curioso' ? 'surpreso' : 'curioso'); };
+  const face: Expressao = estado === 'tonto' ? 'tonto' : estado === 'engasgo' ? 'surpreso' : (cara ?? base);
   const imgProps = { alt: '', width, height, decoding: 'async' as const, loading: lazy ? ('lazy' as const) : undefined, draggable: false };
   const corpo = h ? (
     <>
       <img className="iam-fig__corpo" src={`/brand/iamiguinho/anim/${src}-corpo.webp`} {...imgProps} />
       <img className="iam-fig__helice" src={`/brand/iamiguinho/anim/${src}-helice.webp`} {...imgProps}
         style={{ transformOrigin: `${h.x}% ${h.y}%`, '--iam-a': `${h.a}deg` } as CSSProperties} />
+      {t && (
+        <svg key={face} className="iam-rosto" viewBox="0 0 200 140" aria-hidden="true" dangerouslySetInnerHTML={{ __html: rosto(face, fid) }}
+          style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, transform: `translate(-50%, -50%) rotate(${t.a}deg)`, '--iam-atraso': atraso } as CSSProperties} />
+      )}
       {estado === 'engasgo' && <span className="iam-fumaca" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-hidden="true"><i /><i /><i /></span>}
     </>
   ) : <img className="iam-fig__corpo" src={`/brand/iamiguinho/${src}.webp`} {...imgProps} />;
   const cls = `iam-fig is-${estado}${parada ? ' is-parada' : ''} ${className}`;
   const conteudo = <>{corpo}{epoca && <Enfeite epoca={epoca} />}</>;
-  if (!onCutucar) return <span className={cls} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>{conteudo}</span>;
-  return <button type="button" className={`${cls} iam-fig--btn`} onClick={tap} aria-label={alt ? `${alt}. Toque para cutucar o IAmiguinho` : 'Cutucar o IAmiguinho'}>{conteudo}</button>;
+  const olhar = { onPointerEnter: espiar, onPointerLeave: () => setCara(null) };
+  if (!onCutucar) return <span className={cls} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true} {...olhar}>{conteudo}</span>;
+  return <button type="button" className={`${cls} iam-fig--btn`} onClick={tap} {...olhar} aria-label={alt ? `${alt}. Toque para cutucar o IAmiguinho` : 'Cutucar o IAmiguinho'}>{conteudo}</button>;
 }
 
 /** O enfeite da época, desenhado ao lado dele (nunca por cima do rosto). */

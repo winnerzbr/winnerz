@@ -420,6 +420,8 @@ export interface State {
   isAdmin?: boolean;
   /** Entrou por um convite: vê o site mesmo com o modo privado ligado (migração 0023). */
   isGuest?: boolean;
+  /** O site está aberto ao público, segundo o banco (migração 0076). Sem a migração, vale VITE_SITE_PRIVATE. */
+  siteOpen?: boolean;
   /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */
   loadIncomplete?: boolean;
 }

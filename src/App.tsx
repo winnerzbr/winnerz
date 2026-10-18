@@ -204,6 +204,8 @@ export function App() {
   const hasSession = useStore((s) => Boolean(openSession(s)));
   const isAdmin = useStore((s) => !!s.isAdmin);
   const isGuest = useStore((s) => !!s.isGuest);
+  // Fechado ou aberto: o banco decide (botão no Studio); sem a migração 0076, vale VITE_SITE_PRIVATE.
+  const siteClosed = useStore((s) => (s.siteOpen === undefined ? SITE_PRIVATE : !s.siteOpen));
   const profileId = useStore((s) => s.profile?.id);
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
@@ -238,7 +240,7 @@ export function App() {
 
   // Site fechado: com o banco ligado, só a conta de administrador passa. Os demais veem só o "Em breve"
   // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
-  if (SITE_PRIVATE && mode === 'supabase' && !isAdmin && !isGuest) {
+  if (siteClosed && mode === 'supabase' && !isAdmin && !isGuest) {
     const inv = match('/convite/:code', path);
     if (inv) return <InvitePage code={inv.code} />;
     if (match('/privacidade', path)) return <PrivacyPage standalone />;

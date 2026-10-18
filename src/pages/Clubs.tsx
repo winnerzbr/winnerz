@@ -18,6 +18,7 @@ import { Icon } from '../components/Icon';
 import { gameBySlug } from '../components/AddGameDialog';
 import { JogatinaTile, GameJogatinas } from './Jogatina';
 import { dateOf, dateShort, whenLabel, TZ } from '../lib/when';
+import { safeHref } from '../lib/safeHref';
 
 export { whenLabel } from '../lib/when';
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
@@ -431,7 +432,7 @@ function ClubView({ c, code, reload }: { c: ClubFull; code: string | null; reloa
           <section className="cm-side">
             <span className="kicker">Ritmo do clube</span>
             <p className="muted">{fmt?.side}</p>
-            {c.liveUrl && <a className="cm-link" href={c.liveUrl} target="_blank" rel="noopener noreferrer nofollow">{/discord/.test(c.liveUrl) ? 'Discord do clube' : 'Link do clube'} ↗</a>}
+            {c.liveUrl && <a className="cm-link" href={safeHref(c.liveUrl)} target="_blank" rel="noopener noreferrer nofollow">{/discord/.test(c.liveUrl) ? 'Discord do clube' : 'Link do clube'} ↗</a>}
           </section>
           {me && <InviteCard c={c} reload={reload} copy={copy} copied={copied} />}
           <AfterCard c={c} owner={owner || isAdmin} reload={reload} />

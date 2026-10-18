@@ -24,6 +24,7 @@ export type Action =
   | { type: 'profile.name'; name: string }
   | { type: 'profile.avatar'; url: string | null }
   | { type: 'site.guest'; value: boolean }
+  | { type: 'site.open'; value: boolean }
   | { type: 'journey.share'; journeyId: ID; shared: boolean }
   | { type: 'favorite'; gameId: ID; value: boolean }
   | { type: 'wish'; gameId: ID; value: boolean }
@@ -115,6 +116,11 @@ export async function initStore(a: Adapter) {
   emit();
 }
 
+/** Carrega tudo de novo do banco (ex.: depois de usar um convite, quando o site passa a abrir para a pessoa). */
+export async function reloadStore() {
+  if (adapter) await initStore(adapter);
+}
+
 function reduce(s: State, a: Action): State {
   switch (a.type) {
     case 'journey.share':
@@ -123,6 +129,8 @@ function reduce(s: State, a: Action): State {
       return s.profile ? { ...s, profile: { ...s.profile, name: a.name, initial: a.name.slice(0, 1).toUpperCase() } } : s;
     case 'site.guest':
       return { ...s, isGuest: a.value };
+    case 'site.open':
+      return { ...s, siteOpen: a.value };
     case 'profile.avatar':
       return s.profile ? { ...s, profile: { ...s.profile, avatar: a.url } } : s;
     case 'prefs':
@@ -533,6 +541,7 @@ export const actions = {
   setProfileName(name: string) { dispatch({ type: 'profile.name', name }); },
   setProfileAvatar(url: string | null) { dispatch({ type: 'profile.avatar', url }); },
   setGuest(value: boolean) { dispatch({ type: 'site.guest', value }); },
+  setSiteOpen(value: boolean) { dispatch({ type: 'site.open', value }); },
   /** Mostrar (ou esconder) uma Jornada no perfil público. */
   shareJourney(journeyId: ID, shared: boolean) { dispatch({ type: 'journey.share', journeyId, shared }); },
 

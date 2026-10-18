@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useStore } from '../data/store';
+import { actions, useStore } from '../data/store';
 import { canReview, fixesApi } from '../data/fixesApi';
 import { moderationApi } from '../data/moderationApi';
 import { FREE, fmtBytes, loadUsage, type Usage } from '../data/usageApi';
@@ -18,13 +18,14 @@ const STEPS: { k: string; t: string; how: string }[] = [
   { k: 'limite', t: 'Limite de e-mails por hora conferido', how: 'Supabase → Authentication → Rate Limits. Com SMTP próprio começa em 30 por hora; no dia da abertura, suba para 100 se o Resend for o gratuito (100 por dia).' },
   { k: 'backup', t: 'Backup semanal ligado', how: 'GitHub → Settings → Secrets and variables → Actions: crie SUPABASE_DB_URL, BACKUP_PASSPHRASE, SUPABASE_URL e SUPABASE_SECRET_KEY. Depois, em Actions → Backup semanal → Run workflow, rode uma vez e confira que ficou verde.' },
   { k: 'senha', t: 'Senha do backup guardada fora do computador', how: 'Sem a BACKUP_PASSPHRASE o backup não abre. Guarde num gerenciador de senhas.' },
-  { k: 'abrir', t: 'Abrir o site', how: 'Vercel → Settings → Environment Variables: VITE_SITE_PRIVATE = 0. Depois Deployments → Redeploy. Para fechar de novo, volte para 1.' },
+  { k: 'abrir', t: 'Abrir o site', how: 'Aqui no Studio, no alto da página: "Abrir o site para todos". Vale na hora, para o app e para o banco. Para fechar de novo, o mesmo botão.' },
 ];
 
 /** Studio: a área da administração. Correções, uso dos planos gratuitos e a lista para abrir o site. */
 export function StudioPage() {
   useStore((s) => s.isAdmin);
   const mode = useStore((s) => s.mode);
+  const siteOpen = useStore((s) => s.siteOpen);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [err, setErr] = useState('');
   const [queue, setQueue] = useState<number | null>(null);
@@ -43,7 +44,7 @@ export function StudioPage() {
   );
 
   const tick = (k: string, v: boolean) => { const n = { ...done, [k]: v }; setDone(n); try { localStorage.setItem(LAUNCH_KEY, JSON.stringify(n)); } catch { /* sem armazenamento */ } };
-  const isOpen = !SITE_PRIVATE;
+  const isOpen = siteOpen === undefined ? !SITE_PRIVATE : siteOpen;
   const auto: Record<string, boolean | undefined> = { abrir: isOpen };
   const storage = usage ? usage.buckets.reduce((a, b) => a + b.bytes, 0) : 0;
   const meters = usage ? [
@@ -60,7 +61,8 @@ export function StudioPage() {
       <header className="studio__head">
         <span className="kicker">Administração</span>
         <h1 className="t big">Studio</h1>
-        <p className={`studio__state${isOpen ? ' is-open' : ''}`}><b>{isOpen ? 'Site aberto' : 'Site fechado'}</b> {isOpen ? 'Qualquer pessoa pode criar conta e usar o site.' : 'Só a sua conta vê o conteúdo; as outras pessoas veem "Em breve".'}</p>
+        <p className={`studio__state${isOpen ? ' is-open' : ''}`}><b>{isOpen ? 'Site aberto' : 'Site fechado'}</b> {isOpen ? 'Qualquer pessoa pode criar conta e usar o site.' : 'Só você e quem tem convite usam o site; as outras pessoas veem "Em breve", e o banco recusa o resto.'}</p>
+        <SiteSwitch open={isOpen} known={siteOpen !== undefined || mode === 'demo'} />
         {mode === 'demo' && <p className="faint">Na demonstração, os números abaixo são de exemplo.</p>}
       </header>
 
@@ -264,5 +266,32 @@ function AnnouncePanel() {
         </ul>
       )}
     </section>
+  );
+}
+
+/** Abrir ou fechar o site (migração 0076): vale na hora, para o app e para o banco. */
+function SiteSwitch({ open, known }: { open: boolean; known: boolean }) {
+  const mode = useStore((s) => s.mode);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  if (!known) return <p className="faint studio__switch">Para abrir e fechar por aqui, rode a migração 0076 no Supabase. Até lá, vale a variável VITE_SITE_PRIVATE da Vercel.</p>;
+  const flip = async () => {
+    setBusy(true); setErr('');
+    try {
+      if (mode === 'supabase') {
+        const { getClient } = await import('../data/supabaseAdapter');
+        const { error } = await (await getClient()).rpc('set_site_open', { p_open: !open });
+        if (error) throw error;
+      }
+      actions.setSiteOpen(!open);
+    } catch { setErr('Não consegui mudar agora. Tente de novo.'); } finally { setBusy(false); }
+  };
+  return (
+    <div className="studio__switch">
+      {busy ? <button type="button" className="btn ghost" disabled>Mudando…</button>
+        : <ConfirmButton className={open ? 'btn quiet danger' : 'btn primary'} label={open ? 'Fechar o site' : 'Abrir o site para todos'}
+          confirm={open ? 'Confirmar: só você e convidados' : 'Confirmar: abrir para qualquer pessoa'} onConfirm={() => void flip()} />}
+      {err && <span className="muted" role="alert">{err}</span>}
+    </div>
   );
 }

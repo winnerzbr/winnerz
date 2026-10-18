@@ -8,6 +8,7 @@ import { Link } from '../lib/router';
 import { eventsApi, KIND_LABEL, type AgendaItem, type EventDraft, type EventKind } from '../data/eventsApi';
 import { downloadIcs, googleLink, type CalEvent } from '../lib/ics';
 import { ConfirmButton } from './Sheet';
+import { safeHref } from '../lib/safeHref';
 
 const tz = 'America/Sao_Paulo';
 const dayBox = (iso: string) => {
@@ -101,7 +102,7 @@ export function Agenda({ extra, admin }: { extra: AgendaItem[]; admin: boolean }
                   {!it.canceled && (
                     <div className="agenda__acts">
                       {it.link && (internal ? <Link className="btn ghost sm" to={it.link}>{it.kind === 'jogatina' ? 'Ver jogatina' : 'Abrir'}</Link>
-                        : <a className="btn ghost sm" href={it.link} target="_blank" rel="noopener noreferrer">{it.kind === 'live' ? 'Assistir' : 'Abrir'}</a>)}
+                        : <a className="btn ghost sm" href={safeHref(it.link)} target="_blank" rel="noopener noreferrer">{it.kind === 'live' ? 'Assistir' : 'Abrir'}</a>)}
                       <button className="btn quiet sm" onClick={() => downloadIcs(cal)} title="Arquivo para a agenda do celular ou do computador">Pôr na agenda</button>
                       <a className="btn quiet sm" href={googleLink(cal)} target="_blank" rel="noopener noreferrer" aria-label="Pôr no Google Agenda">Google<span className="agenda__long"> Agenda</span></a>
                     </div>

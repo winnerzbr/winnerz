@@ -3604,6 +3604,7 @@ a.gev { color: var(--ink); }
 .studio__state b { margin-right: 6px; }
 .studio__state::before { content: ''; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 8px; vertical-align: 1px; }
 .studio__state.is-open::before { background: var(--now); box-shadow: 0 0 10px var(--now); }
+.studio__switch { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 10px 0 0; }
 .studio__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 36px; }
 .studio__card { display: grid; gap: 4px; padding: 18px; border-radius: 0; border: 0; background: var(--surface); color: var(--ink); text-decoration: none; }
 .studio__card:hover { border-color: var(--accent); }

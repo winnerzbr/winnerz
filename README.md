@@ -79,6 +79,8 @@ Sem isto, ninguém de fora da equipe recebe o link de entrada.
 
 O plano gratuito do Supabase não tem backup. Todo domingo de madrugada, o GitHub faz um (banco + fotos), tranca com uma senha e guarda por 90 dias em **Actions**.
 
+Este repositório é público: o backup roda num repositório **privado** à parte, `winnerzbr/winnerz-backup`, com o arquivo `scripts/backup-privado/backup.yml` daqui copiado para `.github/workflows/backup.yml` de lá. Os segredos abaixo ficam no repositório privado. (Enquanto ele não existir, o `.github/workflows/backup.yml` daqui continua rodando, com o arquivo trancado.)
+
 1. No Supabase, clique em **Connect** (no topo do painel) e copie a *Session pooler* connection string (a que termina em `:5432/postgres`; o GitHub não alcança a conexão direta). Troque `[YOUR-PASSWORD]` pela senha do banco.
 2. No GitHub, **Settings → Secrets and variables → Actions → New repository secret**, crie:
    - `SUPABASE_DB_URL`: a connection string do passo 1;
@@ -102,7 +104,9 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
 
 ### 7. Abrir o site
 
-O site nasce fechado: só a conta com `is_admin` vê o conteúdo e as outras pessoas veem "Em breve". A lista completa, com o que já foi feito, fica em **Studio** (menu Mais, ou Preferências → Administração). Para abrir: **Vercel → Settings → Environment Variables → `VITE_SITE_PRIVATE` = `0`** e depois **Deployments → Redeploy**. Para fechar de novo, volte para `1`.
+O site nasce fechado: só a conta com `is_admin` e quem tem convite usam o site; as outras pessoas veem "Em breve". Desde a migração 0076, o próprio banco e as funções da Vercel recusam quem não passa (não é só a tela). A lista completa, com o que já foi feito, fica em **Studio** (menu Mais, ou Preferências → Administração). Para abrir ou fechar: **Studio → "Abrir o site para todos"** (vale na hora). Sem a migração 0076, vale a variável `VITE_SITE_PRIVATE` da Vercel (`0` abre).
+
+Trava de emergência: se o site inteiro parar de carregar dados por causa da trava do banco, rode no SQL Editor `alter role authenticator reset pgrst.db_pre_request; notify pgrst, 'reload config';` (o site volta a funcionar como antes da 0076, com o "Em breve" só na tela).
 
 ## Como está organizado
 

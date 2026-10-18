@@ -79,19 +79,19 @@ Sem isto, ninguém de fora da equipe recebe o link de entrada.
 
 O plano gratuito do Supabase não tem backup. Todo domingo de madrugada, o GitHub faz um (banco + fotos), tranca com uma senha e guarda por 90 dias em **Actions**.
 
-Este repositório é público: o backup roda num repositório **privado** à parte, `winnerzbr/winnerz-backup`, com o arquivo `scripts/backup-privado/backup.yml` daqui copiado para `.github/workflows/backup.yml` de lá. Os segredos abaixo ficam no repositório privado. (Enquanto ele não existir, o `.github/workflows/backup.yml` daqui continua rodando, com o arquivo trancado.)
+Este repositório é público: o backup roda no repositório **privado** `winnerzbr/winnerz-backup-private`, com a rotina de `scripts/backup-privado/backup.yml` (cópia do que está lá). Os segredos abaixo ficam no repositório privado, e é lá que ficam os arquivos e o registro de cada execução.
 
 1. No Supabase, clique em **Connect** (no topo do painel) e copie a *Session pooler* connection string (a que termina em `:5432/postgres`; o GitHub não alcança a conexão direta). Troque `[YOUR-PASSWORD]` pela senha do banco.
-2. No GitHub, **Settings → Secrets and variables → Actions → New repository secret**, crie:
+2. No GitHub, no repositório `winnerz-backup-private`: **Settings → Secrets and variables → Actions → New repository secret**, crie:
    - `SUPABASE_DB_URL`: a connection string do passo 1;
    - `BACKUP_PASSPHRASE`: uma frase longa (20 caracteres ou mais) só para o backup. **Guarde num gerenciador de senhas**: sem ela, o backup não abre;
-   - `SUPABASE_URL` e `SUPABASE_SECRET_KEY`: as mesmas da Vercel (para copiar as fotos).
+   - `SUPABASE_URL` (Supabase → Project Settings → Data API → Project URL) e `SUPABASE_SECRET_KEY` (Supabase → Project Settings → API Keys → uma secret key só para o backup), para copiar as fotos.
 3. Em **Actions → Backup semanal → Run workflow**, rode a primeira vez e confira que fica verde.
 
 Para restaurar (num computador com `openssl` e `psql`):
 
 ```bash
-# 1. Baixe o arquivo em Actions → Backup semanal → (execução) → Artifacts e descompacte o .zip
+# 1. Baixe o arquivo em winnerz-backup-private → Actions → Backup semanal → (execução) → Artifacts e descompacte o .zip
 openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in winnerz-backup-AAAA-MM-DD.tar.gz.enc -out backup.tar.gz
 mkdir backup && tar -xzf backup.tar.gz -C backup && cd backup
 # 2. Banco: num projeto Supabase novo (connection string do novo projeto)

@@ -16,7 +16,7 @@ const STEPS: { k: string; t: string; how: string }[] = [
   { k: 'modelos', t: 'E-mails em português', how: 'Supabase → Authentication → Emails → Templates: cole os modelos da pasta supabase/emails do repositório (assunto e corpo de cada um).' },
   { k: 'teste', t: 'Teste com um e-mail de fora', how: 'Numa janela anônima, peça o link de entrada para um e-mail que não é da equipe (de alguém da família, por exemplo). Confira se chega, se o link abre e se o código funciona.' },
   { k: 'limite', t: 'Limite de e-mails por hora conferido', how: 'Supabase → Authentication → Rate Limits. Com SMTP próprio começa em 30 por hora; no dia da abertura, suba para 100 se o Resend for o gratuito (100 por dia).' },
-  { k: 'backup', t: 'Backup semanal ligado', how: 'GitHub → Settings → Secrets and variables → Actions: crie SUPABASE_DB_URL, BACKUP_PASSPHRASE, SUPABASE_URL e SUPABASE_SECRET_KEY. Depois, em Actions → Backup semanal → Run workflow, rode uma vez e confira que ficou verde.' },
+  { k: 'backup', t: 'Backup semanal ligado', how: 'No repositório privado winnerz-backup-private do GitHub: Settings → Secrets and variables → Actions com SUPABASE_DB_URL, BACKUP_PASSPHRASE, SUPABASE_URL e SUPABASE_SECRET_KEY. Em Actions → Backup semanal, a última execução precisa estar verde.' },
   { k: 'senha', t: 'Senha do backup guardada fora do computador', how: 'Sem a BACKUP_PASSPHRASE o backup não abre. Guarde num gerenciador de senhas.' },
   { k: 'abrir', t: 'Abrir o site', how: 'Aqui no Studio, no alto da página: "Abrir o site para todos". Vale na hora, para o app e para o banco. Para fechar de novo, o mesmo botão.' },
 ];

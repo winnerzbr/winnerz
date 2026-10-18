@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../data/store';
 import { CARA, CUTUCAR, POSE, TONTO, epocaAtual, falaDaBiblioteca, liberarCameo, pedirCameo, sortear, type Cameo, type Epoca, type Fatos, type Interface } from '../lib/iamiguinho';
 import { HELICE } from '../lib/iamiguinhoHelice';
-import { PLACA, TELA } from '../lib/iamiguinhoTela';
+import { MASCARA, PLACA, TELA } from '../lib/iamiguinhoTela';
 import { arrumarPlaca, dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
 import { PLACA_EPOCA, PLACA_MOMENTO } from '../lib/iamiguinhoFalas';
 
@@ -83,10 +83,16 @@ export function Figura({ img, className = '', width, height, parada = false, enf
       <img className="iam-fig__corpo" src={`/brand/iamiguinho/anim/${src}-corpo.webp`} {...imgProps} />
       <img className="iam-fig__helice" src={`/brand/iamiguinho/anim/${src}-helice.webp`} {...imgProps}
         style={{ transformOrigin: `${h.x}% ${h.y}%`, '--iam-a': `${h.a}deg` } as CSSProperties} />
-      {t && (
-        <svg key={face} className="iam-rosto" viewBox="0 0 200 140" aria-hidden="true" dangerouslySetInnerHTML={{ __html: rosto(face, fid) }}
-          style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, transform: `translate(-50%, -50%) rotate(${t.a}deg)`, '--iam-atraso': atraso } as CSSProperties} />
-      )}
+      {t && (() => {
+        const svg = (
+          <svg key={face} className="iam-rosto" viewBox="0 0 200 140" aria-hidden="true" dangerouslySetInnerHTML={{ __html: rosto(face, fid) }}
+            style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, transform: `translate(-50%, -50%) rotate(${t.a}deg)`, '--iam-atraso': atraso } as CSSProperties} />
+        );
+        // Com um objeto na frente da tela (o controle), o rosto só aparece na parte visível do vidro.
+        if (!MASCARA[src]) return svg;
+        const m = `url(/brand/iamiguinho/anim/${src}-tela.webp)`;
+        return <span className="iam-rosto-caixa" style={{ maskImage: m, WebkitMaskImage: m } as CSSProperties}>{svg}</span>;
+      })()}
       {pl && arrumado && (
         <span className="iam-placa" aria-hidden="true"
           style={{ left: `${pl.x}%`, top: `${pl.y}%`, width: `${arrumado.deitado ? pl.w / pl.r : pl.w}%`, height: `${arrumado.deitado ? pl.h * pl.r : pl.h}%`, transform: `translate(-50%, -50%) rotate(${pl.a - (arrumado.deitado ? 90 : 0)}deg)`, '--fs': `${arrumado.fs}cqw` } as CSSProperties}>

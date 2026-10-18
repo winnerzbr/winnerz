@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXPRESSOES, dePassagem, expressaoDe, rosto } from './iamiguinhoRosto';
+import { EXPRESSOES, arrumarPlaca, dePassagem, expressaoDe, rosto } from './iamiguinhoRosto';
 import { TELA } from './iamiguinhoTela';
 import { HELICE } from './iamiguinhoHelice';
 
@@ -33,4 +33,21 @@ test('de passagem: outra cara, nunca dormindo nem tonto', () => {
     const p = dePassagem(e, s);
     if (p) { assert.notEqual(p, e); assert.ok(p !== 'tonto' && p !== 'sonolento'); }
   }
+});
+
+test('placa: o texto cabe e a época tem texto', async () => {
+  const { PLACA } = await import('./iamiguinhoTela');
+  const { PLACA_EPOCA, PLACA_MOMENTO, EPOCAS } = await import('./iamiguinhoFalas');
+  assert.ok(PLACA['pose-placa'] && PLACA['pose-espiando']);
+  for (const e of Object.keys(EPOCAS) as (keyof typeof EPOCAS)[]) assert.ok(PLACA_EPOCA[e], e);
+  for (const t of [...Object.values(PLACA_EPOCA), ...Object.values(PLACA_MOMENTO)]) for (const p of Object.values(PLACA)) {
+    const { linhas, fs, deitado } = arrumarPlaca(t, p.r);
+    assert.equal(linhas.join(' '), t);
+    if (deitado) assert.ok(p.r < 1, 'só placa em pé escreve deitado');
+    assert.ok(fs > 6, `${t} ficou pequeno demais (${fs})`);
+    for (const l of linhas) assert.ok(l.length * 0.64 * fs <= 100, `${t}: "${l}" não cabe`);
+  }
+  assert.deepEqual(arrumarPlaca('', 2), { linhas: [], fs: 0, deitado: false });
+  assert.equal(arrumarPlaca('Feliz Halloween!', 0.466).deitado, true);
+  assert.equal(arrumarPlaca('Passei por aqui!', 0.466).deitado, false);
 });

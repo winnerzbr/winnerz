@@ -26,3 +26,9 @@ export const TELA: Record<string, { x: number; y: number; w: number; a: number }
   'pose-planando': { x: 47.49, y: 39.53, w: 41.81, a: 18.4 },
   'pose-trofeu': { x: 40.72, y: 36.63, w: 36.9, a: -26.6 },
 };
+/** A área branca da placa (centro, largura e altura em %, proporção largura/altura em pixels, inclinação). */
+export const PLACA: Record<string, { x: number; y: number; w: number; h: number; r: number; a: number }> = {
+  'pose-espiando': { x: 21.53, y: 52.65, w: 41.86, h: 92.84, r: 0.466, a: 0.3 },
+  'pose-espiando-placa': { x: 21.53, y: 52.65, w: 41.86, h: 92.84, r: 0.466, a: 0.3 },
+  'pose-placa': { x: 50.28, y: 65.09, w: 82.45, h: 28.62, r: 2.143, a: 0.5 },
+};

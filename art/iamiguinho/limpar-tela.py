@@ -2,7 +2,8 @@
 # desenhar o rosto em vetor por cima (src/lib/iamiguinhoRosto.ts) e trocar de expressão, piscar e olhar para os lados.
 # Rode depois do separar-helice.py, a partir das imagens originais:
 #   python3 art/iamiguinho/separar-helice.py && python3 art/iamiguinho/limpar-tela.py
-# Muda public/brand/iamiguinho/anim/*-corpo.webp no lugar e escreve src/lib/iamiguinhoTela.ts.
+# Muda public/brand/iamiguinho/anim/*-corpo.webp no lugar e escreve src/lib/iamiguinhoTela.ts (a tela e, nas poses
+# com placa, a área branca da placa, onde o site escreve o texto).
 import sys, os, json, glob
 import numpy as np, cv2
 from PIL import Image
@@ -10,6 +11,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 src = out = os.path.join(ROOT, 'public', 'brand', 'iamiguinho', 'anim')
 names = sys.argv[1:] or None
 meta = {}
+placas = {}
 for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
     name = os.path.basename(path)[:-len('-corpo.webp')]
     if names and name not in names: continue
@@ -42,8 +44,21 @@ for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
     if rw < rh: rw, rh, ang = rh, rw, ang + 90
     if ang > 45: ang -= 90
     if ang < -45: ang += 90
+    if 'placa' in name or 'espiando' in name:
+        branco = ((a > 200) & (s < 40) & (v > 190)).astype(np.uint8)
+        k, lb, stw, _ = cv2.connectedComponentsWithStats(branco, 8)
+        if k > 1:
+            j = 1 + np.argmax(stw[1:, cv2.CC_STAT_AREA])
+            if stw[j, cv2.CC_STAT_AREA] > 0.05 * W * H:
+                cp, _ = cv2.findContours((lb == j).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                (px, py), (pw, ph), pa = cv2.minAreaRect(max(cp, key=cv2.contourArea))
+                if pa > 45: pw, ph, pa = ph, pw, pa - 90
+                if pa < -45: pw, ph, pa = ph, pw, pa + 90
+                placas[name] = {'x': round(px / W * 100, 2), 'y': round(py / H * 100, 2), 'w': round(pw / W * 100, 2), 'h': round(ph / H * 100, 2), 'r': round(pw / ph, 3), 'a': round(pa, 1)}
     meta[name] = {'x': round(cx / W * 100, 2), 'y': round(cy / H * 100, 2), 'w': round(rw / W * 100, 2), 'h': round(rh / H * 100, 2), 'a': round(ang, 1)}
 ts = os.path.join(ROOT, 'src', 'lib', 'iamiguinhoTela.ts')
 linhas = [f"  '{k}': {{ x: {v['x']}, y: {v['y']}, w: {v['w']}, a: {v['a']} }}," for k, v in sorted(meta.items()) if v]
-open(ts, 'w').write('/** Gerado por art/iamiguinho/limpar-tela.py: a tela do rosto em cada imagem (centro e largura em %, inclinação em graus). */\nexport const TELA: Record<string, { x: number; y: number; w: number; a: number }> = {\n' + '\n'.join(linhas) + '\n};\n')
+open(ts, 'w').write('/** Gerado por art/iamiguinho/limpar-tela.py: a tela do rosto em cada imagem (centro e largura em %, inclinação em graus). */\nexport const TELA: Record<string, { x: number; y: number; w: number; a: number }> = {\n' + '\n'.join(linhas) + '\n};\n'
+    + '/** A área branca da placa (centro, largura e altura em %, proporção largura/altura em pixels, inclinação). */\nexport const PLACA: Record<string, { x: number; y: number; w: number; h: number; r: number; a: number }> = {\n'
+    + '\n'.join(f"  '{k}': {{ x: {v['x']}, y: {v['y']}, w: {v['w']}, h: {v['h']}, r: {v['r']}, a: {v['a']} }}," for k, v in sorted(placas.items())) + '\n};\n')
 print(len(linhas), 'telas')

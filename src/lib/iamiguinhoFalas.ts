@@ -282,6 +282,14 @@ export function epocaDe(diaIso: string): Epoca | null {
   return null;
 }
 /** Falas da época, misturadas às de sempre nas telas vazias, no erro, no 404 e nos toques. */
+/** O que vai escrito na plaquinha (poses com placa): a época de festa tem prioridade sobre o momento. */
+export const PLACA_EPOCA: Record<Epoca, string> = {
+  carnaval: 'É Carnaval!', junina: 'Arraiá!', gamer: 'Feliz Dia do Gamer!', halloween: 'Feliz Halloween!', natal: 'Feliz Natal!', 'ano-novo': 'Feliz Ano-Novo!',
+};
+export const PLACA_MOMENTO: Record<string, string> = {
+  'jornada-vazia': 'Sua história começa aqui', 'listas-vazias': 'Lista nova à vista', espiando: 'Passei por aqui!',
+};
+
 export const FALAS_EPOCA: Record<Epoca, string[]> = {
   carnaval: [
     'É Carnaval! Eu vim fantasiado de robô. Ninguém percebeu a fantasia.',

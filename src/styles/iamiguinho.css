@@ -123,6 +123,8 @@ html[data-motion='reduzidas'] .iam-espia__pose, html[data-motion='reduzidas'] .i
 .iam-rosto .iam-espiral { animation: iam-espiral 1.2s linear infinite; }
 .iam-fig.is-parada .iam-rosto .iam-olhos { animation: none; }
 .iam-perfil__momentos li:not(:hover) .iam-rosto * { animation-play-state: paused; }
+.iam-placa { position: absolute; container-type: inline-size; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.iam-placa span { font-family: var(--font-display, var(--font-ui, system-ui)), system-ui, sans-serif; font-weight: 800; font-size: var(--fs, 10cqw); line-height: 1.04; text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; color: #1b2c5e; mix-blend-mode: multiply; }
 @keyframes iam-liga { from { opacity: 0.35; filter: brightness(1.6); } to { opacity: 1; filter: none; } }
 @keyframes iam-olhar {
   0%, 27%, 33%, 47% { transform: translate(0, 0) scaleY(1); }

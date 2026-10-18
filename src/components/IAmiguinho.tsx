@@ -10,8 +10,9 @@ import { createPortal } from 'react-dom';
 import { useStore } from '../data/store';
 import { CARA, CUTUCAR, POSE, TONTO, epocaAtual, falaDaBiblioteca, liberarCameo, pedirCameo, sortear, type Cameo, type Epoca, type Fatos, type Interface } from '../lib/iamiguinho';
 import { HELICE } from '../lib/iamiguinhoHelice';
-import { TELA } from '../lib/iamiguinhoTela';
-import { dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
+import { PLACA, TELA } from '../lib/iamiguinhoTela';
+import { arrumarPlaca, dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
+import { PLACA_EPOCA, PLACA_MOMENTO } from '../lib/iamiguinhoFalas';
 
 const useModo = () => useStore((s) => s.prefs.iamiguinho ?? 'normal');
 
@@ -25,24 +26,29 @@ const movimentoReduzido = () => {
  * Uma imagem dele (pose-* ou cara-*) com a hélice girando por cima do corpo, no eixo e na inclinação de cada imagem, e
  * o rosto desenhado na tela: pisca, olha para os lados, de vez em quando faz outra cara, fica curioso com o mouse em
  * cima, surpreso com um toque e tonto com cinco. Com "animações reduzidas" fica parado (o rosto só muda nos toques).
- * expressao troca a cara de repouso da imagem.
+ * expressao troca a cara de repouso da imagem. Nas poses com placa, placa é o texto escrito nela (numa época de festa,
+ * a placa fala da época).
  */
-export function Figura({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '', expressao }: {
+export function Figura({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '', expressao, placa }: {
   img: string; className?: string; width: number; height: number; parada?: boolean; enfeite?: boolean;
-  onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string; expressao?: Expressao;
+  onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string; expressao?: Expressao; placa?: string;
 }) {
   const [estado, setEstado] = useState<Estado>('normal');
   const [cara, setCara] = useState<Expressao | null>(null);
   const toques = useRef<number[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
-  const [epoca] = useState<Epoca | null>(() => (enfeite ? epocaAtual() : null));
+  const [epocaHoje] = useState<Epoca | null>(() => epocaAtual());
+  const epoca = enfeite ? epocaHoje : null;
   const [atraso] = useState(() => `${(-Math.random() * 9).toFixed(2)}s`);
   const fid = `iam-b${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const src = img;
   const h = HELICE[src];
   const t = h ? TELA[src] : undefined;
   const base = expressao ?? expressaoDe(src);
+  const pl = h ? PLACA[src] : undefined;
+  const escrito = pl ? (epocaHoje ? PLACA_EPOCA[epocaHoje] : placa) : undefined;
+  const arrumado = pl && escrito ? arrumarPlaca(escrito, pl.r) : null;
   // De vez em quando, outra cara por um instante.
   useEffect(() => {
     if (!t || parada || base === 'sonolento') return;
@@ -80,6 +86,12 @@ export function Figura({ img, className = '', width, height, parada = false, enf
       {t && (
         <svg key={face} className="iam-rosto" viewBox="0 0 200 140" aria-hidden="true" dangerouslySetInnerHTML={{ __html: rosto(face, fid) }}
           style={{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, transform: `translate(-50%, -50%) rotate(${t.a}deg)`, '--iam-atraso': atraso } as CSSProperties} />
+      )}
+      {pl && arrumado && (
+        <span className="iam-placa" aria-hidden="true"
+          style={{ left: `${pl.x}%`, top: `${pl.y}%`, width: `${arrumado.deitado ? pl.w / pl.r : pl.w}%`, height: `${arrumado.deitado ? pl.h * pl.r : pl.h}%`, transform: `translate(-50%, -50%) rotate(${pl.a - (arrumado.deitado ? 90 : 0)}deg)`, '--fs': `${arrumado.fs}cqw` } as CSSProperties}>
+          {arrumado.linhas.map((l, i) => <span key={i}>{l}</span>)}
+        </span>
       )}
       {estado === 'engasgo' && <span className="iam-fumaca" style={{ left: `${h.x}%`, top: `${h.y}%` }} aria-hidden="true"><i /><i /><i /></span>}
     </>
@@ -136,7 +148,7 @@ export function MascoteVazio({ momento, className = '' }: { momento: Interface; 
   const pose = POSE[momento];
   return (
     <div className={`iam-vazio ${className}`}>
-      <Figura img={`pose-${pose}`} className="iam-vazio__pose" width={180} height={240} parada={pose === 'dormindo'} onCutucar={(t) => setFala(falaDoToque(t))} />
+      <Figura img={`pose-${pose}`} placa={PLACA_MOMENTO[momento]} className="iam-vazio__pose" width={180} height={240} parada={pose === 'dormindo'} onCutucar={(t) => setFala(falaDoToque(t))} />
       <p className="iam-fala" role="note" aria-live="polite"><span className="iam-fala__quem">IAmiguinho <span className="iam-selo">Mascote</span></span>{fala}</p>
     </div>
   );
@@ -212,7 +224,7 @@ export function Espiando({ motivo, escopo = '', fatos = {} }: { motivo: Cameo; e
   return (
     <aside className="iam-espia" aria-label="IAmiguinho passou por aqui">
       <p className="iam-espia__t"><span className="iam-fala__quem">IAmiguinho passou por aqui <span className="iam-selo">Mascote</span></span>{fala}</p>
-      <Figura img="pose-espiando" className="iam-espia__pose" width={120} height={116} enfeite={false} onCutucar={(t) => setToque(falaDoToque(t))} />
+      <Figura img="pose-espiando" placa={PLACA_MOMENTO.espiando} className="iam-espia__pose" width={120} height={116} enfeite={false} onCutucar={(t) => setToque(falaDoToque(t))} />
       <button type="button" className="iam-espia__x" aria-label="Fechar o IAmiguinho" onClick={() => setFechado(true)}>×</button>
     </aside>
   );

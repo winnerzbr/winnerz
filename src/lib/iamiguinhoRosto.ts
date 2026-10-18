@@ -76,3 +76,39 @@ const DE_PASSAGEM: Partial<Record<Expressao, Expressao[]>> = {
   'sem-jeito': ['piscando', 'pensando'], perdido: ['pensando', 'sem-jeito'], piscando: ['sorriso-confiante', 'feliz'],
 };
 export const dePassagem = (e: Expressao, sorte = Math.random()): Expressao | null => { const l = DE_PASSAGEM[e]; return l ? l[Math.floor(sorte * l.length) % l.length] : null; };
+
+/**
+ * Arruma o texto da placa: quebra em linhas equilibradas e escolhe o maior tamanho de letra que cabe.
+ * r: largura/altura da placa em pixels. Devolve as linhas e o tamanho em % da largura da placa (unidade cqw). Numa
+ * placa em pé, se o texto ficaria pequeno demais (uma palavra comprida), escreve deitado (deitado: true; aí fs é em %
+ * da altura da placa, que vira a largura do texto).
+ */
+export function arrumarPlaca(texto: string, r: number): { linhas: string[]; fs: number; deitado: boolean } {
+  const empe = arrumarNaPlaca(texto, r);
+  if (r >= 1) return { ...empe, deitado: false };
+  const deitada = arrumarNaPlaca(texto, 1 / r);
+  return deitada.fs > empe.fs * r * 1.5 ? { ...deitada, deitado: true } : { ...empe, deitado: false };
+}
+function arrumarNaPlaca(texto: string, r: number): { linhas: string[]; fs: number } {
+  const palavras = texto.trim().split(/\s+/).filter(Boolean);
+  if (!palavras.length) return { linhas: [], fs: 0 };
+  const alta = r < 1;
+  const px = alta ? 0.1 : 0.13, py = alta ? 0.08 : 0.14;
+  const largura = 100 * (1 - 2 * px), altura = (100 / r) * (1 - 2 * py);
+  let melhor = { linhas: [texto.trim()], fs: 0 };
+  for (let n = 1; n <= Math.min(palavras.length, alta ? 5 : 3); n++) {
+    const alvo = palavras.join(' ').length / n;
+    const linhas: string[] = [];
+    let atual = '';
+    palavras.forEach((w, i) => {
+      const resta = palavras.length - i;
+      if (atual && (atual.length + 1 + w.length > alvo * 1.15 || resta < n - linhas.length) && linhas.length < n - 1) { linhas.push(atual); atual = w; }
+      else atual = atual ? `${atual} ${w}` : w;
+    });
+    linhas.push(atual);
+    const maior = Math.max(...linhas.map((l) => l.length));
+    const fs = Math.min(largura / (maior * 0.64), altura / (linhas.length * 1.08), altura * 0.62);
+    if (fs > melhor.fs * 1.15) melhor = { linhas, fs }; // uma linha a mais só se a letra crescer bem
+  }
+  return { linhas: melhor.linhas, fs: Math.round(melhor.fs * 10) / 10 };
+}

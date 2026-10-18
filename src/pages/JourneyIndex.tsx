@@ -1,3 +1,4 @@
+import { featBadge, sortFeats } from '../lib/feats';
 import { Icon } from '../components/Icon';
 import { PastSessionButton } from '../components/PastSession';
 import { WeeklyChallenge } from '../components/WeeklyChallenge';
@@ -280,6 +281,7 @@ export function ConcludedPage() {
                       <span className="mono hon__when">Zerou {h.completedAt && h.completedPrecision !== 'desconhecida' ? `em ${when(h)}` : 'sem data'}</span>
                       <span className="t hon__title">{g!.title}</span>
                       <span className="muted hon__meta">{sess ? [span(h, sess), !light && h.hours ? `${String(h.hours).replace('.', ',')} horas informadas` : null, h.ordinal > 1 ? `${h.ordinal}ª vez` : null].filter(Boolean).join(' · ') || `${sess} ${sess === 1 ? 'sessão' : 'sessões'}` : ['Registrado de memória', platform].filter(Boolean).join(' · ')}</span>
+                      {h.feats?.length ? <FeatBadges history={h} /> : null}
                     </span>
                     {!light && (
                       <span className="hon__score">
@@ -306,7 +308,8 @@ export function ConcludedPage() {
                     <span className="crow__cover"><CoverArt game={g!} /></span>
                     <span className="crow__text">
                       <span className="t crow__title">{g!.title}</span>
-                      <span className="muted crow__meta">{[`História ${h.ordinal}`, sess ? (light ? null : `${sess} ${sess === 1 ? 'sessão' : 'sessões'}`) : 'registrada depois', !light && moments ? `${moments} ${moments === 1 ? 'momento' : 'momentos'}` : null, !light && h.hours ? `${String(h.hours).replace('.', ',')} h` : null].filter(Boolean).join(' · ')}</span>
+                      <span className="muted crow__meta">{[`História ${h.ordinal}`, sess ? (light ? null : `${sess} ${sess === 1 ? 'sessão' : 'sessões'}`) : 'registrada depois', !light && moments ? `${moments} ${moments === 1 ? 'momento' : 'momentos'}` : null, !light && h.hours ? `${String(h.hours).replace('.', ',')} h` : null, !light && h.mode ? h.mode : null].filter(Boolean).join(' · ')}</span>
+                      {h.feats?.length ? <FeatBadges history={h} /> : null}
                     </span>
                     <span className="mono crow__date">{h.completedAt && (h.completedPrecision ?? 'dia') === 'dia' ? dm(h.completedAt) : h.completedAt && h.completedPrecision === 'mes' ? whenLabel(h.completedAt, 'mes', { short: true }) : '—'}</span>
                     {!light && <span className={`mono crow__score${review ? '' : ' is-none'}`}>{review ? formatScore(review.rating.normalized, s.prefs.scale) : '—'}</span>}
@@ -323,4 +326,8 @@ export function ConcludedPage() {
 
 function FirstBuddy() {
   return <Buddy line={useBuddy('primeiro-zerado', true)} className="buddy--card" />;
+}
+
+function FeatBadges({ history }: { history: History }) {
+  return <span className="featbadges">{sortFeats(history.feats).map((f) => <span key={f.kind} className="mono featbadge"><span>{featBadge(f)}</span></span>)}</span>;
 }

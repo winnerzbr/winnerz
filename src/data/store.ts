@@ -1,7 +1,8 @@
 import { pontoTitulo } from '../lib/pontoTitulo';
+import { featInfo } from '../lib/feats';
 import { keepFixes } from '../lib/fixes';
 import { useSyncExternalStore } from 'react';
-import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom, PartMark } from './types';
+import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom, PartMark, FeatKind } from './types';
 import type { Rating } from '../lib/rating';
 import { track } from '../lib/track';
 import { localDay } from '../lib/dates';
@@ -890,6 +891,36 @@ export const actions = {
     dispatch({ type: 'history.complete', history: { ...h, state: 'concluida', completedAt: at, completedPrecision: 'dia', progress: 100 }, event });
     const j = state.journeys.find((x) => x.id === h.journeyId);
     if (j && (state.prefs.focusIds ?? []).includes(j.id)) dispatch({ type: 'prefs', prefs: { focusIds: (state.prefs.focusIds ?? []).filter((id) => id !== j.id) } });
+  },
+
+  /** Marca ou desmarca um feito além de zerar (platina, 100%…). Marcar cria um marco na linha do tempo; desmarcar o tira. */
+  toggleFeat(historyId: ID, kind: FeatKind, detail?: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const cur = h.feats?.find((f) => f.kind === kind);
+    if (cur && detail === undefined) {
+      if (cur.eventId && state.events.some((e) => e.id === cur.eventId)) dispatch({ type: 'event.delete', eventId: cur.eventId });
+      dispatch({ type: 'history.update', history: { ...h, feats: (h.feats ?? []).filter((f) => f.kind !== kind) } });
+      return;
+    }
+    const info = featInfo(kind);
+    const text = detail?.trim() || undefined;
+    if (cur) {
+      if (cur.eventId) dispatch({ type: 'event.update', eventId: cur.eventId, patch: { text } });
+      dispatch({ type: 'history.update', history: { ...h, feats: (h.feats ?? []).map((f) => (f.kind === kind ? { ...f, detail: text } : f)) } });
+      return;
+    }
+    track(`jornada.feito.${kind}`);
+    const at = nowIso();
+    const eventId = uid();
+    dispatch({ type: 'event.add', event: { id: eventId, journeyId: h.journeyId, historyId, kind: 'marco', at, title: info.milestone, text } });
+    dispatch({ type: 'history.update', history: { ...h, feats: [...(h.feats ?? []), { kind, at, detail: text, eventId }] } });
+  },
+
+  /** Dificuldade em que a pessoa jogou esta História. Vazio apaga. */
+  setDifficulty(historyId: ID, text: string) {
+    const v = text.trim().slice(0, 40);
+    actions.updateHistory(historyId, { mode: v || undefined });
   },
 
   /* Coleção ------------------------------------------------------------------ */

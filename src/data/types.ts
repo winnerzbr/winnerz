@@ -188,7 +188,7 @@ export interface History {
   partLog?: { id: string; at: string; src?: 'voce' | 'steam' | 'ra' }[];
   /** Capítulos narrados pela IA que a pessoa guardou (chave: o capítulo). */
   narrations?: Record<string, { text: string; at: string }>;
-  /** Campo antigo (modo de dificuldade); não aparece mais no site. */
+  /** Dificuldade em que a pessoa jogou (texto livre, ex.: "Difícil", "Grounded"). */
   mode?: string;
   letter?: { text: string; openedAt?: string };
   startedPrecision?: DatePrecision;
@@ -199,7 +199,13 @@ export interface History {
   note?: string;
   /** Cápsula de Retomada: o que você precisa saber para voltar. */
   capsule?: Capsule;
+  /** Marcos além de zerar: platina, 100%, todos os finais… Nenhum é obrigatório. */
+  feats?: Feat[];
 }
+
+/** Um marco além de zerar. `detail` guarda, por exemplo, o tempo do speedrun. */
+export type FeatKind = 'platina' | 'cem' | 'finais' | 'dificil' | 'ngplus' | 'semmorrer' | 'speedrun';
+export interface Feat { kind: FeatKind; at: string; detail?: string; /** O marco que ele criou na linha do tempo. */ eventId?: string }
 
 /** Cápsula de Retomada. Tudo opcional. `ai` = partiu de uma sugestão da IA que você confirmou. */
 export interface Capsule {

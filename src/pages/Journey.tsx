@@ -23,6 +23,7 @@ import { PhotoViewer } from '../components/MediaGallery';
 import type { TimelineEvent, EventKind, History } from '../data/types';
 import { Icon } from '../components/Icon';
 import { Celebration, SealedLetter, PersonalSticker } from '../components/Celebration';
+import { FeatsPanel, DifficultyField } from '../components/Feats';
 import { dayMonth, dayMonthYear, longDay } from '../lib/format';
 import { whenLabel } from '../lib/dates';
 import { JourneyMenu, HistoryEditSheet, StateNoteSheet, STATE_LABEL } from '../components/JourneyManage';
@@ -353,6 +354,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
               </div>
               {current.letter && <SealedLetter key={current.id} text={current.letter.text} date={dayMonthYear(current.startedAt)} opened={!!current.letter.openedAt} onOpen={() => actions.openLetter(current.id)} />}
+              <FeatsPanel key={`f-${current.id}`} history={current} />
             </section>
           )}
 
@@ -408,10 +410,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         </div>
 
         {hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
-        {((pactsOn && !hasPacts) || (openState && !current.letter)) && (
+        {((pactsOn && !hasPacts) || openState) && (
           <details className="card jmore">
-            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{[openState && !current.letter ? 'carta para o fim' : null, pactsOn && !hasPacts ? 'pactos com amigos' : null].filter(Boolean).join(' · ')}</span></summary>
+            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{[openState && !current.letter ? 'carta para o fim' : null, openState ? (current.mode ? `dificuldade: ${current.mode}` : 'dificuldade') : null, pactsOn && !hasPacts ? 'pactos com amigos' : null].filter(Boolean).join(' · ')}</span></summary>
             {openState && !current.letter && <LetterLine historyId={current.id} />}
+            {openState && <DifficultyField key={current.id} history={current} />}
             {pactsOn && !hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
           </details>
         )}

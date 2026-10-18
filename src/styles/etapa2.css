@@ -6314,3 +6314,14 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .agora__foot { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .agora__ok { text-align: center; margin: 0; }
 .jindex__quick { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
+
+/* Jornada, fase 4: feitos além de zerar e dificuldade */
+.feats { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.feats .chips { margin: 0; gap: 6px; }
+.feats__time { display: flex; gap: 8px; flex-wrap: wrap; }
+.feats__time .input { flex: 1 1 180px; min-width: 0; }
+.feats__dif { display: grid; gap: 6px; max-width: 280px; }
+.jprog .feats__dif { margin-top: 4px; }
+.featbadges { display: flex; flex-wrap: wrap; gap: 4px; }
+.featbadge { display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px; font-size: 11px; letter-spacing: 0.04em; color: #E2BE84; border: 1px solid rgba(226, 190, 132, 0.45); background: rgba(226, 190, 132, 0.08); transform: skewX(-12deg); }
+.featbadge > span { transform: skewX(12deg); }

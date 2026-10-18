@@ -35,7 +35,8 @@ export function recordPastNow(gameId: string): string {
  * Se o jogo está em andamento, é a História atual que termina.
  */
 export function PastButton({ gameId, className = 'btn ghost', label = 'Já zerei', onDone }: { gameId: string; className?: string; label?: string; onDone?: (historyId: string) => void }) {
-  const tap = () => onDone?.(recordPastNow(gameId));
+  // Registra sempre; o onDone é opcional. (Com "onDone?.(recordPastNow(...))", sem onDone o registro nem rodava.)
+  const tap = () => { const id = recordPastNow(gameId); onDone?.(id); };
   return <button type="button" className={className} onClick={tap}><Icon name="check" size={15} />{label}</button>;
 }
 

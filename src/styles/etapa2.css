@@ -6327,3 +6327,22 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .featbadges { display: flex; flex-wrap: wrap; gap: 4px; }
 .featbadge { display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px; font-size: 11px; letter-spacing: 0.04em; color: #E2BE84; border: 1px solid rgba(226, 190, 132, 0.45); background: rgba(226, 190, 132, 0.08); transform: skewX(-12deg); }
 .featbadge > span { transform: skewX(12deg); }
+
+/* Tela cheia no app da tela inicial do iPhone (e em celulares com recorte): os controles saem de baixo da barra de
+   status, do recorte e do indicador de início. Fora desses aparelhos as margens seguras valem 0 e nada muda. */
+.fx.is-full, .rv.is-full { --sa-t: env(safe-area-inset-top, 0px); --sa-b: env(safe-area-inset-bottom, 0px); --sa-l: env(safe-area-inset-left, 0px); --sa-r: env(safe-area-inset-right, 0px); }
+.fx.is-full .fx-top { top: calc(16px + var(--sa-t)); left: calc(18px + var(--sa-l)); }
+.fx.is-full .fx-narr { top: calc(16px + var(--sa-t)); right: calc(18px + var(--sa-r)); }
+.fx.is-full .fx-ruler { bottom: calc(18px + var(--sa-b)); left: calc(22px + var(--sa-l)); right: calc(22px + var(--sa-r)); }
+.fx.is-full.is-vert .fx-top { top: 0; left: 0; right: 0; padding-top: calc(12px + var(--sa-t)); padding-left: calc(14px + var(--sa-l)); padding-right: calc(14px + var(--sa-r)); }
+.fx.is-full .fx-pchips { top: calc(56px + var(--sa-t)); padding-left: calc(14px + var(--sa-l)); padding-right: calc(14px + var(--sa-r)); }
+.fx.is-full.is-vert .fx-track { padding-top: calc(39vh - 120px + var(--sa-t)); padding-bottom: calc(39vh - 120px + var(--sa-b)); }
+.fx.is-full.is-vert:has(.fx-pchips) .fx-track { padding-top: calc(39vh - 60px + var(--sa-t)); }
+.rv.is-full { padding-top: calc(20px + var(--sa-t)); padding-bottom: calc(28px + var(--sa-b)); padding-left: calc(24px + var(--sa-l)); padding-right: calc(24px + var(--sa-r)); }
+@media (max-width: 860px) { .rv.is-full { padding: calc(14px + var(--sa-t)) calc(14px + var(--sa-r)) calc(14px + var(--sa-b)) calc(14px + var(--sa-l)); } }
+@media (max-width: 640px) {
+  .fx.is-full .fx-top { top: 0; left: 0; right: 0; padding-top: calc(12px + var(--sa-t)); padding-left: calc(14px + var(--sa-l)); padding-right: calc(14px + var(--sa-r)); }
+}
+.fx.is-full.is-vert .fx-top { background: linear-gradient(180deg, #07080A calc(100% - 22px), rgba(7, 8, 10, 0)); }
+.fx.is-full .fx-title { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fx.is-full .fx-top > .btn, .fx.is-full .fx-top > .fx-exit { flex: none; white-space: nowrap; }

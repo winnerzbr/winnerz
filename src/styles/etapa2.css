@@ -6288,3 +6288,29 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .jmore > summary::after { content: '+'; margin-left: auto; color: var(--gold); font-size: 18px; line-height: 1; }
 .jmore[open] > summary::after { content: '−'; }
 .jmore .pacts { margin: 12px 0 0; padding: 0; background: none; border: 0; box-shadow: none; }
+
+/* "Joguei sem registrar" */
+.past-ses { display: flex; flex-direction: column; gap: 10px; }
+.past-ses select.field { display: block; width: 100%; margin-top: 6px; }
+.past-ses .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.past-ses__day { width: auto; max-width: 170px; }
+.past-ses__time { width: auto; min-width: 130px; max-width: 150px; }
+.past-ses__mins { width: 90px; }
+.past-ses__actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+
+/* Jogar agora (/agora): a tela do ícone do app. */
+.agora { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+.agora__main { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding-top: 24px; }
+.agora__cover { width: 132px; aspect-ratio: 3 / 4; display: block; }
+.agora__cover img { width: 100%; height: 100%; object-fit: cover; }
+.agora__title { font-size: clamp(30px, 8vw, 44px); line-height: 0.95; margin: 0; }
+.agora__note { margin: 0; font-size: 17px; color: var(--ink-2); }
+.agora__play { width: 100%; max-width: 360px; justify-content: center; min-height: 64px; font-size: 18px; margin-top: 8px; }
+.agora__others ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; }
+.agora__others li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-2); }
+.agora__mini { width: 40px; aspect-ratio: 3 / 4; flex: none; }
+.agora__mini img { width: 100%; height: 100%; object-fit: cover; }
+.agora__name { flex: 1; min-width: 0; font-weight: 600; }
+.agora__foot { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.agora__ok { text-align: center; margin: 0; }
+.jindex__quick { display: flex; justify-content: flex-end; margin: -8px 0 12px; }

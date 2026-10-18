@@ -1,4 +1,5 @@
 import { Icon } from '../components/Icon';
+import { PastSessionButton } from '../components/PastSession';
 import { WeeklyChallenge } from '../components/WeeklyChallenge';
 import { Buddy, useBuddy } from '../components/Buddy';
 import { BridgeInbox } from '../components/Bridges';
@@ -119,6 +120,7 @@ export function JourneyIndex() {
       )}
 
       <BridgeInbox />
+      {rows.length > 0 && <div className="jindex__quick"><PastSessionButton /></div>}
       {principal && <FocusCard s={s} journey={principal.journey} chosen={principal.chosen} />}
 
       {rows.length > 0 && (

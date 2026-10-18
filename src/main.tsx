@@ -32,4 +32,8 @@ async function boot() {
 }
 
 createRoot(document.getElementById('root')!).render(<App />);
+// Site instalável (PWA): só no site publicado, para o modo de desenvolvimento não guardar arquivos velhos.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => null); });
+}
 boot();

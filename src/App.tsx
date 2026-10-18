@@ -52,6 +52,7 @@ import { GamesExplore } from './pages/GamesExplore';
 import { RadarPage } from './pages/Radar';
 import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
+import { AgoraPage } from './pages/Agora';
 import { Login } from './pages/Login';
 import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
@@ -118,6 +119,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
+  if (match('/agora', path)) return <AgoraPage />;
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;

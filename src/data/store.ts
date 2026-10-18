@@ -572,6 +572,8 @@ export const actions = {
       else dispatch({ type: 'history.create', history, event });
     }
     const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: nowIso() };
+    // Medida do plano: a sessão começou pelo app instalado ou pelo navegador?
+    try { track(window.matchMedia('(display-mode: standalone)').matches ? 'sessao.pelo-app' : 'sessao.pelo-navegador'); } catch { /* fora do navegador */ }
     dispatch({ type: 'session.start', session });
     return session;
   },
@@ -781,7 +783,15 @@ export const actions = {
    * Sessão que veio de uma ponte (Steam ou RetroAchievements), já terminada. Com onlyOpen, só entra se a Jornada
    * tem uma História em andamento; sem, cria a Jornada (ou uma História nova) como o "Jogar" faria.
    */
-  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source: 'steam' | 'ra' | 'playnite'; detail?: string | null; whereStopped?: string | null }, opts: { onlyOpen?: boolean } = {}): ID | null {
+  /** "Joguei sem registrar": uma sessão já terminada, lançada depois pela pessoa (sem ponte). */
+  addPastSession(gameId: ID, d: { startedAt: string; minutes: number; whereStopped?: string; note?: string }): ID | null {
+    const minutes = Math.max(1, Math.min(1440, Math.round(d.minutes)));
+    const endedAt = new Date(Date.parse(d.startedAt) + minutes * 60_000).toISOString();
+    track('jornada.lancar-depois');
+    return actions.addInferredSession(gameId, { startedAt: d.startedAt, endedAt, minutes, whereStopped: d.whereStopped, note: d.note });
+  },
+
+  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source?: 'steam' | 'ra' | 'playnite'; detail?: string | null; whereStopped?: string | null; note?: string }, opts: { onlyOpen?: boolean } = {}): ID | null {
     let journey = journeyForGame(state, gameId);
     let history = journey ? currentHistory(state, journey.id) : null;
     if (opts.onlyOpen && (!history || history.state !== 'ativa')) return null;
@@ -798,11 +808,12 @@ export const actions = {
       if (isNew) dispatch({ type: 'journey.create', journey, history, event }); else dispatch({ type: 'history.create', history, event });
     }
     const before = sessionsOf(state, history.id).filter((x) => x.startedAt < d.startedAt).length;
-    const by = d.source === 'steam' ? 'Pela Steam' : d.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements';
+    const by = !d.source ? 'Lançada depois' : d.source === 'steam' ? 'Pela Steam' : d.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements';
     const where = d.whereStopped?.trim().slice(0, 140) || undefined;
-    const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: d.startedAt, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where, source: d.source, progress: history.progress };
-    const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, sessionId: session.id, kind: 'sessao', at: d.endedAt, title: `Sessão ${before + 1}`, text: [`${by}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') };
-    track(`ponte.${d.source}`);
+    const note = d.note?.trim().slice(0, 500) || undefined;
+    const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: d.startedAt, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where, note, source: d.source, progress: history.progress };
+    const event: TimelineEvent = { id: uid(), journeyId: journey.id, historyId: history.id, sessionId: session.id, kind: 'sessao', at: d.endedAt, title: `Sessão ${before + 1}`, quote: note, text: [`${by}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') };
+    if (d.source) track(`ponte.${d.source}`);
     dispatch({ type: 'session.add', session, event });
     return session.id;
   },

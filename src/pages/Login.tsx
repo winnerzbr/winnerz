@@ -4,6 +4,7 @@ import { Link, navigate } from '../lib/router';
 import { BrandMark } from '../components/Brand';
 import { authMessage } from '../lib/authMessage';
 import { pendingInvite } from '../data/invitesApi';
+import { pelaTelaInicial } from '../lib/appInstalado';
 
 /** Lado da arte: a marca pousada na linha do horizonte. */
 function LoginArt() {
@@ -25,6 +26,7 @@ export function Login() {
   const [checking, setChecking] = useState(false);
   const [codeErr, setCodeErr] = useState('');
   const [wait, setWait] = useState(0);
+  const [noApp] = useState(pelaTelaInicial);
 
   useEffect(() => { if (wait <= 0) return; const t = setTimeout(() => setWait((w) => w - 1), 1000); return () => clearTimeout(t); }, [wait]);
 
@@ -88,9 +90,11 @@ export function Login() {
           <div className="login">
             <p className="kicker kicker--now">Link enviado</p>
             <h1 className="t login__title">Confira seu e-mail</h1>
-            <p className="login__lead">Enviamos um link para <strong>{email}</strong>. Toque nele para entrar.</p>
+            <p className="login__lead">{noApp
+              ? <>Enviamos um código para <strong>{email}</strong>. Digite aqui: o link do e-mail abre no navegador, fora deste app.</>
+              : <>Enviamos um link para <strong>{email}</strong>. Toque nele para entrar.</>}</p>
             <form className="login__code" onSubmit={verify}>
-              <label htmlFor="otp" className="login__label">O link abriu em outro lugar? Digite o código do e-mail</label>
+              <label htmlFor="otp" className="login__label">{noApp ? 'Código do e-mail' : 'O link abriu em outro lugar? Digite o código do e-mail'}</label>
               <input id="otp" className="field login__otp" inputMode="numeric" autoComplete="one-time-code" maxLength={10} placeholder="123456"
                 value={code} onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, ''))} />
               <button className="btn primary lg" disabled={checking || code.length < 6}>{checking ? 'Conferindo…' : 'Entrar com o código'}</button>
@@ -108,7 +112,7 @@ export function Login() {
             <p className="muted login__lead">Sem senha. Mandamos um link e um código de acesso para o seu e-mail, e suas Jornadas ficam em todos os seus aparelhos.</p>
             <label htmlFor="email" className="login__label">E-mail</label>
             <input id="email" className="field" type="email" required autoComplete="email" placeholder="voce@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button className="btn primary lg" disabled={state === 'sending'}>{state === 'sending' ? 'Enviando…' : 'Receber link de acesso'}</button>
+            <button className="btn primary lg" disabled={state === 'sending'}>{state === 'sending' ? 'Enviando…' : noApp ? 'Receber código de acesso' : 'Receber link de acesso'}</button>
             {state === 'error' && <p role="alert" className="login__error">{msg}</p>}
           </form>
         )}

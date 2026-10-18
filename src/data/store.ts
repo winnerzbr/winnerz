@@ -1,5 +1,5 @@
 import { pontoTitulo } from '../lib/pontoTitulo';
-import { featInfo } from '../lib/feats';
+import { featInfo, FEATS } from '../lib/feats';
 import { keepFixes } from '../lib/fixes';
 import { useSyncExternalStore } from 'react';
 import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom, PartMark, FeatKind } from './types';
@@ -424,7 +424,7 @@ export function closedBy(s: State, e: TimelineEvent): History | null {
   // Só a História atual (a mais recente) volta a ficar em andamento; as anteriores ficam como estão.
   if (currentHistory(s, h.journeyId)?.id !== h.id) return null;
   const word = h.state === 'concluida' ? /^Zerou/ : h.state === 'encerrada' ? /^Encerrou/ : /^Largou/;
-  const end = s.events.filter((x) => x.historyId === h.id && x.kind === 'marco' && word.test(x.title)).sort((a, b) => a.at.localeCompare(b.at)).at(-1);
+  const end = s.events.filter((x) => x.historyId === h.id && x.kind === 'marco' && word.test(x.title) && !FEAT_TITLES.has(x.title)).sort((a, b) => a.at.localeCompare(b.at)).at(-1);
   return end?.id === e.id ? h : null;
 }
 
@@ -516,6 +516,16 @@ const STATE_EVENT: Record<string, { title: string; text: (note?: string) => stri
   encerrada: { title: 'Encerrou', text: (n) => n || 'Terminou do seu jeito, sem zerar.' },
   ativa: { title: 'Retomou', text: (n) => n || 'De volta à História.' },
 };
+
+/** Marcos de feitos (platina, 100%…) de uma História: os ligados aos feitos e, se o feito não ficou salvo, os de mesmo título. */
+/** Títulos dos marcos de feitos. "Zerou o NG+" não é o marco de fim da História. */
+const FEAT_TITLES = new Set(FEATS.map((f) => f.milestone));
+
+function featEventsOf(h: History, kind?: FeatKind): TimelineEvent[] {
+  const ids = new Set((h.feats ?? []).filter((f) => !kind || f.kind === kind).map((f) => f.eventId).filter(Boolean));
+  const titles = new Set(FEATS.filter((f) => !kind || f.kind === kind).map((f) => f.milestone));
+  return state.events.filter((e) => e.historyId === h.id && (ids.has(e.id) || (e.kind === 'marco' && titles.has(e.title))));
+}
 
 export const actions = {
   setPrefs(prefs: Partial<Prefs>) { dispatch({ type: 'prefs', prefs }); },
@@ -644,7 +654,7 @@ export const actions = {
     if (patch.completedAt || patch.completedPrecision) {
       // O marco que corresponde ao estado atual (um "Largou" antigo, de antes de retomar, fica onde está).
       const word = (patch.state ?? h.state) === 'concluida' ? /^Zerou/ : (patch.state ?? h.state) === 'encerrada' ? /^Encerrou/ : /^Largou/;
-      const end = [...eventsOf(state, h.journeyId)].reverse().find((e) => e.historyId === historyId && e.kind === 'marco' && word.test(e.title));
+      const end = [...eventsOf(state, h.journeyId)].reverse().find((e) => e.historyId === historyId && e.kind === 'marco' && word.test(e.title) && !FEAT_TITLES.has(e.title));
       if (end) dispatch({ type: 'event.update', eventId: end.id, patch: { at: patch.completedAt ?? end.at, precision: patch.completedPrecision ?? end.precision } });
     }
     if (patch.startedAt || patch.startedPrecision) {
@@ -742,14 +752,18 @@ export const actions = {
     const h = state.histories.find((x) => x.id === historyId);
     if (!h || !isClosedState(h.state)) return;
     const end = state.events.find((x) => x.historyId === h.id && closedBy(state, x));
-    const hasLife = state.sessions.some((x) => x.historyId === h.id) || state.events.some((x) => x.historyId === h.id && x.id !== end?.id);
+    // Os feitos (platina, 100%…) só existem depois de zerar: desfazer o fim leva os marcos deles junto.
+    const feats = featEventsOf(h);
+    const gone = new Set([end?.id, ...feats.map((e) => e.id)]);
+    const hasLife = state.sessions.some((x) => x.historyId === h.id) || state.events.some((x) => x.historyId === h.id && !gone.has(x.id));
     track('jornada.desfazer-fim');
     if (!hasLife) return actions.deleteHistory(h.id);
     if (end) dispatch({ type: 'event.delete', eventId: end.id, imagePath: end.imagePath });
+    for (const e of feats) dispatch({ type: 'event.delete', eventId: e.id, imagePath: e.imagePath });
     const j = state.journeys.find((x) => x.id === h.journeyId);
     dispatch({
       type: 'history.update',
-      history: { ...h, state: 'ativa', completedAt: undefined, completedPrecision: undefined, progress: h.state === 'concluida' && h.progress === 100 ? undefined : h.progress },
+      history: { ...h, state: 'ativa', completedAt: undefined, completedPrecision: undefined, feats: undefined, progress: h.state === 'concluida' && h.progress === 100 ? undefined : h.progress },
       journey: j ? { ...j, mood: 'jogando', pausedNote: undefined } : undefined,
     });
   },
@@ -899,7 +913,7 @@ export const actions = {
     if (!h) return;
     const cur = h.feats?.find((f) => f.kind === kind);
     if (cur && detail === undefined) {
-      if (cur.eventId && state.events.some((e) => e.id === cur.eventId)) dispatch({ type: 'event.delete', eventId: cur.eventId });
+      for (const e of featEventsOf(h, kind)) dispatch({ type: 'event.delete', eventId: e.id, imagePath: e.imagePath });
       dispatch({ type: 'history.update', history: { ...h, feats: (h.feats ?? []).filter((f) => f.kind !== kind) } });
       return;
     }

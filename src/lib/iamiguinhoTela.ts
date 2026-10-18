@@ -20,7 +20,7 @@ export const TELA: Record<string, { x: number; y: number; w: number; a: number }
   'pose-espiando': { x: 60.68, y: 42.22, w: 35.23, a: 23.2 },
   'pose-espiando-placa': { x: 60.68, y: 42.22, w: 35.23, a: 23.2 },
   'pose-heroi': { x: 50.26, y: 29.68, w: 45.64, a: 16.7 },
-  'pose-mapa': { x: 46.03, y: 36.22, w: 50.54, a: 15.9 },
+  'pose-mapa': { x: 46.0, y: 36.18, w: 50.59, a: 14.7 },
   'pose-pacote': { x: 50.24, y: 37.09, w: 54.62, a: 8.1 },
   'pose-placa': { x: 48.88, y: 33.33, w: 51.82, a: 0.0 },
   'pose-planando': { x: 47.49, y: 39.53, w: 41.81, a: 18.4 },

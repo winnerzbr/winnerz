@@ -17,10 +17,25 @@ export const MODOS: { id: IamigModo; label: string; desc: string }[] = [
 ];
 export const modoAtual = (): IamigModo => (getState().prefs.iamiguinho ?? 'normal') as IamigModo;
 
-export { FALAS, preencher, falaDaBiblioteca, sortear } from './iamiguinhoFalas';
-export type { Interface, Cameo, Fatos } from './iamiguinhoFalas';
-import type { Interface, Cameo, Fatos } from './iamiguinhoFalas';
-import { falaDaBiblioteca } from './iamiguinhoFalas';
+export { FALAS, preencher, falaDaBiblioteca, sortear, CUTUCAR, TONTO, FALAS_EPOCA, EPOCAS } from './iamiguinhoFalas';
+export type { Interface, Cameo, Fatos, Epoca } from './iamiguinhoFalas';
+import type { Interface, Cameo, Fatos, Epoca } from './iamiguinhoFalas';
+import { EPOCAS, epocaDe, falaDaBiblioteca } from './iamiguinhoFalas';
+
+/**
+ * A época de festa de hoje (calendário de Brasília). Para ver antes da data: ?epoca=halloween na URL (vale nesta aba;
+ * ?epoca=nenhuma volta ao normal).
+ */
+export function epocaAtual(): Epoca | null {
+  try {
+    const q = new URLSearchParams(location.search).get('epoca');
+    if (q) sessionStorage.setItem('wz.iamiguinho.epoca', q);
+    const forcada = sessionStorage.getItem('wz.iamiguinho.epoca');
+    if (forcada === 'nenhuma') return null;
+    if (forcada && forcada in EPOCAS) return forcada as Epoca;
+  } catch { /* sem sessão: só o calendário */ }
+  return epocaDe(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()));
+}
 
 /** A pose de corpo inteiro de cada momento de interface (public/brand/iamiguinho/pose-*.webp). */
 export const POSE: Record<Interface, string> = {
@@ -85,7 +100,7 @@ export async function pedirCameo(motivo: Cameo, escopo: string, fatos: Fatos): P
       const { accessToken } = await import('../data/supabaseAdapter');
       const token = await accessToken();
       if (token) {
-        const r = await fetch('/api/iamiguinho', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ motivo, escopo, fatos, recentes: evitar }) });
+        const r = await fetch('/api/iamiguinho', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ motivo, escopo, fatos, recentes: evitar, epoca: epocaAtual() }) });
         if (r.ok) {
           const j = (await r.json()) as { mostrar?: boolean; fala?: string | null };
           if (j.mostrar === false) return null;

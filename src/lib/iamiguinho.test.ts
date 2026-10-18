@@ -107,3 +107,19 @@ test('IAmiguinho @menção: piada passa no modo leve, sem abrir mão de número,
   // Nas menções, algarismo de piada vale.
   assert.equal(checarFala('Por que o 6 tem medo do 7? Porque o 7 é suspeito kkkk', {}, [], { ...op, numerosLivres: true }).ok, true);
 });
+
+test('IAmiguinho: épocas de festa pelo calendário', async () => {
+  const { epocaDe } = await import('./iamiguinhoFalas');
+  assert.equal(epocaDe('2026-10-17'), null);
+  assert.equal(epocaDe('2026-10-24'), 'halloween');
+  assert.equal(epocaDe('2026-10-31'), 'halloween');
+  assert.equal(epocaDe('2026-12-20'), 'natal');
+  assert.equal(epocaDe('2026-12-31'), 'ano-novo');
+  assert.equal(epocaDe('2027-01-01'), 'ano-novo');
+  assert.equal(epocaDe('2026-06-15'), 'junina');
+  assert.equal(epocaDe('2026-08-29'), 'gamer');
+  // Carnaval 2027: terça 9 de fevereiro (Páscoa em 28 de março).
+  assert.equal(epocaDe('2027-02-09'), 'carnaval');
+  assert.equal(epocaDe('2027-02-06'), 'carnaval');
+  assert.equal(epocaDe('2027-02-11'), null);
+});

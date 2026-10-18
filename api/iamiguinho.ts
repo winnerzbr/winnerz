@@ -202,9 +202,14 @@ const MOMENTO: Record<Motivo, string> = {
   jogatina: 'Uma jogatina marcada (um encontro para jogar junto) ainda tem vaga, e a pessoa está olhando. Você quer muito entrar.',
 };
 
-async function pedirIa(motivo: Motivo, fatos: Fatos, recentes: string[]): Promise<Opcao[]> {
+/** Época de festa (Carnaval, Halloween...): o site manda, e a fala pode fazer uma referência leve. */
+const EPOCAS: Record<string, string> = { carnaval: 'Carnaval', junina: 'Festa Junina', gamer: 'Dia do Gamer (29 de agosto)', halloween: 'Halloween', natal: 'Natal', 'ano-novo': 'Ano-Novo' };
+const linhaEpoca = (epoca?: string) => (epoca && EPOCAS[epoca] ? `Época do ano: ${EPOCAS[epoca]}. Se couber, faça uma referência leve à data, sem forçar.` : '');
+
+async function pedirIa(motivo: Motivo, fatos: Fatos, recentes: string[], epoca?: string): Promise<Opcao[]> {
   const linhas = [
     `Momento: ${MOMENTO[motivo]}`,
+    linhaEpoca(epoca),
     `Fatos permitidos: ${[fatos.jogo ? `jogo = "${fatos.jogo}"` : '', fatos.dias != null ? `dias desde a última sessão = ${fatos.dias}` : ''].filter(Boolean).join('; ') || 'nenhum'}.`,
     recentes.length ? `Falas recentes (não repita):\n- ${recentes.join('\n- ')}` : '',
   ].filter(Boolean).join('\n');
@@ -232,7 +237,7 @@ export default async function handler(req: Req, res: Res) {
   try { user = await requireUser(req); } catch { /* sem conferir, sem cameo */ }
   if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
 
-  let body: { kind?: string; motivo?: string; escopo?: unknown; fatos?: { jogo?: unknown; dias?: unknown }; recentes?: unknown; origem?: unknown; id?: unknown };
+  let body: { kind?: string; motivo?: string; escopo?: unknown; fatos?: { jogo?: unknown; dias?: unknown }; recentes?: unknown; origem?: unknown; id?: unknown; epoca?: unknown };
   try { body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as typeof body; } catch { return res.status(400).json({ error: 'Pedido inválido.' }); }
   if (body.kind === 'mencao') {
     try { return await mencao(user, body, res); } catch { console.error('iamiguinho: a menção falhou'); return res.status(200).json({ respondeu: false, porque: 'erro' }); }
@@ -283,7 +288,7 @@ export default async function handler(req: Req, res: Res) {
 
   let fala: string | null = null; const diag: string[] = [];
   try {
-    for (const op of await pedirIa(motivo, fatos, recentes)) {
+    for (const op of await pedirIa(motivo, fatos, recentes, typeof body.epoca === 'string' ? body.epoca : undefined)) {
       const v = checarFala(op.texto, fatos, recentes, { leve: true, nomes: op.nomes });
       if (v.ok) { fala = v.fala; break; }
       diag.push(v.porque);
@@ -396,7 +401,7 @@ async function uma(path: string): Promise<Linha | null> {
   return (((await r.json()) as Linha[])[0]) ?? null;
 }
 
-async function mencao(user: string, body: { origem?: unknown; id?: unknown }, res: Res) {
+async function mencao(user: string, body: { origem?: unknown; id?: unknown; epoca?: unknown }, res: Res) {
   const origem = body.origem === 'post' || body.origem === 'resposta' ? body.origem : null;
   const id = typeof body.id === 'string' && UUID.test(body.id) ? body.id : null;
   if (!origem || !id) return res.status(400).json({ error: 'Pedido inválido.' });
@@ -459,7 +464,7 @@ async function mencao(user: string, body: { origem?: unknown; id?: unknown }, re
     try {
       const aviso = sensivel === 'suporte' ? 'Aviso do site: assunto de conta, pagamento ou moderação. Use o modo tangente e diga que é com a equipe do WinnerZ.'
         : sensivel === 'tangente' ? 'Aviso do site: tema sensível (política ou religião). Use o modo tangente, sem opinar.' : '';
-      const v = await pedirIaMencao(pergunta, recentes, aviso);
+      const v = await pedirIaMencao(pergunta, recentes, [aviso, linhaEpoca(typeof body.epoca === 'string' ? body.epoca : undefined)].filter(Boolean).join('\n'));
       if (!v) diag.push('sem_ferramenta');
       else if (v.modo === 'silencio') { await rpc('iamiguinho_mencao_desistir', { p_id: reserva }).catch(() => null); return nao('moderacao'); }
       else {

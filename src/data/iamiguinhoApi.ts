@@ -49,7 +49,7 @@ export const iamiguinhoApi = {
       const { accessToken } = await import('./supabaseAdapter');
       const token = await accessToken();
       if (!token) return null;
-      const r = await fetch('/api/iamiguinho', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ kind: 'mencao', origem, id }) });
+      const r = await fetch('/api/iamiguinho', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ kind: 'mencao', origem, id, epoca: (await import('../lib/iamiguinho')).epocaAtual() }) });
       if (!r.ok) return null;
       const j = (await r.json()) as { respondeu?: boolean; resposta?: MascoteResposta };
       return j.respondeu && j.resposta ? j.resposta : null;

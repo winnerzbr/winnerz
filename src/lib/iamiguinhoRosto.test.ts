@@ -51,3 +51,12 @@ test('placa: o texto cabe e a época tem texto', async () => {
   assert.equal(arrumarPlaca('Feliz Halloween!', 0.466).deitado, true);
   assert.equal(arrumarPlaca('Passei por aqui!', 0.466).deitado, false);
 });
+
+test('máscara do rosto: cada imagem com objeto na frente tem o arquivo da tela visível', async () => {
+  const { MASCARA, TELA } = await import('./iamiguinhoTela');
+  const { existsSync } = await import('node:fs');
+  for (const k of Object.keys(MASCARA)) {
+    assert.ok(TELA[k], k);
+    assert.ok(existsSync(new URL(`../../public/brand/iamiguinho/anim/${k}-tela.webp`, import.meta.url)), k);
+  }
+});

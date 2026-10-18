@@ -15,7 +15,7 @@ export const TELA: Record<string, { x: number; y: number; w: number; a: number }
   'pose-acenando': { x: 42.2, y: 35.71, w: 52.35, a: -8.7 },
   'pose-atrasado': { x: 59.73, y: 36.72, w: 42.87, a: 12.5 },
   'pose-cabo': { x: 47.38, y: 39.75, w: 43.85, a: -11.3 },
-  'pose-controle': { x: 49.65, y: 43.56, w: 52.35, a: -14.0 },
+  'pose-controle': { x: 49.72, y: 43.9, w: 55.56, a: 0.0 },
   'pose-dormindo': { x: 49.68, y: 43.3, w: 55.71, a: -7.1 },
   'pose-espiando': { x: 60.68, y: 42.22, w: 35.23, a: 23.2 },
   'pose-espiando-placa': { x: 60.68, y: 42.22, w: 35.23, a: 23.2 },
@@ -26,6 +26,8 @@ export const TELA: Record<string, { x: number; y: number; w: number; a: number }
   'pose-planando': { x: 47.49, y: 39.53, w: 41.81, a: 18.4 },
   'pose-trofeu': { x: 40.72, y: 36.63, w: 36.9, a: -26.6 },
 };
+/** Imagens em que um objeto fica na frente da tela: o rosto usa a máscara <nome>-tela.webp. */
+export const MASCARA: Record<string, true> = {'pose-controle': true};
 /** A área branca da placa (centro, largura e altura em %, proporção largura/altura em pixels, inclinação). */
 export const PLACA: Record<string, { x: number; y: number; w: number; h: number; r: number; a: number }> = {
   'pose-espiando': { x: 21.53, y: 52.65, w: 41.86, h: 92.84, r: 0.466, a: 0.3 },

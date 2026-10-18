@@ -1,9 +1,8 @@
-# IAmiguinho: a luz azul do peito fica no centro do tronco. Nas poses de frente das imagens geradas ela saiu
-# deslocada para um lado; este script acha a luz (o círculo azul-claro cercado de bege), apaga e redesenha na linha
-# do meio do tronco, na mesma altura. A linha do meio de cada pose foi conferida uma a uma: o ponto médio entre as
-# juntas dos ombros e entre as do quadril (ALVO, em pixels da imagem original).
-# Nas poses de três quartos (atrasado, herói, planando, troféu) o tronco está virado e a luz original já acompanha o
-# giro; elas ficam como estão, assim como as poses em que o peito está escondido.
+# IAmiguinho: a luz azul do peito fica no centro do tronco. Nas imagens geradas ela saiu deslocada para um lado; este
+# script acha a luz (o círculo azul-claro cercado de bege), apaga e redesenha no centro, na mesma altura. O centro de
+# cada pose foi medido uma a uma, ampliada com régua: o ponto médio entre as duas juntas dos ombros, conferido com o
+# meio do pescoço e das juntas do quadril (ALVO, em pixels da imagem original). Vale também para as poses com o corpo
+# virado. Poses em que o peito está escondido (controle, mapa, placa, espiando) ficam como estão.
 # Rode antes do separar-helice.py e do limpar-tela.py:
 #   python3 art/iamiguinho/centralizar-luz.py && python3 art/iamiguinho/separar-helice.py && python3 art/iamiguinho/limpar-tela.py
 # Muda public/brand/iamiguinho/pose-*.webp no lugar. Rodar de novo não muda nada (a luz já está no centro).
@@ -20,7 +19,8 @@ def beige_ou_luz(nucleo, beige, luz, d0, R):
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 PASTA = os.path.join(ROOT, 'public', 'brand', 'iamiguinho')
 nomes = sys.argv[1:] or None
-ALVO = {'pose-acenando': 171, 'pose-cabo': 212, 'pose-dormindo': 181, 'pose-pacote': 139}
+ALVO = {'pose-acenando': 170, 'pose-atrasado': 180, 'pose-cabo': 206, 'pose-dormindo': 201, 'pose-heroi': 156,
+        'pose-pacote': 135, 'pose-planando': 152, 'pose-trofeu': (179, 254)}  # (x, y) quando a luz também desce
 
 for path in sorted(glob.glob(os.path.join(PASTA, 'pose-*.webp'))):
     nome = os.path.basename(path)[:-5]
@@ -43,8 +43,9 @@ for path in sorted(glob.glob(os.path.join(PASTA, 'pose-*.webp'))):
         if cerca > 0.45 and (melhor is None or cerca > melhor[0]): melhor = (cerca, i, r0)
     if not melhor: print(nome, 'peito escondido'); continue
     _, i, r = melhor; lx, ly = cen[i]
-    cx = float(ALVO[nome])
-    if abs(cx - lx) < 3: print(nome, 'já no centro'); continue
+    alvo = ALVO[nome] if isinstance(ALVO[nome], tuple) else (ALVO[nome], None)
+    cx = float(alvo[0]); cy = float(alvo[1]) if alvo[1] is not None else ly
+    if abs(cx - lx) < 3 and abs(cy - ly) < 3: print(nome, 'já no centro'); continue
     R = r * 1.5
     # Apaga a luz antiga: o plástico bege em volta é liso, então o buraco é preenchido com uma superfície suave
     # (polinômio de grau 2 por canal) ajustada só nos pixels bege ao redor; as juntas escuras não vazam para dentro.
@@ -59,13 +60,13 @@ for path in sorted(glob.glob(os.path.join(PASTA, 'pose-*.webp'))):
     apaga = np.clip((R * 1.25 - d0) / (R * 0.55), 0, 1)[:, :, None] * beige_ou_luz(d0 < R * 1.1, beige, luz, d0, R * 1.25)
     limpo = rgb * (1 - apaga) + liso * apaga
     # A luz (núcleo, aro e brilho) colada no meio, na mesma altura, com a borda suave sobre o bege do lugar novo.
-    dx = int(round(cx - lx))
-    M = np.float32([[1, 0, dx], [0, 1, 0]])
+    dx = int(round(cx - lx)); dy = int(round(cy - ly))
+    M = np.float32([[1, 0, dx], [0, 1, dy]])
     luzrgb = cv2.warpAffine(rgb, M, (W, H), borderMode=cv2.BORDER_REPLICATE)
-    d2 = np.hypot(xx - (lx + dx), yy - ly)
+    d2 = np.hypot(xx - (lx + dx), yy - (ly + dy))
     proprio = cv2.warpAffine(beige_ou_luz(d0 < r * 1.06, beige, luz, d0, R)[:, :, 0].astype(np.uint8), M, (W, H)).astype(bool)
     alfa = (np.clip((r * 1.32 - d2) / (r * 0.22), 0, 1) * proprio)[:, :, None]
     novo = np.clip(luzrgb * alfa + limpo * (1 - alfa), 0, 255).astype(np.uint8)
     out = im.copy(); out[:, :, :3] = novo
     Image.fromarray(out).save(path, quality=92)
-    print(nome, f'luz de x={lx:.0f} para x={cx:.0f}')
+    print(nome, f'luz de ({lx:.0f}, {ly:.0f}) para ({cx:.0f}, {cy:.0f})')

@@ -53,7 +53,7 @@ export function JourneyIndex() {
       platform,
       h.state === 'pausada' ? (last ? `Pausado desde ${monthOf(last.startedAt)}` : 'Pausado') : last ? `Última sessão ${ago(last.startedAt)}` : n > 1 ? `${n} Histórias` : 'Primeira História',
       !light && h.progress ? `${h.progress}%` : null,
-      note?.note ? `“${note.note}”` : h.state === 'ativa' ? 'Sem recado' : null,
+      note?.note ? `“${note.note}”` : last?.whereStopped ? `Parou em ${last.whereStopped}` : h.state === 'ativa' ? 'Sem recado' : null,
     ];
     return bits.filter(Boolean).join(' · ');
   };

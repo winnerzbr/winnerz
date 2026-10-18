@@ -299,6 +299,8 @@ export interface Prefs {
   focusJourneyId?: ID | null;
   /** Até três Jornadas em foco; a primeira é a principal. */
   focusIds?: ID[];
+  /** Quando a pessoa mexeu no foco pela última vez: uma sessão depois disso põe o jogo dela na frente. */
+  focusAt?: string;
   /** Fundo escolhido pela pessoa para cada jogo ("Usar como fundo" na galeria). */
   backdrops?: Record<ID, string>;
   /** Tom das celebrações e mensagens. */

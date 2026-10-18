@@ -12,6 +12,7 @@ import { CameoJornada } from '../components/IAmiguinho';
 import { consumirZerado } from '../lib/iamiguinho';
 import { CaptureImportSheet } from '../components/CaptureImport';
 import { recapFor } from '../lib/recap';
+import { zereiPedeConfirmacao, minutosDaHistoria } from '../lib/zerei';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, navigate } from '../lib/router';
@@ -134,6 +135,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     packAfterFinish(h.id, game.id);
     setCelebrating({ ...h });
   };
+
+  /** A carta de cada História: lacrada enquanto joga, pronta para abrir depois de zerar, ou já aberta. */
+  const letters = Object.fromEntries(histories.filter((h) => h.letter).map((h) => [h.id, { ready: h.state === 'concluida', text: h.letter!.openedAt ? h.letter!.text : undefined }]));
 
   const stickerImage = [...allEvents].reverse().find((e) => e.image)?.image ?? bg ?? game.cover;
 
@@ -326,7 +330,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
               <OutlineStrip game={game} history={current} />
               <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
-              <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>
+              {zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
+                ? <ConfirmButton className="btn ghost jprog__done" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
+                : <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>}
               <LetterLine historyId={current.id} />
             </section>
           ) : (
@@ -339,13 +345,34 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 <TrailerButton game={game} history={current} className="btn ghost" />
                 <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
               </div>
+              {current.letter && <SealedLetter key={current.id} text={current.letter.text} date={dayMonthYear(current.startedAt)} opened={!!current.letter.openedAt} onOpen={() => actions.openLetter(current.id)} />}
             </section>
           )}
 
+          {current.state === 'concluida' ? (waypoints.length > 0 && (
+            <section className="card jcap" aria-labelledby="capsula">
+              <div className="jcap__head">
+                <h2 id="capsula" className="t">{waypoints.length === 1 ? 'Um ponto ficou aberto' : `${waypoints.length} pontos ficaram abertos`}</h2>
+                <button className="btn ghost sm" onClick={() => waypoints.forEach((w) => actions.resolveWaypoint(w.id))}>Resolver todos</button>
+              </div>
+              <p className="muted">Você zerou com estes pontos para voltar. Resolva os que já não importam; os outros esperam uma próxima História.</p>
+              <div className="jcap__wps">
+                <ul>
+                  {waypoints.map((w) => (
+                    <li key={w.id}>
+                      {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
+                      <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
+                      <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          )) : (
           <section className="card jcap" aria-labelledby="capsula">
             <div className="jcap__head">
               <h2 id="capsula" className="t">Onde você parou</h2>
-              {current.state !== 'concluida' ? <span className="jcap__tools">{away != null && away >= 3 && <Link className="btn ghost sm" to={`/jornada/${game.slug}/voltar`}>Preparar a volta</Link>}<button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span> : <span className="kicker kicker--now">Cápsula de retomada</span>}
+              <span className="jcap__tools">{away != null && away >= 3 && <Link className="btn ghost sm" to={`/jornada/${game.slug}/voltar`}>Preparar a volta</Link>}<button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
             </div>
             <div className="jcap__grid">
               {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}
@@ -370,6 +397,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             </div>
             <p className="faint jcap__src">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
           </section>
+          )}
         </div>
 
         <PactList gameId={game.id} game={game} title="Pactos deste jogo" />
@@ -405,9 +433,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           ) : !hasEvents && !todayInfo && !byStructure ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
           ) : mode === 'faixa' && byStructure ? (
-            <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} />
+            <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
           ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} />
+            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
           ) : (
             <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
           )}

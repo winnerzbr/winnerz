@@ -1,6 +1,7 @@
 import { useStore, openSession } from '../data/store';
 import { Link, navigate } from '../lib/router';
 import { Icon } from './Icon';
+import { hourMin } from '../lib/format';
 
 /** Barra compacta enquanto há sessão aberta. Não mostra cronômetro de "tempo jogado". */
 export function SessionDock() {
@@ -11,7 +12,7 @@ export function SessionDock() {
     return j ? s.games[j.gameId] : null;
   });
   if (!session || !game) return null;
-  const since = new Date(session.startedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  const since = hourMin(session.startedAt);
 
 
   return (

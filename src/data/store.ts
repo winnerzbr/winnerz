@@ -1,3 +1,4 @@
+import { pontoTitulo } from '../lib/pontoTitulo';
 import { keepFixes } from '../lib/fixes';
 import { useSyncExternalStore } from 'react';
 import type { State, Prefs, Session, TimelineEvent, History, Journey, ID, EventKind, Review, Game, Copy, MyGame, HistoryState, DatePrecision, Capsule, Hardware, Loan, Showcase, Museum, MuseumRoom, PartMark } from './types';
@@ -440,23 +441,31 @@ export function knownCompanions(s: State): string[] {
 
 export const MAX_FOCUS = 3;
 
+/** Só as Jornadas que a pessoa fixou em "Jogando agora" (é o que as ações de fixar e tirar leem e gravam). */
+export function pinnedJourneys(s: State): Journey[] {
+  const ids = s.prefs.focusIds ?? (s.prefs.focusJourneyId ? [s.prefs.focusJourneyId] : s.prefs.focusJourneyId === null ? [] : s.focusJourneyId ? [s.focusJourneyId] : []);
+  return ids.map((id) => s.journeys.find((j) => j.id === id))
+    .filter((j): j is Journey => !!j && isOpenState(currentHistory(s, j.id)?.state))
+    .slice(0, MAX_FOCUS);
+}
+
 /**
- * Jornadas em foco (até três, a primeira é a principal), escolhidas pela pessoa.
- * Sem escolha, o foco é a Jornada da sessão aberta, ou a da sessão mais recente.
+ * Jornadas em foco (até três, a primeira é a principal): a da sessão aberta ou da última sessão vem na frente,
+ * seguida das que a pessoa fixou.
  */
 export function focusJourneys(s: State): { journey: Journey; chosen: boolean }[] {
-  const ids = s.prefs.focusIds ?? (s.prefs.focusJourneyId ? [s.prefs.focusJourneyId] : s.prefs.focusJourneyId === null ? [] : s.focusJourneyId ? [s.focusJourneyId] : []);
-  const chosen = ids.map((id) => s.journeys.find((j) => j.id === id))
-    .filter((j): j is Journey => !!j && isOpenState(currentHistory(s, j.id)?.state))
-    .slice(0, MAX_FOCUS).map((journey) => ({ journey, chosen: true }));
-  if (chosen.length) return chosen;
+  const chosen = pinnedJourneys(s).map((journey) => ({ journey, chosen: true }));
+  // O jogo da sessão aberta (ou da última sessão) vai na frente: quem acabou de jogar outro jogo não precisa
+  // fixá-lo para ele virar o destaque. Os fixados continuam logo atrás.
+  // Se a pessoa escolheu a principal depois da última sessão, a escolha dela vale até a próxima sessão.
   const open = openSession(s);
-  const byOpen = open && s.journeys.find((j) => j.id === open.journeyId);
-  if (byOpen) return [{ journey: byOpen, chosen: false }];
-  const recent = [...s.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
-    .map((x) => s.journeys.find((j) => j.id === x.journeyId))
-    .find((j) => j && isOpenState(currentHistory(s, j.id)?.state));
-  return recent ? [{ journey: recent, chosen: false }] : [];
+  const lastSess = open ?? [...s.sessions].sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+    .find((x) => isOpenState(currentHistory(s, x.journeyId)?.state));
+  const recent = lastSess && s.journeys.find((j) => j.id === lastSess.journeyId);
+  if (!recent || !isOpenState(currentHistory(s, recent.id)?.state)) return chosen;
+  if (!open && chosen.length && s.prefs.focusAt && Date.parse(s.prefs.focusAt) > Date.parse(lastSess!.startedAt)) return chosen;
+  const pinned = chosen.find((f) => f.journey.id === recent.id);
+  return [pinned ?? { journey: recent, chosen: false }, ...chosen.filter((f) => f.journey.id !== recent.id)].slice(0, MAX_FOCUS);
 }
 
 /** A Jornada principal em foco (Início, botão de jogar). */
@@ -672,7 +681,7 @@ export const actions = {
     const id = data.id ?? uid();
     dispatch({
       type: 'event.add',
-      event: { id, journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title ?? (kind === 'ponto' ? 'Quero voltar aqui' : 'Momento guardado'), text: data.text, quote: data.quote, image: data.image, imagePath: data.imagePath },
+      event: { id, journeyId: ses.journeyId, historyId: ses.historyId, sessionId, kind, at: nowIso(), title: data.title?.trim() || (kind === 'ponto' ? pontoTitulo(data.text ?? data.quote) : 'Momento guardado'), text: data.text, quote: data.quote, image: data.image, imagePath: data.imagePath },
     });
     return id;
   },
@@ -690,19 +699,19 @@ export const actions = {
   /** Põe em foco. Retorna false quando já há três jogos em foco. */
   addFocus(journeyId: ID): boolean {
     track('jornada.foco');
-    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id);
+    const ids = pinnedJourneys(state).map((j) => j.id);
     if (ids.includes(journeyId)) return true;
     if (ids.length >= MAX_FOCUS) return false;
-    dispatch({ type: 'prefs', prefs: { focusIds: [...ids, journeyId], focusJourneyId: null } });
+    dispatch({ type: 'prefs', prefs: { focusIds: [...ids, journeyId], focusJourneyId: null, focusAt: nowIso() } });
     return true;
   },
   removeFocus(journeyId: ID) {
-    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id).filter((id) => id !== journeyId);
+    const ids = pinnedJourneys(state).map((j) => j.id).filter((id) => id !== journeyId);
     dispatch({ type: 'prefs', prefs: { focusIds: ids, focusJourneyId: null } });
   },
   makePrincipal(journeyId: ID) {
-    const ids = focusJourneys(state).filter((f) => f.chosen).map((f) => f.journey.id).filter((id) => id !== journeyId);
-    dispatch({ type: 'prefs', prefs: { focusIds: [journeyId, ...ids].slice(0, MAX_FOCUS), focusJourneyId: null } });
+    const ids = pinnedJourneys(state).map((j) => j.id).filter((id) => id !== journeyId);
+    dispatch({ type: 'prefs', prefs: { focusIds: [journeyId, ...ids].slice(0, MAX_FOCUS), focusJourneyId: null, focusAt: nowIso() } });
   },
   /** Compatibilidade: definir (ou limpar) o foco principal. */
   setFocus(journeyId: ID | null) {

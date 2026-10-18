@@ -19,6 +19,7 @@ import { Backdrop, useBackdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
 import { shrink, toDataUrl } from '../lib/image';
 import { say as toneLine } from '../lib/tone';
+import { zereiPedeConfirmacao, minutosDaHistoria } from '../lib/zerei';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { marcarZerado } from '../lib/iamiguinho';
 import { Previously, CapsuleSheet } from '../components/Retomada';
@@ -129,6 +130,9 @@ export function SessionPage() {
     });
   };
   const pickPhoto = (kind: 'momento' | 'ponto') => { photoKind.current = kind; fileInput.current?.click(); };
+  // No celular, os botões grandes abrem a câmera (foto da TV). No computador, abrem a folha; a foto fica opcional nela.
+  const touch = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+  const capture = (kind: 'momento' | 'ponto') => (touch ? pickPhoto(kind) : setDraft({ kind, title: '', note: '' }));
 
   const saveDraft = async (d: Draft) => {
     setDraft(null);
@@ -175,8 +179,8 @@ export function SessionPage() {
           <p className="session__hint">Começou às {hourMin(session.startedAt)}. Jogue à vontade: o WinnerZ não precisa ficar aberto.</p>
           <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
           <div className="session__main-actions">
-            <button className="btn primary lg" onClick={() => pickPhoto('momento')}><Icon name="camera" size={20} />Guardar momento</button>
-            <button className="btn ghost lg" onClick={() => pickPhoto('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
+            <button className="btn primary lg" onClick={() => capture('momento')}><Icon name="camera" size={20} />Guardar momento</button>
+            <button className="btn ghost lg" onClick={() => capture('ponto')}><Icon name="pin" size={20} />Quero voltar aqui</button>
           </div>
           <div className="session__cards">
             <StartPartCard game={g} history={h} session={session} />
@@ -307,6 +311,9 @@ function FinishForm({ game, history, onSavePhoto, progress, startedAt, goal, int
   const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: (open && doneText ? `Fez: ${doneText}`.slice(0, 140) : where.trim()) || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined,
     partTo: !open && chosen ? { id: chosen.part.id, name: chosen.part.name, src: chosen.src } : undefined,
     partDone: open && picked.length ? picked.map((x) => ({ id: x.part.id, name: x.part.name, src: x.src })) : undefined });
+  // "Zerei" fica logo abaixo de "Finalizar": sempre pede um segundo toque, para um toque sem querer não virar festa.
+  const [zArmed, setZArmed] = useState(false);
+  useEffect(() => { if (!zArmed) return; const t = setTimeout(() => setZArmed(false), 6000); return () => clearTimeout(t); }, [zArmed]);
   const close = (fn: (d: FinishData) => void) => {
     const d = data();
     if (!open && chosen && outline) actions.setHistoryPart(history.id, { id: chosen.part.id, pct: chosen.part.pct }, parts);
@@ -385,7 +392,9 @@ function FinishForm({ game, history, onSavePhoto, progress, startedAt, goal, int
           </>}
         </div>
       )}
-      <button type="button" className="finish__zerei" onClick={() => close(onZerei)}>Zerei a campanha nesta sessão</button>
+      <button type="button" className={`finish__zerei${zArmed ? ' is-armed' : ''}`} aria-live="polite" onClick={() => (zArmed ? close(onZerei) : setZArmed(true))}>
+        {zArmed ? (zereiPedeConfirmacao(minutosDaHistoria(sessionsOf(st, history.id), history.id) + (minutes ?? 0), p) ? 'Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo' : 'Toque de novo para marcar Zerou') : 'Zerei a campanha nesta sessão'}
+      </button>
     </form>
   );
 }

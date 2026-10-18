@@ -1,5 +1,5 @@
-# Backup semanal do WinnerZ, para rodar no repositório PRIVADO winnerzbr/winnerz-backup
-# (copie este arquivo para .github/workflows/backup.yml de lá). Banco e arquivos do Storage, trancados com senha.
+# Backup semanal do WinnerZ, no repositório PRIVADO winnerzbr/winnerz-backup-private
+# (modelo em scripts/backup-privado/backup.yml do repositório do site). Banco e arquivos do Storage, trancados com senha.
 # O arquivo do backup e o registro da execução ficam só para quem tem acesso ao repositório privado.
 # O código (o script do Storage) vem do repositório público do site.
 # Guia completo (ligar, baixar e restaurar): README do site, seção "Backup semanal".
@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: '17 6 * * 0' # domingo, 03:17 em Brasília
   workflow_dispatch:
+  # Roda também quando esta rotina muda (assim a primeira versão já faz um backup de teste).
+  push:
+    branches: [main]
+    paths: ['.github/workflows/backup.yml']
 
 permissions:
   contents: read
@@ -109,8 +113,36 @@ jobs:
         with:
           node-version: 22
 
+      - name: Conferir SUPABASE_URL e SUPABASE_SECRET_KEY
+        run: |
+          # Confere o formato sem nunca imprimir os valores.
+          python3 - <<'PY'
+          import os, sys, re
+          u = os.environ.get("SUPABASE_URL", "").strip()
+          k = os.environ.get("SUPABASE_SECRET_KEY", "").strip()
+          erros = []
+          if not u: erros.append("SUPABASE_URL está vazio")
+          elif not re.fullmatch(r"https://[a-z0-9]{10,40}\.supabase\.co/?", u):
+              if "supabase.com/dashboard" in u: erros.append("SUPABASE_URL é o endereço do painel; use o Project URL (https://<id>.supabase.co), em Project Settings → Data API")
+              elif re.match(r"https://[a-z0-9]+\.supabase\.co/.+", u): print("::notice::SUPABASE_URL tem algo depois de .supabase.co (ex.: /rest/v1); o backup usa só o começo.")
+              else: erros.append("SUPABASE_URL não parece o Project URL (https://<id>.supabase.co)")
+          if not k: erros.append("SUPABASE_SECRET_KEY está vazio")
+          elif k.startswith("sb_publishable_"): erros.append("SUPABASE_SECRET_KEY é a chave pública (sb_publishable_); use uma secret key (sb_secret_)")
+          elif not (k.startswith("sb_secret_") or k.startswith("eyJ")): erros.append("SUPABASE_SECRET_KEY não parece uma chave do Supabase (deveria começar com sb_secret_ ou eyJ)")
+          if k != os.environ.get("SUPABASE_SECRET_KEY", ""): erros.append("SUPABASE_SECRET_KEY tem espaço ou quebra de linha no começo ou no fim; cole de novo sem eles")
+          for e in erros: print(f"::error::{e}.")
+          sys.exit(1 if erros else 0)
+          PY
+
       - name: Arquivos do Storage
-        run: node codigo/scripts/backup-storage.mjs backup/storage
+        run: |
+          # Só o começo do endereço (https://<id>.supabase.co), mesmo que o segredo tenha /rest/v1 ou outra coisa no fim.
+          export SUPABASE_URL=$(printf '%s' "$SUPABASE_URL" | tr -d '[:space:]' | sed -E 's#^(https://[a-z0-9]+\.supabase\.co).*#\1#')
+          if ! node codigo/scripts/backup-storage.mjs backup/storage 2>storage.err; then
+            msg=$(grep -m1 -E "Error|: [0-9]{3}" storage.err | sed -E 's#https?://[^ ]+#<endereço>#g' | cut -c1-200)
+            echo "::error::Falha ao copiar os arquivos do Storage: ${msg:-veja o registro}"
+            exit 1
+          fi
 
       - name: Empacotar e trancar
         run: |

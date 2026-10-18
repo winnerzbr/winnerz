@@ -36,7 +36,7 @@ export function Figura({ img, className = '', width, height, parada = false, enf
   const [estado, setEstado] = useState<Estado>('normal');
   const [cara, setCara] = useState<Expressao | null>(null);
   const toques = useRef<number[]>([]);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   const [epocaHoje] = useState<Epoca | null>(() => epocaAtual());
   const epoca = enfeite ? epocaHoje : null;

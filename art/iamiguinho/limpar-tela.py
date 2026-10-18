@@ -15,6 +15,9 @@ meta = {}
 # apagado, e sai uma máscara (-tela.webp) com a parte visível da tela, para o rosto em vetor ficar atrás do objeto.
 NA_FRENTE = {'pose-controle'}
 mascaras = set()
+# Onde a medida automática erra (a tela meio coberta), o rosto vai para onde estava na arte original: centro (x, y em
+# %) e inclinação medidos nos olhos e na boca originais.
+AJUSTE = {'pose-controle': {'x': 50.3, 'y': 44.6, 'w': 52.0, 'a': -11.0}}
 placas = {}
 for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
     name = os.path.basename(path)[:-len('-corpo.webp')]
@@ -32,6 +35,7 @@ for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
     i = 1 + np.argmax(st[1:, cv2.CC_STAT_AREA])
     tela = (lab == i).astype(np.uint8)
     objeto = None
+    casco = None
     if name in NA_FRENTE:
         azul = ((a > 200) & (v < 70) & (h > 95) & (h < 135) & (s > 70)).astype(np.uint8) & tela
         azul = cv2.morphologyEx(azul, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
@@ -56,13 +60,34 @@ for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
     luz = cv2.dilate(luz.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=2)
     luz &= cv2.erode(cheia, np.ones((3, 3), np.uint8), iterations=2)
     if objeto is not None:
-        luz &= (1 - objeto)
+        # Só o vidro: tira a moldura bege da cabeça e o objeto; a luz é repintada com o degradê suave do próprio vidro
+        # (ajuste de grau 2 nos pixels escuros), para nada da moldura ou do objeto vazar para dentro.
+        bege = (h >= 5) & (h <= 30) & (s > 35) & (v > 90)
+        vidro = cv2.dilate(casco, np.ones((9, 9), np.uint8)).astype(bool) & ~bege & (objeto == 0) & (a > 200)
+        vidro = cv2.morphologyEx(vidro.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)).astype(bool) & ~bege & (objeto == 0)
+        luz = (vidro & (dark == 0) & ~reflexo).astype(np.uint8)
+        luz = cv2.dilate(luz, np.ones((3, 3), np.uint8)) & vidro.astype(np.uint8)
+        ys, xs = np.nonzero(vidro & (dark == 1) & ~cv2.dilate(luz, np.ones((7, 7), np.uint8)).astype(bool))
+        cx0, cy0, esc = xs.mean(), ys.mean(), max(W, H) / 4
+        def base(x, y):
+            x = (x - cx0) / esc; y = (y - cy0) / esc
+            return np.stack([np.ones_like(x), x, y, x * x, x * y, y * y], -1)
+        coef, *_ = np.linalg.lstsq(base(xs.astype(float), ys.astype(float)), rgb[ys, xs].astype(float), rcond=None)
+        yy, xx = np.mgrid[0:H, 0:W]
+        liso = np.clip(base(xx.astype(float), yy.astype(float)) @ coef, 0, 255).astype(np.uint8)
         visivel = (cv2.dilate(cheia, np.ones((25, 25), np.uint8)) & (1 - objeto)) * 255
         mimg = np.zeros((H, W, 4), np.uint8); mimg[:, :, 3] = visivel
         Image.fromarray(mimg).save(os.path.join(out, name + '-tela.webp'), lossless=True)
         mascaras.add(name)
-    limpo = cv2.inpaint(rgb, luz, 7, cv2.INPAINT_TELEA)
-    outim = im.copy(); outim[:, :, :3] = np.where(luz[:, :, None] == 1, limpo, rgb)
+    outim = im.copy()
+    if objeto is not None:
+        # Borda suave entre o vidro repintado e o original.
+        alfa = np.clip(cv2.GaussianBlur(cv2.dilate(luz, np.ones((5, 5), np.uint8)).astype(np.float32), (0, 0), 3) * 1.6, 0, 1)
+        alfa *= vidro
+        outim[:, :, :3] = (liso * alfa[:, :, None] + rgb * (1 - alfa[:, :, None])).astype(np.uint8)
+    else:
+        limpo = cv2.inpaint(rgb, luz, 7, cv2.INPAINT_TELEA)
+        outim[:, :, :3] = np.where(luz[:, :, None] == 1, limpo, rgb)
     Image.fromarray(outim).save(path, quality=92)
     (cx, cy), (rw, rh), ang = cv2.minAreaRect(c)
     if rw < rh: rw, rh, ang = rh, rw, ang + 90
@@ -80,6 +105,8 @@ for path in sorted(glob.glob(os.path.join(src, '*-corpo.webp'))):
                 if pa < -45: pw, ph, pa = ph, pw, pa + 90
                 placas[name] = {'x': round(px / W * 100, 2), 'y': round(py / H * 100, 2), 'w': round(pw / W * 100, 2), 'h': round(ph / H * 100, 2), 'r': round(pw / ph, 3), 'a': round(pa, 1)}
     meta[name] = {'x': round(cx / W * 100, 2), 'y': round(cy / H * 100, 2), 'w': round(rw / W * 100, 2), 'h': round(rh / H * 100, 2), 'a': round(ang, 1)}
+for k, aj in AJUSTE.items():
+    if meta.get(k): meta[k].update(aj)
 ts = os.path.join(ROOT, 'src', 'lib', 'iamiguinhoTela.ts')
 linhas = [f"  '{k}': {{ x: {v['x']}, y: {v['y']}, w: {v['w']}, a: {v['a']} }}," for k, v in sorted(meta.items()) if v]
 open(ts, 'w').write('/** Gerado por art/iamiguinho/limpar-tela.py: a tela do rosto em cada imagem (centro e largura em %, inclinação em graus). */\nexport const TELA: Record<string, { x: number; y: number; w: number; a: number }> = {\n' + '\n'.join(linhas) + '\n};\n'

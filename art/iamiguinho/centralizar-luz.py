@@ -1,6 +1,9 @@
-# IAmiguinho: a luz azul do peito fica no centro do tronco. Nas imagens geradas ela saiu deslocada para um lado; este
-# script acha a luz (o círculo azul-claro cercado de bege), apaga ela com inpainting e redesenha no meio do tronco,
-# na mesma altura. Poses em que o peito está escondido (controle, mapa, placa, espiando) ficam como estão.
+# IAmiguinho: a luz azul do peito fica no centro do tronco. Nas poses de frente das imagens geradas ela saiu
+# deslocada para um lado; este script acha a luz (o círculo azul-claro cercado de bege), apaga e redesenha na linha
+# do meio do tronco, na mesma altura. A linha do meio de cada pose foi conferida uma a uma: o ponto médio entre as
+# juntas dos ombros e entre as do quadril (ALVO, em pixels da imagem original).
+# Nas poses de três quartos (atrasado, herói, planando, troféu) o tronco está virado e a luz original já acompanha o
+# giro; elas ficam como estão, assim como as poses em que o peito está escondido.
 # Rode antes do separar-helice.py e do limpar-tela.py:
 #   python3 art/iamiguinho/centralizar-luz.py && python3 art/iamiguinho/separar-helice.py && python3 art/iamiguinho/limpar-tela.py
 # Muda public/brand/iamiguinho/pose-*.webp no lugar. Rodar de novo não muda nada (a luz já está no centro).
@@ -17,10 +20,12 @@ def beige_ou_luz(nucleo, beige, luz, d0, R):
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
 PASTA = os.path.join(ROOT, 'public', 'brand', 'iamiguinho')
 nomes = sys.argv[1:] or None
+ALVO = {'pose-acenando': 171, 'pose-cabo': 212, 'pose-dormindo': 181, 'pose-pacote': 139}
 
 for path in sorted(glob.glob(os.path.join(PASTA, 'pose-*.webp'))):
     nome = os.path.basename(path)[:-5]
     if nomes and nome not in nomes: continue
+    if nome not in ALVO: continue
     im = np.array(Image.open(path).convert('RGBA')); H, W = im.shape[:2]
     rgb = np.ascontiguousarray(im[:, :, :3]); a = im[:, :, 3]
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
@@ -38,17 +43,8 @@ for path in sorted(glob.glob(os.path.join(PASTA, 'pose-*.webp'))):
         if cerca > 0.45 and (melhor is None or cerca > melhor[0]): melhor = (cerca, i, r0)
     if not melhor: print(nome, 'peito escondido'); continue
     _, i, r = melhor; lx, ly = cen[i]
-    # O meio do tronco: média dos trechos bege que passam sob a luz, um pouco abaixo dela.
-    centros = []
-    for row in range(int(ly + r * 1.6), int(ly + r * 3.0)):
-        xs = np.where(beige[row])[0]
-        if not len(xs): continue
-        segs = np.split(xs, np.where(np.diff(xs) > 3)[0] + 1)
-        seg = [sg for sg in segs if sg[0] - r <= lx <= sg[-1] + r]
-        if seg and seg[0][-1] - seg[0][0] > r * 4: centros.append((seg[0][0] + seg[0][-1]) / 2)
-    if not centros: print(nome, 'tronco não achado'); continue
-    cx = float(np.median(centros))
-    if abs(cx - lx) < r * 0.5: print(nome, 'já no centro'); continue
+    cx = float(ALVO[nome])
+    if abs(cx - lx) < 3: print(nome, 'já no centro'); continue
     R = r * 1.5
     # Apaga a luz antiga: o plástico bege em volta é liso, então o buraco é preenchido com uma superfície suave
     # (polinômio de grau 2 por canal) ajustada só nos pixels bege ao redor; as juntas escuras não vazam para dentro.

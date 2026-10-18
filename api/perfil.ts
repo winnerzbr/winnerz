@@ -57,6 +57,20 @@ async function signAll(c: { url: string; headers: Record<string, string> }, item
  * Quem está pedindo (se mandou o token da conta). Serve só para respeitar o bloqueio: quem foi bloqueado
  * não vê o perfil de quem bloqueou enquanto estiver na própria conta (migração 0024).
  */
+/**
+ * Site fechado (migração 0076): com o site fechado, só a administração e quem tem convite usam as funções.
+ * Sem login, vale só se o site estiver aberto. Sem a migração (ou com o banco fora do ar), deixa passar.
+ */
+async function memberOk(user: string | null): Promise<boolean> {
+  const c = db();
+  if (!c) return true;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/${user ? 'site_member_of' : 'site_open'}`, { method: 'POST', headers: c.headers, body: JSON.stringify(user ? { p_user: user } : {}) });
+    if (!r.ok) return true;
+    return (await r.json()) === true;
+  } catch { return true; }
+}
+
 async function viewerId(c: { url: string; headers: Record<string, string> }, req: Req): Promise<string | null> {
   const auth = one(req.headers?.authorization ?? req.headers?.Authorization);
   const token = /^Bearer\s+(.+)$/i.exec(auth)?.[1];
@@ -83,10 +97,13 @@ export default async function handler(req: Req, res: Res) {
   if (req.method && req.method !== 'GET') return res.status(405).json({ error: 'Método não aceito.' });
   const h = one(req.query?.h).slice(0, 40), j = one(req.query?.j).slice(0, 120), k = one(req.query?.k).slice(0, 64);
   const t = one(req.query?.t).slice(0, 40);
+  // Com o site fechado, perfis, Jornadas, Museus e trechos só abrem para a administração e convidados.
+  const asker = await viewerId(c, req);
+  if (!(await memberOk(asker))) return res.status(403).json({ error: 'site_fechado' });
   if (t) {
     // Um trecho: quem decide é a snip_get (bloqueio, moderação, suspensão); aqui só assinamos a foto.
     try {
-      const viewer = await viewerId(c, req);
+      const viewer = asker;
       const r = await fetch(`${c.url}/rest/v1/rpc/snip_get`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_token: t, p_viewer: viewer }) });
       if (!r.ok) return res.status(r.status === 404 ? 503 : 502).json({ error: 'Para abrir trechos, rode a migração 0049 no Supabase.' });
       const data = (await r.json()) as (Ev & { owner?: { handle?: string } }) | null;
@@ -98,7 +115,7 @@ export default async function handler(req: Req, res: Res) {
       return res.status(500).json({ error: 'Não consegui carregar o trecho.' });
     }
   }
-  const viewer = h ? await viewerId(c, req) : null;
+  const viewer = h ? asker : null;
   if (h && (await blocked(c, h, viewer))) return res.status(404).json({ error: 'not_found' });
   // Com a conta de quem pede, valem as regras de "só amigos" (migração 0025); sem ela, cai na função de sempre.
   const rpc = async (fn: string, body: Record<string, unknown>, asFn = `${fn}_as`) => {

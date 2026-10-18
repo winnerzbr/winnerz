@@ -12,7 +12,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm install --no-audit --no-fund
+      # Instala exatamente as versões do package-lock.json (nada novo entra sem passar por aqui).
+      - run: npm ci --no-audit --no-fund
       - name: Tipos
         run: npm run typecheck
       - name: Testes

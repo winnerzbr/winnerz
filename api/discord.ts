@@ -50,7 +50,27 @@ async function rest(method: string, path: string, body?: unknown, prefer?: strin
   if (!r.ok) throw new Error(`Banco respondeu ${r.status}`);
   return r.status === 204 ? null : r.json().catch(() => null);
 }
+/**
+ * Site fechado (migração 0076): com o site fechado, só a administração e quem tem convite usam as funções.
+ * Sem login, vale só se o site estiver aberto. Sem a migração (ou com o banco fora do ar), deixa passar.
+ */
+async function memberOk(user: string | null): Promise<boolean> {
+  const c = db();
+  if (!c) return true;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/${user ? 'site_member_of' : 'site_open'}`, { method: 'POST', headers: c.headers, body: JSON.stringify(user ? { p_user: user } : {}) });
+    if (!r.ok) return true;
+    return (await r.json()) === true;
+  } catch { return true; }
+}
+
+/** Quem pede, se for alguém que pode usar o site agora (ver memberOk). */
 async function requireUser(req: Req): Promise<string | null> {
+  const id = await whoIs(req);
+  return id && (await memberOk(id)) ? id : null;
+}
+
+async function whoIs(req: Req): Promise<string | null> {
   const c = db();
   const token = (header(req, 'authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!c || !token) return null;

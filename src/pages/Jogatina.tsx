@@ -20,6 +20,7 @@ import { gameBySlug } from '../components/AddGameDialog';
 import { plainText } from '../lib/postText';
 import { dayLong, hourLabel, localInput, relDay, spanLabel, whenLabel } from '../lib/when';
 import { Espiando } from '../components/IAmiguinho';
+import { safeHref } from '../lib/safeHref';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 /** Recado que a tela de marcar deixa para a página da jogatina (resultado dos convites). */
@@ -231,7 +232,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
                   ? <button className="btn ghost" aria-expanded={inviting} onClick={() => setInviting((x) => !x)}>Convidar</button>
                   : <button className="btn ghost" onClick={() => void copy()}>{copied ? 'Link copiado' : 'Copiar o link'}</button>}
                 {live && me && j.game && <PlayButton gameId={j.game.id} className="btn" idle="Abrir a sessão" />}
-                {j.liveUrl && <a className="btn ghost" href={j.liveUrl} target="_blank" rel="noopener noreferrer nofollow">{/twitch|youtube|kick/.test(j.liveUrl) ? 'Abrir a live' : /discord/.test(j.liveUrl) ? 'Abrir o Discord' : 'Abrir o link'} ↗</a>}
+                {j.liveUrl && <a className="btn ghost" href={safeHref(j.liveUrl)} target="_blank" rel="noopener noreferrer nofollow">{/twitch|youtube|kick/.test(j.liveUrl) ? 'Abrir a live' : /discord/.test(j.liveUrl) ? 'Abrir o Discord' : 'Abrir o link'} ↗</a>}
               </>
             )}
             {err && <p className="awards__error" role="alert">{err}</p>}

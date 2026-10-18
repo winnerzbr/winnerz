@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { embedOf, heightFromMessage, siteOf, type Embed } from '../lib/embeds';
 import { Icon } from './Icon';
+import { safeHref } from '../lib/safeHref';
 
 const host = () => (typeof location !== 'undefined' && location.hostname) || 'localhost';
 export const embedFor = (url: string) => embedOf(url, host());
@@ -43,7 +44,7 @@ export function EmbedFrame({ e }: { e: Embed }) {
       </div>
       <figcaption className="cm-embed__cap">
         <span>{e.label}</span>
-        <a href={e.url} target="_blank" rel="noopener noreferrer nofollow ugc">Abrir no {e.label === 'X' ? 'X' : e.label} <span aria-hidden="true">↗</span></a>
+        <a href={safeHref(e.url)} target="_blank" rel="noopener noreferrer nofollow ugc">Abrir no {e.label === 'X' ? 'X' : e.label} <span aria-hidden="true">↗</span></a>
       </figcaption>
     </figure>
   );
@@ -53,7 +54,7 @@ export function LinkCard({ url }: { url: string }) {
   let path = '';
   try { const u = new URL(url); path = decodeURI(u.pathname + u.search).replace(/\/$/, ''); } catch { /* link estranho */ }
   return (
-    <a className="cm-linkcard" href={url} target="_blank" rel="noopener noreferrer nofollow ugc">
+    <a className="cm-linkcard" href={safeHref(url)} target="_blank" rel="noopener noreferrer nofollow ugc">
       <span className="cm-linkcard__ic" aria-hidden="true"><Icon name="avancar" size={16} /></span>
       <span className="cm-linkcard__tx"><b>{siteOf(url)}</b>{path && <small>{path}</small>}</span>
     </a>

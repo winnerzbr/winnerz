@@ -19,6 +19,7 @@ import { ProfileMenu, ReportButton, useRelation } from '../components/Moderation
 import { AffinityCard, FollowButton } from '../components/Social';
 import { MessageButton } from './Messages';
 import { moderationApi } from '../data/moderationApi';
+import { safeHref } from '../lib/safeHref';
 
 export const pubShelfItem = (p: PublicPiece, k: number): ShelfItem => (p.t === 'c'
   ? { key: `c-${k}-${p.slug}`, t: 'c', title: p.title, cover: p.cover ?? '', platform: p.platform, slug: p.slug }
@@ -243,7 +244,7 @@ function Hero({ data, owner, preview, onShare, copied, onFollow }: { data: Publi
               {!preview && <MessageButton handle={data.handle} className="btn ghost" />}
               {!preview && <Link className="btn ghost" to={`/album/trocas?com=${encodeURIComponent(data.handle)}`}>Propor troca</Link>}
               {links.slice(0, 3).map((l, i) => (
-                <a key={l.url} className="btn ghost" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
+                <a key={l.url} className="btn ghost" href={safeHref(l.url)} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>
               ))}
               <ProfileMenu handle={data.handle} snapshot={{ handle: data.handle, bio: data.bio ?? null }} force={preview} />
             </>}
@@ -397,7 +398,7 @@ function Overview({ data, mine, qs, at, goTab }: { data: PublicProfile; mine: bo
         {!!data.links?.length && (
           <div className="pd-card">
             <span className="kicker">No canal</span>
-            <div className="pd-links">{data.links.map((l) => <a key={l.url} className="btn ghost sm" href={l.url} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>)}</div>
+            <div className="pd-links">{data.links.map((l) => <a key={l.url} className="btn ghost sm" href={safeHref(l.url)} target="_blank" rel="noopener noreferrer me">{linkLabel(l)}</a>)}</div>
           </div>
         )}
       </aside>

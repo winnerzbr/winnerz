@@ -12,6 +12,7 @@ import { searchGames, loadGame, type Hit } from './AddGameDialog';
 import { actions } from '../data/store';
 import { CoverArt } from './CoverArt';
 import { Icon } from './Icon';
+import { safeHref } from '../lib/safeHref';
 
 /* ------------------------------------------------------------------ */
 /* Tempo e pessoas                                                      */
@@ -117,7 +118,7 @@ function renderInline(n: Inline[]): ReactNode {
     switch (x.t) {
       case 'b': return <strong key={i}>{renderInline(x.c)}</strong>;
       case 'i': return <em key={i}>{renderInline(x.c)}</em>;
-      case 'link': return <a key={i} href={x.href} target="_blank" rel="noopener noreferrer nofollow ugc">{x.v}</a>;
+      case 'link': return <a key={i} href={safeHref(x.href)} target="_blank" rel="noopener noreferrer nofollow ugc">{x.v}</a>;
       case 'spoiler': return <InlineSpoiler key={i}>{renderInline(x.c)}</InlineSpoiler>;
       case 'mention': return <Link key={i} to={`/@${x.handle.toLowerCase()}`} className="cm-mention">@{x.handle}</Link>;
       default: return <Fragment key={i}>{x.v.split('\n').map((l, k) => <Fragment key={k}>{k > 0 && <br />}{l}</Fragment>)}</Fragment>;
@@ -147,7 +148,7 @@ export function PostText({ text, className = '', embeds = 0 }: { text: string; c
   const items = blocks.map((b, i) => {
     if (b.t === 'link') {
       if (left > 0 && !shown.has(b.url) && embedFor(b.url)) { left--; shown.add(b.url); return <EmbedBlock key={i} url={b.url} />; }
-      return embeds > 0 ? <LinkCard key={i} url={b.url} /> : <p key={i}><a href={b.url} target="_blank" rel="noopener noreferrer nofollow ugc">{b.url.replace(/^https?:\/\/(www\.)?/, '')}</a></p>;
+      return embeds > 0 ? <LinkCard key={i} url={b.url} /> : <p key={i}><a href={safeHref(b.url)} target="_blank" rel="noopener noreferrer nofollow ugc">{b.url.replace(/^https?:\/\/(www\.)?/, '')}</a></p>;
     }
     return b.t === 'p' ? <p key={i}>{renderInline(b.c)}</p>
       : b.t === 'quote' ? <blockquote key={i} className="cm-quote">{renderInline(b.c)}</blockquote>

@@ -15,6 +15,7 @@ import { useVideos } from '../data/videoApi';
 import { videosOf } from '../lib/ytLink';
 import { CanalPlaylist, PartVideoButton, VideoSheet } from './PartVideo';
 import { AchievementLinks } from './AchievementLinks';
+import { safeHref } from '../lib/safeHref';
 
 const durShort = (m?: number) => (!m ? '' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`);
 const STOPS: StopKind[] = ['qualquer', 'fim', 'pontos', 'longe'];
@@ -62,7 +63,7 @@ export function OutlineSource({ game, outline, onEdit }: { game: Game; outline: 
       <span className="ol-prov__tag"><Icon name="brilho" size={12} />{outline.confirmed ? 'Rascunho da IA · confirmado pela comunidade' : 'Inferido pela IA · confira'}</span>
       {!outline.confirmed && <span className="ol-prov__n">{n} de 3 confirmações</span>}
       {!!outline.sources?.length && (
-        <span className="ol-prov__src">Fonte: {outline.sources.map((x, i) => <span key={x.url}>{i > 0 ? ', ' : ''}<a href={x.url} target="_blank" rel="noopener noreferrer">{x.label}</a>{x.license ? ` (${x.license})` : ''}</span>)}</span>
+        <span className="ol-prov__src">Fonte: {outline.sources.map((x, i) => <span key={x.url}>{i > 0 ? ', ' : ''}<a href={safeHref(x.url)} target="_blank" rel="noopener noreferrer">{x.label}</a>{x.license ? ` (${x.license})` : ''}</span>)}</span>
       )}
       {!outline.confirmed && outline.canEdit && (
         <span className="ol-prov__acts">

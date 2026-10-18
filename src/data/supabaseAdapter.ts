@@ -312,7 +312,15 @@ export const supabaseAdapter: Adapter = {
     const base: State = { ...emptyState(), mode: 'supabase', ready: true };
     const { data: auth } = await sb.auth.getUser();
     const user = auth.user;
+    // Site fechado (migração 0076): o banco diz se está aberto e se quem entrou passa. Quem não passa
+    // não carrega nada (o banco recusaria); vê o "Em breve" ou a página do convite. Sem a migração, segue como antes.
+    const access = await sb.rpc('my_access').then((r) => (r.error ? null : (r.data as { open?: boolean; admin?: boolean; guest?: boolean } | null)), () => null);
+    if (access) base.siteOpen = !!access.open;
     if (!user) return base;
+    if (access && !access.open && !access.admin && !access.guest) {
+      const name: string = (user.user_metadata as { name?: string } | undefined)?.name || 'Jogador';
+      return { ...base, profile: { id: user.id, name, initial: name.slice(0, 1).toUpperCase() }, isAdmin: false, isGuest: false };
+    }
 
     loadIncomplete = false;
     const probe = await sb.from('my_games').select('game_id').limit(1);

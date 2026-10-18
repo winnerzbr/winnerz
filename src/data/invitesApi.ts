@@ -2,7 +2,7 @@
  * Acesso por convite com o site fechado (Etapa 6, entrega 1; migração 0023).
  * Com conta, tudo passa pelas funções do banco. Na demonstração, os convites ficam neste navegador.
  */
-import { actions, getState } from './store';
+import { actions, getState, reloadStore } from './store';
 
 export type InviteState = 'valido' | 'invalido' | 'revogado' | 'vencido' | 'esgotado';
 export type RedeemResult = 'ok' | 'ja_convidado' | InviteState;
@@ -35,7 +35,11 @@ const supabaseApi: InvitesApi = {
   async redeem(code) {
     const sb = await client();
     const r = ok(await sb.rpc('redeem_invite', { p_code: code })) as RedeemResult;
-    if (r === 'ok' || r === 'ja_convidado') actions.setGuest(true);
+    if (r === 'ok' || r === 'ja_convidado') {
+      // Com o site fechado, nada tinha sido carregado (o banco recusava): agora carrega tudo.
+      await reloadStore().catch(() => null);
+      actions.setGuest(true);
+    }
     return r;
   },
   async create(label, maxUses, days) { const sb = await client(); return ok(await sb.rpc('create_invite', { p_label: label, p_max_uses: maxUses, p_days: days })) as string; },

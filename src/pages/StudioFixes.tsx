@@ -9,6 +9,7 @@ import { CoverArt } from '../components/CoverArt';
 import { gameBySlug, refreshGame } from '../components/AddGameDialog';
 import { shortPlatform } from '../lib/platforms';
 import { Link } from '../lib/router';
+import { safeHref } from '../lib/safeHref';
 
 type Tab = 'fila' | 'revisadas' | 'qualidade';
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '').replace(/ de /g, ' ') : '');
@@ -142,7 +143,7 @@ function ReviewCard({ item, onDone, onError }: { item: QueueItem; onDone: (accep
         <small className="faint">{item.handle ? `@${item.handle}` : 'Alguém'} · {when(item.createdAt)}{item.sameOpen > 0 ? ` · mais ${item.sameOpen} ${item.sameOpen === 1 ? 'pessoa sugeriu' : 'pessoas sugeriram'} o mesmo campo` : ''}</small>
         <Diff item={item} />
         {item.note && <blockquote className="scard__note">{item.note}</blockquote>}
-        {item.source && <a className="scard__src" href={item.source} target="_blank" rel="noopener noreferrer nofollow">Fonte: {item.source.replace(/^https?:\/\//, '').slice(0, 60)}</a>}
+        {item.source && <a className="scard__src" href={safeHref(item.source)} target="_blank" rel="noopener noreferrer nofollow">Fonte: {item.source.replace(/^https?:\/\//, '').slice(0, 60)}</a>}
         {edit && item.field !== 'outro' && (
           <div className="scard__edit"><span className="kicker">Ajustar antes de aceitar</span><FixEditor game={item.game} field={item.field} value={value} onChange={setValue} id={`ed-${item.id}`} /></div>
         )}

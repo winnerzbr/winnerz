@@ -48,15 +48,40 @@ for path in sorted(glob.glob(os.path.join(src, '*.webp'))):
     for (x, y) in mask: mp[x, y] = 255
     m = m.filter(ImageFilter.MaxFilter(5)); mp = m.load()
     hel = Image.new('RGBA', (W, H)); hp = hel.load(); body = im.copy(); bp = body.load()
+    # Fumaça: manchas brancas/cinza grandes fora das pás (o brilho do miolo é pequeno e não conta); o que é claro e
+    # encosta nelas fica no corpo.
+    import numpy as np, cv2
+    arr = np.array(im); hsv_np = cv2.cvtColor(np.ascontiguousarray(arr[:, :, :3]), cv2.COLOR_RGB2HSV)
+    fum = ((arr[:, :, 3] > 60) & (hsv_np[:, :, 1] < 40) & (hsv_np[:, :, 2] > 204)).astype(np.uint8)
+    fum[lim + int(H * 0.05):, :] = 0
+    for (x, y) in mask: fum[y, x] = 0
+    kf, labf, stf, _ = cv2.connectedComponentsWithStats(fum, 8)
+    grande = np.isin(labf, [q for q in range(1, kf) if stf[q, cv2.CC_STAT_AREA] >= 150]).astype(np.uint8)
+    fp = cv2.dilate(grande, np.ones((21, 21), np.uint8))
+    def fumaca_perto(x, y): return fp[y, x] > 0
     n = 0
     for y in range(H):
         for x in range(W):
             if mp[x, y] and px[x, y][3] > 0:
                 p = px[x, y]; h, s, v = hsv(p)
-                if (x, y) not in mask and (s < 0.25 and v > 0.7): continue  # branco do boné ou fumaça
+                if (x, y) not in mask and (s < 0.4 and v > 0.7): continue  # branco do boné ou fumaça (também a borda clara dela)
+                if s < 0.6 and v > 0.78 and fumaca_perto(x, y): continue  # fumaça clara por cima da pá
                 if (x, y) not in mask and not (0.5 < h < 0.75): continue
                 hp[x, y] = p; bp[x, y] = (0, 0, 0, 0); n += 1
     # Restos soltos no corpo (bordas das pás, de poucos pixels) vão para a hélice: senão aparecem como cisco quando ela gira.
+    # Só o que está colado nas pás, ou encosta nelas com cor de pá: fumaça (branca/cinza) e gotas de suor (azul-claro),
+    # que ficam ao lado, continuam paradas no corpo.
+    perto = m.filter(ImageFilter.MaxFilter(9)).load()
+    def de_pa(comp):
+        dentro = sum(1 for (x, y) in comp if perto[x, y])
+        if not dentro: return False
+        fum = sum(1 for (x, y) in comp if fumaca_perto(x, y) and hsv(bp[x, y])[1] < 0.6 and hsv(bp[x, y])[2] > 0.7)
+        if fum > len(comp) * 0.3: return False  # resto da fumaça encostado na pá
+        if dentro >= len(comp) * 0.6: return True  # colado nas pás e no miolo: brilho ou borda delas
+        # Fumaça e gota são opacas e claras; a borda das pás que sobra é quase transparente.
+        cores = [(hsv(bp[x, y]), bp[x, y][3]) for (x, y) in comp]
+        claro = sum(1 for (h, s_, v), al in cores if al > 140 and ((s_ < 0.2 and v > 0.55) or (0.45 < h < 0.56 and v > 0.75)))
+        return claro <= len(comp) * 0.3
     vis = set()
     for y0 in range(lim):
         for x0 in range(W):
@@ -69,7 +94,7 @@ for path in sorted(glob.glob(os.path.join(src, '*.webp'))):
                         nx, ny = x+dx, y+dy
                         if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in vis and bp[nx, ny][3] > 8:
                             vis.add((nx, ny)); q.append((nx, ny))
-            if len(comp) <= 400 and not q:
+            if len(comp) <= 400 and not q and de_pa(comp):
                 for (x, y) in comp: hp[x, y] = bp[x, y]; bp[x, y] = (0, 0, 0, 0)
     ys = [y for (x, y) in mask]; xs = [x for (x, y) in mask]
     # eixo: ponto entre as duas pás (o meio da faixa mais estreita entre elas)

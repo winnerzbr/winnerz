@@ -97,6 +97,15 @@ const awardFromRow = (r: any): Award => ({
 });
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => { if (r.error) throw new Error(r.error.message); return r.data; };
 
+/** Por que a conta ainda não pode votar (função award_vote_block, migração 0074). */
+const VOTE_BLOCK: Record<string, string> = {
+  login: 'Entre na sua conta para votar.',
+  email: 'Confirme o seu e-mail para votar. Procure a mensagem do WinnerZ na sua caixa de entrada.',
+  arroba: 'Escolha o seu @ no perfil para votar.',
+  suspensa: 'Sua conta está suspensa no momento e não pode votar.',
+  conta_nova: 'Contas novas podem votar a partir do terceiro dia. Volte em breve!',
+};
+
 const supabaseApi: AwardsApi = {
   async list() {
     const sb = await getClient();
@@ -129,7 +138,13 @@ const supabaseApi: AwardsApi = {
   async vote(categoryId, nomineeId) {
     const sb = await getClient();
     if (!nomineeId) { ok(await sb.from('award_votes').delete().eq('category_id', categoryId)); return; }
-    ok(await sb.from('award_votes').upsert({ user_id: getState().profile?.id, category_id: categoryId, nominee_id: nomineeId }, { onConflict: 'user_id,category_id' }));
+    const r = await sb.from('award_votes').upsert({ user_id: getState().profile?.id, category_id: categoryId, nominee_id: nomineeId }, { onConflict: 'user_id,category_id' });
+    if (r.error) {
+      // Migração 0074: o banco diz por que a conta ainda não pode votar.
+      const why = (await sb.rpc('award_vote_block')).data as string | null;
+      if (why && VOTE_BLOCK[why]) throw new Error(VOTE_BLOCK[why]);
+    }
+    ok(r);
   },
   async saveAward(a) {
     const sb = await getClient();

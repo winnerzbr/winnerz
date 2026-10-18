@@ -99,7 +99,7 @@ export function OutlineStrip({ game, history }: { game: Game; history: History }
     const why = st?.state === 'limite' ? 'O limite de listas automáticas de hoje acabou; amanhã a IA tenta de novo.' : st?.reason ?? (o.job === 'sem_lista' || o.job === 'erro' ? o.jobNote : null);
     return (
       <div className="ol-strip ol-strip--empty">
-        <p className="muted">Este jogo ainda não tem a lista de capítulos, missões ou áreas.{why ? ` ${why}` : ''}{o.canEdit ? ' Monte com a comunidade: ajuda a saber onde dá para parar.' : ''}</p>
+        <p className="muted">Sem lista de capítulos ainda.{why ? ` ${why}` : ''}{o.canEdit ? ' Com ela, dá para saber onde parar.' : ''}</p>
         {o.admin && <button className="btn quiet sm" onClick={() => void outlineApi.auto(game.id, true)}><Icon name="brilho" size={14} />Tentar com a IA de novo</button>}
         {o.canEdit && <button className="btn quiet sm" aria-expanded={open === 'link'} onClick={() => setOpen(open === 'link' ? false : 'link')}><Icon name="link" size={14} />Tenho o link da wiki</button>}
         {o.canEdit && <button className="btn quiet sm" onClick={() => setOpen('edit')}><Icon name="mais" size={14} />Montar os capítulos</button>}

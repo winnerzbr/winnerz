@@ -1499,6 +1499,7 @@ a.universe__item { color: var(--ink); }
 .jindex__cols { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 32px; }
 .jindex__main { flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 48px; }
 .jindex__aside { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.jindex__ideas { align-self: stretch; justify-content: center; }
 
 /* Outros jogos em foco: imagem à esquerda */
 .jindex .focus-mini { position: relative; display: flex; flex-wrap: wrap; min-height: 300px; border-radius: 0; overflow: hidden; background: var(--surface); box-shadow: none; color: var(--ink); }
@@ -6279,3 +6280,11 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 :root[data-theme='claro'] .trail__item.is-next .trail__n, :root[data-theme='claro'] .barlist li.is-top .barlist__bar::after { box-shadow: 0 0 0 4px var(--now-bg); }
 :root[data-theme='claro'] .rbars__col.is-top i { background: var(--now); box-shadow: none; }
 :root[data-theme='claro'] .rbars__col i { background: color-mix(in srgb, var(--ink-2) 30%, transparent); }
+
+/* "Mais desta Jornada": carta e pactos recolhidos até a pessoa abrir. */
+.jmore { margin: 18px 0; padding: 14px 20px; }
+.jmore > summary { display: flex; align-items: baseline; gap: 12px; cursor: pointer; list-style: none; }
+.jmore > summary::-webkit-details-marker { display: none; }
+.jmore > summary::after { content: '+'; margin-left: auto; color: var(--gold); font-size: 18px; line-height: 1; }
+.jmore[open] > summary::after { content: '−'; }
+.jmore .pacts { margin: 12px 0 0; padding: 0; background: none; border: 0; box-shadow: none; }

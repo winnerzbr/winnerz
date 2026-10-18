@@ -2,6 +2,7 @@ import { SnipShareSheet } from '../components/SnipShare';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { TrailerButton } from '../components/Trailer';
 import { PactList } from '../components/Pacts';
+import { usePacts } from '../data/pactApi';
 import { discordApi } from '../data/discordApi';
 import { packAfterFinish } from '../components/album/afterFinish';
 import { ShareCardButton } from '../components/ShareCard';
@@ -139,6 +140,10 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   /** A carta de cada História: lacrada enquanto joga, pronta para abrir depois de zerar, ou já aberta. */
   const letters = Object.fromEntries(histories.filter((h) => h.letter).map((h) => [h.id, { ready: h.state === 'concluida', text: h.letter!.openedAt ? h.letter!.text : undefined }]));
 
+  const pacts = usePacts();
+  const hasPacts = !!pacts?.some((p) => p.game.id === game.id);
+  const pactsOn = pacts !== null; // null = banco sem a tabela de pactos
+
   const stickerImage = [...allEvents].reverse().find((e) => e.image)?.image ?? bg ?? game.cover;
 
   // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
@@ -188,13 +193,15 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     echoApi.talks(game.id).then((r) => { if (live) setTalks(r); }).catch(() => null);
     return () => { live = false; };
   }, [game.id, online]);
+  const nSessCur = sessionsOf(s, current.id).length;
   const woven: TLItem[] = useMemo(() => {
-    const cmp = compare?.enough ? { type: 'compare' as const, id: 'comparar' as const, data: compare, mine: current.progress } : null;
+    // A comparação com outros jogadores só aparece com alguma estrada percorrida (3 sessões): antes disso é ruído.
+    const cmp = compare?.enough && nSessCur >= 3 ? { type: 'compare' as const, id: 'comparar' as const, data: compare, mine: current.progress } : null;
     const base = showToday ? weaveEchoes(allItems, echoes?.echoes ?? [], cmp) : allItems;
     const ats = events.map((e) => e.at).sort();
     const from = ats[0], to = showToday ? null : ats.at(-1);
     return weaveTalks(base, talks.filter((t) => (!from || t.at >= from) && (!to || t.at <= to)));
-  }, [allItems, echoes, compare, showToday, current.progress, talks, events]);
+  }, [allItems, echoes, compare, showToday, current.progress, nSessCur, talks, events]);
   // Capítulos do jogo: os passados na data em que você chegou, os à frente depois do "Hoje" (só na História em andamento).
   const outline = useOutline(game.id);
   const partRows = useMemo(() => {
@@ -333,7 +340,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               {zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
                 ? <ConfirmButton className="btn ghost jprog__done" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
                 : <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>}
-              <LetterLine historyId={current.id} />
+              {current.letter && <LetterLine historyId={current.id} />}
             </section>
           ) : (
             <section className="card jprog jprog--done">
@@ -400,7 +407,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           )}
         </div>
 
-        <PactList gameId={game.id} game={game} title="Pactos deste jogo" />
+        {hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
+        {((pactsOn && !hasPacts) || (openState && !current.letter)) && (
+          <details className="card jmore">
+            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{[openState && !current.letter ? 'carta para o fim' : null, pactsOn && !hasPacts ? 'pactos com amigos' : null].filter(Boolean).join(' · ')}</span></summary>
+            {openState && !current.letter && <LetterLine historyId={current.id} />}
+            {pactsOn && !hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
+          </details>
+        )}
 
         <section className="jline" aria-labelledby="jline-h">
           <div className="jline__head">

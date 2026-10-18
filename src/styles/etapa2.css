@@ -1499,6 +1499,7 @@ a.universe__item { color: var(--ink); }
 .jindex__cols { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 32px; }
 .jindex__main { flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 48px; }
 .jindex__aside { flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+.jindex__ideas { align-self: stretch; justify-content: center; }
 
 /* Outros jogos em foco: imagem à esquerda */
 .jindex .focus-mini { position: relative; display: flex; flex-wrap: wrap; min-height: 300px; border-radius: 0; overflow: hidden; background: var(--surface); box-shadow: none; color: var(--ink); }
@@ -6279,3 +6280,48 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 :root[data-theme='claro'] .trail__item.is-next .trail__n, :root[data-theme='claro'] .barlist li.is-top .barlist__bar::after { box-shadow: 0 0 0 4px var(--now-bg); }
 :root[data-theme='claro'] .rbars__col.is-top i { background: var(--now); box-shadow: none; }
 :root[data-theme='claro'] .rbars__col i { background: color-mix(in srgb, var(--ink-2) 30%, transparent); }
+
+/* "Mais desta Jornada": carta e pactos recolhidos até a pessoa abrir. */
+.jmore { margin: 18px 0; padding: 14px 20px; }
+.jmore > summary { display: flex; align-items: baseline; gap: 12px; cursor: pointer; list-style: none; }
+.jmore > summary::-webkit-details-marker { display: none; }
+.jmore > summary::after { content: '+'; margin-left: auto; color: var(--gold); font-size: 18px; line-height: 1; }
+.jmore[open] > summary::after { content: '−'; }
+.jmore .pacts { margin: 12px 0 0; padding: 0; background: none; border: 0; box-shadow: none; }
+
+/* "Joguei sem registrar" */
+.past-ses { display: flex; flex-direction: column; gap: 10px; }
+.past-ses select.field { display: block; width: 100%; margin-top: 6px; }
+.past-ses .chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.past-ses__day { width: auto; max-width: 170px; }
+.past-ses__time { width: auto; min-width: 130px; max-width: 150px; }
+.past-ses__mins { width: 90px; }
+.past-ses__actions { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+
+/* Jogar agora (/agora): a tela do ícone do app. */
+.agora { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+.agora__main { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding-top: 24px; }
+.agora__cover { width: 132px; aspect-ratio: 3 / 4; display: block; }
+.agora__cover img { width: 100%; height: 100%; object-fit: cover; }
+.agora__title { font-size: clamp(30px, 8vw, 44px); line-height: 0.95; margin: 0; }
+.agora__note { margin: 0; font-size: 17px; color: var(--ink-2); }
+.agora__play { width: 100%; max-width: 360px; justify-content: center; min-height: 64px; font-size: 18px; margin-top: 8px; }
+.agora__others ul { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; }
+.agora__others li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-2); }
+.agora__mini { width: 40px; aspect-ratio: 3 / 4; flex: none; }
+.agora__mini img { width: 100%; height: 100%; object-fit: cover; }
+.agora__name { flex: 1; min-width: 0; font-weight: 600; }
+.agora__foot { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.agora__ok { text-align: center; margin: 0; }
+.jindex__quick { display: flex; justify-content: flex-end; margin: -8px 0 12px; }
+
+/* Jornada, fase 4: feitos além de zerar e dificuldade */
+.feats { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.feats .chips { margin: 0; gap: 6px; }
+.feats__time { display: flex; gap: 8px; flex-wrap: wrap; }
+.feats__time .input { flex: 1 1 180px; min-width: 0; }
+.feats__dif { display: grid; gap: 6px; max-width: 280px; }
+.jprog .feats__dif { margin-top: 4px; }
+.featbadges { display: flex; flex-wrap: wrap; gap: 4px; }
+.featbadge { display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px; font-size: 11px; letter-spacing: 0.04em; color: #E2BE84; border: 1px solid rgba(226, 190, 132, 0.45); background: rgba(226, 190, 132, 0.08); transform: skewX(-12deg); }
+.featbadge > span { transform: skewX(12deg); }

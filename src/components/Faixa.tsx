@@ -52,7 +52,15 @@ function itemDate(it: TLItem): string {
   return new Date().toISOString();
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList }: {
+/** O que o cartão da carta diz: lacrada, pronta para abrir (depois de zerar) ou o próprio texto, já aberta. */
+function letterLine(l?: { ready: boolean; text?: string }) {
+  if (l?.text) return `“${l.text}”`;
+  return l?.ready ? 'Pronta para abrir, no cartão da História concluída' : 'Lacrada até você zerar';
+}
+
+export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters }: {
+  /** A carta de cada História (pela id): pronta para abrir depois de zerar; com o texto quando já foi aberta. */
+  letters?: Record<string, { ready: boolean; text?: string }>;
   /** S3 · "Por capítulo": a lista do jogo (a régua vira a linha do horizonte por capítulo) e onde você está (%). */
   parts?: { list: OutlinePart[]; now: number | null } | null;
   /** "▶ Ver este trecho" de um item da lista (quando ele tem vídeo). */
@@ -468,7 +476,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     const back = e.kind === 'ponto' && !e.resolved;
     const sub = e.kind === 'sessao' && x
       ? [x.source ? (x.source === 'steam' ? 'Pela Steam' : x.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements') : null, x.goal ? `${x.goalDone === 'sim' ? '✓' : x.goalDone === 'quase' ? '≈' : '○'} ${x.goal}` : null, x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
-      : e.kind === 'carta' ? 'Lacrada até você zerar' : e.quote ? `“${e.quote}”` : e.text ?? '';
+      : e.kind === 'carta' ? letterLine(letters?.[e.historyId]) : e.quote ? `“${e.quote}”` : e.text ?? '';
     const head = e.kind === 'sessao' && x?.minutes ? durText(x.minutes) : e.title;
     return (
       <article key={it.id} {...common} className={`fx-pn fx-ev fx-${e.kind}${e.image ? ' has-img' : ''}${back ? ' is-back' : ''}`}>

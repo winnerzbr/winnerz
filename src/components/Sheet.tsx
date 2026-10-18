@@ -27,7 +27,7 @@ export function Sheet({ title, onClose, children, labelId = 'sheet-t', wide }: {
 }
 
 /** Botão de apagar em dois toques: o primeiro pede confirmação, o segundo apaga. */
-export function ConfirmButton({ label, confirm, onConfirm, className = 'btn quiet danger' }: { label: string; confirm: string; onConfirm: () => void; className?: string }) {
+export function ConfirmButton({ label, confirm, onConfirm, className = 'btn quiet danger' }: { label: ReactNode; confirm: string; onConfirm: () => void; className?: string }) {
   const [armed, setArmed] = useState(false);
   useEffect(() => { if (!armed) return; const t = setTimeout(() => setArmed(false), 5000); return () => clearTimeout(t); }, [armed]);
   return (

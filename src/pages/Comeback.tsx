@@ -1,9 +1,10 @@
+import { track } from '../lib/track';
 /**
  * "Voltar a um jogo" (/jornada/:slug/voltar): tudo o que ajuda a retomar depois de um tempo longe.
  * Onde você parou, o próximo passo pequeno, o que você fazia, as últimas sessões e o que aconteceu enquanto isso.
  * Só com o que você registrou; nada é inventado.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore, currentHistory, sessionsOf, activeWaypoints, daysAway, isOpenState } from '../data/store';
 import { PlayButton } from '../components/PlayButton';
@@ -19,6 +20,7 @@ import { GameClubs } from './Clubs';
 
 export function ComebackPage({ slug }: { slug: string }) {
   const s = useStore((x) => x);
+  useEffect(() => track('jornada.preparar-volta'), []);
   const game = Object.values(s.games).find((g) => g.slug === slug);
   const journey = game ? s.journeys.find((j) => j.gameId === game.id) : undefined;
   const [capsule, setCapsule] = useState(false);

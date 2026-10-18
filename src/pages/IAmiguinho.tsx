@@ -5,7 +5,8 @@
  */
 import { Link } from '../lib/router';
 import { useEffect, useState } from 'react';
-import { posePath } from '../lib/iamiguinho';
+import { CUTUCAR, TONTO, sortear } from '../lib/iamiguinho';
+import { Figura } from '../components/IAmiguinho';
 import { iamiguinhoApi, type Aparicao } from '../data/iamiguinhoApi';
 import { ago } from '../components/Posts';
 
@@ -33,17 +34,21 @@ const MOMENTOS = [
 ];
 
 export function IAmiguinhoPage() {
+  const [fala, setFala] = useState<string | null>(null);
   return (
     <main className="page pad iam-perfil">
       <section className="iam-perfil__hero">
-        <div className="iam-perfil__foto"><img src={posePath('heroi')} alt="O IAmiguinho em pose de herói em cima de uma pilha de caixas, com a hélice soltando fumaça" width={360} height={480} /></div>
+        <div className="iam-perfil__foto">
+          <Figura img="pose-heroi" width={360} height={480} lazy={false} alt="O IAmiguinho em pose de herói, com a hélice soltando fumaça" onCutucar={(t) => setFala(sortear(t ? TONTO : CUTUCAR))} />
+          <p className="iam-perfil__toque" aria-live="polite">{fala ?? 'Toque nele. Com carinho.'}</p>
+        </div>
         <div className="iam-perfil__id">
           <p className="kicker">Perfil oficial</p>
           <h1 className="t big">IAmiguinho</h1>
           <p className="iam-perfil__handle">@iamiguinho</p>
           <p className="iam-perfil__selos"><span className="iam-selo iam-selo--forte">Mascote do WinnerZ</span><span className="iam-selo">IA</span></p>
           <p className="lead">Robô oficial do WinnerZ. Amiguinho original. Melhor jogador de Splatoon que você vai conhecer, segundo eu.</p>
-          <p className="muted iam-perfil__como">O IAmiguinho é o mascote do WinnerZ, não uma pessoa. As falas dele são escritas pela equipe. Quando ele começar a responder a quem chamar @iamiguinho, essas respostas vão usar inteligência artificial e continuar marcadas como IA. Você escolhe com que frequência ele aparece nas <Link to="/preferencias#iamiguinho">Preferências</Link>.</p>
+          <p className="muted iam-perfil__como">O IAmiguinho é o mascote do WinnerZ, não uma pessoa. Parte das falas vem de uma biblioteca escrita pela equipe; as respostas a quem chama @iamiguinho e algumas falas dos momentos especiais são escritas por inteligência artificial e sempre marcadas como IA. Você escolhe com que frequência ele aparece nas <Link to="/preferencias#iamiguinho">Preferências</Link>.</p>
           <dl className="iam-perfil__nums">
             <div><dt>Zerados</dt><dd>47 tutoriais</dd></div>
             <div><dt>Figurinhas repetidas</dt><dd>todas</dd></div>
@@ -70,7 +75,7 @@ export function IAmiguinhoPage() {
       <section aria-labelledby="iam-momentos">
         <h2 id="iam-momentos" className="t">Momentos</h2>
         <ul className="iam-perfil__momentos">
-          {MOMENTOS.map((m) => <li key={m.pose}><img src={posePath(m.pose)} alt="" width={180} height={240} loading="lazy" /><span className="muted">{m.legenda}</span></li>)}
+          {MOMENTOS.map((m) => <li key={m.pose}><Figura img={`pose-${m.pose}`} width={180} height={240} parada={m.pose === 'dormindo'} enfeite={false} /><span className="muted">{m.legenda}</span></li>)}
         </ul>
       </section>
 

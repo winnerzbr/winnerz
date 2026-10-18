@@ -87,3 +87,71 @@ html[data-motion='reduzidas'] .iam-espia__pose, html[data-motion='reduzidas'] .i
 .iam-aparicoes a { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; background: var(--surface); border-left: 2px solid var(--iam); text-decoration: none; color: var(--ink); }
 .iam-aparicoes a:hover { background: color-mix(in srgb, var(--iam) 8%, var(--surface)); }
 .iam-aparicoes small { color: var(--muted); }
+
+/* ---- M6: a figura animada (hélice girando, respiração, engasgo, tontura e enfeites de época) ---- */
+.iam-fig { position: relative; display: inline-block; line-height: 0; animation: iam-respira 4.5s ease-in-out infinite; transform-origin: 50% 100%; }
+.iam-fig img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.iam-fig__helice { position: absolute; inset: 0; animation: iam-gira 0.6s linear infinite; }
+.iam-fig.is-parada { animation-duration: 7s; }
+.iam-fig.is-parada .iam-fig__helice { animation: none; }
+.iam-fig.is-engasgo .iam-fig__helice { animation: iam-engasga 1.3s ease-out both; }
+.iam-fig.is-tonto { animation: iam-tonto 2.6s ease-in-out both; }
+.iam-fig.is-tonto .iam-fig__helice { animation-duration: 0.22s; }
+.iam-fig--btn { border: 0; padding: 0; margin: 0; background: none; cursor: pointer; font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+.iam-fig--btn:focus-visible { outline: 2px solid var(--iam); outline-offset: 4px; border-radius: 8px; }
+.iam-fumaca { position: absolute; width: 34%; aspect-ratio: 1; transform: translate(-50%, -70%); pointer-events: none; }
+.iam-fumaca i { position: absolute; left: 30%; top: 40%; width: 40%; aspect-ratio: 1; border-radius: 50%; background: rgba(214, 218, 224, 0.9); animation: iam-fumaca 1.1s ease-out both; }
+.iam-fumaca i:nth-child(2) { left: 50%; width: 32%; animation-delay: 0.15s; --dx: 30%; }
+.iam-fumaca i:nth-child(3) { left: 14%; width: 28%; animation-delay: 0.3s; --dx: -30%; }
+.iam-enfeite { position: absolute; pointer-events: none; line-height: 0; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35)); }
+.iam-enfeite svg { width: 100%; height: auto; display: block; }
+.iam-enfeite--pe { right: -16%; bottom: 0; width: 40%; }
+.iam-enfeite--topo { left: 0; top: -8%; width: 100%; }
+.iam-perfil__foto .iam-fig { width: 100%; max-width: 300px; }
+.iam-perfil__foto { gap: 10px; }
+.iam-perfil__toque { margin: 0; font-size: 14px; color: var(--muted); text-align: center; min-height: 2.9em; max-width: 34ch; }
+.iam-perfil__momentos .iam-fig { width: 100%; max-width: 150px; }
+.iam-perfil__momentos li:not(:hover) .iam-fig__helice { animation-play-state: paused; }
+.iam-pref .iam-fig { width: 56px; }
+.ar-buddy .iam-fig { width: 40px; }
+.iam-espia__pose.iam-fig { animation: iam-espia 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2) both; }
+.iam-rosto { position: absolute; height: auto; aspect-ratio: 200 / 140; overflow: visible; pointer-events: none; animation: iam-liga 0.2s ease-out; }
+.iam-rosto .iam-olhos { transform-box: fill-box; transform-origin: center; animation: iam-olhar 9s ease-in-out infinite; animation-delay: var(--iam-atraso, 0s); }
+.iam-rosto .iam-pensa circle { transform-box: fill-box; transform-origin: center; animation: iam-pensa 1.1s ease-in-out infinite; }
+.iam-rosto .iam-pensa circle:nth-child(2) { animation-delay: 0.15s; }
+.iam-rosto .iam-pensa circle:nth-child(3) { animation-delay: 0.3s; }
+.iam-rosto .iam-espiral { animation: iam-espiral 1.2s linear infinite; }
+.iam-fig.is-parada .iam-rosto .iam-olhos { animation: none; }
+.iam-perfil__momentos li:not(:hover) .iam-rosto * { animation-play-state: paused; }
+.iam-placa { position: absolute; container-type: inline-size; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+.iam-placa span { font-family: var(--font-display, var(--font-ui, system-ui)), system-ui, sans-serif; font-weight: 800; font-size: var(--fs, 10cqw); line-height: 1.04; text-transform: uppercase; letter-spacing: 0.01em; white-space: nowrap; color: #1b2c5e; mix-blend-mode: multiply; }
+@keyframes iam-liga { from { opacity: 0.35; filter: brightness(1.6); } to { opacity: 1; filter: none; } }
+@keyframes iam-olhar {
+  0%, 27%, 33%, 47% { transform: translate(0, 0) scaleY(1); }
+  30% { transform: translate(0, 0) scaleY(0.1); }
+  52%, 61% { transform: translate(-6px, 0) scaleY(1); }
+  66%, 74% { transform: translate(6px, 0) scaleY(1); }
+  79%, 87%, 93%, 100% { transform: translate(0, 0) scaleY(1); }
+  90% { transform: translate(0, 0) scaleY(0.1); }
+}
+@keyframes iam-pensa { 0%, 60%, 100% { transform: translateY(0); opacity: 0.55; } 30% { transform: translateY(-9px); opacity: 1; } }
+@keyframes iam-espiral { to { transform: rotate(360deg); } }
+@keyframes iam-respira { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes iam-gira {
+  0% { transform: rotate(var(--iam-a, 0deg)) scaleX(1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  25% { transform: rotate(var(--iam-a, 0deg)) scaleX(0.06) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  50% { transform: rotate(var(--iam-a, 0deg)) scaleX(-1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  75% { transform: rotate(var(--iam-a, 0deg)) scaleX(-0.06) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  100% { transform: rotate(var(--iam-a, 0deg)) scaleX(1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+}
+@keyframes iam-engasga {
+  0% { transform: rotate(var(--iam-a, 0deg)) scaleX(1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  12% { transform: rotate(var(--iam-a, 0deg)) scaleX(-1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+  20%, 42% { transform: rotate(var(--iam-a, 0deg)) scaleX(0.55) rotate(calc(var(--iam-a, 0deg) * -1)) translateY(1px); }
+  48%, 70% { transform: rotate(var(--iam-a, 0deg)) scaleX(-0.35) rotate(calc(var(--iam-a, 0deg) * -1)) translateY(-1px); }
+  82%, 100% { transform: rotate(var(--iam-a, 0deg)) scaleX(1) rotate(calc(var(--iam-a, 0deg) * -1)); }
+}
+@keyframes iam-tonto { 0% { transform: rotate(0); } 14% { transform: rotate(-10deg); } 30% { transform: rotate(9deg); } 46% { transform: rotate(-7deg); } 62% { transform: rotate(5deg); } 78% { transform: rotate(-2deg); } 100% { transform: rotate(0); } }
+@keyframes iam-fumaca { from { transform: translate(0, 0) scale(0.4); opacity: 0.95; } to { transform: translate(var(--dx, 0%), -170%) scale(1.35); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .iam-fig, .iam-fig *, .iam-fumaca i { animation: none !important; } }
+html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *, html[data-motion='reduzidas'] .iam-fumaca i { animation: none !important; }

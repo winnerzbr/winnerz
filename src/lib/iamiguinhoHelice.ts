@@ -1,0 +1,31 @@
+/**
+ * Eixo da hélice em cada imagem do IAmiguinho (x e y em % da largura e da altura) e a inclinação das pás (a, em graus),
+ * para girar as pás no lugar. Gerado por art/iamiguinho/separar-helice.py, junto com as camadas em public/brand/iamiguinho/anim/.
+ */
+export const HELICE: Record<string, { x: number; y: number; a: number }> = {
+  'cara-comemorando': { x: 51.19, y: 13.37, a: 3.4 },
+  'cara-curioso': { x: 49.49, y: 12.28, a: 4.8 },
+  'cara-feliz': { x: 52.19, y: 14.45, a: 5.9 },
+  'cara-orgulhoso': { x: 50.01, y: 12.21, a: 3.8 },
+  'cara-pensando': { x: 51.7, y: 13.22, a: 4.5 },
+  'cara-perdido': { x: 50.18, y: 12.5, a: 4.3 },
+  'cara-piscando': { x: 49.47, y: 13.29, a: 3.1 },
+  'cara-sem-jeito': { x: 50.28, y: 13.64, a: 4.8 },
+  'cara-sonolento': { x: 50.55, y: 13.14, a: 3.7 },
+  'cara-sorriso-confiante': { x: 51.12, y: 11.98, a: 2.7 },
+  'cara-surpreso': { x: 51.22, y: 13.56, a: 4.8 },
+  'cara-tonto': { x: 51.78, y: 13.29, a: 5.3 },
+  'pose-acenando': { x: 39.72, y: 9.26, a: -7.0 },
+  'pose-atrasado': { x: 59.31, y: 10.64, a: 14.8 },
+  'pose-cabo': { x: 46.11, y: 10.42, a: -9.8 },
+  'pose-controle': { x: 40.28, y: 12.42, a: -15.1 },
+  'pose-dormindo': { x: 51.5, y: 9.81, a: -7.5 },
+  'pose-espiando': { x: 66.47, y: 15.52, a: 23.7 },
+  'pose-espiando-placa': { x: 66.47, y: 15.52, a: 23.7 },
+  'pose-heroi': { x: 63.08, y: 10.21, a: 21.6 },
+  'pose-mapa': { x: 56.75, y: 10.21, a: 14.0 },
+  'pose-pacote': { x: 56.71, y: 3.75, a: 8.0 },
+  'pose-placa': { x: 52.13, y: 7.08, a: 1.1 },
+  'pose-planando': { x: 58.35, y: 13.33, a: 19.5 },
+  'pose-trofeu': { x: 29.56, y: 18.47, a: -27.0 },
+};

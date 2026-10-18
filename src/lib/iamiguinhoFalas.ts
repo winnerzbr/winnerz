@@ -191,7 +191,10 @@ export function preencher(fala: string, f: Fatos = {}): string | null {
   return ok ? out : null;
 }
 /** Uma fala da biblioteca que caiba nos fatos e não esteja entre as últimas mostradas. */
-export function falaDaBiblioteca(motivo: Interface | Cameo, f: Fatos = {}, evitar: string[] = []): string {
+export function falaDaBiblioteca(motivo: Interface | Cameo, f: Fatos = {}, evitar: string[] = [], epoca: Epoca | null = null): string {
+  // Na época de festa, as telas vazias, o 404, o erro e o carregamento às vezes trocam por uma fala da época.
+  const interfaceMomento = !['indeciso', 'voltou', 'primeiro-zerado', 'zerado', 'radar', 'cofre', 'pacote', 'repetida', 'pagina', 'awards', 'jogatina'].includes(motivo);
+  if (epoca && interfaceMomento && Math.random() < 0.5) return sortear(FALAS_EPOCA[epoca]);
   const prontas = FALAS[motivo].map((x) => preencher(x, f)).filter((x): x is string => !!x);
   const novas = prontas.filter((x) => !evitar.includes(x));
   return sortear(novas.length ? novas : prontas);
@@ -236,3 +239,87 @@ export function respostaDaBiblioteca(pergunta: string): string {
   }
   return sortear(/splatoon|aerospray|sploosh|clash blaster/.test(p) ? MENCAO.splatoon : MENCAO.geral);
 }
+
+/* ---- M6: easter eggs e campanhas sazonais ------------------------------------------------------------------------ */
+/** Um toque: a hélice engasga. */
+export const CUTUCAR = [
+  'Calma, ela pega no tranco.',
+  'Isso foi a hélice ou o meu estômago? Tanto faz, os dois engasgam.',
+  'Ei! Eu estava quase parecendo competente.',
+  'Ela soltou fumaça, mas é fumaça de quem está trabalhando muito.',
+  'Hélice com defeito de fábrica. A fábrica sou eu.',
+  'Toque registrado. Reclamação encaminhada para o setor de hélices, que também sou eu.',
+];
+/** Cinco toques seguidos: ele fica tonto. */
+export const TONTO = [
+  'Para, para... agora tem três de você. Qual eu respondo?',
+  'Tô vendo o mapa inteiro girar. Finalmente entendi o mundo aberto.',
+  'Me deixou tonto. Vou deitar no tutorial um pouquinho.',
+  'Isso conta como speedrun? Porque eu dei umas oito voltas.',
+];
+
+export type Epoca = 'carnaval' | 'junina' | 'gamer' | 'halloween' | 'natal' | 'ano-novo';
+export const EPOCAS: Record<Epoca, string> = { carnaval: 'Carnaval', junina: 'Festa Junina', gamer: 'Dia do Gamer', halloween: 'Halloween', natal: 'Natal', 'ano-novo': 'Ano-Novo' };
+
+/** Domingo de Páscoa (algoritmo de Meeus), para achar o Carnaval. */
+function pascoa(ano: number): Date {
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(Date.UTC(ano, mes - 1, dia));
+}
+/** A época do ano em que ele se enfeita, pelo dia no calendário de Brasília (AAAA-MM-DD). */
+export function epocaDe(diaIso: string): Epoca | null {
+  const [ano, mes, dia] = diaIso.split('-').map(Number);
+  const md = mes * 100 + dia;
+  const p = pascoa(ano).getTime(), hoje = Date.UTC(ano, mes - 1, dia), DIA = 86400000;
+  if (hoje >= p - 51 * DIA && hoje <= p - 46 * DIA) return 'carnaval';
+  if (mes === 6) return 'junina';
+  if (md === 829) return 'gamer';
+  if (md >= 1024 && md <= 1031) return 'halloween';
+  if (md >= 1215 && md <= 1225) return 'natal';
+  if (md >= 1226 || md <= 101) return 'ano-novo';
+  return null;
+}
+/** Falas da época, misturadas às de sempre nas telas vazias, no erro, no 404 e nos toques. */
+/** O que vai escrito na plaquinha (poses com placa): a época de festa tem prioridade sobre o momento. */
+export const PLACA_EPOCA: Record<Epoca, string> = {
+  carnaval: 'É Carnaval!', junina: 'Arraiá!', gamer: 'Feliz Dia do Gamer!', halloween: 'Feliz Halloween!', natal: 'Feliz Natal!', 'ano-novo': 'Feliz Ano-Novo!',
+};
+export const PLACA_MOMENTO: Record<string, string> = {
+  'jornada-vazia': 'Sua história começa aqui', 'listas-vazias': 'Lista nova à vista', espiando: 'Passei por aqui!',
+};
+
+export const FALAS_EPOCA: Record<Epoca, string[]> = {
+  carnaval: [
+    'É Carnaval! Eu vim fantasiado de robô. Ninguém percebeu a fantasia.',
+    'Meu bloco de Carnaval tem um integrante só, e ele ainda chega atrasado.',
+    'Confete na hélice é ótimo até a hora de decolar.',
+  ],
+  junina: [
+    'Arraiá do WinnerZ! Eu trouxe pamonha. Bom, trouxe a vontade de pamonha.',
+    'Pulei a fogueira. Pulei é exagero: contornei com cuidado.',
+    'Quadrilha comigo é perigoso: eu giro a hélice em vez de girar o par.',
+  ],
+  gamer: [
+    'Feliz Dia do Gamer! Hoje eu comemoro meus 47 tutoriais zerados.',
+    'Dia do Gamer: o único feriado em que jogar até tarde é tradição.',
+    'Hoje é o nosso dia. Eu vou passar ele inteiro no menu de opções, como manda o protocolo.',
+  ],
+  halloween: [
+    'Feliz Halloween! Eu vim fantasiado de bug. Funcionou bem demais.',
+    'Gostosuras ou travessuras? Eu escolho travessura, que é o que eu faço sem querer o ano todo.',
+    'Nada me assusta, só jogo de terror, escuro, barulho e a palavra "dificuldade".',
+    'Abóbora na mão e hélice ligada. O fantasma mais simpático do site.',
+  ],
+  natal: [
+    'Natal chegando! Pedi um controle novo. O velho eu uso ao contrário mesmo.',
+    'Montei a árvore de Natal. Ela ficou de cabeça para baixo, igual ao meu mapa.',
+    'Ho ho ho! Eu seria o Papai Noel, mas a hélice não aguenta o saco de presentes.',
+  ],
+  'ano-novo': [
+    'Ano novo, eu novo: este ano eu passo do tutorial. Disse isso ano passado também.',
+    'Fogos lá fora e a hélice girando aqui dentro. Feliz Ano-Novo!',
+    'Minha meta de ano novo: zerar o primeiro jogo. Meta realista é para os fracos.',
+  ],
+};

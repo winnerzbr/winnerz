@@ -6,6 +6,7 @@
  * boas-vindas do Álbum. "Terminar depois" guarda a tela; o Início mostra "Continuar a chegada". Final sem som.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Figura } from '../components/IAmiguinho';
 import { navigate } from '../lib/router';
 import { actions, currentHistory, getState, journeyForGame, useStore } from '../data/store';
 import type { Game, ID } from '../data/types';
@@ -628,7 +629,7 @@ function Releases({ list, ups, setUps }: { list: Game[] | null; ups: Game[]; set
           })}
         </div>
       )}
-      <div className="ar-buddy"><img src="/brand/iamiguinho/cara-curioso.webp" alt="" /><span><b>IAmiguinho</b>Lançamento chegando. Eu já separei o lanche.</span></div>
+      <div className="ar-buddy"><Figura img="cara-curioso" width={40} height={42} lazy={false} enfeite={false} /><span><b>IAmiguinho</b>Lançamento chegando. Eu já separei o lanche.</span></div>
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { SnipLinks } from './Snip';
+import { Figura } from '../components/IAmiguinho';
 import { useEffect, useRef, useState } from 'react';
 import { DiscordSettings } from '../components/DiscordSettings';
 import { BridgeSettings } from '../components/Bridges';
@@ -168,8 +169,8 @@ export function Preferences() {
       <section aria-labelledby="iamiguinho" className="prefs__section">
         <h2 id="iamiguinho" className="t">IAmiguinho</h2>
         <div className="iam-pref">
-          <img src="/brand/iamiguinho/cara-sorriso-confiante.webp" alt="" width={72} height={72} />
-          <p className="muted">O mascote do WinnerZ. Ele aparece de vez em quando para comemorar, fazer graça de si mesmo e ocupar as telas vazias. As falas são escritas pela equipe. <Link to="/@iamiguinho">Conheça o IAmiguinho</Link></p>
+          <Figura img="cara-sorriso-confiante" width={72} height={72} lazy={false} />
+          <p className="muted">O mascote do WinnerZ. Ele aparece de vez em quando para comemorar, fazer graça de si mesmo e ocupar as telas vazias. Parte das falas vem de uma biblioteca escrita pela equipe e parte é escrita por IA, sempre com a marca de IA. <Link to="/@iamiguinho">Conheça o IAmiguinho</Link></p>
         </div>
         <div role="radiogroup" aria-labelledby="iamiguinho" className="motions">
           {MODOS.map((m) => (

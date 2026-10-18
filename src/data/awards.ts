@@ -103,7 +103,6 @@ const VOTE_BLOCK: Record<string, string> = {
   email: 'Confirme o seu e-mail para votar. Procure a mensagem do WinnerZ na sua caixa de entrada.',
   arroba: 'Escolha o seu @ no perfil para votar.',
   suspensa: 'Sua conta está suspensa no momento e não pode votar.',
-  conta_nova: 'Contas novas podem votar a partir do terceiro dia. Volte em breve!',
 };
 
 const supabaseApi: AwardsApi = {

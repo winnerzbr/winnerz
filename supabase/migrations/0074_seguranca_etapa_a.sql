@@ -9,7 +9,7 @@
 -- 4. Jornada: histórias, sessões e momentos só entram nas suas próprias Jornadas.
 -- 5. Álbum: sessão "da Steam/RetroAchievements/Playnite" só vale se veio da ponte de verdade; jogo cadastrado
 --    à mão não encurta o tempo da regra; história que mudou de jogo não vira pacote de Jornada.
--- 6. Awards: votar exige e-mail confirmado, @ escolhido, conta com 3 dias ou mais e não estar suspensa.
+-- 6. Awards: votar exige e-mail confirmado, @ escolhido e não estar suspensa (na 1ª edição, conta nova já vota).
 -- 7. Miudezas: nome inicial das contas novas sem o começo do e-mail; funções antigas fechadas; contador de uso
 --    só para quem entrou na conta.
 
@@ -197,7 +197,6 @@ language sql stable security definer set search_path = public as $$
     when not exists (select 1 from auth.users u where u.id = auth.uid() and u.email_confirmed_at is not null) then 'email'
     when exists (select 1 from profiles p where p.id = auth.uid() and p.suspended_until > now()) then 'suspensa'
     when not exists (select 1 from profiles p where p.id = auth.uid() and p.handle is not null) then 'arroba'
-    when exists (select 1 from auth.users u where u.id = auth.uid() and u.created_at > now() - interval '3 days') then 'conta_nova'
   end;
 $$;
 revoke all on function public.award_vote_block() from public, anon;

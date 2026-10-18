@@ -8,14 +8,18 @@
  *   POST /api/discord  (com login) { roles: true }       → atualiza os seus cargos ligados agora
  *   POST /api/discord  (administração) { register: true } → cadastra os comandos e os cargos ligados no Discord
  *   GET  /api/discord?cron=1  (Vercel, uma vez por dia)   → atualiza os cargos ligados de todo mundo
- *   GET  /api/discord?status=1                           → quais variáveis do Discord estão preenchidas (sem os valores)
+ *   GET  /api/discord?status=1  (administração, com login) → quais variáveis do Discord estão preenchidas (sem os valores)
+ *
+ * O login pelo Discord fica preso ao navegador que pediu: o { start } grava um cookie com um número aleatório
+ * (só o servidor lê, vale 15 minutos) e o "state" é assinado junto com ele. Um link de login montado por outra
+ * pessoa não liga a conta de quem clicou.
  *
  * Variáveis na Vercel: DISCORD_APP_ID, DISCORD_PUBLIC_KEY, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN, DISCORD_GUILD_ID,
  * DISCORD_FEED_CHANNEL_ID (onde o bot publica) e, se quiser jogatinas no canal de voz, DISCORD_VOICE_CHANNEL_ID.
  * Mais SUPABASE_URL + SUPABASE_SECRET_KEY e CRON_SECRET. Precisa da migração 0040.
  * Ler a atividade do Discord ("jogando agora") pede um programa ligado o tempo todo; não cabe numa função da Vercel.
  */
-import { createHmac, createPublicKey, timingSafeEqual, verify } from 'node:crypto';
+import { createHmac, createPublicKey, randomBytes, timingSafeEqual, verify } from 'node:crypto';
 
 export const config = { api: { bodyParser: false } };
 
@@ -90,14 +94,15 @@ export function verifyDiscord(publicKeyHex: string, signatureHex: string, timest
   } catch { return false; }
 }
 const stateSecret = () => env('DISCORD_CLIENT_SECRET') || env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_ROLE_KEY');
-export function signState(user: string, at = Date.now(), secret = stateSecret()): string {
+/** O "state" do login: quem pediu e quando, assinado junto com o número do cookie do navegador (nonce). */
+export function signState(user: string, at = Date.now(), secret = stateSecret(), nonce = ''): string {
   const base = `${user}.${at.toString(36)}`;
-  return `${base}.${createHmac('sha256', secret).update(`discord:${base}`).digest('base64url').slice(0, 32)}`;
+  return `${base}.${createHmac('sha256', secret).update(`discord:${base}${nonce ? `:${nonce}` : ''}`).digest('base64url').slice(0, 32)}`;
 }
-export function readState(state: string, secret = stateSecret(), now = Date.now()): string | null {
-  const [user, at, mac] = state.split('.');
+export function readState(state: string, secret = stateSecret(), now = Date.now(), nonce = ''): string | null {
+  const [user, at, mac] = String(state ?? '').split('.');
   if (!user || !at || !mac) return null;
-  const want = signState(user, parseInt(at, 36), secret).split('.')[2];
+  const want = signState(user, parseInt(at, 36), secret, nonce).split('.')[2];
   if (want.length !== mac.length || !timingSafeEqual(Buffer.from(want), Buffer.from(mac))) return null;
   if (now - parseInt(at, 36) > 15 * 60_000) return null;
   return user;
@@ -111,6 +116,16 @@ async function bot(method: string, path: string, body?: unknown): Promise<any> {
 }
 const origin = (req: Req) => `https://${one(req.headers?.['x-forwarded-host']) ?? one(req.headers?.host) ?? 'winnerz.com.br'}`;
 const redirectUri = (req: Req) => `${origin(req)}/api/discord`;
+const NONCE_COOKIE = 'wz_dc_nonce';
+/** Lê um cookie do pedido. */
+export function cookieOf(raw: string | undefined, name: string): string {
+  for (const part of String(raw ?? '').split(';')) {
+    const i = part.indexOf('=');
+    if (i > 0 && part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
+  }
+  return '';
+}
+const nonceCookie = (value: string, maxAge: number) => `${NONCE_COOKIE}=${value}; Path=/api/discord; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
 
 async function token(form: Record<string, string>) {
   const r = await fetch(`${API}/oauth2/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ client_id: env('DISCORD_APP_ID'), client_secret: env('DISCORD_CLIENT_SECRET'), ...form }) });
@@ -227,8 +242,12 @@ export default async function handler(req: Req, res: Res) {
     const site = origin(req);
 
     // Volta do login do Discord.
-    if (req.method === 'GET' && typeof q.code === 'string' && typeof q.state === 'string') {
-      const user = readState(q.state);
+    if (req.method === 'GET' && typeof q.state === 'string' && (typeof q.code === 'string' || typeof q.error === 'string')) {
+      // O cookie vale uma vez só: sai daqui apagado, deu certo ou não.
+      const nonce = cookieOf(header(req, 'cookie'), NONCE_COOKIE);
+      res.setHeader('Set-Cookie', nonceCookie('', 0));
+      if (typeof q.code !== 'string') { res.setHeader('Location', '/preferencias?discord=cancelado#discord'); return res.status(302).send(''); }
+      const user = /^[A-Za-z0-9_-]{16,64}$/.test(nonce) ? readState(q.state, stateSecret(), Date.now(), nonce) : null;
       if (!user || !db()) { res.setHeader('Location', '/preferencias?discord=erro#discord'); return res.status(302).send(''); }
       try {
         const t = await token({ grant_type: 'authorization_code', code: q.code, redirect_uri: redirectUri(req) });
@@ -244,8 +263,10 @@ export default async function handler(req: Req, res: Res) {
       return res.status(302).send('');
     }
 
-    // Conferência rápida da configuração (só diz o que está preenchido, nunca os valores).
+    // Conferência rápida da configuração (só diz o que está preenchido, nunca os valores). Só a administração.
     if (req.method === 'GET' && q.status) {
+      const who = db() ? await requireUser(req) : null;
+      if (!who || !(await isAdmin(who))) return res.status(403).json({ error: 'Só a administração.' });
       const has = (k: string) => !!env(k);
       return res.status(200).json({
         DISCORD_APP_ID: has('DISCORD_APP_ID'), DISCORD_PUBLIC_KEY: has('DISCORD_PUBLIC_KEY') && /^[0-9a-f]{64}$/i.test(env('DISCORD_PUBLIC_KEY').trim()),
@@ -256,7 +277,7 @@ export default async function handler(req: Req, res: Res) {
 
     if (req.method === 'GET' && q.cron) {
       const secret = env('CRON_SECRET');
-      if (!secret || header(req, 'authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Sem permissão.' });
+      if (!secret || !sameText(header(req, 'authorization') ?? '', `Bearer ${secret}`)) return res.status(401).json({ error: 'Sem permissão.' });
       const rows = (await rest('GET', 'discord_links?select=user_id&order=roles_at.asc.nullsfirst&limit=200')) as { user_id: string }[];
       const until = Date.now() + 45_000;
       let ok = 0;
@@ -285,7 +306,10 @@ export default async function handler(req: Req, res: Res) {
     if (b.start) {
       if (!env('DISCORD_APP_ID') || !env('DISCORD_CLIENT_SECRET')) return res.status(503).json({ error: 'O Discord ainda não foi configurado no servidor.' });
       const u = new URL('https://discord.com/oauth2/authorize');
-      u.search = new URLSearchParams({ client_id: env('DISCORD_APP_ID'), response_type: 'code', redirect_uri: redirectUri(req), scope: 'identify role_connections.write', state: signState(user), prompt: 'none' }).toString();
+      // Sem "prompt: none": o Discord sempre mostra a tela de autorização antes de ligar.
+      const nonce = randomBytes(18).toString('base64url');
+      u.search = new URLSearchParams({ client_id: env('DISCORD_APP_ID'), response_type: 'code', redirect_uri: redirectUri(req), scope: 'identify role_connections.write', state: signState(user, Date.now(), stateSecret(), nonce) }).toString();
+      res.setHeader('Set-Cookie', nonceCookie(nonce, 15 * 60));
       return res.status(200).json({ url: u.toString() });
     }
     if (b.publish) return res.status(200).json(await publish(user, String(b.publish.kind ?? ''), String(b.publish.id ?? ''), site));
@@ -300,6 +324,21 @@ export default async function handler(req: Req, res: Res) {
     }
     return res.status(400).json({ error: 'Pedido não reconhecido.' });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
+    return res.status(500).json(failure('discord', err));
   }
+}
+
+/** Compara dois textos em tempo constante. */
+function sameText(a: string, b: string): boolean {
+  const x = Buffer.from(String(a)), y = Buffer.from(String(b));
+  return x.length === y.length && timingSafeEqual(x, y);
+}
+
+/** Erro sem detalhes internos: só um código curto para achar no registro da Vercel (avisos de migração continuam). */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }

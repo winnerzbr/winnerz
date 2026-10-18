@@ -3,6 +3,7 @@ import { actions, useStore } from '../data/store';
 import type { CopyKind, Game } from '../data/types';
 import { Icon } from './Icon';
 import { BarcodeScan, ConfirmList, PhotoRead, foundFromPhoto, resolveAll, resolveFound, type Found } from './CameraAdd';
+import { igdbFetch } from '../lib/igdbFetch';
 
 export interface Hit { igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game }
 
@@ -33,7 +34,7 @@ export async function searchGames(q: string, local: Game[]): Promise<{ hits: Hit
 /** Abre qualquer jogo do IGDB pelo slug (ex.: vindo do Explorar ou do universo de outro jogo). */
 export async function gameBySlug(slug: string): Promise<Game | null> {
   try {
-    const r = await fetch(`/api/igdb?slug=${encodeURIComponent(slug)}&v=3`);
+    const r = await igdbFetch(`/api/igdb?slug=${encodeURIComponent(slug)}&v=3`);
     if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
     return gameFromApi(await r.json());
   } catch { return null; }
@@ -42,7 +43,7 @@ export async function gameBySlug(slug: string): Promise<Game | null> {
 /** Busca de novo a ficha no IGDB (para fichas antigas, sem tradução ou sem vídeos). */
 export async function refreshGame(igdbId: number): Promise<Game | null> {
   try {
-    const r = await fetch(`/api/igdb?id=${igdbId}&v=3`);
+    const r = await igdbFetch(`/api/igdb?id=${igdbId}&v=3`);
     if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return null;
     return gameFromApi(await r.json());
   } catch { return null; }
@@ -51,7 +52,7 @@ export async function refreshGame(igdbId: number): Promise<Game | null> {
 export async function loadGame(hit: Hit): Promise<Game | null> {
   if (hit.local) return hit.local;
   if (!hit.igdbId) return null;
-  const r = await fetch(`/api/igdb?id=${hit.igdbId}&v=3`);
+  const r = await igdbFetch(`/api/igdb?id=${hit.igdbId}&v=3`);
   if (!r.ok) return null;
   return gameFromApi(await r.json());
 }

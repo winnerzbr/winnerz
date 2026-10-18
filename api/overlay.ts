@@ -81,7 +81,7 @@ export default async function handler(req: Req, res: Res) {
     }
     const k = typeof req.query.k === 'string' ? req.query.k : '';
     const [user, nonce, sig] = k.split('.');
-    if (!user || !UUID.test(user) || !nonce || !/^[0-9a-f]{16}$/.test(nonce) || sig !== (await sign(`${user}.${nonce}`))) return res.status(403).json({ error: 'Endereço do overlay inválido.' });
+    if (!user || !UUID.test(user) || !nonce || !/^[0-9a-f]{16}$/.test(nonce) || !sameText(sig ?? '', await sign(`${user}.${nonce}`))) return res.status(403).json({ error: 'Endereço do overlay inválido.' });
 
     const [profile] = await get(`profiles?select=prefs,is_admin&id=eq.${q(user)}`);
     if (profile?.prefs?.overlayNonce !== nonce) return res.status(403).json({ error: 'Este endereço foi trocado. Gere o novo nas Preferências.' });
@@ -136,6 +136,23 @@ export default async function handler(req: Req, res: Res) {
       reveal,
     });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
+    return res.status(500).json(failure('overlay', err));
   }
+}
+
+/** Compara dois textos em tempo constante (não dá pista de quantos caracteres acertou). */
+function sameText(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+/** Erro sem detalhes internos: só um código curto para achar no registro da Vercel (avisos de migração continuam). */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }

@@ -55,6 +55,16 @@ test('E7.3: o state do login da Twitch só vale assinado e dentro do prazo', asy
   assert.equal(await readState(s.replace(/^./, 'x'), 'segredo', 1_000), null);
 });
 
+test('Twitch: o state leva o número do cookie, e a comparação é em tempo constante', async () => {
+  const { signState, readState, sameText, cookieOf } = await import('../../api/pontes');
+  const s = await signState({ u: 'user-1', k: 'pessoa', t: 2_000, n: 'num-cookie' }, 'segredo');
+  assert.deepEqual(await readState(s, 'segredo', 1_000), { u: 'user-1', k: 'pessoa', n: 'num-cookie' });
+  assert.equal(sameText('abc', 'abc'), true);
+  assert.equal(sameText('abc', 'abd'), false);
+  assert.equal(sameText('abc', 'abcd'), false);
+  assert.equal(cookieOf('wz_tw_nonce=xyz', 'wz_tw_nonce'), 'xyz');
+});
+
 test('E7.3: assinatura do EventSub da Twitch (HMAC do id + data + corpo exato)', async () => {
   const { eventsubOk, eventsubSecret } = await import('../../api/pontes');
   const { createHmac } = await import('node:crypto');

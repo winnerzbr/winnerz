@@ -11,6 +11,7 @@ import { readSpreadsheet, type Sheet } from '../lib/xlsx';
 import { planSheet, buildItems, pickBest, simplerTitle, titleKey, FIELD_LABEL, type Field, type Item, type Match, type Role, type SheetPlan, type Candidate } from '../lib/importer';
 import { canonicalPlatform, shortPlatform } from '../lib/platforms';
 import { normalize } from '../lib/rating';
+import { igdbFetch } from '../lib/igdbFetch';
 
 type Step = 'arquivo' | 'abas' | 'resumo' | 'buscando' | 'revisar' | 'gravando' | 'pronto' | 'falhou';
 const ROLES: [Role, string][] = [['lista', 'Lista de jogos (coleção)'], ['zerados', 'Jogos zerados'], ['detalhes', 'Detalhes das cópias'], ['ignorar', 'Ignorar esta aba']];
@@ -25,7 +26,7 @@ const FIELDS_BY_ROLE: Record<Role, Field[]> = {
 async function post(body: unknown, tries = 3): Promise<any> {
   for (let i = 0; ; i++) {
     try {
-      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const r = await igdbFetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) throw new Error(`Catálogo indisponível (${r.status})`);
       return await r.json();
     } catch (e) {

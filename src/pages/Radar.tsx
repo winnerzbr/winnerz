@@ -227,15 +227,17 @@ function CalendarBlock({ count }: { count: number }) {
   const [url, setUrl] = useState('');
   const [state, setState] = useState<'idle' | 'busy' | 'error'>('idle');
   const [copied, setCopied] = useState(false);
-  const make = async () => {
+  const make = async (rotate = false) => {
     setState('busy');
     try {
       const token = await accessToken();
-      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ radarLink: true }) });
+      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ radarLink: true, rotate }) });
       if (!r.ok) throw new Error();
-      const { path } = await r.json();
-      setUrl(`${location.origin}${path}`); setState('idle');
-      track('radar.calendario');
+      const { path, nonce } = await r.json();
+      // O segredo novo fica também nas preferências daqui, para a próxima gravação delas não apagar.
+      if (nonce) actions.setPrefs({ radarNonce: nonce });
+      setUrl(`${location.origin}${path}`); setState('idle'); setCopied(false);
+      track(rotate ? 'radar.calendario.troca' : 'radar.calendario');
     } catch { setState('error'); }
   };
   const webcal = url.replace(/^https?:/, 'webcal:');
@@ -251,7 +253,7 @@ function CalendarBlock({ count }: { count: number }) {
       ) : !url ? (
         <>
           <div className="radar__pill"><span className="mono">webcal://…/radar/••••••.ics</span><span className="kicker">{count === 0 ? 'Radar vazio' : 'Ainda não gerado'}</span></div>
-          <div className="radar__links"><button className="btn primary" disabled={state === 'busy' || count === 0} onClick={make}>{state === 'busy' ? 'Gerando…' : 'Gerar endereço'}</button></div>
+          <div className="radar__links"><button className="btn primary" disabled={state === 'busy' || count === 0} onClick={() => void make()}>{state === 'busy' ? 'Gerando…' : 'Gerar endereço'}</button></div>
         </>
       ) : (
         <>
@@ -263,7 +265,7 @@ function CalendarBlock({ count }: { count: number }) {
             <a className="btn primary" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noreferrer">Google Agenda</a>
             <a className="btn ghost" href={webcal}>Apple, Outlook e outros</a>
           </div>
-          <p className="faint radar__warn">Este endereço é só seu: quem tiver ele vê os jogos do seu Radar. Não publique.</p>
+          <p className="faint radar__warn">Este endereço é só seu: quem tiver ele vê os jogos do seu Radar. Não publique. Se ele vazou, <button className="linkish" disabled={state === 'busy'} onClick={() => void make(true)}>troque o endereço</button>: o antigo para de funcionar e você assina de novo com o novo.</p>
         </>
       )}
       {state === 'error' && <p className="muted" role="alert">Não consegui gerar agora. Tente de novo em instantes.</p>}

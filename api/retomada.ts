@@ -22,6 +22,9 @@
  *
  * Variáveis na Vercel:
  *   ANTHROPIC_API_KEY  (obrigatória para ligar)   ANTHROPIC_MODEL (opcional)   AI_MONTHLY_LIMIT (opcional, padrão 30)
+ *   AI_SITE_MONTHLY (opcional, padrão 1500): teto do site inteiro por mês, somando todo mundo e todos os usos da IA
+ *     (Retomada, narração, clima, listas de capítulos, vídeos e leitura por foto). Precisa da migração 0075.
+ *   Por pessoa e por dia (migração 0075): até 5 listas automáticas de capítulos e 10 buscas de vídeos.
  *   SUPABASE_URL + SUPABASE_SECRET_KEY (já usadas pelo IGDB), para conferir o login e contar o uso.
  */
 
@@ -53,6 +56,27 @@ async function requireUser(req: Req): Promise<string | null> {
 /** Mês no horário de Brasília (o limite vira junto com o calendário da pessoa). */
 const month = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7);
 
+const SITE_LIMIT = () => { const n = Number(process.env.AI_SITE_MONTHLY ?? 1500); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 1500; };
+const PER_DAY = { capitulos: 5, videos: 10 } as const;
+const SITE_FULL = 'A IA do WinnerZ chegou ao limite deste mês para o site todo. Volta no começo do mês que vem.';
+
+/**
+ * Contador do servidor (migração 0075): soma "cost" ao balde se não passar do limite. Devolve false se passou.
+ * Sem a migração (ou com o banco fora do ar), deixa passar: o site não para por causa do contador.
+ */
+async function countUse(bucket: string, limit: number, cost = 1, monthly = false): Promise<boolean> {
+  const c = db();
+  if (!c) return true;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/api_hit`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_bucket: bucket, p_limit: limit, p_cost: cost, p_monthly: monthly }) });
+    if (!r.ok) { console.error('retomada diag=contador-off', r.status); return true; }
+    return (await r.json()) !== -1;
+  } catch { return true; }
+}
+/** Um uso da IA no teto do site (mês). */
+const siteUse = () => countUse('ia-site', SITE_LIMIT(), 1, true);
+const siteGiveBack = () => countUse('ia-site', SITE_LIMIT(), -1, true);
+
 async function usage(user: string): Promise<number> {
   const c = db()!;
   const r = await fetch(`${c.url}/rest/v1/ai_usage?select=uses&user_id=eq.${user}&month=eq.${month()}`, { headers: c.headers });
@@ -61,16 +85,22 @@ async function usage(user: string): Promise<number> {
   return rows[0]?.uses ?? 0;
 }
 
-/** Reserva um uso antes de chamar a IA (de uma vez só, sem corrida). Devolve o total, ou -1 se passou do limite. */
+/**
+ * Reserva um uso antes de chamar a IA (de uma vez só, sem corrida). Devolve o total, -1 se passou do limite
+ * da pessoa ou -2 se passou do teto do site.
+ */
 async function reserve(user: string): Promise<number> {
   const c = db()!;
+  if (!(await siteUse())) return -2;
   const r = await fetch(`${c.url}/rest/v1/rpc/ai_reserve`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month(), p_limit: LIMIT() }) });
-  if (!r.ok) throw new Error('Falta rodar a migração 0008 no Supabase.');
+  if (!r.ok) { await siteGiveBack(); throw new Error('Falta rodar a migração 0008 no Supabase.'); }
   const v = await r.json();
-  return typeof v === 'number' ? v : -1;
+  if (typeof v !== 'number' || v < 0) { await siteGiveBack(); return -1; }
+  return v;
 }
 async function refund(user: string) {
   const c = db()!;
+  await siteGiveBack();
   await fetch(`${c.url}/rest/v1/rpc/ai_refund`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month() }) }).catch(() => null);
 }
 
@@ -83,7 +113,7 @@ function aiError(status: number, detail: string): string {
   if (status === 403 || type === 'permission_error') return 'A chave da IA no servidor não tem permissão para este modelo.';
   if (status === 404 || type === 'not_found_error') return 'O modelo de IA configurado não existe. Confira a ANTHROPIC_MODEL na Vercel (ou apague para usar o padrão).';
   if (/credit balance|billing|purchase credits/i.test(msg)) return 'A conta da IA está sem créditos. Recarregue em console.anthropic.com.';
-  if (status === 400) return `A IA recusou o pedido (formato)${msg ? `: ${msg.slice(0, 140)}` : ''}. Tente de novo; se continuar, avise a administração.`;
+  if (status === 400) return 'A IA recusou o pedido (formato). Tente de novo; se continuar, avise a administração.';
   return 'A IA não respondeu agora. Tente de novo.';
 }
 const clip = (v: unknown, n: number) => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, n) : '');
@@ -130,7 +160,7 @@ async function narrate(user: string, body: Record<string, unknown>, res: Res) {
   const facts = Array.isArray(body.facts) ? body.facts.slice(0, 40).map((f) => clip(f, 220)).filter(Boolean) : [];
   if (!facts.length && !clip(body.summary, 10)) return res.status(400).json({ error: 'Este capítulo ainda não tem registros para narrar.' });
   const used = await reserve(user);
-  if (used < 0) return res.status(429).json({ error: `Você já usou os ${LIMIT()} pedidos de IA deste mês.`, used: LIMIT(), limit: LIMIT() });
+  if (used < 0) return res.status(429).json({ error: used === -2 ? SITE_FULL : `Você já usou os ${LIMIT()} pedidos de IA deste mês.`, used: LIMIT(), limit: LIMIT() });
   const text = [
     `Jogo: ${clip(body.game, 120) || 'não informado'}.`,
     `Capítulo ${Number(body.chapter) || 1}: ${clip(body.name, 120)} (${clip(body.range, 60)}).`,
@@ -175,15 +205,21 @@ Para cada jogo da lista, devolva notas de 0 a 3:
 E "note": UMA frase curta em português, neutra, sem spoiler, sobre como a comunidade vê o jogo (até 110 caracteres). Se não conhecer o jogo, use notas medianas (relax 1, challenge 1, intensity 1, story 1, short 1) e note vazia.
 Responda SÓ com JSON: {"games":[{"id":"...","relax":0,"challenge":0,"intensity":0,"story":0,"short":0,"note":"..."}]}`;
 
-type VibeIn = { id: string; title: string; year?: number; platforms?: string[]; genres?: string };
+type VibeIn = { id: string; title: string; year?: number | null; platforms?: string[] | null; genres?: string | null };
 const clamp3 = (v: unknown) => Math.max(0, Math.min(3, Math.round(Number(v) || 0)));
 
 async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   const c = db()!;
-  const list = (Array.isArray(body.games) ? body.games : []).slice(0, 25).map((g: any): VibeIn | null => (g && typeof g.id === 'string' && typeof g.title === 'string'
-    ? { id: g.id.slice(0, 80), title: g.title.slice(0, 120), year: Number.isFinite(g.year) ? g.year : undefined, platforms: Array.isArray(g.platforms) ? g.platforms.slice(0, 4).map(String) : undefined, genres: typeof g.genres === 'string' ? g.genres.slice(0, 120) : undefined }
-    : null)).filter((x: VibeIn | null): x is VibeIn => !!x);
-  if (!list.length) return res.status(400).json({ error: 'Nenhum jogo para classificar.' });
+  // Do pedido só valem os ids: título, ano, plataformas e gêneros vêm da ficha guardada no banco
+  // (o clima fica para todo mundo, então ninguém escolhe o texto que a IA lê).
+  const asked = [...new Set((Array.isArray(body.games) ? body.games : []).slice(0, 25)
+    .map((g: any) => (g && typeof g.id === 'string' ? g.id.slice(0, 80) : '')).filter(Boolean))] as string[];
+  if (!asked.length) return res.status(400).json({ error: 'Nenhum jogo para classificar.' });
+  const inList = asked.map((i) => `"${i.replace(/["\\]/g, '')}"`).join(',');
+  const gr = await fetch(`${c.url}/rest/v1/games?select=id,title,year,platforms,genres&id=in.(${encodeURIComponent(inList)})`, { headers: c.headers });
+  const list = (gr.ok ? ((await gr.json()) as VibeIn[]) : []).filter((g) => g && typeof g.title === 'string')
+    .map((g) => ({ id: g.id, title: g.title.slice(0, 120), year: Number.isFinite(g.year) ? g.year : undefined, platforms: Array.isArray(g.platforms) ? g.platforms.slice(0, 4).map(String) : undefined, genres: typeof g.genres === 'string' ? g.genres.slice(0, 120) : undefined }));
+  if (!list.length) return res.status(200).json({ done: 0 });
   // Só os que ainda não têm clima (o servidor confere; o cliente não decide).
   const ids = list.map((g) => g.id);
   const have = await fetch(`${c.url}/rest/v1/game_vibes?select=game_id&game_id=in.(${ids.map((i) => `"${i.replace(/"/g, '')}"`).join(',')})`, { headers: c.headers });
@@ -195,13 +231,14 @@ async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   const r = await fetch(`${c.url}/rest/v1/rpc/vibes_reserve`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_day: day, p_limit: 12 }) });
   const n = r.ok ? await r.json() : -1;
   if (typeof n !== 'number') return res.status(429).json({ error: 'Por hoje, a classificação dos jogos já foi pedida muitas vezes. Amanhã continua.' });
+  if (!(await siteUse())) return res.status(429).json({ error: SITE_FULL });
   const text = `Jogos:\n${todo.map((g) => `- id=${g.id} | ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` | ${g.platforms.join(', ')}` : ''}${g.genres ? ` | gêneros IGDB: ${g.genres}` : ''}`).join('\n')}`;
   const ai = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({ model: MODEL(), max_tokens: 2500, system: VIBES_SYSTEM, messages: [{ role: 'user', content: text }] }),
   });
-  if (!ai.ok) return res.status(502).json({ error: aiError(ai.status, await ai.text()) });
+  if (!ai.ok) { await siteGiveBack(); return res.status(502).json({ error: aiError(ai.status, await ai.text()) }); }
   const out = (await ai.json()) as { content?: { type: string; text?: string }[] };
   // Os modelos novos não aceitam começar a resposta por nós: o JSON vem inteiro e pegamos do primeiro "{".
   const txt = (out.content ?? []).filter((x) => x.type === 'text').map((x) => x.text ?? '').join('');
@@ -384,13 +421,18 @@ async function outline(user: string, body: Record<string, unknown>, res: Res) {
     const a = await fetch(`${c.url}/rest/v1/profiles?select=is_admin&id=eq.${user}`, { headers: c.headers }).then((r) => (r.ok ? r.json() : [])).catch(() => []);
     force = !!(a as { is_admin?: boolean }[])[0]?.is_admin;
   }
+  // Limite por pessoa (por dia) e teto do site (por mês): reserva antes e devolve se a lista não for montada agora.
+  const mine = `ia-capitulos:${user}`;
+  if (!force && !(await countUse(mine, PER_DAY.capitulos))) return res.status(200).json({ state: 'limite' });
+  const giveBack = async () => { if (!force) await countUse(mine, PER_DAY.capitulos, -1); await siteGiveBack(); };
+  if (!(await siteUse())) { if (!force) await countUse(mine, PER_DAY.capitulos, -1); return res.status(200).json({ state: 'limite', reason: SITE_FULL }); }
   let start: string;
   try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY(), p_force: force }); }
   catch {
     try { start = await rpcSvc('outline_job_start', { p_game: gameId, p_limit: OUTLINE_DAILY() }); }
-    catch { return res.status(503).json({ error: 'Falta rodar a migração 0058 no Supabase.' }); }
+    catch { await giveBack(); return res.status(503).json({ error: 'Falta rodar a migração 0058 no Supabase.' }); }
   }
-  if (start !== 'ok') return res.status(200).json({ state: start === 'pronto' ? 'pronto' : start === 'rodando' ? 'rodando' : start === 'limite' ? 'limite' : 'sem_lista' });
+  if (start !== 'ok') { await giveBack(); return res.status(200).json({ state: start === 'pronto' ? 'pronto' : start === 'rodando' ? 'rodando' : start === 'limite' ? 'limite' : 'sem_lista' }); }
   const finish = async (state: 'feito' | 'sem_lista' | 'erro', note?: string) => { await rpcSvc('outline_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null); };
   const deadline = Date.now() + 110_000;
   try {
@@ -443,7 +485,7 @@ async function outlineFromLink(user: string, gameId: string, rawUrl: unknown, re
   const g = ((await gr.json().catch(() => [])) as GameRow[])[0];
   if (!g) return res.status(404).json({ error: 'Jogo não encontrado.' });
   const used = await reserve(user);
-  if (used < 0) return res.status(429).json({ error: `Você já usou os ${LIMIT()} pedidos de IA deste mês.` });
+  if (used < 0) return res.status(429).json({ error: used === -2 ? SITE_FULL : `Você já usou os ${LIMIT()} pedidos de IA deste mês.` });
   const ttb = g.ttb?.n ?? g.ttb?.h ?? g.ttb?.c;
   const prompt = [
     `Jogo: ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` · ${g.platforms.slice(0, 4).join(', ')}` : ''}.`,
@@ -654,9 +696,14 @@ async function videos(user: string, body: Record<string, unknown>, res: Res) {
   const force = !canal && body.force === true && (await isAdmin());
   let start = 'ok';
   if (!canal) {
+    // Limite por pessoa (por dia) e teto do site (por mês): reserva antes e devolve se a busca não rodar agora.
+    const mine = `ia-videos:${user}`;
+    if (!force && !(await countUse(mine, PER_DAY.videos))) return res.status(200).json({ state: 'limite' });
+    const giveBack = async () => { if (!force) await countUse(mine, PER_DAY.videos, -1); await siteGiveBack(); };
+    if (!(await siteUse())) { if (!force) await countUse(mine, PER_DAY.videos, -1); return res.status(200).json({ state: 'limite', reason: SITE_FULL }); }
     try { start = String(await rpcSvc('video_job_start', { p_game: gameId, p_limit: YT_DAILY(), p_force: force })); }
-    catch { return res.status(503).json({ error: 'Falta rodar a migração 0063 no Supabase.' }); }
-    if (start !== 'ok') return res.status(200).json({ state: start });
+    catch { await giveBack(); return res.status(503).json({ error: 'Falta rodar a migração 0063 no Supabase.' }); }
+    if (start !== 'ok') { await giveBack(); return res.status(200).json({ state: start }); }
   }
   const finish = async (state: 'feito' | 'sem_video' | 'erro', note?: string) => { if (!canal) await rpcSvc('video_job_finish', { p_game: gameId, p_state: state, p_note: note ?? null }).catch(() => null); };
   let units = 0;
@@ -788,7 +835,7 @@ export default async function handler(req: Req, res: Res) {
     if (!image || image.length > 2_800_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 
     const used = await reserve(user);
-    if (used < 0) return res.status(429).json({ error: `Você já usou as ${LIMIT()} sugestões deste mês. A Cápsula continua funcionando sem a IA.`, used: LIMIT(), limit: LIMIT() });
+    if (used < 0) return res.status(429).json({ error: used === -2 ? `${SITE_FULL} A Cápsula continua funcionando sem a IA.` : `Você já usou as ${LIMIT()} sugestões deste mês. A Cápsula continua funcionando sem a IA.`, used: LIMIT(), limit: LIMIT() });
 
     const text = [
       `Jogo: ${clip(body.game, 120) || 'não informado'}.`,
@@ -827,6 +874,18 @@ export default async function handler(req: Req, res: Res) {
       used, limit: LIMIT(),
     });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
+    return res.status(500).json(failure('retomada', err));
   }
+}
+
+/**
+ * Erro sem detalhes internos: só um código curto para achar no registro da Vercel.
+ * Avisos de migração faltando continuam aparecendo (ajudam a administração e não expõem nada).
+ */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }

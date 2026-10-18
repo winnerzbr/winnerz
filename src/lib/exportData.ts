@@ -35,7 +35,7 @@ const slug = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/
 
 export function exportJson(s: State, photoNames: Record<string, string>, comunidade: Record<string, unknown> | null = null) {
   const gameIds = new Set<string>([...s.copies.map((c) => c.gameId), ...s.wishes.map((w) => w.gameId), ...s.favorites, ...s.journeys.map((j) => j.gameId), ...Object.keys(s.myGames), ...s.reviews.filter((r) => r.mine).map((r) => r.gameId)]);
-  const { overlayNonce: _secret, ...prefs } = s.prefs;
+  const { overlayNonce: _secret, radarNonce: _secret2, ...prefs } = s.prefs;
   return {
     sobre: 'Seus dados no WinnerZ. As fotos estão na pasta fotos/ deste arquivo; cada registro com foto aponta para ela em "fotoArquivo".',
     exportadoEm: new Date().toISOString(),

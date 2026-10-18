@@ -1115,6 +1115,7 @@ a.rcard__title { color: var(--ink); }
 .radar__url input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink-2); font-size: 12px; outline: none; }
 .radar__links { display: flex; flex-wrap: wrap; gap: 8px; }
 .radar__warn { margin: 0; font-size: 13px; }
+.radar__warn .linkish { border: 0; background: none; padding: 0; font: inherit; color: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .radar-note { border-left: 0; border-radius: 0; box-shadow: none; }
 
 /* Trilhas ----------------------------------------------------------- */

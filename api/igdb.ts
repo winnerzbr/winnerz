@@ -3,18 +3,20 @@
  * As credenciais da Twitch ficam só aqui no servidor.
  *
  *   GET /api/igdb?q=elden           → busca (até 12 resultados)
- *   GET /api/igdb?id=119133         → ficha completa; também grava no cache "games" do Supabase
- *   POST /api/igdb {match:[{title}]} → até 10 buscas numa chamada (importador da planilha)
- *   POST /api/igdb {cache:[ids]}     → fichas leves de até 100 jogos, gravadas no cache
- *   POST /api/igdb {facts:[ids]}     → só tempo para zerar, data, temas e modos de fichas que já existem
+ *   GET /api/igdb?id=119133         → ficha completa; com login, também traduz e grava no cache "games" do Supabase
+ *                                      (sem login: só lê; a tradução aparece se já estava guardada)
+ *   POST /api/igdb {match:[{title}]} → (com login) até 10 buscas numa chamada (importador da planilha)
+ *   POST /api/igdb {cache:[ids]}     → (com login) fichas leves de até 100 jogos, gravadas no cache
+ *   POST /api/igdb {facts:[ids]}     → (com login) só tempo para zerar, data, temas e modos de fichas que já existem
  *   GET /api/igdb?slug=elden-ring    → ficha completa pelo slug do IGDB (abre qualquer jogo)
  *   GET /api/igdb?meta=1             → listas para os filtros (gêneros, plataformas, modos)
  *   GET /api/igdb?explore=1&...      → Explorar: jogos por gênero, tema, plataforma, época, modo e ordem
  *                                      (like=<id>: só os parecidos com esse jogo)
  *   GET /api/igdb?related=119133     → universo do jogo: franquia, DLCs, remakes, parecidos
  *   GET /api/igdb?radar=1,2,3        → Radar: próxima data de cada jogo, com a precisão real (dia, mês, trimestre, ano)
- *   POST /api/igdb {radarLink:true}  → (com login) endereço assinado do calendário do Radar
- *   GET /api/igdb?ics=<id>&sig=...   → o calendário (.ics) com as datas confirmadas do seu Radar
+ *   POST /api/igdb {radarLink:true, rotate?:true} → (com login) endereço assinado do calendário do Radar
+ *                                      (rotate: troca o endereço; o antigo para de funcionar)
+ *   GET /api/igdb?ics=<id>&n=...&sig=... → o calendário (.ics) com as datas confirmadas do seu Radar
  *   POST /api/igdb {steam:"perfil"}  → (com login) jogos da sua conta Steam, com horas e ficha do IGDB
  *
  * Ids: o jogo do IGDB ganha "igdb-<número>" no WinnerZ e nunca muda, mesmo que o IGDB troque o slug.
@@ -24,6 +26,9 @@
  *   - DEEPL_API_KEY (opcional, melhor qualidade; o plano gratuito da DeepL dá 500 mil caracteres/mês)
  *   - sem chave: MyMemory, gratuito (TRANSLATE_EMAIL opcional aumenta o limite diário)
  * Gêneros, temas e modos são traduzidos por dicionário no site (src/lib/igdbPt.ts).
+ *
+ * Limites por pessoa e por dia (migração 0075; sem ela, sem limite): fichas gravadas, buscas do importador,
+ * lotes de fichas e leituras da Steam. Sem login, nada é gravado nem traduzido.
  */
 
 type Req = { query: Record<string, string | string[] | undefined>; method?: string; body?: unknown; headers?: Record<string, string | string[] | undefined> };
@@ -383,7 +388,7 @@ async function cacheRows(rows: any[]) {
 }
 
 /** Ficha completa (com tradução, mídia sem logotipos e tempo para zerar), gravada no cache. */
-async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fresh: boolean } | null> {
+async function fullGame(id: number, persist = true): Promise<{ game: Record<string, unknown>; fresh: boolean } | null> {
   const [g] = await igdb('games', `where id = ${id}; fields name,slug,summary,storyline,first_release_date,cover.image_id,artworks.*,screenshots.image_id,videos.video_id,videos.name,platforms.name,genres.name,themes.name,game_modes.name,player_perspectives.name,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,release_dates.date,release_dates.platform.name; limit 1;`);
   if (!g) return null;
   const dev = (g.involved_companies ?? []).find((c: any) => c.developer)?.company?.name;
@@ -394,8 +399,9 @@ async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fr
   const original: string | null = g.summary || g.storyline || null;
   // Ficha já traduzida e o texto original não mudou: reaproveita a tradução (economiza a cota gratuita).
   const prev = await cachedSummary(g.id);
+  // Sem login (persist = false) não gasta tradução: só reaproveita a que já estava guardada.
   const translated = original
-    ? (prev?.summary_original === original && prev.summary ? prev.summary : await toPortuguese(original))
+    ? (prev?.summary_original === original && prev.summary ? prev.summary : persist ? await toPortuguese(original) : null)
     : null;
   // Uma data por plataforma: a primeira em que o jogo saiu nela.
   const firstByPlatform = new Map<string, number>();
@@ -424,8 +430,8 @@ async function fullGame(id: number): Promise<{ game: Record<string, unknown>; fr
     released_on: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : null,
     updated_at: new Date().toISOString(),
   };
-  // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada.
-  const [stored = game] = await withFixes(await cacheGames([game]));
+  // Mesmo se o cache falhar, a ficha é mostrada; só não fica guardada. Sem login, só mostra.
+  const [stored = game] = await withFixes(persist ? await cacheGames([game]) : [game]);
   // Sem tradução (limite gratuito do dia, por exemplo), o CDN guarda por pouco tempo para tentar de novo.
   return { game: stored, fresh: !!translated || !original };
 }
@@ -701,7 +707,7 @@ async function radar(ids: number[]): Promise<Record<number, RadarInfo>> {
   return out;
 }
 
-/* ---- Login (para o calendário e a Steam) ------------------------------------------------- */
+/* ---- Login, limites e assinaturas ------------------------------------------------------------ */
 
 const header = (req: Req, k: string) => { const v = req.headers?.[k] ?? req.headers?.[k.toLowerCase()]; return Array.isArray(v) ? v[0] : v; };
 
@@ -714,6 +720,45 @@ async function requireUser(req: Req): Promise<string | null> {
   if (!r.ok) return null;
   const u = (await r.json()) as { id?: string };
   return u.id ?? null;
+}
+
+/** Limites por pessoa e por dia (gravar e traduzir custam cota do IGDB, da tradução e espaço no banco). */
+const PER_DAY = { ficha: 400, busca: 400, lote: 150, steam: 20 } as const;
+
+/**
+ * Conta um uso no contador do servidor (migração 0075). Devolve false se passou do limite do dia.
+ * Sem a migração ou com o banco fora do ar, deixa passar: o site não para por causa do contador.
+ */
+async function countUse(bucket: string, limit: number): Promise<boolean> {
+  const c = db();
+  if (!c) return true;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/api_hit`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_bucket: bucket, p_limit: limit }) });
+    if (!r.ok) { console.error('igdb diag=contador-off', r.status); return true; }
+    return (await r.json()) !== -1;
+  } catch { return true; }
+}
+
+/** Compara dois textos em tempo constante (não dá pista de quantos caracteres acertou). */
+export function sameText(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+/** O "segredo do link" do calendário, guardado nas preferências (trocar invalida o endereço antigo). */
+async function radarNonce(user: string, rotate: boolean): Promise<string> {
+  const c = db();
+  if (!c) return '';
+  const r = await fetch(`${c.url}/rest/v1/profiles?select=prefs&id=eq.${encodeURIComponent(user)}`, { headers: c.headers });
+  const prefs = r.ok ? (((await r.json()) as { prefs?: Record<string, unknown> | null }[])[0]?.prefs ?? {}) : {};
+  const now = typeof prefs.radarNonce === 'string' && /^[0-9a-f]{16}$/.test(prefs.radarNonce) ? prefs.radarNonce : '';
+  if (!rotate) return now;
+  const fresh = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const w = await fetch(`${c.url}/rest/v1/profiles?id=eq.${encodeURIComponent(user)}`, { method: 'PATCH', headers: { ...c.headers, Prefer: 'return=minimal' }, body: JSON.stringify({ prefs: { ...prefs, radarNonce: fresh } }) });
+  if (!w.ok) throw new Error('Não consegui trocar o endereço agora.');
+  return fresh;
 }
 
 async function sign(text: string): Promise<string> {
@@ -811,23 +856,45 @@ function fromOurSite(req: Req): boolean {
   try { return new URL(from).host === host; } catch { return false; }
 }
 
+/** Mensagem de erro sem detalhes internos: só um código curto para achar no registro da Vercel. */
+function failure(err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const name = err instanceof Error ? err.name : typeof err;
+  const msg = err instanceof Error ? err.message.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120) : '';
+  console.error(`igdb diag=${diag}`, name, msg);
+  return { error: 'O catálogo não respondeu agora. Tente de novo em instantes.', diag };
+}
+
+const TOO_MANY = { error: 'Você fez muitos pedidos ao catálogo hoje. Amanhã continua.' };
+
 export default async function handler(req: Req, res: Res) {
   try {
     if (!(typeof req.query.ics === 'string' && typeof req.query.sig === 'string') && !fromOurSite(req)) {
       return res.status(403).json({ error: 'Uso restrito ao WinnerZ.' });
     }
     if (req.method === 'POST') {
-      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; facts?: number[]; radarLink?: boolean; steam?: string };
-      if (body.radarLink || typeof body.steam === 'string') {
-        const user = await requireUser(req);
-        if (!user) return res.status(401).json({ error: 'Entre na sua conta para usar isto.' });
-        if (body.radarLink) return res.status(200).json({ path: `/api/igdb?ics=${user}&sig=${await sign(user)}` });
+      const body = (typeof req.body === 'string' ? JSON.parse(req.body) : req.body ?? {}) as { match?: { title: string }[]; cache?: number[]; facts?: number[]; radarLink?: boolean; rotate?: boolean; steam?: string };
+      // Tudo que é POST grava algo ou gasta cota: só com login, e com limite por dia.
+      const user = await requireUser(req);
+      if (!user) return res.status(401).json({ error: 'Entre na sua conta para usar isto.' });
+      if (body.radarLink) {
+        const n = await radarNonce(user, body.rotate === true);
+        // Sem segredo guardado, vale o endereço antigo (quem já assinou o calendário não perde nada).
+        return res.status(200).json({ path: n ? `/api/igdb?ics=${user}&n=${n}&sig=${await sign(`${user}.${n}`)}` : `/api/igdb?ics=${user}&sig=${await sign(user)}`, nonce: n || undefined });
+      }
+      if (typeof body.steam === 'string') {
+        if (!(await countUse(`igdb-steam:${user}`, PER_DAY.steam))) return res.status(429).json(TOO_MANY);
         const r = await steamLibrary(String(body.steam).slice(0, 200));
         return res.status('error' in r ? 400 : 200).json(r);
       }
-      if (Array.isArray(body.match)) return res.status(200).json(await matchMany(body.match));
-      if (Array.isArray(body.cache)) return res.status(200).json(await cacheMany(body.cache));
-      if (Array.isArray(body.facts)) return res.status(200).json(await factsMany(body.facts));
+      if (Array.isArray(body.match)) {
+        if (!(await countUse(`igdb-busca:${user}`, PER_DAY.busca))) return res.status(429).json(TOO_MANY);
+        return res.status(200).json(await matchMany(body.match));
+      }
+      if (Array.isArray(body.cache) || Array.isArray(body.facts)) {
+        if (!(await countUse(`igdb-lote:${user}`, PER_DAY.lote))) return res.status(429).json(TOO_MANY);
+        return res.status(200).json(Array.isArray(body.cache) ? await cacheMany(body.cache) : await factsMany(body.facts!));
+      }
       return res.status(400).json({ error: 'Envie {match:[...]} ou {cache:[...]}' });
     }
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
@@ -849,19 +916,17 @@ export default async function handler(req: Req, res: Res) {
       return res.status(200).json(rows.map(hit));
     }
 
-    if (Number.isFinite(id)) {
-      const r = await fullGame(id);
-      if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
-      res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
-      return res.status(200).json(r.game);
-    }
-
     const slug = typeof req.query.slug === 'string' ? req.query.slug.replace(/[^a-z0-9-]/gi, '').slice(0, 120) : '';
-    if (slug) {
-      const [found] = await igdb('games', `where slug = "${slug}"; fields id; limit 1;`);
-      const r = found ? await fullGame(found.id) : null;
+    if (Number.isFinite(id) || slug) {
+      // Ficha completa: com login (e dentro do limite do dia) traduz e grava; sem login só mostra.
+      const user = await requireUser(req);
+      const persist = !!user && (await countUse(`igdb-ficha:${user}`, PER_DAY.ficha));
+      let igdbId = id;
+      if (!Number.isFinite(igdbId)) { const [found] = await igdb('games', `where slug = "${slug}"; fields id; limit 1;`); igdbId = found?.id ?? NaN; }
+      const r = Number.isFinite(igdbId) && igdbId > 0 ? await fullGame(igdbId, persist) : null;
       if (!r) return res.status(404).json({ error: 'Jogo não encontrado no catálogo' });
-      res.setHeader('Cache-Control', r.fresh ? 's-maxage=86400' : 's-maxage=600');
+      // O que não foi gravado não vai para o cache compartilhado (senão quem tem login receberia a ficha sem gravar).
+      res.setHeader('Cache-Control', !persist ? 'private, max-age=600' : r.fresh ? 's-maxage=86400' : 's-maxage=600');
       return res.status(200).json(r.game);
     }
 
@@ -898,16 +963,20 @@ export default async function handler(req: Req, res: Res) {
 
     if (typeof req.query.ics === 'string' && typeof req.query.sig === 'string') {
       const user = req.query.ics.replace(/[^0-9a-f-]/gi, '');
-      if (!user || req.query.sig !== (await sign(user))) return res.status(403).json({ error: 'Endereço do calendário inválido' });
+      const n = typeof req.query.n === 'string' ? req.query.n : '';
+      if (!/^[0-9a-f-]{36}$/i.test(user) || (n && !/^[0-9a-f]{16}$/.test(n))) return res.status(403).json({ error: 'Endereço do calendário inválido' });
+      // Com segredo guardado, só vale o endereço com ele; sem segredo, o endereço antigo.
+      const want = await radarNonce(user, false).catch(() => null);
+      if (want === null || n !== want || !sameText(req.query.sig, await sign(n ? `${user}.${n}` : user))) return res.status(403).json({ error: 'Endereço do calendário inválido' });
       const host = header(req, 'host') ?? 'winnerz.com.br';
       res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
       res.setHeader('Content-Disposition', 'inline; filename="radar-winnerz.ics"');
       res.setHeader('Cache-Control', 'private, max-age=3600');
-      return res.status(200).send(await radarCalendar(user, `https://${host}`));
+      return res.status(200).send(await radarCalendar(user, `https://${process.env.SITE_URL ? process.env.SITE_URL.replace(/^https?:\/\//, '').replace(/\/+$/, '') : host}`));
     }
 
     return res.status(400).json({ error: 'Use ?q=, ?id=, ?slug=, ?meta=1, ?explore=1, ?related= ou ?radar=' });
   } catch (err) {
-    return res.status(502).json({ error: err instanceof Error ? err.message : 'Falha ao consultar o catálogo' });
+    return res.status(502).json(failure(err));
   }
 }

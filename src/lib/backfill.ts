@@ -5,6 +5,7 @@
  */
 import { getState, actions } from '../data/store';
 import type { Game } from '../data/types';
+import { igdbFetch } from './igdbFetch';
 
 const KEY = 'wz.fatos.v1';
 const MONTH = 30 * 24 * 3600 * 1000;
@@ -27,7 +28,7 @@ export async function backfillGameFacts() {
     const need = Object.values(s.games).filter((g) => mine.has(g.id) && g.igdbId && g.ttb == null && !(t[g.igdbId] && now - t[g.igdbId] < MONTH)).map((g) => g.igdbId!);
     for (let i = 0; i < need.length; i += 100) {
       const batch = need.slice(i, i + 100);
-      const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts: batch }) });
+      const r = await igdbFetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ facts: batch }) });
       if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) break;
       const rows: any[] = await r.json();
       const st = getState();

@@ -317,6 +317,8 @@ export interface Prefs {
   light?: boolean;
   /** Segredo do endereço do overlay (trocar invalida o endereço antigo). */
   overlayNonce?: string;
+  /** Segredo do endereço do calendário do Radar (trocar invalida o endereço antigo). */
+  radarNonce?: string;
   /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */
   welcomeDone?: boolean;
   /** A Chegada (primeira visita em 15 telas): a tela onde parou, se terminou e o que ela precisa para continuar. */

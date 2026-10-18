@@ -10,6 +10,8 @@
  *   GET  /api/pontes?cron=1  (agendado pela Vercel, uma vez por dia)           → busca de todo mundo que ligou alguma ponte
  *   POST /api/pontes (com login) { link: "twitch" } | { twitchCanal: true }     → E7.3: endereço do login da Twitch (pessoa | conta do canal)
  *   GET  /twitch/volta (reescrito para ?twitch=volta)                          → a Twitch devolve o login aqui
+ *        (só vale no navegador que pediu: o pedido do endereço grava um cookie com um número aleatório,
+ *         assinado junto no "state"; link de login montado por outra pessoa não liga a conta de quem clicou)
  *   POST /api/pontes?twitch=evento                                             → EventSub da Twitch (resgate com pontos do canal), assinado
  *   POST /api/pontes (com login, administração) { twitchSub: true }             → refaz a inscrição do EventSub
  *
@@ -514,19 +516,36 @@ async function hmacHex(key: string, text: string): Promise<string> {
   const k = await crypto.subtle.importKey('raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(text)))].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
-/** O "state" do login da Twitch: quem pediu, para quê e até quando, assinado com a chave do servidor. */
-export async function signState(p: { u: string; k: 'pessoa' | 'canal'; t: number }, secret: string): Promise<string> {
+/** O "state" do login da Twitch: quem pediu, para quê, até quando e o número do cookie (n), assinado com a chave do servidor. */
+export async function signState(p: { u: string; k: 'pessoa' | 'canal'; t: number; n?: string }, secret: string): Promise<string> {
   const body = Buffer.from(JSON.stringify(p)).toString('base64url');
   return `${body}.${(await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32)}`;
 }
-export async function readState(state: string, secret: string, now = Date.now()): Promise<{ u: string; k: 'pessoa' | 'canal' } | null> {
+export async function readState(state: string, secret: string, now = Date.now()): Promise<{ u: string; k: 'pessoa' | 'canal'; n?: string } | null> {
   const [body, sig] = String(state ?? '').split('.');
-  if (!body || !sig || sig !== (await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32)) return null;
+  if (!body || !sig || !sameText(sig, (await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32))) return null;
   try {
-    const p = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: string; k?: string; t?: number };
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: string; k?: string; t?: number; n?: string };
     if (!p.u || (p.k !== 'pessoa' && p.k !== 'canal') || !p.t || p.t < now) return null;
-    return { u: p.u, k: p.k };
+    return p.n ? { u: p.u, k: p.k, n: p.n } : { u: p.u, k: p.k };
   } catch { return null; }
+}
+/** Compara dois textos em tempo constante (não dá pista de quantos caracteres acertou). */
+export function sameText(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+const TW_COOKIE = 'wz_tw_nonce';
+const twCookie = (value: string, maxAge: number) => `${TW_COOKIE}=${value}; Path=/twitch; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
+/** Lê um cookie do pedido. */
+export function cookieOf(raw: string | undefined, name: string): string {
+  for (const part of String(raw ?? '').split(';')) {
+    const i = part.indexOf('=');
+    if (i > 0 && part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
+  }
+  return '';
 }
 /** O segredo das mensagens do EventSub (derivado da chave do servidor; a Twitch pede de 10 a 100 caracteres). */
 export const eventsubSecret = async (secret: string) => (await hmacHex(secret, 'twitch-eventsub')).slice(0, 48);
@@ -534,10 +553,7 @@ export const eventsubSecret = async (secret: string) => (await hmacHex(secret, '
 export async function eventsubOk(secret: string, id: string, ts: string, raw: string, sig: string, now = Date.now()): Promise<boolean> {
   if (!id || !ts || !sig || !Number.isFinite(Date.parse(ts)) || Math.abs(now - Date.parse(ts)) > 10 * 60_000) return false;
   const want = `sha256=${await hmacHex(await eventsubSecret(secret), id + ts + raw)}`;
-  if (want.length !== sig.length) return false;
-  let diff = 0;
-  for (let i = 0; i < want.length; i++) diff |= want.charCodeAt(i) ^ sig.charCodeAt(i);
-  return diff === 0;
+  return sameText(want, sig);
 }
 async function appToken(): Promise<string | null> {
   const id = process.env.TWITCH_CLIENT_ID, secret = process.env.TWITCH_CLIENT_SECRET;
@@ -553,9 +569,10 @@ async function appToken(): Promise<string | null> {
 async function twitchLoginUrl(req: Req, user: string, kind: 'pessoa' | 'canal') {
   const id = process.env.TWITCH_CLIENT_ID;
   if (!id || !process.env.TWITCH_CLIENT_SECRET) return { error: 'A Twitch ainda não foi ligada no servidor (TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET).' };
-  const state = await signState({ u: user, k: kind, t: Date.now() + 15 * 60_000 }, serverSecret());
+  const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(18))).toString('base64url');
+  const state = await signState({ u: user, k: kind, t: Date.now() + 15 * 60_000, n: nonce }, serverSecret());
   const q = new URLSearchParams({ client_id: id, redirect_uri: `${SITE(req)}/twitch/volta`, response_type: 'code', scope: kind === 'canal' ? 'channel:read:redemptions' : '', state, force_verify: 'true' });
-  return { url: `https://id.twitch.tv/oauth2/authorize?${q}` };
+  return { url: `https://id.twitch.tv/oauth2/authorize?${q}`, nonce };
 }
 /** (Re)cria a inscrição do EventSub para os resgates do canal. */
 async function twitchSubscribe(req: Req): Promise<string> {
@@ -577,8 +594,11 @@ async function twitchSubscribe(req: Req): Promise<string> {
 async function twitchBack(req: Req, res: Res, q: Record<string, string | string[] | undefined>) {
   const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? '') : String(v ?? ''));
   const go = (to: string) => { res.setHeader('Location', to); res.status(302); return res.end ? res.end() : res.json({ to }); };
+  // O cookie vale uma vez só: sai daqui apagado. O state só vale com o mesmo número do cookie deste navegador.
+  const nonce = cookieOf(header(req, 'cookie'), TW_COOKIE);
+  res.setHeader('Set-Cookie', twCookie('', 0));
   const st = await readState(one(q.state), serverSecret());
-  if (!st) return go('/preferencias?twitch=erro#pontes');
+  if (!st || !st.n || !nonce || !sameText(st.n, nonce)) return go('/preferencias?twitch=erro#pontes');
   const back = st.k === 'canal' ? '/studio/album?twitch=' : '/preferencias?twitch=';
   if (one(q.error) || !one(q.code)) return go(`${back}cancelado${st.k === 'canal' ? '' : '#pontes'}`);
   const t = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({
@@ -718,15 +738,16 @@ export default async function handler(req: Req, res: Res) {
     if (req.method === 'GET' && q.cron) {
       const secret = process.env.CRON_SECRET;
       if (!secret) return res.status(503).json({ error: 'Rotina desligada: falta a variável CRON_SECRET na Vercel.' });
-      if (header(req, 'authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Sem permissão.' });
+      if (!sameText(header(req, 'authorization') ?? '', `Bearer ${secret}`)) return res.status(401).json({ error: 'Sem permissão.' });
       const until = Date.now() + 45_000;
       linkWindow(3, 75_000);
       const accounts = await sel<Account>('linked_accounts?select=user_id,provider,external_id,last_sync_at&order=last_sync_at.asc.nullsfirst&limit=200');
       let done = 0, added = 0;
       for (const a of accounts) { if (Date.now() > until) break; added += await syncOne(a); done += 1; }
       // Aproveita a rotina diária para atualizar os cargos ligados do Discord (sem gastar outra rotina da Vercel).
-      const host = header(req, 'x-forwarded-host') ?? header(req, 'host');
-      const roles = host ? await fetch(`https://${host}/api/discord?cron=1`, { headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(12_000) }).then((r) => r.ok).catch(() => false) : false;
+      // O endereço do site vem da configuração (SITE_URL), não do pedido: a chave da rotina não vai para outro lugar.
+      const base = process.env.SITE_URL ? process.env.SITE_URL.replace(/\/+$/, '') : header(req, 'host') ? `https://${header(req, 'host')}` : '';
+      const roles = base ? await fetch(`${base}/api/discord?cron=1`, { headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(12_000) }).then((r) => r.ok).catch(() => false) : false;
       return res.status(200).json({ accounts: done, added, discordRoles: roles });
     }
     // Extensão do Playnite: entra pela chave pessoal, não pelo login do site.
@@ -747,7 +768,9 @@ export default async function handler(req: Req, res: Res) {
         if (body.twitchSub) return res.status(200).json({ status: await twitchSubscribe(req) });
       }
       const r = await twitchLoginUrl(req, user, body.twitchCanal ? 'canal' : 'pessoa');
-      return res.status('error' in r ? 503 : 200).json(r);
+      if ('error' in r) return res.status(503).json(r);
+      res.setHeader('Set-Cookie', twCookie(r.nonce, 15 * 60));
+      return res.status(200).json({ url: r.url });
     }
     if (body.link === 'playnite') return res.status(200).json(await linkPlaynite(user));
     if (body.link === 'steam' || body.link === 'ra') {
@@ -772,8 +795,17 @@ export default async function handler(req: Req, res: Res) {
     }
     return res.status(400).json({ error: 'Pedido não reconhecido.' });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
+    return res.status(500).json(failure('pontes', err));
   }
+}
+
+/** Erro sem detalhes internos: só um código curto para achar no registro da Vercel (avisos de migração continuam). */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }
 
 /** A assinatura da Twitch confere o corpo exato: o parser automático fica desligado (o corpo é lido à mão). */

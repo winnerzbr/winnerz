@@ -14,7 +14,7 @@ export function DiscordSettings() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(() => {
     const q = new URLSearchParams(typeof location !== 'undefined' ? location.search : '').get('discord');
-    return q === 'ok' ? 'Discord ligado.' : q === 'erro' ? 'Não deu para ligar o Discord. Tente de novo.' : '';
+    return q === 'ok' ? 'Discord ligado.' : q === 'cancelado' ? 'Ligação com o Discord cancelada.' : q === 'erro' ? 'Não deu para ligar o Discord. Tente de novo pelo botão daqui, no mesmo navegador.' : '';
   });
   useEffect(() => { discordApi.status().then(setSt).catch(() => setSt(null)); }, []);
   const run = async (f: () => Promise<unknown>, ok?: string) => { setBusy(true); setMsg(''); try { const r = await f(); if (r && typeof r === 'object' && 'linked' in (r as object)) setSt(r as DiscordStatus); if (ok) setMsg(ok); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); } setBusy(false); };

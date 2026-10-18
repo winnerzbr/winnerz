@@ -21,6 +21,17 @@ test('o "state" do login volta para a mesma pessoa e vence em 15 minutos', () =>
   assert.equal(readState(st.replace('u-1', 'u-2'), 'segredo', 1_000_000), null);
 });
 
+test('o login do Discord só vale no navegador que pediu (cookie com número aleatório)', async () => {
+  const { cookieOf } = await import('../../api/discord');
+  const st = signState('u-1', 1_000_000, 'segredo', 'numero-do-cookie-1234');
+  assert.equal(readState(st, 'segredo', 1_000_000 + 60_000, 'numero-do-cookie-1234'), 'u-1');
+  // Outro navegador (sem o cookie, ou com outro número) não consegue usar o mesmo link.
+  assert.equal(readState(st, 'segredo', 1_000_000 + 60_000), null);
+  assert.equal(readState(st, 'segredo', 1_000_000 + 60_000, 'outro-numero-qualquer-99'), null);
+  assert.equal(cookieOf('a=1; wz_dc_nonce=abc_DEF-123; b=2', 'wz_dc_nonce'), 'abc_DEF-123');
+  assert.equal(cookieOf(undefined, 'wz_dc_nonce'), '');
+});
+
 test('as publicações não levam onde parou nem recado', () => {
   const p = postFor({ kind: 'sessao', handle: 'hev', discordId: '42', game: 'Hades', slug: 'hades', minutes: 95, where: 'Asfódelo' }, 'https://winnerz.com.br');
   const txt = JSON.stringify(p);

@@ -9,7 +9,8 @@
  *   POST /api/reconhecer { kind: 'ensinar', code, igdbId, slug, title, platform }  → { ok }  (depois que a pessoa confirmou)
  *
  * Variáveis na Vercel (as mesmas da Retomada): ANTHROPIC_API_KEY, ANTHROPIC_MODEL (opcional), AI_MONTHLY_LIMIT (opcional),
- * SUPABASE_URL + SUPABASE_SECRET_KEY. A foto não é guardada. Precisa da migração 0020 (e da 0008, do limite da IA).
+ * AI_SITE_MONTHLY (opcional; teto do site todo, somado com a Retomada), SUPABASE_URL + SUPABASE_SECRET_KEY.
+ * A foto não é guardada. Precisa da migração 0020 (e da 0008, do limite da IA; e da 0075, do teto do site).
  */
 
 type Req = { method?: string; body?: unknown; query?: Record<string, string | string[] | undefined>; headers?: Record<string, string | string[] | undefined> };
@@ -56,15 +57,31 @@ async function usage(user: string): Promise<number> {
   if (!r.ok) return 0;
   return ((await r.json()) as { uses: number }[])[0]?.uses ?? 0;
 }
+const SITE_LIMIT = () => { const n = Number(process.env.AI_SITE_MONTHLY ?? 1500); return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 1500; };
+const SITE_FULL = 'A IA do WinnerZ chegou ao limite deste mês para o site todo. Volta no começo do mês que vem.';
+/** Teto do site por mês (migração 0075, o mesmo da Retomada). Sem a migração, deixa passar. */
+async function siteCount(cost: 1 | -1): Promise<boolean> {
+  const c = db();
+  if (!c) return true;
+  try {
+    const r = await fetch(`${c.url}/rest/v1/rpc/api_hit`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_bucket: 'ia-site', p_limit: SITE_LIMIT(), p_cost: cost, p_monthly: true }) });
+    if (!r.ok) { console.error('reconhecer diag=contador-off', r.status); return true; }
+    return (await r.json()) !== -1;
+  } catch { return true; }
+}
+/** Reserva um uso: devolve o total da pessoa, -1 se passou do limite dela ou -2 se passou do teto do site. */
 async function reserve(user: string): Promise<number> {
   const c = db()!;
+  if (!(await siteCount(1))) return -2;
   const r = await fetch(`${c.url}/rest/v1/rpc/ai_reserve`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month(), p_limit: LIMIT() }) });
-  if (!r.ok) throw new Error('Falta rodar a migração 0008 no Supabase.');
+  if (!r.ok) { await siteCount(-1); throw new Error('Falta rodar a migração 0008 no Supabase.'); }
   const v = await r.json();
-  return typeof v === 'number' ? v : -1;
+  if (typeof v !== 'number' || v < 0) { await siteCount(-1); return -1; }
+  return v;
 }
 async function refund(user: string) {
   const c = db()!;
+  await siteCount(-1);
   await fetch(`${c.url}/rest/v1/rpc/ai_refund`, { method: 'POST', headers: c.headers, body: JSON.stringify({ p_user: user, p_month: month() }) }).catch(() => null);
 }
 
@@ -217,7 +234,7 @@ async function partFromPhoto(user: string, body: Record<string, unknown>, res: R
   if (!game || parts.length < 2) return res.status(404).json({ error: 'Este jogo ainda não tem a lista para comparar com a foto.' });
 
   const used = await reserve(user);
-  if (used < 0) return res.status(429).json({ error: `Você já usou as ${LIMIT()} leituras da IA deste mês. Escolha na lista ou escreva o nome.`, used: LIMIT(), limit: LIMIT() });
+  if (used < 0) return res.status(429).json({ error: used === -2 ? `${SITE_FULL} Escolha na lista ou escreva o nome.` : `Você já usou as ${LIMIT()} leituras da IA deste mês. Escolha na lista ou escreva o nome.`, used: LIMIT(), limit: LIMIT() });
   const list = parts.map((p, i) => `${i + 1}. ${p.name}${p.group ? ` (${p.group})` : ''}${p.kind ? ` [${p.kind}]` : ''}`).join('\n');
   const hint = clip(body.where, 140);
   let r: Response;
@@ -293,7 +310,7 @@ export default async function handler(req: Req, res: Res) {
     if (!image || image.length > 3_000_000) return res.status(400).json({ error: 'Envie uma foto (até uns 2 MB).' });
 
     const used = await reserve(user);
-    if (used < 0) return res.status(429).json({ error: `Você já usou as ${LIMIT()} leituras da IA deste mês. O código de barras e a busca pelo nome continuam funcionando.`, used: LIMIT(), limit: LIMIT() });
+    if (used < 0) return res.status(429).json({ error: used === -2 ? `${SITE_FULL} O código de barras e a busca pelo nome continuam funcionando.` : `Você já usou as ${LIMIT()} leituras da IA deste mês. O código de barras e a busca pelo nome continuam funcionando.`, used: LIMIT(), limit: LIMIT() });
 
     let r: Response;
     try {
@@ -324,6 +341,15 @@ export default async function handler(req: Req, res: Res) {
     })).filter((g) => { const k = `${g.title.toLowerCase()}|${g.platform.toLowerCase()}`; if (!g.title || seenTitles.has(k)) return false; seenTitles.add(k); return true; });
     return res.status(200).json({ games, seen: clip(parsed.seen, 200), used, limit: LIMIT() });
   } catch (err) {
-    return res.status(500).json({ error: err instanceof Error ? err.message : 'Algo deu errado.' });
+    return res.status(500).json(failure('reconhecer', err));
   }
+}
+
+/** Erro sem detalhes internos: só um código curto para achar no registro da Vercel (avisos de migração continuam). */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }

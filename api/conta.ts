@@ -100,8 +100,9 @@ async function mail(to: string | undefined, subject: string, title: string, line
       method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from, to: [to], subject, html, text: [title, '', ...lines].join('\n') }),
     });
-    if (!r.ok) console.error('resend', r.status, (await r.text().catch(() => '')).slice(0, 200));
-  } catch (e) { console.error('resend', e instanceof Error ? e.message : e); }
+    // Só o código: a resposta da Resend pode repetir o endereço de e-mail.
+    if (!r.ok) console.error('resend', r.status);
+  } catch (e) { console.error('resend', e instanceof Error ? e.name : typeof e); }
 }
 const dateBR = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -133,7 +134,7 @@ async function purge(): Promise<{ removed: number; failed: number }> {
       ]);
     } catch (e) {
       failed++;
-      console.error('conta: exclusão adiada para a próxima rodada', id, e instanceof Error ? e.message : e);
+      console.error('conta: exclusão adiada para a próxima rodada', e instanceof Error ? e.name : typeof e);
     }
   }
   return { removed, failed };
@@ -148,7 +149,7 @@ export default async function handler(req: Req, res: Res) {
       // Sem CRON_SECRET configurado, a rotina não roda: ninguém de fora consegue dispará-la.
       const secret = process.env.CRON_SECRET;
       if (!secret) return res.status(503).json({ error: 'Rotina desligada: falta a variável CRON_SECRET na Vercel.' });
-      if (header(req, 'authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Sem permissão.' });
+      if (!sameText(header(req, 'authorization') ?? '', `Bearer ${secret}`)) return res.status(401).json({ error: 'Sem permissão.' });
       // Vídeos dos capítulos achados na busca do YouTube: no máximo 30 dias guardados (migração 0063).
       const c = db()!;
       const videos = await fetch(`${c.url}/rest/v1/rpc/video_purge`, { method: 'POST', headers: { ...c.headers, 'Content-Type': 'application/json' }, body: '{}' })
@@ -183,6 +184,23 @@ export default async function handler(req: Req, res: Res) {
     }
     return res.status(405).json({ error: 'Método não aceito.' });
   } catch (e) {
-    return res.status(500).json({ error: e instanceof Error ? e.message : 'Falhou.' });
+    return res.status(500).json(failure('conta', e));
   }
+}
+
+/** Compara dois textos em tempo constante (não dá pista de quantos caracteres acertou). */
+function sameText(a: string, b: string): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+/** Erro sem detalhes internos: só um código curto para achar no registro da Vercel (avisos de migração continuam). */
+function failure(where: string, err: unknown) {
+  const diag = Math.random().toString(36).slice(2, 8);
+  const msg = err instanceof Error ? err.message : '';
+  console.error(`${where} diag=${diag}`, err instanceof Error ? err.name : typeof err, msg.replace(/https?:\/\/\S+/g, '<url>').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, '<email>').replace(/[0-9a-f]{8}-[0-9a-f-]{27}/gi, '<id>').replace(/[A-Za-z0-9_-]{24,}/g, '<chave>').slice(0, 120));
+  if (/^Falta rodar a migração \d{4}/.test(msg)) return { error: msg.slice(0, 120), diag };
+  return { error: 'Algo deu errado. Tente de novo em instantes.', diag };
 }

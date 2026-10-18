@@ -8,6 +8,7 @@ import { canonicalPlatform } from '../lib/platforms';
 import { accessToken } from '../data/supabaseAdapter';
 import { isOutdated } from '../lib/version';
 import { track } from '../lib/track';
+import { igdbFetch } from '../lib/igdbFetch';
 
 type SteamGame = { appid: number; name: string; minutes: number; lastPlayed?: string; igdbId?: number };
 const PC = 'PC (Microsoft Windows)';
@@ -63,7 +64,7 @@ export function SteamImportPage() {
       const fresh: Game[] = [];
       for (let i = 0; i < need.length; i += 100) {
         setProgress(`Trazendo fichas do catálogo (${Math.min(need.length, i + 100)} de ${need.length})`);
-        const r = await fetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cache: need.slice(i, i + 100) }) });
+        const r = await igdbFetch('/api/igdb', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cache: need.slice(i, i + 100) }) });
         if (r.ok) for (const row of (await r.json()) as any[]) { const g = gameFromApi(row); fresh.push(g); known.set(g.igdbId!, g); }
       }
       setProgress('Gravando na sua coleção');

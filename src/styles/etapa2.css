@@ -6401,6 +6401,12 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 /* Revisão · Etapa 2: o Início é "hoje" */
 .hero__others { color: #C9CED4; }
 .hero__others:hover { color: #F2F4F6; }
+/* Celular: o link "Outros N em andamento" desce para uma linha própria, para a fileira de botões caber na tela. */
+.hero__text { min-width: 0; }
+@media (max-width: 760px) {
+  .hero__actions { flex-wrap: wrap; row-gap: 4px; }
+  .hero__actions .btn.hero__others { flex: 1 1 100%; justify-content: flex-start; min-height: 40px; padding: 0; white-space: normal; }
+}
 .home-fit:empty { display: none; }
 .home-fit .fit-card { margin: 24px 0 0; }
 /* Revisão · Etapa 2: a Jornada é a biblioteca */

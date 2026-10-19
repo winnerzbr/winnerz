@@ -99,7 +99,17 @@ export function JourneyIndex() {
     </section>
   ) : null;
 
+  // O fundo da página é a imagem do jogo principal, bem apagada, para a Jornada abrir no clima do que você está jogando.
+  const ambientGame = !light && principal ? s.games[principal.journey.gameId] : undefined;
+
   return (
+    <div className="jindex-wrap">
+    {ambientGame && (
+      <div className="jamb" aria-hidden="true">
+        <Backdrop game={ambientGame} className="jamb__bg" />
+        <div className="jamb__shade" />
+      </div>
+    )}
     <main className="page pad jindex">
       <header className="page-head">
         <div className="page-head__text">
@@ -137,6 +147,7 @@ export function JourneyIndex() {
       )}
       {toast && <ActionToast key={toast.id} text={toast.text} onDone={() => setToast(null)} />}
     </main>
+    </div>
   );
 }
 

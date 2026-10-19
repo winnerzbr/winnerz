@@ -110,7 +110,7 @@ export function ReviewPage() {
           <h2 className="t">Revisão feita.</h2>
           <p>{doneLine(sum)} A próxima revisão aparece no começo do próximo trimestre.</p>
           <p className="muted">Deixar ir também é escolher. Tudo continua guardado: Histórias, coleção e fichas.</p>
-          <div className="bkrev__actions"><Link className="btn primary" to="/jornada/ritmo">Voltar para Meu ritmo</Link><Link className="btn ghost" to="/jornada">Ir para a Jornada</Link></div>
+          <div className="bkrev__actions"><Link className="btn primary" to="/jornada">Voltar para a Jornada</Link></div>
         </section>
       </main>
     );
@@ -125,7 +125,7 @@ export function ReviewPage() {
           <p className="muted">Nenhuma História esquecida, nenhum jogo da estante esperando e nenhum desejo antigo. Seu backlog está em paz.</p>
           <div className="bkrev__actions">
             {reviewDue(s) && <button className="btn primary" onClick={() => { actions.setPrefs({ review: { quarter: q, at: new Date().toISOString(), how: 'feita' } }); setView('feito'); }}>Marcar a revisão como feita</button>}
-            <Link className="btn ghost" to="/jornada/ritmo">Voltar para Meu ritmo</Link>
+            <Link className="btn ghost" to="/jornada">Voltar para a Jornada</Link>
           </div>
         </section>
       </main>

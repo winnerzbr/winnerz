@@ -146,12 +146,12 @@ async function demoAll(): Promise<Notif[]> {
   st.site.forEach((s) => out.push(mk(`site:${s.id}`, 'site', s.at, { title: s.title, excerpt: s.body || null, link: s.link })));
   // Resumo da semana passada (segunda de manhã) e o convite de pacto da demonstração.
   { const now = new Date(); const mon = new Date(now); mon.setHours(8, 0, 0, 0); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
-    out.push(mk(`semana:${mon.toISOString().slice(0, 10)}`, 'semana', mon.toISOString(), { link: '/jornada/ritmo#semana', data: { sessions: 4, minutes: 370, games: ['The Last of Us Part II', 'Astro Bot'], more: 0, done: [], with: ['Ana'] } }));
+    out.push(mk(`semana:${mon.toISOString().slice(0, 10)}`, 'semana', mon.toISOString(), { link: '/jornada/retrospectivas', data: { sessions: 4, minutes: 370, games: ['The Last of Us Part II', 'Astro Bot'], more: 0, done: [], with: ['Ana'] } }));
     { const m1 = new Date(now.getFullYear(), now.getMonth(), 1, 9); const pm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      out.push(mk(`mes:${m1.toISOString().slice(0, 7)}`, 'mes', m1.toISOString(), { link: '/jornada/ritmo#mes', data: { month: `${pm.getFullYear()}-${String(pm.getMonth() + 1).padStart(2, '0')}`, sessions: 6, rest: 4, restOk: 3, restAnswered: 4, top: 'Astro Bot' } }));
+      out.push(mk(`mes:${m1.toISOString().slice(0, 7)}`, 'mes', m1.toISOString(), { link: '/jornada/retrospectivas?p=mes-anterior', data: { month: `${pm.getFullYear()}-${String(pm.getMonth() + 1).padStart(2, '0')}`, sessions: 6, rest: 4, restOk: 3, restAnswered: 4, top: 'Astro Bot' } }));
       const q1 = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1, 9);
       out.push(mk(`revisao:${q1.toISOString().slice(0, 7)}`, 'revisao', q1.toISOString(), { link: '/jornada/revisao', data: {} })); }
-    out.push(mk('pacto:pacto-demo', 'pacto', hoursAgo(50), { title: 'The Last of Us Part II', link: '/jornada/ritmo#pactos', actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { goal: 'zerar', until: '2026-11-30' } })); }
+    out.push(mk('pacto:pacto-demo', 'pacto', hoursAgo(50), { title: 'The Last of Us Part II', link: '/jornada', actors: [demoPersonRef('demo-duda')], actorCount: 1, data: { goal: 'zerar', until: '2026-11-30' } })); }
   // Retomada: jogos em andamento sem sessão há 14 dias ou mais (como o banco faz).
   { const { daysAway, currentHistory, lastSession } = await import('./store'); const gs = getState();
     for (const j of gs.journeys) {

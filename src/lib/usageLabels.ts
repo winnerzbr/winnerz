@@ -33,7 +33,8 @@ const EXACT: Record<string, UsageLabel> = {
   'jornada.trecho.link': { area: 'Jornada', label: 'Link de um trecho' },
   'jornada.preparar-volta': { area: 'Jornada', label: 'Preparar a volta' },
   'jornada.linha-geral': { area: 'Jornada', label: 'Linha do tempo geral' },
-  'jornada.ritmo': { area: 'Jornada', label: 'Meu ritmo' },
+  'jornada.ritmo': { area: 'Jornada', label: 'Meu ritmo (antigo)' },
+  'jornada.retro': { area: 'Jornada', label: 'Abriu as Retrospectivas' },
   'jornada.ano': { area: 'Jornada', label: 'Seu ano' },
   'jornada.temporada': { area: 'Jornada', label: 'Criou uma temporada' },
   'jornada.retrospectiva': { area: 'Jornada', label: 'Abriu uma temporada' },
@@ -86,6 +87,7 @@ const EXACT: Record<string, UsageLabel> = {
 const PREFIX: [string, string, string][] = [
   ['jornada.estado.', 'Jornada', 'Mudou o estado para'],
   ['jornada.feito.', 'Jornada', 'Marcou o feito'],
+  ['jornada.retro.', 'Jornada', 'Retrospectiva por'],
   ['sessao.intencao.', 'Sessão', 'Intenção da sessão'],
   ['oqj.filtro.', 'O que jogar', 'Clima escolhido'],
   ['oqj.jogar.', 'O que jogar', 'Jogou a sugestão'],

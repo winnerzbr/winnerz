@@ -1,51 +1,20 @@
 /**
- * Temporadas pessoais (J6): a lista em "Meu ritmo", a folha para criar uma temporada e a retrospectiva
- * (/jornada/temporada/:id), com um cartão para compartilhar. Só com o que foi registrado.
+ * Temporadas pessoais (J6): a folha para criar uma temporada e o corpo da retrospectiva de um período, com um cartão
+ * para compartilhar. Desde a Etapa 3 da revisão, aparecem dentro de Retrospectivas (/jornada/retrospectivas).
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { actions, useStore } from '../data/store';
-import { autoSeasons, seasonById, seasonRange, seasonStats, type Season } from '../lib/seasons';
+import { seasonRange, seasonStats, type Season } from '../lib/seasons';
 import { Link } from '../lib/router';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { CoverArt } from './CoverArt';
-import { SubNav } from './SubNav';
 import { durLabel, dayMonth } from '../lib/format';
 import { track } from '../lib/track';
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-export function SeasonsSection() {
-  const s = useStore((x) => x);
-  const [open, setOpen] = useState(false);
-  const list = useMemo(() => {
-    const custom: Season[] = (s.prefs.seasons ?? []).map((c) => ({ ...c, auto: false }));
-    return [...custom.sort((a, b) => b.from.localeCompare(a.from)), ...autoSeasons(new Date(), 4)];
-  }, [s.prefs.seasons]);
-  const withStats = list.map((x) => ({ season: x, st: seasonStats(s, x) })).filter((x, i) => !x.season.auto || i === (s.prefs.seasons?.length ?? 0) || x.st.sessions > 0);
-  return (
-    <section className="seasons" aria-labelledby="temporadas-h">
-      <div className="seasons__head">
-        <h2 id="temporadas-h" className="t">Temporadas</h2>
-        <button className="btn quiet sm" onClick={() => setOpen(true)}><Icon name="mais" size={14} />Criar uma temporada</button>
-      </div>
-      <p className="muted">As estações do ano viram temporadas sozinhas. Crie as suas para as férias, um mês temático ou o que quiser.</p>
-      <div className="seasons__grid">
-        {withStats.map(({ season, st }) => (
-          <Link key={season.id} to={`/jornada/temporada/${season.id}`} className="season-card">
-            <div className="season-card__covers" aria-hidden="true">{st.games.slice(0, 3).map((g) => <CoverArt key={g.game.id} game={g.game} />)}</div>
-            <span className="kicker">{season.auto ? 'Estação' : 'Sua temporada'} · {seasonRange(season)}</span>
-            <b>{season.name}</b>
-            <span className="muted">{st.sessions ? [plural(st.sessions, 'sessão', 'sessões'), plural(st.games.length, 'jogo', 'jogos'), st.done.length ? plural(st.done.length, 'zerado', 'zerados') : ''].filter(Boolean).join(' · ') : 'Ainda sem sessões nesta temporada.'}</span>
-          </Link>
-        ))}
-      </div>
-      {open && <SeasonSheet onClose={() => setOpen(false)} />}
-    </section>
-  );
-}
-
-function SeasonSheet({ onClose, edit }: { onClose: () => void; edit?: Season }) {
+export function SeasonSheet({ onClose, edit }: { onClose: () => void; edit?: Season }) {
   const stored = useStore((s) => s.prefs.seasons);
   const seasons = stored ?? [];
   const [name, setName] = useState(edit?.name ?? '');
@@ -76,27 +45,17 @@ function SeasonSheet({ onClose, edit }: { onClose: () => void; edit?: Season }) 
   );
 }
 
-export function SeasonPage({ id }: { id: string }) {
+/** O corpo de uma retrospectiva de período (mês ou temporada): números, jogos, marcos, momentos e o cartão. */
+export function SeasonBody({ season, extra }: { season: Season; extra?: ReactNode }) {
   const s = useStore((x) => x);
-  const season = seasonById(id, s.prefs.seasons ?? []);
-  const st = useMemo(() => (season ? seasonStats(s, season) : null), [s, season?.id, season?.from, season?.to]); // eslint-disable-line react-hooks/exhaustive-deps
+  const st = useMemo(() => seasonStats(s, season), [s, season.id, season.from, season.to]); // eslint-disable-line react-hooks/exhaustive-deps
   const [edit, setEdit] = useState(false);
   const [card, setCard] = useState(false);
-  useEffect(() => { track('jornada.retrospectiva'); }, []);
-  if (!season || !st) return <main className="page pad"><h1 className="t big">Temporada não encontrada</h1><Link to="/jornada/ritmo">Voltar para Meu ritmo</Link></main>;
   const light = !!s.prefs.light;
   return (
-    <main className="page pad season">
-      <header className="page-head">
-        <div className="page-head__text">
-          <Link to="/jornada/ritmo" className="back">← Meu ritmo</Link>
-          <h1 className="t big">{season.name}</h1>
-          <p className="muted lead">{seasonRange(season)}{season.auto ? ' · estação do ano' : ''}</p>
-        </div>
-        <SubNav pillar="jornada" />
-      </header>
+    <div className="season">
       {!st.sessions && !st.done.length ? (
-        <div className="card tl-empty"><p className="muted">Nenhuma sessão registrada nesta temporada. Temporada vazia também é temporada.</p></div>
+        <div className="card tl-empty"><p className="muted">Nenhuma sessão registrada neste período. Período vazio também conta: jogar menos também é jogar.</p></div>
       ) : (
         <>
           <dl className="season__stats">
@@ -106,11 +65,12 @@ export function SeasonPage({ id }: { id: string }) {
             {!light && st.minutes > 0 && <div><dd className="t">{durLabel(st.minutes)}</dd><dt>informadas</dt></div>}
             <div><dd className="t">{st.days}</dd><dt>{st.days === 1 ? 'dia de jogo' : 'dias de jogo'}</dt></div>
           </dl>
+          {extra}
           {st.top && (
             <section className="card season__top" aria-labelledby="sz-top">
               <span className="season__top-cover"><CoverArt game={st.top.game} /></span>
               <div>
-                <h2 id="sz-top" className="kicker">O jogo da temporada</h2>
+                <h2 id="sz-top" className="kicker">O jogo do período</h2>
                 <Link to={`/jornada/${st.top.game.slug}`} className="t season__top-title">{st.top.game.title}</Link>
                 <p className="muted">{plural(st.top.sessions, 'sessão', 'sessões')}{!light && st.top.minutes ? `, ${durLabel(st.top.minutes)} informadas` : ''}.</p>
               </div>
@@ -149,7 +109,7 @@ export function SeasonPage({ id }: { id: string }) {
       </div>
       {edit && <SeasonSheet edit={season} onClose={() => setEdit(false)} />}
       {card && <SeasonCard season={season} onClose={() => setCard(false)} />}
-    </main>
+    </div>
   );
 }
 
@@ -164,7 +124,7 @@ function fit(ctx: CanvasRenderingContext2D, i: HTMLImageElement, x: number, y: n
   ctx.drawImage(i, (i.width - sw) / 2, (i.height - sh) / 2, sw, sh, x, y, w, h);
 }
 
-function SeasonCard({ season, onClose }: { season: Season; onClose: () => void }) {
+export function SeasonCard({ season, onClose }: { season: Season; onClose: () => void }) {
   const s = useStore((x) => x);
   const st = useMemo(() => seasonStats(s, season), [s, season]);
   const [url, setUrl] = useState('');
@@ -182,7 +142,7 @@ function SeasonCard({ season, onClose }: { season: Season; onClose: () => void }
       const cw = 300, ch = 400, gap = 30, cols = Math.min(3, Math.max(1, covers.length)), x0 = (CW - (cols * cw + (cols - 1) * gap)) / 2;
       covers.slice(0, 3).forEach((im, i) => { const x = x0 + i * (cw + gap), y = 110; ctx.fillStyle = '#14171B'; ctx.fillRect(x, y, cw, ch); if (im) fit(ctx, im, x, y, cw, ch); ctx.strokeStyle = i === 0 ? '#E2BE84' : 'rgba(255,255,255,0.15)'; ctx.lineWidth = i === 0 ? 6 : 2; ctx.strokeRect(x, y, cw, ch); });
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#FFB25B'; ctx.font = '500 26px "IBM Plex Mono", monospace'; ctx.fillText(`MINHA TEMPORADA · ${seasonRange(season).toUpperCase()}`, CW / 2, 600);
+      ctx.fillStyle = '#FFB25B'; ctx.font = '500 26px "IBM Plex Mono", monospace'; ctx.fillText(`${season.id.startsWith('mes-') ? 'MEU MÊS' : 'MINHA TEMPORADA'} · ${seasonRange(season).toUpperCase()}`, CW / 2, 600);
       ctx.fillStyle = '#F2F4F6'; ctx.font = '800 76px "Archivo", sans-serif'; ctx.fillText(season.name.toUpperCase().slice(0, 24), CW / 2, 690);
       const nums: [string, string][] = [[String(st.sessions), st.sessions === 1 ? 'sessão' : 'sessões'], [String(st.games.length), st.games.length === 1 ? 'jogo' : 'jogos'], [String(st.done.length), st.done.length === 1 ? 'zerado' : 'zerados']];
       if (!s.prefs.light && st.minutes) nums.push([durLabel(st.minutes), 'informadas']);

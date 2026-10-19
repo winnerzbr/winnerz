@@ -1,13 +1,12 @@
 /**
- * "Seu ano no WinnerZ" (/jornada/ano/:ano): a retrospectiva do ano em histórias (toque para avançar) e em números.
+ * "Seu ano no WinnerZ" (dentro de Retrospectivas, /jornada/retrospectivas?p=ano-2026): a retrospectiva do ano em histórias (toque para avançar) e em números.
  * Privada: fica só com você. Sai só do que você registrou; horas só as informadas, e no modo leve sem números.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, navigate } from '../lib/router';
+import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { yearReview, reviewYears, WEEKDAYS, type YearReview } from '../lib/yearReview';
+import { yearReview, WEEKDAYS, type YearReview } from '../lib/yearReview';
 import { CoverArt } from '../components/CoverArt';
-import { SubNav } from '../components/SubNav';
 import { Icon } from '../components/Icon';
 import { durLabel, dayMonth } from '../lib/format';
 import { track } from '../lib/track';
@@ -74,10 +73,9 @@ function buildSlides(r: YearReview, light: boolean): Slide[] {
   return out;
 }
 
-export function YearReviewPage({ year: yParam }: { year?: string }) {
+/** O ano dentro de Retrospectivas: em histórias (toque para avançar) ou em números. */
+export function YearBody({ year }: { year: number }) {
   const s = useStore((x) => x);
-  const years = useMemo(() => reviewYears(s), [s]);
-  const year = Number(yParam) || years[0];
   const r = useMemo(() => yearReview(s, year), [s, year]);
   const light = !!s.prefs.light;
   const reduced = s.prefs.motion === 'reduzidas' || (typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
@@ -86,7 +84,7 @@ export function YearReviewPage({ year: yParam }: { year?: string }) {
   const [paused, setPaused] = useState(reduced);
   const [shown, setShown] = useState<'historias' | 'numeros'>('historias');
   const timer = useRef(0);
-  useEffect(() => { document.title = `Seu ${year} · WinnerZ`; track('jornada.ano'); }, [year]);
+  useEffect(() => { track('jornada.ano'); }, [year]);
   useEffect(() => { setI(0); }, [year]);
   useEffect(() => {
     window.clearTimeout(timer.current);
@@ -102,16 +100,8 @@ export function YearReviewPage({ year: yParam }: { year?: string }) {
   }, [shown, slides.length]);
   const sl = slides[Math.min(i, slides.length - 1)];
   return (
-    <main className="page pad yrv">
-      <header className="page-head">
-        <div className="page-head__text">
-          <h1 className="t big">Seu ano</h1>
-          <p className="muted lead">Só você vê. Sai do que você registrou; horas só as que você informou.</p>
-        </div>
-        <SubNav pillar="jornada" />
-      </header>
+    <div className="yrv">
       <div className="yrv__bar">
-        <div className="chips" role="group" aria-label="Ano">{years.map((y) => <button key={y} className="chip" aria-pressed={y === year} onClick={() => navigate(`/jornada/ano/${y}`, { replace: true, keepScroll: true })}>{y}</button>)}</div>
         <div className="seg seg--sm" role="tablist" aria-label="Como ver">
           <button role="tab" aria-selected={shown === 'historias'} aria-pressed={shown === 'historias'} onClick={() => setShown('historias')}>Histórias</button>
           <button role="tab" aria-selected={shown === 'numeros'} aria-pressed={shown === 'numeros'} onClick={() => setShown('numeros')}>Em números</button>
@@ -129,7 +119,7 @@ export function YearReviewPage({ year: yParam }: { year?: string }) {
           {i >= slides.length - 1 && <div className="yrv__end"><button className="btn primary sm" onClick={() => setShown('numeros')}>Ver em números</button><button className="btn ghost sm" onClick={() => setI(0)}>Ver de novo</button></div>}
         </section>
       ) : <Numbers r={r} light={light} />}
-    </main>
+    </div>
   );
 }
 

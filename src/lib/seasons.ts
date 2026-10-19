@@ -94,3 +94,40 @@ export function seasonRange(s: Season, now = new Date()): string {
   const f = (d: string) => { const [y, m, dd] = d.split('-').map(Number); return `${dd} ${M[m - 1]}${y !== now.getFullYear() ? ` ${y}` : ''}`; };
   return `${f(s.from)} – ${f(s.to)}`;
 }
+
+/* ---- Retrospectivas (Etapa 3 da revisão): qualquer período vira uma "temporada" ---------------------------- */
+const MONTH_NAMES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+
+/** "2026-10" vira a temporada "Outubro de 2026", de 1 a 31 de outubro. */
+export function monthSeason(key: string): Season {
+  const [y, m] = key.split('-').map(Number);
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const name = `${MONTH_NAMES[m - 1][0].toUpperCase()}${MONTH_NAMES[m - 1].slice(1)} de ${y}`;
+  return { id: `mes-${key}`, name, from: `${key}-01`, to: `${key}-${pad(last)}`, auto: true };
+}
+
+/** O mês de agora e o anterior, como "2026-10". */
+export function monthKeys(now = new Date()): { current: string; previous: string } {
+  const [y, m] = ymd(now).split('-').map(Number);
+  const prev = m === 1 ? `${y - 1}-12` : `${y}-${pad(m - 1)}`;
+  return { current: `${y}-${pad(m)}`, previous: prev };
+}
+
+const PART_OF = (h: number) => (h < 6 ? 0 : h < 12 ? 1 : h < 18 ? 2 : 3);
+const hourWd = (iso: string) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short', hour: 'numeric', hourCycle: 'h23' }).formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+  return { wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), h: Number(p.hour) };
+};
+
+/** Dias da semana (domingo primeiro) e partes do dia (madrugada, manhã, tarde, noite) das sessões do período. */
+export function periodRhythm(s: State, season: Season): { byWeekday: number[]; byPeriod: number[]; sessions: number } {
+  const byWeekday = Array.from({ length: 7 }, () => 0);
+  const byPeriod = Array.from({ length: 4 }, () => 0);
+  let n = 0;
+  for (const x of s.sessions) {
+    if (!x.endedAt || !inRange(x.startedAt, season)) continue;
+    const { wd, h } = hourWd(x.startedAt);
+    byWeekday[wd] += 1; byPeriod[PART_OF(h)] += 1; n += 1;
+  }
+  return { byWeekday, byPeriod, sessions: n };
+}

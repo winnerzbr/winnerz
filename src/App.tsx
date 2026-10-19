@@ -15,6 +15,7 @@ import { BrandMark } from './components/Brand';
 import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
+import { SavedNoticeHost } from './components/SavedNotice';
 import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
 import { ReviewPage } from './pages/Review';
 import { TrailsPage, TrailPage } from './pages/Trails';
@@ -285,6 +286,7 @@ export function App() {
       <PastSheetHost />
       <RulesHost />
       <MiniCelebrationHost />
+      <SavedNoticeHost />
       <CommandPalette />
     </NickGate>
   );

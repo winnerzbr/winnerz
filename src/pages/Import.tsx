@@ -273,7 +273,7 @@ export function ImportPage() {
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Importar planilha</h1>
-          <p className="muted lead">Traga sua coleção de uma vez. Você confere tudo antes de gravar, e pode importar de novo depois: o que já está no site não duplica. Jogos de PC? Também dá para <Link to="/colecao/steam">importar da Steam</Link>.</p>
+          <p className="muted lead">Traga sua coleção de uma vez. Você confere tudo antes de gravar, e pode importar de novo depois: o que já está no site não duplica. Jogos de PC? <Link to="/colecao/steam">Conecte a Steam</Link>: a biblioteca entra na estante e as sessões podem chegar sozinhas.</p>
         </div>
         <SubNav pillar="colecao" />
       </header>

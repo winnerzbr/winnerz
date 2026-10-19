@@ -19,6 +19,7 @@ import { gameBySlug } from '../components/AddGameDialog';
 import { JogatinaTile, GameJogatinas } from './Jogatina';
 import { dateOf, dateShort, whenLabel, TZ } from '../lib/when';
 import { safeHref } from '../lib/safeHref';
+import { FEATURES } from '../lib/features';
 
 export { whenLabel } from '../lib/when';
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
@@ -69,7 +70,7 @@ export function GameClubs({ gameId, slug, title }: { gameId: string; slug: strin
         <span className="club-sec__links"><Link to={`/jogatina/criar?jogo=${encodeURIComponent(slug)}`} className="btn ghost sm">Marcar jogatina</Link></span>
       </div>
       <GameJogatinas gameId={gameId} />
-      {list.length === 0
+      {!FEATURES.clubes ? null : list.length === 0
         ? <p className="muted">Nenhum clube de {title} agora. <Link to={`/comunidade/clubes/criar?jogo=${encodeURIComponent(slug)}`}>Criar um clube</Link></p>
         : <div className="club-tiles">{list.slice(0, 6).map((c) => <ClubTile key={c.id} c={c} />)}</div>}
     </section>

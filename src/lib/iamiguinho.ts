@@ -12,7 +12,7 @@ export type IamigModo = 'normal' | 'discreto' | 'chamar' | 'desativado';
 export const MODOS: { id: IamigModo; label: string; desc: string }[] = [
   { id: 'normal', label: 'Normal', desc: 'Aparece de vez em quando, em momentos especiais, e nas telas vazias e de erro.' },
   { id: 'discreto', label: 'Discreto', desc: 'Só nos marcos mais importantes, como o primeiro jogo zerado. Nas telas vazias e de erro, continua.' },
-  { id: 'chamar', label: 'Só quando eu chamar', desc: 'Não aparece sozinho. Responde quando você mencionar @iamiguinho (em breve). Nas telas vazias e de erro, continua.' },
+  { id: 'chamar', label: 'Só quando eu chamar', desc: 'Não aparece sozinho. Responde quando você escreve @iamiguinho numa conversa. Nas telas vazias e de erro, continua.' },
   { id: 'desativado', label: 'Desativado', desc: 'Não aparece em lugar nenhum. As telas vazias e de erro mostram só o texto.' },
 ];
 export const modoAtual = (): IamigModo => (getState().prefs.iamiguinho ?? 'normal') as IamigModo;

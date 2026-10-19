@@ -5,6 +5,7 @@
  */
 import { getState } from './store';
 import type { DatePrecision, EventKind } from './types';
+import { setupNote } from '../lib/setupNote';
 
 export interface Snip { token: string; eventId: string; withPhoto: boolean; withNote: boolean; views: number; createdAt: string }
 export interface SnipRow extends Snip { title: string; kind: EventKind; at: string; game: string; slug: string }
@@ -27,7 +28,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/snip_|journey_snips|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0049 no Supabase.');
+    if (/snip_|journey_snips|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0049 no Supabase.'));
     throw new Error(m);
   }
   return r.data;

@@ -8,10 +8,12 @@
  * Com conta, tudo passa pelas funções do banco (migrações 0028, 0029 e 0031). Na demonstração, fica neste navegador.
  */
 import { getState } from './store';
+import { FEATURES } from '../lib/features';
 import { communityApi, demoGameMini, demoPersonRef, demoReactions, fixAuthors, slugOk, type GameMini, type NewsItem, type PersonRef, type Reactions, type ReplyNews } from './communityApi';
 import { demoClubAgenda, demoClubPast, type Jogatina } from './jogatinaApi';
 import { mentionsOf } from '../lib/postText';
 import { DEMO_PEOPLE } from './demoPeople';
+import { setupNote } from '../lib/setupNote';
 
 export type ClubFormat = 'sem_pressa' | 'primeira_vez' | 'recorrente' | 'mes';
 export type ClubAccess = 'aberto' | 'amigos' | 'convite';
@@ -100,9 +102,9 @@ export const okRpc = <T>(r: { data: T; error: { message: string } | null }, msgs
     const m = r.error.message;
     const k = Object.keys(msgs).find((x) => m.includes(x)) ?? Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(msgs[k] ?? MSG[k]);
-    if (/jogatina_|club_set_game|club_list\(text, text, integer, text\)/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0031 no Supabase.');
-    if (/club_messages_of|relation "public.club_messages" does not exist/i.test(m)) throw new Error('Falta rodar a migração 0029 no Supabase.');
-    if (/club_|my_news|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0031 no Supabase.');
+    if (/jogatina_|club_set_game|club_list\(text, text, integer, text\)/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0031 no Supabase.'));
+    if (/club_messages_of|relation "public.club_messages" does not exist/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0029 no Supabase.'));
+    if (/club_|my_news|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0031 no Supabase.'));
     throw new Error(m);
   }
   return fixAuthors(r.data);
@@ -119,6 +121,7 @@ const draftJson = (d: ClubDraft) => ({
 
 export const clubApi = {
   async list(filter: 'todos' | 'meus' = 'todos', game?: string, community?: string): Promise<Club[]> {
+    if (!FEATURES.clubes) return []; // Clubes escondidos por enquanto (lib/features.ts).
     if (!supa()) return demo.list(filter, game, community);
     if (filter === 'meus' && !getState().profile) return [];
     return (await rpc<Club[] | null>('club_list', { p_filter: filter, p_game: game ?? null, p_limit: 60, p_community: community ?? null })) ?? [];

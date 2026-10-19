@@ -4,6 +4,7 @@
  */
 import { getState } from './store';
 import { demoGameMini, type GameMini } from './communityApi';
+import { setupNote } from '../lib/setupNote';
 
 export type EventKind = 'live' | 'jogatina' | 'awards' | 'estreia' | 'outro';
 export interface AgendaItem {
@@ -28,7 +29,7 @@ async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/event_agenda|studio_event/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0068 no Supabase.');
+    if (/event_agenda|studio_event/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0068 no Supabase.'));
     throw new Error(m);
   }
   return r.data as T;

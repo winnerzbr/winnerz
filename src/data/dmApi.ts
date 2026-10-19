@@ -6,6 +6,7 @@ import { getState } from './store';
 import type { PersonRef } from './communityApi';
 import { DEMO_PEOPLE, demoFollowing, demoFollowsMe } from './demoPeople';
 import { demoGames } from './demo';
+import { setupNote } from '../lib/setupNote';
 
 export type DmCan = 'ok' | 'pedido' | 'aguardando' | 'fechado' | 'bloqueado';
 export interface DmGame { id: string; slug: string; title: string; cover?: string | null; year?: number | null }
@@ -35,13 +36,13 @@ const MSG: Record<string, string> = {
   target_not_found: 'Não achei esse perfil.',
   not_logged: 'Entre na sua conta para mandar mensagens.',
 };
-const MIGRATION = 'Falta rodar a migração 0045 no Supabase.';
+const MIGRATION = () => setupNote('Falta rodar a migração 0045 no Supabase.');
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
   if (r.error) {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/dm_\w+|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
+    if (/dm_\w+|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
     throw new Error(m);
   }
   return r.data;

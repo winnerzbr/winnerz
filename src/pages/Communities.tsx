@@ -3,8 +3,7 @@ import { Link, navigate } from '../lib/router';
 import { useStore } from '../data/store';
 import {
   communityApi, communityImage, postTitle, slugOk, slugify,
-  type Community, type CommunityDraft, type CommunityPage, type CommunitySort, type GameMini, type ModHistory, type ModLogItem, type Post,
-} from '../data/communityApi';
+  type Community, type CommunityDraft, type CommunityPage, type CommunitySort, type GameMini, type ModHistory, type ModLogItem, type Post, useCanCreateCommunity } from '../data/communityApi';
 import { jogatinaApi, type Jogatina } from '../data/jogatinaApi';
 import { clubApi, type Club } from '../data/clubApi';
 import { ensureRules } from '../data/moderationApi';
@@ -16,6 +15,7 @@ import { renderCover } from '../lib/avatar';
 import { gameBySlug } from '../components/AddGameDialog';
 import { JogatinaTile } from './Jogatina';
 import { ClubTile } from './Clubs';
+import { FEATURES } from '../lib/features';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 const num = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -42,13 +42,14 @@ export function CommunityTile({ c }: { c: Community }) {
 
 /** Ficha do jogo: a comunidade do jogo (ou o convite para criar). */
 export function GameCommunity({ gameId, slug, title }: { gameId: string; slug: string; title: string }) {
+  const canCreate = useCanCreateCommunity();
   const [list, setList] = useState<Community[] | null>(null);
   useEffect(() => {
     let alive = true;
     communityApi.ofGame(gameId).then((l) => alive && setList(l)).catch(() => alive && setList([]));
     return () => { alive = false; };
   }, [gameId]);
-  if (list == null) return null;
+  if (list == null || (!list.length && !canCreate)) return null;
   return (
     <section aria-labelledby="comunidade-jogo" className="cm-gamesec">
       <div className="sec-head"><h2 id="comunidade-jogo" className="t sec-title">{list.length > 1 ? `Comunidades de ${title}` : `Comunidade de ${title}`}</h2></div>
@@ -62,6 +63,7 @@ export function GameCommunity({ gameId, slug, title }: { gameId: string; slug: s
 /* Todas as comunidades                                                 */
 /* ------------------------------------------------------------------ */
 export function CommunitiesIndexPage() {
+  const canCreate = useCanCreateCommunity();
   const [q, setQ] = useState('');
   const [list, setList] = useState<Community[] | null>(null);
   const [err, setErr] = useState('');
@@ -76,15 +78,15 @@ export function CommunitiesIndexPage() {
       <header className="studio__head">
         <Link to="/comunidade" className="back">← Comunidade</Link>
         <h1 className="t big">Comunidades</h1>
-        <p className="muted lead">Espaços por assunto: um jogo, uma plataforma, um jeito de jogar. Qualquer pessoa pode criar a sua.</p>
+        <p className="muted lead">Espaços por assunto: um jogo, uma plataforma, um jeito de jogar. {canCreate ? 'Qualquer pessoa pode criar a sua.' : 'Por enquanto, as comunidades são criadas pela administração.'}</p>
       </header>
       <div className="cm-index__bar">
         <label className="cm-index__q"><Icon name="busca" size={16} /><input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar comunidade" aria-label="Buscar comunidade" /></label>
-        <Link className="btn primary" to="/comunidade/criar">Criar comunidade</Link>
+        {canCreate && <Link className="btn primary" to="/comunidade/criar">Criar comunidade</Link>}
       </div>
       {err && <p className="awards__error" role="alert">{err}</p>}
       {list == null ? <p className="faint">Carregando…</p> : list.length === 0 ? (
-        <div className="soc-empty"><b>{q ? 'Nenhuma comunidade com esse nome.' : 'Nenhuma comunidade ainda.'}</b><p className="muted">Que tal criar? <Link to={`/comunidade/criar${q ? `?nome=${encodeURIComponent(q)}` : ''}`}>Criar “{q || 'a primeira'}”</Link></p></div>
+        <div className="soc-empty"><b>{q ? 'Nenhuma comunidade com esse nome.' : 'Nenhuma comunidade ainda.'}</b>{canCreate && <p className="muted">Que tal criar? <Link to={`/comunidade/criar${q ? `?nome=${encodeURIComponent(q)}` : ''}`}>Criar “{q || 'a primeira'}”</Link></p>}</div>
       ) : <div className="cm-tiles">{list.map((c) => <CommunityTile key={c.id} c={c} />)}</div>}
     </main>
   );
@@ -174,6 +176,7 @@ function CommunityForm({ initial, editing, onSubmit, busy, err }: { initial: Com
 }
 
 export function CommunityNewPage() {
+  const canCreate = useCanCreateCommunity();
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const games = useStore((s) => s.games);
   const [busy, setBusy] = useState(false);
@@ -185,6 +188,7 @@ export function CommunityNewPage() {
   useEffect(() => { document.title = 'Criar comunidade · WinnerZ'; }, []);
   useEffect(() => { if (jogo && !local) gameBySlug(jogo).then((g) => g && setPre({ id: g.id, slug: g.slug, title: g.title, cover: g.cover })).catch(() => {}); }, [jogo]); // eslint-disable-line react-hooks/exhaustive-deps
   if (signedOut) return <main className="page pad narrow"><h1 className="t big">Criar comunidade</h1><p className="muted lead">Entre na sua conta para criar uma comunidade.</p><Link className="btn primary" to="/entrar">Entrar</Link></main>;
+  if (!canCreate) return <main className="page pad narrow"><h1 className="t big">Criar comunidade</h1><p className="muted lead">Por enquanto, só a administração do WinnerZ cria comunidades. Tem uma ideia? Sugira na Praça.</p><Link className="btn ghost" to="/comunidade/comunidades">Ver as comunidades</Link></main>;
   const name = q.get('nome') ?? '';
   const submit = async (d: CommunityDraft) => {
     setErr('');
@@ -320,7 +324,8 @@ function OfficialToggle({ c, onChange }: { c: Community; onChange: (c: Community
 /* Página da comunidade: /w/nome                                        */
 /* ------------------------------------------------------------------ */
 type Tab = 'conversas' | 'destacadas' | 'jogatinas' | 'clubes' | 'sobre';
-const TABS: [Tab, string][] = [['conversas', 'Conversas'], ['destacadas', 'Destacadas'], ['jogatinas', 'Jogatinas'], ['clubes', 'Clubes'], ['sobre', 'Sobre e regras']];
+const TABS: [Tab, string][] = ([['conversas', 'Conversas'], ['destacadas', 'Destacadas'], ['jogatinas', 'Jogatinas'], ['clubes', 'Clubes'], ['sobre', 'Sobre e regras']] as [Tab, string][])
+  .filter(([t]) => t !== 'clubes' || FEATURES.clubes);
 const SORTS: [CommunitySort, string, string][] = [
   ['recentes', 'Recentes', 'Sem algoritmo: da mais nova para a mais antiga.'],
   ['conversadas', 'Conversas que continuam', 'As que mais receberam respostas nos últimos 7 dias.'],
@@ -330,6 +335,7 @@ const doorKey = (slug: string) => `wz.porta.${slug}`;
 const doorClosed = (slug: string) => { try { return localStorage.getItem(doorKey(slug)) === '1'; } catch { return false; } };
 
 export function CommunityView({ slug }: { slug: string }) {
+  const canCreate = useCanCreateCommunity();
   const isAdmin = useStore((s) => !!s.isAdmin);
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const [tab, setTabState] = useState<Tab>(() => (TABS.some(([k]) => `#${k}` === location.hash) ? (location.hash.slice(1) as Tab) : 'conversas'));
@@ -367,7 +373,7 @@ export function CommunityView({ slug }: { slug: string }) {
     <main className="page pad narrow">
       <h1 className="t big">w/{slug}</h1>
       <p className="muted lead">{err || 'Essa comunidade não existe (ou saiu do ar).'}</p>
-      <p><Link to="/comunidade/comunidades">Ver as comunidades</Link>{!err && <> · <Link to={`/comunidade/criar?nome=${encodeURIComponent(slug)}`}>Criar w/{slug}</Link></>}</p>
+      <p><Link to="/comunidade/comunidades">Ver as comunidades</Link>{!err && canCreate && <> · <Link to={`/comunidade/criar?nome=${encodeURIComponent(slug)}`}>Criar w/{slug}</Link></>}</p>
     </main>
   );
   const c = data.community;
@@ -482,7 +488,7 @@ export function CommunityView({ slug }: { slug: string }) {
                 : <div className="soc-empty"><p className="muted">Nenhuma jogatina marcada aqui. Marque a primeira: ela aparece para quem segue a comunidade.</p></div>}
             </section>
           )}
-          {tab === 'clubes' && (
+          {tab === 'clubes' && FEATURES.clubes && (
             <section className="club-agenda">
               <div className="club2-sechead"><h2 className="club__h">Clubes ligados</h2>{!signedOut && <Link className="btn ghost sm" to={`/comunidade/clubes/criar${c.game ? `?jogo=${encodeURIComponent(c.game.slug)}` : ''}`}>Criar clube</Link>}</div>
               {clubs == null ? <p className="faint">Carregando…</p> : clubs.length ? <div className="club-tiles">{clubs.map((k) => <ClubTile key={k.id} c={k} />)}</div>

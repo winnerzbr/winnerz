@@ -7,6 +7,7 @@ import { getState } from './store';
 import type { GameMini, PersonRef } from './communityApi';
 import { DEMO_PEOPLE, demoIsFriend } from './demoPeople';
 import { demoGames } from './demo';
+import { setupNote } from '../lib/setupNote';
 
 export type ListVisibility = 'privada' | 'amigos' | 'link' | 'publica';
 export type ListRole = 'dona' | 'edita' | null;
@@ -45,13 +46,13 @@ const MSG: Record<string, string> = {
   not_found: 'Esta lista não existe ou não está aberta para você.',
   not_logged: 'Entre na sua conta para usar listas.',
 };
-const MIGRATION = 'Falta rodar a migração 0048 no Supabase.';
+const MIGRATION = () => setupNote('Falta rodar a migração 0048 no Supabase.');
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
   if (r.error) {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/lists?_\w+|game_list|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
+    if (/lists?_\w+|game_list|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
     throw new Error(m);
   }
   return r.data;

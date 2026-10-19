@@ -6,6 +6,7 @@
 import { getState } from './store';
 import { getClient } from './supabaseAdapter';
 import type { Game } from './types';
+import { setupNote } from '../lib/setupNote';
 
 export type TrailGame = { id: string; slug: string; title: string; cover: string; year?: number; igdbId?: number };
 export type TrailItem = { id: string; gameId: string; note?: string; position: number; game: TrailGame };
@@ -21,7 +22,7 @@ export interface TrailsApi {
 }
 
 const gameOf = (g: any): TrailGame => ({ id: g.id, slug: g.slug, title: g.title, cover: g.cover ?? '', year: g.year ?? undefined, igdbId: g.igdb_id ?? g.igdbId ?? undefined });
-const ok = <T>(r: { data: T; error: { message: string } | null }): T => { if (r.error) throw new Error(r.error.message.includes('trails') ? 'Falta rodar a migração 0008 no Supabase.' : r.error.message); return r.data; };
+const ok = <T>(r: { data: T; error: { message: string } | null }): T => { if (r.error) throw new Error(r.error.message.includes('trails') ? setupNote('Falta rodar a migração 0008 no Supabase.') : r.error.message); return r.data; };
 
 const supabaseApi: TrailsApi = {
   async list() {

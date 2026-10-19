@@ -16,6 +16,7 @@ import { awayLabel } from '../lib/recap';
 import { Icon, Compass } from './Icon';
 import { BrandMark } from './Brand';
 import { PhotoViewer } from './MediaGallery';
+import { FEATURES } from '../lib/features';
 
 export type FaixaPlay = { label: string; now: boolean; onClick: () => void; hint?: string };
 export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean; friends?: { handle: string; state: string }[]; part?: { n: number; total: number; name: string } };
@@ -340,7 +341,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         ) : (
           <>
             <p className="fx-p">{it.summary}</p>
-            {on && narrate && !full && (
+            {on && narrate && !full && FEATURES.narracaoIA && (
               <div className="fx-actions">
                 <button className="btn ghost sm fx-btn" disabled={asking === it.id || narrate.left <= 0} onClick={(ev) => { ev.stopPropagation(); askAi(it); }}>
                   <Icon name="brilho" size={13} />{asking === it.id ? 'Narrando…' : 'Narrar com a IA'}

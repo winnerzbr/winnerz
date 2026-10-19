@@ -6,6 +6,7 @@ import { useStore } from '../data/store';
 import { discordApi, type DiscordStatus } from '../data/discordApi';
 import { Link } from '../lib/router';
 import { dayMonthYear } from '../lib/format';
+import { setupNote } from '../lib/setupNote';
 
 export function DiscordSettings() {
   const isAdmin = useStore((s) => !!s.isAdmin);
@@ -29,7 +30,7 @@ export function DiscordSettings() {
     <section id="discord" aria-labelledby="discord-h" className="prefs__section">
       <h2 id="discord-h" className="t">Discord</h2>
       {st === null ? (
-        <p className="muted prefs__p">Falta rodar a migração 0040 no Supabase para ligar o Discord.</p>
+        <p className="muted prefs__p">{setupNote('Falta rodar a migração 0040 no Supabase para ligar o Discord.')}</p>
       ) : !st.linked ? (
         <>
           <p className="muted prefs__p">Ligue o seu Discord para usar os comandos /parei, /jogando e /jogatina no servidor do WinnerZ, ganhar os cargos ligados (como “Zerou 10 jogos”) e, se quiser, avisar o canal quando jogar, zerar ou marcar uma jogatina.</p>

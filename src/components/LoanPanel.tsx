@@ -3,6 +3,7 @@ import { actions, activeLoan, loansOf, useStore } from '../data/store';
 import type { Loan } from '../data/types';
 import { localDay } from '../lib/dates';
 import { ConfirmButton } from './Sheet';
+import { setupNote } from '../lib/setupNote';
 
 export const loanDate = (d?: string) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' }).replace('.', '') : '');
 
@@ -20,7 +21,7 @@ export function LoanPanel({ item }: { item: { copyId?: string; hardwareId?: stri
   const past = loansOf(s, item).filter((l) => l.returnedOn);
   const [editing, setEditing] = useState<Loan | 'novo' | null>(null);
 
-  if (!ready) return <p className="faint loan__mig">Para registrar empréstimos, rode a migração 0015 no Supabase.</p>;
+  if (!ready) return <p className="faint loan__mig">{setupNote('Para registrar empréstimos, rode a migração 0015 no Supabase.')}</p>;
 
   return (
     <section className="loan" aria-label="Empréstimo">

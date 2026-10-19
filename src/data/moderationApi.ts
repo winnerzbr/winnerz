@@ -7,6 +7,7 @@ import { useSyncExternalStore } from 'react';
 import { getState } from './store';
 
 import type { ReportKind, Snapshot } from '../lib/moderation';
+import { setupNote } from '../lib/setupNote';
 export type { ReportKind, Snapshot } from '../lib/moderation';
 export type ReportReason = 'ofensa' | 'spoiler' | 'spam' | 'improprio' | 'outro';
 export type BlockKind = 'bloquear' | 'silenciar';
@@ -76,7 +77,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
     if (/content_reports_kind_check/.test(m)) throw new Error('Falta rodar as migrações 0026 e 0028 no Supabase.');
-    if (/report_content|my_moderation|moderation_|block_user|my_blocks|accept_rules|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0024 no Supabase.');
+    if (/report_content|my_moderation|moderation_|block_user|my_blocks|accept_rules|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0024 no Supabase.'));
     throw new Error(m);
   }
   return r.data;

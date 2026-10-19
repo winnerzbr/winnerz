@@ -4,6 +4,8 @@
  */
 import { useEffect, useState } from 'react';
 import { getState, useStore } from './store';
+import { FEATURES } from '../lib/features';
+import { setupNote } from '../lib/setupNote';
 
 export type PactPerson = { handle: string | null; avatar?: string | null; me: boolean; status: 'convidado' | 'dentro'; progress?: number | null; lastAt?: string | null; doneAt?: string | null };
 export type Pact = {
@@ -23,7 +25,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/pact_|my_pacts/.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0041 no Supabase.');
+    if (/pact_|my_pacts/.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0041 no Supabase.'));
     throw new Error(m);
   }
   return r.data;
@@ -91,6 +93,7 @@ export function usePacts(): Pact[] | null | undefined {
   const logged = useStore((s) => !!s.profile);
   const [, tick] = useState(0);
   useEffect(() => { const f = () => tick((n) => n + 1); listeners.add(f); return () => { listeners.delete(f); }; }, []);
-  useEffect(() => { if (mode === 'supabase' && !logged) return; if (cache === null || cache === undefined) pactApi.mine().catch(() => null); }, [mode, logged]);
-  return cache;
+  useEffect(() => { if (!FEATURES.pactos || (mode === 'supabase' && !logged)) return; if (cache === null || cache === undefined) pactApi.mine().catch(() => null); }, [mode, logged]);
+  // Pactos escondidos por enquanto (lib/features.ts): null faz as telas agirem como se não existissem.
+  return FEATURES.pactos ? cache : null;
 }

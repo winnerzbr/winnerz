@@ -21,6 +21,7 @@ import { plainText } from '../lib/postText';
 import { dayLong, hourLabel, localInput, relDay, spanLabel, whenLabel } from '../lib/when';
 import { Espiando } from '../components/IAmiguinho';
 import { safeHref } from '../lib/safeHref';
+import { FEATURES } from '../lib/features';
 
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 /** Recado que a tela de marcar deixa para a página da jogatina (resultado dos convites). */
@@ -214,7 +215,7 @@ function JogatinaView({ j, code, reload }: { j: JogatinaFull; code: string | nul
                     {me.wasThere ? <><Icon name="check" size={16} /> Eu estava lá</> : 'Eu estava lá'}
                   </button>
                 ) : <p className="muted">Foi uma noite de {j.game?.title ?? 'jogo'}. Quem estava lá guarda aqui as memórias.</p>}
-                <Link className="btn ghost" to={`/comunidade/clubes/criar?jogo=${encodeURIComponent(j.game?.slug ?? '')}&formato=recorrente&nome=${encodeURIComponent(j.title)}`}>Repetir: virar clube</Link>
+                {FEATURES.clubes && <Link className="btn ghost" to={`/comunidade/clubes/criar?jogo=${encodeURIComponent(j.game?.slug ?? '')}&formato=recorrente&nome=${encodeURIComponent(j.title)}`}>Repetir: virar clube</Link>}
                 <Link className="btn ghost" to={`/jogatina/criar?jogo=${encodeURIComponent(j.game?.slug ?? '')}${j.club ? `&clube=${j.club.slug}` : ''}`}>Marcar outra</Link>
               </>
             ) : (

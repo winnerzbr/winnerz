@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { actions, useStore } from '../data/store';
 import { canReview, fixesApi } from '../data/fixesApi';
 import { moderationApi } from '../data/moderationApi';
-import { FREE, fmtBytes, loadUsage, type Usage } from '../data/usageApi';
+import { FREE, fmtBytes, loadFeatureUse, loadUsage, type FeatureUse, type Usage } from '../data/usageApi';
+import { USAGE_AREAS, usageLabel } from '../lib/usageLabels';
 import { SITE_PRIVATE } from '../lib/env';
 import { notifApi } from '../data/notifApi';
 import { Link } from '../lib/router';
@@ -63,6 +64,7 @@ export function StudioPage() {
         <h1 className="t big">Studio</h1>
         <p className={`studio__state${isOpen ? ' is-open' : ''}`}><b>{isOpen ? 'Site aberto' : 'Site fechado'}</b> {isOpen ? 'Qualquer pessoa pode criar conta e usar o site.' : 'Só você e quem tem convite usam o site; as outras pessoas veem "Em breve", e o banco recusa o resto.'}</p>
         <SiteSwitch open={isOpen} known={siteOpen !== undefined || mode === 'demo'} />
+        <CommunitiesSwitch />
         {mode === 'demo' && <p className="faint">Na demonstração, os números abaixo são de exemplo.</p>}
       </header>
 
@@ -105,6 +107,8 @@ export function StudioPage() {
           </>
         )}
       </section>
+
+      <FeatureUsePanel />
 
       <section className="studio__sec" aria-labelledby="abrir">
         <h2 id="abrir" className="t">Antes de abrir o site</h2>
@@ -293,5 +297,83 @@ function SiteSwitch({ open, known }: { open: boolean; known: boolean }) {
           confirm={open ? 'Confirmar: só você e convidados' : 'Confirmar: abrir para qualquer pessoa'} onConfirm={() => void flip()} />}
       {err && <span className="muted" role="alert">{err}</span>}
     </div>
+  );
+}
+
+/** Quem cria comunidades (migração 0077). Enquanto o site é pequeno, só a administração. */
+function CommunitiesSwitch() {
+  const mode = useStore((s) => s.mode);
+  const known = useStore((s) => s.communitiesOpen);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  if (known === undefined && mode === 'supabase') return null;
+  const open = !!known;
+  const flip = async () => {
+    setBusy(true); setErr('');
+    try {
+      if (mode === 'supabase') {
+        const { getClient } = await import('../data/supabaseAdapter');
+        const { error } = await (await getClient()).rpc('set_communities_open', { p_open: !open });
+        if (error) throw error;
+      }
+      actions.setCommunitiesOpen(!open);
+    } catch { setErr('Não consegui mudar agora. Tente de novo.'); } finally { setBusy(false); }
+  };
+  return (
+    <p className="studio__sub">
+      <span><b>Comunidades:</b> {open ? 'qualquer pessoa pode criar.' : 'só você cria, por enquanto.'}</span>
+      <button type="button" className="btn quiet sm" disabled={busy} onClick={() => void flip()}>{busy ? 'Mudando…' : open ? 'Voltar a só eu criar' : 'Liberar para todos'}</button>
+      {err && <span className="muted" role="alert">{err}</span>}
+    </p>
+  );
+}
+
+/** Uso por recurso: quantas visitas usaram cada parte do site, para decidir o que fica, melhora ou sai. */
+function FeatureUsePanel() {
+  const mode = useStore((s) => s.mode);
+  const [rows, setRows] = useState<FeatureUse[] | null>(null);
+  const [err, setErr] = useState('');
+  const [area, setArea] = useState('Visitas por área');
+  useEffect(() => { loadFeatureUse().then(setRows).catch((e) => setErr(e instanceof Error ? e.message : 'Não deu para carregar o uso agora.')); }, [mode]);
+
+  // Junta linhas que viram o mesmo nome (ex.: perfis contados do jeito antigo).
+  const merged = new Map<string, { area: string; label: string; d7: number; d30: number }>();
+  for (const r of rows ?? []) {
+    const l = usageLabel(r.event);
+    const k = `${l.area}|${l.label}`;
+    const cur = merged.get(k) ?? { ...l, d7: 0, d30: 0 };
+    cur.d7 += r.d7; cur.d30 += r.d30; merged.set(k, cur);
+  }
+  const all = [...merged.values()];
+  const areas = USAGE_AREAS.filter((a) => all.some((r) => r.area === a));
+  const list = all.filter((r) => r.area === area).sort((a, b) => b.d30 - a.d30 || a.label.localeCompare(b.label));
+  const max = Math.max(1, ...list.map((r) => r.d30));
+
+  return (
+    <section className="studio__sec" aria-labelledby="uso-recurso">
+      <h2 id="uso-recurso" className="t">Uso por recurso</h2>
+      <p className="muted studio__lead">Quantas visitas usaram cada parte do site. Cada recurso conta uma vez por visita, sem guardar quem foi. Recurso que não aparece aqui não foi usado nos últimos 30 dias.</p>
+      {mode === 'demo' && <p className="faint">Na demonstração, os números são de exemplo.</p>}
+      {err ? <p className="awards__error" role="alert">{err}</p> : !rows ? <p className="faint">Carregando…</p> : !all.length ? <p className="faint">Nada contado nos últimos 30 dias.</p> : (
+        <>
+          <div className="seg uso__areas" role="tablist" aria-label="Área">
+            {areas.map((a) => <button key={a} type="button" role="tab" aria-selected={a === area} onClick={() => setArea(a)}>{a}</button>)}
+          </div>
+          <table className="uso">
+            <thead><tr><th scope="col">Recurso</th><th scope="col" className="uso__n">7 dias</th><th scope="col" className="uso__n">30 dias</th></tr></thead>
+            <tbody>
+              {list.map((r) => (
+                <tr key={r.label}>
+                  <th scope="row"><span className="uso__label">{r.label}</span><span className="uso__bar" aria-hidden="true"><i style={{ width: `${Math.max(2, (r.d30 / max) * 100)}%` }} /></span></th>
+                  <td className="uso__n mono">{r.d7.toLocaleString('pt-BR')}</td>
+                  <td className="uso__n mono">{r.d30.toLocaleString('pt-BR')}</td>
+                </tr>
+              ))}
+              {!list.length && <tr><td colSpan={3} className="faint">Nada nesta área nos últimos 30 dias.</td></tr>}
+            </tbody>
+          </table>
+        </>
+      )}
+    </section>
   );
 }

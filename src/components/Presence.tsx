@@ -4,6 +4,7 @@ import { useFriendsNow, type Presence } from '../data/presenceApi';
 import { PersonAvatar } from './Posts';
 import { CoverArt } from './CoverArt';
 import { useStore } from '../data/store';
+import { FEATURES } from '../lib/features';
 
 const since = (iso?: string) => { if (!iso) return ''; const m = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60_000)); return m < 60 ? `há ${m} min` : `há ${Math.floor(m / 60)} h`; };
 const VIA: Record<string, string> = { steam: 'pela Steam', ra: 'pelo RetroAchievements', playnite: 'pelo Playnite' };
@@ -22,6 +23,7 @@ export function PresencePill({ p }: { p: Presence | null }) {
 export function FriendsNow({ compact = false }: { compact?: boolean }) {
   const enabled = useStore((s) => s.prefs.comunidade?.presenca === 'amigos');
   const list = useFriendsNow();
+  if (!FEATURES.presenca) return null; // "Amigos agora" escondido por enquanto (lib/features.ts).
   if (!enabled) return compact ? null : <section className="cm-side"><span className="kicker">Amigos agora</span><small className="faint">Ligue a presença em <Link to="/preferencias#presenca">Preferências</Link> para ver quais amigos estão online e o que estão jogando. Só amigos veem a sua.</small></section>;
   if (!list || !list.length) return compact ? null : <section className="cm-side"><span className="kicker">Amigos agora</span><small className="faint">Nenhum amigo online agora.</small></section>;
   return (

@@ -9,13 +9,14 @@ import { norm } from '../lib/importer';
 import { shortPlatform } from '../lib/platforms';
 import { track } from '../lib/track';
 import { searchApi, EMPTY_HITS, type CommunityHits } from '../data/searchApi';
+import { FEATURES } from '../lib/features';
 
 type Item = { key: string; group: string; title: string; meta?: string; to: string; cover?: { title: string; cover: string }; icon?: string };
 
 const PAGES: [string, string, string][] = [
   ['Estante', '/colecao', 'estante coleção jogos'], ['Estatísticas da coleção', '/colecao/estatisticas', 'estatisticas numeros'], ['Desejos', '/colecao/desejos', 'desejos lista'],
   ['Importar planilha', '/colecao/importar', 'importar planilha excel csv'], ['Importar da Steam', '/colecao/steam', 'importar steam pc horas'], ['Jornada', '/jornada', 'jornada jogando foco'], ['Histórias concluídas', '/jornada/concluidas', 'zerados concluidas historias'], ['Linha do tempo geral', '/jornada/linha-do-tempo', 'linha do tempo tudo historico'], ['Meu ritmo', '/jornada/ritmo', 'ritmo semana estatisticas jornada'],
-  ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ['Trilhas', '/jogos/trilhas', 'trilhas sequencia saga ordem'], ['Preferências', '/preferencias', 'preferencias tema escala'],
+  ['Explorar jogos', '/jogos/explorar', 'explorar catalogo genero'], ['Radar de lançamentos', '/jogos/radar', 'radar lancamentos calendario'], ...(FEATURES.trilhas ? [['Trilhas', '/jogos/trilhas', 'trilhas sequencia saga ordem'] as [string, string, string]] : []), ['Preferências', '/preferencias', 'preferencias tema escala'],
   ['WinnerZ Awards', '/eventos/awards', 'awards premio votacao eventos'], ['Álbum de figurinhas', '/album', 'album figurinhas colecionar temporada'], ['Pacotes de figurinhas', '/album/pacotes', 'pacotes abrir figurinhas'], ['Minhas figurinhas', '/album/figurinhas', 'figurinhas colecao repetidas faltam'], ['Cofre do álbum', '/album/cofre', 'cofre repetidas trocar figurinha'], ['Trocas de figurinhas', '/album/trocas', 'trocas trocar figurinhas repetidas propostas'],
 ];
 

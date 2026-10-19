@@ -10,6 +10,7 @@ export { avatarUrl };
 import type { DatePrecision, HardwareKind } from './types';
 import { showcasePieces } from '../lib/showcases';
 import { exhibitOf } from '../lib/museum';
+import { setupNote } from '../lib/setupNote';
 
 export type Visibility = 'privado' | 'amigos' | 'link' | 'publico';
 export type Pillar = 'jornada' | 'colecao' | 'notas';
@@ -119,11 +120,11 @@ function friendly(e: { message?: string } | null): Error {
   const m = e?.message ?? '';
   const key = Object.keys(MSG).find((k) => m.includes(k));
   if (key) return new Error(MSG[key]);
-  if (/set_my_avatar|avatar_path|bucket not found|avatares/i.test(m)) return new Error('Para a foto do perfil, rode a migração 0018 no Supabase (SQL Editor → colar → Run).');
-  if (/set_my_stage|public_profile_v4/i.test(m)) return new Error('Para isso, rode a migração 0016 no Supabase (SQL Editor → colar → Run).');
-  if (/set_my_links|public_profile_v2|public_journey/i.test(m)) return new Error('Para isso, rode a migração 0013 no Supabase (SQL Editor → colar → Run).');
-  if (/set_my_handle|handle_available/i.test(m)) return new Error('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).');
-  if (/my_profile|set_my_profile|public_profile|rotate_share_key|function|schema cache/i.test(m)) return new Error('Para usar o perfil, rode a migração 0011 no Supabase (SQL Editor → colar → Run).');
+  if (/set_my_avatar|avatar_path|bucket not found|avatares/i.test(m)) return new Error(setupNote('Para a foto do perfil, rode a migração 0018 no Supabase (SQL Editor → colar → Run).'));
+  if (/set_my_stage|public_profile_v4/i.test(m)) return new Error(setupNote('Para isso, rode a migração 0016 no Supabase (SQL Editor → colar → Run).'));
+  if (/set_my_links|public_profile_v2|public_journey/i.test(m)) return new Error(setupNote('Para isso, rode a migração 0013 no Supabase (SQL Editor → colar → Run).'));
+  if (/set_my_handle|handle_available/i.test(m)) return new Error(setupNote('Para escolher o @, rode a migração 0012 no Supabase (SQL Editor → colar → Run).'));
+  if (/my_profile|set_my_profile|public_profile|rotate_share_key|function|schema cache/i.test(m)) return new Error(setupNote('Para usar o perfil, rode a migração 0011 no Supabase (SQL Editor → colar → Run).'));
   return new Error(m || 'Não deu certo. Tente de novo.');
 }
 

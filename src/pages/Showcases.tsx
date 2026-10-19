@@ -9,8 +9,9 @@ import { Icon } from '../components/Icon';
 import { PiecePicker } from '../components/PiecePicker';
 import { Cabinet, Shelf, ShelfPiece, shelfItem } from '../components/Showcase';
 import { ruleLabel, showcasePieces, suggestions, type Suggestion } from '../lib/showcases';
+import { setupNote } from '../lib/setupNote';
 
-const MIGRATION = 'Para guardar Vitrines, rode a migração 0015 no Supabase (SQL Editor → colar → Run).';
+const MIGRATION = () => setupNote('Para guardar Vitrines, rode a migração 0015 no Supabase (SQL Editor → colar → Run).');
 
 /** Coleção → Vitrines: as que você guardou e as que a sua coleção já monta sozinha. */
 export function ShowcasesPage() {
@@ -47,7 +48,7 @@ export function ShowcasesPage() {
         </div>
       </header>
 
-      {!ready && <div className="card tl-empty"><p className="muted">{MIGRATION}</p></div>}
+      {!ready && <div className="card tl-empty"><p className="muted">{MIGRATION()}</p></div>}
       {ready && !s.copies.length && <div className="card tl-empty"><p className="muted">As vitrines usam o que está na sua estante. Quando houver jogos lá, elas aparecem aqui sozinhas.</p><Link className="btn primary" to="/colecao">Ir para a Estante</Link></div>}
 
       {saved.length > 0 && (

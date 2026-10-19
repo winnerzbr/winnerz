@@ -16,6 +16,7 @@ import { videosOf } from '../lib/ytLink';
 import { CanalPlaylist, PartVideoButton, VideoSheet } from './PartVideo';
 import { AchievementLinks } from './AchievementLinks';
 import { safeHref } from '../lib/safeHref';
+import { FEATURES } from '../lib/features';
 
 const durShort = (m?: number) => (!m ? '' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`);
 const STOPS: StopKind[] = ['qualquer', 'fim', 'pontos', 'longe'];
@@ -180,13 +181,13 @@ export function OutlineSheet({ game, history, outline, onClose, startEditing, on
         {outline.canEdit && <button className="btn ghost" onClick={() => setEditing(true)}><Icon name="caneta" size={15} />Editar a lista</button>}
         {history.part && <button className="btn quiet" onClick={() => { actions.setHistoryPart(history.id, null, parts); onClose(); }}>Tirar a marca</button>}
         {!hist && outline.edits ? <button className="btn quiet" onClick={loadHist}>Ver as edições</button> : null}
-        <button className="btn quiet" aria-expanded={ach} onClick={() => setAch(!ach)}><Icon name="link" size={14} />Conquistas ligadas</button>
+        {FEATURES.conquistasCapitulos && <button className="btn quiet" aria-expanded={ach} onClick={() => setAch(!ach)}><Icon name="link" size={14} />Conquistas ligadas</button>}
         {outline.admin && <button className="btn quiet" aria-expanded={canal} onClick={() => setCanal(!canal)}><Icon name="play" size={14} />Detonado do canal</button>}
         <button className="btn primary" onClick={onClose}>Fechar</button>
       </div>
       {err && <p className="form-error" role="alert">{err}</p>}
       {canal && <CanalPlaylist gameId={game.id} />}
-      {ach && <AchievementLinks gameId={game.id} outline={outline} />}
+      {FEATURES.conquistasCapitulos && ach && <AchievementLinks gameId={game.id} outline={outline} />}
       {video && <VideoSheet gameId={game.id} gameTitle={game.title} part={video} label={`${u.one} ${parts.indexOf(video) + 1}`} videos={vids} onClose={() => setVideo(null)} />}
       {hist && (
         <ul className="ol-hist">

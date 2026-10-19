@@ -1,7 +1,6 @@
 import { featBadge, sortFeats } from '../lib/feats';
 import { Icon } from '../components/Icon';
 import { PastSessionButton } from '../components/PastSession';
-import { WeeklyChallenge } from '../components/WeeklyChallenge';
 import { Buddy, useBuddy } from '../components/Buddy';
 import { BridgeInbox } from '../components/Bridges';
 import { useState, type ReactNode } from 'react';
@@ -137,7 +136,6 @@ export function JourneyIndex() {
             {/* Sugestões ficam a um toque: quem está no meio de vários jogos não precisa delas o tempo todo. */}
             {ideas || !principal ? <>
               <WhatToPlay excludeJourneyId={principal?.journey.id} headingId="oqj-jornada" />
-              <WeeklyChallenge />
             </> : <button className="btn ghost jindex__ideas" onClick={() => setIdeas(true)}><Icon name="lampada" size={16} />Sem ideia do que jogar?</button>}
           </aside>
         </div>

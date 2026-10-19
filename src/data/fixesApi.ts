@@ -7,6 +7,7 @@ import { actions, getState } from './store';
 import type { Game, GameFixes } from './types';
 import { applyFixes, type FixField } from '../lib/fixes';
 import { gameFromApi } from '../components/AddGameDialog';
+import { setupNote } from '../lib/setupNote';
 
 export type ReportStatus = 'aberta' | 'aceita' | 'recusada';
 export interface MyReport { id: string; field: FixField; proposed: unknown; note?: string; status: ReportStatus; reply?: string; createdAt: string }
@@ -31,7 +32,7 @@ export const QUALITY_GROUPS: { k: string; label: string; hint: string }[] = [
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
   if (r.error) {
     const m = r.error.message;
-    if (/report_game|report_queue|data_quality|fix_game|my_reports|game_reports|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0021 no Supabase.');
+    if (/report_game|report_queue|data_quality|fix_game|my_reports|game_reports|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0021 no Supabase.'));
     throw new Error(m);
   }
   return r.data;

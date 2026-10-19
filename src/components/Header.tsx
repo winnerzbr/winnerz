@@ -7,6 +7,7 @@ import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
 import { NotifBell } from './Notifications';
 import { DmButton } from '../pages/Messages';
+import { SITE_PRIVATE } from '../lib/env';
 
 /** Telas que fazem parte da Comunidade (para acender o pilar). */
 const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
@@ -113,19 +114,21 @@ const TAB_ICONS: Record<string, ReactElement> = {
   colecao: <><rect x="4" y="4" width="5" height="16" rx="1.5" /><rect x="11" y="4" width="5" height="16" rx="1.5" /><path d="M18 5l3 1-3 14-3-1" /></>,
   jogos: <><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></>,
   comunidade: <><path d="M3.5 4.5h11v8H8l-4.5 3.5z" /><path d="M14.5 8.5h6v8l-3-2.2h-6.5v-1.8" /></>,
+  album: <><path d="M4 4.5h7.5a1.5 1.5 0 0 1 1.5 1.5v14a1.5 1.5 0 0 0-1.5-1.5H4z" /><path d="M20 4.5h-7.5" /><path d="M20 4.5v14h-5.5" /><path d="M15.5 8h2v3h-2z" /></>,
   mais: <><circle cx="5" cy="12" r="1.6" fill="currentColor" /><circle cx="12" cy="12" r="1.6" fill="currentColor" /><circle cx="19" cy="12" r="1.6" fill="currentColor" /></>,
 };
 const TabIcon = ({ name }: { name: string }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{TAB_ICONS[name]}</svg>
 );
 
-const TABS = [
+const BASE_TABS = [
   { to: '/', label: 'Início', icon: 'inicio', on: (p: string) => p === '/' },
   { to: '/jornada', label: 'Jornada', icon: 'jornada', on: (p: string) => p.startsWith('/jornada') },
   { to: '/colecao', label: 'Coleção', icon: 'colecao', on: (p: string) => p.startsWith('/colecao') },
-  { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', on: inCommunity },
 ];
-const MORE = ['/jogos', '/eventos', '/album', '/preferencias', '/entrar', '/studio', '/sobre', '/regras', '/privacidade', '/codigo'];
+const COMMUNITY_TAB = { to: '/comunidade', label: 'Comunidade', icon: 'comunidade', on: inCommunity };
+const ALBUM_TAB = { to: '/album', label: 'Álbum', icon: 'album', on: (p: string) => p.startsWith('/album') || p.startsWith('/codigo') };
+const MORE_BASE = ['/jogos', '/eventos', '/preferencias', '/entrar', '/studio', '/sobre', '/regras', '/privacidade'];
 
 /** No celular, os pilares ficam numa barra fixa embaixo; Jogos, Eventos e a aparência ficam em "Mais". */
 export function TabBar() {
@@ -133,8 +136,12 @@ export function TabBar() {
   const prefs = useStore((s) => s.prefs);
   const profile = useStore((s) => s.profile);
   const isAdmin = useStore((s) => !!s.isAdmin);
+  // Enquanto o site está fechado (só convidados), o Álbum vale mais na barra do que a Comunidade, que ainda tem pouca gente.
+  // Quando o site abre (botão no Studio), a Comunidade volta para a barra e o Álbum vai para "Mais". Etapa 5 da revisão.
+  const albumFirst = useStore((s) => (s.siteOpen === undefined ? SITE_PRIVATE : !s.siteOpen));
+  const TABS = [...BASE_TABS, albumFirst ? ALBUM_TAB : COMMUNITY_TAB];
   const [more, setMore] = useState(false);
-  const moreOn = MORE.some((m) => path.startsWith(m));
+  const moreOn = (albumFirst ? [...MORE_BASE, '/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'] : [...MORE_BASE, '/album', '/codigo']).some((m) => path.startsWith(m));
 
   useEffect(() => {
     document.documentElement.classList.add('has-tabbar');
@@ -156,7 +163,9 @@ export function TabBar() {
           <nav className="moremenu" aria-label="Mais seções">
             <Link to="/jogos" className="moremenu__item" aria-current={path.startsWith('/jogos') ? 'page' : undefined}><Icon name="jogos" size={20} /><span><b>Jogos</b><small>Buscar jogos, Radar e o que jogar agora</small></span></Link>
             <Link to="/eventos" className="moremenu__item" aria-current={path.startsWith('/eventos') ? 'page' : undefined}><Icon name="eventos" size={20} /><span><b>Eventos</b><small>WinnerZ Awards e noites para assistir junto</small></span></Link>
-            <Link to="/album" className="moremenu__item" aria-current={path.startsWith('/album') ? 'page' : undefined}><Icon name="album" size={20} /><span><b>Álbum</b><small>Figurinhas da Temporada e os seus pacotes</small></span></Link>
+            {albumFirst
+              ? <Link to="/comunidade" className="moremenu__item" aria-current={inCommunity(path) ? 'page' : undefined}><Icon name="comunidade" size={20} /><span><b>Comunidade</b><small>Praça, jogatinas e mensagens</small></span></Link>
+              : <Link to="/album" className="moremenu__item" aria-current={path.startsWith('/album') ? 'page' : undefined}><Icon name="album" size={20} /><span><b>Álbum</b><small>Figurinhas da Temporada e os seus pacotes</small></span></Link>}
             {isAdmin && <Link to="/studio" className="moremenu__item" aria-current={path.startsWith('/studio') ? 'page' : undefined}><Icon name="caneta" size={20} /><span><b>Studio</b><small>Correções, uso dos planos e abertura do site</small></span></Link>}
             {profile
               ? <Link to="/preferencias" className="moremenu__item" aria-current={path.startsWith('/preferencias') ? 'page' : undefined}><span className={`avatar moremenu__avatar${profile.avatar ? ' avatar--img' : ''}`}>{profile.avatar ? <img src={profile.avatar} alt="" /> : profile.initial}</span><span><b>Preferências</b><small>Conta, privacidade e ajustes</small></span></Link>

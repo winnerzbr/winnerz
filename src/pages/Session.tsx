@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
 import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, hasV43, sessionMinutes } from '../data/store';
 import { IntentCard } from '../components/Rest';
-import { intentOf, MET } from '../lib/rest';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -19,17 +18,14 @@ import { Backdrop, useBackdrop } from '../components/Backdrop';
 import { BrandMark } from '../components/Brand';
 import { shrink, toDataUrl } from '../lib/image';
 import { say as toneLine } from '../lib/tone';
-import { zereiPedeConfirmacao, minutosDaHistoria } from '../lib/zerei';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { marcarZerado } from '../lib/iamiguinho';
 import { Previously, CapsuleSheet } from '../components/Retomada';
 import { GoalCard, StopCard } from '../components/Outline';
-import { DonePicker, PartPicker, StartPartCard } from '../components/PartPicker';
-import { useOutline } from '../data/outlineApi';
-import { doneIds, isOpenWorld, openProgress, partAt } from '../lib/outline';
-import type { Game, History, PartMark } from '../data/types';
-import type { OutlinePart } from '../lib/outline';
+import { StartPartCard } from '../components/PartPicker';
 import { recapFor, wantsRecap } from '../lib/recap';
+import { FinishFlow } from './SessionFinish';
+import { noticeSaved } from '../components/SavedNotice';
 
 type Draft = { kind: 'momento' | 'ponto'; blob?: Blob; preview?: string; title: string; note: string };
 
@@ -68,7 +64,6 @@ function MomentSheet({ draft, onChange, onPhoto, onCancel, onSave }: { draft: Dr
   );
 }
 
-const FEELINGS = ['Adorei', 'Quero continuar', 'Foi suficiente por hoje', 'Não encaixou'];
 
 export function SessionPage() {
   const path = usePath();
@@ -88,8 +83,6 @@ export function SessionPage() {
   const photoKind = useRef<'momento' | 'ponto'>('momento');
   const prefill = useRef('');
   const fileInput = useRef<HTMLInputElement>(null);
-  // No celular o fim da sessão fica abaixo do palco: leva até ele.
-  useEffect(() => { if (finishing && window.innerWidth < 1100) document.querySelector('.session__aside')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [finishing]);
 
   // Depois de zerar a sessão fecha; a celebração continua na tela.
   if (celebrate) return <Celebrated historyId={celebrate.historyId} onClose={() => { marcarZerado(celebrate.historyId); const h = s.histories.find((x) => x.id === celebrate.historyId); const j = h && s.journeys.find((x) => x.id === h.journeyId); navigate(j ? `/jornada/${s.games[j.gameId].slug}` : '/'); }} />;
@@ -215,35 +208,37 @@ export function SessionPage() {
       </section>
 
       {finishing && (
-        <aside className="session__aside" aria-label="Fim da sessão">
-          <FinishForm
-            game={g}
-            history={h}
-            onSavePhoto={(blob, title) => saveDraft({ kind: 'momento', blob, preview: URL.createObjectURL(blob), title, note: '' })}
-            progress={h.progress ?? 0}
-            startedAt={session.startedAt}
-            goal={session.goal}
-            intent={session.intent}
-            detailsOpen={finishing === 'recado'}
-            onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
-            onCancel={() => setFinishing(false)}
-            companions={knownCompanions(s)}
-            canWho={hasV8(s)}
-            onFinish={(data) => {
-              // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
-              const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
-              const before = h.progress ?? 0, after = data.progress ?? before;
-              actions.finishSession(session.id, data);
-              discordApi.publish('sessao', session.id);
-              const tone = s.prefs.tone;
-              if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
-              else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
-              else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
-              navigate(`/jornada/${g.slug}`);
-            }}
-            onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); packAfterFinish(h.id, g.id); setCelebrate({ historyId: h.id }); }}
-          />
-        </aside>
+        <FinishFlow
+          game={g}
+          history={h}
+          sessionNumber={n}
+          onSavePhoto={(blob, title) => saveDraft({ kind: 'momento', blob, preview: URL.createObjectURL(blob), title, note: '' })}
+          progress={h.progress ?? 0}
+          startedAt={session.startedAt}
+          goal={session.goal}
+          intent={session.intent}
+          startAt={finishing === 'recado' ? 'recado' : undefined}
+          onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
+          onCancel={() => setFinishing(false)}
+          companions={knownCompanions(s)}
+          canWho={hasV8(s)}
+          onFinish={(data) => {
+            // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
+            const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
+            const before = h.progress ?? 0, after = data.progress ?? before;
+            const mins = data.minutes ?? sessionMinutes(session.startedAt, new Date().toISOString());
+            actions.finishSession(session.id, data);
+            discordApi.publish('sessao', session.id);
+            const tone = s.prefs.tone;
+            if (nth === 1 && h.ordinal === 1) celebrateSmall('Primeira sessão', toneLine('primeira', tone));
+            else if (before < 50 && after >= 50 && after < 100) celebrateSmall('Metade do caminho', toneLine('metade', tone));
+            else if (nth === 10) celebrateSmall('Dez sessões', toneLine('dez', tone));
+            // Sem tela de resumo: volta para a Jornada com um aviso de que a sessão foi guardada.
+            else noticeSaved('Sessão guardada', [g.title, mins ? durLabel(mins) : '', after ? `progresso ${after}%` : ''].filter(Boolean).join(' · '));
+            navigate(`/jornada/${g.slug}`);
+          }}
+          onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); packAfterFinish(h.id, g.id); setCelebrate({ historyId: h.id }); }}
+        />
       )}
       {capsuleOpen && <CapsuleSheet historyId={h.id} gameTitle={g.title} onClose={() => setCapsuleOpen(false)} />}
       {draft && <MomentSheet draft={draft} onChange={setDraft} onPhoto={() => fileInput.current?.click()} onCancel={() => { if (draft.preview) URL.revokeObjectURL(draft.preview); setDraft(null); }} onSave={() => saveDraft(draft)} />}
@@ -261,142 +256,6 @@ function Elapsed({ since }: { since: string }) {
   const p = (n: number) => String(n).padStart(2, '0');
   const txt = `${p(Math.floor(sec / 3600))}:${p(Math.floor((sec % 3600) / 60))}:${p(sec % 60)}`;
   return <div className="session__clock" role="timer" aria-label={`Tempo de sessão: ${Math.floor(sec / 3600)} horas e ${Math.floor((sec % 3600) / 60)} minutos`}>{txt}</div>;
-}
-
-type FinishData = { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark; partDone?: PartMark[] };
-
-/**
- * Fim da sessão em dois toques: onde você parou (e uma foto, se quiser) e Finalizar.
- * A duração é calculada sozinha; o resto fica em "Mais detalhes".
- */
-function FinishForm({ game, history, onSavePhoto, progress, startedAt, goal, intent, companions: known, canWho, detailsOpen, onFinish, onZerei, onCancel, onPhoto }: { game: Game; history: History; onSavePhoto: (blob: Blob, title: string) => void; progress: number; startedAt: string; goal?: string; intent?: string; companions: string[]; canWho: boolean; detailsOpen?: boolean; onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void }) {
-  const [withWho, setWithWho] = useState<string[]>([]);
-  const [who, setWho] = useState('');
-  const addWho = (name: string) => { const n = name.trim().slice(0, 40); if (n && !withWho.includes(n)) setWithWho([...withWho, n]); setWho(''); };
-  const toggleWho = (name: string) => setWithWho(withWho.includes(name) ? withWho.filter((x) => x !== name) : [...withWho, name]);
-  const [p, setP] = useState(progress);
-  const [where, setWhere] = useState('');
-  const [note, setNote] = useState('');
-  const [feel, setFeel] = useState<string | undefined>();
-  const [more, setMore] = useState(!!detailsOpen);
-  const [done, setDone] = useState<'sim' | 'quase' | 'nao' | undefined>();
-  const [met, setMet] = useState<'sim' | 'meio' | 'nao' | undefined>();
-  const it = intentOf(intent);
-  // A duração é calculada na hora de finalizar; só fica fixa se a pessoa corrigir.
-  const auto = sessionMinutes(startedAt, new Date().toISOString());
-  const [mins, setMins] = useState<string | null>(null);
-  const typed = mins != null && mins.trim() ? Math.max(1, Math.min(1440, Math.round(Number(mins)))) : undefined;
-  const minutes = mins == null ? auto : Number.isFinite(typed) ? typed : undefined;
-  // S1: com a lista do jogo, "Onde você parou?" acha o item (atalhos, busca ou foto) e move a marca e o progresso.
-  const outline = useOutline(game.id);
-  const parts = outline?.parts ?? [];
-  const cur = partAt(parts, history.progress, history.part);
-  const [chosen, setChosen] = useState<{ part: OutlinePart; src: NonNullable<PartMark['src']> } | null>(null);
-  const [shot, setShot] = useState<Blob | null>(null);
-  const [keepShot, setKeepShot] = useState(true);
-  const choose = (part: OutlinePart, src: NonNullable<PartMark['src']>) => { setChosen({ part, src }); setWhere(part.name); setP(part.pct); };
-  // S2: jogo aberto ("O que você fez hoje?"): marca várias coisas; o progresso é a parte da lista já feita.
-  const open = isOpenWorld(outline) && parts.length > 1;
-  const st = useStore((x) => x);
-  const before = open ? doneIds(sessionsOf(st, history.id)) : new Set<string>();
-  const [picked, setPicked] = useState<{ part: OutlinePart; src: NonNullable<PartMark['src']> }[]>([]);
-  const [find, setFind] = useState('');
-  const toggle = (part: OutlinePart, src: NonNullable<PartMark['src']>) => {
-    const next = picked.some((x) => x.part.id === part.id) ? picked.filter((x) => x.part.id !== part.id) : [...picked, { part, src }];
-    setPicked(next);
-    setP(next.length ? openProgress(parts, new Set([...before, ...next.map((x) => x.part.id)])) : progress);
-  };
-  const doneText = picked.map((x) => x.part.name).join(', ');
-  const typeWhere = (t: string) => { setWhere(t); if (chosen && t.trim() !== chosen.part.name) { setChosen(null); setP(progress); } };
-  const data = (): FinishData => ({ note: note.trim() || undefined, whereStopped: (open && doneText ? `Fez: ${doneText}`.slice(0, 140) : where.trim()) || undefined, feeling: feel, minutes: mins == null ? undefined : minutes, progress: p !== progress ? p : undefined, companions: withWho, goalDone: goal ? done : undefined, intentMet: it ? met : undefined,
-    partTo: !open && chosen ? { id: chosen.part.id, name: chosen.part.name, src: chosen.src } : undefined,
-    partDone: open && picked.length ? picked.map((x) => ({ id: x.part.id, name: x.part.name, src: x.src })) : undefined });
-  // "Zerei" fica logo abaixo de "Finalizar": sempre pede um segundo toque, para um toque sem querer não virar festa.
-  const [zArmed, setZArmed] = useState(false);
-  useEffect(() => { if (!zArmed) return; const t = setTimeout(() => setZArmed(false), 6000); return () => clearTimeout(t); }, [zArmed]);
-  const close = (fn: (d: FinishData) => void) => {
-    const d = data();
-    if (!open && chosen && outline) actions.setHistoryPart(history.id, { id: chosen.part.id, pct: chosen.part.pct }, parts);
-    if (open && picked.length) actions.markOpenPart(history.id, [...picked].sort((a, b) => b.part.pct - a.part.pct)[0].part.id);
-    const label = open ? (doneText ? `Hoje: ${doneText}`.slice(0, 120) : 'Onde parei') : where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei';
-    if (shot && keepShot) onSavePhoto(shot, label);
-    fn(d);
-  };
-  return (
-    <form className="finish" onSubmit={(e) => { e.preventDefault(); close(onFinish); }}>
-      <div className="finish__head"><h2 className="t">Fim da sessão</h2><button type="button" className="btn quiet sm" onClick={onCancel}>Voltar</button></div>
-      <p className="finish__dur mono">{minutes ? <>Você jogou <b>{durLabel(minutes)}</b></> : 'Duração não calculada'}<button type="button" className="finish__fix" onClick={() => setMore(true)}>corrigir</button></p>
-      {open && outline ? (
-        <>
-          <span className="finish__label">O que você fez hoje? <span className="faint">({before.size} de {parts.length} feitos antes)</span></span>
-          <DonePicker game={game} outline={outline} cur={cur} done={before} picked={picked} onToggle={toggle} text={find} onText={setFind} onPhoto={setShot} />
-          {shot && <label className="pp__keep"><input type="checkbox" checked={keepShot} onChange={(e) => setKeepShot(e.target.checked)} /> Guardar a foto como momento</label>}
-        </>
-      ) : outline && parts.length > 1 ? (
-        <>
-          <span className="finish__label">Onde você parou?</span>
-          <PartPicker game={game} history={history} outline={outline} cur={cur} chosen={chosen?.part ?? null} text={where} onText={typeWhere} onChoose={choose} mode="fim" onPhoto={setShot}
-            placeholder="Busque na lista ou escreva onde parou" />
-          {shot && <label className="pp__keep"><input type="checkbox" checked={keepShot} onChange={(e) => setKeepShot(e.target.checked)} /> Guardar a foto como momento “Onde parei”</label>}
-        </>
-      ) : (
-        <>
-          <label htmlFor="parei" className="finish__label">Onde você parou?</label>
-          <div className="finish__where">
-            <input id="parei" className="field" placeholder="Ex.: entrei no teatro" value={where} onChange={(e) => setWhere(e.target.value)} maxLength={140} />
-            <button type="button" className="btn ghost finish__cam" onClick={() => onPhoto(where)} aria-label="Foto de onde você parou" title="Foto de onde você parou"><Icon name="camera" size={18} /></button>
-          </div>
-        </>
-      )}
-      {goal && (
-        <div className="finish__goal">
-          <span className="finish__label">Você cumpriu “{goal}”?</span>
-          <div className="chips" role="group" aria-label="Cumpriu o objetivo?">
-            {([['sim', 'Cumpri'], ['quase', 'Quase'], ['nao', 'Fica para a próxima']] as const).map(([k, l]) => <button type="button" key={k} className="chip" aria-pressed={done === k} onClick={() => setDone(done === k ? undefined : k)}>{l}</button>)}
-          </div>
-        </div>
-      )}
-      {it && (
-        <div className="finish__goal finish__intent">
-          <span className="finish__label">Era para {it.label.toLowerCase()}. {it.ask}</span>
-          <div className="chips" role="group" aria-label={it.ask}>
-            {MET.map((x) => <button type="button" key={x.id} className="chip" aria-pressed={met === x.id} onClick={() => setMet(met === x.id ? undefined : x.id)}>{x.label}</button>)}
-          </div>
-        </div>
-      )}
-      <span className="finish__label finish__feel-q" id="feel-q">Como foi sua jogatina? :)</span>
-      <div className="chips finish__feel" role="group" aria-labelledby="feel-q">
-        {FEELINGS.map((f) => <button type="button" key={f} className="chip" aria-pressed={feel === f} onClick={() => setFeel(feel === f ? undefined : f)}>{f}</button>)}
-      </div>
-      <div className="finish__actions">
-        <button type="submit" className="btn primary lg">Finalizar</button>
-        <button type="button" className="btn quiet" aria-expanded={more} onClick={() => setMore(!more)}>{more ? 'Menos detalhes' : 'Mais detalhes'}</button>
-      </div>
-      {more && (
-        <div className="finish__more">
-          <label htmlFor="recado" className="finish__label">Recado para a próxima vez</label>
-          <textarea id="recado" className="field" rows={2} placeholder="O que você quer lembrar quando voltar?" value={note} onChange={(e) => setNote(e.target.value)} autoFocus={detailsOpen} />
-          <label htmlFor="prog-f" className="finish__label"><span>Seu progresso</span><span className="t">{p}%</span></label>
-          <input id="prog-f" className="range" type="range" min={0} max={100} value={p} style={{ ['--p' as string]: `${p}%` }} onChange={(e) => setP(Number(e.target.value))} />
-          <label htmlFor="dur-f" className="finish__label">Quanto tempo você jogou? <span className="faint">(minutos)</span></label>
-          <input id="dur-f" className="field finish__mins" type="number" inputMode="numeric" min={1} max={1440} value={mins ?? (auto ? String(auto) : '')} onChange={(e) => setMins(e.target.value)} />
-          {canWho && <>
-            <div className="finish__label">Com quem você jogou? <span className="faint">(opcional)</span></div>
-            <div className="chips who" role="group" aria-label="Com quem você jogou">
-              {[...new Set([...known, ...withWho])].map((c) => <button type="button" key={c} className="chip" aria-pressed={withWho.includes(c)} onClick={() => toggleWho(c)}>{c}</button>)}
-              <span className="who__add">
-                <input className="field" value={who} onChange={(e) => setWho(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addWho(who); } }} placeholder="Um nome (ex.: Ana)" aria-label="Adicionar pessoa" maxLength={40} />
-                <button type="button" className="btn ghost sm" disabled={!who.trim()} onClick={() => addWho(who)}>Adicionar</button>
-              </span>
-            </div>
-          </>}
-        </div>
-      )}
-      <button type="button" className={`finish__zerei${zArmed ? ' is-armed' : ''}`} aria-live="polite" onClick={() => (zArmed ? close(onZerei) : setZArmed(true))}>
-        {zArmed ? (zereiPedeConfirmacao(minutosDaHistoria(sessionsOf(st, history.id), history.id) + (minutes ?? 0), p) ? 'Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo' : 'Toque de novo para marcar Zerou') : 'Zerei a campanha nesta sessão'}
-      </button>
-    </form>
-  );
 }
 
 function Celebrated({ historyId, onClose }: { historyId: string; onClose: () => void }) {

@@ -158,7 +158,7 @@ async function demoAll(): Promise<Notif[]> {
       const h = currentHistory(gs, j.id), g = gs.games[j.gameId], d = daysAway(gs, j.id), last = lastSession(gs, j.id);
       if (!g || !h || h.state !== 'ativa' || j.mood === 'silencioso' || d == null || d < 14 || d > 120 || !last) continue;
       const at = new Date(Date.parse(last.endedAt ?? last.startedAt) + 14 * 86_400_000).toISOString();
-      out.push(mk(`retomada:${j.id}:${last.id}`, 'retomada', at, { title: g.title, excerpt: last.whereStopped ?? null, link: `/jornada/${g.slug}/voltar`, data: { cover: g.cover, lastAt: last.endedAt ?? last.startedAt } }));
+      out.push(mk(`retomada:${j.id}:${last.id}`, 'retomada', at, { title: g.title, excerpt: last.whereStopped ?? null, link: `/jornada/${g.slug}#voltar`, data: { cover: g.cover, lastAt: last.endedAt ?? last.startedAt } }));
     } }
   const pref = getState().prefs.comunidade ?? {};
   return out.filter((n) => !PREF[n.kind] || pref[PREF[n.kind]] !== false).sort((a, b) => b.at.localeCompare(a.at));

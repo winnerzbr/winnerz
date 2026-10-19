@@ -205,8 +205,10 @@ export function ReviewPage() {
 /** Cartão em Meu ritmo: chama para a revisão no começo do trimestre (ou deixa abrir a qualquer hora). */
 export function ReviewCard() {
   const s = useStore((x) => x);
-  const due = reviewDue(s);
-  const n = useMemo(() => (due ? reviewItems(s).length : 0), [s, due]);
+  const n = useMemo(() => reviewItems(s).length, [s]);
+  // Convite no começo de cada trimestre, ou antes, quando passam de dez jogos parados (no máximo uma vez a cada 30 dias).
+  const lastAt = s.prefs.review?.at ? Date.parse(s.prefs.review.at) : 0;
+  const due = reviewDue(s) || (n > 10 && Date.now() - lastAt > 30 * 86400000);
   if (!due || !n) return <p className="bkrev__again"><Link to="/jornada/revisao">Revisar o backlog</Link> · olhar com calma o que está parado</p>;
   const q = quarterKey();
   return (

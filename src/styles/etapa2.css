@@ -6359,3 +6359,54 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .fx.is-full.is-vert .fx-top { background: linear-gradient(180deg, #07080A calc(100% - 22px), rgba(7, 8, 10, 0)); }
 .fx.is-full .fx-title { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fx.is-full .fx-top > .btn, .fx.is-full .fx-top > .fx-exit { flex: none; white-space: nowrap; }
+
+/* ---- Revisão · Etapa 2: Jornada do jogo enxuta e o bloco "Voltar" ------------------------------------- */
+.jhero__prog { display: flex; align-items: center; gap: 12px; max-width: 460px; margin-top: 4px; }
+.jhero__prog .hline { flex: 1; }
+.jhero__prog .mono { font-size: 13px; color: var(--ink-2); }
+.jhero__prog .btn.quiet { color: var(--ink-2); }
+.jcards > .jcap:only-child { flex-basis: 100%; }
+.jmore .jprog--in { padding: 18px 0 6px; border-bottom: 1px solid var(--line); margin-bottom: 6px; background: none; }
+.jmore .letter-line { padding: 14px 0; }
+.jback { padding: 30px 32px; display: flex; flex-direction: column; gap: 22px; border: 0; box-shadow: none; background: linear-gradient(135deg, var(--now-bg), var(--surface) 55%); scroll-margin-top: 90px; }
+.jback__head { display: flex; flex-direction: column; gap: 8px; }
+.jback__head .kicker { margin: 0; }
+.jback__head h2 { font-size: 28px; line-height: .9; margin: 0; }
+.jback__lead { margin: 0; font-size: 17px; color: var(--ink-2); }
+.jback__lead b { color: var(--ink); }
+.jback__grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+.jback__main, .jback__side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.jback__next { display: flex; flex-direction: column; gap: 8px; }
+.jback__next p { margin: 0; }
+.jback__goal { font: 600 clamp(20px, 2.2vw, 26px)/1.28 var(--font-ui); letter-spacing: -0.01em; color: var(--ink); text-wrap: balance; }
+.jback__acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.jback__prev ol { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; }
+.jback__prev li { display: flex; flex-direction: column; gap: 4px; padding: 10px 0 10px 14px; border-left: 2px solid var(--line); }
+.jback__prev li:first-child { border-left-color: var(--now); }
+.jback__when { font-size: 12px; color: var(--faint); text-transform: uppercase; }
+.jback__where { font-size: 14px; color: var(--ink); }
+.jback__prev .quote { font-size: 15px; }
+.jback__prev .chip { align-self: flex-start; }
+.jback__wps { list-style: none; margin: 0; padding: 0; }
+.jback__wps li { display: flex; gap: 14px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.jback__wps li > div { flex: 1; min-width: 0; font-size: 12px; }
+.jback__photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.jback__photos figure { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.jback__photos img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; }
+.jback__photos figcaption { font-size: 11px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 860px) {
+  .jback { padding: 22px 18px; }
+  .jback__grid { grid-template-columns: 1fr; gap: 22px; }
+}
+/* Revisão · Etapa 2: o Início é "hoje" */
+.hero__others { color: #C9CED4; }
+.hero__others:hover { color: #F2F4F6; }
+.home-fit:empty { display: none; }
+.home-fit .fit-card { margin: 24px 0 0; }
+/* Revisão · Etapa 2: a Jornada é a biblioteca */
+.jrow__tag { display: inline-block; margin-left: 10px; font-size: 10.5px; vertical-align: 3px; }
+.jindex__today { align-self: flex-start; font-size: 14px; }
+.jindex__aside .bkrev__invite { margin: 0; }
+.jindex__aside .bkrev__again { margin: 0; font-size: 14px; }
+.jmore > summary .kicker { white-space: nowrap; }
+@media (max-width: 640px) { .jmore > summary { flex-wrap: wrap; row-gap: 4px; } .jmore > summary .muted { flex: 1 1 100%; order: 3; font-size: 14px; } }

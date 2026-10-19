@@ -82,6 +82,23 @@
 @media (prefers-reduced-motion: reduce) { .ff, .ff__main { animation: none; } .ff__hz i, .ff__hz b { transition: none; } }
 :root[data-motion='reduzidas'] .ff, :root[data-motion='reduzidas'] .ff__main { animation: none; }
 
+/* Computador: tudo centralizado, no meio da tela (no celular continua alinhado à esquerda) */
+@media (min-width: 761px) {
+  .ff__main { align-items: center; text-align: center; padding: 48px 48px 32px; }
+  .ff__main > * { width: 100%; }
+  .ff__main > :first-child { margin-top: auto; }
+  .ff__main > :last-child { margin-bottom: auto; }
+  .ff .chips, .ff .pp__quick { justify-content: center; }
+  .ff .pp, .ff__where, .ff .pp__find, .ff__text { margin-inline: auto; }
+  .ff__where, .ff .pp__find { max-width: 760px; }
+  .ff .pp__all { align-self: center; margin-inline: auto; }
+  .ff .pp__res { width: 100%; max-width: 760px; margin-inline: auto; }
+  .ff .field, .ff__text, .ff__card, .ff .pp__res { text-align: left; }
+  .ff__tile { justify-content: center; text-align: center; padding: 0 34px 0 22px; }
+  .ff__zerei { align-self: center; width: auto; }
+  .ff__foot { padding: 0 48px; }
+}
+
 /* Celular */
 @media (max-width: 760px) {
   .ff__shade { background: linear-gradient(180deg, rgba(7, 8, 10, 0.72), rgba(7, 8, 10, 0.9) 40%, rgba(7, 8, 10, 0.97)); }

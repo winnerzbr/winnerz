@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { MonthRestCard } from '../components/Rest';
 import { PactList } from '../components/Pacts';
-import { SeasonsSection } from '../components/Seasons';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { SubNav } from '../components/SubNav';
@@ -38,7 +36,7 @@ export function WeekCard() {
         {w.companions.length ? ` Com ${listPt(w.companions.slice(0, 3))}.` : ''}
         {w.finished.length ? ` E zerou ${listPt(w.finished.map((g) => g.title))}!` : ''}
       </p>
-      <Link to="/jornada/ritmo" className="btn ghost sm">Ver o seu ritmo</Link>
+      <Link to="/jornada/retrospectivas" className="btn ghost sm">Ver as retrospectivas</Link>
     </section>
   );
 }
@@ -162,12 +160,12 @@ export function GlobalTimelinePage() {
   );
 }
 
-const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-const PERIODS = ['Madrugada', 'Manhã', 'Tarde', 'Noite'];
-const PERIOD_PHRASE: Record<string, string> = { Madrugada: 'de madrugada', Manhã: 'de manhã', Tarde: 'à tarde', Noite: 'à noite' };
-const DAY_NAME: Record<string, string> = { Dom: 'domingo', Seg: 'segunda-feira', Ter: 'terça-feira', Qua: 'quarta-feira', Qui: 'quinta-feira', Sex: 'sexta-feira', Sáb: 'sábado' };
+export const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+export const PERIODS = ['Madrugada', 'Manhã', 'Tarde', 'Noite'];
+export const PERIOD_PHRASE: Record<string, string> = { Madrugada: 'de madrugada', Manhã: 'de manhã', Tarde: 'à tarde', Noite: 'à noite' };
+export const DAY_NAME: Record<string, string> = { Dom: 'domingo', Seg: 'segunda-feira', Ter: 'terça-feira', Qua: 'quarta-feira', Qui: 'quinta-feira', Sex: 'sexta-feira', Sáb: 'sábado' };
 
-function Bars({ values, labels, label, top }: { values: number[]; labels: string[]; label: string; top?: boolean }) {
+export function Bars({ values, labels, label, top }: { values: number[]; labels: string[]; label: string; top?: boolean }) {
   const max = Math.max(1, ...values);
   const hi = values.indexOf(Math.max(...values));
   return (
@@ -182,26 +180,17 @@ function Bars({ values, labels, label, top }: { values: number[]; labels: string
   );
 }
 
-/** Meu ritmo: como você costuma jogar, pelos seus próprios registros. Sem meta, sem streak, sem comparação. */
-export function RhythmPage() {
+/** "Desde o começo" em Retrospectivas (antes Meu ritmo): como você costuma jogar, pelos seus próprios registros. Sem meta, sem streak, sem comparação. */
+export function RhythmBody() {
   const s = useStore((x) => x);
   const r = useMemo(() => rhythm(s), [s]);
-  useEffect(() => { track('jornada.ritmo'); }, []);
   const totalWd = r.byWeekday.reduce((a, b) => a + b, 0) || 1, totalP = r.byPeriod.reduce((a, b) => a + b, 0) || 1;
   const topWdI = r.byWeekday.indexOf(Math.max(...r.byWeekday)), topPI = r.byPeriod.indexOf(Math.max(...r.byPeriod));
   const topWd = r.sessions ? WEEKDAYS[topWdI] : '';
   const topP = r.sessions ? PERIODS[topPI] : '';
   const light = !!s.prefs.light;
   return (
-    <main className="page pad rhythm">
-      <header className="page-head">
-        <div className="page-head__text">
-          <h1 className="t big">Meu ritmo</h1>
-        </div>
-        <SubNav pillar="jornada" />
-      </header>
-      <div id="semana" className="rhythm__week"><WeekCard /></div>
-      <MonthRestCard />
+    <div className="rhythm">
       {r.sessions < 3 ? (
         <div className="card tl-empty"><p className="muted">Ainda há poucas sessões registradas para mostrar um ritmo. Ele aparece aqui sozinho, com o tempo.</p></div>
       ) : (
@@ -238,7 +227,6 @@ export function RhythmPage() {
         </>
       )}
       {FEATURES.pactos && <PactList />}
-      <SeasonsSection />
-    </main>
+    </div>
   );
 }

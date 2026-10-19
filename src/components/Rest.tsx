@@ -34,10 +34,13 @@ export function IntentCard({ session }: { session: Session }) {
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 /** O mês pela intenção: o que funcionou, os jogos que descansaram e a hora em que o descanso rende. */
-export function MonthRestCard() {
+export function MonthRestCard({ month }: { month?: string } = {}) {
   const s = useStore((x) => x);
-  const months = useMemo(() => restMonths(s), [s]);
-  const [key, setKey] = useState(months[0]);
+  const all = useMemo(() => restMonths(s), [s]);
+  // Dentro de Retrospectivas o mês vem escolhido de fora; sozinho, o cartão tem as setas.
+  const months = month ? [month] : all;
+  const [picked, setKey] = useState(all[0]);
+  const key = month ?? picked;
   const m: MonthRest = useMemo(() => monthRest(s, key), [s, key]);
   const light = !!s.prefs.light;
   const i = months.indexOf(key);

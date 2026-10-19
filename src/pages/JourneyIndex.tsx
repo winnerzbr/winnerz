@@ -159,7 +159,7 @@ function MonthCard({ s }: { s: State }) {
         <div><div className="t">{moments}</div><div className="muted">{moments === 1 ? 'momento' : 'momentos'}</div></div>
         <div><div className="t month-card__now">{back}</div><div className="muted">para voltar</div></div>
       </div>
-      <Link to="/jornada/ritmo" className="arrow-link">Ver o seu ritmo</Link>
+      <Link to="/jornada/retrospectivas" className="arrow-link">Ver as retrospectivas</Link>
     </section>
   );
 }

@@ -1,10 +1,9 @@
-import { YearReviewPage } from './pages/YearReview';
+import { RetroPage } from './pages/Retro';
 import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { Carregando, MascoteVazio, ProtecaoErro } from './components/IAmiguinho';
-import { SeasonPage } from './components/Seasons';
 import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
 import { DropBanner } from './components/album/DropBanner';
@@ -18,7 +17,7 @@ import { resetDemo } from './data/demoAdapter';
 import { backfillGameFacts } from './lib/backfill';
 import { MiniCelebrationHost } from './components/MiniCelebration';
 import { SavedNoticeHost } from './components/SavedNotice';
-import { GlobalTimelinePage, RhythmPage } from './pages/Memory';
+import { GlobalTimelinePage } from './pages/Memory';
 import { ReviewPage } from './pages/Review';
 import { TrailsPage, TrailPage } from './pages/Trails';
 import { OverlayPage } from './pages/Overlay';
@@ -96,11 +95,14 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada', path)) return <JourneyIndex />;
   if (match('/jornada/concluidas', path)) return <ConcludedPage />;
   if (match('/jornada/linha-do-tempo', path)) return <GlobalTimelinePage />;
-  if (match('/jornada/ritmo', path)) return <RhythmPage />;
+  // Meu ritmo, Seu ano e Temporadas viraram Retrospectivas (Etapa 3 da revisão); os endereços antigos levam para lá.
+  if (match('/jornada/retrospectivas', path)) return <RetroPage />;
+  // Avisos antigos do banco ainda apontam para /jornada/ritmo#semana, #mes e #pactos.
+  if (match('/jornada/ritmo', path)) return <GoTo to={location.hash === '#mes' ? '/jornada/retrospectivas?p=mes-anterior' : location.hash === '#semana' ? '/jornada/retrospectivas?p=mes' : location.hash === '#pactos' ? '/jornada' : '/jornada/retrospectivas?p=sempre'} />;
   if (match('/jornada/revisao', path)) return <ReviewPage />;
-  if (match('/jornada/ano', path)) return <YearReviewPage />;
-  if ((m = match('/jornada/ano/:year', path))) return <YearReviewPage year={m.year} />;
-  if ((m = match('/jornada/temporada/:id', path))) return <SeasonPage id={m.id} />;
+  if (match('/jornada/ano', path)) return <GoTo to={`/jornada/retrospectivas?p=ano-${new Date().getFullYear()}`} />;
+  if ((m = match('/jornada/ano/:year', path))) return <GoTo to={`/jornada/retrospectivas?p=ano-${encodeURIComponent(m.year)}`} />;
+  if ((m = match('/jornada/temporada/:id', path))) return <GoTo to={`/jornada/retrospectivas?p=${encodeURIComponent(m.id)}`} />;
   // "Preparar a volta" virou um bloco dentro da Jornada do jogo (Etapa 2 da revisão).
   if ((m = match('/jornada/:slug/voltar', path))) return <GoTo to={`/jornada/${m.slug}#voltar`} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;

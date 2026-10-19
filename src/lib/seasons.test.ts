@@ -37,3 +37,10 @@ test('retrospectiva só com o que foi registrado', () => {
   assert.equal(s.started[0].title, 'Hades');
   assert.deepEqual(s.companions, [{ name: 'Ana', sessions: 1 }]);
 });
+
+import { monthSeason, monthKeys } from './seasons';
+test('um mês vira uma temporada com o último dia certo', () => {
+  assert.deepEqual(monthSeason('2026-02'), { id: 'mes-2026-02', name: 'Fevereiro de 2026', from: '2026-02-01', to: '2026-02-28', auto: true });
+  assert.equal(monthSeason('2026-10').to, '2026-10-31');
+  assert.deepEqual(monthKeys(new Date('2026-01-15T12:00:00-03:00')), { current: '2026-01', previous: '2025-12' });
+});

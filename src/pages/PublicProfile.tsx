@@ -33,8 +33,9 @@ const ago = (iso: string) => {
   return m < 60 ? `há ${m} min` : `há ${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ''}`;
 };
 
-type Tab = 'geral' | 'jornadas' | 'colecao' | 'museu' | 'vitrines' | 'notas';
-const TAB_LABEL: Record<Tab, string> = { geral: 'Visão geral', jornadas: 'Jornadas', colecao: 'Coleção', museu: 'Museu', vitrines: 'Vitrines', notas: 'Notas' };
+// As Vitrines aparecem dentro da aba Museu (Etapa 4 da revisão); '#vitrines' em links antigos abre o Museu.
+type Tab = 'geral' | 'jornadas' | 'colecao' | 'museu' | 'notas';
+const TAB_LABEL: Record<Tab, string> = { geral: 'Visão geral', jornadas: 'Jornadas', colecao: 'Coleção', museu: 'Museu', notas: 'Notas' };
 
 /** O perfil como os outros veem (Palco): o topo com a arte do jogo que te definiu, abas e a visão geral. Só mostra o que foi liberado. */
 export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine?: string }) {
@@ -46,7 +47,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
   const [mine, setMine] = useState(false);
   const [asVisitor, setAsVisitor] = useState(false);
   const [error, setError] = useState('');
-  const [tab, setTabState] = useState<Tab>(() => (vitrine ? 'vitrines' : (location.hash.slice(1) as Tab) || 'geral'));
+  const [tab, setTabState] = useState<Tab>(() => (vitrine || location.hash === '#vitrines' ? 'museu' : (location.hash.slice(1) as Tab) || 'geral'));
   const [copied, setCopied] = useState(false);
   const rel = useRelation(handle);
   const [showAnyway, setShowAnyway] = useState(false);
@@ -91,7 +92,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
   );
 
   const j = data.jornada, c = data.colecao, n = data.notas;
-  const tabs: Tab[] = ['geral', ...(j ? ['jornadas' as Tab] : []), ...(c ? ['colecao' as Tab] : []), ...(data.museu ? ['museu' as Tab] : []), ...(data.vitrines?.length ? ['vitrines' as Tab] : []), ...(n ? ['notas' as Tab] : [])];
+  const tabs: Tab[] = ['geral', ...(j ? ['jornadas' as Tab] : []), ...(c ? ['colecao' as Tab] : []), ...(data.museu || data.vitrines?.length ? ['museu' as Tab] : []), ...(n ? ['notas' as Tab] : [])];
   const cur: Tab = tabs.includes(tab) ? tab : 'geral';
   const setTab = (t: Tab) => {
     setTabState(t);
@@ -138,7 +139,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 
       {cur === 'museu' && data.museu && <ProfileMuseum data={data} k={key} />}
 
-      <div className={`page pd-body${cur === 'museu' ? ' is-hidden' : ''}`}>
+      <div className={`page pd-body${cur === 'museu' && !data.vitrines?.length ? ' is-hidden' : ''}`}>
         {cur === 'geral' && <Overview data={data} mine={mine} qs={qs} at={at} goTab={setTab} />}
         {cur === 'geral' && <ProfileLists handle={data.handle} />}
 
@@ -193,7 +194,7 @@ export function PublicProfilePage({ handle, vitrine }: { handle: string; vitrine
 
         {cur === 'colecao' && c && <PublicCollection handle={data.handle} k={key} c={c} />}
 
-        {cur === 'vitrines' && !!data.vitrines?.length && <ProfileShowcases data={data} initial={vitrine} preview={mine && asVisitor} />}
+        {cur === 'museu' && !!data.vitrines?.length && <ProfileShowcases data={data} initial={vitrine} preview={mine && asVisitor} titled={!!data.museu} />}
 
         {cur === 'notas' && n && <Notes notes={n} />}
       </div>
@@ -465,13 +466,14 @@ function ProfileMuseum({ data, k }: { data: PublicProfile; k: string | null }) {
 }
 
 /** Aba Vitrines: uma vitrine por vez, já aberta no expositor; as outras ficam nas abas de cima. */
-function ProfileShowcases({ data, initial, preview = false }: { data: PublicProfile; initial?: string; preview?: boolean }) {
+function ProfileShowcases({ data, initial, preview = false, titled = false }: { data: PublicProfile; initial?: string; preview?: boolean; titled?: boolean }) {
   const list = data.vitrines ?? [];
   const [id, setId] = useState(() => (list.some((v) => v.id === initial) ? initial! : list[0]?.id));
   const v = list.find((x) => x.id === id) ?? list[0];
   if (!v) return null;
   return (
     <section className="pd-vits" aria-label="Vitrines">
+      {titled && <h2 className="t pd-vits__h">Vitrines</h2>}
       {list.length > 1 && (
         <div className="pd-vits__pick" role="tablist" aria-label="Escolher a vitrine">
           {list.map((x) => (

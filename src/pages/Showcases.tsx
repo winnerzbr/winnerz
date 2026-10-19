@@ -3,25 +3,24 @@ import { Link, navigate } from '../lib/router';
 import { actions, useStore } from '../data/store';
 import { ensureRules } from '../data/moderationApi';
 import type { PieceRef, Showcase } from '../data/types';
-import { SubNav } from '../components/SubNav';
 import { Sheet, ConfirmButton } from '../components/Sheet';
 import { Icon } from '../components/Icon';
 import { PiecePicker } from '../components/PiecePicker';
 import { Cabinet, Shelf, ShelfPiece, shelfItem } from '../components/Showcase';
 import { ruleLabel, showcasePieces, suggestions, type Suggestion } from '../lib/showcases';
-import { setupNote } from '../lib/setupNote';
 
-const MIGRATION = () => setupNote('Para guardar Vitrines, rode a migração 0015 no Supabase (SQL Editor → colar → Run).');
 
-/** Coleção → Vitrines: as que você guardou e as que a sua coleção já monta sozinha. */
-export function ShowcasesPage() {
+/**
+ * Vitrines dentro do Museu (Etapa 4 da revisão): as que você guardou e as que a sua coleção já monta sozinha.
+ * Antes eram uma página própria (/colecao/vitrines); agora são uma seção do Museu.
+ */
+export function VitrinesSection() {
   const s = useStore((x) => x);
   const ready = s.mode === 'demo' || !!s.schemaV15;
   const saved = useMemo(() => [...(s.showcases ?? [])].sort((a, b) => a.position - b.position), [s.showcases]);
   const sugg = useMemo(() => suggestions(s), [s]);
   const [creating, setCreating] = useState(false);
   const [arranging, setArranging] = useState(false);
-  useEffect(() => { document.title = 'Vitrines · WinnerZ'; }, []);
 
   const move = (i: number, d: -1 | 1) => {
     const ids = saved.map((x) => x.id);
@@ -31,25 +30,21 @@ export function ShowcasesPage() {
     actions.orderShowcases(ids);
   };
   const keep = (g: Suggestion) => actions.saveShowcase({ title: g.title, description: g.description, kind: 'inteligente', rule: g.rule, items: [] });
+  if (!ready || (!s.copies.length && !saved.length)) return null;
 
   return (
-    <main className="page pad vitrines">
-      <header className="page-head">
-        <div className="page-head__text">
-          <h1 className="t big">Vitrines</h1>
-          <p className="muted lead">Recortes da coleção para mostrar uma ideia. As prontas se atualizam sozinhas; as suas, você monta peça por peça.</p>
+    <section id="vitrines" className="vitrines museum__vitrines" aria-labelledby="vitrines-h">
+      <div className="museum__vhead">
+        <div>
+          <span className="kicker">Também no museu</span>
+          <h2 id="vitrines-h" className="t museum__vtitle">Vitrines</h2>
+          <p className="muted">Recortes da coleção para mostrar uma ideia. As prontas se atualizam sozinhas; as suas, você monta peça por peça.</p>
         </div>
-        <div className="page-head__side">
-          <div className="collection__tools">
-            {saved.length > 1 && <button className="btn ghost" aria-pressed={arranging} onClick={() => setArranging(!arranging)}>{arranging ? 'Pronto' : 'Organizar'}</button>}
-            <button className="btn primary" onClick={() => setCreating(true)} disabled={!ready || !s.copies.length}><Icon name="mais" size={16} />Nova vitrine</button>
-          </div>
-          <SubNav pillar="colecao" />
+        <div className="collection__tools">
+          {saved.length > 1 && <button className="btn ghost" aria-pressed={arranging} onClick={() => setArranging(!arranging)}>{arranging ? 'Pronto' : 'Organizar'}</button>}
+          <button className="btn ghost" onClick={() => setCreating(true)} disabled={!s.copies.length}><Icon name="mais" size={16} />Nova vitrine</button>
         </div>
-      </header>
-
-      {!ready && <div className="card tl-empty"><p className="muted">{MIGRATION()}</p></div>}
-      {ready && !s.copies.length && <div className="card tl-empty"><p className="muted">As vitrines usam o que está na sua estante. Quando houver jogos lá, elas aparecem aqui sozinhas.</p><Link className="btn primary" to="/colecao">Ir para a Estante</Link></div>}
+      </div>
 
       {saved.length > 0 && (
         <section className="vlist" aria-label="Suas vitrines">
@@ -89,7 +84,7 @@ export function ShowcasesPage() {
       )}
 
       {creating && <NewShowcase onClose={() => setCreating(false)} />}
-    </main>
+    </section>
   );
 }
 
@@ -153,7 +148,7 @@ export function ShowcasePage({ id }: { id: string }) {
   if (!sc) {
     return (
       <main className="page pad">
-        <p className="muted">Esta vitrine não existe mais. <Link to="/colecao/vitrines">Voltar às Vitrines</Link></p>
+        <p className="muted">Esta vitrine não existe mais. <Link to="/colecao/museu#vitrines">Voltar ao Museu</Link></p>
       </main>
     );
   }
@@ -174,7 +169,7 @@ export function ShowcasePage({ id }: { id: string }) {
 
   return (
     <main className="page pad vitrine">
-      <Link to="/colecao/vitrines" className="back vitrine__back">← Vitrines</Link>
+      <Link to="/colecao/museu#vitrines" className="back vitrine__back">← Museu</Link>
       <header className="vitrine__head">
         <span className="kicker">{sc.kind === 'inteligente' ? `Sempre em dia · ${ruleLabel(sc.rule)}` : 'Montada por você'} · {pieces.length} {pieces.length === 1 ? 'peça' : 'peças'}</span>
         {editing ? (
@@ -237,7 +232,7 @@ export function ShowcasePage({ id }: { id: string }) {
             </div>
           )}
           <div className="sheet__danger">
-            <ConfirmButton label="Apagar esta vitrine" confirm="Toque de novo para apagar" onConfirm={() => { actions.deleteShowcase(sc.id); navigate('/colecao/vitrines'); }} />
+            <ConfirmButton label="Apagar esta vitrine" confirm="Toque de novo para apagar" onConfirm={() => { actions.deleteShowcase(sc.id); navigate('/colecao/museu#vitrines'); }} />
             <p className="faint">Apagar a vitrine não tira nada da coleção.</p>
           </div>
         </section>

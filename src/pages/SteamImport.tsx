@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore, commit, getState, uid, slugify } from '../data/store';
 import type { Copy, Game, MyGame } from '../data/types';
@@ -10,6 +10,7 @@ import { isOutdated } from '../lib/version';
 import { track } from '../lib/track';
 import { igdbFetch } from '../lib/igdbFetch';
 import { setupNote } from '../lib/setupNote';
+import { bridgeApi, useBridges } from '../data/bridgeApi';
 
 type SteamGame = { appid: number; name: string; minutes: number; lastPlayed?: string; igdbId?: number };
 const PC = 'PC (Microsoft Windows)';
@@ -17,8 +18,9 @@ const KEY = 'wz.steam.perfil';
 const fmtH = (min: number) => (min < 60 ? `${min} min` : `${(Math.round(min / 6) / 10).toLocaleString('pt-BR')} h`);
 
 /**
- * Importar da Steam: os jogos da conta viram cópias digitais de PC na estante, e as horas
- * ficam guardadas como "Informado pela Steam". Nenhuma Jornada é criada: horas não dizem se você zerou.
+ * Conectar a Steam (Etapa 4 da revisão juntou os dois caminhos): os jogos da conta viram cópias digitais de PC na estante,
+ * as horas ficam guardadas como "Informado pela Steam" e, se você quiser, a mesma conta liga a Ponte da Steam, que
+ * registra as próximas sessões na Jornada. Nenhuma Jornada é criada pela importação: horas não dizem se você zerou.
  */
 export function SteamImportPage() {
   const s = useStore((x) => x);
@@ -26,9 +28,16 @@ export function SteamImportPage() {
   const [step, setStep] = useState<'perfil' | 'buscando' | 'revisar' | 'gravando' | 'pronto'>('perfil');
   const [error, setError] = useState('');
   const [lib, setLib] = useState<SteamGame[]>([]);
-  const [opts, setOpts] = useState({ add: true, hours: true, unmatched: false });
+  const [opts, setOpts] = useState({ add: true, hours: true, unmatched: false, sessions: true });
+  const bridges = useBridges();
+  useEffect(() => { void bridgeApi.status().catch(() => null); }, []);
+  const steamAcc = bridges?.accounts.find((a) => a.provider === 'steam');
+  // A Ponte só aparece quando o banco tem as pontes (migração 0039) e a Steam ainda não está ligada.
+  const canBridge = !!bridges && !steamAcc;
+  const [bridgeMsg, setBridgeMsg] = useState('');
   const [progress, setProgress] = useState('');
   const [done, setDone] = useState({ copies: 0, hours: 0, manual: 0 });
+  const demo = s.mode !== 'supabase';
 
   const byIgdb = useMemo(() => new Map(Object.values(s.games).filter((g) => g.igdbId).map((g) => [g.igdbId!, g])), [s.games]);
   const onPc = (gameId: string) => s.copies.some((c) => c.gameId === gameId && canonicalPlatform(c.platform) === canonicalPlatform(PC));
@@ -42,6 +51,7 @@ export function SteamImportPage() {
   }, [lib, byIgdb, s]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchLib = async () => {
+    if (demo) { setError('No modo demonstração não dá para ler a Steam. Com conta, este é o caminho.'); return; }
     setError(''); setStep('buscando');
     try { localStorage.setItem(KEY, profile.trim()); } catch { /* ok */ }
     try {
@@ -92,6 +102,11 @@ export function SteamImportPage() {
       }
       await commit({ type: 'import.bulk', data: { games: [...fresh, ...manual], copies, myGames, journeys: [], histories: [], events: [], reviews: [] } });
       setDone({ copies: copies.length, hours: myGames.length, manual: manual.length });
+      if (opts.sessions && canBridge) {
+        setProgress('Ligando a Ponte da Steam');
+        try { await bridgeApi.link('steam', profile.trim()); setBridgeMsg('A Ponte da Steam está ligada: as próximas sessões chegam sozinhas na sua Jornada.'); }
+        catch (e) { setBridgeMsg(`A biblioteca entrou, mas a Ponte não ligou agora (${e instanceof Error ? e.message : 'tente de novo'}). Dá para ligar em Preferências → Pontes.`); }
+      }
       setStep('pronto');
       track('steam.importar');
     } catch (e) {
@@ -100,15 +115,15 @@ export function SteamImportPage() {
     }
   };
 
-  const blocked = s.mode !== 'supabase' ? 'Disponível com conta: no modo demonstração não dá para ler a Steam.' : !s.schemaV6 ? setupNote('Falta rodar a migração 0006 no Supabase para guardar as horas da Steam.') : '';
+  const blocked = demo ? '' : !s.schemaV6 ? setupNote('Falta rodar a migração 0006 no Supabase para guardar as horas da Steam.') : '';
 
   return (
     <main className="page pad importer steam">
       <header className="page-head">
         <div className="page-head__text">
-          <Link className="back" to="/colecao/importar">← Importar planilha</Link>
-          <h1 className="t big">Importar da Steam</h1>
-          <p className="muted lead">Os jogos da sua conta entram na estante como cópias digitais de PC. O tempo jogado fica guardado como “Informado pela Steam”. Nenhuma Jornada é criada: horas não dizem se você zerou, e isso é você quem conta.</p>
+          <Link className="back" to="/colecao/importar">← Importar</Link>
+          <h1 className="t big">Conectar a Steam</h1>
+          <p className="muted lead">Um lugar só para a Steam: a biblioteca entra na estante como cópias digitais de PC, o tempo jogado fica como “Informado pela Steam” e, se você quiser, as próximas sessões chegam sozinhas na Jornada. Nenhuma Jornada é criada agora: horas não dizem se você zerou, e isso é você quem conta.</p>
         </div>
         <SubNav pillar="colecao" />
       </header>
@@ -116,6 +131,7 @@ export function SteamImportPage() {
       {step === 'pronto' ? (
         <section className="card import-done">
           <p className="t">Pronto.</p>
+          {bridgeMsg && <p className="steam__bridge-ok">{bridgeMsg}</p>}
           <p className="muted">{done.copies} {done.copies === 1 ? 'jogo entrou' : 'jogos entraram'} na estante como PC (Steam){done.manual ? `, ${done.manual} deles sem ficha do catálogo` : ''}. {done.hours} {done.hours === 1 ? 'jogo ganhou' : 'jogos ganharam'} as horas da Steam. Dá para importar de novo quando quiser: o que já está lá não se repete, e as horas se atualizam.</p>
           <div className="import__actions"><Link className="btn primary lg" to="/colecao">Ver a estante</Link></div>
         </section>
@@ -130,6 +146,10 @@ export function SteamImportPage() {
             <button className="btn primary" disabled={!profile.trim() || step === 'buscando'}>{step === 'buscando' ? 'Buscando…' : 'Buscar meus jogos'}</button>
           </form>
           {error && <p className="steam__error" role="alert">{error}</p>}
+          <div className="steam__steps" aria-label="O que a conexão faz">
+            <div><b>1 · Biblioteca</b><span className="muted">Os jogos da conta entram na estante, com o tempo jogado.</span></div>
+            <div><b>2 · Sessões</b><span className="muted">{steamAcc ? `Já ligada${steamAcc.display ? ` como ${steamAcc.display}` : ''}: as sessões chegam sozinhas na Jornada.` : 'Opcional: a mesma conta registra as próximas sessões na Jornada (a Ponte da Steam).'}</span></div>
+          </div>
         </section>
       ) : (
         <section aria-labelledby="steam-h">
@@ -142,6 +162,7 @@ export function SteamImportPage() {
           <div className="steam__opts">
             <label><input type="checkbox" checked={opts.add} onChange={(e) => setOpts({ ...opts, add: e.target.checked })} /> Adicionar à estante os {plan.toAdd} que ainda não estão lá como PC</label>
             <label><input type="checkbox" checked={opts.hours} onChange={(e) => setOpts({ ...opts, hours: e.target.checked })} /> Guardar o tempo jogado (Informado pela Steam)</label>
+            {canBridge && <label><input type="checkbox" checked={opts.sessions} onChange={(e) => setOpts({ ...opts, sessions: e.target.checked })} /> Registrar as próximas sessões sozinho na Jornada (liga a Ponte da Steam com este perfil)</label>}
             {plan.unmatchedNew.length > 0 && <label><input type="checkbox" checked={opts.unmatched} onChange={(e) => setOpts({ ...opts, unmatched: e.target.checked })} /> Incluir também os {plan.unmatchedNew.length} sem ficha do catálogo (entram como jogos sem ficha; dá para ligar depois)</label>}
           </div>
           <ul className="steam__list">

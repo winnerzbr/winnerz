@@ -460,7 +460,7 @@ function Vitrine({ picks, name, onOwn }: { picks: Game[]; name: string; onOwn: (
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <h1 className="ar-h1" style={{ fontSize: 44 }}>Você acabou de montar a sua primeira <em>vitrine</em>.</h1>
-          <p className="ar-lead" style={{ fontSize: 16 }}>Vitrines são as prateleiras especiais da sua coleção, para mostrar o que importa. Esta junta os seus favoritos que estão na estante.</p>
+          <p className="ar-lead" style={{ fontSize: 16 }}>Vitrines são as prateleiras especiais do seu Museu, para mostrar o que importa. Esta junta os seus favoritos que estão na estante.</p>
           <ul className="ar-list">
             <li><span>01</span><span><b>Mude quando quiser:</b> a ordem, os jogos, o nome. Ou apague.</span></li>
             <li><span>02</span><span><b>Crie outras:</b> só os zerados, só os do PS2, as edições de colecionador.</span></li>

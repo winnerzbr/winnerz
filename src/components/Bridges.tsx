@@ -12,7 +12,7 @@ import { outlineApi } from '../data/outlineApi';
 import { twitchApi, type MyTwitch } from '../data/twitchApi';
 import { pickMove, isOpenWorld, type PartMove } from '../lib/outline';
 import { refreshGame } from './AddGameDialog';
-import { navigate } from '../lib/router';
+import { Link, navigate } from '../lib/router';
 import { durLabel, hourMin, dayMonth } from '../lib/format';
 import { CoverArt } from './CoverArt';
 import { Icon } from './Icon';
@@ -216,7 +216,7 @@ export function BridgeSettings() {
     <section aria-labelledby="pontes" className="prefs__section">
       <h2 id="pontes" className="t">Pontes</h2>
       <p className="muted prefs__p">Ligue suas contas e o WinnerZ registra as sessões sozinho, pelo tempo jogado (Steam) ou pelas conquistas (RetroAchievements). Ninguém mais vê essas contas. O que você jogou antes de ligar não entra.</p>
-      <BridgeRow provider="steam" placeholder="Link do seu perfil (steamcommunity.com/id/…)" hint="O perfil e os “Detalhes do jogo” precisam estar públicos nas configurações de privacidade da Steam." />
+      <BridgeRow provider="steam" placeholder="Link do seu perfil (steamcommunity.com/id/…)" hint="O perfil e os “Detalhes do jogo” precisam estar públicos na Steam. Para trazer também a biblioteca para a estante, use Coleção → Importar → Conectar a Steam: faz as duas coisas de uma vez." />
       <BridgeRow provider="ra" placeholder="Seu usuário no RetroAchievements" hint="Conquistas desbloqueadas viram sessões; o status do jogo vira a sugestão de onde você parou." />
       <PlayniteRow />
       <TwitchRow />
@@ -247,6 +247,7 @@ function BridgeRow({ provider, placeholder, hint }: { provider: Provider; placeh
           </label>
           <div className="bridge-row__actions">
             <button className="btn ghost sm" disabled={busy} onClick={() => run(async () => { const n = await bridgeApi.sync(true); await bridgeApi.status(); await autoRegister(); return n; }, 'Busca feita.')}>Buscar agora</button>
+            {provider === 'steam' && <Link className="btn quiet sm" to="/colecao/steam">Importar a biblioteca</Link>}
             <button className="btn quiet sm danger" disabled={busy} onClick={() => run(() => bridgeApi.unlink(provider), 'Desligada.')}>Desligar</button>
           </div>
         </>

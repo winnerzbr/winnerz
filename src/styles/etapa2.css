@@ -6424,3 +6424,14 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .retro .season, .retro .yrv, .retro .rhythm { padding: 0; }
 .retro__rhythm { margin: 0; }
 @media (max-width: 640px) { .retro__pick { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; gap: 20px; margin-right: -16px; padding-right: 16px; } .retro__pick::-webkit-scrollbar { display: none; } .retro__group { flex: none; } .retro__group .chips { flex-wrap: nowrap; } }
+
+/* ---- Revisão · Etapa 4: Vitrines dentro do Museu -------------------------------------------------- */
+.museum__vitrines { margin-top: 64px; padding-top: 40px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 24px; scroll-margin-top: 90px; }
+.museum__vhead { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; }
+.museum__vhead .kicker { margin: 0 0 6px; }
+.museum__vhead p { margin: 6px 0 0; max-width: 62ch; }
+.museum__vtitle { font-size: clamp(30px, 4vw, 44px); line-height: .95; margin: 0; }
+.pd-vits__h { font-size: 26px; margin: 8px 0 16px; }
+.steam__steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.steam__steps div { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.steam__bridge-ok { margin: 0; padding: 10px 14px; background: var(--now-bg); color: var(--ink); }

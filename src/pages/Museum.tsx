@@ -12,6 +12,7 @@ import { MuseumTour } from '../components/MuseumTour';
 import { ROOM_MODELS, exhibitOf, roomExhibits, suggestedRooms } from '../lib/museum';
 import { shrink, toDataUrl } from '../lib/image';
 import { setupNote } from '../lib/setupNote';
+import { VitrinesSection } from './Showcases';
 
 /** Texto que só grava quando você sai do campo (sem gravar a cada letra). */
 function Commit({ value, onCommit, multiline, className, placeholder, max, label }: { value: string; onCommit: (v: string) => void; multiline?: boolean; className?: string; placeholder?: string; max: number; label: string }) {
@@ -35,6 +36,8 @@ export function MuseumPage() {
   const museum = s.museum ?? {};
   const pieces = rooms.reduce((n, r) => n + roomExhibits(s, r).length, 0);
   useEffect(() => { document.title = 'Museu · WinnerZ'; }, []);
+  // As Vitrines moraram numa página própria até a Etapa 4 da revisão; os links antigos chegam com #vitrines.
+  useEffect(() => { if (location.hash === '#vitrines') setTimeout(() => document.getElementById('vitrines')?.scrollIntoView({ block: 'start' }), 80); }, []);
   useEffect(() => {
     if (!tour) return;
     const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
@@ -142,6 +145,8 @@ export function MuseumPage() {
           ) : <button className="btn ghost" onClick={() => setAdding(true)}><Icon name="mais" size={16} />Nova sala</button>}
         </section>
       )}
+
+      {!editing && <VitrinesSection />}
     </main>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, navigate } from '../lib/router';
-import { actions, useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney, isOpenState } from '../data/store';
+import { actions, useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney } from '../data/store';
 import type { Game, State } from '../data/types';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
@@ -15,7 +15,7 @@ import { radarGames } from './Radar';
 import { awardsApi, phaseOf, publicAt, type Award } from '../data/awards';
 import { isNewcomer } from '../lib/welcome';
 import { chaptersLeft } from '../lib/arrival';
-import { StopLine } from '../components/Comeback';
+import { StopLine, FitCard } from '../components/Comeback';
 
 const TZ = 'America/Sao_Paulo';
 /** "09 OUT", e o ano quando não é o ano corrente. */
@@ -202,8 +202,8 @@ function HomeDefault() {
   const nSessions = h ? sessionsOf(s, h.id).length : 0;
   const { list: upcoming, award } = useUpcoming(s);
 
-  // Só o que está de fato em andamento (jogando ou pausado); largados, encerrados e zerados ficam de fora.
-  const others = s.journeys.filter((x) => x.id !== j?.id).map((x) => ({ j: x, g: s.games[x.gameId], h: currentHistory(s, x.id) })).filter((x) => x.g && x.h && isOpenState(x.h.state)).slice(0, 3);
+  // Os outros jogos em andamento ficam na Jornada (a biblioteca); aqui, só um atalho para eles.
+  const others = s.journeys.filter((x) => x.id !== j?.id).map((x) => ({ j: x, g: s.games[x.gameId], h: currentHistory(s, x.id) })).filter((x) => x.g && x.h && x.h.state === 'ativa');
 
   const memory = useMemo(() => {
     const yearAgo = Date.now() - 300 * 86_400_000;
@@ -211,7 +211,6 @@ function HomeDefault() {
   }, [s.events]);
 
   const today = capitalize(longDay(new Date().toISOString()));
-  const shelfCount = new Set(s.copies.map((c) => c.gameId)).size;
   const wish = s.wishes[0] && s.games[s.wishes[0].gameId] ? { w: s.wishes[0], g: s.games[s.wishes[0].gameId] } : null;
   const wishOnRadar = !!wish && upcoming.some((u) => u.game?.id === wish.g.id);
 
@@ -247,6 +246,7 @@ function HomeDefault() {
               <div className="hero__actions in-3">
                 <PlayButton gameId={game.id} />
                 <Link className="btn ghost lg" to={`/jornada/${game.slug}`}>Abrir linha do tempo</Link>
+                {others.length > 0 && <Link className="btn quiet hero__others" to="/jornada">{others.length === 1 ? `Também jogando: ${others[0].g.title}` : `Outros ${others.length} em andamento`} →</Link>}
               </div>
             </div>
             {wps[0]?.image && (
@@ -273,6 +273,8 @@ function HomeDefault() {
         </section>
       )}
 
+      {j && <div className="page home-fit"><FitCard journeyId={j.id} /></div>}
+
       <Horizon s={s} upcoming={upcoming} focusGame={game} nextSession={note?.note ? nSessions + 1 : undefined} />
 
       <div className="page home-cols">
@@ -292,40 +294,11 @@ function HomeDefault() {
           <WeekCard />
         </section>
 
-        <section className="home-col" aria-labelledby="col-agora">
-          <h2 id="col-agora" className="kicker kicker--now home-col__head">Agora</h2>
-          {others.length > 0 && (
-            <div className="also" aria-label="Também em andamento">
-              {others.map(({ j: x, g, h: hh }) => (
-                <Link key={x.id} to={`/jornada/${g.slug}`} className="also__item">
-                  <span style={{ opacity: hh?.state === 'pausada' ? 0.7 : 1 }} className="also__cover"><CoverArt game={g} /></span>
-                  <span className="also__body">
-                    <span className="also__name">{g.title}</span>
-                    {!!hh?.progress && hh.state !== 'pausada'
-                      ? <span className="also__prog"><span className="hline hline--thin" aria-hidden="true"><i style={{ width: `${hh.progress}%` }} /></span><span className="mono">{hh.progress}%</span></span>
-                      : <span className="muted also__meta">{hh?.state === 'pausada' ? (hh.note ?? x.pausedNote ?? 'Pausado. Ele espera.') : x.mood === 'silencioso' ? 'Jogando no modo silencioso.' : 'Jogando.'}</span>}
-                  </span>
-                </Link>
-              ))}
-              <Link to="/jornada" className="arrow-link">Todas as Jornadas →</Link>
-            </div>
-          )}
-        </section>
-
         <section className="home-col" aria-labelledby="col-proximo">
           <h2 id="col-proximo" className="kicker home-col__head">Próximo</h2>
           <NextRelease u={upcoming.find((u) => u.kind === 'lancamento')} />
           <RadarNotice />
           <AwardsNotice award={award} />
-          <section className="card home-card" aria-labelledby="estante-home">
-            <div className="home-card__head"><h3 id="estante-home" className="kicker">Sua estante</h3><span className="mono faint light-hide">{shelfCount} {shelfCount === 1 ? 'jogo' : 'jogos'} · {s.wishes.length} {s.wishes.length === 1 ? 'desejo' : 'desejos'}</span></div>
-            <div className="aside-covers">
-              {s.copies.slice(-4).reverse().map((c) => s.games[c.gameId] && (
-                <Link key={c.id} to={`/jogos/${s.games[c.gameId].slug}`} aria-label={s.games[c.gameId].title}><CoverArt game={s.games[c.gameId]} platform={c.platform} /></Link>
-              ))}
-            </div>
-            <Link to="/colecao" className="arrow-link">Abrir a estante →</Link>
-          </section>
           {wish && !wishOnRadar && (
             <Link to={`/jogos/${wish.g.slug}`} className="card home-card aside-wish">
               <span className="aside-wish__cover"><CoverArt game={wish.g} /></span>

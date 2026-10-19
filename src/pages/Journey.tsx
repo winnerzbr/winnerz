@@ -32,7 +32,7 @@ import { ActionToast } from '../components/Toast';
 import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
-import { FitCard, LetterLine } from '../components/Comeback';
+import { FitCard, LetterLine, ComebackBlock, COMEBACK_AFTER_DAYS } from '../components/Comeback';
 import { OutlineSheet, OutlineStrip } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
 import { isOpenWorld, partAt, partsTimeline, unitOf, type OutlinePart } from '../lib/outline';
@@ -143,7 +143,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
   const pacts = usePacts();
   const hasPacts = !!pacts?.some((p) => p.game.id === game.id);
-  const pactsOn = pacts !== null; // null = banco sem a tabela de pactos
 
   const stickerImage = [...allEvents].reverse().find((e) => e.image)?.image ?? bg ?? game.cover;
 
@@ -163,6 +162,13 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const where = current.capsule?.where ?? last?.whereStopped;
   const extra = CAPSULE_FIELDS.filter((f) => f.key !== 'where' && current.capsule?.[f.key]);
   const away = daysAway(s, journeyId);
+  // Uma semana longe: "Onde você parou" vira o bloco de volta (a antiga página "Preparar a volta").
+  const back = away != null && away >= COMEBACK_AFTER_DAYS && isOpenState(current.state);
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => {
+    if (location.hash === '#voltar') document.getElementById('voltar')?.scrollIntoView({ block: 'start' });
+    if (location.hash === '#progresso') { setMoreOpen(true); setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center' }), 50); }
+  }, [journeyId]);
   const showToday = !selHist || selHist.id === current.id ? isOpenState(current.state) : false;
   const allItems: TLItem[] = useMemo(() => buildTimeline({
     events, sessions: s.sessions, allEvents: s.events, journeyId, today: showToday,
@@ -287,6 +293,13 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   {waypoints.length > 0 && <> <span className="jstats-line__now"><b>{waypoints.length}</b> {waypoints.length === 1 ? 'ponto' : 'pontos'} para voltar.</span></>}
                 </p>
               )}
+              {openState && !light && current.progress != null && (
+                <div className="jhero__prog">
+                  <div className="hline" aria-hidden="true"><i style={{ width: `${current.progress}%` }} /><b style={{ left: `${current.progress}%` }} /></div>
+                  <span className="mono">{current.progress}%</span>
+                  <button className="btn quiet sm" onClick={() => { setMoreOpen(true); setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50); }}>Atualizar</button>
+                </div>
+              )}
             </div>
             <div className="jhero__actions">
               <button className={`btn ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick} title={playCta.hint}>
@@ -323,27 +336,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
         {capsuleOpen && <CapsuleSheet historyId={current.id} gameTitle={game.title} onClose={() => setCapsuleOpen(false)} />}
 
-        <div className="jcards">
-          {current.state === 'dropada' || current.state === 'encerrada' ? null : current.state !== 'concluida' ? (
-            <section className="card jprog" aria-labelledby="prog-label">
-              <div className="jprog__head">
-                <label id="prog-label" htmlFor="prog" className="kicker">Seu progresso {current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}</label>
-                <span className="t jprog__v">{progress}%</span>
-              </div>
-              <input id="prog" className="range lg jprog__range" type="range" min={0} max={100} step={1} value={progress}
-                style={{ ['--p' as string]: `${progress}%` }}
-                aria-valuetext={`${progress} por cento`}
-                onChange={(e) => setProgress(Number(e.target.value))}
-                onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
-              <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
-              <OutlineStrip game={game} history={current} />
-              <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
-              {zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
-                ? <ConfirmButton className="btn ghost jprog__done" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
-                : <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>}
-              {current.letter && <LetterLine historyId={current.id} />}
-            </section>
-          ) : (
+        {/* Etapa 2 da revisão: no alto, só onde você parou (ou o bloco de volta), o Jogar e a linha do tempo. */}
+        {current.state === 'concluida' ? (
+          <div className="jcards">
             <section className="card jprog jprog--done">
               <span className="kicker jprog__gold">História concluída</span>
               <p className="t jprog__title">{current.title}</p>
@@ -356,9 +351,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               {current.letter && <SealedLetter key={current.id} text={current.letter.text} date={dayMonthYear(current.startedAt)} opened={!!current.letter.openedAt} onOpen={() => actions.openLetter(current.id)} />}
               <FeatsPanel key={`f-${current.id}`} history={current} />
             </section>
-          )}
-
-          {current.state === 'concluida' ? (waypoints.length > 0 && (
             <section className="card jcap" aria-labelledby="capsula">
               <div className="jcap__head">
                 <h2 id="capsula" className="t">{waypoints.length === 1 ? 'Um ponto ficou aberto' : `${waypoints.length} pontos ficaram abertos`}</h2>
@@ -377,45 +369,65 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 </ul>
               </div>
             </section>
-          )) : (
-          <section className="card jcap" aria-labelledby="capsula">
-            <div className="jcap__head">
-              <h2 id="capsula" className="t">Onde você parou</h2>
-              <span className="jcap__tools">{away != null && away >= 3 && <Link className="btn ghost sm" to={`/jornada/${game.slug}/voltar`}>Preparar a volta</Link>}<button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
-            </div>
-            <div className="jcap__grid">
-              {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}
-              {last && <div><span className="kicker">Última sessão</span><span className="mono">{longDay(last.startedAt)}{last.minutes ? ` · ${dur(last.minutes)}` : ''}{away != null && away > 1 ? ` · ${awayLabel(away)}` : ''}</span></div>}
-              {last?.companions?.length ? <div><span className="kicker">Com quem</span><strong>{last.companions.join(', ')}</strong></div> : null}
-              {extra.map((f) => <div key={f.key}><span className="kicker">{f.label}</span><strong>{current.capsule![f.key]}</strong></div>)}
-              {!where && !last && !extra.length && <div><span className="kicker">Registrado</span><span className="muted">Ainda nada. Ao finalizar uma sessão, você pode deixar um recado para a próxima vez.</span></div>}
-            </div>
-            {note?.note && <p className="jcap__note">“{note.note}”</p>}
-            <div className="jcap__wps">
-              <div className="kicker">Pontos para voltar · {waypoints.length}</div>
-              {waypoints.length === 0 && <p className="muted jcap__empty">Nenhum ativo. Durante uma sessão, toque em “Quero voltar aqui”.</p>}
-              <ul>
-                {waypoints.map((w) => (
-                  <li key={w.id}>
-                    {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
-                    <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
-                    <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <p className="faint jcap__src">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
-          </section>
-          )}
-        </div>
+          </div>
+        ) : current.state === 'dropada' || current.state === 'encerrada' ? null : back ? (
+          <ComebackBlock journeyId={journeyId} game={game} history={current} onCapsule={() => setCapsuleOpen(true)} onViewWaypoint={(i) => i >= 0 && setWpViewer(i)} />
+        ) : (
+          <div className="jcards">
+            <section className="card jcap" aria-labelledby="capsula">
+              <div className="jcap__head">
+                <h2 id="capsula" className="t">Onde você parou</h2>
+                <span className="jcap__tools"><button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
+              </div>
+              <div className="jcap__grid">
+                {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}
+                {last && <div><span className="kicker">Última sessão</span><span className="mono">{longDay(last.startedAt)}{last.minutes ? ` · ${dur(last.minutes)}` : ''}{away != null && away > 1 ? ` · ${awayLabel(away)}` : ''}</span></div>}
+                {last?.companions?.length ? <div><span className="kicker">Com quem</span><strong>{last.companions.join(', ')}</strong></div> : null}
+                {extra.map((f) => <div key={f.key}><span className="kicker">{f.label}</span><strong>{current.capsule![f.key]}</strong></div>)}
+                {!where && !last && !extra.length && <div><span className="kicker">Registrado</span><span className="muted">Ainda nada. Ao finalizar uma sessão, você pode deixar um recado para a próxima vez.</span></div>}
+              </div>
+              {note?.note && <p className="jcap__note">“{note.note}”</p>}
+              <div className="jcap__wps">
+                <div className="kicker">Pontos para voltar · {waypoints.length}</div>
+                {waypoints.length === 0 && <p className="muted jcap__empty">Nenhum ativo. Durante uma sessão, toque em “Quero voltar aqui”.</p>}
+                <ul>
+                  {waypoints.map((w) => (
+                    <li key={w.id}>
+                      {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
+                      <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
+                      <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <p className="faint jcap__src">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
+            </section>
+          </div>
+        )}
 
-        {hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
-        {((pactsOn && !hasPacts) || openState) && (
-          <details className="card jmore">
-            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{[openState && !current.letter ? 'carta para o fim' : null, openState ? (current.mode ? `dificuldade: ${current.mode}` : 'dificuldade') : null, pactsOn && !hasPacts ? 'pactos com amigos' : null].filter(Boolean).join(' · ')}</span></summary>
-            {openState && !current.letter && <LetterLine historyId={current.id} />}
-            {openState && <DifficultyField key={current.id} history={current} />}
-            {pactsOn && !hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
+        {openState && (
+          <details className="card jmore" open={moreOpen} onToggle={(e) => setMoreOpen((e.currentTarget as HTMLDetailsElement).open)}>
+            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{['progresso e Zerei', current.letter ? 'carta lacrada' : 'carta para o fim', current.mode ? `dificuldade: ${current.mode}` : 'dificuldade', hasPacts ? 'pactos' : null].filter(Boolean).join(' · ')}</span></summary>
+            <div className="jprog jprog--in" id="progresso">
+              <div className="jprog__head">
+                <label id="prog-label" htmlFor="prog" className="kicker">Seu progresso {current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}</label>
+                <span className="t jprog__v">{progress}%</span>
+              </div>
+              <input id="prog" className="range lg jprog__range" type="range" min={0} max={100} step={1} value={progress}
+                style={{ ['--p' as string]: `${progress}%` }}
+                aria-valuetext={`${progress} por cento`}
+                onChange={(e) => setProgress(Number(e.target.value))}
+                onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
+              <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
+              <OutlineStrip game={game} history={current} />
+              <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
+              {zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
+                ? <ConfirmButton className="btn ghost jprog__done" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
+                : <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>}
+            </div>
+            <LetterLine historyId={current.id} />
+            <DifficultyField key={current.id} history={current} />
+            {hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
           </details>
         )}
 

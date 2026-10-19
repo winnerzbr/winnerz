@@ -12,6 +12,7 @@ import { whenLabel } from '../lib/dates';
 import { MAP_W, MAP_H, BIOME_NAME, paintMap, trailPoint, loadPainting, savePainting, type Biome, type MapPlan } from '../lib/mapPainter';
 import { Icon } from './Icon';
 import type { FaixaPlay, FaixaToday } from './Faixa';
+import { scrollToStop } from './Comeback';
 
 type Pt = { id: string; x: number; y: number; t: number; it: TLItem; kind: string; label: string; sub: string; up: boolean };
 const KIND: Record<string, string> = { inicio: 'Início', sessao: 'Sessão', momento: 'Momento', ponto: 'Para voltar', marco: 'Marco', carta: 'Carta' };
@@ -200,7 +201,7 @@ export function PaintedMap({ items, historyId, title, subtitle, play, today, onE
             {today?.note && <p>“{today.note}”</p>}
             <div className="pmap__actions">
               {today?.open ? <Link className="pmap__btn is-main" to="/sessao">Abrir a sessão</Link> : <button className="pmap__btn is-main" onClick={play.onClick}><Icon name="play" size={12} /> {play.label}</button>}
-              {today && !today.open && <Link className="pmap__btn" to={`/jornada/${today.slug}/voltar`}>Preparar a volta</Link>}
+              {today && !today.open && <button type="button" className="pmap__btn" onClick={scrollToStop}>Onde você parou</button>}
             </div>
           </>}
         </aside>

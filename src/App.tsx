@@ -49,7 +49,6 @@ import { CollectionStats, Wishes } from './pages/CollectionStats';
 import { ImportPage } from './pages/Import';
 import { SteamImportPage } from './pages/SteamImport';
 import { JourneyPage } from './pages/Journey';
-import { ComebackPage } from './pages/Comeback';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
 import { GamePage } from './pages/Game';
@@ -102,7 +101,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jornada/ano', path)) return <YearReviewPage />;
   if ((m = match('/jornada/ano/:year', path))) return <YearReviewPage year={m.year} />;
   if ((m = match('/jornada/temporada/:id', path))) return <SeasonPage id={m.id} />;
-  if ((m = match('/jornada/:slug/voltar', path))) return <ComebackPage slug={m.slug} />;
+  // "Preparar a volta" virou um bloco dentro da Jornada do jogo (Etapa 2 da revisão).
+  if ((m = match('/jornada/:slug/voltar', path))) return <GoTo to={`/jornada/${m.slug}#voltar`} />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;
   if (match('/colecao/consoles', path)) return <HardwarePage />;

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MonthRestCard } from '../components/Rest';
-import { ReviewCard } from './Review';
 import { PactList } from '../components/Pacts';
 import { SeasonsSection } from '../components/Seasons';
 import { Link } from '../lib/router';
@@ -201,7 +200,6 @@ export function RhythmPage() {
         </div>
         <SubNav pillar="jornada" />
       </header>
-      <ReviewCard />
       <div id="semana" className="rhythm__week"><WeekCard /></div>
       <MonthRestCard />
       {r.sessions < 3 ? (

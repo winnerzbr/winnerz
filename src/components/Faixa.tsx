@@ -17,6 +17,7 @@ import { Icon, Compass } from './Icon';
 import { BrandMark } from './Brand';
 import { PhotoViewer } from './MediaGallery';
 import { FEATURES } from '../lib/features';
+import { scrollToStop } from './Comeback';
 
 export type FaixaPlay = { label: string; now: boolean; onClick: () => void; hint?: string };
 export type FaixaToday = { where?: string; note?: string; away: number | null; slug: string; open: boolean; friends?: { handle: string; state: string }[]; part?: { n: number; total: number; name: string } };
@@ -469,7 +470,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         {!!today?.friends?.length && <p className="fx-sub fx-friends"><Icon name="pessoas" size={14} /> {friendsLine(today.friends)}</p>}
         <div className="fx-actions">
           {today?.open ? <Link className="btn now sm" to="/sessao">Abrir a sessão</Link> : <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={(e) => { e.stopPropagation(); play.onClick(); }}>{play.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={13} />}{play.label}</button>}
-          {today && !today.open && (today.away ?? 0) >= 3 && <Link className="btn ghost sm" to={`/jornada/${today.slug}/voltar`} onClick={(e) => e.stopPropagation()}>Preparar a volta</Link>}
+          {today && !today.open && (today.away ?? 0) >= 3 && <button type="button" className="btn ghost sm" onClick={(e) => { e.stopPropagation(); scrollToStop(); }}>Onde você parou</button>}
         </div>
       </article>
     );

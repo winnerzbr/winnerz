@@ -6441,3 +6441,15 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .steam__steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
 .steam__steps div { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
 .steam__bridge-ok { margin: 0; padding: 10px 14px; background: var(--now-bg); color: var(--ink); }
+/* Jornada: o fundo do topo é a imagem do jogo principal, apagada e sumindo na cor da página (vale nos dois temas). */
+.jindex-wrap { position: relative; }
+.jamb { position: absolute; top: 0; left: 0; right: 0; height: clamp(360px, 44vw, 600px); overflow: hidden; pointer-events: none; z-index: 0; }
+.jamb__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 30%; opacity: 0.9; }
+.jamb__shade { position: absolute; inset: 0; background:
+  linear-gradient(90deg, rgba(var(--bg-rgb), 0.94) 0%, rgba(var(--bg-rgb), 0.78) 42%, rgba(var(--bg-rgb), 0.45) 100%),
+  linear-gradient(0deg, var(--bg) 0%, rgba(var(--bg-rgb), 0.9) 22%, rgba(var(--bg-rgb), 0) 70%); }
+.jindex-wrap > .jindex { position: relative; z-index: 1; }
+@media (max-width: 760px) {
+  .jamb { height: 380px; }
+  .jamb__shade { background: linear-gradient(180deg, rgba(var(--bg-rgb), 0.7) 0%, rgba(var(--bg-rgb), 0.82) 45%, var(--bg) 100%); }
+}

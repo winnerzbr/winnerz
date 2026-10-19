@@ -9,7 +9,9 @@ import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
 import { DropBanner } from './components/album/DropBanner';
 import { usePath, match, Link, navigate } from './lib/router';
-import { useStore, openSession } from './data/store';
+import { useStore, openSession, getState } from './data/store';
+
+const isAdminNow = () => !!getState().isAdmin;
 import { applyPrefs } from './lib/theme';
 import { BrandMark } from './components/Brand';
 import { resetDemo } from './data/demoAdapter';
@@ -28,6 +30,8 @@ import { UpdateBanner } from './components/UpdateBanner';
 import { CommandPalette } from './components/CommandPalette';
 import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
+import { pageEvent } from './lib/usageLabels';
+import { FEATURES } from './lib/features';
 import { Home } from './pages/Home';
 import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
@@ -53,7 +57,6 @@ import { GamesExplore } from './pages/GamesExplore';
 import { RadarPage } from './pages/Radar';
 import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
-import { AgoraPage } from './pages/Agora';
 import { Login } from './pages/Login';
 import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
@@ -115,12 +118,14 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/jogos', path)) return <GamesIndex />;
   if (match('/jogos/explorar', path)) return <GamesExplore />;
   if (match('/jogos/radar', path)) return <RadarPage />;
+  if (!FEATURES.trilhas && path.startsWith('/jogos/trilhas') && !isAdminNow()) return <GoTo to="/jogos" />;
   if (match('/jogos/trilhas', path)) return <TrailsPage />;
   if ((m = match('/jogos/trilhas/:slug', path))) return <TrailPage slug={m.slug} />;
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
-  if (match('/agora', path)) return <AgoraPage />;
+  // Jogar agora virou o Início (Etapa 1 da revisão): o atalho antigo do celular continua funcionando.
+  if (match('/agora', path)) return <GoTo to="/" />;
   if (match('/entrar', path)) return <Login />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
@@ -132,6 +137,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/mensagens/:handle', path))) return <MessagesPage handle={decodeURIComponent(m.handle)} />;
   if (match('/comunidade/comunidades', path)) return <CommunitiesIndexPage />;
   if (match('/comunidade/criar', path)) return <CommunityNewPage />;
+  // Clubes escondidos por enquanto (lib/features.ts): os endereços levam às jogatinas.
+  if (!FEATURES.clubes && (path.startsWith('/comunidade/clubes') || path.startsWith('/clube/'))) return <GoTo to="/comunidade?c=jogatinas" />;
   if (match('/comunidade/clubes', path)) return <ClubsIndexPage />;
   if (match('/comunidade/clubes/criar', path)) return <ClubNewPage />;
   if ((m = match('/clube/:slug', path))) return <ClubPage key={m.slug} slug={m.slug} />;
@@ -222,8 +229,8 @@ export function App() {
     if (!code) return;
     invitesApi.redeem(code).catch(() => null).finally(() => setPendingInvite(null));
   }, [mode, profileId, isAdmin, isGuest]);
-  // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo.
-  useEffect(() => { track(`pagina.${path.split('?')[0].split('/')[1] || 'inicio'}`); }, [path]);
+  // Conta só a seção visitada (ex.: "pagina.colecao"), nunca o endereço completo nem o @ de alguém.
+  useEffect(() => { track(pageEvent(path)); }, [path]);
 
   // Completa tempo para zerar, modos e temas do acervo em segundo plano (DNA e "O que jogar").
   useEffect(() => { if (!ready) return; const t = setTimeout(() => { void backfillGameFacts(); }, 5000); return () => clearTimeout(t); }, [ready]);

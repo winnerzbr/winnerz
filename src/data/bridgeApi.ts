@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { getState } from './store';
 import type { PartMove } from '../lib/outline';
 import { outlineApi } from './outlineApi';
+import { setupNote } from '../lib/setupNote';
 
 const outlineCache = (gameId: string) => outlineApi.peek(gameId);
 
@@ -26,7 +27,7 @@ export const PLAYNITE_DOWNLOAD = 'https://github.com/winnerzbr/winnerz/releases/
 
 const supa = () => getState().mode === 'supabase';
 const client = async () => (await import('./supabaseAdapter')).getClient();
-const MIGRATION = 'Falta rodar a migração 0039 no Supabase.';
+const MIGRATION = () => setupNote('Falta rodar a migração 0039 no Supabase.');
 
 async function api(body: Record<string, unknown>): Promise<any> {
   const { accessToken } = await import('./supabaseAdapter');
@@ -94,7 +95,7 @@ export const bridgeApi = {
   async unlink(provider: Provider) {
     if (!supa()) { const d = demoLoad(); d.accounts = d.accounts.filter((a) => a.provider !== provider); d.items = d.items.filter((i) => i.provider !== provider || i.status === 'registrada'); demoSave(d); await bridgeApi.status(); return; }
     const r = await (await client()).rpc('bridge_unlink', { p_provider: provider });
-    if (r.error) throw new Error(/does not exist|schema cache/i.test(r.error.message) ? MIGRATION : r.error.message);
+    if (r.error) throw new Error(/does not exist|schema cache/i.test(r.error.message) ? MIGRATION() : r.error.message);
     await bridgeApi.status();
   },
   async setAuto(provider: Provider, auto: boolean) {
@@ -125,8 +126,8 @@ export const bridgeApi = {
 /* ---- C3: avanços pelas conquistas e as ligações de cada jogo ------------------------------- */
 export type AchLink = { provider: 'steam' | 'ra'; key: string; name: string; partId: string | null; origin: 'ia' | 'pessoa' };
 export type AchLinks = { links: AchLink[]; job?: string | null; canEdit: boolean; bridges: Provider[] };
-const NO_0065 = 'Falta rodar a migração 0065 no Supabase.';
-const m65 = (m: string) => (/does not exist|schema cache|could not find/i.test(m) ? NO_0065 : /outline_forbidden/.test(m) ? 'Coloque o jogo na sua Jornada para corrigir.' : /achievement_limit/.test(m) ? 'Muitas correções hoje. Tente amanhã.' : m);
+const NO_0065 = () => setupNote('Falta rodar a migração 0065 no Supabase.');
+const m65 = (m: string) => (/does not exist|schema cache|could not find/i.test(m) ? NO_0065() : /outline_forbidden/.test(m) ? 'Coloque o jogo na sua Jornada para corrigir.' : /achievement_limit/.test(m) ? 'Muitas correções hoje. Tente amanhã.' : m);
 
 /** Demonstração: três conquistas de exemplo ligadas à lista do jogo, para ver o painel funcionando. */
 const demoAch = new Map<string, AchLinks>();

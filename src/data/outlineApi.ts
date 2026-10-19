@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { getState, useStore } from './store';
 import { cleanParts, type GameOutline, type OutlinePart } from '../lib/outline';
+import { setupNote } from '../lib/setupNote';
 
 export type OutlineEdit = { id: string; handle?: string | null; at: string; version: number; note?: string | null; count: number };
 
@@ -20,8 +21,8 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/outline_confirm/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0058 no Supabase.');
-    if (/outline_/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0038 no Supabase.');
+    if (/outline_confirm/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0058 no Supabase.'));
+    if (/outline_/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0038 no Supabase.'));
     throw new Error(m);
   }
   return r.data;

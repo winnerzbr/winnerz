@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { getState } from './store';
 import { fixAuthors, type NewsItem, type PersonRef } from './communityApi';
 import type { CommunityPrefs } from './types';
+import { setupNote } from '../lib/setupNote';
 
 export type NotifGroup = 'comunidade' | 'grupos' | 'amigos' | 'jornada' | 'sistema';
 export type NotifFilter = 'tudo' | 'naolidos' | NotifGroup;
@@ -26,13 +27,13 @@ export const FILTERS: { k: NotifFilter; label: string }[] = [
   { k: 'sistema', label: 'Moderação e site' },
 ];
 
-const MIGRATION = 'Falta rodar a migração 0034 no Supabase.';
+const MIGRATION = () => setupNote('Falta rodar a migração 0034 no Supabase.');
 const client = async () => (await import('./supabaseAdapter')).getClient();
 const supa = () => getState().mode === 'supabase';
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const r = await (await client()).rpc(fn, args);
   if (r.error) {
-    if (/notif_|site_announce|schema cache/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message)) throw new Error(MIGRATION);
+    if (/notif_|site_announce|schema cache/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message)) throw new Error(MIGRATION());
     throw new Error(r.error.message);
   }
   return fixAuthors(r.data as T);

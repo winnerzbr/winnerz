@@ -9,6 +9,7 @@ import { accessToken } from '../data/supabaseAdapter';
 import { isOutdated } from '../lib/version';
 import { track } from '../lib/track';
 import { igdbFetch } from '../lib/igdbFetch';
+import { setupNote } from '../lib/setupNote';
 
 type SteamGame = { appid: number; name: string; minutes: number; lastPlayed?: string; igdbId?: number };
 const PC = 'PC (Microsoft Windows)';
@@ -99,7 +100,7 @@ export function SteamImportPage() {
     }
   };
 
-  const blocked = s.mode !== 'supabase' ? 'Disponível com conta: no modo demonstração não dá para ler a Steam.' : !s.schemaV6 ? 'Falta rodar a migração 0006 no Supabase para guardar as horas da Steam.' : '';
+  const blocked = s.mode !== 'supabase' ? 'Disponível com conta: no modo demonstração não dá para ler a Steam.' : !s.schemaV6 ? setupNote('Falta rodar a migração 0006 no Supabase para guardar as horas da Steam.') : '';
 
   return (
     <main className="page pad importer steam">

@@ -12,6 +12,7 @@ import { planSheet, buildItems, pickBest, simplerTitle, titleKey, FIELD_LABEL, t
 import { canonicalPlatform, shortPlatform } from '../lib/platforms';
 import { normalize } from '../lib/rating';
 import { igdbFetch } from '../lib/igdbFetch';
+import { setupNote } from '../lib/setupNote';
 
 type Step = 'arquivo' | 'abas' | 'resumo' | 'buscando' | 'revisar' | 'gravando' | 'pronto' | 'falhou';
 const ROLES: [Role, string][] = [['lista', 'Lista de jogos (coleção)'], ['zerados', 'Jogos zerados'], ['detalhes', 'Detalhes das cópias'], ['ignorar', 'Ignorar esta aba']];
@@ -394,7 +395,7 @@ export function ImportPage() {
         <p className="card import-error">Parte da sua coleção não carregou (falha de conexão). Recarregue a página antes de importar, para nada ser duplicado.</p>
       )}
       {s.mode === 'supabase' && !s.schemaV4 && step !== 'pronto' && (
-        <p className="card import-error">Antes de importar, rode a migração 0004 no Supabase (SQL Editor). Sem ela, os jogos sem ficha e os dados novos não podem ser gravados.</p>
+        <p className="card import-error">{setupNote('Antes de importar, rode a migração 0004 no Supabase (SQL Editor). Sem ela, os jogos sem ficha e os dados novos não podem ser gravados.')}</p>
       )}
     </main>
   );

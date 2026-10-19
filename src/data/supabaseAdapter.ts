@@ -4,6 +4,7 @@ import { emptyState } from './store';
 import type { State, Game, Review, History, Session, TimelineEvent, Copy, Journey, MyGame, Hardware, Loan, Showcase, MuseumRoom, Museum } from './types';
 import { SUPABASE_URL, SUPABASE_KEY } from '../lib/env';
 import { avatarUrl } from '../lib/avatar';
+import { setupNote } from '../lib/setupNote';
 
 /**
  * Modo Supabase: lê e grava nas tabelas definidas em supabase/migrations.
@@ -314,8 +315,9 @@ export const supabaseAdapter: Adapter = {
     const user = auth.user;
     // Site fechado (migração 0076): o banco diz se está aberto e se quem entrou passa. Quem não passa
     // não carrega nada (o banco recusaria); vê o "Em breve" ou a página do convite. Sem a migração, segue como antes.
-    const access = await sb.rpc('my_access').then((r) => (r.error ? null : (r.data as { open?: boolean; admin?: boolean; guest?: boolean } | null)), () => null);
+    const access = await sb.rpc('my_access').then((r) => (r.error ? null : (r.data as { open?: boolean; admin?: boolean; guest?: boolean; communities?: boolean } | null)), () => null);
     if (access) base.siteOpen = !!access.open;
+    if (access && typeof access.communities === 'boolean') base.communitiesOpen = access.communities;
     if (!user) return base;
     if (access && !access.open && !access.admin && !access.guest) {
       const name: string = (user.user_metadata as { name?: string } | undefined)?.name || 'Jogador';
@@ -555,7 +557,7 @@ export const supabaseAdapter: Adapter = {
         return;
       case 'journey.share': {
         const r = await sb.from('journeys').update({ shared: a.shared }).eq('id', a.journeyId);
-        if (r.error) throw new Error(/public_limit/.test(r.error.message) ? 'Calma: contas novas mostram no máximo 20 coisas por hora no perfil. Tente daqui a pouco.' : /shared|column|schema/i.test(r.error.message) ? 'Para mostrar Jornadas no perfil, rode a migração 0013 no Supabase.' : r.error.message);
+        if (r.error) throw new Error(/public_limit/.test(r.error.message) ? 'Calma: contas novas mostram no máximo 20 coisas por hora no perfil. Tente daqui a pouco.' : /shared|column|schema/i.test(r.error.message) ? setupNote('Para mostrar Jornadas no perfil, rode a migração 0013 no Supabase.') : r.error.message);
         return;
       }
       case 'journey.update':
@@ -587,7 +589,7 @@ export const supabaseAdapter: Adapter = {
         if (a.imagePath) await removePhotos([a.imagePath]);
         return;
       case 'game.create':
-        if (!v4) throw new Error('Rode a migração 0004 para cadastrar jogos sem ficha do catálogo.');
+        if (!v4) throw new Error(setupNote('Rode a migração 0004 para cadastrar jogos sem ficha do catálogo.'));
         check(await sb.from('games').insert(manualGameToRow(a.game)));
         return;
       case 'game.relink': {
@@ -628,14 +630,14 @@ export const supabaseAdapter: Adapter = {
         for (let i = 0; i < a.pairs.length; i += 200) {
           const pairs = a.pairs.slice(i, i + 200).map((p) => ({ src: p.fromId, dst: p.to.id }));
           const { error } = await sb.rpc('relink_games', { pairs });
-          if (error) throw new Error(/relink_games|PGRST202|function/i.test(error.message ?? '') ? 'Rode a migração 0005 no Supabase (SQL Editor) para ligar os jogos às fichas.' : error.message);
+          if (error) throw new Error(/relink_games|PGRST202|function/i.test(error.message ?? '') ? setupNote('Rode a migração 0005 no Supabase (SQL Editor) para ligar os jogos às fichas.') : error.message);
         }
         return;
       }
       case 'import.bulk': {
         const d = a.data;
         const manual = d.games.filter((g) => g.source === 'manual');
-        if (manual.length && !v4) throw new Error('Rode a migração 0004 antes de importar a planilha.');
+        if (manual.length && !v4) throw new Error(setupNote('Rode a migração 0004 antes de importar a planilha.'));
         await insertMany('games', manual.map(manualGameToRow));
         await insertMany('copies', d.copies.map(copyToRow));
         if (v4) await insertMany('my_games', d.myGames.map(myGameToRow), { upsert: 'user_id,game_id' });

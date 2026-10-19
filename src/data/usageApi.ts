@@ -23,7 +23,7 @@ export const FREE = {
   emailsDay: 100,
   emailsMonth: 3000,
   functions: 12,
-  functionsUsed: 6,
+  functionsUsed: 9,
   authEmailsHour: 30,
 };
 
@@ -53,3 +53,22 @@ export const fmtBytes = (n: number) => {
   if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(n < 10 * 1024 * 1024 ? 1 : 0).replace('.', ',')} MB`;
   return `${(n / 1024 / 1024 / 1024).toFixed(2).replace('.', ',')} GB`;
 };
+
+/** Uso por recurso (migração 0077): quantas visitas usaram cada parte do site nos últimos 7 e 30 dias. */
+export interface FeatureUse { event: string; d7: number; d30: number; last: string | null }
+
+export async function loadFeatureUse(): Promise<FeatureUse[]> {
+  const s = getState();
+  if (s.mode !== 'supabase') {
+    return [
+      { event: 'pagina.inicio', d7: 9, d30: 31, last: null }, { event: 'pagina.jornada', d7: 7, d30: 24, last: null },
+      { event: 'pagina.colecao', d7: 4, d30: 15, last: null }, { event: 'pagina.album', d7: 3, d30: 6, last: null },
+      { event: 'jornada.jogar', d7: 5, d30: 18, last: null }, { event: 'retomada.ia', d7: 2, d30: 7, last: null },
+      { event: 'jogos.radar', d7: 1, d30: 5, last: null }, { event: 'colecao.museu-sala', d7: 0, d30: 2, last: null },
+    ];
+  }
+  const { getClient } = await import('./supabaseAdapter');
+  const { data, error } = await (await getClient()).rpc('usage_features');
+  if (error) throw new Error(/usage_features|schema cache/i.test(error.message) ? 'Falta rodar a migração 0077 no Supabase.' : 'Não deu para carregar o uso agora.');
+  return (data as FeatureUse[] | null) ?? [];
+}

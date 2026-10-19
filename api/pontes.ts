@@ -23,7 +23,7 @@
  * Variáveis na Vercel: SUPABASE_URL + SUPABASE_SECRET_KEY, STEAM_API_KEY (já usada no importador),
  * RA_API_KEY (chave "Web API" de uma conta do RetroAchievements), TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET (IGDB),
  * CRON_SECRET (a Vercel manda sozinha na rotina diária), ANTHROPIC_API_KEY (C3: ligar as conquistas à lista) e
- * ACH_DAILY_GAMES (opcional, padrão 30 jogos por dia). Precisa da migração 0039 (e da 0065 para as conquistas, da 0069
+ * ACH_DAILY_GAMES (opcional, padrão 30 jogos por dia). A ligação pela IA só roda com ACH_LINK=1 (escondida desde a Etapa 1 da revisão). Precisa da migração 0039 (e da 0065 para as conquistas, da 0069
  * para a Twitch). A Twitch usa o mesmo app do IGDB (TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET), com o endereço de volta
  * https://<site>/twitch/volta cadastrado no console da Twitch. Body sem parser automático (a assinatura da Twitch
  * confere o corpo exato).
@@ -490,7 +490,9 @@ async function raProgress(user: string, raUser: string, raGameId: string, gameId
 const quiet = async (f: () => Promise<number>) => { try { return await f(); } catch { return 0; } };
 /** Quantas ligações novas pela IA cabem nesta chamada (cada uma leva uns segundos) e até quando. */
 let linkBudget = 0, linkUntil = 0;
-const allowLink = () => { if (linkBudget <= 0 || Date.now() > linkUntil) return false; linkBudget -= 1; return true; };
+// Ligar conquistas aos capítulos está escondido por enquanto (Etapa 1 da revisão): a IA só roda com ACH_LINK=1 na Vercel.
+const ACH_ON = () => process.env.ACH_LINK === '1';
+const allowLink = () => { if (!ACH_ON() || linkBudget <= 0 || Date.now() > linkUntil) return false; linkBudget -= 1; return true; };
 function linkWindow(n: number, ms: number) { linkBudget = n; linkUntil = Date.now() + ms; }
 
 /** "Ligar as conquistas agora" (no painel da lista): para o jogo pedido, com as pontes da própria pessoa. */

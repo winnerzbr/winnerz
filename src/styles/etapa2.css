@@ -3636,6 +3636,17 @@ a.gev { color: var(--ink); }
 .login__otp { font-family: var(--font-ui); font-size: 27px; letter-spacing: 0; text-align: center; }
 .login__help { margin-top: 16px; font-size: 14px; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 @media (max-width: 560px) { .launch__i p { margin-left: 0; } }
+.studio__sub { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
+.studio__lead { margin: 0; max-width: 760px; }
+.uso__areas { display: flex; flex-wrap: wrap; max-width: 100%; }
+.uso { width: 100%; max-width: 860px; border-collapse: collapse; font-size: 14px; }
+.uso th, .uso td { padding: 10px 8px; border-bottom: 1px solid var(--line); text-align: left; font-weight: 400; vertical-align: middle; }
+.uso thead th { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.uso tbody th { display: grid; gap: 6px; }
+.uso__label { color: var(--ink); }
+.uso__bar { display: block; height: 4px; background: var(--surface-2); max-width: 420px; }
+.uso__bar i { display: block; height: 100%; background: var(--ink-2); }
+.uso__n { text-align: right !important; width: 84px; white-space: nowrap; }
 
 /* ---- Etapa 6 · entrega 1: convites ----------------------------------------------------------- */
 .invform { display: grid; grid-template-columns: minmax(0, 1fr) 150px 150px auto; gap: 10px; align-items: end; max-width: 860px; }

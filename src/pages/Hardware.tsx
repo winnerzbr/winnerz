@@ -8,6 +8,7 @@ import { Sheet, ConfirmButton } from '../components/Sheet';
 import { Icon } from '../components/Icon';
 import { PLATFORM_NAMES, canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 import { KindIcon, hueOf } from '../components/HardwareArt';
+import { setupNote } from '../lib/setupNote';
 
 const KINDS: { k: HardwareKind; label: string; plural: string }[] = [
   { k: 'console', label: 'Console', plural: 'Consoles' },
@@ -42,7 +43,7 @@ export function HardwarePage() {
         </div>
       </header>
 
-      {!v14 && <div className="card tl-empty"><p className="muted">Para guardar consoles e acessórios, rode a migração 0014 no Supabase (SQL Editor → colar → Run).</p></div>}
+      {!v14 && <div className="card tl-empty"><p className="muted">{setupNote('Para guardar consoles e acessórios, rode a migração 0014 no Supabase (SQL Editor → colar → Run).')}</p></div>}
 
       {v14 && !list.length && (
         <button className="hw-empty" onClick={() => setOpen('novo')}>

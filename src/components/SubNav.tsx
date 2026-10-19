@@ -1,7 +1,9 @@
 import { Link, usePath } from '../lib/router';
+import { useStore } from '../data/store';
+import { FEATURES } from '../lib/features';
 
 /** O menu principal mostra só os pilares; dentro de cada pilar, esta barra leva às partes dele. */
-const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]> = {
+const SECTIONS: Record<string, { to: string; label: string; also?: string[]; adminOnly?: boolean }[]> = {
   colecao: [
     { to: '/colecao', label: 'Estante' },
     { to: '/colecao/consoles', label: 'Consoles' },
@@ -22,13 +24,15 @@ const SECTIONS: Record<string, { to: string; label: string; also?: string[] }[]>
     { to: '/jogos', label: 'Buscar' },
     { to: '/jogos/explorar', label: 'Explorar' },
     { to: '/jogos/radar', label: 'Radar' },
-    { to: '/jogos/trilhas', label: 'Trilhas', also: ['/jogos/trilhas/'] },
+    { to: '/jogos/trilhas', label: 'Trilhas', also: ['/jogos/trilhas/'], adminOnly: !FEATURES.trilhas },
   ],
 };
 
 export function SubNav({ pillar }: { pillar: keyof typeof SECTIONS }) {
   const path = usePath().split('?')[0].replace(/\/+$/, '') || '/';
-  const items = SECTIONS[pillar];
+  const isAdmin = useStore((s) => !!s.isAdmin);
+  // Trilhas escondidas por enquanto (lib/features.ts): só a administração vê, para montar a primeira.
+  const items = SECTIONS[pillar]?.filter((i) => !i.adminOnly || isAdmin);
   if (!items || items.length < 2) return null;
   return (
     <nav className="subnav" aria-label="Seções">

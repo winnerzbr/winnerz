@@ -4,6 +4,7 @@
  */
 import { getState } from './store';
 import { DEMO_PEOPLE, demoActivity, demoFollowing, demoFollowsMe, demoPerson, demoRemoveFollower, demoSetFollow } from './demoPeople';
+import { setupNote } from '../lib/setupNote';
 
 export interface FollowState { following: boolean; followedBy: boolean; followers: number; followingCount: number; blocked: boolean; self: boolean }
 export interface Person { id: string; handle: string | null; avatar?: string | null; bio?: string | null; at: string; mutual: boolean }
@@ -22,7 +23,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/follow_|my_people|friends_activity|remove_follower|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0025 no Supabase.');
+    if (/follow_|my_people|friends_activity|remove_follower|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0025 no Supabase.'));
     throw new Error(m);
   }
   return r.data;

@@ -17,6 +17,7 @@ import { durLabel, hourMin, dayMonth } from '../lib/format';
 import { CoverArt } from './CoverArt';
 import { Icon } from './Icon';
 import type { Game } from '../data/types';
+import { setupNote } from '../lib/setupNote';
 
 const EVERY = 15 * 60_000;
 
@@ -208,7 +209,7 @@ export function BridgeSettings() {
   if (!b && mode === 'supabase') return (
     <section aria-labelledby="pontes" className="prefs__section">
       <h2 id="pontes" className="t">Pontes</h2>
-      <p className="muted prefs__p">Falta rodar a migração 0039 no Supabase para ligar a Steam e o RetroAchievements.</p>
+      <p className="muted prefs__p">{setupNote('Falta rodar a migração 0039 no Supabase para ligar a Steam e o RetroAchievements.')}</p>
     </section>
   );
   return (

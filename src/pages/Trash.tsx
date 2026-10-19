@@ -4,6 +4,7 @@ import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
 import { ConfirmButton } from '../components/Sheet';
 import { shortPlatform } from '../lib/platforms';
+import { setupNote } from '../lib/setupNote';
 
 const DAYS = 30;
 const left = (iso: string) => Math.max(0, Math.ceil((Date.parse(iso) + DAYS * 86400000 - Date.now()) / 86400000));
@@ -27,7 +28,7 @@ export function TrashPage() {
         <div className="page-head__side"><SubNav pillar="colecao" /></div>
       </header>
 
-      {!v14 && <div className="card tl-empty"><p className="muted">A lixeira chega com a migração 0014 no Supabase. Até lá, tirar da coleção apaga na hora.</p></div>}
+      {!v14 && <div className="card tl-empty"><p className="muted">{setupNote('A lixeira chega com a migração 0014 no Supabase. Até lá, tirar da coleção apaga na hora.')}</p></div>}
       {v14 && !total && <div className="card tl-empty"><p className="muted">A lixeira está vazia. <Link to="/colecao">Voltar para a estante</Link></p></div>}
 
       {total > 0 && (

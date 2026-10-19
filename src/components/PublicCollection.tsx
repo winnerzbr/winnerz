@@ -39,7 +39,7 @@ export function PublicCollection({ handle, k, c }: { handle: string; k: string |
         {c.platforms.map((p) => <button key={p.platform} className="chip" aria-pressed={plat === p.platform} onClick={() => setPlat(plat === p.platform ? null : p.platform)}>{shortPlatform(p.platform)} <small>{p.n}</small></button>)}
       </div>
       {all === undefined && c.count > c.items.length && <p className="faint pcol__note">Carregando a coleção inteira…</p>}
-      {partial && <p className="faint pcol__note">Mostrando as {c.items.length} mais recentes. (Para ver todas aqui, o dono do perfil precisa rodar a migração 0017 no Supabase.)</p>}
+      {partial && <p className="faint pcol__note">Mostrando as {c.items.length} mais recentes.</p>}
       {list.length === 0 ? <p className="muted">Nenhum jogo {q ? `com “${q}”` : 'nesta plataforma'}.</p> : (
         <ul className="pp-grid pp-grid--dense">
           {list.slice(0, shown).map((g, i) => (

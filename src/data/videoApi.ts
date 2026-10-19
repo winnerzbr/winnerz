@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { getState, useStore } from './store';
 import { ytParse, type PartVideo } from '../lib/ytLink';
+import { setupNote } from '../lib/setupNote';
 
 export interface VideoState { videos: PartVideo[]; job?: 'rodando' | 'feito' | 'sem_video' | 'erro' | null; jobNote?: string | null; canEdit?: boolean; admin?: boolean }
 
@@ -26,8 +27,8 @@ const nice = (e: unknown) => {
   const m = e instanceof Error ? e.message : String((e as { message?: string })?.message ?? e);
   const k = Object.keys(MSG).find((x) => m.includes(x));
   if (k) return new Error(MSG[k]);
-  if (/part_video_hide/i.test(m)) return new Error('Falta rodar a migração 0064 no Supabase.');
-  if (/part_videos|part_video_set|function .* does not exist|PGRST202/i.test(m)) return new Error('Falta rodar a migração 0063 no Supabase.');
+  if (/part_video_hide/i.test(m)) return new Error(setupNote('Falta rodar a migração 0064 no Supabase.'));
+  if (/part_videos|part_video_set|function .* does not exist|PGRST202/i.test(m)) return new Error(setupNote('Falta rodar a migração 0063 no Supabase.'));
   return new Error('Não deu agora. Tente de novo.');
 };
 const client = async () => (await import('./supabaseAdapter')).getClient();

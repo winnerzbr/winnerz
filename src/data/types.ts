@@ -334,9 +334,6 @@ export interface Prefs {
   /** Revisão do backlog: o trimestre ("2026-T4") e quando foi feita ou dispensada. */
   review?: { quarter: string; at: string; how: 'feita' | 'dispensada' };
   /** Desafio semanal sem punição: o convite desta semana, as semanas cumpridas e se a pessoa desligou. */
-  weekly?: import('../lib/weekly').WeeklyPick;
-  weeklyDone?: string[];
-  weeklyOff?: boolean;
 }
 
 /** Comunidade: aparecer em "Novos por aqui", mostrar o jogo ao lado do nome e quais avisos receber. */
@@ -422,6 +419,8 @@ export interface State {
   isGuest?: boolean;
   /** O site está aberto ao público, segundo o banco (migração 0076). Sem a migração, vale VITE_SITE_PRIVATE. */
   siteOpen?: boolean;
+  /** Qualquer pessoa pode criar comunidade? (migração 0077). Sem a migração fica indefinido e vale como antes. */
+  communitiesOpen?: boolean;
   /** Parte dos dados não carregou (rede); ações em massa ficam bloqueadas até recarregar. */
   loadIncomplete?: boolean;
 }

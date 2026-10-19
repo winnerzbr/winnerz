@@ -17,6 +17,8 @@ export interface CommunityHits {
   listas: GameList[];
 }
 export const EMPTY_HITS: CommunityHits = { pessoas: [], comunidades: [], conversas: [], clubes: [], jogatinas: [], listas: [] };
+import { FEATURES } from '../lib/features';
+
 const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 export const searchApi = {
@@ -37,6 +39,8 @@ export const searchApi = {
     }
     if (!s.profile) return EMPTY_HITS;
     const r = await (await import('./supabaseAdapter')).getClient().then((c) => c.rpc('search_community', { p_q: q, p_limit: limit }));
-    return r.error ? EMPTY_HITS : ({ ...EMPTY_HITS, ...(r.data as CommunityHits) });
+    if (r.error) return EMPTY_HITS;
+    const hits = { ...EMPTY_HITS, ...(r.data as CommunityHits) };
+    return FEATURES.clubes ? hits : { ...hits, clubes: [] };
   },
 };

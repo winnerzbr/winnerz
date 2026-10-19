@@ -10,6 +10,7 @@ import { CoverArt } from '../components/CoverArt';
 import { weekSummary, anniversaries, rhythm, globalTimeline, type GlobalItem } from '../lib/memory';
 import { whenLabel } from '../lib/dates';
 import { track } from '../lib/track';
+import { FEATURES } from '../lib/features';
 
 const plural = (n: number, one: string, many: string) => `${n.toLocaleString('pt-BR')} ${n === 1 ? one : many}`;
 const hm = (min: number) => (min < 60 ? `${min} min` : `${Math.floor(min / 60)}h${min % 60 ? String(min % 60).padStart(2, '0') : ''}`);
@@ -238,7 +239,7 @@ export function RhythmPage() {
           </div>
         </>
       )}
-      <PactList />
+      {FEATURES.pactos && <PactList />}
       <SeasonsSection />
     </main>
   );

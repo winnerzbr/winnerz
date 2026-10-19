@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import { getState, useStore } from './store';
 import type { PersonRef } from './communityApi';
+import { FEATURES } from '../lib/features';
 
 export type Presence = { online: boolean; game: { id?: string | null; slug?: string | null; title: string; cover?: string | null; since?: string; via?: string } | null };
 export type FriendNow = { person: PersonRef; presence: Presence };
@@ -38,7 +39,7 @@ export const presenceApi = {
 
 /** Batimento: a cada 2 minutos com a aba visível, só para quem ligou a presença. */
 export function usePresencePing() {
-  const enabled = useStore((s) => s.mode === 'supabase' && !!s.profile && s.prefs.comunidade?.presenca === 'amigos');
+  const enabled = useStore((s) => s.mode === 'supabase' && !!s.profile && s.prefs.comunidade?.presenca === 'amigos') && FEATURES.presenca;
   useEffect(() => {
     if (!enabled) return;
     void presenceApi.ping();
@@ -50,7 +51,7 @@ export function usePresencePing() {
 }
 
 export function usePresenceOf(handle?: string | null): Presence | null {
-  const enabled = useStore((s) => s.prefs.comunidade?.presenca === 'amigos');
+  const enabled = useStore((s) => s.prefs.comunidade?.presenca === 'amigos') && FEATURES.presenca;
   const [p, setP] = useState<Presence | null>(null);
   useEffect(() => {
     if (!handle || !enabled) { setP(null); return; }
@@ -64,7 +65,7 @@ export function usePresenceOf(handle?: string | null): Presence | null {
 }
 
 export function useFriendsNow(): FriendNow[] | null {
-  const enabled = useStore((s) => s.prefs.comunidade?.presenca === 'amigos');
+  const enabled = useStore((s) => s.prefs.comunidade?.presenca === 'amigos') && FEATURES.presenca;
   const [l, setL] = useState<FriendNow[] | null>(null);
   useEffect(() => {
     if (!enabled) { setL(null); return; }

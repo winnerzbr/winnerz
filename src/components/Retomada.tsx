@@ -10,6 +10,7 @@ import { shrink, toDataUrl } from '../lib/image';
 import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 import { track } from '../lib/track';
+import { setupNote } from '../lib/setupNote';
 
 export const CAPSULE_FIELDS: { key: keyof Omit<Capsule, 'ai' | 'updatedAt'>; label: string; hint: string }[] = [
   { key: 'where', label: 'Onde estou', hint: 'Ex.: Capítulo 4, na entrada do castelo' },
@@ -169,7 +170,7 @@ export function CapsuleSheet({ historyId, gameTitle, onClose }: { historyId: ID;
         {err && <p className="awards__error" role="alert">{err}</p>}
       </section>
 
-      {!canSave && <p className="awards__error">Falta rodar a migração 0008 no Supabase para guardar a Cápsula.</p>}
+      {!canSave && <p className="awards__error">{setupNote('Falta rodar a migração 0008 no Supabase para guardar a Cápsula.')}</p>}
       <div className="sheet__actions">
         <button className="btn primary lg" disabled={!canSave} onClick={save}>{inferred.size ? 'Confirmar e guardar' : 'Guardar'}</button>
         <button className="btn quiet" onClick={onClose}>Cancelar</button>

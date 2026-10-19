@@ -31,6 +31,7 @@ import { Backdrop } from '../components/Backdrop';
 import { GameConversations } from '../components/Posts';
 import { GameClubs } from './Clubs';
 import { GameCommunity } from './Communities';
+import { setupNote } from '../lib/setupNote';
 
 /** Fichas guardadas antes da tradução e dos vídeos são atualizadas uma vez por visita. */
 const refreshed = new Set<string>();
@@ -159,14 +160,14 @@ function GameView({ gameId }: { gameId: string }) {
                 <button className="btn ghost" aria-pressed={wished} onClick={() => actions.toggleWish(gameId)}><Icon name="desejo" size={15} fill={wished ? 'currentColor' : 'none'} />{wished ? 'Nos seus desejos' : 'Desejar'}</button>
               )}
               {g.igdbId && (upcoming || mine2.onRadar) && (
-                <button className={`btn ghost${mine2.onRadar ? ' is-radar' : ''}`} aria-pressed={!!mine2.onRadar} disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(gameId)}>
+                <button className={`btn ghost${mine2.onRadar ? ' is-radar' : ''}`} aria-pressed={!!mine2.onRadar} disabled={!canTrack} title={canTrack ? undefined : setupNote('Disponível depois da migração 0006')} onClick={() => actions.toggleRadar(gameId)}>
                   <Icon name="radar" size={15} />{mine2.onRadar ? 'No Radar' : 'Acompanhar no Radar'}
                 </button>
               )}
               <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost icon" iconOnly />
               <MoreActions className="btn ghost icon" label="Mais ações" align="left" items={[
                 { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { if (mine) setEditing(true); document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' }); } },
-                ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006', onSelect: () => { actions.toggleRadar(gameId); } }] : []),
+                ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : setupNote('Disponível depois da migração 0006'), onSelect: () => { actions.toggleRadar(gameId); } }] : []),
                 ...(mine2.onRadar ? [{ key: 'verradar', icon: 'radar', label: 'Ver o Radar', onSelect: () => navigate('/jogos/radar') }] : []),
                 ...(!h || h.state !== 'ativa' ? [{ key: 'nao', icon: 'fechar', on: !!mine2.wontPlay, label: mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: () => { actions.toggleWontPlay(gameId); } }] : []),
                 { key: 'link', icon: 'avancar', label: 'Copiar o link da ficha', onSelect: () => { void navigator.clipboard?.writeText(location.origin + '/jogos/' + g.slug); } },

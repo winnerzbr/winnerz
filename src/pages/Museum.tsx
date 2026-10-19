@@ -11,6 +11,7 @@ import { ExhibitView, RoomView } from '../components/MuseumView';
 import { MuseumTour } from '../components/MuseumTour';
 import { ROOM_MODELS, exhibitOf, roomExhibits, suggestedRooms } from '../lib/museum';
 import { shrink, toDataUrl } from '../lib/image';
+import { setupNote } from '../lib/setupNote';
 
 /** Texto que só grava quando você sai do campo (sem gravar a cada letra). */
 function Commit({ value, onCommit, multiline, className, placeholder, max, label }: { value: string; onCommit: (v: string) => void; multiline?: boolean; className?: string; placeholder?: string; max: number; label: string }) {
@@ -60,7 +61,7 @@ export function MuseumPage() {
     return (
       <main className="page pad museum">
         <MuseumHead editing={false}><SubNav pillar="colecao" /></MuseumHead>
-        <div className="card tl-empty"><p className="muted">Para montar o Museu, rode a migração 0015 no Supabase (SQL Editor → colar → Run).</p></div>
+        <div className="card tl-empty"><p className="muted">{setupNote('Para montar o Museu, rode a migração 0015 no Supabase (SQL Editor → colar → Run).')}</p></div>
       </main>
     );
   }
@@ -194,7 +195,7 @@ function RoomEditor({ room, index, first, last, onMove }: { room: MuseumRoom; in
     const id = uid();
     if (s.mode === 'supabase') {
       const sb = await import('../data/supabaseAdapter');
-      if (!sb.photoStorageReady() || !s.profile) { setMsg('As fotos precisam da migração 0003 no Supabase.'); return; }
+      if (!sb.photoStorageReady() || !s.profile) { setMsg(setupNote('As fotos precisam da migração 0003 no Supabase.')); return; }
       const path = `${s.profile.id}/museu-${id}.jpg`;
       const piece: MuseumPiece = { t: 'f', id, path, image: URL.createObjectURL(blob) };
       actions.saveRoom({ ...room, pieces: [...room.pieces, piece] });

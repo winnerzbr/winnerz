@@ -12,6 +12,7 @@ import { backdropCandidates } from '../lib/backdrop';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { recordPastNow } from '../components/PastPlay';
 import { useFavoriteBurst, CoverEnergy } from '../components/FavoriteCover';
+import { setupNote } from '../lib/setupNote';
 
 const hitOf = (g: Game): Hit => ({ igdbId: g.igdbId, slug: g.slug, title: g.title, year: g.year, cover: g.cover, platforms: g.platforms, local: g });
 
@@ -201,7 +202,7 @@ function useGameActions(hit: Hit, say: (t: string) => void) {
     say(was ? 'Tirado dos desejos.' : 'Nos seus desejos.');
   };
   const moreItems: MoreItem[] = [
-    { key: 'radar', icon: 'radar', on: onRadar, label: onRadar ? 'No Radar (deixar de acompanhar)' : 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : 'Disponível depois da migração 0006',
+    { key: 'radar', icon: 'radar', on: onRadar, label: onRadar ? 'No Radar (deixar de acompanhar)' : 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : setupNote('Disponível depois da migração 0006'),
       onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const on = actions.toggleRadar(gid); say(on ? 'Acompanhando no Radar.' : 'Fora do Radar.'); } },
     { key: 'zerei', icon: 'check', label: 'Já zerei', onSelect: async () => { const gid = await ensure('more'); if (gid) recordPastNow(gid); } },
     { key: 'nao', icon: 'fechar', on: wontPlay, label: wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: async () => { const gid = await ensure('more'); if (!gid) return; const v = actions.toggleWontPlay(gid); say(v ? 'Marcado como “não vou jogar”.' : 'Desmarcado.'); } },

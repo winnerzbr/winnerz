@@ -25,6 +25,7 @@ export type Action =
   | { type: 'profile.avatar'; url: string | null }
   | { type: 'site.guest'; value: boolean }
   | { type: 'site.open'; value: boolean }
+  | { type: 'site.communities'; value: boolean }
   | { type: 'journey.share'; journeyId: ID; shared: boolean }
   | { type: 'favorite'; gameId: ID; value: boolean }
   | { type: 'wish'; gameId: ID; value: boolean }
@@ -131,6 +132,8 @@ function reduce(s: State, a: Action): State {
       return { ...s, isGuest: a.value };
     case 'site.open':
       return { ...s, siteOpen: a.value };
+    case 'site.communities':
+      return { ...s, communitiesOpen: a.value };
     case 'profile.avatar':
       return s.profile ? { ...s, profile: { ...s.profile, avatar: a.url } } : s;
     case 'prefs':
@@ -542,6 +545,7 @@ export const actions = {
   setProfileAvatar(url: string | null) { dispatch({ type: 'profile.avatar', url }); },
   setGuest(value: boolean) { dispatch({ type: 'site.guest', value }); },
   setSiteOpen(value: boolean) { dispatch({ type: 'site.open', value }); },
+  setCommunitiesOpen(value: boolean) { dispatch({ type: 'site.communities', value }); },
   /** Mostrar (ou esconder) uma Jornada no perfil público. */
   shareJourney(journeyId: ID, shared: boolean) { dispatch({ type: 'journey.share', journeyId, shared }); },
 

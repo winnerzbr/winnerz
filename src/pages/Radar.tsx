@@ -11,6 +11,7 @@ import { shortPlatform } from '../lib/platforms';
 import { accessToken } from '../data/supabaseAdapter';
 import { track } from '../lib/track';
 import { MascoteVazio, Cameo } from '../components/IAmiguinho';
+import { setupNote } from '../lib/setupNote';
 
 export function radarGames(s: State): Game[] {
   return Object.values(s.myGames).filter((m) => m.onRadar && s.games[m.gameId]).map((m) => s.games[m.gameId]);
@@ -104,7 +105,7 @@ export function RadarPage() {
                         <Link to={`/jogos/${g.slug}`} className="t rcard__title">{g.title}</Link>
                         <span className="muted">{[(i?.platforms.length ? i.platforms : g.platforms).slice(0, 3).map(shortPlatform).join(', '), i?.label || 'Data ainda não conferida'].filter(Boolean).join(' · ')}</span>
                       </div>
-                      <button className="btn primary rcard__btn" disabled={!canTrack} title={canTrack ? undefined : 'Disponível depois da migração 0006'} onClick={() => actions.toggleRadar(g.id)}><span className="rcard__dot" aria-hidden="true" />Acompanhar</button>
+                      <button className="btn primary rcard__btn" disabled={!canTrack} title={canTrack ? undefined : setupNote('Disponível depois da migração 0006')} onClick={() => actions.toggleRadar(g.id)}><span className="rcard__dot" aria-hidden="true" />Acompanhar</button>
                     </li>
                   );
                 })}

@@ -10,6 +10,7 @@ import { demoGames } from './demo';
 import { SUPABASE_URL } from '../lib/env';
 import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
+import { setupNote } from '../lib/setupNote';
 
 export type PackKind = 'onix' | 'prisma';
 export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo' | 'twitch';
@@ -88,18 +89,18 @@ const MSG: Record<string, string> = {
   code_taken: 'Já existe um código igual.',
   code_dates: 'O fim precisa ser depois do começo.',
 };
-const MIGRATION = 'Falta rodar a migração 0053 no Supabase.';
+const MIGRATION = () => setupNote('Falta rodar a migração 0053 no Supabase.');
 const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
   if (r.error) {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/album_welcome_pack/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0057 no Supabase.');
-    if (/album_drop|studio_drop/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0067 no Supabase.');
-    if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0066 no Supabase.');
-    if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0056 no Supabase.');
-    if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0055 no Supabase.');
-    if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION);
+    if (/album_welcome_pack/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0057 no Supabase.'));
+    if (/album_drop|studio_drop/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0067 no Supabase.'));
+    if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0066 no Supabase.'));
+    if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0056 no Supabase.'));
+    if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0055 no Supabase.'));
+    if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
     if (/violates check constraint/i.test(m)) throw new Error('Algum campo está fora do formato. Confira nome, número e textos.');
     throw new Error(m);
   }
@@ -280,7 +281,7 @@ export const albumApi = {
       void reloadAlbum().catch(() => {});
       return p;
     } catch (e) {
-      if (e instanceof Error && /0053/.test(e.message)) throw new Error('Falta rodar a migração 0057 no Supabase.');
+      if (e instanceof Error && /0053/.test(e.message)) throw new Error(setupNote('Falta rodar a migração 0057 no Supabase.'));
       throw e;
     }
   },
@@ -361,7 +362,7 @@ export const studioAlbumApi = {
     if (!supa()) return await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(blob); });
     const path = `t1/${Date.now().toString(36)}-${rid()}.jpg`;
     const { error } = await (await client()).storage.from('album').upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
-    if (error) throw new Error(/row-level|policy|not authorized/i.test(error.message) ? 'Só a administração envia artes do álbum.' : /bucket/i.test(error.message) ? MIGRATION : error.message);
+    if (error) throw new Error(/row-level|policy|not authorized/i.test(error.message) ? 'Só a administração envia artes do álbum.' : /bucket/i.test(error.message) ? MIGRATION() : error.message);
     return path;
   },
   async packs(view: StudioView): Promise<StudioPack[]> {

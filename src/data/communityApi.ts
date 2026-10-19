@@ -4,12 +4,13 @@
  * comunidades e conversas de exemplo (@duda, @carol e @rafa).
  */
 import { useSyncExternalStore } from 'react';
-import { getState } from './store';
+import { getState, useStore } from './store';
 import { demoGames } from './demo';
 import { DEMO_PEOPLE, demoFollowing, demoIsFriend } from './demoPeople';
 import type { CommunityPrefs } from './types';
 import { SUPABASE_URL } from '../lib/env';
 import { mentionsOf } from '../lib/postText';
+import { setupNote } from '../lib/setupNote';
 
 export type PostKind = 'discussao' | 'pergunta' | 'dica' | 'colecao' | 'clipe' | 'enquete' | 'aquisicao';
 export type SpoilerLevel = 'inicio' | 'meio' | 'final';
@@ -140,6 +141,7 @@ const MSG: Record<string, string> = {
   name_invalid: 'O nome precisa ter de 3 a 48 caracteres.',
   text_offensive: 'O texto tem uma palavra que não pode.',
   community_limit: 'Você já criou 3 comunidades hoje. Volte amanhã.',
+  community_admin_only: 'Por enquanto, só a administração do WinnerZ cria comunidades. Sugira uma na Praça.',
   not_owner: 'Só quem criou a comunidade pode fazer isso.',
   owner_leave: 'Quem criou a comunidade não pode sair dela.',
   official_only: 'Na comunidade oficial, só o canal publica. Dá para responder às postagens.',
@@ -189,10 +191,10 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     const m = r.error.message;
     const k = Object.keys(MSG).find((x) => m.includes(x));
     if (k) throw new Error(MSG[k]);
-    if (/community_hide|community_mod|community_door|community_similar|game_communities|admin_community/i.test(m)) throw new Error('Falta rodar a migração 0035 no Supabase.');
-    if (/praca_feed|praca_side|poll_vote|post_save|post_follow|post_read|p_poll/i.test(m)) throw new Error('Falta rodar a migração 0030 no Supabase.');
-    if (/p_spoiler_note|my_community_data|reactions_kind_check|club_messages_of/i.test(m)) throw new Error('Falta rodar a migração 0029 no Supabase.');
-    if (/communit|post_|reply_|react|game_posts|my_reply_news|replies_seen|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error('Falta rodar a migração 0026 no Supabase.');
+    if (/community_hide|community_mod|community_door|community_similar|game_communities|admin_community/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0035 no Supabase.'));
+    if (/praca_feed|praca_side|poll_vote|post_save|post_follow|post_read|p_poll/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0030 no Supabase.'));
+    if (/p_spoiler_note|my_community_data|reactions_kind_check|club_messages_of/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0029 no Supabase.'));
+    if (/communit|post_|reply_|react|game_posts|my_reply_news|replies_seen|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0026 no Supabase.'));
     throw new Error(m);
   }
   return fixAuthors(r.data);
@@ -414,7 +416,7 @@ export const communityApi = {
     if (!uid) throw new Error(MSG.not_logged);
     const path = `${uid}/${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}.${blob.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
     const { error } = await (await client()).storage.from('comunidade').upload(path, blob, { contentType: blob.type, upsert: false, cacheControl: '31536000' });
-    if (error) throw new Error(/bucket/i.test(error.message) ? 'Falta rodar a migração 0026 no Supabase.' : 'Não deu para enviar a imagem agora.');
+    if (error) throw new Error(/bucket/i.test(error.message) ? setupNote('Falta rodar a migração 0026 no Supabase.') : 'Não deu para enviar a imagem agora.');
     return path;
   },
   removeImages: (paths: string[]) => removeImages(paths),
@@ -938,4 +940,10 @@ async function demoMyData(): Promise<Record<string, unknown>> {
     ...jogs,
     reacoes: Object.entries(db.reacts).flatMap(([k, v]) => v.mine.map((kind) => ({ em: k.split(':')[0], id: k.split(':')[1], reacao: kind }))),
   };
+}
+
+/** Quem pode criar comunidade agora (migração 0077): a administração sempre; as outras pessoas só quando o Studio liberar. */
+export function useCanCreateCommunity(): boolean {
+  // Sem a migração 0077 (communitiesOpen indefinido no banco), vale como antes: qualquer pessoa cria.
+  return useStore((s) => !!s.isAdmin || s.communitiesOpen === true || (s.mode === 'supabase' && s.communitiesOpen === undefined));
 }

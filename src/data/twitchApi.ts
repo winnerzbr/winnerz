@@ -3,6 +3,7 @@
  * autorizar o canal e escolher a recompensa. O resto acontece no servidor (/api/pontes), quando a Twitch avisa.
  */
 import { getState } from './store';
+import { setupNote } from '../lib/setupNote';
 
 export interface MyTwitch { linked: { login: string; display: string | null; at: string } | null; reward: string | null; channel: string | null; packs: number }
 export interface StudioTwitch {
@@ -12,10 +13,10 @@ export interface StudioTwitch {
 
 const supa = () => getState().mode === 'supabase';
 const client = async () => (await import('./supabaseAdapter')).getClient();
-const MIG = 'Falta rodar a migração 0069 no Supabase.';
+const MIG = () => setupNote('Falta rodar a migração 0069 no Supabase.');
 async function rpc<T>(fn: string, args?: Record<string, unknown>): Promise<T> {
   const r = await (await client()).rpc(fn, args);
-  if (r.error) throw new Error(/not find|does not exist|schema cache/i.test(r.error.message) ? MIG : /not_admin/.test(r.error.message) ? 'Só a administração pode fazer isso.' : r.error.message);
+  if (r.error) throw new Error(/not find|does not exist|schema cache/i.test(r.error.message) ? MIG() : /not_admin/.test(r.error.message) ? 'Só a administração pode fazer isso.' : r.error.message);
   return r.data as T;
 }
 async function api(body: Record<string, unknown>): Promise<any> {

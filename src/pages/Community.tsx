@@ -4,7 +4,7 @@ import { Link, navigate, usePath } from '../lib/router';
 import { useStore } from '../data/store';
 import { socialApi, type Activity } from '../data/socialApi';
 import {
-  PATHS, communityApi, postHref, postTitle, refreshNews,
+  PATHS, communityApi, useCanCreateCommunity, postHref, postTitle, refreshNews,
   type Community, type Post, type PracaPath, type PracaSide,
 } from '../data/communityApi';
 import { clubApi, type Club } from '../data/clubApi';
@@ -20,8 +20,15 @@ import { ClubTile } from './Clubs';
 import { JogatinaTile } from './Jogatina';
 import { whenLabel } from '../lib/when';
 import { clearDraft, readDraft, useDraft, writeDraft } from '../lib/draft';
+import { FEATURES } from '../lib/features';
 
-const isPath = (x: string | null): x is PracaPath => !!x && PATHS.some((p) => p.k === x);
+/**
+ * Enquanto o site é pequeno, a Praça mostra só os caminhos que já têm o que mostrar (Etapa 1 da revisão).
+ * Amigos, Discussões e Novos por aqui voltam quando houver gente; o código deles continua aqui.
+ */
+const HIDDEN_PATHS: PracaPath[] = ['amigos', 'discussoes', 'novos'];
+const SHOWN = PATHS.filter((p) => !HIDDEN_PATHS.includes(p.k));
+const isPath = (x: string | null): x is PracaPath => !!x && SHOWN.some((p) => p.k === x);
 const errOf = (e: unknown) => (e instanceof Error ? e.message : 'Não deu certo agora.');
 const greeting = () => { const h = Number(new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' })); return h < 5 ? 'Boa noite' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'; };
 const today = () => new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' });
@@ -31,6 +38,7 @@ const today = () => new Date().toLocaleDateString('pt-BR', { weekday: 'long', da
  * No celular: os blocos de atalho em cima e os caminhos numa fileira que rola.
  */
 export function CommunityPage() {
+  const canCreate = useCanCreateCommunity();
   const path = usePath();
   const mode = useStore((s) => s.mode);
   const signed = useStore((s) => !!s.profile);
@@ -71,7 +79,7 @@ export function CommunityPage() {
       <div className="page praca__grid">
         <aside className="praca__rail" aria-label="Caminhos da Praça">
           <nav className="praca__paths">
-            {PATHS.map((p) => (
+            {SHOWN.map((p) => (
               <button key={p.k} className={`praca__path${cam === p.k ? ' is-on' : ''}`} aria-current={cam === p.k ? 'page' : undefined} onClick={() => setCam(p.k)}>
                 <Icon name={p.icon} size={17} /><span>{p.label}</span>
                 {p.k === 'jogatinas' && encontros.length > 0 && <small className="mono">{encontros.length}</small>}
@@ -93,8 +101,8 @@ export function CommunityPage() {
             </div>
           )}
           <div className="praca__railsec praca__raillinks">
-            <Link to="/comunidade/criar">Criar comunidade</Link>
-            <Link to="/comunidade/clubes">Clubes</Link>
+            {canCreate && <Link to="/comunidade/criar">Criar comunidade</Link>}
+            {FEATURES.clubes && <Link to="/comunidade/clubes">Clubes</Link>}
             <Link to="/comunidade/pessoas">Pessoas</Link>
             <Link to="/listas">Listas</Link>
           </div>
@@ -107,9 +115,9 @@ export function CommunityPage() {
           </header>
           <Away activity={activity} encontros={encontros} />
           <QuickComposer onPosted={() => setTick((t) => t + 1)} />
-          <Tiles cam={cam} setCam={setCam} encontros={encontros} activity={activity} />
+          <Tiles cam={cam} setCam={setCam} encontros={encontros} />
           <nav className="praca__chips" aria-label="Caminhos">
-            {PATHS.map((p) => <button key={p.k} className={`chip${cam === p.k ? ' is-on' : ''}`} aria-pressed={cam === p.k} onClick={() => setCam(p.k)}>{p.label}</button>)}
+            {SHOWN.map((p) => <button key={p.k} className={`chip${cam === p.k ? ' is-on' : ''}`} aria-pressed={cam === p.k} onClick={() => setCam(p.k)}>{p.label}</button>)}
           </nav>
           <p className="praca__why">{info.why}</p>
           {cam === 'comunidades' ? <CommunitiesPath /> : cam === 'jogatinas' ? <JogatinasPath jogs={clubs ? encontros : null} clubs={clubs?.all ?? []} /> : (
@@ -281,10 +289,9 @@ function QuickComposer({ onPosted }: { onPosted: () => void }) {
 /* ------------------------------------------------------------------ */
 /* Celular: blocos de atalho                                            */
 /* ------------------------------------------------------------------ */
-function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (k: PracaPath) => void; encontros: Jogatina[]; activity: Activity[] }) {
+function Tiles({ cam, setCam, encontros }: { cam: PracaPath; setCam: (k: PracaPath) => void; encontros: Jogatina[] }) {
   const fresh = useNotifCount()?.unread ?? 0;
   const next = encontros[0];
-  const playing = [...new Map(activity.filter((a) => a.kind === 'jogando').map((a) => [a.handle, a])).values()].slice(0, 3);
   return (
     <div className="praca__tiles" aria-label="Atalhos">
       <button className={`praca__tile praca__tile--cool${cam === 'jogatinas' ? ' is-on' : ''}`} onClick={() => setCam('jogatinas')}>
@@ -295,9 +302,9 @@ function Tiles({ cam, setCam, encontros, activity }: { cam: PracaPath; setCam: (
         <span className="kicker">Para você</span>
         <small>{fresh ? `${fresh} ${fresh === 1 ? 'novidade' : 'novidades'} para você` : 'As conversas que têm a ver com você'}</small>
       </button>
-      <button className={`praca__tile${cam === 'amigos' ? ' is-on' : ''}`} onClick={() => setCam('amigos')}>
-        <span className="kicker">Amigos</span>
-        {playing.length ? <><span className="praca__faces">{playing.map((a) => <PersonAvatar key={a.handle} p={{ id: a.handle, handle: a.handle, avatar: a.avatar }} size={24} />)}</span><small>{playing.length === 1 ? '1 jogando' : `${playing.length} jogando`}</small></> : <small className="faint">O que os amigos postam</small>}
+      <button className={`praca__tile${cam === 'comunidades' ? ' is-on' : ''}`} onClick={() => setCam('comunidades')}>
+        <span className="kicker">Comunidades</span>
+        <small className="faint">Os espaços por assunto</small>
       </button>
       <button className={`praca__tile praca__tile--mint${cam === 'seguindo' ? ' is-on' : ''}`} onClick={() => setCam('seguindo')}>
         <span className="kicker">Seguindo</span>
@@ -345,6 +352,7 @@ function Feed({ path }: { path: PracaPath }) {
 }
 
 function CommunitiesPath() {
+  const canCreate = useCanCreateCommunity();
   const [all, setAll] = useState<Community[] | null>(null);
   useEffect(() => { communityApi.list().then(setAll).catch(() => setAll([])); }, []);
   if (all == null) return <p className="faint">Carregando…</p>;
@@ -352,7 +360,7 @@ function CommunitiesPath() {
   return (
     <div className="praca__comms">
       <div className="cm-tiles">{sorted.map((c) => <CommunityTile key={c.id} c={c} />)}</div>
-      <div className="praca__commacts"><Link className="btn ghost sm" to="/comunidade/comunidades">Buscar comunidades</Link><Link className="btn primary sm" to="/comunidade/criar">Criar comunidade</Link></div>
+      <div className="praca__commacts"><Link className="btn ghost sm" to="/comunidade/comunidades">Buscar comunidades</Link>{canCreate && <Link className="btn primary sm" to="/comunidade/criar">Criar comunidade</Link>}</div>
     </div>
   );
 }

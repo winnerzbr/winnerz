@@ -9,7 +9,7 @@ export type TipoAlerta = 'follow' | 'sub' | 'resub' | 'gift' | 'cheer' | 'raid' 
 export interface LiveEvento { id: number; origem: 'twitch' | 'youtube' | 'teste'; tipo: TipoAlerta; quem: string; valor: number | null; created_at: string }
 export interface LivePrefs { temporada?: string; youtube?: string; twitch?: string; discord?: string; papo?: string; proxima?: string; comecaEm?: string | null; pausaMin?: number; camLado?: 'direita' | 'esquerda' }
 export interface Inscricao { tipo: string; id: string | null; status: string }
-export interface LiveEstado { canal: string | null; status: string | null; subs: Inscricao[] | null; twitch: boolean }
+export interface LiveEstado { canal: string | null; status: string | null; subs: Inscricao[] | null; twitch: boolean; callback?: string }
 
 export const TIPOS_ALERTA: { tipo: TipoAlerta; nome: string }[] = [
   { tipo: 'follow', nome: 'Seguidor' }, { tipo: 'sub', nome: 'Inscrição' }, { tipo: 'resub', nome: 'Renovação' },

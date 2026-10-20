@@ -12,7 +12,7 @@ import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs,
 import { enderecosCenas } from './OverlayLive';
 
 const AVISO_TWITCH: Record<string, string> = {
-  ok: 'Canal ligado. A Twitch já está mandando os alertas.',
+  ok: 'Canal ligado. Veja abaixo se cada tipo de alerta ficou ligado.',
   erro: 'A Twitch não deixou ligar tudo. Veja abaixo o que ficou de fora e tente de novo.',
   cancelado: 'A ligação com a Twitch foi cancelada.',
 };
@@ -99,11 +99,12 @@ export function StudioLivePage() {
                 {subs.map((x) => (
                   <li key={x.tipo} className={/^(enabled|webhook_callback_verification_pending|pendente)/.test(x.status) ? '' : 'is-erro'}>
                     <span>{NOME_INSCRICAO[x.tipo] ?? x.tipo}</span>
-                    <span className="muted">{/^enabled/.test(x.status) ? 'ligado' : /verification_pending|pendente/.test(x.status) ? 'esperando a Twitch confirmar' : x.status}</span>
+                    <span className="muted">{/^enabled/.test(x.status) ? 'ligado' : /verification_pending|pendente/.test(x.status) ? 'esperando a Twitch confirmar' : /verification_failed/.test(x.status) ? 'a Twitch não conseguiu confirmar com o site' : x.status}</span>
                   </li>
                 ))}
               </ul>
             )}
+            {estado.callback && <p className="faint">A Twitch avisa em: <code>{estado.callback}</code></p>}
             <p className="muted">Os alertas precisam do canal autorizado de novo uma vez (a Twitch pede permissão para seguidores, inscrições e bits). Entre na Twitch com a conta do canal.</p>
             <div className="live-central__acoes">
               <button className="btn primary" disabled={!!busy} onClick={() => void religar()}>{busy === 'canal' ? 'Abrindo a Twitch…' : estado.canal ? 'Autorizar o canal de novo' : 'Ligar o canal da Twitch'}</button>
@@ -115,7 +116,7 @@ export function StudioLivePage() {
 
       <section className="live-central__bloco" aria-labelledby="lc-cenas">
         <h2 id="lc-cenas" className="t live-central__h">Cenas para o OBS</h2>
-        <p className="muted">Em cada cena do OBS: Fontes → + → Navegador → cole o endereço, com largura 1920 e altura 1080. Ponha a fonte da câmera por cima, dentro da moldura. Quem tiver estes endereços vê o que a live mostra, então não mostre na tela.</p>
+        <p className="muted">Em cada cena do OBS: Fontes → + → Navegador → cole o endereço, com largura 1920 e altura 1080. Ponha a fonte da câmera por cima, dentro da moldura. Para o som dos alertas entrar na live, marque "Controlar áudio pelo OBS" nas propriedades da fonte (o som aparece no mixer do OBS). Quem tiver estes endereços vê o que a live mostra, então não mostre na tela.</p>
         {!base ? (
           <button className="btn ghost" disabled={busy === 'end'} onClick={() => void mostrarEnderecos()}>{busy === 'end' ? 'Gerando…' : 'Mostrar os endereços'}</button>
         ) : (
@@ -135,7 +136,7 @@ export function StudioLivePage() {
 
       <section className="live-central__bloco" aria-labelledby="lc-teste">
         <h2 id="lc-teste" className="t live-central__h">Testar os alertas</h2>
-        <p className="muted">Com uma cena aberta (no OBS ou no "Ver"), aperte um tipo: o alerta aparece com o IAmiguinho reagindo e o som. O teste não conta como evento de verdade.</p>
+        <p className="muted">Com uma cena aberta (no OBS ou no "Ver"), aperte um tipo: o alerta aparece com o IAmiguinho reagindo e o som. No "Ver", o navegador só toca som depois de um clique na página da cena. O teste não conta como evento de verdade.</p>
         <div className="live-central__acoes">
           {TIPOS_ALERTA.map((x) => (
             <button key={x.tipo} className="btn ghost" disabled={!!busy} onClick={() => void testar(x.tipo)}>{testado === x.tipo ? 'Enviado' : x.nome}</button>

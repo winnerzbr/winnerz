@@ -170,6 +170,7 @@ function GameView({ gameId }: { gameId: string }) {
                 ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : setupNote('Disponível depois da migração 0006'), onSelect: () => { actions.toggleRadar(gameId); } }] : []),
                 ...(mine2.onRadar ? [{ key: 'verradar', icon: 'radar', label: 'Ver o Radar', onSelect: () => navigate('/jogos/radar') }] : []),
                 ...(!h || h.state !== 'ativa' ? [{ key: 'nao', icon: 'fechar', on: !!mine2.wontPlay, label: mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: () => { actions.toggleWontPlay(gameId); } }] : []),
+                { key: 'traduzir', icon: 'mensagem', label: 'Traduzir a tela', hint: 'Para jogos sem português', onSelect: () => navigate(`/jogos/${g.slug}/traduzir`) },
                 { key: 'link', icon: 'avancar', label: 'Copiar o link da ficha', onSelect: () => { void navigator.clipboard?.writeText(location.origin + '/jogos/' + g.slug); } },
               ]} />
             </div>

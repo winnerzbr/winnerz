@@ -69,7 +69,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências" ref={navRef}>
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#figurinha">Minha figurinha</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tradutor">Tradutor</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#figurinha">Minha figurinha</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -148,6 +148,14 @@ export function Preferences() {
         <label className="motion motion--switch" data-on={!!prefs.light}>
           <input type="checkbox" role="switch" className="switch" checked={!!prefs.light} onChange={(e) => actions.setPrefs({ light: e.target.checked })} />
           <span><strong>Esconder contadores e números</strong><span className="muted">Sem total de sessões, horas, jogos na estante ou quantos você zerou. Fica a história, sem placar. As estatísticas da coleção continuam lá, só se você abrir.</span></span>
+        </label>
+      </section>
+
+      <section aria-labelledby="tradutor" className="prefs__section">
+        <h2 id="tradutor" className="t">Tradutor de tela</h2>
+        <label className="motion motion--switch" data-on={prefs.trGalera !== false}>
+          <input type="checkbox" role="switch" className="switch" checked={prefs.trGalera !== false} onChange={(e) => actions.setPrefs({ trGalera: e.target.checked })} />
+          <span><strong>Usar e compartilhar o glossário da Galera</strong><span className="muted">Quem traduz o mesmo jogo aproveita os nomes que você anotou (personagens, lugares, itens), e você aproveita os deles. Só os termos circulam, nunca o texto traduzido.</span></span>
         </label>
       </section>
 

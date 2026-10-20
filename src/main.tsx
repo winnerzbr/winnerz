@@ -12,6 +12,7 @@ import './styles/fresta.css';
 import './styles/iamiguinho.css';
 import './styles/finish.css';
 import './styles/galera.css';
+import './styles/tradutor.css';
 
 
 async function boot() {

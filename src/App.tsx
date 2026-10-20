@@ -83,6 +83,7 @@ const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.A
 const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default: m.ArrivalPage })));
 const StudioAlbumPage = lazy(() => import('./pages/StudioAlbum').then((m) => ({ default: m.StudioAlbumPage })));
 const IAmiguinhoPage = lazy(() => import('./pages/IAmiguinho').then((m) => ({ default: m.IAmiguinhoPage })));
+const TradutorPage = lazy(() => import('./pages/Tradutor').then((m) => ({ default: m.TradutorPage })));
 const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}</Suspense>;
 
 function Routes({ path }: { path: string }): ReactNode {
@@ -124,6 +125,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if (!FEATURES.trilhas && path.startsWith('/jogos/trilhas') && !isAdminNow()) return <GoTo to="/jogos" />;
   if (match('/jogos/trilhas', path)) return <TrailsPage />;
   if ((m = match('/jogos/trilhas/:slug', path))) return <TrailPage slug={m.slug} />;
+  if ((m = match('/jogos/:slug/traduzir', path))) return lazyPage(<TradutorPage slug={m.slug} />);
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;

@@ -21,6 +21,7 @@ export const EFEITOS: { id: EfeitoVoz; nome: string }[] = [
 ];
 
 export const MODELOS: { id: string; nome: string; dica: string; ajuste: AjusteVoz }[] = [
+  { id: 'iamiguinho', nome: 'IAmiguinho', dica: 'A voz oficial dele, escolhida pelo canal.', ajuste: { tom: 9, robo: 5, metal: 45, efeito: 'lata' } },
   { id: 'robozinho', nome: 'Robozinho', dica: 'Pequeno e metálico, ainda bem claro.', ajuste: { tom: 7, robo: 35, metal: 25, efeito: 'nenhum' } },
   { id: 'mini', nome: 'Mini robô', dica: 'Bem agudo, quase um brinquedo.', ajuste: { tom: 11, robo: 25, metal: 20, efeito: 'nenhum' } },
   { id: 'vocoder', nome: 'Robô vocoder', dica: 'O zumbido eletrônico clássico de robô.', ajuste: { tom: 4, robo: 85, metal: 0, efeito: 'nenhum' } },

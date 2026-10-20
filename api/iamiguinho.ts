@@ -28,12 +28,17 @@
  *     estado: { ligado?, calado? } → a linha sofa_live (calar apaga o balão na hora).
  *     fim: { jogo?, falas[], minutos? } → { resumo, parou } — o resumo da sessão, para a Jornada e a Cápsula.
  *     Teto por mês: IAMIGUINHO_SOFA_MES (padrão 9000 olhadas).
+ *     voz: { texto } → { audio, tipo } — a fala em voz alta (WAV em base64), com a voz criada no Google AI Studio.
+ *       Risada escrita (kkkk, hahaha, lmao) vira risada de verdade. Teto por mês: IAMIGUINHO_VOZ_MES (padrão 1500 falas).
  *
  * Variáveis na Vercel (as mesmas da Retomada Inteligente; nada novo para ligar):
  *   ANTHROPIC_API_KEY, SUPABASE_URL + SUPABASE_SECRET_KEY.
  *   Opcionais: IAMIGUINHO_MODEL (padrão: ANTHROPIC_MODEL ou claude-haiku-5-5), IAMIGUINHO_DIA_PESSOA (padrão 6),
  *   IAMIGUINHO_DIA_TOTAL (padrão 400), IAMIGUINHO_MENCOES_PESSOA (padrão 10 por dia), IAMIGUINHO_MENCOES_TOTAL
  *   (padrão 500 por dia).
+ *   Voz do sofá: GEMINI_API_KEY (Google AI Studio, no mesmo projeto da voz). Opcionais: IAMIGUINHO_VOZ (padrão
+ *   "IAmiguinho 2", o nome ou o id voice_... da voz criada), IAMIGUINHO_VOZ_ESTILO, IAMIGUINHO_VOZ_MODELO (padrão
+ *   gemini-3.8-flash-tts) e IAMIGUINHO_VOZ_MES.
  * Os registros nunca imprimem fala, jogo nem conta (o repositório é público).
  */
 
@@ -585,6 +590,18 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
     try { return res.status(200).json({ linha: await sofaLinha(patch) }); } catch { return res.status(503).json({ error: 'Falta rodar a migração 0080 no Supabase.' }); }
   }
 
+  if (acao === 'voz') {
+    const texto = clip(body.texto, 300);
+    if (!texto) return res.status(400).json({ error: 'Nada para falar.' });
+    if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'Falta a chave da voz no servidor (GEMINI_API_KEY).' });
+    const usado = await rpc('api_hit', { p_bucket: 'sofa_voz', p_limit: num(process.env.IAMIGUINHO_VOZ_MES, 1500), p_cost: 1, p_monthly: true }).catch(() => 0);
+    if (typeof usado === 'number' && usado < 0) return res.status(429).json({ error: 'A voz chegou ao teto deste mês (IAMIGUINHO_VOZ_MES).' });
+    const diag: string[] = [];
+    const audio = await vozGemini(paraVoz(texto), diag).catch(() => { diag.push('voz_erro'); return null; });
+    if (!audio) { console.error('iamiguinho: a voz falhou', diag.join(',')); return res.status(200).json({ audio: null, diag }); }
+    return res.status(200).json({ audio, tipo: 'audio/wav' });
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'Falta a chave da IA no servidor (ANTHROPIC_API_KEY).' });
   const jogo = clip(body.jogo, 120) || undefined;
 
@@ -662,4 +679,93 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
     await sofaLinha({ ligado: true, fala, cena, falou_em: new Date().toISOString() }).catch(() => null);
   }
   return res.status(200).json({ fala, cena, momento, parou, diag });
+}
+
+/* ---- A voz (Google Gemini, voz criada no AI Studio) ------------------------------------------------------------ */
+
+const GEMINI = 'https://generativelanguage.googleapis.com/v1beta';
+const VOZ_ESTILO_PADRAO = 'animado, debochado e brincalhão, como quem zoa o melhor amigo mas torce por ele';
+
+/** A fala escrita vira fala dita: risada de internet vira risada de verdade (a marca <laugh> do Gemini). */
+export function paraVoz(t: string): string {
+  return t
+    .replace(/\b(?:k{3,}|(?:h[aeiu]){2,}h?|(?:rs){2,}|lmao|lol)\b[.!]*/gi, ' <laugh> ')
+    .replace(/(?:\s*<laugh>\s*){2,}/g, ' <laugh> ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** WAV de 16 bits, mono, a partir do PCM cru (o Gemini manda 24 kHz quando não vem com cabeçalho). */
+export function pcmParaWav(pcm: Buffer, taxa = 24000): Buffer {
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0); h.writeUInt32LE(36 + pcm.length, 4); h.write('WAVE', 8); h.write('fmt ', 12);
+  h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(taxa, 24);
+  h.writeUInt32LE(taxa * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([h, pcm]);
+}
+const comoWav = (b64: string, mime = '') => {
+  const buf = Buffer.from(b64, 'base64');
+  if (buf.subarray(0, 4).toString('latin1') === 'RIFF') return b64;
+  const taxa = Number(/rate=(\d+)/i.exec(mime)?.[1]) || 24000;
+  return pcmParaWav(buf, taxa).toString('base64');
+};
+
+/** A voz criada tem um nome ("IAmiguinho 2") e um id (voice_...). Acha o id pelo nome uma vez e guarda. */
+let vozGuardada: { nome: string; id: string } | null = null;
+async function idDaVoz(key: string, nome: string): Promise<string> {
+  if (/^voice_/.test(nome)) return nome;
+  if (vozGuardada?.nome === nome) return vozGuardada.id;
+  try {
+    const r = await fetch(`${GEMINI}/voices?pageSize=200`, { headers: { 'x-goog-api-key': key }, signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const j = (await r.json()) as Record<string, unknown>;
+      const lista = (Array.isArray(j.voices) ? j.voices : Array.isArray(j.items) ? j.items : []) as Record<string, unknown>[];
+      const alvo = nome.trim().toLowerCase();
+      const v = lista.find((x) => [x.display_name, x.displayName].some((n) => typeof n === 'string' && n.trim().toLowerCase() === alvo));
+      const id = v && [v.id, v.voice_id, v.name].find((x): x is string => typeof x === 'string' && x.length > 0);
+      if (id) { vozGuardada = { nome, id: id.replace(/^voices\//, '') }; return vozGuardada.id; }
+    }
+  } catch { /* segue com o nome */ }
+  return nome;
+}
+
+async function vozGemini(texto: string, diag: string[]): Promise<string | null> {
+  const key = process.env.GEMINI_API_KEY!;
+  const nome = (process.env.IAMIGUINHO_VOZ || 'IAmiguinho 2').trim();
+  const modelo = process.env.IAMIGUINHO_VOZ_MODELO || 'gemini-3.8-flash-tts';
+  const estilo = process.env.IAMIGUINHO_VOZ_ESTILO || VOZ_ESTILO_PADRAO;
+  const headers = { 'x-goog-api-key': key, 'content-type': 'application/json' };
+  const voz = await idDaVoz(key, nome);
+
+  // 1. A API de interações (a da documentação do modelo de voz): o estilo vai junto do texto, e volta um WAV.
+  const r = await fetch(`${GEMINI}/interactions`, {
+    method: 'POST', headers, signal: AbortSignal.timeout(20000),
+    body: JSON.stringify({
+      model: modelo,
+      input: [{ type: 'user_input', content: [{ type: 'text', text: texto, annotations: [{ type: 'speech_metadata', style: estilo }] }] }],
+      response_format: { type: 'audio' },
+      generation_config: { speech_config: [{ voice: voz }] },
+    }),
+  }).catch(() => null);
+  if (r?.ok) {
+    const j = (await r.json().catch(() => null)) as { steps?: { type?: string; content?: { type?: string; data?: string; mime_type?: string }[] }[] } | null;
+    const partes = (j?.steps ?? []).flatMap((st) => st.content ?? []).filter((c) => c.type === 'audio' && typeof c.data === 'string' && c.data);
+    const a = partes[partes.length - 1];
+    if (a?.data) return comoWav(a.data, a.mime_type);
+    diag.push('voz_sem_audio');
+  } else diag.push(r ? `voz_${r.status}` : 'voz_sem_resposta');
+
+  // 2. O caminho do código que o AI Studio gera (generateContent, a voz pelo nome), sem o estilo.
+  const g = await fetch(`${GEMINI}/models/${encodeURIComponent(modelo)}:generateContent`, {
+    method: 'POST', headers, signal: AbortSignal.timeout(20000),
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: texto }] }],
+      generationConfig: { temperature: 1, responseModalities: ['audio'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: nome } } } },
+    }),
+  }).catch(() => null);
+  if (!g?.ok) { diag.push(g ? `gc_${g.status}` : 'gc_sem_resposta'); return null; }
+  const gj = (await g.json().catch(() => null)) as { candidates?: { content?: { parts?: { inlineData?: { data?: string; mimeType?: string } }[] } }[] } | null;
+  const parte = (gj?.candidates?.[0]?.content?.parts ?? []).find((x) => x.inlineData?.data);
+  if (!parte?.inlineData?.data) { diag.push('gc_sem_audio'); return null; }
+  return comoWav(parte.inlineData.data, parte.inlineData.mimeType);
 }

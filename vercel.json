@@ -72,6 +72,9 @@
     },
     "api/retomada.ts": {
       "maxDuration": 120
+    },
+    "api/iamiguinho.ts": {
+      "maxDuration": 60
     }
   }
 }

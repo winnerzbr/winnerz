@@ -56,6 +56,7 @@ export function StudioSofaPage() {
   const modelo = MODELOS.find((m) => m.ajuste.tom === ajusteVoz.tom && m.ajuste.robo === ajusteVoz.robo && m.ajuste.metal === ajusteVoz.metal && m.ajuste.efeito === ajusteVoz.efeito)?.id;
   const [teste, setTeste] = useState(0);
   const [tocando, setTocando] = useState(false);
+  const [servicoVoz, setServicoVoz] = useState<'fish' | 'google' | null>(null);
   const [canal, setCanal] = useState<string>(() => ler('wz.sofa.canal', ''));
   const [chatEstado, setChatEstado] = useState<ChatEstado>('desligado');
   const [chat, setChat] = useState<string[]>([]);
@@ -124,6 +125,7 @@ export function StudioSofaPage() {
       if (!buf) {
         const r = await sofaApi.voz(t);
         if (!r) { setErr('Na demonstração não tem voz. Ela funciona na conta do canal.'); return; }
+        if (r.servico) setServicoVoz(r.servico);
         const bytes = Uint8Array.from(atob(r.audio), (ch) => ch.charCodeAt(0));
         buf = await ctx.decodeAudioData(bytes.buffer);
         guardados.current.set(t, buf);
@@ -312,6 +314,8 @@ export function StudioSofaPage() {
                   : <button type="button" className="btn primary" onClick={() => void falar(TESTES[teste], true)}><Icon name="play" size={16} />Ouvir</button>}
                 <span className="muted">Mexer no ajuste e ouvir de novo a mesma frase não gasta crédito.</span>
               </div>
+              {servicoVoz === 'fish' && <p className="muted sofa__servico">Voz de agora: Fish Audio (a voz escolhida).</p>}
+              {servicoVoz === 'google' && <p className="sofa__servico sofa__servico--aviso">Voz de agora: Google. O servidor não está vendo a chave da Fish Audio (FISH_API_KEY na Vercel, em Production).</p>}
             </fieldset>
           </div>
         </section>

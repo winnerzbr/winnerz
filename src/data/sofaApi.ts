@@ -72,12 +72,12 @@ export const sofaApi = {
     }
     return post({ acao: 'fim', ...p });
   },
-  /** A fala em voz alta (a voz do IAmiguinho criada no Google). Na demonstração não há voz. */
-  async voz(texto: string): Promise<{ audio: string; tipo: string } | null> {
+  /** A fala em voz alta (Fish Audio; o Google só quando a chave da Fish não está no servidor). Na demonstração não há voz. */
+  async voz(texto: string): Promise<{ audio: string; tipo: string; servico?: 'fish' | 'google' } | null> {
     if (!supa()) return null;
-    const r = await post<{ audio?: string | null; tipo?: string; diag?: string[] }>({ acao: 'voz', texto });
-    if (!r.audio) throw new Error(`A voz não saiu agora (${(r.diag ?? []).join(', ') || 'sem resposta'}).`);
-    return { audio: r.audio, tipo: r.tipo ?? 'audio/wav' };
+    const r = await post<{ audio?: string | null; tipo?: string; diag?: string[]; servico?: 'fish' | 'google' }>({ acao: 'voz', texto });
+    if (!r.audio) throw new Error(`A voz não saiu agora (${r.servico === 'fish' ? 'Fish Audio' : r.servico === 'google' ? 'Google' : 'voz'}: ${(r.diag ?? []).join(', ') || 'sem resposta'}).`);
+    return { audio: r.audio, tipo: r.tipo ?? 'audio/wav', servico: r.servico };
   },
   /** O overlay da live lê a fala do momento (sem login). */
   async linha(): Promise<SofaLinha | null> {

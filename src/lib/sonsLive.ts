@@ -103,3 +103,27 @@ export function somDoAlerta(c: Ctx, tipo: TipoAlerta) {
 
 /** Quanto dura cada som, em segundos (para os testes). */
 export const DURACAO_SOM: Record<TipoAlerta, number> = { follow: 1.6, sub: 0.6, resub: 1.2, gift: 1.0, cheer: 0.6, raid: 1.8, superchat: 1.3, member: 1.3 };
+
+/**
+ * Os sons dos widgets (etapa 3a):
+ *   morte     game over curtinho: três notas quadradas descendo, a última arrastada
+ *   ganhador  sorteio: rufar rápido e um acorde de vitória subindo
+ *   meta      meta batida: arpejo de sinos subindo
+ */
+export type SomWidget = 'morte' | 'ganhador' | 'meta';
+export function somDoWidget(c: Ctx, tipo: SomWidget) {
+  const out = saida(c);
+  const t = c.currentTime + 0.02;
+  if (tipo === 'morte') {
+    nota(c, out, t, 392, 0.14, 'square', 0.3);
+    nota(c, out, t + 0.15, 311.1, 0.14, 'square', 0.3);
+    const o = nota(c, out, t + 0.3, 246.9, 0.6, 'square', 0.3);
+    o.frequency.exponentialRampToValueAtTime(110, t + 0.9);
+  } else if (tipo === 'ganhador') {
+    for (let i = 0; i < 10; i++) ruido(c, out, t + i * 0.06, 0.06, 0.5, 'bandpass', 900);
+    [523.3, 659.3, 784, 1046.5].forEach((f, i) => nota(c, out, t + 0.62 + i * 0.09, f, 0.9 - i * 0.1, 'sawtooth', 0.12));
+    sino(c, out, t + 0.95, 1568, 1.1, 0.22);
+  } else {
+    [784, 987.8, 1174.7, 1568].forEach((f, i) => sino(c, out, t + i * 0.11, f, 0.8, 0.2));
+  }
+}

@@ -84,6 +84,7 @@ const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default:
 const StudioAlbumPage = lazy(() => import('./pages/StudioAlbum').then((m) => ({ default: m.StudioAlbumPage })));
 const IAmiguinhoPage = lazy(() => import('./pages/IAmiguinho').then((m) => ({ default: m.IAmiguinhoPage })));
 const TradutorPage = lazy(() => import('./pages/Tradutor').then((m) => ({ default: m.TradutorPage })));
+const StudioSofaPage = lazy(() => import('./pages/StudioSofa').then((m) => ({ default: m.StudioSofaPage })));
 const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}</Suspense>;
 
 function Routes({ path }: { path: string }): ReactNode {
@@ -182,6 +183,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/album/:slug', path))) return lazyPage(<AlbumPage key={m.slug} slug={m.slug} />);
   if (match('/studio', path)) return <StudioPage />;
   if (match('/studio/album', path)) return lazyPage(<StudioAlbumPage />);
+  if (match('/studio/sofa', path)) return lazyPage(<StudioSofaPage />);
   if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if (match('/studio/moderacao', path)) return <StudioModerationPage />;

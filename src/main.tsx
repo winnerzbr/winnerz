@@ -11,6 +11,7 @@ import './styles/album.css';
 import './styles/fresta.css';
 import './styles/iamiguinho.css';
 import './styles/finish.css';
+import './styles/galera.css';
 
 
 async function boot() {

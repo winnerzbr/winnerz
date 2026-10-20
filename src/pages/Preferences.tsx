@@ -10,6 +10,7 @@ import { darkTokens, lightTokens, WHITE_DEFAULT } from '../lib/theme';
 import { formatScore, normalize, scaleMax } from '../lib/rating';
 import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
+import { GaleraEditor } from '../components/galera/GaleraEditor';
 import { DeleteAccount, ExportData } from '../components/AccountData';
 import { ProfileSettings } from '../components/ProfileSettings';
 import { BlockedList } from '../components/Moderation';
@@ -68,7 +69,7 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências" ref={navRef}>
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#figurinha">Minha figurinha</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
@@ -193,6 +194,12 @@ export function Preferences() {
         <SnipLinks />
         <h3 className="prefs__sub" id="bloqueios">Pessoas bloqueadas e silenciadas</h3>
         <BlockedList />
+      </section>
+
+      <section className="prefs__section" aria-labelledby="figurinha">
+        <h2 id="figurinha" className="t">Minha figurinha da Galera</h2>
+        <p className="muted prefs__p">A sua figurinha pode sair nos pacotes de outras pessoas, com o seu @ levando ao seu perfil. Só entra quem quer, e nada sai sem aprovação.</p>
+        <GaleraEditor />
       </section>
 
       <section className="prefs__section" aria-labelledby="chegada">

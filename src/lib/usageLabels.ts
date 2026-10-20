@@ -82,6 +82,9 @@ const EXACT: Record<string, UsageLabel> = {
   'mensagens.enviar': { area: 'Comunidade', label: 'Mandou mensagem' },
   'eventos.awards': { area: 'Eventos e Álbum', label: 'Abriu o WinnerZ Awards' },
   'awards.voto': { area: 'Eventos e Álbum', label: 'Votou no Awards' },
+  'galera.enviar': { area: 'Eventos e Álbum', label: 'Galera: enviou a figurinha' },
+  'galera.tirou': { area: 'Eventos e Álbum', label: 'Galera: tirou alguém num pacote' },
+  'galera.denunciar': { area: 'Eventos e Álbum', label: 'Galera: denunciou' },
 };
 
 const PREFIX: [string, string, string][] = [

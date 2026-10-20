@@ -10,6 +10,7 @@ import { buildPack, DEFAULT_LIGHT, shadePack, type PackRender } from './packArt'
 import { mysteryHTML, stickerHTML } from './render';
 import { AURORA, burst, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
 import { CameoJornada } from '../IAmiguinho';
+import { GaleraReveal } from '../galera/GaleraReveal';
 
 type Phase = 'sealed' | 'opening' | 'torn' | 'rising' | 'fanned' | 'ceremony' | 'done';
 interface Card { el: HTMLButtonElement; d: Drawn; open: boolean; base: { x: number; y: number; r: number } }
@@ -211,6 +212,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
             {phase === 'done' && more > 0 && <button className="btn ghost" onClick={onNext}>Abrir outro ({more})</button>}
             {(phase === 'done' || phase === 'sealed') && <button className="btn quiet" onClick={onClose}>{phase === 'done' ? (labels?.done ?? 'Ver pacotes') : (labels?.later ?? 'Depois')}</button>}
           </div>
+          {phase === 'done' && <GaleraReveal packId={pack.id} welcome={pack.origin === 'boas_vindas'} />}
         </div>
         <div className="pk__stage">
           <div className="pk__rays" />

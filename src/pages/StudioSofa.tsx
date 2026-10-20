@@ -11,7 +11,7 @@ import { Icon } from '../components/Icon';
 import { Figura } from '../components/IAmiguinho';
 import { Sheet } from '../components/Sheet';
 import { CENA_CARA, CENA_NOME, SOFA_NIVEIS, quadro, sofaApi, twitchChat, type ChatEstado, type SofaCena, type SofaNivel } from '../data/sofaApi';
-import { FILTROS, filtroValido, tocarComFiltro, type FiltroVoz } from '../lib/vozRobo';
+import { AJUSTE_PADRAO, EFEITOS, MODELOS, ajusteValido, tocar, transformar, type AjusteVoz, type EfeitoVoz } from '../lib/vozRobo';
 
 type Fonte = 'camera' | 'janela';
 type Fala = { id: string; fala: string; cena: SofaCena; at: number; chamado?: boolean };
@@ -19,7 +19,7 @@ type Cena = { id: string; url: string; cena: SofaCena; at: number };
 
 const ler = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) as T; } catch { return d; } };
 const gravar = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* nada */ } };
-/** Frases para testar a voz e os filtros. */
+/** Frases para testar a voz de robô. */
 const TESTES = [
   'Ô chat, ele morreu de novo. Já são vinte e três. Eu tô contando, tá?',
   'Passar da ponte ele passa. O problema é chegar do outro lado, kkkk',
@@ -51,8 +51,9 @@ export function StudioSofaPage() {
   const [nivel, setNivel] = useState<SofaNivel>(() => ler('wz.sofa.nivel', 'parceiro'));
   const [intervalo, setIntervalo] = useState<number>(() => ler('wz.sofa.intervalo', 20));
   const [voz, setVoz] = useState<boolean>(() => ler('wz.sofa.voz', false));
-  const [filtro, setFiltro] = useState<FiltroVoz>(() => filtroValido(ler('wz.sofa.filtro', 'metalico')));
-  const [intensidade, setIntensidade] = useState<number>(() => ler('wz.sofa.intensidade', 70));
+  const [ajusteVoz, setAjusteVoz] = useState<AjusteVoz>(() => ajusteValido(ler('wz.sofa.robo', AJUSTE_PADRAO)));
+  const mexer = (p: Partial<AjusteVoz>) => setAjusteVoz((a) => ({ ...a, ...p }));
+  const modelo = MODELOS.find((m) => m.ajuste.tom === ajusteVoz.tom && m.ajuste.robo === ajusteVoz.robo && m.ajuste.metal === ajusteVoz.metal && m.ajuste.efeito === ajusteVoz.efeito)?.id;
   const [teste, setTeste] = useState(0);
   const [tocando, setTocando] = useState(false);
   const [canal, setCanal] = useState<string>(() => ler('wz.sofa.canal', ''));
@@ -74,8 +75,7 @@ export function StudioSofaPage() {
   useEffect(() => gravar('wz.sofa.nivel', nivel), [nivel]);
   useEffect(() => gravar('wz.sofa.intervalo', intervalo), [intervalo]);
   useEffect(() => gravar('wz.sofa.voz', voz), [voz]);
-  useEffect(() => gravar('wz.sofa.filtro', filtro), [filtro]);
-  useEffect(() => gravar('wz.sofa.intensidade', intensidade), [intensidade]);
+  useEffect(() => gravar('wz.sofa.robo', ajusteVoz), [ajusteVoz]);
   useEffect(() => gravar('wz.sofa.cam', cam), [cam]);
 
   // As câmeras do computador (a câmera virtual do OBS aparece aqui depois de ligada no OBS).
@@ -107,12 +107,13 @@ export function StudioSofaPage() {
     return sair;
   }, [admin, canal]);
 
-  // A voz: o áudio vem do servidor (a voz criada no Google) e toca aqui, pelo filtro de robô escolhido. Os últimos
-  // áudios ficam guardados, para trocar de filtro e ouvir de novo sem pedir outra vez (cada pedido gasta crédito).
+  // A voz: o áudio vem do servidor (a voz criada no Google) e aqui vira voz de robozinho (lib/vozRobo). Os últimos
+  // áudios ficam guardados, para mudar o ajuste e ouvir de novo sem pedir outra vez (cada pedido gasta crédito).
   const audioCtx = useRef<AudioContext | null>(null);
   const guardados = useRef(new Map<string, AudioBuffer>());
   const pararVoz = useRef<(() => void) | null>(null);
-  const ajuste = useRef({ filtro, intensidade }); ajuste.current = { filtro, intensidade };
+  const transformados = useRef(new Map<string, AudioBuffer>());
+  const ajuste = useRef(ajusteVoz); ajuste.current = ajusteVoz;
   const calarVoz = () => { pararVoz.current?.(); pararVoz.current = null; setTocando(false); };
   const falar = async (t: string, forcar = false) => {
     if (!voz && !forcar) return;
@@ -128,9 +129,17 @@ export function StudioSofaPage() {
         guardados.current.set(t, buf);
         if (guardados.current.size > 12) guardados.current.delete(guardados.current.keys().next().value!);
       }
+      const a = ajuste.current;
+      const chave = `${a.tom}|${a.robo}|${t}`;
+      let pronto = transformados.current.get(chave);
+      if (!pronto) {
+        pronto = transformar(ctx, buf, a);
+        transformados.current.set(chave, pronto);
+        if (transformados.current.size > 12) transformados.current.delete(transformados.current.keys().next().value!);
+      }
       calarVoz();
       setTocando(true);
-      pararVoz.current = tocarComFiltro(ctx, buf, ajuste.current.filtro, ajuste.current.intensidade / 100, () => setTocando(false));
+      pararVoz.current = tocar(ctx, pronto, a, () => setTocando(false));
     } catch (e) { setTocando(false); setErr(e instanceof Error ? e.message : 'A voz não saiu agora.'); }
   };
 
@@ -262,20 +271,36 @@ export function StudioSofaPage() {
             </label>
             <label className="motion motion--switch sofa__voz" data-on={voz}>
               <input type="checkbox" role="switch" className="switch" checked={voz} onChange={(e) => setVoz(e.target.checked)} />
-              <span><strong>Falar em voz alta</strong><span className="muted">Com a voz do IAmiguinho e o filtro de robô abaixo. Para entrar na live, capture o áudio desta janela no OBS.</span></span>
+              <span><strong>Falar em voz alta</strong><span className="muted">Com a voz de robozinho ajustada abaixo. Para entrar na live, capture o áudio desta janela no OBS.</span></span>
             </label>
             <fieldset className="sofa__lab">
-              <legend className="glr-f__l">Filtro de robô</legend>
-              <div className="sofa__filtros" role="group" aria-label="Filtro de robô">
-                {FILTROS.map((f) => (
-                  <button key={f.id} type="button" className="sofa__filtro" aria-pressed={filtro === f.id} onClick={() => setFiltro(f.id)}>
-                    <strong>{f.nome}</strong><span>{f.dica}</span>
+              <legend className="glr-f__l">Voz de robozinho</legend>
+              <div className="sofa__filtros" role="group" aria-label="Modelos de voz">
+                {MODELOS.map((m) => (
+                  <button key={m.id} type="button" className="sofa__filtro" aria-pressed={modelo === m.id} onClick={() => setAjusteVoz(m.ajuste)}>
+                    <strong>{m.nome}</strong><span>{m.dica}</span>
                   </button>
                 ))}
               </div>
-              <label className="glr-f sofa__int"><span className="glr-f__l">Intensidade do filtro: {filtro === 'nenhum' ? '—' : `${intensidade}%`}</span>
-                <input type="range" min={10} max={100} step={5} value={intensidade} disabled={filtro === 'nenhum'} onChange={(e) => setIntensidade(Number(e.target.value))} />
-              </label>
+              <div className="sofa__regua">
+                <label className="glr-f"><span className="glr-f__l">Tom: {ajusteVoz.tom > 0 ? '+' : ''}{ajusteVoz.tom}</span>
+                  <input type="range" min={-4} max={12} step={1} value={ajusteVoz.tom} onChange={(e) => mexer({ tom: Number(e.target.value) })} />
+                  <span className="sofa__dica">Mais alto, mais pequeno ele parece.</span>
+                </label>
+                <label className="glr-f"><span className="glr-f__l">Robô: {ajusteVoz.robo}%</span>
+                  <input type="range" min={0} max={100} step={5} value={ajusteVoz.robo} onChange={(e) => mexer({ robo: Number(e.target.value) })} />
+                  <span className="sofa__dica">O zumbido eletrônico. Muito alto, a fala fica menos clara.</span>
+                </label>
+                <label className="glr-f"><span className="glr-f__l">Metal: {ajusteVoz.metal}%</span>
+                  <input type="range" min={0} max={100} step={5} value={ajusteVoz.metal} onChange={(e) => mexer({ metal: Number(e.target.value) })} />
+                  <span className="sofa__dica">A vibração metálica por cima.</span>
+                </label>
+                <label className="glr-f"><span className="glr-f__l">Efeito extra</span>
+                  <select className="field" value={ajusteVoz.efeito} onChange={(e) => mexer({ efeito: e.target.value as EfeitoVoz })}>
+                    {EFEITOS.map((x) => <option key={x.id} value={x.id}>{x.nome}</option>)}
+                  </select>
+                </label>
+              </div>
               <label className="glr-f sofa__teste"><span className="glr-f__l">Frase de teste</span>
                 <select className="field" value={teste} onChange={(e) => setTeste(Number(e.target.value))}>
                   {TESTES.map((t, i) => <option key={i} value={i}>{t}</option>)}
@@ -284,8 +309,8 @@ export function StudioSofaPage() {
               <div className="sofa__testar">
                 {tocando
                   ? <button type="button" className="btn ghost" onClick={calarVoz}>Parar</button>
-                  : <button type="button" className="btn primary" onClick={() => void falar(TESTES[teste], true)}><Icon name="play" size={16} />Ouvir com este filtro</button>}
-                <span className="muted">Trocar de filtro e ouvir de novo a mesma frase não gasta crédito.</span>
+                  : <button type="button" className="btn primary" onClick={() => void falar(TESTES[teste], true)}><Icon name="play" size={16} />Ouvir</button>}
+                <span className="muted">Mexer no ajuste e ouvir de novo a mesma frase não gasta crédito.</span>
               </div>
             </fieldset>
           </div>

@@ -26,13 +26,15 @@
 .sofa__nivel, .sofa__voz, .sofa__lab { grid-column: 1 / -1; }
 .sofa__lab { border: 0; margin: 0; padding: 14px; display: grid; gap: 12px; background: var(--fr-piece); }
 .sofa__lab legend { float: left; width: 100%; padding: 0; margin-bottom: 2px; }
-.sofa__filtros { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.sofa__filtros { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 6px; }
 .sofa__filtro { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
 .sofa__filtro strong { font-size: 14px; }
 .sofa__filtro span { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .sofa__filtro[aria-pressed='true'] { border-color: var(--iam); box-shadow: inset 3px 0 0 var(--iam); }
 .sofa__filtro:focus-visible { outline: 2px solid var(--iam); outline-offset: 2px; }
-.sofa__int input { width: 100%; accent-color: var(--iam); }
+.sofa__regua { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 18px; }
+.sofa__regua input[type='range'] { width: 100%; accent-color: var(--iam); }
+.sofa__dica { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .sofa__testar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
 .sofa__testar .muted { font-size: 13px; }
 .sofa__chat-st { font-size: 12px; color: var(--faint); }

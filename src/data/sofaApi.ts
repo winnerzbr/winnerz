@@ -71,7 +71,7 @@ export const sofaApi = {
       const frustrado = /morr|dif[ií]cil|n[aã]o aguento|desisto|travad|raiva|socorro|ajuda/i.test(p.texto);
       const fala = frustrado
         ? 'Ei, respira. Você já chegou mais longe que eu em qualquer jogo da vida. A próxima tentativa é a boa, sério.'
-        : /piada/i.test(p.texto) ? 'Comprei um jogo de 40 reais e baixei 120 GB de patch. Agora o jogo é que me deve, kkkk'
+        : /piada/i.test(p.texto) ? 'Fiz backup da minha autoestima. Arquivo corrompido. Tentei de novo e veio com 0 KB, pelo menos ficou leve.'
         : 'Ouvi, ouvi. Fingindo que entendi tudo, mas com muita confiança. Pode continuar que eu tô aqui.';
       if (!demoSofa().calado) demoSet({ ligado: true, fala, cena: 'normal', falou_em: new Date().toISOString() });
       return { fala, humor: frustrado ? 'frustrado' : 'brincando' };

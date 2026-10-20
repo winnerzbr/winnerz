@@ -177,3 +177,14 @@ test('etapa 4a: o segredo entre as funções é o mesmo dos dois lados e não é
   assert.equal(a, b); assert.notEqual(a, c); assert.equal(a.length, 48); assert.ok(!a.includes('segredo'));
   assert.notEqual(await tokenInterno(''), '');
 });
+
+test('conversas da live: sem rir da própria piada e imagem só quando a pergunta é sobre a tela', async () => {
+  const { semRisoNoFim, falaDaTela } = await import('../../api/iamiguinho');
+  assert.equal(semRisoNoFim('Fiz backup da autoestima. Veio 0 KB. kkkk'), 'Fiz backup da autoestima. Veio 0 KB.');
+  assert.equal(semRisoNoFim('Estável, tipo Wi-Fi de rodoviária, hahaha!'), 'Estável, tipo Wi-Fi de rodoviária');
+  assert.equal(semRisoNoFim('kkkk você é bom nisso'), 'kkkk você é bom nisso');
+  assert.equal(falaDaTela('conta uma piada'), false);
+  assert.equal(falaDaTela('qual a situação aí'), false);
+  assert.equal(falaDaTela('olha esse chefe'), true);
+  assert.equal(falaDaTela('onde eu tô'), true);
+});

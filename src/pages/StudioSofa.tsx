@@ -21,10 +21,10 @@ const ler = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k
 const gravar = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* nada */ } };
 /** Frases para testar a voz de robô. */
 const TESTES = [
-  'Ô chat, ele morreu de novo. Já são vinte e três. Eu tô contando, tá?',
-  'Passar da ponte ele passa. O problema é chegar do outro lado, kkkk',
-  'Boa! Chefe derrotado! Eu ajudei bastante. Com a torcida. De longe.',
-  'Fala, galera do raid! Chegaram na hora certa: ele tá prestes a morrer.',
+  'Ô chat, ele morreu de novo. Tipo, vinte e três vezes. Eu tô contando, tá?',
+  'Passar da ponte ele passa. O problema é chegar do outro lado, hahaha',
+  'Pô, chefe derrotado. Eu ajudei bastante, né. Com a torcida. De longe.',
+  'Sério, de novo esse buraco? O buraco já tá te conhecendo, kkkk',
 ];
 const hora = (t: number) => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 

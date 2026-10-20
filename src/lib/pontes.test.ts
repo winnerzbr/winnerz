@@ -76,3 +76,16 @@ test('E7.3: assinatura do EventSub da Twitch (HMAC do id + data + corpo exato)',
   assert.equal(await eventsubOk('chave', id, ts, raw, sig, now + 11 * 60_000), false);
   assert.equal(await eventsubOk('chave', id, ts, raw, 'sha256=00', now), false);
 });
+
+test('live: os eventos da Twitch viram alertas, e os que não são de alerta ficam de fora', async () => {
+  const { alertaDe } = await import('../../api/pontes');
+  assert.deepEqual(alertaDe('channel.follow', { user_name: 'Fulana' }), { tipo: 'follow', quem: 'Fulana', valor: null });
+  assert.deepEqual(alertaDe('channel.subscribe', { user_name: 'Beltrano', tier: '2000' }), { tipo: 'sub', quem: 'Beltrano', valor: 2 });
+  assert.equal(alertaDe('channel.subscribe', { user_name: 'Ganhou', tier: '1000', is_gift: true }), null);
+  assert.deepEqual(alertaDe('channel.subscription.message', { user_name: 'Volta', cumulative_months: 7 }), { tipo: 'resub', quem: 'Volta', valor: 7 });
+  assert.deepEqual(alertaDe('channel.subscription.gift', { is_anonymous: true, total: 5 }), { tipo: 'gift', quem: 'Alguém anônimo', valor: 5 });
+  assert.deepEqual(alertaDe('channel.cheer', { user_name: 'Bits', bits: 500 }), { tipo: 'cheer', quem: 'Bits', valor: 500 });
+  assert.deepEqual(alertaDe('channel.raid', { from_broadcaster_user_name: 'CanalAmigo', viewers: 42 }), { tipo: 'raid', quem: 'CanalAmigo', valor: 42 });
+  assert.equal(alertaDe('channel.channel_points_custom_reward_redemption.add', { user_name: 'x' }), null);
+  assert.equal(alertaDe('channel.follow', {}), null);
+});

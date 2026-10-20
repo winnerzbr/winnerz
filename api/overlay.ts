@@ -8,6 +8,8 @@
  * Só sai o que aparece na tela da live: título e capa do jogo, horário de início da sessão, o último momento e, no
  * overlay do canal (conta da administração), o drop de figurinhas no ar (E7.2, migração 0067) e a revelação do
  * WinnerZ Awards ao vivo (E7.4, migração 0070) e a fala do IAmiguinho no sofá (migração 0080).
+ * Sistema de live (migração 0082): no overlay do canal, também os textos das cenas (prefs.live: temporada, @ das redes,
+ * papo de hoje, próxima live, contagem e pausa), o canal da Twitch (para o chat) e os momentos da sessão (Encerrando).
  */
 
 type Req = { method?: string; query: Record<string, string | string[] | undefined>; body?: unknown; headers?: Record<string, string | string[] | undefined> };
@@ -137,12 +139,23 @@ export default async function handler(req: Req, res: Res) {
     // IAmiguinho no sofá (migração 0080): no overlay do canal, a linha da fala (a página lê de novo, mais rápido, enquanto estiver ligado).
     let sofa: unknown = null;
     if (profile?.is_admin) { const [l] = await get('sofa_live?select=ligado,calado,fala,cena,falou_em&id=eq.1'); sofa = l ?? null; }
+    // Sistema de live: os textos das cenas (só texto curto, conferido) e o canal da Twitch para o chat.
+    let live: Record<string, unknown> | null = null, canal: string | null = null;
+    if (profile?.is_admin) {
+      const p = (profile?.prefs?.live ?? {}) as Record<string, unknown>;
+      const txt = (v: unknown, n = 80) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, n) : '');
+      const quando = (v: unknown) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : null);
+      live = { temporada: txt(p.temporada, 20), youtube: txt(p.youtube, 40), twitch: txt(p.twitch, 40), discord: txt(p.discord, 60), papo: txt(p.papo, 90),
+        proxima: txt(p.proxima, 90), comecaEm: quando(p.comecaEm), pausaMin: Math.max(1, Math.min(120, Number(p.pausaMin) || 5)), camLado: p.camLado === 'esquerda' ? 'esquerda' : 'direita' };
+      const [tw] = await get('twitch_channel?select=broadcaster_login&id=eq.1').catch(() => []);
+      canal = typeof tw?.broadcaster_login === 'string' ? tw.broadcaster_login : null;
+    }
     const [open] = await get(`sessions?select=journey_id,started_at&user_id=eq.${q(user)}&ended_at=is.null&order=started_at.desc&limit=1`);
     const prefs = profile?.prefs ?? {};
     const focus: unknown[] = Array.isArray(prefs.focusIds) ? prefs.focusIds : prefs.focusJourneyId ? [prefs.focusJourneyId] : [];
     // Nada do que vem das preferências entra num filtro sem conferir: só um id no formato certo.
     const candidate = [open?.journey_id, ...focus].find((x): x is string => typeof x === 'string' && UUID.test(x));
-    const empty = { game: null, session: null, moment: null, drop, reveal, sofa };
+    const empty = { game: null, session: null, moment: null, drop, reveal, sofa, live, canal, momentos: null };
     if (!candidate) return res.status(200).json(empty);
     const [journey] = await get(`journeys?select=id,game_id&id=eq.${q(candidate)}&user_id=eq.${q(user)}`);
     if (!journey) return res.status(200).json(empty);
@@ -150,6 +163,13 @@ export default async function handler(req: Req, res: Res) {
     const [game] = await get(`games?select=title,cover&id=eq.${q(String(journey.game_id))}`);
     const sessions = open && open.journey_id === jid ? await get(`sessions?select=id&journey_id=eq.${q(jid)}&user_id=eq.${q(user)}`) : [];
     const [moment] = await get(`timeline_events?select=title,image_path,kind&journey_id=eq.${q(jid)}&user_id=eq.${q(user)}&kind=in.(momento,ponto)&order=at.desc&limit=1`);
+    // Encerrando (canal): os momentos guardados nesta sessão, com até três fotos.
+    let momentos: { count: number; fotos: { title: string; image: string | null }[] } | null = null;
+    if (profile?.is_admin && open && open.journey_id === jid) {
+      const ms = await get(`timeline_events?select=title,image_path&journey_id=eq.${q(jid)}&user_id=eq.${q(user)}&kind=eq.momento&at=gte.${q(open.started_at)}&order=at.desc&limit=20`);
+      const fotos = await Promise.all(ms.filter((m) => m.image_path).slice(0, 3).map(async (m) => ({ title: String(m.title ?? ''), image: await signedPhoto(user, m.image_path) })));
+      momentos = { count: ms.length, fotos };
+    }
     // Só o que aparece na tela da live: sem notas, sem datas.
     return res.status(200).json({
       game: game ? { title: game.title, cover: game.cover } : null,
@@ -158,6 +178,9 @@ export default async function handler(req: Req, res: Res) {
       drop,
       reveal,
       sofa,
+      live,
+      canal,
+      momentos,
     });
   } catch (err) {
     return res.status(500).json(failure('overlay', err));

@@ -5,10 +5,12 @@ import { demoDrop } from '../data/albumApi';
 import { awardsApi, awardsPlus } from '../data/awards';
 import { sofaApi, demoSofa, CENA_CARA, type SofaLinha } from '../data/sofaApi';
 import { Figura } from '../components/IAmiguinho';
+import { OverlayLive, cenaValida, type DadosCena } from './OverlayLive';
+import type { LivePrefs } from '../data/liveApi';
 
 type Drop = { code: string; title: string; endsAt: string; left: number | null; kind: 'pacote' | 'figurinha'; packKind: 'onix' | 'prisma' };
 type Reveal = { award: string; category: string; step: 'categoria' | 'indicados' | 'vencedor'; nominees: { title: string; cover: string | null }[]; winner: { title: string; cover: string | null } | null };
-type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null; reveal?: Reveal | null; sofa?: SofaLinha | null };
+type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null; reveal?: Reveal | null; sofa?: SofaLinha | null; live?: LivePrefs | null; canal?: string | null; momentos?: DadosCena['momentos'] };
 
 /**
  * Overlay de live: fonte de navegador do OBS (fundo transparente). Atualiza sozinho a cada 20 segundos.
@@ -16,6 +18,7 @@ type Data = { game: { title: string; cover: string } | null; session: { startedA
  * E7.2: no overlay do canal, o drop de figurinhas no ar entra por cima, com o código e a contagem.
  * IAmiguinho no sofá (migração 0080): no overlay do canal, a fala dele aparece num balão embaixo do cartão. Com
  * ?so=sofa no endereço, o overlay mostra só o balão (para posicionar como outra fonte no OBS).
+ * Sistema de live: com ?cena=… (ou ?so=alertas / ?so=chat), as cenas do canal em 1920 × 1080 (pages/OverlayLive).
  */
 export function OverlayPage({ k }: { k: string }) {
   const s = useStore((x) => x);
@@ -39,7 +42,10 @@ export function OverlayPage({ k }: { k: string }) {
     return () => clearInterval(t);
   }, [k]);
   useEffect(() => { const t = setInterval(() => { tick((n) => n + 1); if (k === 'demo') setDemoD(demoDrop()); }, 1000); return () => clearInterval(t); }, [k]);
-  const soSofa = typeof location !== 'undefined' && new URLSearchParams(location.search).get('so') === 'sofa';
+  const busca = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
+  const soSofa = busca.get('so') === 'sofa';
+  const cena = cenaValida(busca.get('cena'));
+  const soLive = busca.get('so') === 'alertas' || busca.get('so') === 'chat' ? busca.get('so') : null;
   // O sofá: quando a cabine está ligada, a fala é lida direto do banco a cada 2,5 s (a do resto do overlay é a cada 10 s).
   const [sofa, setSofa] = useState<SofaLinha | null>(null);
   const sofaLigado = k === 'demo' || !!data?.sofa?.ligado;
@@ -79,11 +85,14 @@ export function OverlayPage({ k }: { k: string }) {
     const j = open ? s.journeys.find((x) => x.id === open.journeyId) : focusJourneys(s)[0]?.journey;
     const g = j ? s.games[j.gameId] : undefined;
     const m = j ? [...s.events].filter((e) => e.journeyId === j.id && (e.kind === 'momento' || e.kind === 'ponto')).sort((a, b) => b.at.localeCompare(a.at))[0] : undefined;
-    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null, drop: demoD, reveal: demoR };
+    const daSessao = open && j ? s.events.filter((e) => e.journeyId === j.id && e.kind === 'momento' && e.at >= open.startedAt) : [];
+    return { game: g ? { title: g.title, cover: g.cover } : null, session: open ? { startedAt: open.startedAt, number: sessionsOf(s, open.historyId).length } : null, moment: m ? { title: m.title, text: m.quote ?? m.text, image: m.image, kind: m.kind } : null, drop: demoD, reveal: demoR,
+      live: s.prefs.live ?? null, canal: null, momentos: { count: daSessao.length, fotos: daSessao.filter((e) => e.image).slice(-3).map((e) => ({ title: e.title, image: e.image ?? null })) } };
   })() : null;
   const d = local ?? data;
 
   if (err) return <div className="ovl ovl--err">{err}</div>;
+  if (cena || soLive) return <OverlayLive cena={cena} so={soLive} d={d} sofa={sofa ?? d?.sofa ?? null} />;
   const sofaCard = sofa && <SofaBalao l={sofa} />;
   if (soSofa) return <div className="ovl ovl--sofa">{sofaCard}</div>;
   const drop = d?.drop && Date.parse(d.drop.endsAt) > Date.now() ? d.drop : null;

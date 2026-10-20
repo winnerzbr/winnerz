@@ -154,5 +154,37 @@ html[data-motion='reduzidas'] .iam-espia__pose, html[data-motion='reduzidas'] .i
 }
 @keyframes iam-tonto { 0% { transform: rotate(0); } 14% { transform: rotate(-10deg); } 30% { transform: rotate(9deg); } 46% { transform: rotate(-7deg); } 62% { transform: rotate(5deg); } 78% { transform: rotate(-2deg); } 100% { transform: rotate(0); } }
 @keyframes iam-fumaca { from { transform: translate(0, 0) scale(0.4); opacity: 0.95; } to { transform: translate(var(--dx, 0%), -170%) scale(1.35); opacity: 0; } }
+/* ---- As reações da live (o rosto em vetor e o corpo se mexendo) ---- */
+.iam-rosto .iam-lagrima, .iam-rosto .iam-lingua, .iam-rosto .iam-canto, .iam-rosto .iam-bate, .iam-rosto .iam-veia, .iam-rosto .iam-oculos, .iam-rosto .iam-brilha { transform-box: fill-box; transform-origin: center; }
+.iam-rosto .iam-lagrima { animation: iam-lagrima 1.1s ease-in infinite; }
+.iam-rosto .iam-lagrima--2 { animation-delay: 0.45s; }
+.iam-rosto .iam-lingua { transform-origin: top center; animation: iam-lingua 1.2s ease-in-out infinite; }
+.iam-rosto .iam-canto { animation: iam-canto 3s ease-in-out infinite; }
+.iam-rosto .iam-bate { animation: iam-bate 0.65s ease-in-out infinite; }
+.iam-rosto .iam-veia { animation: iam-bate 0.4s ease-in-out infinite; }
+.iam-rosto .iam-oculos { animation: iam-oculos 0.9s steps(6) both; }
+.iam-rosto .iam-brilha { animation: iam-brilha 2.4s ease-out 0.9s infinite; }
+.iam-fig.iam-reage--rindo { animation: iam-treme 0.5s steps(2) infinite; }
+.iam-fig.iam-reage--chorando-de-rir { animation: iam-balanca 1.1s ease-in-out infinite; }
+.iam-fig.iam-reage--zoando { animation: iam-inclina 2.4s ease-in-out infinite; }
+.iam-fig.iam-reage--game-over { animation: iam-tomba 3.4s cubic-bezier(0.5, 0, 0.6, 1.4) both; }
+.iam-fig.iam-reage--apaixonado { animation: iam-pulinho 1.3s cubic-bezier(0.3, 0, 0.4, 1) infinite; }
+.iam-fig.iam-reage--bravinho { animation: iam-treme 0.28s steps(2) infinite; }
+.iam-fig.iam-reage--bravinho .iam-fig__helice, .iam-fig.iam-reage--berrando .iam-fig__helice { animation-duration: 0.14s; }
+.iam-fig.iam-reage--careta { animation: iam-encolhe 2.2s ease-in-out infinite; }
+.iam-fig.iam-reage--berrando { animation: iam-tremor 0.16s steps(2) infinite; }
+@keyframes iam-lagrima { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+@keyframes iam-lingua { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.3) translateX(2px); } }
+@keyframes iam-canto { 0%, 100% { transform: translateX(0); } 20%, 45% { transform: translateX(10px); } 60%, 85% { transform: translateX(-8px); } }
+@keyframes iam-bate { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes iam-oculos { from { transform: translateY(-90px); opacity: 0; } 15% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes iam-brilha { 0% { transform: scale(0); opacity: 0; } 15% { transform: scale(1.5); opacity: 1; } 35%, 100% { transform: scale(0); opacity: 0; } }
+@keyframes iam-treme { 0% { transform: translate(-2px, 1px) rotate(-1.5deg); } 100% { transform: translate(2px, -1px) rotate(1.5deg); } }
+@keyframes iam-tremor { 0% { transform: translate(-3px, -2px); } 100% { transform: translate(3px, 2px); } }
+@keyframes iam-balanca { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg) translateY(-4px); } }
+@keyframes iam-inclina { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-9deg); } }
+@keyframes iam-tomba { 0%, 12% { transform: rotate(0); } 30%, 100% { transform: rotate(-15deg) translate(-6px, 4px); } }
+@keyframes iam-pulinho { 0%, 100% { transform: translateY(0) scale(1, 1); } 12% { transform: scale(1.06, 0.92); } 40% { transform: translateY(-14%) scale(0.96, 1.05); } 70% { transform: scale(1.04, 0.95); } }
+@keyframes iam-encolhe { 0%, 100% { transform: scale(1, 1); } 20%, 60% { transform: scale(1.08, 0.86) translateY(4px); } }
 @media (prefers-reduced-motion: reduce) { .iam-fig, .iam-fig *, .iam-fumaca i { animation: none !important; } }
 html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *, html[data-motion='reduzidas'] .iam-fumaca i { animation: none !important; }

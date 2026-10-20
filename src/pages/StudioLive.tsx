@@ -11,6 +11,7 @@ import { Icon } from '../components/Icon';
 import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs, type TesteAlerta, type TipoAlerta, type VoltaYoutube } from '../data/liveApi';
 import { enderecosCenas } from './OverlayLive';
 import { somDoAlerta } from '../lib/sonsLive';
+import { PainelWidgets } from './StudioLiveWidgets';
 
 /** Como soa cada alerta (para aprender de ouvido). */
 const SONS: { tipo: TipoAlerta; nome: string; som: string }[] = [
@@ -41,6 +42,10 @@ const AVISO_TWITCH: Record<string, string> = {
   ok: 'Canal ligado. Veja abaixo se cada tipo de alerta ficou ligado.',
   erro: 'A Twitch não deixou ligar tudo. Veja abaixo o que ficou de fora e tente de novo.',
   cancelado: 'A ligação com a Twitch foi cancelada.',
+  'bot-ok': 'Conta do IAmiguinho ligada. Veja abaixo se o "Chat" ficou ligado.',
+  'bot-erro': 'A Twitch não deixou ligar a conta do IAmiguinho agora. Tente de novo.',
+  'bot-cancelado': 'A ligação da conta do IAmiguinho foi cancelada.',
+  'bot-migracao': 'Falta rodar a migração 0084 no Supabase.',
 };
 
 export function StudioLivePage() {
@@ -121,6 +126,8 @@ export function StudioLivePage() {
   const ligarYt = async () => { setBusy('yt'); try { await liveApi.youtubeLigar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir o Google.'); setBusy(''); } };
   const desligarYt = async () => { setBusy('ytd'); setLerYt(false); try { await liveApi.youtubeDesligar(); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const religar = async () => { setBusy('canal'); try { await liveApi.ligarCanal(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir a Twitch.'); setBusy(''); } };
+  const ligarBot = async () => { setBusy('bot'); try { await liveApi.ligarBot(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir a Twitch.'); setBusy(''); } };
+  const desligarBot = async () => { setBusy('botd'); try { setMsg(`Conta do IAmiguinho desligada. Inscrições: ${await liveApi.desligarBot()}.`); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const reinscrever = async () => { setBusy('subs'); try { setMsg(`Inscrições: ${await liveApi.reinscrever()}.`); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const contagem = (min: number | null) => mudar({ comecaEm: min == null ? null : new Date(Date.now() + min * 60_000).toISOString() });
 
@@ -133,7 +140,7 @@ export function StudioLivePage() {
       <header className="live-central__head">
         <Link to="/studio" className="sofa__back"><Icon name="voltar" size={16} />Studio</Link>
         <h1 className="t sofa__title">Central da live</h1>
-        <p className="muted sofa__lead">As cenas do OBS, os alertas da Twitch e os textos que aparecem na live.</p>
+        <p className="muted sofa__lead">As cenas do OBS, os alertas, os widgets da tela e os textos que aparecem na live.</p>
       </header>
       {msg && <p className="live-central__msg" role="status">{msg}</p>}
 
@@ -158,13 +165,33 @@ export function StudioLivePage() {
               </ul>
             )}
             {estado.callback && <p className="faint">A Twitch avisa em: <code>{estado.callback}</code></p>}
-            <p className="muted">Os alertas precisam do canal autorizado de novo uma vez (a Twitch pede permissão para seguidores, inscrições e bits). Entre na Twitch com a conta do canal.</p>
+            <p className="muted">{estado.bot?.login && !estado.bot.canalPermite ? 'Falta o canal dar a permissão de bot (para o IAmiguinho ler o chat): aperte "Autorizar o canal de novo" e entre na Twitch com a conta do canal.' : 'Para autorizar de novo, entre na Twitch com a conta do canal. A Twitch pede permissão para seguidores, inscrições, bits e o bot do IAmiguinho no chat.'}</p>
             <div className="live-central__acoes">
               <button className="btn primary" disabled={!!busy} onClick={() => void religar()}>{busy === 'canal' ? 'Abrindo a Twitch…' : estado.canal ? 'Autorizar o canal de novo' : 'Ligar o canal da Twitch'}</button>
               {estado.canal && <button className="btn ghost" disabled={!!busy} onClick={() => void reinscrever()}>{busy === 'subs' ? 'Refazendo…' : 'Refazer as inscrições'}</button>}
             </div>
+            <div className="live-central__motor">
+              <span className="glr-f__l">Conta do IAmiguinho (o bot do chat)</span>
+              {estado.bot && !estado.bot.migracao ? <p className="muted">Falta rodar a migração 0084 no Supabase.</p> : (
+                <>
+                  <p className={`live-central__estado${estado.bot?.login && estado.bot.canalPermite ? ' is-ok' : ''}`}><i aria-hidden="true" />{estado.bot?.login ? `Ligada: @${estado.bot.login}` : 'Ainda não ligada.'}</p>
+                  {estado.bot?.mesmaConta && <p className="faint">Essa é a conta do próprio canal. Funciona, mas no chat as mensagens do bot vão aparecer com o seu nome.</p>}
+                  <p className="muted">Com ela, a Twitch manda cada mensagem do chat para o site: é assim que a enquete, o sorteio e o <code>!morte</code> funcionam, mesmo sem nenhuma página aberta. Na tela da Twitch, se aparecer a conta do canal, clique em "Não é você?" e entre com a conta do IAmiguinho.</p>
+                  <div className="live-central__acoes">
+                    <button className="btn primary" disabled={!!busy || !estado.canal} onClick={() => void ligarBot()}>{busy === 'bot' ? 'Abrindo a Twitch…' : estado.bot?.login ? 'Trocar a conta' : 'Ligar a conta do IAmiguinho'}</button>
+                    {estado.bot?.login && <button className="btn quiet" disabled={!!busy} onClick={() => void desligarBot()}>Desligar</button>}
+                  </div>
+                  {!estado.canal && <p className="faint">Primeiro ligue o canal da Twitch.</p>}
+                </>
+              )}
+            </div>
           </>
         )}
+      </section>
+
+      <section className="live-central__bloco" aria-labelledby="lc-widgets">
+        <h2 id="lc-widgets" className="t live-central__h">Widgets na tela</h2>
+        <PainelWidgets onMsg={setMsg} />
       </section>
 
       <section className="live-central__bloco" aria-labelledby="lc-yt">

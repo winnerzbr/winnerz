@@ -12,7 +12,20 @@ export interface YoutubeEstado { servidor: boolean; ligado: boolean; canal: stri
 export interface VoltaYoutube { ativa: boolean; esperarMs: number; status: string; mensagens?: number; alertas?: number }
 export interface LivePrefs { temporada?: string; youtube?: string; twitch?: string; discord?: string; papo?: string; proxima?: string; comecaEm?: string | null; pausaMin?: number; camLado?: 'direita' | 'esquerda' }
 export interface Inscricao { tipo: string; id: string | null; status: string }
-export interface LiveEstado { canal: string | null; status: string | null; subs: Inscricao[] | null; twitch: boolean; callback?: string; youtube?: YoutubeEstado }
+export interface BotEstado { migracao: boolean; login: string | null; canalPermite: boolean; mesmaConta: boolean }
+export interface LiveEstado { canal: string | null; status: string | null; subs: Inscricao[] | null; twitch: boolean; callback?: string; youtube?: YoutubeEstado; bot?: BotEstado }
+
+/* ---- Etapa 3a: os widgets da tela (migração 0084) ---- */
+export type TipoMeta = 'seguidores' | 'inscritos' | 'bits';
+export interface Meta { id: string; tipo: TipoMeta; titulo: string; alvo: number; atual: number; mostrar: boolean }
+export interface Enquete { id: string; pergunta: string; opcoes: string[]; votos: number[]; aberta: boolean; mostrar: boolean; abertaEm?: string; fechaEm?: string | null }
+export interface Sorteio { id: string; palavra: string; aberto: boolean; mostrar: boolean; participantes: number; ganhador: string | null; sorteadoEm?: string }
+export interface Painel { mortes: number; mortesRotulo: string | null; mostrarMortes: boolean; metas: Meta[]; enquete: Enquete | null; sorteio: Sorteio | null; inicio: string | null; agora: string }
+export interface Creditos { seguidores: string[]; inscritos: string[]; apoios: string[]; raids: string[]; conversa: string[] }
+export type AcaoPainel = 'mortes' | 'metas' | 'enquete-abrir' | 'enquete-fechar' | 'enquete-mostrar' | 'enquete-tirar' | 'sorteio-abrir' | 'sorteio-fechar' | 'sorteio-sortear' | 'sorteio-mostrar' | 'sorteio-tirar' | 'nova-live';
+export const NOME_META: Record<TipoMeta, string> = { seguidores: 'Seguidores (Twitch) e inscritos (YouTube)', inscritos: 'Inscrições (Twitch) e membros (YouTube)', bits: 'Bits' };
+export const TITULO_META: Record<TipoMeta, string> = { seguidores: 'Meta de seguidores', inscritos: 'Meta de inscrições', bits: 'Meta de bits' };
+const PAINEL_VAZIO = (): Painel => ({ mortes: 0, mortesRotulo: null, mostrarMortes: false, metas: [], enquete: null, sorteio: null, inicio: null, agora: new Date().toISOString() });
 
 export type TesteAlerta = TipoAlerta | 'yt-inscrito';
 export const TIPOS_ALERTA: { tipo: TesteAlerta; nome: string }[] = [
@@ -22,6 +35,7 @@ export const TIPOS_ALERTA: { tipo: TesteAlerta; nome: string }[] = [
 ];
 export const NOME_INSCRICAO: Record<string, string> = {
   pontos: 'Pontos do canal (figurinhas)', follow: 'Seguidores', sub: 'Inscrições', resub: 'Renovações', gift: 'Inscrições de presente', cheer: 'Bits', raid: 'Raids',
+  online: 'Início da live', chat: 'Chat (pela conta do IAmiguinho)',
 };
 
 const supa = () => getState().mode === 'supabase';
@@ -42,7 +56,109 @@ const EXEMPLO: Record<TipoAlerta, { quem: string; valor: number | null }> = {
   superchat: { quem: 'quem_mandou', valor: 2000 }, member: { quem: 'quem_virou_membro', valor: null },
 };
 
+/* Demonstração dos widgets: o painel fica neste navegador e o "chat" de mentira vota e entra no sorteio sozinho. */
+const PK = 'wz.demo.painel';
+const NOMES_DEMO = ['pixel_torto', 'ana_joga', 'chefe_final', 'mestre_do_save', 'lagarta_veloz', 'boss_de_quinta', 'quase_zerou', 'combo_quebrado', 'speedrun_lento', 'npc_feliz', 'joystick_veio', 'dona_fenix'];
+type PainelDemo = Painel & { _votos?: number[]; _gente?: string[]; _metasDesde?: Record<string, string> };
+const lerPainelDemo = (): PainelDemo => { try { return { ...PAINEL_VAZIO(), ...(JSON.parse(localStorage.getItem(PK) ?? 'null') ?? {}) } as PainelDemo; } catch { return PAINEL_VAZIO(); } };
+const gravarPainelDemo = (p: PainelDemo) => { try { localStorage.setItem(PK, JSON.stringify(p)); } catch { /* nada */ } };
+const vivoDemo = (p: PainelDemo): Painel => {
+  const agora = Date.now();
+  const e = p.enquete;
+  if (e?.aberta && e.fechaEm && Date.parse(e.fechaEm) <= agora) e.aberta = false;
+  if (e?.aberta) e.votos = e.votos.map((v, i) => v + (Math.random() < 0.55 ? Math.floor(Math.random() * (3 - i * 0.6)) : 0));
+  const so = p.sorteio;
+  if (so?.aberto && Math.random() < 0.7) so.participantes += 1 + Math.floor(Math.random() * 2);
+  const ev = lerDemo();
+  p.metas = p.metas.map((m) => {
+    const desde = Date.parse(p._metasDesde?.[m.id] ?? '0');
+    const l = ev.filter((x) => Date.parse(x.created_at) >= desde);
+    const atual = m.tipo === 'seguidores' ? l.filter((x) => x.tipo === 'follow').length
+      : m.tipo === 'inscritos' ? l.reduce((n, x) => n + (x.tipo === 'gift' ? x.valor ?? 1 : ['sub', 'resub', 'member'].includes(x.tipo) ? 1 : 0), 0)
+      : l.reduce((n, x) => n + (x.tipo === 'cheer' ? x.valor ?? 0 : 0), 0);
+    return { ...m, atual };
+  });
+  gravarPainelDemo(p);
+  const { _votos, _gente, _metasDesde, ...publico } = p; void _votos; void _gente; void _metasDesde;
+  return { ...publico, agora: new Date().toISOString() };
+};
+function acaoDemo(acao: AcaoPainel, a: Record<string, unknown>): Painel {
+  const p = lerPainelDemo();
+  const novoId = () => Math.random().toString(36).slice(2, 14);
+  switch (acao) {
+    case 'mortes':
+      if (typeof a.valor === 'number') p.mortes = a.valor; else p.mortes = Math.max(0, p.mortes + (Number(a.delta) || 0));
+      if (typeof a.rotulo === 'string') p.mortesRotulo = a.rotulo.trim().slice(0, 40) || null;
+      if (typeof a.mostrar === 'boolean') p.mostrarMortes = a.mostrar;
+      break;
+    case 'metas': {
+      const desde = { ...(p._metasDesde ?? {}) };
+      p.metas = ((a.metas as Partial<Meta & { recomecar?: boolean }>[]) ?? []).slice(0, 3).map((m) => {
+        const id = m.id && p.metas.some((x) => x.id === m.id) ? m.id : novoId();
+        if (!desde[id] || m.recomecar) desde[id] = new Date().toISOString();
+        return { id, tipo: m.tipo ?? 'seguidores', titulo: (m.titulo ?? '').slice(0, 40), alvo: Math.max(1, Number(m.alvo) || 10), atual: 0, mostrar: m.mostrar !== false };
+      });
+      p._metasDesde = desde;
+      break;
+    }
+    case 'enquete-abrir': {
+      const opcoes = ((a.opcoes as string[]) ?? []).map((x) => String(x).trim().slice(0, 40)).filter(Boolean).slice(0, 5);
+      if (opcoes.length < 2) throw new Error('A enquete precisa de pelo menos duas opções.');
+      const seg = Number(a.segundos) || 0;
+      p.enquete = { id: novoId(), pergunta: String(a.pergunta ?? '').trim().slice(0, 90), opcoes, votos: opcoes.map(() => 0), aberta: true, mostrar: true, abertaEm: new Date().toISOString(), fechaEm: seg ? new Date(Date.now() + seg * 1000).toISOString() : null };
+      break;
+    }
+    case 'enquete-fechar': if (p.enquete) { p.enquete.aberta = false; p.enquete.fechaEm = new Date().toISOString(); } break;
+    case 'enquete-mostrar': if (p.enquete) p.enquete.mostrar = a.mostrar !== false; break;
+    case 'enquete-tirar': p.enquete = null; break;
+    case 'sorteio-abrir': p.sorteio = { id: novoId(), palavra: String(a.palavra ?? '').trim().toLowerCase().replace(/\s+/g, '').slice(0, 24) || '!sorteio', aberto: true, mostrar: true, participantes: 0, ganhador: null }; p._gente = []; break;
+    case 'sorteio-fechar': if (p.sorteio) p.sorteio.aberto = false; break;
+    case 'sorteio-sortear': {
+      if (!p.sorteio?.participantes) throw new Error('Ninguém entrou no sorteio (ou todos já ganharam).');
+      const ja = p._gente ?? [];
+      const livres = NOMES_DEMO.filter((x) => !ja.includes(x));
+      if (!livres.length) throw new Error('Ninguém entrou no sorteio (ou todos já ganharam).');
+      const g = livres[Math.floor(Math.random() * livres.length)];
+      p._gente = [...ja, g];
+      p.sorteio = { ...p.sorteio, aberto: false, mostrar: true, ganhador: g, sorteadoEm: new Date().toISOString() };
+      break;
+    }
+    case 'sorteio-mostrar': if (p.sorteio) p.sorteio.mostrar = a.mostrar !== false; break;
+    case 'sorteio-tirar': p.sorteio = null; break;
+    case 'nova-live': p.inicio = new Date().toISOString(); break;
+  }
+  return vivoDemo(p);
+}
+
 export const liveApi = {
+  /** O painel dos widgets (o overlay pergunta a cada 2 s; sem login). */
+  async painel(): Promise<Painel | null> {
+    if (!supa()) return vivoDemo(lerPainelDemo());
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('live_painel_ler');
+    return r.error ? null : ((r.data as Painel | null) ?? null);
+  },
+  /** Quem apareceu na live (para os créditos). */
+  async creditos(): Promise<Creditos | null> {
+    if (!supa()) return { seguidores: NOMES_DEMO.slice(0, 7), inscritos: NOMES_DEMO.slice(7, 10), apoios: ['dona_fenix', 'npc_feliz'], raids: ['canal_amigo'], conversa: [...NOMES_DEMO].reverse().slice(0, 10) };
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('live_creditos');
+    return r.error ? null : ((r.data as Creditos | null) ?? null);
+  },
+  /** A Central muda o painel (só a administração). */
+  async acao(acao: AcaoPainel, a: Record<string, unknown> = {}): Promise<Painel> {
+    if (!supa()) return acaoDemo(acao, a);
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('live_painel_acao', { p_acao: acao, p: a });
+    if (r.error) throw new Error(/live_painel_acao|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message) ? 'Falta rodar a migração 0084 no Supabase.' : r.error.message.slice(0, 140));
+    return r.data as Painel;
+  },
+  /** Ligar a conta do IAmiguinho na Twitch (o bot): entra na Twitch com a conta dele e volta para a Central. */
+  async ligarBot(): Promise<void> {
+    const r = await pontes<{ url: string }>({ twitchBot: true });
+    location.href = r.url;
+  },
+  async desligarBot(): Promise<string> { return (await pontes<{ status: string }>({ live: 'bot-desligar' })).status; },
   /** Os alertas novos depois do id (o overlay pergunta a cada 2 s). Sem desde, só o último id (para não repetir os antigos). */
   async eventos(desde: number | null): Promise<LiveEvento[]> {
     if (!supa()) { const l = lerDemo(); return desde == null ? l.slice(-1) : l.filter((e) => e.id > desde); }
@@ -64,7 +180,7 @@ export const liveApi = {
     return desde == null ? l.reverse() : l;
   },
   async estado(): Promise<LiveEstado> {
-    if (!supa()) return { canal: 'seu_canal', status: '7 de 7 ligadas', subs: Object.keys(NOME_INSCRICAO).map((tipo) => ({ tipo, id: null, status: 'enabled' })), twitch: true, youtube: { servidor: true, ligado: true, canal: 'Seu canal', status: 'ligado', aoVivo: false, migracao: true } };
+    if (!supa()) return { canal: 'seu_canal', status: '9 de 9 ligadas', subs: Object.keys(NOME_INSCRICAO).map((tipo) => ({ tipo, id: null, status: 'enabled' })), twitch: true, youtube: { servidor: true, ligado: true, canal: 'Seu canal', status: 'ligado', aoVivo: false, migracao: true }, bot: { migracao: true, login: 'iamiguinho', canalPermite: true, mesmaConta: false } };
     return pontes<LiveEstado>({ live: 'estado' });
   },
   async teste(tipo: TesteAlerta): Promise<void> {

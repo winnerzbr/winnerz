@@ -18,7 +18,7 @@ type Data = { game: { title: string; cover: string } | null; session: { startedA
  * E7.2: no overlay do canal, o drop de figurinhas no ar entra por cima, com o código e a contagem.
  * IAmiguinho no sofá (migração 0080): no overlay do canal, a fala dele aparece num balão embaixo do cartão. Com
  * ?so=sofa no endereço, o overlay mostra só o balão (para posicionar como outra fonte no OBS).
- * Sistema de live: com ?cena=… (ou ?so=alertas / ?so=chat), as cenas do canal em 1920 × 1080 (pages/OverlayLive).
+ * Sistema de live: com ?cena=… (ou ?so=alertas / ?so=chat / ?so=widgets), as cenas do canal em 1920 × 1080 (pages/OverlayLive).
  */
 export function OverlayPage({ k }: { k: string }) {
   const s = useStore((x) => x);
@@ -45,7 +45,7 @@ export function OverlayPage({ k }: { k: string }) {
   const busca = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
   const soSofa = busca.get('so') === 'sofa';
   const cena = cenaValida(busca.get('cena'));
-  const soLive = busca.get('so') === 'alertas' || busca.get('so') === 'chat' ? busca.get('so') : null;
+  const soLive = ['alertas', 'chat', 'widgets'].includes(busca.get('so') ?? '') ? busca.get('so') : null;
   // O sofá: quando a cabine está ligada, a fala é lida direto do banco a cada 2,5 s (a do resto do overlay é a cada 10 s).
   const [sofa, setSofa] = useState<SofaLinha | null>(null);
   const sofaLigado = k === 'demo' || !!data?.sofa?.ligado;

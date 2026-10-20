@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos } from '../../api/pontes';
+import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo } from '../../api/pontes';
 
 test('títulos do RetroAchievements viram nomes buscáveis', () => {
   assert.equal(raCleanTitle('Legend of Zelda, The: A Link to the Past'), 'The Legend of Zelda: A Link to the Past');
@@ -120,4 +120,35 @@ test('os avisos da Twitch vão para o endereço que responde (com ou sem www), n
   assert.equal(enderecoAvisos('https://winnerz.com.br', 'outro.vercel.app'), 'https://winnerz.com.br' + fim);
   assert.equal(enderecoAvisos('https://winnerz.com.br', undefined), 'https://winnerz.com.br' + fim);
   assert.equal(enderecoAvisos('https://winnerz.com.br', 'www.winnerz.com.br@mal.com'), 'https://winnerz.com.br' + fim);
+});
+
+test('etapa 3a: mensagem do chat da Twitch vira entrada da enquete/sorteio (a do bot não conta)', () => {
+  const ev = { broadcaster_user_id: '10', chatter_user_id: '22', chatter_user_login: 'ana', chatter_user_name: 'Ana', message: { text: '  2 \n' }, badges: [{ set_id: 'moderator' }] };
+  assert.deepEqual(mensagemTwitch(ev, '99'), { pl: 'tw', uid: '22', nome: 'Ana', texto: '2', mod: true, dono: false });
+  assert.equal(mensagemTwitch({ ...ev, chatter_user_id: '99' }, '99'), null);
+  assert.equal(mensagemTwitch({ ...ev, message: { text: '   ' } }, '99'), null);
+  assert.equal(mensagemTwitch({ ...ev, chatter_user_id: 'x;drop' }, '99'), null);
+  const dono = mensagemTwitch({ ...ev, chatter_user_id: '10', badges: [{ set_id: 'broadcaster' }] }, '99');
+  assert.equal(dono?.dono, true); assert.equal(dono?.mod, true);
+  assert.equal(mensagemTwitch({ ...ev, badges: [] }, '99')?.mod, false);
+});
+
+test('etapa 3a: mensagem do chat do YouTube (texto ou comentário do Super Chat)', () => {
+  const base = { authorDetails: { channelId: 'UCabc', displayName: 'Bia', isChatModerator: false, isChatOwner: false } };
+  assert.deepEqual(mensagemYoutube({ ...base, snippet: { type: 'textMessageEvent', displayMessage: '!sorteio' } }), { pl: 'yt', uid: 'UCabc', nome: 'Bia', texto: '!sorteio', mod: false, dono: false });
+  assert.equal(mensagemYoutube({ ...base, snippet: { type: 'superChatEvent', superChatDetails: { userComment: '1' } } })?.texto, '1');
+  assert.equal(mensagemYoutube({ ...base, snippet: { type: 'newSponsorEvent' } }), null);
+  assert.equal(mensagemYoutube({ authorDetails: { channelId: 'UCx', isChatOwner: true }, snippet: { type: 'textMessageEvent', displayMessage: '!morte' } })?.dono, true);
+});
+
+test('etapa 3a: escopos que faltam no canal', () => {
+  assert.deepEqual(faltaEscopo('channel:read:redemptions moderator:read:followers channel:read:subscriptions bits:read'), ['channel:bot']);
+  assert.deepEqual(faltaEscopo('bits:read channel:bot', 'channel:bot'), []);
+  assert.deepEqual(faltaEscopo(null, 'channel:bot'), ['channel:bot']);
+});
+
+test('etapa 3a: o login da conta do bot passa pelo mesmo state assinado', async () => {
+  const { signState, readState } = await import('../../api/pontes');
+  const s = await signState({ u: 'adm', k: 'bot', t: 2_000, n: 'abc', d: 'live' }, 'segredo');
+  assert.deepEqual(await readState(s, 'segredo', 1_000), { u: 'adm', k: 'bot', n: 'abc', d: 'live' });
 });

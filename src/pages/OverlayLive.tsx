@@ -1,7 +1,8 @@
 /**
  * Sistema de live, etapa 1: as cenas do overlay do canal para o OBS (fonte de navegador em 1920 × 1080, o palco escala
  * para o tamanho da fonte). /overlay/<endereço>?cena=jogando | conversa | comecando | javolto | encerrando.
- * Fontes à parte: ?so=alertas (só os alertas) e ?so=chat (só o chat da Twitch). ?som=0 desliga o som dos alertas.
+ * Fontes à parte: ?so=alertas (só os alertas), ?so=chat (só o chat) e ?so=widgets (mortes, metas, enquete e sorteio).
+ * ?som=0 desliga o som dos alertas. ?cena=creditos é a rolagem do fim (etapa 3a).
  * A câmera é outra fonte do OBS, posta dentro da moldura (?cam=esquerda troca o lado na cena Jogando).
  * Os alertas vêm de live_events (o servidor grava o que a Twitch avisa) e mostram o IAmiguinho reagindo.
  */
@@ -10,15 +11,17 @@ import { Figura } from '../components/IAmiguinho';
 import { CENA_CARA, type SofaLinha } from '../data/sofaApi';
 import { liveApi, type LiveEvento, type LivePrefs, type TipoAlerta } from '../data/liveApi';
 import type { Reacao } from '../lib/iamiguinhoRosto';
-import { somDoAlerta } from '../lib/sonsLive';
+import { somDoAlerta, somDoWidget, type SomWidget } from '../lib/sonsLive';
+import { Rolagem, temWidget, useCreditos, usePainel, Widgets } from './OverlayWidgets';
 
-export type CenaLive = 'jogando' | 'conversa' | 'comecando' | 'javolto' | 'encerrando';
+export type CenaLive = 'jogando' | 'conversa' | 'comecando' | 'javolto' | 'encerrando' | 'creditos';
 export const CENAS_LIVE: { id: CenaLive; nome: string; dica: string }[] = [
   { id: 'jogando', nome: 'Jogando', dica: 'Jogo, câmera no canto, alertas e o balão do IAmiguinho. Fundo transparente: a captura do jogo fica atrás.' },
   { id: 'conversa', nome: 'Conversa', dica: 'Câmera grande, o assunto do papo e o chat.' },
   { id: 'comecando', nome: 'Começando', dica: 'Contagem para a live começar e o jogo de hoje.' },
   { id: 'javolto', nome: 'Já volto', dica: 'A pausa, com o IAmiguinho de guarda.' },
   { id: 'encerrando', nome: 'Encerrando', dica: 'Resumo da sessão, momentos e a próxima live.' },
+  { id: 'creditos', nome: 'Créditos', dica: 'A rolagem do fim, como no cinema: raids, inscrições, apoios, quem chegou e quem mais falou no chat.' },
 ];
 export const cenaValida = (v: string | null): CenaLive | null => (CENAS_LIVE.some((c) => c.id === v) ? (v as CenaLive) : null);
 
@@ -72,6 +75,7 @@ function Barra({ live, children }: { live?: LivePrefs | null; children?: ReactNo
 
 /* ---- O balão do IAmiguinho: a fala do sofá (12 s) ou, nas cenas paradas, uma fala da casa ---- */
 const FALAS_CASA: Partial<Record<CenaLive, string[]>> = {
+  creditos: ['meu nome tá nos créditos. finalmente reconhecimento', 'obrigado a todos. principalmente a mim', 'fiquem até o fim, tem cena pós-créditos. mentira, não tem'],
   comecando: ['aquecendo os dedos. os meus, pq quem joga já tá tremendo lol', 'temporada nova, mesma confiança. zero motivo, muita confiança', 'pega a pipoca que hoje tem chefe. e tem morte. principalmente morte'],
   javolto: ['fiquei de guarda. se o chefe aparecer eu finjo que tô dormindo. plano perfeito, sem erros', 'foi beber água. eu fiquei aqui segurando a live. de nada', 'pausa estratégica. ou fuga. a gente nunca sabe'],
   conversa: ['papo bom. tô aqui balançando a cabeça fingindo que entendo, real', 'podem continuar, eu tô anotando tudo. mentira, não tô'],
@@ -147,6 +151,10 @@ function useSomLiberado(ligado: boolean): { bloqueado: boolean; liberar: () => v
 }
 function tocarSom(tipo: TipoAlerta) {
   try { const c = ctxSom(); if (c.state === 'suspended') void c.resume(); somDoAlerta(c, tipo); } catch { /* sem som */ }
+}
+function tocarWidget(tipo: SomWidget) {
+  if (params().get('som') === '0') return;
+  try { const c = ctxSom(); if (c.state === 'suspended') void c.resume(); somDoWidget(c, tipo); } catch { /* sem som */ }
 }
 /** A fila de alertas: pergunta ao banco a cada 2 s e mostra um de cada vez. */
 /** Quanto tempo cada alerta fica na tela (o raid fica mais). */
@@ -272,8 +280,10 @@ function Chat({ canal, className, max = 12 }: { canal?: string | null; className
 
 /* ---- As cenas ---- */
 export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: string | null; d: DadosCena | null; sofa: SofaLinha | null }) {
-  const alerta = useAlertas(so === 'alertas' || !!cena);
-  const som = useSomLiberado(so === 'alertas' || !!cena);
+  const alerta = useAlertas(so === 'alertas' || (!!cena && cena !== 'creditos'));
+  const som = useSomLiberado(so === 'alertas' || so === 'widgets' || !!cena);
+  const { p: painel, desvio } = usePainel(so === 'widgets' || cena === 'jogando' || cena === 'conversa' || cena === 'javolto', tocarWidget);
+  const creditos = useCreditos(cena === 'creditos');
   const avisoSom = som.bloqueado && !noObs() ? <button type="button" className="lv-som" onClick={som.liberar}>Clique aqui para ligar o som dos alertas</button> : null;
   const [agora, setAgora] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t); }, []);
@@ -284,6 +294,7 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
 
   if (so === 'alertas') return <Palco>{alertas}</Palco>;
   if (so === 'chat') return <div className="lv-solo-chat"><Chat canal={d?.canal} className="lv-chat--solo" max={16} /></div>;
+  if (so === 'widgets') return <Palco>{avisoSom}<Widgets p={painel} desvio={desvio} className="lv-widgets--jogando" /></Palco>;
 
   if (cena === 'jogando') return (
     <Palco>
@@ -297,6 +308,7 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
           </span>
         </div>
       )}
+      <Widgets p={painel} desvio={desvio} className="lv-widgets--jogando" limite={camLado === 'direita' ? 590 : 800} />
       {alertas}
       <Balao cena="jogando" sofa={sofa} className={`lv-balao--jogando is-${camLado === 'direita' ? 'esquerda' : 'direita'}`} />
       <Moldura className={`lv-cam--jogando is-${camLado}`} selo="Ao vivo" />
@@ -309,13 +321,14 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
       <Moldura className="lv-cam--conversa" selo="Ao vivo · WinnerZ" />
       <div className="lv-papo"><span className="lv-k">Papo de hoje</span><span className="lv-papo__t">{live?.papo || 'Conversa com o chat'}</span></div>
       <div className="lv-lado">
-        {d?.game && (
+        <Widgets p={painel} desvio={desvio} mortes={false} className="lv-widgets--conversa" />
+        {d?.game && !temWidget(painel, false) && (
           <div className="lv-depois">
             {d.game.cover && <img src={d.game.cover} alt="" />}
             <span><span className="lv-k">Depois do papo</span><span className="lv-depois__t">{d.game.title}</span>{d.session && <span className="lv-mono">Sessão {d.session.number}</span>}</span>
           </div>
         )}
-        <Chat canal={d?.canal} className="lv-chat--conversa" />
+        <Chat canal={d?.canal} className={`lv-chat--conversa${temWidget(painel, false) ? ' is-curto' : ''}`} />
         <Balao cena="conversa" sofa={sofa} className="lv-balao--conversa" />
       </div>
       {alertas}
@@ -363,6 +376,7 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
         <div className="lv-card lv-card--ambar"><span className="lv-k lv-k--ambar">Enquanto isso</span><span className="lv-card__t">Pegue uma figurinha: winnerz.com.br/codigo</span></div>
         <Balao cena="javolto" sofa={sofa} className="lv-balao--volto" comFigura={false} />
       </div>
+      <Widgets p={painel} desvio={desvio} mortes={false} className="lv-widgets--volto" />
       {alertas}
     </Palco>
   );
@@ -394,6 +408,21 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
       </Palco>
     );
   }
+  if (cena === 'creditos') return (
+    <Palco fundo>
+      {d?.game?.cover && <img className="lv-fundo-capa lv-fundo-capa--fim" src={d.game.cover} alt="" />}
+      <i className="lv-veu lv-veu--creditos" aria-hidden="true" />
+      <Rolagem c={creditos} canal={d?.canal || live?.twitch?.replace(/^.*twitch\.tv\//i, '') || live?.youtube} jogo={d?.game?.title} />
+      <Figura img="pose-controle" className="lv-iam lv-iam--creditos" width={520} height={520} lazy={false} />
+      <Balao cena="creditos" sofa={sofa} className="lv-balao--creditos" comFigura={false} />
+      <i className="lv-horizonte lv-horizonte--fim" aria-hidden="true" />
+      <div className="lv-proxima">
+        <span><span className="lv-k">Próxima live</span><span className="lv-proxima__t">{live?.proxima || 'Quando a temporada voltar'}</span></span>
+        <span className="lv-proxima__dir"><img src={LOGO} alt="WinnerZ" /><Redes live={live} /></span>
+      </div>
+      {avisoSom}
+    </Palco>
+  );
   return null;
 }
 
@@ -402,6 +431,7 @@ export function enderecosCenas(base: string) {
   return base ? [
     ...CENAS_LIVE.map((c) => ({ id: c.id, nome: c.nome, dica: c.dica, url: `${base}?cena=${c.id}` })),
     { id: 'alertas', nome: 'Só os alertas', dica: 'Para pôr os alertas por cima de qualquer cena sua.', url: `${base}?so=alertas` },
-    { id: 'chat', nome: 'Só o chat', dica: 'O chat da Twitch, para encaixar onde quiser.', url: `${base}?so=chat` },
+    { id: 'chat', nome: 'Só o chat', dica: 'O chat da Twitch e do YouTube, para encaixar onde quiser.', url: `${base}?so=chat` },
+    { id: 'widgets', nome: 'Só os widgets', dica: 'Mortes, metas, enquete e sorteio no canto de cima, à direita, por cima de qualquer cena sua.', url: `${base}?so=widgets` },
   ] : [];
 }

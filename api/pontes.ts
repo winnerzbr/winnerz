@@ -21,6 +21,10 @@
  *        → endereço do login do Google | desliga o canal | uma volta de leitura do YouTube (migração 0083)
  * Sistema de live (migração 0082): o EventSub também avisa seguidor, inscrição, renovação, presente, bits e raid, que
  * vão para live_events (o overlay mostra os alertas). Pede a autorização do canal com os escopos de cada um.
+ *   POST /api/pontes (com login, administração) { twitchBot: true } | { live: 'bot-desligar' }
+ *        → etapa 3a (migração 0084): liga | desliga a conta do IAmiguinho na Twitch. Com ela, o EventSub também manda
+ *          cada mensagem do chat (channel.chat.message), que vai para live_chat_processa (enquete, sorteio, mortes,
+ *          créditos), e avisa quando a live começa (stream.online: os créditos contam daí).
  *
  * Steam: compara o tempo total de cada jogo com a última leitura; a diferença vira uma sessão que termina no
  * "última vez jogado". RetroAchievements: conquistas desbloqueadas desde a última busca, agrupadas por jogo e por
@@ -558,17 +562,18 @@ async function hmacHex(key: string, text: string): Promise<string> {
   return [...new Uint8Array(await crypto.subtle.sign('HMAC', k, enc.encode(text)))].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 /** O "state" do login da Twitch: quem pediu, para quê, até quando e o número do cookie (n), assinado com a chave do servidor. */
-export async function signState(p: { u: string; k: 'pessoa' | 'canal'; t: number; n?: string; d?: 'live' }, secret: string): Promise<string> {
+export type TipoLogin = 'pessoa' | 'canal' | 'bot';
+export async function signState(p: { u: string; k: TipoLogin; t: number; n?: string; d?: 'live' }, secret: string): Promise<string> {
   const body = Buffer.from(JSON.stringify(p)).toString('base64url');
   return `${body}.${(await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32)}`;
 }
-export async function readState(state: string, secret: string, now = Date.now()): Promise<{ u: string; k: 'pessoa' | 'canal'; n?: string; d?: 'live' } | null> {
+export async function readState(state: string, secret: string, now = Date.now()): Promise<{ u: string; k: TipoLogin; n?: string; d?: 'live' } | null> {
   const [body, sig] = String(state ?? '').split('.');
   if (!body || !sig || !sameText(sig, (await hmacHex(secret, `twitch-state:${body}`)).slice(0, 32))) return null;
   try {
     const p = JSON.parse(Buffer.from(body, 'base64url').toString()) as { u?: string; k?: string; t?: number; n?: string; d?: string };
-    if (!p.u || (p.k !== 'pessoa' && p.k !== 'canal') || !p.t || p.t < now) return null;
-    const out: { u: string; k: 'pessoa' | 'canal'; n?: string; d?: 'live' } = p.n ? { u: p.u, k: p.k, n: p.n } : { u: p.u, k: p.k };
+    if (!p.u || (p.k !== 'pessoa' && p.k !== 'canal' && p.k !== 'bot') || !p.t || p.t < now) return null;
+    const out: { u: string; k: TipoLogin; n?: string; d?: 'live' } = p.n ? { u: p.u, k: p.k, n: p.n } : { u: p.u, k: p.k };
     if (p.d === 'live') out.d = 'live';
     return out;
   } catch { return null; }
@@ -609,14 +614,24 @@ async function appToken(): Promise<string | null> {
   }
   return token.value;
 }
-/** O que o canal autoriza: os resgates com pontos (álbum) e, para os alertas da live, seguidores, inscrições e bits. */
-export const ESCOPOS_CANAL = 'channel:read:redemptions moderator:read:followers channel:read:subscriptions bits:read';
-async function twitchLoginUrl(req: Req, user: string, kind: 'pessoa' | 'canal', volta?: 'live') {
+/**
+ * O que o canal autoriza: os resgates com pontos (álbum), os alertas da live (seguidores, inscrições e bits) e o bot
+ * do IAmiguinho no chat (channel:bot: deixa a conta do IAmiguinho ler e escrever no chat do canal).
+ */
+export const ESCOPOS_CANAL = 'channel:read:redemptions moderator:read:followers channel:read:subscriptions bits:read channel:bot';
+/**
+ * O que a conta do IAmiguinho autoriza: ler e escrever no chat como bot e, quando for moderador do canal, moderar
+ * (apagar mensagem, castigo) e ver quem está no chat (pontos por assistir).
+ */
+export const ESCOPOS_BOT = 'user:read:chat user:write:chat user:bot moderator:manage:banned_users moderator:manage:chat_messages moderator:read:chatters';
+/** Falta algum escopo do canal (o canal precisa autorizar de novo)? */
+export const faltaEscopo = (tem: string | null | undefined, quer = ESCOPOS_CANAL) => { const t = new Set(String(tem ?? '').split(/\s+/)); return quer.split(' ').filter((x) => !t.has(x)); };
+async function twitchLoginUrl(req: Req, user: string, kind: TipoLogin, volta?: 'live') {
   const id = process.env.TWITCH_CLIENT_ID;
   if (!id || !process.env.TWITCH_CLIENT_SECRET) return { error: 'A Twitch ainda não foi ligada no servidor (TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET).' };
   const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(18))).toString('base64url');
   const state = await signState({ u: user, k: kind, t: Date.now() + 15 * 60_000, n: nonce, ...(volta ? { d: volta } : {}) }, serverSecret());
-  const q = new URLSearchParams({ client_id: id, redirect_uri: `${SITE(req)}/twitch/volta`, response_type: 'code', scope: kind === 'canal' ? ESCOPOS_CANAL : '', state, force_verify: 'true' });
+  const q = new URLSearchParams({ client_id: id, redirect_uri: `${SITE(req)}/twitch/volta`, response_type: 'code', scope: kind === 'canal' ? ESCOPOS_CANAL : kind === 'bot' ? ESCOPOS_BOT : '', state, force_verify: 'true' });
   return { url: `https://id.twitch.tv/oauth2/authorize?${q}`, nonce };
 }
 /** Os alertas de teste da Central da live (nomes de exemplo). */
@@ -629,7 +644,7 @@ const TESTES_LIVE: Record<string, { quem: string; valor: number | null; tipo?: s
 };
 /** Os eventos do canal que o WinnerZ acompanha: os resgates com pontos (álbum) e os alertas da live. */
 type Inscricao = { tipo: string; id: string | null; status: string };
-const EVENTOS = (b: string) => [
+const EVENTOS = (b: string, bot?: string | null) => [
   { tipo: 'pontos', type: 'channel.channel_points_custom_reward_redemption.add', version: '1', condition: { broadcaster_user_id: b } },
   { tipo: 'follow', type: 'channel.follow', version: '2', condition: { broadcaster_user_id: b, moderator_user_id: b } },
   { tipo: 'sub', type: 'channel.subscribe', version: '1', condition: { broadcaster_user_id: b } },
@@ -637,10 +652,15 @@ const EVENTOS = (b: string) => [
   { tipo: 'gift', type: 'channel.subscription.gift', version: '1', condition: { broadcaster_user_id: b } },
   { tipo: 'cheer', type: 'channel.cheer', version: '1', condition: { broadcaster_user_id: b } },
   { tipo: 'raid', type: 'channel.raid', version: '1', condition: { to_broadcaster_user_id: b } },
+  { tipo: 'online', type: 'stream.online', version: '1', condition: { broadcaster_user_id: b } },
+  ...(bot ? [{ tipo: 'chat', type: 'channel.chat.message', version: '1', condition: { broadcaster_user_id: b, user_id: bot } }] : []),
 ];
 /** (Re)cria as inscrições do EventSub do canal: apaga as antigas e pede uma para cada evento. Devolve um resumo. */
 async function twitchSubscribe(req: Req): Promise<string> {
-  const ch = (await sel<{ broadcaster_id: string | null; sub_id: string | null; subs: Inscricao[] | null }>('twitch_channel?select=broadcaster_id,sub_id,subs&id=eq.1').catch(async () => sel<{ broadcaster_id: string | null; sub_id: string | null; subs: null }>('twitch_channel?select=broadcaster_id,sub_id&id=eq.1')))[0];
+  type Canal = { broadcaster_id: string | null; sub_id: string | null; subs: Inscricao[] | null; bot_id?: string | null };
+  const ch = (await sel<Canal>('twitch_channel?select=broadcaster_id,sub_id,subs,bot_id&id=eq.1')
+    .catch(() => sel<Canal>('twitch_channel?select=broadcaster_id,sub_id,subs&id=eq.1'))
+    .catch(() => sel<Canal>('twitch_channel?select=broadcaster_id,sub_id&id=eq.1')))[0];
   if (!ch?.broadcaster_id) return 'O canal ainda não autorizou o WinnerZ.';
   const tk = await appToken();
   if (!tk) return 'A Twitch não respondeu (confira TWITCH_CLIENT_ID e TWITCH_CLIENT_SECRET).';
@@ -649,7 +669,7 @@ async function twitchSubscribe(req: Req): Promise<string> {
   for (const id of new Set(velhas)) await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: h }).catch(() => null);
   const transport = { method: 'webhook', callback: AVISOS(req), secret: await eventsubSecret(serverSecret()) };
   const subs: Inscricao[] = [];
-  for (const e of EVENTOS(ch.broadcaster_id)) {
+  for (const e of EVENTOS(ch.broadcaster_id, ch.bot_id)) {
     const r = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', { method: 'POST', headers: h, body: JSON.stringify({ type: e.type, version: e.version, condition: e.condition, transport }) }).catch(() => null);
     const j = (r ? await r.json().catch(() => ({})) : {}) as { data?: { id: string; status: string }[]; message?: string };
     subs.push({ tipo: e.tipo, id: j.data?.[0]?.id ?? null, status: r?.ok ? (j.data?.[0]?.status ?? 'pendente') : `erro ${r?.status ?? 'sem resposta'}${j.message ? `: ${j.message}` : ''}`.slice(0, 80) });
@@ -682,6 +702,27 @@ export function alertaDe(tipo: string, ev: Record<string, unknown>): { tipo: str
     default: return null;
   }
 }
+/** Uma mensagem do chat (EventSub channel.chat.message) no formato de live_chat_processa. A do próprio bot não conta. */
+export type MsgChat = { pl: 'tw' | 'yt'; uid: string; nome: string; texto: string; mod: boolean; dono: boolean };
+export function mensagemTwitch(ev: Record<string, unknown>, bot?: string): MsgChat | null {
+  const uid = typeof ev.chatter_user_id === 'string' ? ev.chatter_user_id : '';
+  const texto = typeof (ev.message as { text?: unknown } | undefined)?.text === 'string' ? (ev.message as { text: string }).text.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : '';
+  if (!/^[0-9]{1,20}$/.test(uid) || !texto || (bot && uid === bot)) return null;
+  const selos = Array.isArray(ev.badges) ? (ev.badges as { set_id?: unknown }[]).map((b) => String(b?.set_id ?? '')) : [];
+  const nome = (typeof ev.chatter_user_name === 'string' && ev.chatter_user_name.trim()) || (typeof ev.chatter_user_login === 'string' ? ev.chatter_user_login : '') || '?';
+  const dono = selos.includes('broadcaster') || (typeof ev.broadcaster_user_id === 'string' && ev.broadcaster_user_id === uid);
+  return { pl: 'tw', uid, nome: nome.slice(0, 60), texto, mod: selos.includes('moderator') || dono, dono };
+}
+/** Uma mensagem do chat do YouTube no formato de live_chat_processa. */
+export function mensagemYoutube(it: Record<string, any>): MsgChat | null {
+  const s = it?.snippet ?? {}, a = it?.authorDetails ?? {};
+  const uid = typeof a.channelId === 'string' ? a.channelId.slice(0, 60) : '';
+  const bruto = s.type === 'textMessageEvent' ? (s.displayMessage ?? s.textMessageDetails?.messageText) : s.type === 'superChatEvent' ? s.superChatDetails?.userComment : null;
+  const texto = typeof bruto === 'string' ? bruto.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : '';
+  if (!uid || !texto) return null;
+  const nome = typeof a.displayName === 'string' && a.displayName.trim() ? a.displayName.trim().slice(0, 60) : '?';
+  return { pl: 'yt', uid, nome, texto, mod: a.isChatModerator === true || a.isChatOwner === true, dono: a.isChatOwner === true };
+}
 /** A Twitch devolveu o login: liga a conta da pessoa, ou autoriza o canal (só a administração). */
 async function twitchBack(req: Req, res: Res, q: Record<string, string | string[] | undefined>) {
   const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? '') : String(v ?? ''));
@@ -691,19 +732,32 @@ async function twitchBack(req: Req, res: Res, q: Record<string, string | string[
   res.setHeader('Set-Cookie', twCookie('', 0));
   const st = await readState(one(q.state), serverSecret());
   if (!st || !st.n || !nonce || !sameText(st.n, nonce)) return go('/preferencias?twitch=erro#pontes');
-  const back = st.k === 'canal' ? (st.d === 'live' ? '/studio/live?twitch=' : '/studio/album?twitch=') : '/preferencias?twitch=';
-  if (one(q.error) || !one(q.code)) return go(`${back}cancelado${st.k === 'canal' ? '' : '#pontes'}`);
+  const back = st.k === 'bot' ? '/studio/live?twitch=bot-' : st.k === 'canal' ? (st.d === 'live' ? '/studio/live?twitch=' : '/studio/album?twitch=') : '/preferencias?twitch=';
+  const fim = st.k === 'pessoa' ? '#pontes' : '';
+  if (one(q.error) || !one(q.code)) return go(`${back}cancelado${fim}`);
   const t = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({
     client_id: process.env.TWITCH_CLIENT_ID ?? '', client_secret: process.env.TWITCH_CLIENT_SECRET ?? '', code: one(q.code), grant_type: 'authorization_code', redirect_uri: `${SITE(req)}/twitch/volta` }) });
-  const tj = (await t.json().catch(() => ({}))) as { access_token?: string };
-  if (!t.ok || !tj.access_token) return go(`${back}erro${st.k === 'canal' ? '' : '#pontes'}`);
+  const tj = (await t.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string; scope?: string[] };
+  if (!t.ok || !tj.access_token) return go(`${back}erro${fim}`);
   const u = (await fetch('https://api.twitch.tv/helix/users', { headers: { 'Client-Id': process.env.TWITCH_CLIENT_ID ?? '', Authorization: `Bearer ${tj.access_token}` } }).then((r) => r.json()).catch(() => null)) as { data?: { id: string; login: string; display_name?: string }[] } | null;
   const me = u?.data?.[0];
-  if (!me?.id) return go(`${back}erro${st.k === 'canal' ? '' : '#pontes'}`);
+  if (!me?.id) return go(`${back}erro${fim}`);
+  const escopos = Array.isArray(tj.scope) ? tj.scope.join(' ').slice(0, 600) : null;
+  if (st.k === 'bot') {
+    // A conta do IAmiguinho: guarda quem é e a chave de renovação (cifrada), e refaz as inscrições (entra a do chat).
+    const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${st.u}`))[0];
+    if (!adm?.is_admin || !tj.refresh_token) return go(`${back}erro`);
+    try { await patch('twitch_channel', 'id=eq.1', { bot_id: me.id, bot_login: me.login.slice(0, 40), bot_refresh: await cifrar(tj.refresh_token), updated_at: new Date().toISOString() }); }
+    catch { return go(`${back}migracao`); }
+    const ch = (await sel<{ broadcaster_id: string | null }>('twitch_channel?select=broadcaster_id&id=eq.1').catch(() => []))[0];
+    if (ch?.broadcaster_id) await twitchSubscribe(req).catch(() => null);
+    return go(`${back}ok`);
+  }
   if (st.k === 'canal') {
     const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${st.u}`))[0];
     if (!adm?.is_admin) return go(`${back}erro`);
     await upsert('twitch_channel', [{ id: 1, broadcaster_id: me.id, broadcaster_login: me.login.slice(0, 40), updated_at: new Date().toISOString() }], 'id');
+    if (escopos) await patch('twitch_channel', 'id=eq.1', { escopos }).catch(() => null); // sem a 0084, segue sem anotar
     const status = await twitchSubscribe(req);
     return go(`${back}${/^erro/.test(status) ? 'erro' : 'ok'}`);
   }
@@ -873,6 +927,8 @@ async function puxarYoutube(intervalo: number) {
       if (x.alerta) alertas.push({ origem: 'youtube', ...x.alerta, ext_id: `yt:${String(it.id ?? '').slice(0, 110)}` });
     }
     if (chats.length) await upsert('live_chat', chats, 'ext_id', true).catch(() => null);
+    const msgs = (j.items ?? []).map(mensagemYoutube).filter((x): x is MsgChat => !!x);
+    if (msgs.length) await rpc('live_chat_processa', { p_msgs: msgs }).catch(() => null); // sem a 0084, só não conta
     if (alertas.length) await upsert('live_events', alertas, 'ext_id', true).catch(() => null);
     res.mensagens = chats.length; res.alertas += alertas.length;
   }
@@ -910,6 +966,17 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
   if (type === 'revocation') {
     await marcarInscricao(msg.subscription?.id, `revogada: ${msg.subscription?.status ?? '?'}`);
     await patch('twitch_channel', 'id=eq.1', { sub_status: `revogada: ${msg.subscription?.status ?? '?'}`.slice(0, 60), updated_at: new Date().toISOString() }).catch(() => null);
+    return done204(res);
+  }
+  // Etapa 3a: o chat da Twitch (pela conta do IAmiguinho) alimenta a enquete, o sorteio, as mortes e os créditos.
+  if (type === 'notification' && msg.subscription?.type === 'channel.chat.message') {
+    const m = mensagemTwitch((msg.event ?? {}) as Record<string, unknown>, (msg.subscription as { condition?: { user_id?: string } }).condition?.user_id);
+    if (m) await rpc('live_chat_processa', { p_msgs: [m] }).catch(() => console.error('pontes: chat da live não processou (migração 0084?)'));
+    return done204(res);
+  }
+  // A live começou: os créditos e a conversa passam a contar daqui.
+  if (type === 'notification' && msg.subscription?.type === 'stream.online') {
+    await patch('live_painel', 'id=eq.1', { inicio: new Date().toISOString(), updated_at: new Date().toISOString() }).catch(() => null);
     return done204(res);
   }
   // Sistema de live: seguidor, inscrição, renovação, presente, bits e raid viram alerta (o id da mensagem evita repetir).
@@ -1050,7 +1117,7 @@ export default async function handler(req: Req, res: Res) {
     const user = await requireUser(req);
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
     if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
-    const body = parsed as { link?: string; value?: string; sync?: boolean; force?: boolean; achievements?: string; twitchCanal?: boolean; twitchSub?: boolean; volta?: string; live?: string; tipo?: string };
+    const body = parsed as { link?: string; value?: string; sync?: boolean; force?: boolean; achievements?: string; twitchCanal?: boolean; twitchSub?: boolean; twitchBot?: boolean; volta?: string; live?: string; tipo?: string };
     if (body.live === 'youtube' || body.live === 'youtube-ligar' || body.live === 'youtube-desligar') {
       const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${user}`))[0];
       if (!adm?.is_admin) return res.status(403).json({ error: 'Só a administração pode fazer isso.' });
@@ -1074,11 +1141,15 @@ export default async function handler(req: Req, res: Res) {
         const t = TESTES_LIVE[String(body.tipo)];
         if (!t) return res.status(400).json({ error: 'Tipo de alerta desconhecido.' });
         const { tipo: tipoReal, origem, extra, ...resto } = t;
-        try { await upsert('live_events', [{ origem: origem ?? 'teste', tipo: tipoReal ?? String(body.tipo), ...resto, ...(extra ? { extra } : {}) }], 'id', true); }
+        const ext_id = `teste:${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`; // teste não conta nas metas nem nos créditos
+        try { await upsert('live_events', [{ origem: origem ?? 'teste', tipo: tipoReal ?? String(body.tipo), ...resto, ...(extra ? { extra } : {}), ext_id }], 'ext_id', true); }
         catch { return res.status(503).json({ error: 'Falta rodar a migração 0082 no Supabase.' }); }
         return res.status(200).json({ ok: true });
       }
-      const ch = (await sel<{ broadcaster_login: string | null; sub_status: string | null; subs: Inscricao[] | null }>('twitch_channel?select=broadcaster_login,sub_status,subs&id=eq.1').catch(() => []))[0];
+      type Canal = { broadcaster_login: string | null; sub_status: string | null; subs: Inscricao[] | null; escopos?: string | null; bot_login?: string | null; bot_id?: string | null };
+      let migracao84 = true;
+      const ch = (await sel<Canal>('twitch_channel?select=broadcaster_login,sub_status,subs,escopos,bot_login,bot_id&id=eq.1')
+        .catch(() => { migracao84 = false; return sel<Canal>('twitch_channel?select=broadcaster_login,sub_status,subs&id=eq.1'); }).catch(() => []))[0];
       let subs = Array.isArray(ch?.subs) ? ch!.subs : null;
       // O estado de verdade vem da Twitch (a confirmação chega antes de o servidor anotar o id da inscrição).
       if (subs?.length) {
@@ -1094,15 +1165,21 @@ export default async function handler(req: Req, res: Res) {
       let yt: YtCanal | null = null, migracao = true;
       try { yt = await ytLinha(); } catch { migracao = false; }
       const youtube = { servidor: !!process.env.YOUTUBE_CLIENT_ID, ligado: !!yt?.refresh_cifrado, canal: yt?.titulo ?? null, status: yt?.status ?? null, aoVivo: !!yt?.live_chat_id, migracao };
-      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: AVISOS(req), youtube });
+      // O bot (etapa 3a): a conta do IAmiguinho e se o canal já deu a permissão de bot (channel:bot).
+      const bot = { migracao: migracao84, login: ch?.bot_login ?? null, canalPermite: !!ch?.escopos && !faltaEscopo(ch.escopos, 'channel:bot').length, mesmaConta: !!ch?.bot_login && ch.bot_login === ch.broadcaster_login };
+      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: AVISOS(req), youtube, bot });
     }
-    if (body.link === 'twitch' || body.twitchCanal || body.twitchSub) {
-      if (body.twitchCanal || body.twitchSub) {
+    if (body.link === 'twitch' || body.twitchCanal || body.twitchSub || body.twitchBot || body.live === 'bot-desligar') {
+      if (body.twitchCanal || body.twitchSub || body.twitchBot || body.live === 'bot-desligar') {
         const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${user}`))[0];
         if (!adm?.is_admin) return res.status(403).json({ error: 'Só a administração pode fazer isso.' });
         if (body.twitchSub) return res.status(200).json({ status: await twitchSubscribe(req) });
+        if (body.live === 'bot-desligar') {
+          await patch('twitch_channel', 'id=eq.1', { bot_id: null, bot_login: null, bot_refresh: null, updated_at: new Date().toISOString() }).catch(() => null);
+          return res.status(200).json({ status: await twitchSubscribe(req) });
+        }
       }
-      const r = await twitchLoginUrl(req, user, body.twitchCanal ? 'canal' : 'pessoa', body.volta === 'live' ? 'live' : undefined);
+      const r = await twitchLoginUrl(req, user, body.twitchBot ? 'bot' : body.twitchCanal ? 'canal' : 'pessoa', body.volta === 'live' || body.twitchBot ? 'live' : undefined);
       if ('error' in r) return res.status(503).json(r);
       res.setHeader('Set-Cookie', twCookie(r.nonce, 15 * 60));
       return res.status(200).json({ url: r.url });

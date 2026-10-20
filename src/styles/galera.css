@@ -115,12 +115,19 @@
 .glr-report { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
 .glr-report .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
-/* Revelação no pacote */
-.glr-reveal { display: flex; gap: 16px; align-items: center; margin-top: 18px; padding: 14px; border: 1px solid rgba(235, 200, 131, 0.35); border-radius: 12px; background: rgba(235, 200, 131, 0.06); animation: wz-fade-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.glr-reveal__card { width: 108px; flex: none; }
-.glr-reveal__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.glr-reveal__text b { font: 700 17px/1.25 var(--font-ui); }
-.glr-reveal__text .row { display: flex; flex-wrap: wrap; gap: 8px; }
+/* +1 da Galera no pacote aberto: embaixo da fileira das cinco, menor, como extra. A fileira sobe para abrir espaço. */
+.pk__stage .pk__cards { transition: transform 0.8s cubic-bezier(0.2, 0.75, 0.2, 1); }
+.pk__stage[data-extra] .pk__cards { transform: translateY(-13%); }
+.pk__extra { position: absolute; left: 50%; bottom: 3%; z-index: 6; width: calc(var(--cw, 120px) * 0.72); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; color: inherit; cursor: pointer; animation: glr-extra-in 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) both; }
+.pk__extra .glr { filter: drop-shadow(0 0 14px rgba(235, 200, 131, 0.35)); }
+.pk__extra-tag { font: 700 10px/1 var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: #ffe7b0; white-space: nowrap; }
+.pk__extra-cap { font: 500 12px/1.2 var(--font-ui); color: #d8d2c6; white-space: nowrap; }
+.pk__extra-cap b { color: #fff; }
+.pk__extra:focus-visible { outline: 2px solid var(--now, #ffb25b); outline-offset: 4px; border-radius: 8px; }
+@keyframes glr-extra-in { from { opacity: 0; transform: translate(-50%, 40px) scale(0.9); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+:root[data-motion='reduzidas'] .pk__extra { animation: none; }
+:root[data-motion='reduzidas'] .pk__stage .pk__cards { transition: none; }
 
 /* Preferências → Minha figurinha */
 .glr-edit { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }

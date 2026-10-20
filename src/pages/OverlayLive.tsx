@@ -10,6 +10,7 @@ import { Figura } from '../components/IAmiguinho';
 import { CENA_CARA, type SofaLinha } from '../data/sofaApi';
 import { liveApi, type LiveEvento, type LivePrefs, type TipoAlerta } from '../data/liveApi';
 import type { Reacao } from '../lib/iamiguinhoRosto';
+import { somDoAlerta } from '../lib/sonsLive';
 
 export type CenaLive = 'jogando' | 'conversa' | 'comecando' | 'javolto' | 'encerrando';
 export const CENAS_LIVE: { id: CenaLive; nome: string; dica: string }[] = [
@@ -123,7 +124,7 @@ function tituloAlerta(e: LiveEvento): { k: string; nome: string; extra?: string 
     default: return { k: 'Novo membro', nome: e.quem };
   }
 }
-/** Um "plim" curto, diferente por tipo, feito na hora (sem arquivo de som). */
+/** O som de cada tipo de alerta (lib/sonsLive: cada um bem diferente do outro). */
 let somCtx: AudioContext | null = null;
 const ctxSom = () => (somCtx ??= new AudioContext());
 /** No OBS a fonte de navegador toca som sozinha; num navegador comum, o som só sai depois de um clique na página. */
@@ -145,20 +146,7 @@ function useSomLiberado(ligado: boolean): { bloqueado: boolean; liberar: () => v
   return { bloqueado, liberar: () => { void ctxSom().resume().then(() => { setBloqueado(false); tocarSom('follow'); }).catch(() => null); } };
 }
 function tocarSom(tipo: TipoAlerta) {
-  try {
-    const c = ctxSom(); if (c.state === 'suspended') void c.resume();
-    const notas: Record<string, number[]> = { follow: [660, 880], sub: [523, 659, 784, 1047], resub: [523, 659, 784, 1047], gift: [784, 988, 1175, 1568], cheer: [880, 1109, 1319], raid: [392, 523, 659, 784, 1047], superchat: [659, 880, 1109], member: [587, 740, 880] };
-    (notas[tipo] ?? [660, 880]).forEach((f, i) => {
-      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.09;
-      o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32, t + 0.015); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.6);
-      // Um brilho uma oitava acima, mais baixinho, para o som aparecer no meio do jogo.
-      const o2 = c.createOscillator(), g2 = c.createGain(); o2.type = 'sine'; o2.frequency.value = f * 2;
-      g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(0.1, t + 0.01); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-      o2.connect(g2).connect(c.destination); o2.start(t); o2.stop(t + 0.4);
-    });
-  } catch { /* sem som */ }
+  try { const c = ctxSom(); if (c.state === 'suspended') void c.resume(); somDoAlerta(c, tipo); } catch { /* sem som */ }
 }
 /** A fila de alertas: pergunta ao banco a cada 2 s e mostra um de cada vez. */
 /** Quanto tempo cada alerta fica na tela (o raid fica mais). */

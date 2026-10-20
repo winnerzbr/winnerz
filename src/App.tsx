@@ -90,6 +90,9 @@ const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
+  if (match('/tv', path)) return <TvHome />;
+  if (match('/tv/estante', path)) return <TvShelf />;
+  if (match('/tv/parear', path)) return <TvApprovePage />;
   if (match('/chegada', path) || match('/boas-vindas', path)) {
     const n = Number(new URLSearchParams(path.split('?')[1] ?? '').get('passo'));
     return <Suspense fallback={<div className="boot" aria-busy="true" />}><ArrivalPage start={Number.isInteger(n) && n >= 0 && n < 14 ? n : undefined} /></Suspense>;
@@ -211,6 +214,11 @@ import { usePresencePing } from './data/presenceApi';
 import { installCoverTilt } from './lib/coverTilt';
 import { installTabScroll } from './lib/tabscroll';
 import { installStickySides } from './lib/stickside';
+import { TvShell, TvAutoOpen } from './tv/Tv';
+import { TvPair, TvApprovePage } from './tv/TvPair';
+import { TvHome } from './tv/TvHome';
+import { TvShelf } from './tv/TvShelf';
+import { setTv, tvOn, useTv } from './tv/mode';
 
 export function App() {
   const path = usePath();
@@ -223,6 +231,11 @@ export function App() {
   // Fechado ou aberto: o banco decide (botão no Studio); sem a migração 0076, vale VITE_SITE_PRIVATE.
   const siteClosed = useStore((s) => (s.siteOpen === undefined ? SITE_PRIVATE : !s.siteOpen));
   const profileId = useStore((s) => s.profile?.id);
+  const tvMode = useTv();
+  // Modo TV: os endereços /tv ligam o painel da tela grande (o /tv/parear é a página do celular, fora dele).
+  const tvPath = path === '/tv' || path.startsWith('/tv?') || path.startsWith('/tv/estante');
+  useEffect(() => { if (tvPath && !tvOn()) setTv(true); }, [tvPath]);
+  const inTv = (tvMode || tvPath) && !path.startsWith('/tv/parear');
 
   useEffect(() => { applyPrefs(prefs); }, [prefs]);
   // Capas em grade inclinam seguindo o mouse (Fresta).
@@ -254,6 +267,9 @@ export function App() {
     return <div className="boot" aria-busy="true"><BrandMark width={64} title="WinnerZ" /></div>;
   }
 
+  // Na TV sem conta aberta: entrar pelo celular (código e QR), sem digitar senha com o controle.
+  if (inTv && mode === 'supabase' && !profileId) return <TvShell path={path} semSecoes><TvPair /></TvShell>;
+
   // Site fechado: com o banco ligado, só a conta de administrador passa. Os demais veem só o "Em breve"
   // (a página de entrar continua no endereço /entrar, sem menu, para você entrar de qualquer aparelho).
   if (siteClosed && mode === 'supabase' && !isAdmin && !isGuest) {
@@ -265,8 +281,19 @@ export function App() {
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 
+  if (inTv) return (
+    <NickGate>
+      <TvShell path={path}><ProtecaoErro chave={path}><Routes path={path} /></ProtecaoErro></TvShell>
+      <PastSheetHost />
+      <RulesHost />
+      <MiniCelebrationHost />
+      <SavedNoticeHost />
+    </NickGate>
+  );
+
   return (
     <NickGate>
+      <TvAutoOpen />
       {mode === 'demo' && (
         <div className="demo-bar">
           Modo demonstração: seus registros ficam só neste navegador. <button onClick={resetDemo}>Recomeçar a demonstração</button>

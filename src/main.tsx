@@ -14,6 +14,7 @@ import './styles/finish.css';
 import './styles/galera.css';
 import './styles/tradutor.css';
 import './styles/sofa.css';
+import './styles/tv.css';
 
 
 async function boot() {

@@ -5,6 +5,13 @@
  *   POST /api/conta              (com login)  { action: "agendar" | "cancelar" }
  *   GET  /api/conta?purge=1      (agendado pela Vercel, uma vez por dia) → apaga as contas cujo prazo venceu
  *
+ *   Modo TV (migração 0081): entrar na TV pelo celular.
+ *   POST /api/conta  { tv: "novo" }                      (sem login, na TV)  → { code, secret, expiresIn }
+ *   POST /api/conta  { tv: "aprovar", code }             (com login, no celular) → { ok: true }
+ *   POST /api/conta  { tv: "esperar", code, secret }     (sem login, na TV)  → { pronto: false } | { pronto: true, tokenHash }
+ *     Com o código confirmado (até 10 minutos), gera uma entrada de uso único para a conta (o "link mágico" do Supabase,
+ *     sem enviar e-mail) e a TV entra com verifyOtp. O e-mail da conta nunca sai do servidor nem vai para o registro.
+ *
  * Ao agendar, a conta continua funcionando por 7 dias. Depois disso, a rotina diária apaga as fotos
  * da pessoa no Storage (momentos, avatares e as imagens das conversas) e o usuário; o banco apaga o resto em cascata
  * (Jornadas, coleção, notas, votos). Postagens e respostas que receberam resposta de outras pessoas ficam, sem texto,
@@ -19,6 +26,8 @@ type Req = { method?: string; body?: unknown; query?: Record<string, string | st
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void };
 
 const GRACE_DAYS = 7;
+const TV_MIN = 10;
+const TV_LETRAS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 /** Pastas do Storage com arquivos da pessoa (cada uma usa <id da pessoa>/ como prefixo). */
 const BUCKETS = ['momentos', 'avatares', 'comunidade'];
 
@@ -140,11 +149,89 @@ async function purge(): Promise<{ removed: number; failed: number }> {
   return { removed, failed };
 }
 
+/* ---- Modo TV: entrar pelo celular (migração 0081) ------------------------------------------------------------ */
+
+const sha = async (t: string) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function rest(path: string, init?: RequestInit) {
+  const c = db()!;
+  return fetch(`${c.url}/rest/v1/${path}`, { ...init, headers: { ...c.headers, ...(init?.headers as Record<string, string> | undefined) } });
+}
+/** Contador do banco (migração 0075): devolve false se passou do limite. Sem a migração, deixa passar. */
+async function hit(bucket: string, limit: number): Promise<boolean> {
+  const r = await rest('rpc/api_hit', { method: 'POST', body: JSON.stringify({ p_bucket: bucket, p_limit: limit, p_cost: 1 }) }).catch(() => null);
+  if (!r?.ok) return true;
+  return (await r.json()) !== -1;
+}
+type TvRow = { code: string; secret_hash: string; user_id: string | null; created_at: string; approved_at: string | null; used_at: string | null };
+
+async function tv(req: Req, res: Res, body: { tv?: string; code?: unknown; secret?: unknown }) {
+  const code = typeof body.code === 'string' ? body.code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6) : '';
+  const fresh = (r: TvRow) => Date.now() - Date.parse(r.created_at) < TV_MIN * 60_000;
+  const row = async (): Promise<TvRow | null> => {
+    const r = await rest(`tv_pair?select=*&code=eq.${code}`);
+    if (!r.ok) throw new Error('Falta rodar a migração 0081 no Supabase.');
+    return ((await r.json()) as TvRow[])[0] ?? null;
+  };
+
+  if (body.tv === 'novo') {
+    // Por aparelho de origem, no máximo 30 códigos por dia (o resumo do endereço, nunca o endereço).
+    const ip = (header(req, 'x-forwarded-for') ?? '').split(',')[0].trim() || 'sem-ip';
+    if (!(await hit(`tv:${(await sha(`tv:${ip}`)).slice(0, 24)}`, 30))) return res.status(429).json({ error: 'Muitos códigos pedidos daqui hoje. Tente amanhã.' });
+    if (Math.random() < 0.2) await rest(`tv_pair?created_at=lt.${new Date(Date.now() - 3600_000).toISOString()}`, { method: 'DELETE' }).catch(() => null);
+    const secret = [...crypto.getRandomValues(new Uint8Array(24))].map((b) => b.toString(16).padStart(2, '0')).join('');
+    for (let i = 0; i < 5; i++) {
+      const n = [...crypto.getRandomValues(new Uint8Array(6))].map((b) => TV_LETRAS[b % TV_LETRAS.length]).join('');
+      const r = await rest('tv_pair', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ code: n, secret_hash: await sha(secret) }) });
+      if (r.ok) return res.status(200).json({ code: n, secret, expiresIn: TV_MIN * 60 });
+      if (r.status !== 409) throw new Error('Falta rodar a migração 0081 no Supabase.');
+    }
+    return res.status(503).json({ error: 'Não consegui gerar um código agora. Tente de novo.' });
+  }
+
+  if (body.tv === 'aprovar') {
+    const user = await requireUser(req);
+    if (!user) return res.status(401).json({ error: 'Entre na sua conta no celular para ligar a TV.' });
+    if (code.length !== 6) return res.status(400).json({ error: 'O código tem 6 letras e números.' });
+    const r = await row();
+    if (!r || !fresh(r) || r.used_at) return res.status(404).json({ error: 'Esse código não vale mais. Peça um novo na TV.' });
+    if (r.user_id && r.user_id !== user) return res.status(409).json({ error: 'Esse código já foi usado por outra conta.' });
+    const u = await rest(`tv_pair?code=eq.${code}&user_id=is.null`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ user_id: user, approved_at: new Date().toISOString() }) });
+    if (!u.ok) throw new Error(`tv aprovar ${u.status}`);
+    return res.status(200).json({ ok: true });
+  }
+
+  if (body.tv === 'esperar') {
+    const secret = typeof body.secret === 'string' ? body.secret.slice(0, 100) : '';
+    if (code.length !== 6 || !secret) return res.status(400).json({ error: 'Pedido inválido.' });
+    const r = await row();
+    if (!r || !sameText(r.secret_hash, await sha(secret))) return res.status(404).json({ error: 'Código desconhecido.' });
+    if (!fresh(r) || r.used_at) return res.status(410).json({ error: 'O código venceu. Peça um novo.' });
+    if (!r.user_id) return res.status(200).json({ pronto: false });
+    // Marca como usado antes de gerar a entrada: duas perguntas ao mesmo tempo não geram duas.
+    const m = await rest(`tv_pair?code=eq.${code}&used_at=is.null`, { method: 'PATCH', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ used_at: new Date().toISOString() }) });
+    if (!m.ok || !((await m.json()) as unknown[]).length) return res.status(410).json({ error: 'O código já foi usado.' });
+    const user = await getUser(r.user_id);
+    if (!user.email) return res.status(409).json({ error: 'Esta conta não tem e-mail. Entre pela tela de entrada.' });
+    const c = db()!;
+    const g = await fetch(`${c.url}/auth/v1/admin/generate_link`, { method: 'POST', headers: c.headers, body: JSON.stringify({ type: 'magiclink', email: user.email }) });
+    if (!g.ok) { console.error('conta: tv sem link', g.status); return res.status(502).json({ error: 'Não consegui entrar agora. Peça um novo código.' }); }
+    const j = (await g.json()) as { hashed_token?: string; properties?: { hashed_token?: string } };
+    const tokenHash = j.hashed_token ?? j.properties?.hashed_token;
+    if (!tokenHash) return res.status(502).json({ error: 'Não consegui entrar agora. Peça um novo código.' });
+    return res.status(200).json({ pronto: true, tokenHash });
+  }
+  return res.status(400).json({ error: 'Ação desconhecida.' });
+}
+
 export default async function handler(req: Req, res: Res) {
   res.setHeader('Cache-Control', 'no-store');
   if (!db()) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   try {
     const q = req.query ?? {};
+    if (req.method === 'POST') {
+      const b = (typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body ?? {}) as { tv?: string };
+      if (typeof b.tv === 'string') return await tv(req, res, b);
+    }
     if (req.method === 'GET' && q.purge) {
       // Sem CRON_SECRET configurado, a rotina não roda: ninguém de fora consegue dispará-la.
       const secret = process.env.CRON_SECRET;

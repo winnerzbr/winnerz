@@ -67,7 +67,11 @@ const SFX: Record<string, () => void> = {
   legend() { [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.9, 'sine', 0.08, i * 0.07)); tone(261, 1.4, 'triangle', 0.08); nz(1.1, 'highpass', 6000, 9000, 0.03, 0.2); },
 };
 export type Sfx = keyof typeof SFX;
-export function sfx(n: string) { if (!soundOn) return; try { SFX[n]?.(); } catch { /* sem áudio */ } }
+export function sfx(n: string) {
+  // O Modo TV escuta (para o controle tremer nas raras), com ou sem som ligado.
+  try { window.dispatchEvent(new CustomEvent('wz:sfx', { detail: n })); } catch { /* fora do navegador */ }
+  if (!soundOn) return; try { SFX[n]?.(); } catch { /* sem áudio */ }
+}
 export function setSound(on: boolean) {
   soundOn = on; try { localStorage.setItem(SK, on ? '1' : '0'); } catch { /* sem armazenamento */ }
   if (on) { ac(); sfx('coin'); }

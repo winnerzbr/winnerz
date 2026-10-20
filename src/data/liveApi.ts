@@ -23,7 +23,7 @@ export type AcaoBot = 'config' | 'comando-salvar' | 'comando-apagar' | 'aviso-sa
 /* ---- Etapa 4a: a memória do IAmiguinho (migração 0086) ---- */
 export interface PessoaMemoria { quem: string; nome: string; pl: 'tw' | 'yt' | 'dono'; conversas: number; primeiraVez: string; ultimaVez: string; fatos: { t: string; em: string }[]; recentes: { p: string; r: string; em: string }[] }
 export interface Memoria { responde: boolean; total: number; pessoas: PessoaMemoria[] }
-export type AcaoMemoria = 'apagar' | 'apagar-fato' | 'apagar-tudo' | 'mencoes';
+export type AcaoMemoria = 'apagar' | 'apagar-fato' | 'apagar-tudo' | 'mencoes' | 'adicionar-fato';
 const MK = 'wz.demo.memoria';
 const dias = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
 const MEMORIA_DEMO = (): Memoria => ({ responde: true, total: 3, pessoas: [
@@ -38,6 +38,12 @@ function memoriaDemo(acao: AcaoMemoria, a: Record<string, unknown>): Memoria {
   if (acao === 'apagar') d.pessoas = d.pessoas.filter((x) => x.quem !== a.quem);
   if (acao === 'apagar-fato') d.pessoas = d.pessoas.map((x) => (x.quem === a.quem ? { ...x, fatos: x.fatos.filter((_, i) => i !== Number(a.i)) } : x));
   if (acao === 'apagar-tudo') d.pessoas = [];
+  if (acao === 'adicionar-fato') {
+    const t = String(a.t ?? '').trim();
+    if (t.length < 2) throw new Error('Escreva a lembrança.');
+    if (a.quem === 'dono:canal' && !d.pessoas.some((x) => x.quem === 'dono:canal')) d.pessoas.unshift({ quem: 'dono:canal', nome: 'Você', pl: 'dono', conversas: 0, primeiraVez: new Date().toISOString(), ultimaVez: new Date().toISOString(), fatos: [], recentes: [] });
+    d.pessoas = d.pessoas.map((x) => (x.quem === a.quem && !x.fatos.some((f) => f.t.toLowerCase() === t.toLowerCase()) ? { ...x, fatos: [...x.fatos, { t, em: new Date().toISOString() }] } : x));
+  }
   if (acao === 'mencoes') d.responde = a.ligado !== false;
   d.total = d.pessoas.length;
   try { localStorage.setItem(MK, JSON.stringify(d)); } catch { /* nada */ }

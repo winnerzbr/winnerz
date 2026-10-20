@@ -12,7 +12,52 @@ export interface YoutubeEstado { servidor: boolean; ligado: boolean; canal: stri
 export interface VoltaYoutube { ativa: boolean; esperarMs: number; status: string; mensagens?: number; alertas?: number }
 export interface LivePrefs { temporada?: string; youtube?: string; twitch?: string; discord?: string; papo?: string; proxima?: string; comecaEm?: string | null; pausaMin?: number; camLado?: 'direita' | 'esquerda' }
 export interface Inscricao { tipo: string; id: string | null; status: string }
-export interface BotEstado { migracao: boolean; login: string | null; canalPermite: boolean; mesmaConta: boolean }
+export interface BotEstado { migracao: boolean; login: string | null; canalPermite: boolean; mesmaConta: boolean; migracao85?: boolean; aviso?: string | null }
+
+/* ---- Etapa 3b: o bot no chat (migração 0085) ---- */
+export interface BotConfig { ligado: boolean; pontos_nome: string; pontos_msg: number; pontos_assistir: number; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status: string | null }
+export interface Comando { nome: string; resposta: string; soMod: boolean; ativo: boolean; usos: number }
+export interface AvisoBot { id: string; texto: string; aCadaMin: number; minMsgs: number; ativo: boolean; ultimoEm: string | null }
+export interface BotDados { config: BotConfig; comandos: Comando[]; avisos: AvisoBot[]; top: { nome: string; pontos: number; pl: string }[]; pessoas: number }
+export type AcaoBot = 'config' | 'comando-salvar' | 'comando-apagar' | 'aviso-salvar' | 'aviso-apagar' | 'pontos-zerar';
+const BK = 'wz.demo.bot';
+const BOT_DEMO = (): BotDados => ({
+  config: { ligado: true, pontos_nome: 'pontos', pontos_msg: 5, pontos_assistir: 10, mod_links: true, mod_links_ok: 'winnerz.com.br twitch.tv youtube.com youtu.be', mod_caps: false, mod_palavras: '', mod_acao: 'apagar', mod_segundos: 60, mod_isentos_subs: true, status: null },
+  comandos: [
+    { nome: '!discord', resposta: 'Entra no Discord do canal: {discord}', soMod: false, ativo: true, usos: 12 },
+    { nome: '!figurinha', resposta: 'Figurinhas da live: winnerz.com.br/codigo', soMod: false, ativo: true, usos: 31 },
+    { nome: '!redes', resposta: 'YouTube: {youtube} · Twitch: {twitch} · Discord: {discord}', soMod: false, ativo: true, usos: 4 },
+    { nome: '!so', resposta: 'Conheçam o canal de {alvo}: twitch.tv/{alvo}', soMod: true, ativo: true, usos: 2 },
+    { nome: '!tempo', resposta: 'No ar há {tempo}.', soMod: false, ativo: true, usos: 6 },
+  ],
+  avisos: [{ id: 'padrao', texto: 'Curtindo a live? Segue o canal e pega uma figurinha em winnerz.com.br/codigo', aCadaMin: 20, minMsgs: 15, ativo: false, ultimoEm: null }],
+  top: [{ nome: 'dona_fenix', pontos: 1240, pl: 'tw' }, { nome: 'pixel_torto', pontos: 985, pl: 'tw' }, { nome: 'Ana Joga', pontos: 610, pl: 'yt' }, { nome: 'npc_feliz', pontos: 420, pl: 'tw' }, { nome: 'chefe_final', pontos: 155, pl: 'tw' }],
+  pessoas: 37,
+});
+const lerBotDemo = (): BotDados => { try { return (JSON.parse(localStorage.getItem(BK) ?? 'null') as BotDados | null) ?? BOT_DEMO(); } catch { return BOT_DEMO(); } };
+function botDemo(acao: AcaoBot, a: Record<string, unknown>): BotDados {
+  const d = lerBotDemo();
+  if (acao === 'config') d.config = { ...d.config, ...(a as Partial<BotConfig>) };
+  if (acao === 'comando-salvar') {
+    let nome = String(a.nome ?? '').trim().toLowerCase(); if (!nome.startsWith('!')) nome = `!${nome}`;
+    if (!/^![a-z0-9_]{1,24}$/.test(nome)) throw new Error('O comando precisa ser ! seguido de letras sem acento, números ou _ (até 24).');
+    if (['!top', '!pontos', '!comandos', '!morte', '!mortes'].includes(nome)) throw new Error('Esse comando já é da casa.');
+    if (!String(a.resposta ?? '').trim()) throw new Error('Escreva a resposta do comando.');
+    d.comandos = d.comandos.filter((c) => c.nome !== nome && c.nome !== a.antigo);
+    d.comandos.push({ nome, resposta: String(a.resposta).trim().slice(0, 400), soMod: !!a.soMod, ativo: a.ativo !== false, usos: 0 });
+    d.comandos.sort((x, y) => x.nome.localeCompare(y.nome));
+  }
+  if (acao === 'comando-apagar') d.comandos = d.comandos.filter((c) => c.nome !== a.nome);
+  if (acao === 'aviso-salvar') {
+    if (!String(a.texto ?? '').trim()) throw new Error('Escreva o texto do aviso.');
+    const novo = { id: String(a.id || Math.random().toString(36).slice(2, 14)), texto: String(a.texto).trim().slice(0, 400), aCadaMin: Number(a.aCadaMin) || 20, minMsgs: Number(a.minMsgs) || 0, ativo: a.ativo !== false, ultimoEm: null };
+    d.avisos = d.avisos.some((x) => x.id === novo.id) ? d.avisos.map((x) => (x.id === novo.id ? novo : x)) : [...d.avisos, novo];
+  }
+  if (acao === 'aviso-apagar') d.avisos = d.avisos.filter((x) => x.id !== a.id);
+  if (acao === 'pontos-zerar') { d.top = []; d.pessoas = 0; }
+  try { localStorage.setItem(BK, JSON.stringify(d)); } catch { /* nada */ }
+  return d;
+}
 export interface LiveEstado { canal: string | null; status: string | null; subs: Inscricao[] | null; twitch: boolean; callback?: string; youtube?: YoutubeEstado; bot?: BotEstado }
 
 /* ---- Etapa 3a: os widgets da tela (migração 0084) ---- */
@@ -158,6 +203,21 @@ export const liveApi = {
     const r = await pontes<{ url: string }>({ twitchBot: true });
     location.href = r.url;
   },
+  /** O bot no chat: regras, comandos, avisos e o top dos pontos (só a administração). */
+  async bot(): Promise<BotDados | null> {
+    if (!supa()) return lerBotDemo();
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('live_bot_ler');
+    if (r.error) { if (/live_bot_ler|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message)) return null; throw new Error(r.error.message.slice(0, 140)); }
+    return r.data as BotDados;
+  },
+  async botAcao(acao: AcaoBot, a: Record<string, unknown> = {}): Promise<BotDados> {
+    if (!supa()) return botDemo(acao, a);
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('live_bot_admin', { p_acao: acao, p: a });
+    if (r.error) throw new Error(/live_bot_admin|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message) ? 'Falta rodar a migração 0085 no Supabase.' : r.error.message.slice(0, 140));
+    return r.data as BotDados;
+  },
   async desligarBot(): Promise<string> { return (await pontes<{ status: string }>({ live: 'bot-desligar' })).status; },
   /** Os alertas novos depois do id (o overlay pergunta a cada 2 s). Sem desde, só o último id (para não repetir os antigos). */
   async eventos(desde: number | null): Promise<LiveEvento[]> {
@@ -180,7 +240,7 @@ export const liveApi = {
     return desde == null ? l.reverse() : l;
   },
   async estado(): Promise<LiveEstado> {
-    if (!supa()) return { canal: 'seu_canal', status: '9 de 9 ligadas', subs: Object.keys(NOME_INSCRICAO).map((tipo) => ({ tipo, id: null, status: 'enabled' })), twitch: true, youtube: { servidor: true, ligado: true, canal: 'Seu canal', status: 'ligado', aoVivo: false, migracao: true }, bot: { migracao: true, login: 'iamiguinho', canalPermite: true, mesmaConta: false } };
+    if (!supa()) return { canal: 'seu_canal', status: '9 de 9 ligadas', subs: Object.keys(NOME_INSCRICAO).map((tipo) => ({ tipo, id: null, status: 'enabled' })), twitch: true, youtube: { servidor: true, ligado: true, canal: 'Seu canal', status: 'ligado', aoVivo: false, migracao: true }, bot: { migracao: true, login: 'iamiguinho', canalPermite: true, mesmaConta: false, migracao85: true, aviso: null } };
     return pontes<LiveEstado>({ live: 'estado' });
   },
   async teste(tipo: TesteAlerta): Promise<void> {

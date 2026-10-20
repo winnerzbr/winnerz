@@ -188,3 +188,13 @@ test('conversas da live: sem rir da própria piada e imagem só quando a pergunt
   assert.equal(falaDaTela('olha esse chefe'), true);
   assert.equal(falaDaTela('onde eu tô'), true);
 });
+
+test('piada da live: depois da risada, na maioria das vezes, nada de comentário', async () => {
+  const { soRisada } = await import('../../api/iamiguinho');
+  const p = 'Por que o jacaré tirou o filho da escola? Porque ele réptil de ano! HAHAHAHA essa foi boa demais, eu me supero.';
+  assert.equal(soRisada(p, 0.9), 'Por que o jacaré tirou o filho da escola? Porque ele réptil de ano! HAHAHAHA');
+  assert.equal(soRisada(p, 0.1), p);
+  assert.equal(soRisada('Sim, eu gosto de Zelda. Muito.', 0.9), 'Sim, eu gosto de Zelda. Muito.');
+  assert.equal(soRisada('Porque tinha problemas. KKKKKKK sacou?', 0.9), 'Porque tinha problemas. KKKKKKK sacou?');
+  assert.equal(soRisada('Fim da piada kkkkkkk', 0.9), 'Fim da piada kkkkkkk');
+});

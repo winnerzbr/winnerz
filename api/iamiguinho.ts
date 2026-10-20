@@ -615,8 +615,17 @@ const GRACA = `Como soar engraçado de verdade:
 - Nada de comparação forçada ("igual X de quem Y", "tipo planilha de quem ama planilha"), metáfora estranha, frase de efeito vazia ou piada que precisa de explicação. Se você não riria contando isso para um amigo, não serve.
 - Não fique preso ao contexto: o jogo da tela, a live, o WinnerZ e as suas manias só entram se a pessoa puxou o assunto.
 - Pediram piada: conte uma piada boa e curta, que funcione falada, de qualquer tema. Pode ser piada conhecida, de stand-up ou de internet, desde que seja boa de verdade e sirva para todos os públicos. Pediram outra: outra, de outro tema.
-- Quando contar uma piada, ria muito dela no fim, achando genial, do jeito que se escreve rindo na internet (kkkkkkk, HAHAHAHA, com uma frase de quem se acha, como "essa foi boa demais"). Fora das piadas, risada só quando algo for engraçado de verdade.
+- Quando contar uma piada, termine rindo muito dela, achando genial, do jeito que se escreve rindo na internet (kkkkkkk, HAHAHAHA). Na maioria das vezes, a risada é o fim: nada de comentário depois dela. Só de vez em quando (uma piada a cada quatro, no máximo) cabe uma frase curtinha de quem se acha depois da risada. Fora das piadas, risada só quando algo for engraçado de verdade.
 - Não comece repetindo a pergunta e não explique a piada.`;
+/**
+ * Depois da risada da piada, o comentário ("essa foi boa demais, eu me supero") sai na maioria das vezes: a risada
+ * sozinha é mais engraçada. Fica em uma de cada quatro, para ele ainda se gabar de vez em quando.
+ */
+export function soRisada(t: string, sorte = Math.random()): string {
+  const m = /^(.*?\b(?:k{4,}|(?:h[aeiu]){3,}h?)\b[!.]*)\s+(\S.{0,90})$/is.exec(t.trim());
+  if (!m || m[2].includes('?') || sorte < 0.25) return t.trim();
+  return m[1].trim();
+}
 /** Tira o kkkk/hahaha/lol do fim de uma fala (não usado nas conversas: lá ele ri das próprias piadas, de propósito). */
 export const semRisoNoFim = (t: string) => t.replace(/[\s,;]*\b(?:k{3,}|(?:h[aeiu]){2,}h?|(?:rs){2,}|lol|lmao)\b[\s.!]*$/i, '').trim().replace(/[,;]$/, '.');
 /** O modelo das conversas (voz e chat da live): humor pede um modelo melhor que o dos cameos. */
@@ -736,7 +745,7 @@ async function chatLive(b: Record<string, unknown>): Promise<{ fala: string | nu
       if (modo === 'silencio') return { fala: null, porque: 'moderacao' };
       const contexto = `${pergunta} ${fatos.join(' ')}`;
       for (const op of opcoesDe(t?.opcoes)) {
-        const ok = checarFala(op.texto, {}, recentes, { max: 240, min: 2, emojis: 1, contexto, leve: true, nomes: op.nomes, numerosLivres: true });
+        const ok = checarFala(soRisada(op.texto), {}, recentes, { max: 240, min: 2, emojis: 1, contexto, leve: true, nomes: op.nomes, numerosLivres: true });
         if (ok.ok) { fala = ok.fala; break; }
         diag.push(ok.porque);
       }
@@ -975,7 +984,7 @@ async function conversaDono(body: Record<string, unknown>, jogo: string | undefi
       messages: [{ role: 'user', content: comImagem ? [{ type: 'image', source: { type: 'base64', media_type: tipo, data: image } }, { type: 'text', text: linhas }] : linhas }] }, diag) as { humor?: unknown; opcoes?: unknown; lembrar?: unknown } | undefined;
     humor = HUMORES.find((h) => h === t?.humor) ?? null;
     for (const op of opcoesDe(t?.opcoes)) {
-      const v = checarFala(op.texto, { jogo }, recentes, { max: 260, min: 2, emojis: 1, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true });
+      const v = checarFala(soRisada(op.texto), { jogo }, recentes, { max: 260, min: 2, emojis: 1, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true });
       if (v.ok) { fala = v.fala; break; }
       diag.push(v.porque);
     }

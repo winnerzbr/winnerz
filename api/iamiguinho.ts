@@ -37,7 +37,7 @@
  *   IAMIGUINHO_DIA_TOTAL (padrão 400), IAMIGUINHO_MENCOES_PESSOA (padrão 10 por dia), IAMIGUINHO_MENCOES_TOTAL
  *   (padrão 500 por dia).
  *   Voz do sofá: GEMINI_API_KEY (Google AI Studio, no mesmo projeto da voz). Opcionais: IAMIGUINHO_VOZ (padrão
- *   "iamiguinho2", o nome ou o id voice_... da voz criada), IAMIGUINHO_VOZ_ESTILO, IAMIGUINHO_VOZ_MODELO (padrão
+ *   "iamiguinho2 3", o nome ou o id voice_... da voz criada), IAMIGUINHO_VOZ_ESTILO, IAMIGUINHO_VOZ_MODELO (padrão
  *   gemini-3.8-flash-tts) e IAMIGUINHO_VOZ_MES.
  * Os registros nunca imprimem fala, jogo nem conta (o repositório é público).
  */
@@ -711,9 +711,13 @@ const comoWav = (b64: string, mime = '') => {
   return pcmParaWav(buf, taxa).toString('base64');
 };
 
-/** A voz criada tem um nome ("iamiguinho2") e um id (voice_...). Acha o id pelo nome uma vez e guarda. */
+/**
+ * A voz criada tem um nome (o AI Studio pode acrescentar um número, como "iamiguinho2 3") e um id (voice_...). Acha o
+ * id pelo nome uma vez e guarda: primeiro o nome igual (sem contar maiúsculas e espaços), depois um que comece igual.
+ */
 let vozGuardada: { nome: string; id: string } | null = null;
-async function idDaVoz(key: string, nome: string): Promise<string> {
+const soLetras = (t: string) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+async function idDaVoz(key: string, nome: string, diag: string[]): Promise<string> {
   if (/^voice_/.test(nome)) return nome;
   if (vozGuardada?.nome === nome) return vozGuardada.id;
   try {
@@ -721,22 +725,24 @@ async function idDaVoz(key: string, nome: string): Promise<string> {
     if (r.ok) {
       const j = (await r.json()) as Record<string, unknown>;
       const lista = (Array.isArray(j.voices) ? j.voices : Array.isArray(j.items) ? j.items : []) as Record<string, unknown>[];
-      const alvo = nome.trim().toLowerCase();
-      const v = lista.find((x) => [x.display_name, x.displayName].some((n) => typeof n === 'string' && n.trim().toLowerCase() === alvo));
+      const nomeDe = (x: Record<string, unknown>) => soLetras(String(x.display_name ?? x.displayName ?? ''));
+      const alvo = soLetras(nome);
+      const v = lista.find((x) => nomeDe(x) === alvo) ?? [...lista].reverse().find((x) => alvo && nomeDe(x).startsWith(alvo));
       const id = v && [v.id, v.voice_id, v.name].find((x): x is string => typeof x === 'string' && x.length > 0);
       if (id) { vozGuardada = { nome, id: id.replace(/^voices\//, '') }; return vozGuardada.id; }
-    }
-  } catch { /* segue com o nome */ }
+      diag.push(`voz_nao_achada_${lista.length}`);
+    } else diag.push(`lista_${r.status}`);
+  } catch { diag.push('lista_sem_resposta'); }
   return nome;
 }
 
 async function vozGemini(texto: string, diag: string[]): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY!;
-  const nome = (process.env.IAMIGUINHO_VOZ || 'iamiguinho2').trim();
+  const nome = (process.env.IAMIGUINHO_VOZ || 'iamiguinho2 3').trim();
   const modelo = process.env.IAMIGUINHO_VOZ_MODELO || 'gemini-3.8-flash-tts';
   const estilo = process.env.IAMIGUINHO_VOZ_ESTILO || VOZ_ESTILO_PADRAO;
   const headers = { 'x-goog-api-key': key, 'content-type': 'application/json' };
-  const voz = await idDaVoz(key, nome);
+  const voz = await idDaVoz(key, nome, diag);
 
   // 1. A API de interações (a da documentação do modelo de voz): o estilo vai junto do texto, e volta um WAV.
   const r = await fetch(`${GEMINI}/interactions`, {

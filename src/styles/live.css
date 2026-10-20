@@ -330,3 +330,18 @@
   .lb__acoes { justify-content: flex-start; }
   .lb__pontos { grid-template-columns: 1fr; }
 }
+
+/* Central da live · memória do IAmiguinho (etapa 4a) */
+.lm__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.lm__lista > li { display: grid; gap: 8px; padding: 10px 12px; background: var(--surface); }
+.lm__cab { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 14px; }
+.lm__nome { font-size: 15px; overflow-wrap: anywhere; }
+.lm__nivel { font: 700 11px var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--iam); }
+.lm__cab .lb__acoes { margin-left: auto; }
+.lm__fatos { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.lm__fatos li { display: inline-flex; align-items: center; gap: 4px; padding: 4px 4px 4px 10px; background: var(--fr-piece); font-size: 13px; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%); }
+.lm__x { border: 0; background: none; color: var(--dim); font: 700 16px var(--font-ui); line-height: 1; padding: 2px 6px; cursor: pointer; }
+.lm__x:hover { color: var(--danger); }
+.lm__conversas { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 14px; }
+.lm__conversas li { display: grid; gap: 2px; padding-left: 10px; box-shadow: inset 2px 0 0 var(--line); }
+.lm__iam { color: var(--iam); }

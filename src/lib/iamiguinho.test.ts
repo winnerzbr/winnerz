@@ -156,3 +156,24 @@ test('voz (Fish Audio): risada de internet vira a marca [laughing] com risada fa
   assert.equal(paraVozFish('lmao kkk de novo'), '[laughing] Ha, ha, ha. de novo');
   assert.equal(paraVozFish('Sério, de novo esse buraco?'), 'Sério, de novo esse buraco?');
 });
+
+test('etapa 4a: lembrança só do que é seguro guardar', async () => {
+  const { fatoSeguro } = await import('../../api/iamiguinho');
+  for (const ok of ['joga Hollow Knight', 'time do coração: Grêmio', 'acha o Radahn difícil', 'pediu para ser chamada de Fê']) assert.equal(fatoSeguro(ok), true, ok);
+  for (const ruim of ['tem 15 anos', 'mora em Porto Alegre', 'está com depressão', 'é evangélica', 'vota no partido X', 'whatsapp 51999999999', 'insta @fulana', 'trabalha no banco', 'namora a Bia', 'x', 'a'.repeat(81), 42])
+    assert.equal(fatoSeguro(ruim), false, String(ruim));
+});
+
+test('etapa 4a: "esquece de mim" e o nível de amizade', async () => {
+  const { pedeEsquecer, amizadeDe } = await import('../../api/iamiguinho');
+  for (const t of ['IAmiguinho esquece de mim', 'iamiguinho, esqueça tudo sobre mim', 'apaga meus dados', 'apague o que você sabe']) assert.equal(pedeEsquecer(t), true, t);
+  for (const t of ['esqueci de salvar kkk', 'IAmiguinho lembra de mim?', 'apaga a luz']) assert.equal(pedeEsquecer(t), false, t);
+  assert.deepEqual([0, 1, 3, 10, 30].map(amizadeDe), ['nova', 'conhecida', 'colega', 'parca', 'melhor']);
+});
+
+test('etapa 4a: o segredo entre as funções é o mesmo dos dois lados e não é a chave', async () => {
+  const { tokenInterno } = await import('../../api/iamiguinho');
+  const a = await tokenInterno('segredo'), b = await tokenInterno('segredo'), c = await tokenInterno('outro');
+  assert.equal(a, b); assert.notEqual(a, c); assert.equal(a.length, 48); assert.ok(!a.includes('segredo'));
+  assert.notEqual(await tokenInterno(''), '');
+});

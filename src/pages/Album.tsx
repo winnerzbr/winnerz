@@ -195,13 +195,13 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
         {!live && closed.length > 0 && <p className="alb-note" style={{ marginTop: 12 }}><span><b>O álbum ainda não abriu.</b> <span className="muted">Seus pacotes ficam guardados e podem ser abertos assim que as figurinhas da Temporada forem publicadas.</span></span></p>}
         {closed.length === 0
           ? <p className="muted">Nenhum pacote fechado. Zere um jogo na Jornada para ganhar o próximo.</p>
-          : <ul className="alb-packlist">{closed.map((p) => (
+          : <ul className="alb-packlist">{closed.map((p, i) => (
             <li key={p.id} className="alb-packrow">
               <PackThumb p={p} />
               <div className="alb-packrow__body">
                 <b>{packTitle(p)}</b>
                 <p className="muted">{packWhy(p)} · {dateLabel(p.createdAt)}</p>
-                <div className="alb-packrow__acts"><button className="btn now sm" disabled={!live} onClick={() => setOpening(p)}>Abrir</button></div>
+                <div className="alb-packrow__acts"><button className="btn now sm" disabled={!live} data-tv-primeiro={i === 0 ? '' : undefined} onClick={() => setOpening(p)}>Abrir</button></div>
               </div>
             </li>))}</ul>}
       </section>

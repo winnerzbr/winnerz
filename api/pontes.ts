@@ -539,6 +539,18 @@ async function linkNow(user: string, gameId: string) {
 
 /* ---- E7.3: pontos do canal na Twitch ------------------------------------------------------- */
 const SITE = (req: Req) => (process.env.SITE_URL || `https://${header(req, 'x-forwarded-host') ?? header(req, 'host') ?? 'winnerz.com.br'}`).replace(/\/+$/, '');
+/**
+ * O endereço onde a Twitch entrega os avisos. A Twitch não segue redirecionamento: se o SITE_URL for o domínio sem
+ * "www" e ele redirecionar para o "www" (ou o contrário), a confirmação nunca chega. Então usa o endereço em que a
+ * Central está aberta (que certamente responde), desde que seja o mesmo domínio do SITE_URL.
+ */
+export function enderecoAvisos(site: string, host: string | undefined): string {
+  const base = (u: string) => u.replace(/^https?:\/\//, '').replace(/\/.*$/, '').replace(/^www\./, '').toLowerCase();
+  const h = (host ?? '').split(',')[0].trim().toLowerCase();
+  const raiz = h && /^[a-z0-9.-]+$/.test(h) && base(h) === base(site) ? `https://${h}` : site;
+  return `${raiz.replace(/\/+$/, '')}/api/pontes?twitch=evento`;
+}
+const AVISOS = (req: Req) => enderecoAvisos(SITE(req), header(req, 'x-forwarded-host') ?? header(req, 'host'));
 const serverSecret = () => process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 async function hmacHex(key: string, text: string): Promise<string> {
   const enc = new TextEncoder();
@@ -635,7 +647,7 @@ async function twitchSubscribe(req: Req): Promise<string> {
   const h = { 'Client-Id': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' };
   const velhas = [ch.sub_id, ...(Array.isArray(ch.subs) ? ch.subs.map((x) => x.id) : [])].filter((x): x is string => !!x);
   for (const id of new Set(velhas)) await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${encodeURIComponent(id)}`, { method: 'DELETE', headers: h }).catch(() => null);
-  const transport = { method: 'webhook', callback: `${SITE(req)}/api/pontes?twitch=evento`, secret: await eventsubSecret(serverSecret()) };
+  const transport = { method: 'webhook', callback: AVISOS(req), secret: await eventsubSecret(serverSecret()) };
   const subs: Inscricao[] = [];
   for (const e of EVENTOS(ch.broadcaster_id)) {
     const r = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', { method: 'POST', headers: h, body: JSON.stringify({ type: e.type, version: e.version, condition: e.condition, transport }) }).catch(() => null);
@@ -1082,7 +1094,7 @@ export default async function handler(req: Req, res: Res) {
       let yt: YtCanal | null = null, migracao = true;
       try { yt = await ytLinha(); } catch { migracao = false; }
       const youtube = { servidor: !!process.env.YOUTUBE_CLIENT_ID, ligado: !!yt?.refresh_cifrado, canal: yt?.titulo ?? null, status: yt?.status ?? null, aoVivo: !!yt?.live_chat_id, migracao };
-      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: `${SITE(req)}/api/pontes?twitch=evento`, youtube });
+      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: AVISOS(req), youtube });
     }
     if (body.link === 'twitch' || body.twitchCanal || body.twitchSub) {
       if (body.twitchCanal || body.twitchSub) {

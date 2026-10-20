@@ -1,0 +1,368 @@
+/**
+ * Sistema de live, etapa 1: as cenas do overlay do canal para o OBS (fonte de navegador em 1920 × 1080, o palco escala
+ * para o tamanho da fonte). /overlay/<endereço>?cena=jogando | conversa | comecando | javolto | encerrando.
+ * Fontes à parte: ?so=alertas (só os alertas) e ?so=chat (só o chat da Twitch). ?som=0 desliga o som dos alertas.
+ * A câmera é outra fonte do OBS, posta dentro da moldura (?cam=esquerda troca o lado na cena Jogando).
+ * Os alertas vêm de live_events (o servidor grava o que a Twitch avisa) e mostram o IAmiguinho reagindo.
+ */
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Figura } from '../components/IAmiguinho';
+import { CENA_CARA, type SofaLinha } from '../data/sofaApi';
+import { liveApi, type LiveEvento, type LivePrefs, type TipoAlerta } from '../data/liveApi';
+import type { Reacao } from '../lib/iamiguinhoRosto';
+
+export type CenaLive = 'jogando' | 'conversa' | 'comecando' | 'javolto' | 'encerrando';
+export const CENAS_LIVE: { id: CenaLive; nome: string; dica: string }[] = [
+  { id: 'jogando', nome: 'Jogando', dica: 'Jogo, câmera no canto, alertas e o balão do IAmiguinho. Fundo transparente: a captura do jogo fica atrás.' },
+  { id: 'conversa', nome: 'Conversa', dica: 'Câmera grande, o assunto do papo e o chat.' },
+  { id: 'comecando', nome: 'Começando', dica: 'Contagem para a live começar e o jogo de hoje.' },
+  { id: 'javolto', nome: 'Já volto', dica: 'A pausa, com o IAmiguinho de guarda.' },
+  { id: 'encerrando', nome: 'Encerrando', dica: 'Resumo da sessão, momentos e a próxima live.' },
+];
+export const cenaValida = (v: string | null): CenaLive | null => (CENAS_LIVE.some((c) => c.id === v) ? (v as CenaLive) : null);
+
+type Jogo = { title: string; cover: string } | null;
+type Sessao = { startedAt: string; number: number } | null;
+type Momentos = { count: number; fotos: { title: string; image: string | null }[] } | null;
+export type DadosCena = { game: Jogo; session: Sessao; moment: { title: string } | null; live?: LivePrefs | null; canal?: string | null; momentos?: Momentos };
+
+const params = () => (typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search));
+
+/* ---- O palco: 1920 × 1080, escalado para a fonte do OBS ---- */
+function Palco({ children, fundo = false }: { children: ReactNode; fundo?: boolean }) {
+  const [k, setK] = useState(1);
+  useEffect(() => {
+    const medir = () => setK(Math.min(window.innerWidth / 1920, window.innerHeight / 1080) || 1);
+    medir(); window.addEventListener('resize', medir);
+    return () => window.removeEventListener('resize', medir);
+  }, []);
+  return <div className={`lv${fundo ? ' lv--fundo' : ''}`} style={{ transform: `scale(${k})` } as CSSProperties}>{children}</div>;
+}
+
+const tempo = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return `${h ? `${h}:` : ''}${String(m).padStart(h ? 2 : 1, '0')}:${String(x).padStart(2, '0')}`; };
+const LOGO = '/brand/forjado.svg';
+
+function Moldura({ className, selo }: { className: string; selo?: string }) {
+  return (
+    <div className={`lv-cam ${className}`} aria-hidden="true">
+      <i className="lv-cam__c lv-cam__c--tl" /><i className="lv-cam__c lv-cam__c--tr" /><i className="lv-cam__c lv-cam__c--bl" /><i className="lv-cam__c lv-cam__c--br" />
+      {selo && <span className="lv-cam__selo"><i />{selo}</span>}
+    </div>
+  );
+}
+
+function Redes({ live, discord = false }: { live?: LivePrefs | null; discord?: boolean }) {
+  const l = [live?.youtube, live?.twitch, discord ? live?.discord : ''].filter((x): x is string => !!x);
+  if (!l.length) return null;
+  return <span className="lv-redes">{l.map((x, i) => <span key={x}>{i > 0 && <b aria-hidden="true">/</b>}{x}</span>)}</span>;
+}
+
+function Barra({ live, children }: { live?: LivePrefs | null; children?: ReactNode }) {
+  return (
+    <div className="lv-barra">
+      <i className="lv-horizonte" aria-hidden="true" />
+      <img src={LOGO} alt="WinnerZ" className="lv-barra__logo" />
+      <span className="lv-barra__temp"><i aria-hidden="true" />{live?.temporada ? `Temporada ${live.temporada} · ao vivo por temporadas` : 'Ao vivo por temporadas'}</span>
+      <span className="lv-barra__meio">{children}</span>
+      <Redes live={live} />
+    </div>
+  );
+}
+
+/* ---- O balão do IAmiguinho: a fala do sofá (12 s) ou, nas cenas paradas, uma fala da casa ---- */
+const FALAS_CASA: Partial<Record<CenaLive, string[]>> = {
+  comecando: ['aquecendo os dedos. os meus, pq quem joga já tá tremendo lol', 'temporada nova, mesma confiança. zero motivo, muita confiança', 'pega a pipoca que hoje tem chefe. e tem morte. principalmente morte'],
+  javolto: ['fiquei de guarda. se o chefe aparecer eu finjo que tô dormindo. plano perfeito, sem erros', 'foi beber água. eu fiquei aqui segurando a live. de nada', 'pausa estratégica. ou fuga. a gente nunca sabe'],
+  conversa: ['papo bom. tô aqui balançando a cabeça fingindo que entendo, real', 'podem continuar, eu tô anotando tudo. mentira, não tô'],
+  encerrando: ['acabou por hoje. eu ajudei bastante. torcendo. de longe.', 'live boa. a próxima vai ser melhor. ou igual. a gente vê'],
+};
+function useFalaCasa(cena: CenaLive): string | null {
+  const l = FALAS_CASA[cena];
+  const [i, setI] = useState(() => Math.floor(Math.random() * 10));
+  useEffect(() => { if (!l) return; const t = setInterval(() => setI((x) => x + 1), 20000); return () => clearInterval(t); }, [l]);
+  return l ? l[i % l.length] : null;
+}
+function Balao({ cena, sofa, className, rotulo = 'IAmiguinho', comFigura = true }: { cena: CenaLive; sofa: SofaLinha | null; className: string; rotulo?: string; comFigura?: boolean }) {
+  const t = sofa?.falou_em ? Date.parse(sofa.falou_em) : 0;
+  const doSofa = sofa?.fala && !sofa.calado && t && Date.now() - t < 12000 ? sofa : null;
+  const casa = useFalaCasa(cena);
+  const fala = doSofa?.fala ?? (cena === 'encerrando' && sofa?.fala && !sofa.calado ? sofa.fala : casa);
+  if (!fala) return null;
+  const cara = doSofa ? (CENA_CARA[doSofa.cena ?? 'normal'] ?? 'sorriso-confiante') : 'sorriso-confiante';
+  return (
+    <div className={`lv-balao ${className}`} key={doSofa?.falou_em ?? fala} role="status">
+      {comFigura && <Figura img={`cara-${cara}`} className="lv-balao__cara" width={76} height={76} lazy={false} enfeite={false} />}
+      <span><span className="lv-k lv-k--iam">{rotulo}</span><span className="lv-balao__fala">{fala}</span></span>
+    </div>
+  );
+}
+
+/* ---- Alertas ---- */
+const REACAO: Record<TipoAlerta, Reacao | 'feliz'> = { follow: 'feliz', sub: 'apaixonado', resub: 'apaixonado', gift: 'berrando', cheer: 'oculos', raid: 'berrando', superchat: 'apaixonado', member: 'apaixonado' };
+const COR: Record<TipoAlerta, string> = { follow: 'iam', sub: 'ambar', resub: 'ambar', gift: 'ouro', cheer: 'ouro', raid: 'raid', superchat: 'ouro', member: 'ambar' };
+const FALA_ALERTA: Record<TipoAlerta, string[]> = {
+  follow: ['chegou bem na hora de ver ele errar', 'chegou no caos organizado. organizado é exagero', 'mais uma testemunha. ótimo'],
+  sub: ['agora é oficial: você apoia isso aqui. corajoso', 'obrigado! vou fingir que foi por minha causa'],
+  resub: ['ainda aqui? respeito. e preocupação', 'mais um mês acreditando. fé é isso'],
+  gift: ['presente pra galera! isso sim é jogada boa', 'distribuindo inscrição igual eu distribuo palpite errado'],
+  cheer: ['bits na conta. nenhuma habilidade comprada, infelizmente', 'obrigado! vou gastar tudo em confiança'],
+  raid: ['chegou reforço! cuidado, ele tá no modo morrer', 'raid! sentem aí, a desgraça é ao vivo'],
+  superchat: ['super chat! agora ele é obrigado a ler', 'valeu! isso paga pelo menos um tutorial'],
+  member: ['virou membro! agora não tem mais volta', 'agora é da família. a gente erra junto'],
+};
+function tituloAlerta(e: LiveEvento): { k: string; nome: string; extra?: string } {
+  const v = e.valor ?? 0;
+  switch (e.tipo) {
+    case 'follow': return { k: 'Novo seguidor', nome: e.quem };
+    case 'sub': return { k: v > 1 ? `Inscrição nível ${v}` : 'Inscrição', nome: e.quem };
+    case 'resub': return { k: `Inscrição · ${v} ${v === 1 ? 'mês' : 'meses'}`, nome: e.quem };
+    case 'gift': return { k: `${v} ${v === 1 ? 'inscrição' : 'inscrições'} de presente`, nome: e.quem };
+    case 'cheer': return { k: `${v.toLocaleString('pt-BR')} bits`, nome: e.quem };
+    case 'raid': return { k: 'Raid chegando', nome: e.quem, extra: `+ ${v.toLocaleString('pt-BR')} ${v === 1 ? 'pessoa' : 'pessoas'}` };
+    case 'superchat': return { k: 'Super Chat', nome: e.quem, extra: v ? (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : undefined };
+    default: return { k: 'Novo membro', nome: e.quem };
+  }
+}
+/** Um "plim" curto, diferente por tipo, feito na hora (sem arquivo de som). */
+let somCtx: AudioContext | null = null;
+function tocarSom(tipo: TipoAlerta) {
+  try {
+    somCtx ??= new AudioContext();
+    const c = somCtx; if (c.state === 'suspended') void c.resume();
+    const notas: Record<string, number[]> = { follow: [660, 880], sub: [523, 659, 784, 1047], resub: [523, 659, 784, 1047], gift: [784, 988, 1175, 1568], cheer: [880, 1109, 1319], raid: [392, 523, 659, 784, 1047], superchat: [659, 880, 1109], member: [587, 740, 880] };
+    (notas[tipo] ?? [660, 880]).forEach((f, i) => {
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.09;
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.015); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.5);
+    });
+  } catch { /* sem som */ }
+}
+/** A fila de alertas: pergunta ao banco a cada 2 s e mostra um de cada vez. */
+function useAlertas(ligado: boolean): LiveEvento | null {
+  const [fila, setFila] = useState<LiveEvento[]>([]);
+  const [atual, setAtual] = useState<LiveEvento | null>(null);
+  const ultimo = useRef<number | null>(null);
+  useEffect(() => {
+    if (!ligado) return;
+    let vivo = true;
+    const ler = async () => {
+      try {
+        const l = await liveApi.eventos(ultimo.current);
+        if (!vivo) return;
+        if (ultimo.current == null) { ultimo.current = l[0]?.id ?? 0; return; } // a primeira leitura só marca onde parou
+        if (l.length) { ultimo.current = l[l.length - 1].id; setFila((f) => [...f, ...l].slice(-30)); }
+      } catch { /* sem rede: tenta de novo */ }
+    };
+    void ler();
+    const t = setInterval(ler, 2000);
+    return () => { vivo = false; clearInterval(t); };
+  }, [ligado]);
+  useEffect(() => {
+    if (atual || !fila.length) return;
+    const [e, ...resto] = fila;
+    setFila(resto); setAtual(e);
+    if (params().get('som') !== '0') tocarSom(e.tipo);
+    const t = setTimeout(() => setAtual(null), e.tipo === 'raid' ? 8500 : 6500);
+    return () => clearTimeout(t);
+  }, [fila, atual]);
+  return atual;
+}
+function Alerta({ e }: { e: LiveEvento }) {
+  const t = tituloAlerta(e);
+  const reacao = REACAO[e.tipo];
+  const fala = FALA_ALERTA[e.tipo][e.id % FALA_ALERTA[e.tipo].length];
+  return (
+    <div className={`lv-alerta is-${COR[e.tipo]}${e.tipo === 'raid' ? ' is-grande' : ''}`} role="status" key={e.id}>
+      <Figura img="cara-sorriso-confiante" expressao={reacao === 'feliz' ? 'feliz' : reacao} className={`lv-alerta__cara${reacao !== 'feliz' ? ` iam-reage--${reacao}` : ''}`} width={112} height={98} lazy={false} enfeite={false} />
+      <span className="lv-alerta__txt">
+        <span className="lv-alerta__k">{t.k}</span>
+        <span className="lv-alerta__nome">{t.nome}{t.extra && <span className="lv-alerta__extra">{t.extra}</span>}</span>
+        <span className="lv-alerta__fala">{fala}</span>
+      </span>
+      <i className="lv-alerta__tempo" aria-hidden="true" style={{ animationDuration: e.tipo === 'raid' ? '8.5s' : '6.5s' }} />
+    </div>
+  );
+}
+
+/* ---- Chat da Twitch (leitura anônima, sem login) ---- */
+type Msg = { id: number; quem: string; texto: string; cor?: string };
+function lerChat(canal: string, onMsg: (m: Omit<Msg, 'id'>) => void): () => void {
+  const nome = canal.trim().replace(/^#/, '').toLowerCase();
+  if (!/^[a-z0-9_]{3,25}$/.test(nome)) return () => {};
+  let fechado = false, ws: WebSocket | null = null;
+  const abrir = () => {
+    ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+    ws.onopen = () => { ws!.send('CAP REQ :twitch.tv/tags'); ws!.send('PASS SCHMOOPIIE'); ws!.send(`NICK justinfan${10000 + Math.floor(Math.random() * 80000)}`); ws!.send(`JOIN #${nome}`); };
+    ws.onmessage = (ev) => {
+      for (const l of String(ev.data).split('\r\n')) {
+        if (!l) continue;
+        if (l.startsWith('PING')) { ws!.send('PONG :tmi.twitch.tv'); continue; }
+        const m = /^(?:@(\S+) )?:([^!]+)!\S+ PRIVMSG #\S+ :(.*)$/.exec(l);
+        if (!m) continue;
+        const tags = Object.fromEntries((m[1] ?? '').split(';').map((p) => p.split('=') as [string, string]));
+        const texto = m[3].replace(/\u0001ACTION |\u0001/g, '').trim();
+        if (texto) onMsg({ quem: (tags['display-name'] || m[2]).slice(0, 30), texto: texto.slice(0, 200), cor: /^#[0-9a-f]{6}$/i.test(tags.color ?? '') ? tags.color : undefined });
+      }
+    };
+    ws.onclose = () => { if (!fechado) setTimeout(() => { if (!fechado) abrir(); }, 4000); };
+  };
+  abrir();
+  return () => { fechado = true; ws?.close(); };
+}
+function Chat({ canal, className, max = 12 }: { canal?: string | null; className: string; max?: number }) {
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const n = useRef(0);
+  const c = params().get('canal') || canal || '';
+  useEffect(() => {
+    if (!c) return;
+    return lerChat(c, (m) => setMsgs((l) => [...l, { ...m, id: ++n.current }].slice(-max)));
+  }, [c, max]);
+  return (
+    <div className={`lv-chat ${className}`} aria-live="polite">
+      {!c && <span className="lv-chat__vazio">Ligue o canal da Twitch na Central da live para o chat aparecer aqui.</span>}
+      {msgs.map((m) => {
+        const iam = m.quem.toLowerCase() === 'iamiguinho';
+        return (
+          <div key={m.id} className={`lv-chat__msg${iam ? ' is-iam' : ''}`}>
+            <b style={iam ? undefined : ({ color: m.cor ?? '#C9CED4' } as CSSProperties)}>{iam ? 'IAmiguinho' : m.quem}</b> {m.texto}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---- As cenas ---- */
+export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: string | null; d: DadosCena | null; sofa: SofaLinha | null }) {
+  const alerta = useAlertas(so === 'alertas' || !!cena);
+  const [agora, setAgora] = useState(Date.now());
+  useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const live = d?.live ?? null;
+  const alertas = <div className={`lv-alertas${cena === 'conversa' ? ' lv-alertas--conversa' : ''}`}>{alerta && <Alerta e={alerta} />}</div>;
+  const camLado = params().get('cam') === 'esquerda' || live?.camLado === 'esquerda' ? 'esquerda' : 'direita';
+  const decorrido = d?.session ? tempo(agora - Date.parse(d.session.startedAt)) : null;
+
+  if (so === 'alertas') return <Palco>{alertas}</Palco>;
+  if (so === 'chat') return <div className="lv-solo-chat"><Chat canal={d?.canal} className="lv-chat--solo" max={16} /></div>;
+
+  if (cena === 'jogando') return (
+    <Palco>
+      {d?.game && (
+        <div className="lv-jogo">
+          {d.game.cover && <img src={d.game.cover} alt="" />}
+          <span className="lv-jogo__info">
+            <span className="lv-k lv-k--agora"><i aria-hidden="true" />{d.session ? 'Jogando agora' : 'Em foco'}</span>
+            <span className="lv-jogo__titulo">{d.game.title}</span>
+            {d.session && <span className="lv-mono">Sessão {d.session.number}<b aria-hidden="true">/</b>{decorrido}</span>}
+          </span>
+        </div>
+      )}
+      {alertas}
+      <Balao cena="jogando" sofa={sofa} className={`lv-balao--jogando is-${camLado === 'direita' ? 'esquerda' : 'direita'}`} />
+      <Moldura className={`lv-cam--jogando is-${camLado}`} selo="Ao vivo" />
+      <Barra live={live}>{d?.moment && <><span className="lv-k">Último momento</span>{d.moment.title}</>}</Barra>
+    </Palco>
+  );
+
+  if (cena === 'conversa') return (
+    <Palco fundo>
+      <Moldura className="lv-cam--conversa" selo="Ao vivo · WinnerZ" />
+      <div className="lv-papo"><span className="lv-k">Papo de hoje</span><span className="lv-papo__t">{live?.papo || 'Conversa com o chat'}</span></div>
+      <div className="lv-lado">
+        {d?.game && (
+          <div className="lv-depois">
+            {d.game.cover && <img src={d.game.cover} alt="" />}
+            <span><span className="lv-k">Depois do papo</span><span className="lv-depois__t">{d.game.title}</span>{d.session && <span className="lv-mono">Sessão {d.session.number}</span>}</span>
+          </div>
+        )}
+        <Chat canal={d?.canal} className="lv-chat--conversa" />
+        <Balao cena="conversa" sofa={sofa} className="lv-balao--conversa" />
+      </div>
+      {alertas}
+      <Barra live={live}><span className="lv-k">Figurinhas</span>Códigos da live em winnerz.com.br/codigo</Barra>
+    </Palco>
+  );
+
+  if (cena === 'comecando') {
+    const falta = live?.comecaEm ? Date.parse(live.comecaEm) - agora : null;
+    return (
+      <Palco fundo>
+        {d?.game?.cover && <img className="lv-fundo-capa" src={d.game.cover} alt="" />}
+        <i className="lv-veu lv-veu--lado" aria-hidden="true" />
+        <i className="lv-horizonte lv-horizonte--varre" aria-hidden="true" />
+        <div className="lv-comeco">
+          <img src={LOGO} alt="WinnerZ" className="lv-comeco__logo" />
+          <span className="lv-k lv-k--agora lv-k--g"><i aria-hidden="true" />{falta != null && falta > 0 ? 'A live começa em' : 'A live já vai começar'}</span>
+          <span className={`lv-relogio${falta != null && falta > 0 ? '' : ' lv-relogio--texto'}`}>{falta != null && falta > 0 ? tempo(falta) : 'Já já'}</span>
+          <span className="lv-comeco__sub">{live?.temporada ? `Temporada ${live.temporada}. Sim, a live voltou.` : 'Sim, a live voltou.'}</span>
+        </div>
+        {d?.game && (
+          <div className="lv-hoje">
+            {d.game.cover && <img src={d.game.cover} alt="" />}
+            <span><span className="lv-k">Hoje na tela</span><span className="lv-hoje__t">{d.game.title}</span>{d.session && <span className="lv-hoje__s">Sessão {d.session.number}{d.moment ? ` · de onde parou: ${d.moment.title}` : ''}</span>}</span>
+          </div>
+        )}
+        <Figura img="pose-controle" className="lv-iam lv-iam--comeco" width={560} height={560} lazy={false} />
+        <Balao cena="comecando" sofa={sofa} className="lv-balao--comeco" comFigura={false} />
+        {alertas}
+        <div className="lv-rodape"><span>Figurinhas da live: winnerz.com.br/codigo</span><Redes live={live} discord /></div>
+      </Palco>
+    );
+  }
+
+  if (cena === 'javolto') return (
+    <Palco fundo>
+      <i className="lv-horizonte lv-horizonte--volto" aria-hidden="true" />
+      <div className="lv-volto">
+        <img src={LOGO} alt="WinnerZ" className="lv-volto__logo" />
+        <span className="lv-volto__t">Já<br />volto</span>
+        <span className="lv-volto__pausa"><i aria-hidden="true" />pausa de uns {live?.pausaMin ?? 5} minutos</span>
+      </div>
+      <Figura img="pose-dormindo" className="lv-iam lv-iam--volto" width={520} height={480} lazy={false} />
+      <div className="lv-volto__cards">
+        <div className="lv-card lv-card--ambar"><span className="lv-k lv-k--ambar">Enquanto isso</span><span className="lv-card__t">Pegue uma figurinha: winnerz.com.br/codigo</span></div>
+        <Balao cena="javolto" sofa={sofa} className="lv-balao--volto" comFigura={false} />
+      </div>
+      {alertas}
+    </Palco>
+  );
+
+  if (cena === 'encerrando') {
+    const m = d?.momentos;
+    return (
+      <Palco fundo>
+        {d?.game?.cover && <img className="lv-fundo-capa lv-fundo-capa--fim" src={d.game.cover} alt="" />}
+        <i className="lv-veu lv-veu--baixo" aria-hidden="true" />
+        <div className="lv-fim">
+          <span className="lv-k lv-k--g"><i aria-hidden="true" />Fim da sessão</span>
+          <span className="lv-fim__t">{d?.game?.title ?? 'Até a próxima'}</span>
+          <div className="lv-fim__nums">
+            <span><span className="lv-k">Tempo</span><b>{decorrido ?? '—'}</b></span>
+            <span><span className="lv-k">Sessão</span><b>{d?.session?.number ?? '—'}</b></span>
+            <span><span className="lv-k">Momentos</span><b>{m?.count ?? 0}</b></span>
+          </div>
+          {!!m?.fotos.length && <div className="lv-fim__fotos">{m.fotos.map((f) => f.image && <img key={f.image} src={f.image} alt={f.title} />)}</div>}
+        </div>
+        <Moldura className="lv-cam--fim" />
+        <Balao cena="encerrando" sofa={sofa} className="lv-balao--fim" rotulo="O resumo do IAmiguinho" />
+        <i className="lv-horizonte lv-horizonte--fim" aria-hidden="true" />
+        <div className="lv-proxima">
+          <span><span className="lv-k">Próxima live</span><span className="lv-proxima__t">{live?.proxima || 'Quando a temporada voltar'}</span></span>
+          <span className="lv-proxima__dir"><img src={LOGO} alt="WinnerZ" /><Redes live={live} /></span>
+        </div>
+        {alertas}
+      </Palco>
+    );
+  }
+  return null;
+}
+
+/** Os endereços de cada cena (para a Central da live). */
+export function enderecosCenas(base: string) {
+  return base ? [
+    ...CENAS_LIVE.map((c) => ({ id: c.id, nome: c.nome, dica: c.dica, url: `${base}?cena=${c.id}` })),
+    { id: 'alertas', nome: 'Só os alertas', dica: 'Para pôr os alertas por cima de qualquer cena sua.', url: `${base}?so=alertas` },
+    { id: 'chat', nome: 'Só o chat', dica: 'O chat da Twitch, para encaixar onde quiser.', url: `${base}?so=chat` },
+  ] : [];
+}

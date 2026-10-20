@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EXPRESSOES, arrumarPlaca, dePassagem, expressaoDe, rosto } from './iamiguinhoRosto';
+import { EXPRESSOES, REACOES, arrumarPlaca, dePassagem, expressaoDe, rosto } from './iamiguinhoRosto';
 import { TELA } from './iamiguinhoTela';
 import { HELICE } from './iamiguinhoHelice';
 
@@ -59,4 +59,15 @@ test('máscara do rosto: cada imagem com objeto na frente tem o arquivo da tela 
     assert.ok(TELA[k], k);
     assert.ok(existsSync(new URL(`../../public/brand/iamiguinho/anim/${k}-tela.webp`, import.meta.url)), k);
   }
+});
+
+test('as reações da live desenham, e nenhuma vira cara de imagem nem aparece de passagem', () => {
+  for (const e of REACOES) {
+    const s = rosto(e, 'iam-bx2');
+    assert.match(s, /url\(#iam-bx2\)/);
+    assert.ok(!s.includes('NaN') && !s.includes('undefined'), e);
+    assert.ok(!EXPRESSOES.includes(e));
+    assert.equal(dePassagem(e), null);
+  }
+  assert.match(rosto('chorando-de-rir'), /class="iam-lagrima/);
 });

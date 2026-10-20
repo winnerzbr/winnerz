@@ -319,6 +319,8 @@ export interface Prefs {
   light?: boolean;
   /** Segredo do endereço do overlay (trocar invalida o endereço antigo). */
   overlayNonce?: string;
+  /** Sistema de live (só o canal): textos das cenas do overlay (temporada, @ das redes, papo, próxima live, contagem, pausa). */
+  live?: { temporada?: string; youtube?: string; twitch?: string; discord?: string; papo?: string; proxima?: string; comecaEm?: string | null; pausaMin?: number; camLado?: 'direita' | 'esquerda' };
   /** Segredo do endereço do calendário do Radar (trocar invalida o endereço antigo). */
   radarNonce?: string;
   /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */

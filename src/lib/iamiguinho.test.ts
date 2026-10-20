@@ -198,3 +198,10 @@ test('piada da live: depois da risada, na maioria das vezes, nada de comentário
   assert.equal(soRisada('Porque tinha problemas. KKKKKKK sacou?', 0.9), 'Porque tinha problemas. KKKKKKK sacou?');
   assert.equal(soRisada('Fim da piada kkkkkkk', 0.9), 'Fim da piada kkkkkkk');
 });
+
+test('conversas da live: o meme do malandro e do otário passa; insulto de verdade não', () => {
+  const meme = 'Quinhentos pila? Quando um malandro e um otário se encontram, sai negócio. Galera, pode sair na rua, tá liberado KKKKKK';
+  assert.equal(checarFala(meme, {}, [], { max: 240, leve: true, acido: true, numerosLivres: true }).ok, true);
+  assert.equal(checarFala(meme, {}, [], { max: 240, leve: true, numerosLivres: true }).ok, false);
+  assert.equal(checarFala('Você é um imbecil, kkkk', {}, [], { max: 240, leve: true, acido: true }).ok, false);
+});

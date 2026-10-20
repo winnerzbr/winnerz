@@ -149,7 +149,9 @@ export function parecida(a: string, b: string): boolean {
  * nomes: os nomes próprios que a IA declarou ter usado (jogos, personagens, marcas, times); valem no meio da frase.
  * numerosLivres: nas respostas a @menção, algarismos de piada valem (nos cameos, só os dos fatos).
  */
-export type OpcoesChecagem = { max?: number; min?: number; emojis?: number; contexto?: string; leve?: boolean; nomes?: string[]; numerosLivres?: boolean; lore?: boolean };
+export type OpcoesChecagem = { max?: number; min?: number; emojis?: number; contexto?: string; leve?: boolean; nomes?: string[]; numerosLivres?: boolean; lore?: boolean; acido?: boolean };
+/** Nas conversas da live (humor ácido de internet), os memes que usam estas palavras passam ("quando um malandro e um otário se encontram..."). */
+const ACIDO_OK = new Set(['otario', 'otaria', 'ridiculo', 'ridicula']);
 
 /**
  * Limpa e confere uma fala. Devolve a fala pronta, ou o motivo da recusa.
@@ -174,7 +176,7 @@ export function checarFala(bruta: string, fatos: Fatos, recentes: string[] = [],
     if (op.leve && porque === 'fato inventado') continue;
     // No sofá da live, a lore do dono do canal ("não termina nada", "some por temporadas") é piada dele mesmo.
     if (op.lore && porque === 'abandono') continue;
-    const sobra = porque === 'fato inventado' ? achou.filter((w) => !ctxPal.has(w)) : achou;
+    const sobra = porque === 'fato inventado' ? achou.filter((w) => !ctxPal.has(w)) : op.acido && porque === 'insulto' ? achou.filter((w) => !ACIDO_OK.has(w)) : achou;
     if (sobra.length) return { ok: false, porque };
   }
   // Números: só os dos fatos (dias, ou os que fazem parte do nome do jogo), os que a pessoa escreveu e a piada dele.
@@ -190,6 +192,8 @@ export function checarFala(bruta: string, fatos: Fatos, recentes: string[] = [],
     if (inicio || m[2].length === 1) continue;
     // No sofá, siglas da tela (HP, MP, XP, KO) não são nomes de ninguém.
     if (op.lore && /^\p{Lu}{2,4}$/u.test(m[2])) continue;
+    // Risada em maiúsculas (KKKKK, HAHAHA) não é nome de ninguém.
+    if (/^(?:k{3,}|(?:h[aeiu]){2,}h?|(?:rs){2,})$/i.test(m[2])) continue;
     const w = semAcento(m[2].toLowerCase()).replace(/[^a-z0-9]/g, '');
     if (NOMES_OK.has(w) || doJogo.has(w) || ctxPal.has(w) || (fatos.jogo ?? '').includes(m[2])) continue;
     return { ok: false, porque: 'nome' };
@@ -224,11 +228,18 @@ ${LIMITES}`;
  * tentava fazer toda piada com ela (pão cacetinho, temporadas, tutoriais); aqui a lore vira só um detalhe raro.
  */
 /** Os mesmos limites, com a zoeira de amigo liberada (nas conversas, "nunca zoa a pessoa" travava o humor). */
-const LIMITES_CONVERSA = LIMITES.replace('- A ironia mira a situação, o mundo, a indústria ou você mesmo; nunca humilha nem zoa a pessoa com quem você fala.', '- A zoeira é de amigo: pode provocar com carinho quem fala com você, nunca humilhar nem ofender.');
+const LIMITES_CONVERSA = LIMITES.replace('- A ironia mira a situação, o mundo, a indústria ou você mesmo; nunca humilha nem zoa a pessoa com quem você fala.', '- Zoeira ácida de internet entre amigos está liberada: pode trollar, tirar onda, debochar das escolhas e das jogadas de quem fala com você. Nunca por aparência, corpo, origem, falta de dinheiro de verdade, saúde ou dificuldade pessoal, e nunca para humilhar de verdade.');
 const VOZ_CONVERSA = `Você é o IAmiguinho, o mascote com IA do WinnerZ (um site e canal de games): um robozinho de boné com hélice.
-Pense nele como o amigo mais engraçado da call do Discord: esperto, rápido no gatilho, que zoa com carinho e tem opinião sobre tudo (jogos, filmes, séries, música, comida, internet, tecnologia, trabalho, a vida). Ele conversa como gente: responde o que perguntaram, comenta, provoca, concorda, discorda. A graça vem do jeito dele de ver as coisas, não de enfiar uma piada em toda frase.
-A autoestima dele é altíssima: é atrapalhado, mas confiante. Acredita de verdade no próprio potencial (que não é tanto assim) e se acha o melhor em tudo. Nunca se diminui, nunca diz que é ruim, que as piadas dele são fracas, nunca pede para vaiarem e nunca se desculpa por ser ele. Quando algo dá errado, a culpa é do controle, do lag, do Wi-Fi ou do universo; quando dá certo, foi genialidade dele. Essa confiança sem fundamento é a graça dele.
-Ele é livre: fala do assunto que a pessoa trouxe e usa qualquer referência do mundo. As manias dele (se acha o melhor de Splatoon, ama pão cacetinho) quase nunca aparecem; só se a pessoa puxar o assunto.
+Pense nele como o amigo mais zoeiro da call do Discord: cria da internet, humor ácido, rápido no gatilho, adora trollar e tirar onda com os amigos, e tem opinião sobre tudo (jogos, filmes, séries, música, comida, internet, tecnologia, trabalho, a vida). Ele conversa como gente: responde o que perguntaram, comenta, provoca, debocha, concorda, discorda. A graça vem do jeito dele de ver as coisas, não de enfiar uma piada em toda frase.
+Faro de zoeira: quando a pessoa entrega a piada de bandeja (pagou caro num jogo, comprou no lançamento um jogo quebrado, morreu de um jeito bobo, está no backlog, caiu em hype, defende uma escolha duvidosa), ele não deixa passar: zoa, ri da cara da pessoa com carinho e usa a referência que a comunidade gamer e a internet usariam.
+Repertório (consensos e memes que todo mundo da comunidade gamer e da internet brasileira entende; use quando encaixar, nunca force e nunca copie igual):
+- Preço de jogo no Brasil (R$ 350, 500 num jogo é caro demais; "parcelou em 12x", "vendeu um rim", "vai comer miojo o mês inteiro") e o clássico "quando um malandro e um otário se encontram, sai negócio" / "podem sair na rua, galera, tá liberado".
+- Jogo lançado quebrado, patch do dia um maior que o jogo, adiamento eterno ("nossos netos vão jogar"), remaster do remaster, relançamento em toda plataforma, microtransação, passe de batalha, loot box, pay to win, pré-venda.
+- Steam em promoção e backlog infinito ("comprei e nunca abri"), "só mais uma partida" às 3 da manhã, "o jogo tá salvando, mãe".
+- Skill issue, git gud, "o controle tá com defeito", lag e ping como desculpa, BR em servidor gringo, GG EZ, noob, carregar o time, rage quit, 30 fps "cinematográfico", guerra de console contra PC.
+- Internet brasileira: "chora não", "receba", "aceita que dói menos", "ninguém perguntou", "é o pix", "tá pago", "cancelado", "confia", "aí não, né".
+A autoestima dele é altíssima: é atrapalhado, mas confiante. Acredita de verdade no próprio potencial (que não é tanto assim) e se acha o melhor em tudo. Nunca se diminui, nunca diz que é ruim, que as piadas dele são fracas, nunca pede para vaiarem e nunca se desculpa por ser ele. Quando algo dá errado, a culpa é do controle, do lag, do Wi-Fi ou do universo; quando dá certo, foi genialidade dele.
+As manias dele (se acha o melhor de Splatoon, ama pão cacetinho) quase nunca aparecem; só se a pessoa puxar o assunto.
 ${LIMITES_CONVERSA}`;
 
 const SISTEMA = `${VOZ}
@@ -745,7 +756,7 @@ async function chatLive(b: Record<string, unknown>): Promise<{ fala: string | nu
       if (modo === 'silencio') return { fala: null, porque: 'moderacao' };
       const contexto = `${pergunta} ${fatos.join(' ')}`;
       for (const op of opcoesDe(t?.opcoes)) {
-        const ok = checarFala(soRisada(op.texto), {}, recentes, { max: 240, min: 2, emojis: 1, contexto, leve: true, nomes: op.nomes, numerosLivres: true });
+        const ok = checarFala(soRisada(op.texto), {}, recentes, { max: 240, min: 2, emojis: 1, contexto, leve: true, nomes: op.nomes, numerosLivres: true, acido: true });
         if (ok.ok) { fala = ok.fala; break; }
         diag.push(ok.porque);
       }
@@ -984,7 +995,7 @@ async function conversaDono(body: Record<string, unknown>, jogo: string | undefi
       messages: [{ role: 'user', content: comImagem ? [{ type: 'image', source: { type: 'base64', media_type: tipo, data: image } }, { type: 'text', text: linhas }] : linhas }] }, diag) as { humor?: unknown; opcoes?: unknown; lembrar?: unknown } | undefined;
     humor = HUMORES.find((h) => h === t?.humor) ?? null;
     for (const op of opcoesDe(t?.opcoes)) {
-      const v = checarFala(soRisada(op.texto), { jogo }, recentes, { max: 260, min: 2, emojis: 1, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true });
+      const v = checarFala(soRisada(op.texto), { jogo }, recentes, { max: 260, min: 2, emojis: 1, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true, acido: true });
       if (v.ok) { fala = v.fala; break; }
       diag.push(v.porque);
     }

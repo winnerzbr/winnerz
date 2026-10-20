@@ -10,6 +10,8 @@ import { buildPack, DEFAULT_LIGHT, shadePack, type PackRender } from './packArt'
 import { mysteryHTML, stickerHTML } from './render';
 import { AURORA, burst, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
 import { CameoJornada } from '../IAmiguinho';
+import { GaleraExtra } from '../galera/GaleraReveal';
+import { galeraApi, type GaleraCard } from '../../data/galeraApi';
 
 type Phase = 'sealed' | 'opening' | 'torn' | 'rising' | 'fanned' | 'ceremony' | 'done';
 interface Card { el: HTMLButtonElement; d: Drawn; open: boolean; base: { x: number; y: number; r: number } }
@@ -28,6 +30,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
   const [err, setErr] = useState('');
   const [title, setTitle] = useState('');
   const [result, setResult] = useState<Drawn[] | null>(null);
+  const [extra, setExtra] = useState<GaleraCard | null>(null);
   const api = useRef<{ quick: () => void; all: () => void } | null>(null);
   const data = useRef({ stickers, sections });
   data.current = { stickers, sections };
@@ -188,6 +191,13 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
     };
   }, [pack.id, pack.kind]);
 
+  // +1 da Galera: sorteado pelo banco depois de abrir (uma vez por pacote); entra embaixo da fileira, como extra.
+  useEffect(() => {
+    if (phase !== 'done') return;
+    let alive = true;
+    const t = setTimeout(() => { galeraApi.roll(pack.id, pack.origin === 'boas_vindas').then((c) => { if (alive && c) setExtra(c); }).catch(() => { /* a Galera nunca atrapalha o pacote */ }); }, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [phase, pack.id, pack.origin]);
   const fresh = result?.filter((d) => !d.dup).length ?? 0;
   const hint = phase === 'done'
     ? (fresh ? 'As novas já estão na bandeja do álbum, esperando para colar. As repetidas ficam guardadas para as trocas e o Cofre.' : 'Todas repetidas desta vez. Elas ficam guardadas para as trocas e o Cofre.')
@@ -212,7 +222,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
             {(phase === 'done' || phase === 'sealed') && <button className="btn quiet" onClick={onClose}>{phase === 'done' ? (labels?.done ?? 'Ver pacotes') : (labels?.later ?? 'Depois')}</button>}
           </div>
         </div>
-        <div className="pk__stage">
+        <div className="pk__stage" data-extra={extra ? '1' : undefined}>
           <div className="pk__rays" />
           <div className="pk__dim" />
           <div className="pk__pack">
@@ -227,6 +237,7 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
             <button className="pk__hit" aria-label="Puxar a fita do pacote (ou Enter para abrir)" />
           </div>
           <div className="pk__cards" />
+          {extra && <GaleraExtra card={extra} />}
           <div className="pk__ttl">{title}</div>
           {err && <p className="pk__err" role="alert">{err}</p>}
         </div>

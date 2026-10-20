@@ -4,6 +4,7 @@
  * E7.1: os códigos de live (pacote ou figurinha, com validade, limite de usos e motivo).
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { GaleraStudio } from '../components/galera/GaleraStudio';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { canReview } from '../data/fixesApi';
@@ -14,14 +15,14 @@ import { ConfirmButton } from '../components/Sheet';
 import { StickerView } from '../components/album/StickerView';
 import { ensureDefs, num3 } from '../components/album/render';
 
-type Tab = 'catalogo' | 'dar' | 'codigos' | 'twitch' | StudioView | 'trocas';
+type Tab = 'catalogo' | 'dar' | 'codigos' | 'twitch' | StudioView | 'trocas' | 'galera';
 const when = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).replace('.', '') : '');
 const at = (h?: string | null) => (h ? `@${h}` : 'alguém');
 
 export function StudioAlbumPage() {
   useStore((s) => s.isAdmin);
   const mode = useStore((s) => s.mode);
-  const [tab, setTab] = useState<Tab>(() => { try { return new URLSearchParams(window.location.search).has('twitch') ? 'twitch' : 'catalogo'; } catch { return 'catalogo'; } });
+  const [tab, setTab] = useState<Tab>(() => { try { const q = new URLSearchParams(window.location.search); return q.has('twitch') ? 'twitch' : q.has('galera') ? 'galera' : 'catalogo'; } catch { return 'catalogo'; } });
   const [counts, setCounts] = useState<{ retidos: number; revisoes: number } | null>(null);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
@@ -37,11 +38,11 @@ export function StudioAlbumPage() {
       <header className="studio__head">
         <Link to="/studio" className="back">← Studio</Link>
         <h1 className="t big">Álbum</h1>
-        <p className="muted lead">Catálogo da Temporada, pacotes dados à mão, códigos de live e os pacotes que as regras seguraram.</p>
+        <p className="muted lead">Catálogo da Temporada, pacotes dados à mão, códigos de live, os pacotes que as regras seguraram e as figurinhas da Galera.</p>
         {mode === 'demo' && <p className="faint">Na demonstração, tudo fica só neste navegador.</p>}
       </header>
       <div className="seg studio__tabs" role="tablist" aria-label="Seções">
-        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('codigos', 'Códigos')}{T('twitch', 'Twitch')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}
+        {T('catalogo', 'Catálogo')}{T('dar', 'Dar pacote')}{T('codigos', 'Códigos')}{T('twitch', 'Twitch')}{T('retidos', `Retidos${counts?.retidos ? ` (${counts.retidos})` : ''}`)}{T('revisoes', `Revisões${counts?.revisoes ? ` (${counts.revisoes})` : ''}`)}{T('historico', 'Histórico')}{T('trocas', 'Trocas')}{T('galera', 'Galera')}
       </div>
       {msg && <p className="studio__msg" role="status">{msg}</p>}
       {err && <p className="awards__error" role="alert">{err}</p>}
@@ -51,6 +52,7 @@ export function StudioAlbumPage() {
       {tab === 'twitch' && <TwitchPanel say={say} fail={fail} />}
       {(tab === 'retidos' || tab === 'revisoes' || tab === 'historico') && <PacksPanel key={tab} view={tab} say={say} fail={fail} onChange={refreshCounts} />}
       {tab === 'trocas' && <TradesPanel fail={fail} />}
+      {tab === 'galera' && <GaleraStudio say={say} fail={fail} />}
     </main>
   );
 }

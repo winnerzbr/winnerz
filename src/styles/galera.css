@@ -1,0 +1,162 @@
+/* Galera: a figurinha de uma pessoa. Moldura déco de cobre; o Fundador (nº 001 a 100) em dourado, com filigrana e
+   foil. Tudo medido em cqw (largura da figurinha), para valer em qualquer tamanho. */
+.glr { position: relative; width: 100%; container-type: inline-size; }
+.glr__card { position: relative; width: 100%; aspect-ratio: 5 / 7; border-radius: 2.6cqw; overflow: hidden; color: #f2ede4; font-family: 'Archivo', system-ui, sans-serif;
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.42);
+  --metalc: #eaa57c;
+  --ring: conic-gradient(from 200deg, #fff0e0, #d8895c 50deg, #6e2f16 110deg, #f4b88f 170deg, #fff3e6 210deg, #b5653d 270deg, #5a220f 320deg, #fff0e0);
+  --metaltext: linear-gradient(180deg, #fff4ea 0%, #f6c9a6 40%, #c97a4e 60%, #f3c09b 80%, #fff1e4 100%); }
+.glr__card.is-fund { --metalc: #ebc883;
+  --ring: conic-gradient(from 200deg, #fff8e1, #e2bb6c 50deg, #7a5420 110deg, #f3d899 170deg, #fffaea 210deg, #c99a4d 270deg, #6b4515 320deg, #fff8e1);
+  --metaltext: linear-gradient(180deg, #fff8e3 0%, #f7dfa2 40%, #c9984d 60%, #f0d391 80%, #fff3d0 100%); }
+.glr__frame { position: absolute; inset: 0; overflow: hidden; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.09) 0 1px, transparent 1px 3px), var(--ring);
+  box-shadow: inset 0 0.45cqw 0.35cqw rgba(255, 255, 255, 0.4), inset 0 -0.5cqw 0.6cqw rgba(0, 0, 0, 0.35); }
+.glr__art { position: absolute; inset: 2cqw; border-radius: 1cqw; overflow: hidden; background: #0b0a09; }
+.glr__art::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 0.3cqw rgba(0, 0, 0, 0.5); pointer-events: none; z-index: 8; }
+.glr__scene { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.66); }
+.glr__dim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 10, 9, 0.25), rgba(11, 10, 9, 0.04) 38%, rgba(11, 10, 9, 0.82) 69%, rgba(11, 10, 9, 0.97)); }
+.glr__rays { position: absolute; left: 50%; top: 44cqw; width: 170cqw; height: 170cqw; margin: -85cqw 0 0 -85cqw; z-index: 1; mix-blend-mode: screen;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 220, 190, 0.08) 0 1.6deg, transparent 1.6deg 9deg);
+  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.8) 12%, transparent 40%); mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.8) 12%, transparent 40%); }
+.glr__pp { position: absolute; left: 50%; top: 19.6cqw; width: 48.8cqw; height: 48.8cqw; margin-left: -24.4cqw; border: 0.16cqw solid rgba(234, 165, 124, 0.32); border-radius: 2cqw; box-sizing: border-box; z-index: 2; }
+.is-fund .glr__pp { border-color: rgba(235, 200, 131, 0.36); }
+.glr__av { position: absolute; left: 50%; top: 22cqw; width: 44cqw; height: 44cqw; margin-left: -22cqw; border-radius: 1.2cqw; overflow: hidden; z-index: 3; background: #1a1c22;
+  box-shadow: 0 0 0 0.45cqw #0b0a09, 0 0 0 0.7cqw rgba(234, 165, 124, 0.5), 0 2.4cqw 5.5cqw rgba(0, 0, 0, 0.65); }
+.is-fund .glr__av { box-shadow: 0 0 0 0.45cqw #0b0a09, 0 0 0 0.7cqw rgba(235, 200, 131, 0.55), 0 2.4cqw 5.5cqw rgba(0, 0, 0, 0.65); }
+.glr__av img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.glr__logo { position: absolute; left: 50%; top: 8.4cqw; width: 9cqw; margin-left: -4.5cqw; z-index: 5; }
+.glr__logo svg, .glr__bk-logo svg { display: block; width: 100%; height: auto; }
+.glr__mt { background: var(--metaltext); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0.35cqw 0.3cqw rgba(0, 0, 0, 0.85)); }
+.glr__num { position: absolute; left: 0; right: 0; top: 71.4cqw; z-index: 6; text-align: center; font: 700 3cqw/1 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.34em; padding-left: 0.34em; }
+.glr__plate { position: absolute; left: 6cqw; right: 6cqw; bottom: 10cqw; z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 1.5cqw; text-align: center; }
+.glr__quote { font: italic 500 4.3cqw/1.2 'Cormorant Garamond', Georgia, serif; color: #f3ebdf; max-width: 80cqw; text-wrap: balance; }
+.glr__at { font: 700 5.6cqw/1.05 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.glr__at--long { font-size: 4.4cqw; letter-spacing: 0.06em; }
+.glr__rule { display: flex; align-items: center; gap: 2cqw; width: 70cqw; }
+.glr__rule i { flex: 1; height: 0.25cqw; background: linear-gradient(90deg, transparent, var(--metalc)); }
+.glr__rule i:last-child { background: linear-gradient(270deg, transparent, var(--metalc)); }
+.glr__rule b { width: 1.8cqw; height: 1.8cqw; transform: rotate(45deg); background: var(--ring); }
+.glr__name { font: 500 2.9cqw/1.1 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.42em; padding-left: 0.42em; text-transform: uppercase; color: #cfc6b8; }
+.glr__game { font: 500 2.5cqw/1.2 'IBM Plex Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--metalc); }
+.glr__sheen { position: absolute; inset: 0; z-index: 7; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.13) 44%, rgba(255, 240, 225, 0.05) 50%, transparent 62%); }
+.glr__orn { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 8; pointer-events: none; }
+.glr__rib { position: absolute; top: 8.5cqw; right: -10cqw; width: 46cqw; transform: rotate(38deg); text-align: center; padding: 1.3cqw 0; z-index: 9;
+  background: linear-gradient(160deg, #fff4d2 0%, #e2bb6c 32%, #8a5f26 60%, #f3d899 82%, #fff3d0 100%); color: #2a1a06;
+  font: 800 3cqw/1 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.16em; text-transform: uppercase; box-shadow: 0 0.6cqw 1.2cqw rgba(0, 0, 0, 0.45); }
+
+/* Foil do Fundador: reflexo furta-cor e uma faixa de brilho que atravessa a moldura. */
+.is-fund .glr__frame::before { content: ''; position: absolute; left: 0; top: 0; width: 300%; height: 100%; will-change: transform; animation: glr-foil 9s linear infinite;
+  background: linear-gradient(90deg, rgba(255, 179, 160, 0.28), rgba(255, 224, 168, 0.28) 17%, rgba(168, 240, 224, 0.24) 33%, rgba(184, 200, 255, 0.26) 50%, rgba(255, 179, 217, 0.26) 67%, rgba(255, 224, 168, 0.28) 83%, rgba(255, 179, 160, 0.28)); }
+.is-fund .glr__frame::after { content: ''; position: absolute; left: -50%; top: -50%; width: 200%; height: 200%; will-change: transform; animation: glr-sweep 4.8s ease-in-out infinite;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 236, 190, 0.35) 45%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 236, 190, 0.35) 55%, transparent 60%); }
+@keyframes glr-foil { to { transform: translateX(-66.666%); } }
+@keyframes glr-sweep { 0% { transform: translateX(-60%); } 60%, 100% { transform: translateX(60%); } }
+.glr.is-still .glr__frame::before, .glr.is-still .glr__frame::after { animation: none; }
+.glr.is-still .glr__frame::after { opacity: 0; }
+:root[data-motion='reduzidas'] .glr__frame::before, :root[data-motion='reduzidas'] .glr__frame::after { animation: none; }
+@media (prefers-reduced-motion: reduce) { .glr__frame::before, .glr__frame::after { animation: none !important; } }
+
+/* Verso */
+.is-back .glr__art { background: radial-gradient(70% 50% at 50% 42%, #21170f, #0b0a09 72%); }
+.glr__bk { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; text-align: center; box-sizing: border-box; padding: 12cqw 9cqw 10.5cqw; }
+.glr__bk::before { content: ''; position: absolute; inset: 0; z-index: -1; background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(234, 165, 124, 0.09) 0 0.6deg, transparent 0.6deg 6deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 45%, #000 12%, transparent 58%); mask-image: radial-gradient(circle at 50% 45%, #000 12%, transparent 58%); }
+.is-fund .glr__bk::before { background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(235, 200, 131, 0.11) 0 0.6deg, transparent 0.6deg 6deg); }
+.glr__bk-logo { width: 20cqw; }
+.glr__bk-kick { margin-top: 3.4cqw; font: 700 2.5cqw/1 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.42em; padding-left: 0.42em; text-transform: uppercase; color: #cfc6b8; }
+.glr__seal { margin-top: 7cqw; width: 40cqw; height: 40cqw; border-radius: 50%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2cqw; flex: none; }
+.is-fund .glr__seal { border: 0.5cqw solid var(--metalc); box-shadow: 0 0 0 1.3cqw #120d09, 0 0 0 1.6cqw var(--metalc), 0 0 6cqw rgba(235, 200, 131, 0.25); background: radial-gradient(circle at 50% 40%, #2a1f12, #0f0b07); }
+.glr__seal small { font: 600 2.6cqw/1 'Cinzel', Georgia, serif; letter-spacing: 0.3em; padding-left: 0.3em; text-transform: uppercase; color: var(--metalc); }
+.glr__seal b { font: 900 15cqw/0.9 'Archivo', sans-serif; font-stretch: 125%; }
+.is-fund .glr__seal b { font-size: 12cqw; }
+.glr__bk .glr__at { margin-top: 6cqw; font-size: 5.4cqw; }
+.glr__bk .glr__name { margin-top: 1.6cqw; }
+.glr__bk .glr__rule { margin: 3.4cqw 0; }
+.glr__bk-row { font: 500 2.4cqw/1.6 'IBM Plex Mono', monospace; letter-spacing: 0.1em; color: var(--metalc); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glr__bk-row.up { text-transform: uppercase; }
+.glr__bk-foot { margin-top: auto; font: italic 500 4cqw/1.2 'Cormorant Garamond', Georgia, serif; color: #f3ebdf; }
+
+/* Aposentada e ainda não tirada */
+.glr__card.is-gone, .glr__card.is-unknown { box-shadow: none; }
+.is-gone .glr__frame { background: linear-gradient(160deg, #5a5d63, #34363b 50%, #4a4d52); }
+.is-gone .glr__art, .is-unknown .glr__art { display: grid; place-items: center; }
+.glr__ghost { display: flex; flex-direction: column; align-items: center; gap: 3cqw; color: #8b9097; text-align: center; padding: 0 8cqw; }
+.glr__ghost svg { width: 34cqw; height: auto; opacity: 0.5; }
+.glr__ghost b { font: 700 5cqw/1 'Archivo', sans-serif; font-stretch: 125%; letter-spacing: 0.2em; padding-left: 0.2em; color: #a9aeb5; }
+.glr__ghost span { font: 500 2.8cqw/1.3 'Archivo', sans-serif; letter-spacing: 0.08em; }
+.is-unknown .glr__frame { background: transparent; box-shadow: none; border: 0.5cqw dashed rgba(201, 206, 212, 0.22); border-radius: inherit; box-sizing: border-box; }
+.is-unknown .glr__art { background: rgba(255, 255, 255, 0.02); }
+
+/* Álbum → Galera */
+.glr-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin: 8px 0 24px; }
+.glr-head__count { font: 700 15px/1.3 var(--font-ui); }
+.glr-head__count b { font-size: 28px; font-stretch: 125%; margin-right: 6px; }
+.glr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 16px; }
+.glr-slot { display: flex; flex-direction: column; gap: 8px; min-width: 0; background: none; border: 0; padding: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; border-radius: 10px; }
+.glr-slot:disabled { cursor: default; }
+.glr-slot:focus-visible { outline: 2px solid var(--now, #ffb25b); outline-offset: 4px; }
+.glr-slot__cap { font: 600 13px/1.3 var(--font-ui); color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.glr-mine { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 20px; padding: 16px 18px; margin-bottom: 28px; border: 1px solid var(--line); border-radius: 12px; }
+.glr-mine__card { width: 84px; flex: none; }
+.glr-mine__text { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.glr-mine__text b { font: 700 16px/1.3 var(--font-ui); }
+.glr-empty { padding: 28px 20px; border: 1px dashed var(--line); border-radius: 12px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+
+/* Ficha (frente e verso, perfil, denúncia) */
+.glr-sheet { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; align-items: flex-start; }
+.glr-sheet__card { width: min(300px, 78vw); perspective: 1400px; }
+.glr-flip { position: relative; transition: transform 0.7s cubic-bezier(0.2, 0.75, 0.2, 1); transform-style: preserve-3d; }
+.glr-flip.is-flipped { transform: rotateY(180deg); }
+.glr-flip > .glr { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.glr-flip > .glr:last-child { position: absolute; inset: 0; transform: rotateY(180deg); }
+:root[data-motion='reduzidas'] .glr-flip { transition: none; }
+.glr-sheet__side { flex: 1 1 240px; min-width: 0; max-width: 360px; display: flex; flex-direction: column; gap: 12px; }
+.glr-sheet__side .btn { align-self: flex-start; }
+.glr-report { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--line); }
+.glr-report .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* +1 da Galera no pacote aberto: embaixo da fileira das cinco, menor, como extra. A fileira sobe para abrir espaço. */
+.pk__stage .pk__cards { transition: transform 0.8s cubic-bezier(0.2, 0.75, 0.2, 1); }
+.pk__stage[data-extra] .pk__cards { transform: translateY(-13%); }
+.pk__extra { position: absolute; left: 50%; bottom: 3%; z-index: 6; width: calc(var(--cw, 120px) * 0.72); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; color: inherit; cursor: pointer; animation: glr-extra-in 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) both; }
+.pk__extra .glr { filter: drop-shadow(0 0 14px rgba(235, 200, 131, 0.35)); }
+.pk__extra-tag { font: 700 10px/1 var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: #ffe7b0; white-space: nowrap; }
+.pk__extra-cap { font: 500 12px/1.2 var(--font-ui); color: #d8d2c6; white-space: nowrap; }
+.pk__extra-cap b { color: #fff; }
+.pk__extra:focus-visible { outline: 2px solid var(--now, #ffb25b); outline-offset: 4px; border-radius: 8px; }
+@keyframes glr-extra-in { from { opacity: 0; transform: translate(-50%, 40px) scale(0.9); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+:root[data-motion='reduzidas'] .pk__extra { animation: none; }
+:root[data-motion='reduzidas'] .pk__stage .pk__cards { transition: none; }
+
+/* Preferências → Minha figurinha */
+.glr-edit { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.glr-edit__preview { width: min(240px, 70vw); flex: none; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.glr-edit__form { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.glr-edit__scenes { display: flex; flex-wrap: wrap; gap: 8px; }
+.glr-scene { width: 96px; padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; background: none; cursor: pointer; display: flex; flex-direction: column; color: inherit; font: 600 12px/1.3 var(--font-ui); }
+.glr-scene img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+.glr-scene span { padding: 5px 6px; text-align: left; }
+.glr-scene[aria-pressed='true'] { border-color: var(--now, #ffb25b); }
+.glr-status { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1 var(--font-ui); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); }
+.glr-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.glr-status.is-ativa i { background: #6fcf97; }
+.glr-status.is-analise i, .glr-status.is-pausada i { background: #f2c14e; }
+.glr-status.is-recusada i { background: #eb5757; }
+
+/* Studio → Galera */
+.glr-studio { display: flex; flex-direction: column; gap: 28px; }
+.glr-q { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.glr-q__item { display: flex; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; }
+.glr-q__card { width: 120px; flex: none; }
+.glr-q__side { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
+.glr-q__side .row { display: flex; flex-wrap: wrap; gap: 6px; }
+.glr-f { display: flex; flex-direction: column; gap: 6px; }
+.glr-f__l { font: 700 14px/1.3 var(--font-ui); padding: 0; margin-bottom: 4px; }
+.glr-radio { display: flex; align-items: center; gap: 10px; font: 500 15px/1.4 var(--font-ui); min-height: 32px; cursor: pointer; }
+.glr-radio input { width: 18px; height: 18px; accent-color: var(--now); }
+.glr-radio input[type='radio'] { -webkit-appearance: radio; appearance: radio; border-radius: 50%; }
+/* No livro do Álbum da Galera */
+.glr-book__card { display: block; width: 100%; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }
+.glr-book__card:focus-visible { outline: 2px solid var(--now, #ffb25b); outline-offset: 3px; border-radius: 6px; }
+.alb-ghost .glr { filter: drop-shadow(0 24px 22px rgba(0, 0, 0, 0.6)); }

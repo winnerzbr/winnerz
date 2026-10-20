@@ -70,7 +70,7 @@ export function notifLine(n: Notif): ReactNode {
     default: return <>{t}</>;
   }
 }
-const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', mes: 'calendario', revisao: 'jornada', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos', lista_convite: 'estante', album_pacote: 'album', album_retido: 'album', album_revisao: 'album', album_troca: 'album', album_troca_ok: 'album', album_troca_nao: 'album' };
+const ICON: Record<string, string> = { jogatina_lembrete: 'calendario', jogatina_mudou: 'calendario', parte: 'jornada', lancamento: 'radar', retomada: 'jornada', semana: 'calendario', mes: 'calendario', revisao: 'jornada', pacto: 'pessoas', pacto_zerou: 'pessoas', moderacao: 'escudo', site: 'sino', clube_jogo: 'jogos', lista_convite: 'estante', album_pacote: 'album', album_retido: 'album', album_revisao: 'album', album_troca: 'album', album_troca_ok: 'album', album_troca_nao: 'album', galera_ok: 'album', galera_nao: 'album' };
 /** Texto extra embaixo da frase (trecho da mensagem, aviso da moderação). */
 const showExcerpt = (n: Notif) => !!n.excerpt && !['clube_jogo', 'clube_jogatina', 'parte'].includes(n.kind);
 

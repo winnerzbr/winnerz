@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo, linksDe, moderar, preencher, falasDoBot, type BotCfg } from '../../api/pontes';
+import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo, linksDe, moderar, preencher, falasDoBot, ehMencao, type BotCfg } from '../../api/pontes';
 
 test('títulos do RetroAchievements viram nomes buscáveis', () => {
   assert.equal(raCleanTitle('Legend of Zelda, The: A Link to the Past'), 'The Legend of Zelda: A Link to the Past');
@@ -195,4 +195,14 @@ test('etapa 3b: o que o bot fala para cada comando e aviso', () => {
   assert.equal(falasDoBot({ comando: { nome: '!yt', resposta: 'YouTube: {youtube}' } }, msg('!yt'), ctx)[0].texto, '@Ana, esse comando ainda não foi configurado.');
   assert.deepEqual(falasDoBot({ aviso: 'Segue o canal!' }, msg('oi'), ctx), [{ texto: 'Segue o canal!', responder: false }]);
   assert.deepEqual(falasDoBot({ pontos: 5 }, msg('oi'), ctx), []);
+});
+
+test('etapa 4a: quem chama o IAmiguinho', () => {
+  assert.equal(ehMencao('@iamiguinho conta uma piada'), true);
+  assert.equal(ehMencao('ei @IAmiguinho!'), true);
+  assert.equal(ehMencao('falando do iamiguinho sem arroba'), false);
+  assert.equal(ehMencao('email@iamiguinho.com'), false);
+  assert.equal(ehMencao('@iamiguinhoo'), false);
+  assert.equal(ehMencao('@robo_do_canal oi', 'robo_do_canal'), true);
+  assert.equal(ehMencao('@robo_do_canal oi', 'x;y'), false);
 });

@@ -15,11 +15,35 @@ export interface Inscricao { tipo: string; id: string | null; status: string }
 export interface BotEstado { migracao: boolean; login: string | null; canalPermite: boolean; mesmaConta: boolean; migracao85?: boolean; aviso?: string | null }
 
 /* ---- Etapa 3b: o bot no chat (migração 0085) ---- */
-export interface BotConfig { ligado: boolean; pontos_nome: string; pontos_msg: number; pontos_assistir: number; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status: string | null }
+export interface BotConfig { responde_mencoes?: boolean; ligado: boolean; pontos_nome: string; pontos_msg: number; pontos_assistir: number; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status: string | null }
 export interface Comando { nome: string; resposta: string; soMod: boolean; ativo: boolean; usos: number }
 export interface AvisoBot { id: string; texto: string; aCadaMin: number; minMsgs: number; ativo: boolean; ultimoEm: string | null }
 export interface BotDados { config: BotConfig; comandos: Comando[]; avisos: AvisoBot[]; top: { nome: string; pontos: number; pl: string }[]; pessoas: number }
 export type AcaoBot = 'config' | 'comando-salvar' | 'comando-apagar' | 'aviso-salvar' | 'aviso-apagar' | 'pontos-zerar';
+/* ---- Etapa 4a: a memória do IAmiguinho (migração 0086) ---- */
+export interface PessoaMemoria { quem: string; nome: string; pl: 'tw' | 'yt'; conversas: number; primeiraVez: string; ultimaVez: string; fatos: { t: string; em: string }[]; recentes: { p: string; r: string; em: string }[] }
+export interface Memoria { responde: boolean; total: number; pessoas: PessoaMemoria[] }
+export type AcaoMemoria = 'apagar' | 'apagar-fato' | 'apagar-tudo' | 'mencoes';
+const MK = 'wz.demo.memoria';
+const dias = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString();
+const MEMORIA_DEMO = (): Memoria => ({ responde: true, total: 3, pessoas: [
+  { quem: 'tw:1', nome: 'dona_fenix', pl: 'tw', conversas: 34, primeiraVez: dias(120), ultimaVez: dias(0), fatos: [{ t: 'joga Hollow Knight', em: dias(90) }, { t: 'acha o Radahn injusto', em: dias(12) }, { t: 'pediu para ser chamada de Fê', em: dias(40) }],
+    recentes: [{ p: 'IAmiguinho, hoje passa do chefe?', r: 'Passa. Eu confio. Eu também confiava no meu tutorial número 48, mas dessa vez é diferente.', em: dias(0) }] },
+  { quem: 'yt:UCx', nome: 'Ana Joga', pl: 'yt', conversas: 6, primeiraVez: dias(30), ultimaVez: dias(2), fatos: [{ t: 'zerou Celeste duas vezes', em: dias(20) }], recentes: [{ p: 'IAmiguinho conta uma piada', r: 'Comprei um jogo de 40 reais e baixei 120 GB de patch. Agora o jogo é que me deve.', em: dias(2) }] },
+  { quem: 'tw:3', nome: 'pixel_torto', pl: 'tw', conversas: 1, primeiraVez: dias(1), ultimaVez: dias(1), fatos: [], recentes: [{ p: 'oi IAmiguinho', r: 'Oi! Cheguei atrasado, mas cheguei. Já é uma vitória.', em: dias(1) }] },
+] });
+const lerMemoriaDemo = (): Memoria => { try { return (JSON.parse(localStorage.getItem(MK) ?? 'null') as Memoria | null) ?? MEMORIA_DEMO(); } catch { return MEMORIA_DEMO(); } };
+function memoriaDemo(acao: AcaoMemoria, a: Record<string, unknown>): Memoria {
+  const d = lerMemoriaDemo();
+  if (acao === 'apagar') d.pessoas = d.pessoas.filter((x) => x.quem !== a.quem);
+  if (acao === 'apagar-fato') d.pessoas = d.pessoas.map((x) => (x.quem === a.quem ? { ...x, fatos: x.fatos.filter((_, i) => i !== Number(a.i)) } : x));
+  if (acao === 'apagar-tudo') d.pessoas = [];
+  if (acao === 'mencoes') d.responde = a.ligado !== false;
+  d.total = d.pessoas.length;
+  try { localStorage.setItem(MK, JSON.stringify(d)); } catch { /* nada */ }
+  const b = String(a.busca ?? '').toLowerCase();
+  return b ? { ...d, pessoas: d.pessoas.filter((x) => x.nome.toLowerCase().includes(b)) } : d;
+}
 const BK = 'wz.demo.bot';
 const BOT_DEMO = (): BotDados => ({
   config: { ligado: true, pontos_nome: 'pontos', pontos_msg: 5, pontos_assistir: 10, mod_links: true, mod_links_ok: 'winnerz.com.br twitch.tv youtube.com youtu.be', mod_caps: false, mod_palavras: '', mod_acao: 'apagar', mod_segundos: 60, mod_isentos_subs: true, status: null },
@@ -217,6 +241,21 @@ export const liveApi = {
     const r = await (await getClient()).rpc('live_bot_admin', { p_acao: acao, p: a });
     if (r.error) throw new Error(/live_bot_admin|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message) ? 'Falta rodar a migração 0085 no Supabase.' : r.error.message.slice(0, 140));
     return r.data as BotDados;
+  },
+  /** Quem o IAmiguinho lembra (só a administração). */
+  async memoria(busca = ''): Promise<Memoria | null> {
+    if (!supa()) { const d = lerMemoriaDemo(); const b = busca.toLowerCase(); return b ? { ...d, pessoas: d.pessoas.filter((x) => x.nome.toLowerCase().includes(b)) } : d; }
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('iam_memoria_ler', { p_busca: busca });
+    if (r.error) { if (/iam_memoria_ler|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message)) return null; throw new Error(r.error.message.slice(0, 140)); }
+    return r.data as Memoria;
+  },
+  async memoriaAcao(acao: AcaoMemoria, a: Record<string, unknown> = {}): Promise<Memoria> {
+    if (!supa()) return memoriaDemo(acao, a);
+    const { getClient } = await import('./supabaseAdapter');
+    const r = await (await getClient()).rpc('iam_memoria_admin', { p_acao: acao, p: a });
+    if (r.error) throw new Error(/iam_memoria_admin|function/i.test(r.error.message) && /not find|does not exist|schema cache/i.test(r.error.message) ? 'Falta rodar a migração 0086 no Supabase.' : r.error.message.slice(0, 140));
+    return r.data as Memoria;
   },
   async desligarBot(): Promise<string> { return (await pontes<{ status: string }>({ live: 'bot-desligar' })).status; },
   /** Os alertas novos depois do id (o overlay pergunta a cada 2 s). Sem desde, só o último id (para não repetir os antigos). */

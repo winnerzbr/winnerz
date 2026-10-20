@@ -27,6 +27,9 @@
  *          créditos), e avisa quando a live começa (stream.online: os créditos contam daí).
  * Etapa 3b (migração 0085): o bot do IAmiguinho responde comandos, solta avisos automáticos, modera (links, CAPS,
  * palavras) e dá pontos por conversar e por assistir. As regras e textos ficam no banco (Central da live).
+ * Etapa 4a (migração 0086): quem chama @iamiguinho recebe resposta da IA (api/iamiguinho, kind 'chat-live'), com o que
+ * ele lembra da pessoa. Na Twitch, em resposta à mensagem; no YouTube, no balão das cenas. O trabalho do chat roda
+ * depois de responder à Twitch (waitUntil da Vercel), porque a IA leva alguns segundos.
  *
  * Steam: compara o tempo total de cada jogo com a última leitura; a diferença vira uma sessão que termina no
  * "última vez jogado". RetroAchievements: conquistas desbloqueadas desde a última busca, agrupadas por jogo e por
@@ -729,7 +732,7 @@ export function mensagemYoutube(it: Record<string, any>): MsgChat | null {
 // Cada mensagem: a moderação confere aqui (regras da Central); depois live_bot_msg conta tudo (enquete, sorteio, mortes,
 // créditos, pontos) e diz o que responder. O bot fala pela API de chat da Twitch com o token do app (selo de bot); para
 // apagar mensagem, dar castigo e ver quem está no chat, usa o acesso da própria conta do IAmiguinho (moderador).
-export type BotCfg = { ligado: boolean; pontos_nome: string; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status?: string | null };
+export type BotCfg = { responde_mencoes?: boolean; ligado: boolean; pontos_nome: string; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status?: string | null };
 export type BotResp = { pontos?: number; pontosNome?: string; comando?: { nome: string; resposta?: string }; lista?: string[]; top?: { nome: string; pontos: number }[]; aviso?: string; distribuir?: boolean };
 const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const TLDS = 'com|net|org|br|io|gg|tv|me|ly|xyz|app|dev|co|info|link|site|online|shop|store|live|ru|cc|biz|top|club|gl|to|be|us|uk|de|fr|pt';
@@ -797,7 +800,7 @@ export function falasDoBot(r: BotResp, m: MsgChat, ctx: { live: Record<string, u
 let botCfgCache: { v: BotCfg | null; em: number } | null = null;
 async function botCfg(): Promise<BotCfg | null> {
   if (botCfgCache && Date.now() - botCfgCache.em < 20_000) return botCfgCache.v;
-  const v = (await sel<BotCfg>('live_bot?select=ligado,pontos_nome,mod_links,mod_links_ok,mod_caps,mod_palavras,mod_acao,mod_segundos,mod_isentos_subs,status&id=eq.1'))[0] ?? null;
+  const v = (await sel<BotCfg>('live_bot?select=*&id=eq.1'))[0] ?? null;
   botCfgCache = { v, em: Date.now() };
   return v;
 }
@@ -882,6 +885,44 @@ async function botNoChat(m: MsgChat, ids: { b: string; bot: string }, selos: str
   const r = (await rpc('live_bot_msg', { p_msg: m }).catch(() => null)) as BotResp | null;
   if (!r) return;
   await enviarFalas(r, m, ids, msgId, cfg.ligado);
+  // Etapa 4a: chamaram @iamiguinho? A IA responde (com o que ele lembra da pessoa), em resposta à mensagem.
+  if (cfg.ligado && cfg.responde_mencoes !== false && ehMencao(m.texto, await loginDoBot())) {
+    const fala = await iamResponder(m);
+    if (fala) await falarNoChat(ids, fala, msgId);
+  }
+}
+/** A mensagem chama o IAmiguinho? (@iamiguinho, ou o @ da conta dele, se for outro nome) */
+export function ehMencao(texto: string, login?: string | null): boolean {
+  const nomes = ['iamiguinho', ...(login && /^[a-z0-9_]{3,25}$/i.test(login) ? [login.toLowerCase()] : [])];
+  return new RegExp(`(^|[^\\w@])@(${nomes.join('|')})\\b`, 'i').test(texto);
+}
+let loginCache: { v: string | null; em: number } | null = null;
+async function loginDoBot(): Promise<string | null> {
+  if (loginCache && Date.now() - loginCache.em < 60_000) return loginCache.v;
+  const ch = (await sel<{ bot_login: string | null }>('twitch_channel?select=bot_login&id=eq.1').catch(() => []))[0];
+  loginCache = { v: ch?.bot_login ?? null, em: Date.now() };
+  return loginCache.v;
+}
+/** O endereço do próprio site, para uma função chamar a outra (o mesmo em que a Twitch ou a Central chamou). */
+let baseInterna = '';
+/** Pede ao api/iamiguinho a resposta do chat (servidor para servidor, com o segredo derivado da chave do servidor). */
+async function iamResponder(m: MsgChat): Promise<string | null> {
+  if (!baseInterna) return null;
+  const r = await fetch(`${baseInterna}/api/iamiguinho`, { method: 'POST', signal: AbortSignal.timeout(20_000),
+    headers: { 'Content-Type': 'application/json', 'X-WinnerZ-Interno': (await hmacHex(serverSecret(), 'iamiguinho-interno')).slice(0, 48) },
+    body: JSON.stringify({ kind: 'chat-live', pl: m.pl, uid: m.uid, nome: m.nome, texto: m.texto }) }).catch(() => null);
+  const j = (r?.ok ? await r.json().catch(() => null) : null) as { fala?: string | null } | null;
+  return typeof j?.fala === 'string' && j.fala.trim() ? j.fala.trim().slice(0, 480) : null;
+}
+/**
+ * Continua o trabalho depois de responder à Twitch (que espera resposta em poucos segundos): a Vercel deixa a função
+ * terminar o que foi entregue a ela. Fora da Vercel (ou sem esse recurso), devolve false e quem chamou espera.
+ */
+function emSegundoPlano(p: Promise<unknown>): boolean {
+  const ctx = (globalThis as Record<symbol, { get?: () => { waitUntil?: (p: Promise<unknown>) => void } | undefined } | undefined>)[Symbol.for('@vercel/request-context')]?.get?.();
+  if (typeof ctx?.waitUntil !== 'function') return false;
+  ctx.waitUntil(p);
+  return true;
 }
 async function enviarFalas(r: BotResp, m: MsgChat, ids: { b: string; bot: string }, msgId: string | undefined, ligado: boolean) {
   if (ligado && (r.comando || r.aviso)) {
@@ -1046,12 +1087,25 @@ async function chatDoYoutube(msgs: MsgChat[]) {
   const cfg = await botCfg().catch(() => null);
   if (!cfg) { await rpc('live_chat_processa', { p_msgs: msgs }).catch(() => null); return; }
   let ids: { b: string; bot: string } | null | undefined;
+  let chamadas = 0;
   for (const m of msgs.slice(0, 60)) {
     const r = (await rpc('live_bot_msg', { p_msg: m }).catch(() => null)) as BotResp | null;
+    // Etapa 4a: no YouTube, a resposta a @iamiguinho aparece no balão das cenas (responder lá gastaria a cota).
+    if (cfg.ligado && cfg.responde_mencoes !== false && chamadas < 3 && ehMencao(m.texto)) {
+      chamadas++;
+      const fala = await iamResponder(m);
+      if (fala) await balaoDaLive(`Pra ${m.nome}: ${fala}`);
+    }
     if (!r || (!r.aviso && !r.distribuir)) continue;
     if (ids === undefined) ids = await idsTwitch();
     if (ids) await enviarFalas(r, m, ids, undefined, cfg.ligado);
   }
+}
+/** Uma fala no balão das cenas (a mesma linha do sofá; calado, não aparece). */
+async function balaoDaLive(fala: string) {
+  const s = (await sel<{ calado: boolean }>('sofa_live?select=calado&id=eq.1').catch(() => []))[0];
+  if (!s || s.calado) return;
+  await patch('sofa_live', 'id=eq.1', { fala: fala.slice(0, 300), cena: 'normal', falou_em: new Date().toISOString(), updated_at: new Date().toISOString() }).catch(() => null);
 }
 /** Uma volta do YouTube durante a live: procura a live, lê o chat novo e os inscritos novos. Devolve quando voltar. */
 async function puxarYoutube(intervalo: number) {
@@ -1163,8 +1217,9 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
     const m = mensagemTwitch(ev, cond.user_id);
     if (m && cond.user_id && cond.broadcaster_user_id) {
       const selos = Array.isArray(ev.badges) ? (ev.badges as { set_id?: unknown }[]).map((b) => String(b?.set_id ?? '')) : [];
-      await botNoChat(m, { b: cond.broadcaster_user_id, bot: cond.user_id }, selos, typeof ev.message_id === 'string' ? ev.message_id : undefined)
+      const tarefa = botNoChat(m, { b: cond.broadcaster_user_id, bot: cond.user_id }, selos, typeof ev.message_id === 'string' ? ev.message_id : undefined)
         .catch(() => console.error('pontes: bot do chat falhou'));
+      if (!emSegundoPlano(tarefa)) await tarefa;
     }
     return done204(res);
   }
@@ -1275,6 +1330,7 @@ export default async function handler(req: Req, res: Res) {
   if (!db()) return res.status(503).json({ error: 'O servidor ainda não tem SUPABASE_URL e SUPABASE_SECRET_KEY.' });
   try {
     const q = req.query ?? {};
+    baseInterna = AVISOS(req).replace(/\/api\/pontes\?twitch=evento$/, '');
     // E7.3: a volta do login da Twitch e os avisos do EventSub não usam o login do site.
     if (req.method === 'GET' && q.twitch === 'volta') return await twitchBack(req, res, q);
     if (req.method === 'GET' && q.youtube === 'volta') return await youtubeBack(req, res, q);

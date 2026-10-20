@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt } from '../../api/pontes';
+import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos } from '../../api/pontes';
 
 test('títulos do RetroAchievements viram nomes buscáveis', () => {
   assert.equal(raCleanTitle('Legend of Zelda, The: A Link to the Past'), 'The Legend of Zelda: A Link to the Past');
@@ -111,4 +111,13 @@ test('live (YouTube): a chave de renovação cifra e decifra com a chave do serv
   assert.ok(!c.includes('segredo'));
   assert.equal(await decifrar(c), '1//segredo-do-google');
   assert.equal(await decifrar(c.slice(0, -2) + 'xx'), null);
+});
+
+test('os avisos da Twitch vão para o endereço que responde (com ou sem www), nunca para outro domínio', () => {
+  const fim = '/api/pontes?twitch=evento';
+  assert.equal(enderecoAvisos('https://winnerz.com.br', 'www.winnerz.com.br'), 'https://www.winnerz.com.br' + fim);
+  assert.equal(enderecoAvisos('https://www.winnerz.com.br/', 'winnerz.com.br'), 'https://winnerz.com.br' + fim);
+  assert.equal(enderecoAvisos('https://winnerz.com.br', 'outro.vercel.app'), 'https://winnerz.com.br' + fim);
+  assert.equal(enderecoAvisos('https://winnerz.com.br', undefined), 'https://winnerz.com.br' + fim);
+  assert.equal(enderecoAvisos('https://winnerz.com.br', 'www.winnerz.com.br@mal.com'), 'https://winnerz.com.br' + fim);
 });

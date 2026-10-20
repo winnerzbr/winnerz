@@ -3,12 +3,12 @@
  * número de chegada (só os números de quem participa, sem buracos). As figurinhas tiradas nos pacotes esperam na
  * bandeja para colar; quem saiu vira aposentada. O álbum nunca fecha: sempre chega gente nova.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
 import { useStore } from '../../data/store';
 import { galeraApi, type GaleraCard as Card, type GaleraCollection } from '../../data/galeraApi';
 import { coverHTML, esc, logoGold } from '../album/render';
 import { loadPageFlip } from '../album/AlbumBook';
-import { burst, DUST, GOLD, reduceMotion, sfx } from '../album/fx';
+import { burst, DUST, GOLD, reduceMotion, sfx, vibrate } from '../album/fx';
 import { galeraHTML, ghostHTML, n3 } from './render';
 import { GaleraCard } from './GaleraCard';
 import { GaleraSheet } from './GaleraSection';
@@ -141,7 +141,7 @@ export function GaleraBook({ col, vol, onChange, onBack }: { col: GaleraCollecti
     const well = wellOf(c.number);
     if (well && from && motion) {
       const a = from.getBoundingClientRect(), b = well.getBoundingClientRect();
-      const g = document.createElement('div'); g.className = 'alb-ghost glr is-still'; g.style.width = `${a.width}px`; g.innerHTML = galeraHTML(c); document.body.append(g);
+      const g = document.createElement('div'); g.className = 'alb-ghost'; g.style.width = `${a.width}px`; g.innerHTML = `<div class="glr is-still">${galeraHTML(c)}</div>`; document.body.append(g);
       const s = b.width / a.width, mx = (a.left + b.left) / 2, my = Math.min(a.top, b.top) - 80;
       await new Promise<void>((done) => { g.animate([{ transform: `translate(${a.left}px,${a.top}px) scale(1)` }, { transform: `translate(${mx}px,${my}px) rotate(-10deg) scale(${(1 + s) / 1.5})`, offset: 0.5 }, { transform: `translate(${b.left}px,${b.top}px) scale(${s})` }], { duration: 720, easing: 'cubic-bezier(.3,.6,.2,1)' }).onfinish = () => { g.remove(); done(); }; });
     }
@@ -163,6 +163,52 @@ export function GaleraBook({ col, vol, onChange, onBack }: { col: GaleraCollecti
     } finally { setBusy(false); if (last) onChange(last); }
   }
   const pasteOne = async (c: Card, el: HTMLElement) => { setBusy(true); try { const n = await paste(c, el); if (n) onChange(n); } finally { setBusy(false); } };
+  /** Arrastar da bandeja até o espaço que brilha (como nos outros álbuns). Um toque sem arrastar cola direto. */
+  function startDrag(e: RPointerEvent<HTMLElement>, c: Card) {
+    if (busy || !ready || c.number == null || !c.owner) return;
+    e.preventDefault();
+    const src = e.currentTarget; const r = src.getBoundingClientRect(); const n = c.number;
+    const W = Math.max(r.width * 1.5, 96); const x0 = e.clientX, y0 = e.clientY;
+    let g: HTMLDivElement | null = null, near: HTMLElement | null = null, ang = 0, lastX = e.clientX, moved = false;
+    const begin = () => {
+      g = document.createElement('div'); g.className = 'alb-ghost'; g.style.width = `${W}px`; g.innerHTML = `<div class="glr is-still">${galeraHTML(c)}</div>`; document.body.append(g);
+      src.style.opacity = '.25'; void goTo(n);
+    };
+    const pos = (x: number, y: number) => {
+      if (!g) return;
+      const target = wellOf(n);
+      ang += ((x - lastX) * 0.6 - ang) * 0.2; lastX = x; let gx = x - W / 2, gy = y - W * 0.7;
+      if (target) {
+        const tr = target.getBoundingClientRect(); const d = Math.hypot(x - (tr.left + tr.width / 2), y - (tr.top + tr.height / 2));
+        const was = near; near = d < Math.max(110, tr.width) ? target : null; target.classList.toggle('is-near', !!near);
+        if (near) { const k = Math.min(1, (Math.max(110, tr.width) - d) / 80); gx += (tr.left - gx) * k * 0.6; gy += (tr.top - gy) * k * 0.6; }
+        if (near && !was) vibrate(8);
+      }
+      g.style.transform = `translate(${gx}px,${gy}px) rotate(${Math.max(-14, Math.min(14, ang))}deg) scale(${near ? (near.getBoundingClientRect().width / W) * 1.05 : 1})`;
+    };
+    const mv = (ev: PointerEvent) => { if (!moved && Math.hypot(ev.clientX - x0, ev.clientY - y0) > 6) { moved = true; begin(); } pos(ev.clientX, ev.clientY); };
+    const up = () => {
+      removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); src.style.opacity = '';
+      if (!moved) { void pasteOne(c, src); return; }
+      const ghost = g!; const target = near;
+      const done = async () => {
+        ghost.remove(); place(c);
+        try { await galeraApi.paste(c.owner!); } catch (err) { setErr(err instanceof Error ? err.message : 'Não deu para colar agora.'); }
+        const next = { ...live.current.col, cards: live.current.col.cards.map((x) => (x.owner === c.owner ? { ...x, pasted: true } : x)) };
+        live.current.col = next; onChange(next);
+      };
+      if (target) {
+        target.classList.remove('is-near'); const tr = target.getBoundingClientRect();
+        if (motion) ghost.animate([{ transform: ghost.style.transform }, { transform: `translate(${tr.left}px,${tr.top}px) scale(${tr.width / W})` }], { duration: 180, easing: 'ease-out', fill: 'forwards' }).onfinish = () => { void done(); };
+        else void done();
+      } else {
+        if (motion) ghost.animate([{ transform: ghost.style.transform }, { transform: `translate(${r.left - (W - r.width) / 2}px,${r.top - (W - r.width) * 0.7}px) scale(${r.width / W})` }], { duration: 320, easing: 'cubic-bezier(.3,.6,.2,1)' }).onfinish = () => ghost.remove();
+        else ghost.remove();
+        setStatus(`O nº ${n3(n)} vai na página ${pageIndexOf(n) > 0 ? pageIndexOf(n) : '?'}. Solte em cima do espaço que brilha`);
+      }
+    };
+    addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+  }
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (document.querySelector('.sheet') || (e.target as HTMLElement)?.closest?.('input,textarea')) return; if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); };
     document.addEventListener('keydown', k); return () => document.removeEventListener('keydown', k);
@@ -188,15 +234,16 @@ export function GaleraBook({ col, vol, onChange, onBack }: { col: GaleraCollecti
         <div className="alb-tray">
           <div className="alb-tray__txt">
             <b>{tray.length ? (tray.length === 1 ? '1 nova para colar' : `${tray.length} novas para colar`) : 'Nada para colar'}</b>
-            <span>{tray.length ? 'Toque para colar no espaço do número dela, ou cole todas de uma vez.' : 'Quem você tirar nos pacotes aparece aqui.'}</span>
+            <span>{tray.length ? 'Arraste até o espaço que brilha (ou toque), ou cole todas de uma vez.' : 'Quem você tirar nos pacotes aparece aqui.'}</span>
           </div>
           {tray.length > 0 && (
             <div className="alb-tray__items">
               {tray.map((c) => (
                 <div className="alb-tray__it" key={c.owner}>
-                  <button type="button" data-gtray={c.number} onClick={(e) => void pasteOne(c, e.currentTarget)} disabled={busy || !ready} style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer', width: '100%' }} aria-label={`Colar @${c.handle}, nº ${n3(c.number)}`}>
+                  <div data-gtray={c.number} role="button" tabIndex={0} aria-label={`Colar @${c.handle}, nº ${n3(c.number)}`} onPointerDown={(e) => startDrag(e, c)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); void pasteOne(c, e.currentTarget); } }} style={{ cursor: 'grab', touchAction: 'none' }}>
                     <GaleraCard card={c} still />
-                  </button>
+                  </div>
                   <small>{n3(c.number)} · @{c.handle}</small>
                 </div>
               ))}

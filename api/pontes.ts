@@ -698,7 +698,20 @@ const done204 = (res: Res) => { res.status(204); return res.end ? res.end() : re
 async function twitchEvent(req: Req, res: Res, raw: string) {
   const id = header(req, 'twitch-eventsub-message-id') ?? '', ts = header(req, 'twitch-eventsub-message-timestamp') ?? '';
   const sig = header(req, 'twitch-eventsub-message-signature') ?? '', type = header(req, 'twitch-eventsub-message-type') ?? '';
-  if (!(await eventsubOk(serverSecret(), id, ts, raw, sig))) return res.status(403).json({ error: 'Assinatura inválida.' });
+  const assinado = await eventsubOk(serverSecret(), id, ts, raw, sig);
+  if (!assinado) {
+    // Diagnóstico (só códigos): o que não bateu fica no estado do canal, que a Central da live mostra.
+    const porque = !id || !ts || !sig ? 'sem cabeçalhos' : Math.abs(Date.now() - Date.parse(ts)) > 10 * 60_000 ? 'hora fora' : `assinatura (corpo ${(req as { corpoCru?: boolean }).corpoCru === false ? 'refeito' : 'cru'}, ${raw.length} b)`;
+    console.error(`pontes: aviso da Twitch recusado: ${porque}`);
+    await patch('twitch_channel', 'id=eq.1', { sub_status: `aviso recusado: ${porque}`.slice(0, 60), updated_at: new Date().toISOString() }).catch(() => null);
+    // A confirmação só devolve o desafio que a própria Twitch mandou (não grava nada): responde mesmo assim.
+    if (type === 'webhook_callback_verification') {
+      let ch = '';
+      try { ch = String((JSON.parse(raw || '{}') as { challenge?: string }).challenge ?? ''); } catch { /* sem desafio */ }
+      if (ch) { res.setHeader('Content-Type', 'text/plain'); res.status(200); return res.send ? res.send(ch) : res.end?.(ch); }
+    }
+    return res.status(403).json({ error: 'Assinatura inválida.' });
+  }
   const msg = JSON.parse(raw || '{}') as { challenge?: string; subscription?: { id?: string; type?: string; status?: string }; event?: { id?: string; user_id?: string; user_login?: string; redeemed_at?: string; reward?: { title?: string } } };
   if (type === 'webhook_callback_verification') {
     await marcarInscricao(msg.subscription?.id, 'enabled');
@@ -730,13 +743,16 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
  * O corpo exato da requisição: primeiro o fluxo cru (com o parser desligado, ele está inteiro); se a plataforma já
  * tiver lido, o corpo já interpretado (a assinatura da Twitch pode não bater nesse caso, e o aviso é recusado).
  */
+/** Lê o corpo; anota no pedido se veio cru (do fluxo) ou refeito do que a plataforma já tinha interpretado. */
 async function readRaw(req: Req): Promise<string> {
+  (req as { corpoCru?: boolean }).corpoCru = true;
   const chunks: Buffer[] = [];
   const stream = req as unknown as AsyncIterable<Buffer | string> & { readableEnded?: boolean; complete?: boolean };
   if (typeof stream[Symbol.asyncIterator] === 'function' && !stream.readableEnded) {
     try { for await (const c of stream) chunks.push(typeof c === 'string' ? Buffer.from(c) : c); } catch { /* sem corpo */ }
   }
   if (chunks.length) return Buffer.concat(chunks).toString('utf8');
+  (req as { corpoCru?: boolean }).corpoCru = false;
   const b = req.body as unknown;
   if (typeof b === 'string') return b;
   if (b instanceof Uint8Array) return Buffer.from(b).toString('utf8');
@@ -868,7 +884,7 @@ export default async function handler(req: Req, res: Res) {
           await patch('twitch_channel', 'id=eq.1', { subs }).catch(() => null);
         }
       }
-      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID });
+      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: `${SITE(req)}/api/pontes?twitch=evento` });
     }
     if (body.link === 'twitch' || body.twitchCanal || body.twitchSub) {
       if (body.twitchCanal || body.twitchSub) {

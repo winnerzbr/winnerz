@@ -125,16 +125,38 @@ function tituloAlerta(e: LiveEvento): { k: string; nome: string; extra?: string 
 }
 /** Um "plim" curto, diferente por tipo, feito na hora (sem arquivo de som). */
 let somCtx: AudioContext | null = null;
+const ctxSom = () => (somCtx ??= new AudioContext());
+/** No OBS a fonte de navegador toca som sozinha; num navegador comum, o som só sai depois de um clique na página. */
+const noObs = () => typeof window !== 'undefined' && 'obsstudio' in window;
+function useSomLiberado(ligado: boolean): { bloqueado: boolean; liberar: () => void } {
+  const [bloqueado, setBloqueado] = useState(false);
+  useEffect(() => {
+    if (!ligado || params().get('som') === '0') return;
+    let c: AudioContext;
+    try { c = ctxSom(); } catch { return; }
+    const ver = () => setBloqueado(c.state !== 'running');
+    ver(); // sem clique, o resume() do navegador fica esperando para sempre: o estado de agora já diz se está bloqueado
+    void c.resume().then(ver).catch(() => null);
+    c.addEventListener('statechange', ver);
+    const tocar = () => { void c.resume().then(ver).catch(() => null); };
+    window.addEventListener('pointerdown', tocar); window.addEventListener('keydown', tocar);
+    return () => { c.removeEventListener('statechange', ver); window.removeEventListener('pointerdown', tocar); window.removeEventListener('keydown', tocar); };
+  }, [ligado]);
+  return { bloqueado, liberar: () => { void ctxSom().resume().then(() => { setBloqueado(false); tocarSom('follow'); }).catch(() => null); } };
+}
 function tocarSom(tipo: TipoAlerta) {
   try {
-    somCtx ??= new AudioContext();
-    const c = somCtx; if (c.state === 'suspended') void c.resume();
+    const c = ctxSom(); if (c.state === 'suspended') void c.resume();
     const notas: Record<string, number[]> = { follow: [660, 880], sub: [523, 659, 784, 1047], resub: [523, 659, 784, 1047], gift: [784, 988, 1175, 1568], cheer: [880, 1109, 1319], raid: [392, 523, 659, 784, 1047], superchat: [659, 880, 1109], member: [587, 740, 880] };
     (notas[tipo] ?? [660, 880]).forEach((f, i) => {
       const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + i * 0.09;
       o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.18, t + 0.015); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
-      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.5);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.32, t + 0.015); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.6);
+      // Um brilho uma oitava acima, mais baixinho, para o som aparecer no meio do jogo.
+      const o2 = c.createOscillator(), g2 = c.createGain(); o2.type = 'sine'; o2.frequency.value = f * 2;
+      g2.gain.setValueAtTime(0, t); g2.gain.linearRampToValueAtTime(0.1, t + 0.01); g2.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o2.connect(g2).connect(c.destination); o2.start(t); o2.stop(t + 0.4);
     });
   } catch { /* sem som */ }
 }
@@ -247,10 +269,12 @@ function Chat({ canal, className, max = 12 }: { canal?: string | null; className
 /* ---- As cenas ---- */
 export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: string | null; d: DadosCena | null; sofa: SofaLinha | null }) {
   const alerta = useAlertas(so === 'alertas' || !!cena);
+  const som = useSomLiberado(so === 'alertas' || !!cena);
+  const avisoSom = som.bloqueado && !noObs() ? <button type="button" className="lv-som" onClick={som.liberar}>Clique aqui para ligar o som dos alertas</button> : null;
   const [agora, setAgora] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t); }, []);
   const live = d?.live ?? null;
-  const alertas = <div className={`lv-alertas${cena === 'conversa' ? ' lv-alertas--conversa' : ''}`}>{alerta && <Alerta key={alerta.e.id} e={alerta.e} saindo={alerta.saindo} />}</div>;
+  const alertas = <>{avisoSom}<div className={`lv-alertas${cena === 'conversa' ? ' lv-alertas--conversa' : ''}`}>{alerta && <Alerta key={alerta.e.id} e={alerta.e} saindo={alerta.saindo} />}</div></>;
   const camLado = params().get('cam') === 'esquerda' || live?.camLado === 'esquerda' ? 'esquerda' : 'direita';
   const decorrido = d?.session ? tempo(agora - Date.parse(d.session.startedAt)) : null;
 

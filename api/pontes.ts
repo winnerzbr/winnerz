@@ -25,6 +25,8 @@
  *        → etapa 3a (migração 0084): liga | desliga a conta do IAmiguinho na Twitch. Com ela, o EventSub também manda
  *          cada mensagem do chat (channel.chat.message), que vai para live_chat_processa (enquete, sorteio, mortes,
  *          créditos), e avisa quando a live começa (stream.online: os créditos contam daí).
+ * Etapa 3b (migração 0085): o bot do IAmiguinho responde comandos, solta avisos automáticos, modera (links, CAPS,
+ * palavras) e dá pontos por conversar e por assistir. As regras e textos ficam no banco (Central da live).
  *
  * Steam: compara o tempo total de cada jogo com a última leitura; a diferença vira uma sessão que termina no
  * "última vez jogado". RetroAchievements: conquistas desbloqueadas desde a última busca, agrupadas por jogo e por
@@ -723,6 +725,177 @@ export function mensagemYoutube(it: Record<string, any>): MsgChat | null {
   const nome = typeof a.displayName === 'string' && a.displayName.trim() ? a.displayName.trim().slice(0, 60) : '?';
   return { pl: 'yt', uid, nome, texto, mod: a.isChatModerator === true || a.isChatOwner === true, dono: a.isChatOwner === true };
 }
+/* ---- Sistema de live, etapa 3b: o bot do IAmiguinho no chat da Twitch (migração 0085) ----------------------------- */
+// Cada mensagem: a moderação confere aqui (regras da Central); depois live_bot_msg conta tudo (enquete, sorteio, mortes,
+// créditos, pontos) e diz o que responder. O bot fala pela API de chat da Twitch com o token do app (selo de bot); para
+// apagar mensagem, dar castigo e ver quem está no chat, usa o acesso da própria conta do IAmiguinho (moderador).
+export type BotCfg = { ligado: boolean; pontos_nome: string; mod_links: boolean; mod_links_ok: string; mod_caps: boolean; mod_palavras: string; mod_acao: 'apagar' | 'castigo'; mod_segundos: number; mod_isentos_subs: boolean; status?: string | null };
+export type BotResp = { pontos?: number; pontosNome?: string; comando?: { nome: string; resposta?: string }; lista?: string[]; top?: { nome: string; pontos: number }[]; aviso?: string; distribuir?: boolean };
+const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const TLDS = 'com|net|org|br|io|gg|tv|me|ly|xyz|app|dev|co|info|link|site|online|shop|store|live|ru|cc|biz|top|club|gl|to|be|us|uk|de|fr|pt';
+/** Os endereços que aparecem num texto (com http, com www ou com um final conhecido, como .com e .gg). */
+export function linksDe(texto: string): string[] {
+  const re = new RegExp(`(?:https?:\\/\\/)?(?:www\\.)?((?:[a-z0-9-]+\\.)+(?:${TLDS}))(?![a-z0-9-])(?:[\\/?#][^\\s]*)?`, 'gi');
+  const out: string[] = [];
+  for (const m of texto.matchAll(re)) out.push(m[1].toLowerCase());
+  return out;
+}
+/** A regra da moderação: devolve o motivo (link, caps, palavra) ou null. Moderador, dono e VIP não passam por ela. */
+export function moderar(m: MsgChat, selos: string[], cfg: BotCfg): { motivo: 'link' | 'caps' | 'palavra'; aviso: string } | null {
+  if (m.mod || m.dono || selos.includes('vip') || (cfg.mod_isentos_subs && (selos.includes('subscriber') || selos.includes('founder')))) return null;
+  const t = semAcento(m.texto);
+  const palavras = cfg.mod_palavras.split(/[,\n;]+/).map((x) => semAcento(x.trim())).filter((x) => x.length >= 2);
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (palavras.some((p) => new RegExp(`(^|[^a-z0-9])${esc(p)}($|[^a-z0-9])`).test(t))) return { motivo: 'palavra', aviso: `@${m.nome}, essa palavra não rola aqui.` };
+  if (cfg.mod_links) {
+    const ok = cfg.mod_links_ok.toLowerCase().split(/[\s,]+/).map((x) => x.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '')).filter(Boolean);
+    const ruim = linksDe(m.texto).filter((h) => !ok.some((d) => h === d || h.endsWith(`.${d}`)));
+    if (ruim.length) return { motivo: 'link', aviso: `@${m.nome}, link só com permissão da moderação.` };
+  }
+  if (cfg.mod_caps) {
+    const letras = m.texto.replace(/[^\p{L}]/gu, '');
+    const maiusc = letras.replace(/[^\p{Lu}]/gu, '').length;
+    if (letras.length >= 12 && maiusc / letras.length > 0.7) return { motivo: 'caps', aviso: `@${m.nome}, sem gritar, por favor (menos CAPS LOCK).` };
+  }
+  return null;
+}
+/** Troca {chave} pelos valores. Se a resposta usa algo que ainda não foi preenchido, devolve null. */
+export function preencher(modelo: string, vars: Record<string, string | number | null | undefined>): string | null {
+  let falta = false;
+  const t = modelo.replace(/\{([a-z_]+)\}/gi, (_, k: string) => {
+    const v = vars[k.toLowerCase()];
+    if (v == null || String(v).trim() === '') { falta = true; return ''; }
+    return String(v);
+  });
+  return falta ? null : t.replace(/\s+/g, ' ').trim().slice(0, 480);
+}
+const duracao = (ms: number) => { const m = Math.max(0, Math.floor(ms / 60000)); const h = Math.floor(m / 60); return h ? `${h} h ${m % 60} min` : `${m} min`; };
+/** O que o bot fala no chat a partir do que live_bot_msg devolveu. */
+export function falasDoBot(r: BotResp, m: MsgChat, ctx: { live: Record<string, unknown>; inicio: string | null; agora?: number }): { texto: string; responder: boolean }[] {
+  const out: { texto: string; responder: boolean }[] = [];
+  const nomeP = r.pontosNome || 'pontos';
+  const palavras = m.texto.trim().split(/\s+/);
+  const alvo = (palavras[1] ?? '').replace(/^@/, '').replace(/[^a-zA-Z0-9_]/g, '').slice(0, 25);
+  const tw = String(ctx.live.twitch ?? '').trim();
+  const vars = {
+    usuario: m.nome, pontos: (r.pontos ?? 0).toLocaleString('pt-BR'), nome_pontos: nomeP, alvo,
+    discord: String(ctx.live.discord ?? '').trim(), youtube: String(ctx.live.youtube ?? '').trim(), twitch: tw,
+    tempo: ctx.inicio ? duracao((ctx.agora ?? Date.now()) - Date.parse(ctx.inicio)) : '',
+  };
+  const c = r.comando;
+  if (c?.nome === '!pontos') out.push({ texto: `@${m.nome}, você tem ${vars.pontos} ${nomeP}.`, responder: true });
+  else if (c?.nome === '!top') out.push({ texto: r.top?.length ? `Top ${nomeP}: ${r.top.map((x, i) => `${i + 1}. ${x.nome} (${x.pontos.toLocaleString('pt-BR')})`).join(' · ')}` : `Ninguém tem ${nomeP} ainda.`, responder: true });
+  else if (c?.nome === '!comandos') out.push({ texto: `Comandos: ${[...(r.lista ?? []), '!pontos', '!top'].join(' ')}`.slice(0, 480), responder: true });
+  else if (c?.resposta) {
+    const t = preencher(c.resposta, vars);
+    out.push({ texto: t ?? (/\{alvo\}/i.test(c.resposta) && !alvo ? `@${m.nome}, use assim: ${c.nome} @nome` : `@${m.nome}, esse comando ainda não foi configurado.`), responder: true });
+  }
+  if (r.aviso) { const t = preencher(r.aviso, { ...vars, usuario: '', alvo: '' }); if (t) out.push({ texto: t, responder: false }); }
+  return out;
+}
+
+let botCfgCache: { v: BotCfg | null; em: number } | null = null;
+async function botCfg(): Promise<BotCfg | null> {
+  if (botCfgCache && Date.now() - botCfgCache.em < 20_000) return botCfgCache.v;
+  const v = (await sel<BotCfg>('live_bot?select=ligado,pontos_nome,mod_links,mod_links_ok,mod_caps,mod_palavras,mod_acao,mod_segundos,mod_isentos_subs,status&id=eq.1'))[0] ?? null;
+  botCfgCache = { v, em: Date.now() };
+  return v;
+}
+let prefsCache: { v: Record<string, unknown>; em: number } | null = null;
+async function livePrefs(): Promise<Record<string, unknown>> {
+  if (prefsCache && Date.now() - prefsCache.em < 60_000) return prefsCache.v;
+  const p = (await sel<{ prefs: { live?: Record<string, unknown> } | null }>('profiles?select=prefs&is_admin=eq.true&limit=1').catch(() => []))[0];
+  prefsCache = { v: p?.prefs?.live ?? {}, em: Date.now() };
+  return prefsCache.v;
+}
+let statusBot = '';
+async function anotarBot(status: string) {
+  if (status === statusBot) return;
+  statusBot = status;
+  await patch('live_bot', 'id=eq.1', { status: status.slice(0, 120) || null, updated_at: new Date().toISOString() }).catch(() => null);
+}
+/** O IAmiguinho fala no chat (selo de bot: token do app, com a permissão de bot do canal e da conta dele). */
+async function falarNoChat(ids: { b: string; bot: string }, texto: string, responderA?: string) {
+  const tk = await appToken();
+  if (!tk) return false;
+  const r = await fetch('https://api.twitch.tv/helix/chat/messages', { method: 'POST', signal: AbortSignal.timeout(5000),
+    headers: { 'Client-Id': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ broadcaster_id: ids.b, sender_id: ids.bot, message: texto.slice(0, 480), ...(responderA ? { reply_parent_message_id: responderA } : {}) }) }).catch(() => null);
+  if (!r?.ok) { await anotarBot(r?.status === 403 || r?.status === 401 ? 'A Twitch não deixou o IAmiguinho falar: autorize o canal de novo (permissão de bot).' : `A Twitch não aceitou a mensagem (${r?.status ?? 'sem resposta'}).`); return false; }
+  const j = (await r.json().catch(() => ({}))) as { data?: { is_sent?: boolean; drop_reason?: { message?: string } }[] };
+  if (j.data?.[0]?.is_sent === false) { await anotarBot('A Twitch segurou uma mensagem do IAmiguinho (filtro do chat).'); return false; }
+  return true;
+}
+let botAcesso: { v: string; exp: number } | null = null;
+/** O acesso da conta do IAmiguinho (para moderar e ver quem está no chat), renovado pela chave guardada cifrada. */
+async function acessoBot(): Promise<string | null> {
+  if (botAcesso && botAcesso.exp > Date.now() + 60_000) return botAcesso.v;
+  const ch = (await sel<{ bot_refresh: string | null }>('twitch_channel?select=bot_refresh&id=eq.1').catch(() => []))[0];
+  const rt = ch?.bot_refresh ? await decifrar(ch.bot_refresh) : null;
+  if (!rt) return null;
+  const t = await fetch('https://id.twitch.tv/oauth2/token', { method: 'POST', signal: AbortSignal.timeout(5000), headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: process.env.TWITCH_CLIENT_ID ?? '', client_secret: process.env.TWITCH_CLIENT_SECRET ?? '', grant_type: 'refresh_token', refresh_token: rt }) }).catch(() => null);
+  const j = (t ? await t.json().catch(() => ({})) : {}) as { access_token?: string; refresh_token?: string; expires_in?: number };
+  if (!t?.ok || !j.access_token) { await anotarBot('O acesso da conta do IAmiguinho venceu: ligue a conta de novo.'); return null; }
+  if (j.refresh_token && j.refresh_token !== rt) await patch('twitch_channel', 'id=eq.1', { bot_refresh: await cifrar(j.refresh_token) }).catch(() => null);
+  botAcesso = { v: j.access_token, exp: Date.now() + (j.expires_in ?? 3600) * 1000 };
+  return j.access_token;
+}
+async function helixBot(metodo: string, caminho: string, corpo?: unknown): Promise<Response | null> {
+  const tk = await acessoBot();
+  if (!tk) return null;
+  return fetch(`https://api.twitch.tv/helix/${caminho}`, { method: metodo, signal: AbortSignal.timeout(5000),
+    headers: { 'Client-Id': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${tk}`, ...(corpo ? { 'Content-Type': 'application/json' } : {}) },
+    ...(corpo ? { body: JSON.stringify(corpo) } : {}) }).catch(() => null);
+}
+const NAO_MOD = 'Para moderar e dar pontos por assistir, o IAmiguinho precisa ser moderador: digite /mod e o nome dele no chat.';
+async function punir(ids: { b: string; bot: string }, cfg: BotCfg, uid: string, msgId: string | undefined, motivo: string) {
+  const r = cfg.mod_acao === 'castigo'
+    ? await helixBot('POST', `moderation/bans?broadcaster_id=${ids.b}&moderator_id=${ids.bot}`, { data: { user_id: uid, duration: cfg.mod_segundos, reason: `IAmiguinho: ${motivo}` } })
+    : msgId ? await helixBot('DELETE', `moderation/chat?broadcaster_id=${ids.b}&moderator_id=${ids.bot}&message_id=${encodeURIComponent(msgId)}`) : null;
+  if (r && (r.status === 403 || r.status === 401)) await anotarBot(NAO_MOD);
+  return !!r?.ok;
+}
+/** Pontos por assistir: quem está no chat da Twitch agora (até 3 mil pessoas). */
+async function distribuirAssistir(ids: { b: string; bot: string }) {
+  const quem: { uid: string; nome: string }[] = [];
+  let depois = '';
+  for (let i = 0; i < 3; i++) {
+    const r = await helixBot('GET', `chat/chatters?broadcaster_id=${ids.b}&moderator_id=${ids.bot}&first=1000${depois ? `&after=${encodeURIComponent(depois)}` : ''}`);
+    if (!r?.ok) { if (r && (r.status === 403 || r.status === 401)) await anotarBot(NAO_MOD); break; }
+    const j = (await r.json().catch(() => ({}))) as { data?: { user_id: string; user_name?: string; user_login?: string }[]; pagination?: { cursor?: string } };
+    for (const x of j.data ?? []) if (x.user_id !== ids.bot && x.user_id !== ids.b) quem.push({ uid: x.user_id, nome: (x.user_name || x.user_login || '?').slice(0, 60) });
+    depois = j.pagination?.cursor ?? '';
+    if (!depois) break;
+  }
+  if (quem.length) await rpc('live_pontos_assistir', { p_quem: quem }).catch(() => null);
+}
+/** Uma mensagem da Twitch: moderação, contagem e respostas. Sem a 0085, faz só o da 0084. */
+async function botNoChat(m: MsgChat, ids: { b: string; bot: string }, selos: string[], msgId?: string) {
+  const cfg = await botCfg().catch(() => null);
+  if (!cfg) { await rpc('live_chat_processa', { p_msgs: [m] }).catch(() => console.error('pontes: chat da live não processou (migração 0084?)')); return; }
+  const pena = cfg.ligado ? moderar(m, selos, cfg) : null;
+  if (pena) {
+    if (await punir(ids, cfg, m.uid, msgId, pena.motivo)) await falarNoChat(ids, pena.aviso);
+    return; // mensagem moderada não vota, não entra no sorteio e não ganha pontos
+  }
+  const r = (await rpc('live_bot_msg', { p_msg: m }).catch(() => null)) as BotResp | null;
+  if (!r) return;
+  await enviarFalas(r, m, ids, msgId, cfg.ligado);
+}
+async function enviarFalas(r: BotResp, m: MsgChat, ids: { b: string; bot: string }, msgId: string | undefined, ligado: boolean) {
+  if (ligado && (r.comando || r.aviso)) {
+    const inicio = r.comando?.resposta?.includes('{tempo}') ? ((await sel<{ inicio: string | null }>('live_painel?select=inicio&id=eq.1').catch(() => []))[0]?.inicio ?? null) : null;
+    const falas = falasDoBot(r, m, { live: await livePrefs(), inicio });
+    for (const f of m.pl === 'tw' ? falas : falas.filter((x) => !x.responder)) await falarNoChat(ids, f.texto, f.responder ? msgId : undefined);
+  }
+  if (r.distribuir) await distribuirAssistir(ids).catch(() => null);
+}
+/** Os ids do canal e do IAmiguinho (para o bot falar na Twitch quando a mensagem veio do YouTube). */
+async function idsTwitch(): Promise<{ b: string; bot: string } | null> {
+  const ch = (await sel<{ broadcaster_id: string | null; bot_id: string | null }>('twitch_channel?select=broadcaster_id,bot_id&id=eq.1').catch(() => []))[0];
+  return ch?.broadcaster_id && ch.bot_id ? { b: ch.broadcaster_id, bot: ch.bot_id } : null;
+}
 /** A Twitch devolveu o login: liga a conta da pessoa, ou autoriza o canal (só a administração). */
 async function twitchBack(req: Req, res: Res, q: Record<string, string | string[] | undefined>) {
   const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? '') : String(v ?? ''));
@@ -865,6 +1038,21 @@ export function itemYoutube(it: Record<string, any>): { chat?: { quem: string; t
     default: return {};
   }
 }
+/**
+ * O chat do YouTube passa pelo mesmo caminho (etapa 3b: pontos e avisos; o bot não responde no YouTube, que pediria
+ * permissão de escrita e gastaria a cota). Sem a 0085, faz só o da 0084.
+ */
+async function chatDoYoutube(msgs: MsgChat[]) {
+  const cfg = await botCfg().catch(() => null);
+  if (!cfg) { await rpc('live_chat_processa', { p_msgs: msgs }).catch(() => null); return; }
+  let ids: { b: string; bot: string } | null | undefined;
+  for (const m of msgs.slice(0, 60)) {
+    const r = (await rpc('live_bot_msg', { p_msg: m }).catch(() => null)) as BotResp | null;
+    if (!r || (!r.aviso && !r.distribuir)) continue;
+    if (ids === undefined) ids = await idsTwitch();
+    if (ids) await enviarFalas(r, m, ids, undefined, cfg.ligado);
+  }
+}
 /** Uma volta do YouTube durante a live: procura a live, lê o chat novo e os inscritos novos. Devolve quando voltar. */
 async function puxarYoutube(intervalo: number) {
   let row: YtCanal | null;
@@ -928,7 +1116,7 @@ async function puxarYoutube(intervalo: number) {
     }
     if (chats.length) await upsert('live_chat', chats, 'ext_id', true).catch(() => null);
     const msgs = (j.items ?? []).map(mensagemYoutube).filter((x): x is MsgChat => !!x);
-    if (msgs.length) await rpc('live_chat_processa', { p_msgs: msgs }).catch(() => null); // sem a 0084, só não conta
+    if (msgs.length) await chatDoYoutube(msgs).catch(() => null);
     if (alertas.length) await upsert('live_events', alertas, 'ext_id', true).catch(() => null);
     res.mensagens = chats.length; res.alertas += alertas.length;
   }
@@ -970,8 +1158,14 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
   }
   // Etapa 3a: o chat da Twitch (pela conta do IAmiguinho) alimenta a enquete, o sorteio, as mortes e os créditos.
   if (type === 'notification' && msg.subscription?.type === 'channel.chat.message') {
-    const m = mensagemTwitch((msg.event ?? {}) as Record<string, unknown>, (msg.subscription as { condition?: { user_id?: string } }).condition?.user_id);
-    if (m) await rpc('live_chat_processa', { p_msgs: [m] }).catch(() => console.error('pontes: chat da live não processou (migração 0084?)'));
+    const ev = (msg.event ?? {}) as Record<string, unknown>;
+    const cond = (msg.subscription as { condition?: { user_id?: string; broadcaster_user_id?: string } }).condition ?? {};
+    const m = mensagemTwitch(ev, cond.user_id);
+    if (m && cond.user_id && cond.broadcaster_user_id) {
+      const selos = Array.isArray(ev.badges) ? (ev.badges as { set_id?: unknown }[]).map((b) => String(b?.set_id ?? '')) : [];
+      await botNoChat(m, { b: cond.broadcaster_user_id, bot: cond.user_id }, selos, typeof ev.message_id === 'string' ? ev.message_id : undefined)
+        .catch(() => console.error('pontes: bot do chat falhou'));
+    }
     return done204(res);
   }
   // A live começou: os créditos e a conversa passam a contar daqui.
@@ -1166,7 +1360,8 @@ export default async function handler(req: Req, res: Res) {
       try { yt = await ytLinha(); } catch { migracao = false; }
       const youtube = { servidor: !!process.env.YOUTUBE_CLIENT_ID, ligado: !!yt?.refresh_cifrado, canal: yt?.titulo ?? null, status: yt?.status ?? null, aoVivo: !!yt?.live_chat_id, migracao };
       // O bot (etapa 3a): a conta do IAmiguinho e se o canal já deu a permissão de bot (channel:bot).
-      const bot = { migracao: migracao84, login: ch?.bot_login ?? null, canalPermite: !!ch?.escopos && !faltaEscopo(ch.escopos, 'channel:bot').length, mesmaConta: !!ch?.bot_login && ch.bot_login === ch.broadcaster_login };
+      const lb = (await sel<{ status: string | null }>('live_bot?select=status&id=eq.1').catch(() => null))?.[0];
+      const bot = { migracao: migracao84, login: ch?.bot_login ?? null, canalPermite: !!ch?.escopos && !faltaEscopo(ch.escopos, 'channel:bot').length, mesmaConta: !!ch?.bot_login && ch.bot_login === ch.broadcaster_login, migracao85: lb !== undefined, aviso: lb?.status ?? null };
       return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: AVISOS(req), youtube, bot });
     }
     if (body.link === 'twitch' || body.twitchCanal || body.twitchSub || body.twitchBot || body.live === 'bot-desligar') {

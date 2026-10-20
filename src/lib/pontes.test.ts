@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo } from '../../api/pontes';
+import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo, linksDe, moderar, preencher, falasDoBot, type BotCfg } from '../../api/pontes';
 
 test('títulos do RetroAchievements viram nomes buscáveis', () => {
   assert.equal(raCleanTitle('Legend of Zelda, The: A Link to the Past'), 'The Legend of Zelda: A Link to the Past');
@@ -151,4 +151,48 @@ test('etapa 3a: o login da conta do bot passa pelo mesmo state assinado', async 
   const { signState, readState } = await import('../../api/pontes');
   const s = await signState({ u: 'adm', k: 'bot', t: 2_000, n: 'abc', d: 'live' }, 'segredo');
   assert.deepEqual(await readState(s, 'segredo', 1_000), { u: 'adm', k: 'bot', n: 'abc', d: 'live' });
+});
+
+const CFG: BotCfg = { ligado: true, pontos_nome: 'fichas', mod_links: true, mod_links_ok: 'winnerz.com.br twitch.tv', mod_caps: true, mod_palavras: 'feio, palavrão', mod_acao: 'apagar', mod_segundos: 60, mod_isentos_subs: true };
+const msg = (texto: string, extra: Partial<{ mod: boolean; dono: boolean }> = {}) => ({ pl: 'tw' as const, uid: '7', nome: 'Ana', texto, mod: false, dono: false, ...extra });
+
+test('etapa 3b: acha links (com http, www ou final conhecido) e ignora o resto', () => {
+  assert.deepEqual(linksDe('olha https://site-ruim.com/x e www.Outro.gg'), ['site-ruim.com', 'outro.gg']);
+  assert.deepEqual(linksDe('vem pro clips.twitch.tv/abc'), ['clips.twitch.tv']);
+  assert.deepEqual(linksDe('kkk... ok.ok 3.5 vidas'), []);
+});
+
+test('etapa 3b: moderação (links, CAPS, palavras) e quem fica de fora', () => {
+  assert.equal(moderar(msg('entra em golpe.com'), [], CFG)?.motivo, 'link');
+  assert.equal(moderar(msg('winnerz.com.br/codigo e clips.twitch.tv/x'), [], CFG), null);
+  assert.equal(moderar(msg('QUE JOGADA LINDA DEMAIS MANO'), [], CFG)?.motivo, 'caps');
+  assert.equal(moderar(msg('GG'), [], CFG), null);
+  assert.equal(moderar(msg('isso é FEIO demais'), [], CFG)?.motivo, 'palavra');
+  assert.equal(moderar(msg('falou palavrao'), [], CFG)?.motivo, 'palavra');
+  assert.equal(moderar(msg('feioso não conta'), [], CFG), null);
+  assert.equal(moderar(msg('golpe.com'), ['vip'], CFG), null);
+  assert.equal(moderar(msg('golpe.com'), ['subscriber'], CFG), null);
+  assert.equal(moderar(msg('golpe.com'), ['subscriber'], { ...CFG, mod_isentos_subs: false })?.motivo, 'link');
+  assert.equal(moderar(msg('golpe.com', { mod: true }), [], CFG), null);
+  assert.equal(moderar(msg('golpe.com'), [], { ...CFG, mod_links: false }), null);
+  assert.match(moderar(msg('golpe.com'), [], CFG)!.aviso, /^@Ana, /);
+});
+
+test('etapa 3b: respostas preenchidas; se falta algo, não manda pela metade', () => {
+  assert.equal(preencher('Oi {usuario}, Discord: {discord}', { usuario: 'Ana', discord: 'discord.gg/x' }), 'Oi Ana, Discord: discord.gg/x');
+  assert.equal(preencher('Discord: {discord}', { discord: '' }), null);
+  assert.equal(preencher('sem nada', {}), 'sem nada');
+});
+
+test('etapa 3b: o que o bot fala para cada comando e aviso', () => {
+  const ctx = { live: { discord: 'discord.gg/wz', twitch: 'twitch.tv/winnerz' }, inicio: '2026-10-20T18:00:00Z', agora: Date.parse('2026-10-20T19:25:00Z') };
+  assert.deepEqual(falasDoBot({ pontos: 1234, pontosNome: 'fichas', comando: { nome: '!pontos' } }, msg('!pontos'), ctx), [{ texto: '@Ana, você tem 1.234 fichas.', responder: true }]);
+  assert.equal(falasDoBot({ pontosNome: 'fichas', comando: { nome: '!top' }, top: [{ nome: 'Bia', pontos: 50 }, { nome: 'Ana', pontos: 9 }] }, msg('!top'), ctx)[0].texto, 'Top fichas: 1. Bia (50) · 2. Ana (9)');
+  assert.equal(falasDoBot({ comando: { nome: '!comandos' }, lista: ['!discord'] }, msg('!comandos'), ctx)[0].texto, 'Comandos: !discord !pontos !top');
+  assert.equal(falasDoBot({ comando: { nome: '!tempo', resposta: 'No ar há {tempo}.' } }, msg('!tempo'), ctx)[0].texto, 'No ar há 1 h 25 min.');
+  assert.equal(falasDoBot({ comando: { nome: '!so', resposta: 'Conheçam {alvo}: twitch.tv/{alvo}' } }, msg('!so @Canal_Amigo!'), ctx)[0].texto, 'Conheçam Canal_Amigo: twitch.tv/Canal_Amigo');
+  assert.equal(falasDoBot({ comando: { nome: '!so', resposta: 'Conheçam {alvo}' } }, msg('!so'), ctx)[0].texto, '@Ana, use assim: !so @nome');
+  assert.equal(falasDoBot({ comando: { nome: '!yt', resposta: 'YouTube: {youtube}' } }, msg('!yt'), ctx)[0].texto, '@Ana, esse comando ainda não foi configurado.');
+  assert.deepEqual(falasDoBot({ aviso: 'Segue o canal!' }, msg('oi'), ctx), [{ texto: 'Segue o canal!', responder: false }]);
+  assert.deepEqual(falasDoBot({ pontos: 5 }, msg('oi'), ctx), []);
 });

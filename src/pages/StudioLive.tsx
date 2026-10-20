@@ -12,6 +12,7 @@ import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs,
 import { enderecosCenas } from './OverlayLive';
 import { somDoAlerta } from '../lib/sonsLive';
 import { PainelWidgets } from './StudioLiveWidgets';
+import { PainelBot } from './StudioLiveBot';
 
 /** Como soa cada alerta (para aprender de ouvido). */
 const SONS: { tipo: TipoAlerta; nome: string; som: string }[] = [
@@ -192,6 +193,11 @@ export function StudioLivePage() {
       <section className="live-central__bloco" aria-labelledby="lc-widgets">
         <h2 id="lc-widgets" className="t live-central__h">Widgets na tela</h2>
         <PainelWidgets onMsg={setMsg} />
+      </section>
+
+      <section className="live-central__bloco" aria-labelledby="lc-bot">
+        <h2 id="lc-bot" className="t live-central__h">Bot no chat</h2>
+        {estado && !estado.bot?.login ? <p className="muted">Primeiro ligue a conta do IAmiguinho, no bloco da Twitch.</p> : <PainelBot onMsg={setMsg} login={estado?.bot?.login ?? null} />}
       </section>
 
       <section className="live-central__bloco" aria-labelledby="lc-yt">

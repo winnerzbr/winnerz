@@ -183,6 +183,7 @@ export function SessionPage() {
           </div>
           <div className="session__more">
             <button className="btn quiet sm" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={16} />Anotar sem foto</button>
+            <Link className="btn quiet sm" to={`/jogos/${g.slug}/traduzir`}><Icon name="mensagem" size={16} />Traduzir a tela</Link>
             <button className="btn quiet sm" onClick={() => setFinishing('recado')}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
             <button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={16} />Cápsula de Retomada</button>
           </div>

@@ -377,7 +377,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             <section className="card jcap" aria-labelledby="capsula">
               <div className="jcap__head">
                 <h2 id="capsula" className="t">Onde você parou</h2>
-                <span className="jcap__tools"><button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
+                <span className="jcap__tools"><Link className="btn quiet sm" to={`/jogos/${game.slug}/traduzir`}>Traduzir a tela</Link><button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
               </div>
               <div className="jcap__grid">
                 {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}

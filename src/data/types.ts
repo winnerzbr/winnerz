@@ -311,6 +311,8 @@ export interface Prefs {
   backdrops?: Record<ID, string>;
   /** Tom das celebrações e mensagens. */
   tone?: Tone;
+  /** Tradutor de tela: usar e compartilhar o glossário da Galera (ligado quando ausente). */
+  trGalera?: boolean;
   /** Aparições do IAmiguinho: Normal, Discreto, Só quando eu chamar ou Desativado. */
   iamiguinho?: 'normal' | 'discreto' | 'chamar' | 'desativado';
   /** Modo leve: esconde contadores e números (sessões, horas, porcentagens). */

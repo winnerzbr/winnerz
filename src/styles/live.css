@@ -106,6 +106,8 @@
 .lv-chat { display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; overflow: hidden; font-size: 19px; line-height: 1.35; }
 .lv-chat__msg { padding: 10px 14px; background: rgba(7, 8, 10, 0.86); overflow-wrap: anywhere; animation: lv-entra 0.3s both; }
 .lv-chat__msg b { font-weight: 700; }
+.lv-chat__pl { margin-right: 8px; font: 700 12px var(--font-mono); color: #9AA1AA; }
+.lv-chat__pl.is-yt { color: #FF8A80; }
 .lv-chat__msg.is-iam { background: rgba(9, 22, 28, 0.94); box-shadow: inset 4px 0 0 #7FE3FF; }
 .lv-chat__msg.is-iam b { color: #7FE3FF; }
 .lv-chat__vazio { padding: 14px; color: rgba(242, 244, 246, 0.5); font-size: 15px; font-weight: 700; letter-spacing: 0.08em; }
@@ -190,6 +192,11 @@
 .live-central__subs li { display: flex; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--fr-piece); font-size: 14px; }
 .live-central__subs li.is-erro { box-shadow: inset 3px 0 0 var(--danger); }
 .live-central__acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.live-central__motor { display: grid; gap: 12px; padding: 14px; background: var(--fr-piece); }
+.live-central__motor .glr-f { max-width: 420px; }
+.live-central__volta { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.live-central__volta i { width: 5px; height: 14px; background: var(--dim); transform: skewX(-22deg); }
+.live-central__volta i.is-on { background: var(--live); box-shadow: 0 0 10px var(--live); animation: ovl-pulse 1.2s ease-in-out infinite; }
 .live-central__sons { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px; }
 .live-central__sons li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
 .live-central__cenas { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }

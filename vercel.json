@@ -5,6 +5,10 @@
       "destination": "/api/pontes?twitch=volta"
     },
     {
+      "source": "/youtube/volta",
+      "destination": "/api/pontes?youtube=volta"
+    },
+    {
       "source": "/((?!api/|assets/|demo/|modelos/|brand/|vendor/|figurinhas/|favicon|robots\\.txt|version\\.json|manifest\\.webmanifest|sw\\.js).*)",
       "destination": "/index.html"
     }

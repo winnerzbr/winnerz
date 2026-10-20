@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore } from '../data/store';
 import { Icon } from '../components/Icon';
-import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs, type TipoAlerta } from '../data/liveApi';
+import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs, type TesteAlerta, type TipoAlerta, type VoltaYoutube } from '../data/liveApi';
 import { enderecosCenas } from './OverlayLive';
 import { somDoAlerta } from '../lib/sonsLive';
 
@@ -21,6 +21,22 @@ const SONS: { tipo: TipoAlerta; nome: string; som: string }[] = [
   { tipo: 'cheer', nome: 'Bits', som: 'laser: três piu' },
   { tipo: 'raid', nome: 'Raid', som: 'tambor e fanfarra' },
 ];
+const AVISO_YOUTUBE: Record<string, string> = {
+  ok: 'Canal do YouTube ligado. Durante a live, ligue "Ler o YouTube" aqui embaixo.',
+  erro: 'O Google não deixou ligar o canal agora. Tente de novo.',
+  cancelado: 'A ligação com o YouTube foi cancelada.',
+  semcanal: 'Essa conta do Google não tem canal no YouTube. Entre com a conta do canal.',
+  migracao: 'Falta rodar a migração 0083 no Supabase.',
+};
+/** Um relógio que não dorme quando a aba fica em segundo plano (o do navegador fica lento depois de uns minutos). */
+function relogio(): { esperar: (ms: number) => Promise<void>; fechar: () => void } {
+  try {
+    const w = new Worker(URL.createObjectURL(new Blob(['onmessage=(e)=>setTimeout(()=>postMessage(0),e.data)'], { type: 'text/javascript' })));
+    let pronto: (() => void) | null = null;
+    w.onmessage = () => { pronto?.(); pronto = null; };
+    return { esperar: (ms) => new Promise<void>((ok) => { pronto = ok; w.postMessage(ms); }), fechar: () => w.terminate() };
+  } catch { return { esperar: (ms) => new Promise((ok) => setTimeout(ok, ms)), fechar: () => {} }; }
+}
 const AVISO_TWITCH: Record<string, string> = {
   ok: 'Canal ligado. Veja abaixo se cada tipo de alerta ficou ligado.',
   erro: 'A Twitch não deixou ligar tudo. Veja abaixo o que ficou de fora e tente de novo.',
@@ -33,7 +49,30 @@ export function StudioLivePage() {
   const [estado, setEstado] = useState<LiveEstado | null>(null);
   const [base, setBase] = useState('');
   const [busy, setBusy] = useState('');
-  const [msg, setMsg] = useState(() => { try { return AVISO_TWITCH[new URLSearchParams(location.search).get('twitch') ?? ''] ?? ''; } catch { return ''; } });
+  const [msg, setMsg] = useState(() => { try { const q = new URLSearchParams(location.search); return AVISO_TWITCH[q.get('twitch') ?? ''] ?? AVISO_YOUTUBE[q.get('youtube') ?? ''] ?? ''; } catch { return ''; } });
+  // O leitor do YouTube: enquanto ligado, pede uma volta ao servidor e espera o tempo que ele disser.
+  const [lerYt, setLerYt] = useState(false);
+  const [intervalo, setIntervalo] = useState<number>(() => { try { return Number(localStorage.getItem('wz.live.ytIntervalo')) || 12; } catch { return 12; } });
+  const [volta, setVolta] = useState<(VoltaYoutube & { em: number; total: number; alertasTotal: number }) | null>(null);
+  useEffect(() => {
+    if (!lerYt) return;
+    let vivo = true, total = 0, alertasTotal = 0;
+    const r = relogio();
+    (async () => {
+      while (vivo) {
+        let espera = intervalo * 1000;
+        try {
+          const v = await liveApi.youtubePuxar(intervalo);
+          total += v.mensagens ?? 0; alertasTotal += v.alertas ?? 0;
+          if (vivo) setVolta({ ...v, em: Date.now(), total, alertasTotal });
+          espera = Math.max(intervalo * 1000, v.esperarMs);
+        } catch (e) { if (vivo) setVolta({ ativa: false, esperarMs: 30000, status: e instanceof Error ? e.message : 'O servidor não respondeu.', em: Date.now(), total, alertasTotal }); espera = 30000; }
+        await r.esperar(espera);
+      }
+    })();
+    return () => { vivo = false; r.fechar(); };
+  }, [lerYt, intervalo]);
+  useEffect(() => { try { localStorage.setItem('wz.live.ytIntervalo', String(intervalo)); } catch { /* nada */ } }, [intervalo]);
   const [copiado, setCopiado] = useState('');
   const [testado, setTestado] = useState('');
   const somCtx = useRef<AudioContext | null>(null);
@@ -72,13 +111,15 @@ export function StudioLivePage() {
     finally { setBusy(''); }
   };
   const copiar = (id: string, url: string) => { void navigator.clipboard?.writeText(url).then(() => { setCopiado(id); setTimeout(() => setCopiado(''), 1800); }).catch(() => null); };
-  const testar = async (tipo: TipoAlerta) => {
+  const testar = async (tipo: TesteAlerta) => {
     setBusy(`t-${tipo}`);
     try { await liveApi.teste(tipo); setTestado(tipo); setTimeout(() => setTestado(''), 2500); }
     catch (e) { setMsg(e instanceof Error ? e.message : 'O teste não foi agora.'); }
     finally { setBusy(''); }
   };
   const ouvir = (tipo: TipoAlerta) => { try { somCtx.current ??= new AudioContext(); void somCtx.current.resume(); somDoAlerta(somCtx.current, tipo); } catch { /* sem som */ } };
+  const ligarYt = async () => { setBusy('yt'); try { await liveApi.youtubeLigar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir o Google.'); setBusy(''); } };
+  const desligarYt = async () => { setBusy('ytd'); setLerYt(false); try { await liveApi.youtubeDesligar(); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const religar = async () => { setBusy('canal'); try { await liveApi.ligarCanal(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir a Twitch.'); setBusy(''); } };
   const reinscrever = async () => { setBusy('subs'); try { setMsg(`Inscrições: ${await liveApi.reinscrever()}.`); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const contagem = (min: number | null) => mudar({ comecaEm: min == null ? null : new Date(Date.now() + min * 60_000).toISOString() });
@@ -122,6 +163,35 @@ export function StudioLivePage() {
               <button className="btn primary" disabled={!!busy} onClick={() => void religar()}>{busy === 'canal' ? 'Abrindo a Twitch…' : estado.canal ? 'Autorizar o canal de novo' : 'Ligar o canal da Twitch'}</button>
               {estado.canal && <button className="btn ghost" disabled={!!busy} onClick={() => void reinscrever()}>{busy === 'subs' ? 'Refazendo…' : 'Refazer as inscrições'}</button>}
             </div>
+          </>
+        )}
+      </section>
+
+      <section className="live-central__bloco" aria-labelledby="lc-yt">
+        <h2 id="lc-yt" className="t live-central__h">YouTube</h2>
+        {!estado ? <p className="muted">Lendo…</p> : !estado.youtube?.servidor ? (
+          <p className="muted">O YouTube ainda não foi ligado no servidor: faltam as variáveis YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET na Vercel.</p>
+        ) : !estado.youtube.migracao ? (
+          <p className="muted">Falta rodar a migração 0083 no Supabase.</p>
+        ) : (
+          <>
+            <p className={`live-central__estado${estado.youtube.ligado ? ' is-ok' : ''}`}><i aria-hidden="true" />{estado.youtube.ligado ? `Canal ${estado.youtube.canal ?? ''}${estado.youtube.status ? ` · ${estado.youtube.status}` : ''}` : 'O canal do YouTube ainda não autorizou o WinnerZ.'}</p>
+            <div className="live-central__acoes">
+              <button className="btn primary" disabled={!!busy} onClick={() => void ligarYt()}>{busy === 'yt' ? 'Abrindo o Google…' : estado.youtube.ligado ? 'Autorizar o canal de novo' : 'Ligar o canal do YouTube'}</button>
+              {estado.youtube.ligado && <button className="btn quiet" disabled={!!busy} onClick={() => void desligarYt()}>Desligar</button>}
+            </div>
+            {estado.youtube.ligado && (
+              <div className="live-central__motor">
+                <label className="motion motion--switch" data-on={lerYt}>
+                  <input type="checkbox" role="switch" className="switch" checked={lerYt} onChange={(e) => setLerYt(e.target.checked)} />
+                  <span><strong>Ler o YouTube</strong><span className="muted">Ligue quando a live começar e deixe esta página aberta (pode ficar em outra aba). O YouTube não avisa o site sozinho: esta página pergunta de tempos em tempos.</span></span>
+                </label>
+                <label className="glr-f"><span className="glr-f__l">Perguntar a cada</span>
+                  <select className="field" value={intervalo} onChange={(e) => setIntervalo(Number(e.target.value))}>{[10, 12, 15, 20, 30].map((x) => <option key={x} value={x}>{x} segundos (cota para uns {Math.floor(9000 / ((3600 / x) * 5 + 60))} h de live)</option>)}</select>
+                </label>
+                {volta && <p className="live-central__volta" role="status"><i className={volta.ativa ? 'is-on' : ''} aria-hidden="true" />{volta.status} {volta.total ? `· ${volta.total} mensagens` : ''}{volta.alertasTotal ? ` · ${volta.alertasTotal} alertas` : ''}</p>}
+              </div>
+            )}
           </>
         )}
       </section>

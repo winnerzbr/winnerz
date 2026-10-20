@@ -118,7 +118,7 @@ export function GaleraEditor() {
         </div>
         {msg && <p className="muted" role="status" style={{ margin: 0 }}>{msg}</p>}
         {err && <p className="awards__error" role="alert" style={{ margin: 0 }}>{err}</p>}
-        <p className="faint" style={{ margin: 0, fontSize: 13 }}>As figurinhas que você tirou ficam em <Link to="/album/galera">Álbum → Galera</Link>. Os acenos chegam na próxima fase.</p>
+        <p className="faint" style={{ margin: 0, fontSize: 13 }}>As figurinhas que você tira ficam no <Link to="/album/galera">Álbum da Galera</Link>, na Estante. Os acenos chegam na próxima fase.</p>
       </div>
     </div>
   );

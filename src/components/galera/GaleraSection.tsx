@@ -1,58 +1,58 @@
 /**
- * Álbum → Galera: as pessoas que você já tirou nos pacotes, em ordem de número de chegada. Quem falta aparece como
- * silhueta (sem revelar quem é) e quem saiu, como aposentada. Tocar abre a ficha: frente e verso, perfil e denúncia.
- * Não conta para completar a Temporada.
+ * Álbum da Galera: o volume na estante, o livro com a sua figurinha embaixo e a ficha de cada figurinha (frente e
+ * verso, perfil e denúncia). Não conta para completar a Temporada.
  */
 import { useEffect, useState } from 'react';
-import { Link } from '../../lib/router';
+import { Link, navigate } from '../../lib/router';
 import { useStore } from '../../data/store';
 import { Sheet } from '../Sheet';
-import { GaleraCard, GaleraGhost } from './GaleraCard';
+import { GaleraCard } from './GaleraCard';
+import { GaleraBook, GALERA_BOOK, galeraSlots } from './GaleraBook';
+import { coverHTML } from '../album/render';
 import { galeraApi, galeraStatus, type GaleraCard as Card, type GaleraCollection, type GaleraMine } from '../../data/galeraApi';
 
-const SHOW_GHOSTS = 8;
-
-export function GaleraSection() {
+/** Álbum → Galera: o livro da comunidade, com a sua figurinha embaixo. */
+export function GaleraAlbum({ vol }: { vol: number }) {
   const mode = useStore((s) => s.mode);
   const profile = useStore((s) => s.profile);
   const [col, setCol] = useState<GaleraCollection | null>(null);
   const [me, setMe] = useState<GaleraMine | null>(null);
   const [err, setErr] = useState('');
-  const [open, setOpen] = useState<Card | null>(null);
   useEffect(() => {
     let alive = true;
     galeraApi.collection().then((c) => { if (alive) setCol(c); }).catch((e) => { if (alive) setErr(e instanceof Error ? e.message : 'Não consegui abrir a Galera agora.'); });
     galeraApi.me().then((m) => { if (alive) setMe(m); }).catch(() => {});
     return () => { alive = false; };
   }, [mode, profile?.id]);
-
   if (err) return <p className="awards__error" role="alert">{err}</p>;
   if (!col) return <p className="faint">Abrindo a Galera…</p>;
-  const known = col.cards.filter((c) => !c.retired);
-  const missing = Math.max(0, col.total - known.length);
   return (
-    <section aria-labelledby="glr-t">
-      <h2 id="glr-t" className="sr-only">Galera</h2>
+    <>
+      <GaleraBook col={col} vol={vol} onChange={setCol} onBack={() => navigate('/album')} />
       <MineStrip me={me} />
-      <div className="glr-head">
-        <p className="glr-head__count"><b>{known.length}</b> de {col.total} {col.total === 1 ? 'pessoa' : 'pessoas'} da Galera</p>
-        <p className="muted" style={{ margin: 0, maxWidth: '52ch' }}>Às vezes um pacote traz uma figurinha a mais: alguém da Galera. Ela não repete e não conta para completar a Temporada.</p>
+    </>
+  );
+}
+
+/** Na estante: o volume da Galera, ao lado dos da Temporada. */
+export function GaleraVolume({ vol }: { vol: number }) {
+  const mode = useStore((s) => s.mode);
+  const profile = useStore((s) => s.profile);
+  const [col, setCol] = useState<GaleraCollection | null>(null);
+  useEffect(() => { let alive = true; galeraApi.collection().then((c) => { if (alive) setCol(c); }).catch(() => {}); return () => { alive = false; }; }, [mode, profile?.id]);
+  const total = col ? galeraSlots(col).length : 0;
+  const have = col ? col.cards.filter((c) => c.pasted || c.retired).length : 0;
+  const tray = col ? col.cards.filter((c) => !c.retired && !c.pasted).length : 0;
+  const open = () => navigate('/album/galera');
+  return (
+    <div className="alb-vol">
+      <div className="alb-vol__book">
+        <button className="alb-vol__open" aria-label="Abrir o Álbum da Galera" onClick={open} dangerouslySetInnerHTML={{ __html: coverHTML(GALERA_BOOK, vol) }} />
       </div>
-      {col.cards.length === 0 && missing === 0 ? (
-        <div className="glr-empty"><b>A Galera ainda está chegando.</b><p className="muted" style={{ margin: 0 }}>Quando as primeiras pessoas fizerem a figurinha delas, elas começam a sair nos pacotes.</p></div>
-      ) : (
-        <div className="glr-grid">
-          {col.cards.map((c, i) => c.retired
-            ? <div key={`r${i}`} className="glr-slot"><GaleraGhost kind="gone" number={c.number} /><span className="glr-slot__cap">Saiu da Galera</span></div>
-            : <button key={c.owner ?? i} type="button" className="glr-slot" onClick={() => setOpen(c)} aria-label={`Abrir a figurinha de @${c.handle}`}>
-                <GaleraCard card={c} still /><span className="glr-slot__cap">@{c.handle}</span>
-              </button>)}
-          {Array.from({ length: Math.min(missing, SHOW_GHOSTS) }, (_, i) => <div key={`u${i}`} className="glr-slot"><GaleraGhost kind="unknown" /><span className="glr-slot__cap">&nbsp;</span></div>)}
-        </div>
-      )}
-      {missing > SHOW_GHOSTS && <p className="faint" style={{ marginTop: 16 }}>E mais {missing - SHOW_GHOSTS} esperando nos pacotes.</p>}
-      {open && <GaleraSheet card={open} onClose={() => setOpen(null)} />}
-    </section>
+      <div className="alb-vol__meta"><span className="alb-bar"><i style={{ width: `${total ? Math.round((have / total) * 100) : 0}%` }} /></span>{have}/{total}</div>
+      <button className="btn ghost sm" onClick={open}>{tray ? `Abrir · ${tray} para colar` : 'Abrir'}</button>
+      <span className="alb-kick">Álbum da comunidade</span>
+    </div>
   );
 }
 

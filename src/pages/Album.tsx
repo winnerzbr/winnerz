@@ -17,7 +17,7 @@ import { AlbumBook, bookPages } from '../components/album/AlbumBook';
 import { PackOpening } from '../components/album/PackOpening';
 import { StickerView, StickerZoom } from '../components/album/StickerView';
 import { Redeem } from '../components/album/Redeem';
-import { GaleraSection } from '../components/galera/GaleraSection';
+import { GaleraAlbum, GaleraVolume } from '../components/galera/GaleraSection';
 import { coverHTML, ensureDefs, logoSvg } from '../components/album/render';
 import { burst, GOLD, HOLO, reduceMotion, setSound, sfx, useSound } from '../components/album/fx';
 
@@ -64,7 +64,7 @@ export function AlbumPage({ slug, view, with: withHandle }: { slug?: string; vie
   const personal = usePersonal();
   const mineBook = books.find((b) => b.published);
   const tabs: [string, string, boolean, number][] = [
-    ['/album', 'Estante', !view, 0], ['/album/figurinhas', 'Figurinhas', view === 'figurinhas', 0], ['/album/galera', 'Galera', view === 'galera', 0], ['/album/cofre', 'Cofre', view === 'cofre', 0], ['/album/trocas', 'Trocas', view === 'trocas', state?.tradesIn ?? 0], ['/album/pacotes', 'Pacotes', view === 'pacotes', closed.length],
+    ['/album', 'Estante', !view || view === 'galera', 0], ['/album/figurinhas', 'Figurinhas', view === 'figurinhas', 0], ['/album/cofre', 'Cofre', view === 'cofre', 0], ['/album/trocas', 'Trocas', view === 'trocas', state?.tradesIn ?? 0], ['/album/pacotes', 'Pacotes', view === 'pacotes', closed.length],
   ];
 
   const head = (
@@ -90,7 +90,7 @@ export function AlbumPage({ slug, view, with: withHandle }: { slug?: string; vie
       {head}
       {error && <p className="awards__error" role="alert">{error}</p>}
       {view === 'galera'
-        ? <GaleraSection />
+        ? <GaleraAlbum vol={books.length + 1} />
         : view === 'pacotes'
         ? <PacksView state={state} maps={maps} />
         : view === 'figurinhas'
@@ -123,6 +123,7 @@ function Shelf({ books, state, closed, who }: { books: Book[]; state: AlbumState
           const ids = bookPages(b, state.stickers).flatMap((p) => p.stickers.map((s) => s.id));
           return <Volume key={b.id} book={b} vol={i + 1} have={pastedCount(ids, items)} total={ids.length} who={who} />;
         })}
+        <GaleraVolume vol={books.length + 1} />
       </div>
     </>
   );

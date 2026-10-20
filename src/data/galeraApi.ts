@@ -16,7 +16,7 @@ export const GALERA_SCENES: { id: GaleraScene; name: string }[] = [
 export interface GaleraCard {
   owner: string | null; handle: string | null; number: number | null; fundador: boolean;
   scene: GaleraScene; game: string; name: string; phrase: string; portrait: string | null;
-  retired?: boolean; drawnAt?: string;
+  retired?: boolean; drawnAt?: string; pasted?: boolean;
 }
 export interface GaleraRefused { reason: 'avatar' | 'imagem' | 'frase' | 'outro' | 'denuncia'; note: string; at: string }
 export interface GaleraMine {
@@ -24,7 +24,8 @@ export interface GaleraMine {
   card: { live: GaleraCard | null; pending: GaleraCard | null; refused: GaleraRefused | null; paused: boolean; hidden: boolean; submittedAt: string | null } | null;
 }
 export interface GaleraDraft { scene: GaleraScene; game: string; name: string; phrase: string; useAvatar: boolean }
-export interface GaleraCollection { cards: GaleraCard[]; total: number }
+/** cards: as que você tirou; slots: os números de quem está na Galera (os espaços do álbum, sem dizer quem é). */
+export interface GaleraCollection { cards: GaleraCard[]; total: number; slots: number[] }
 export interface GaleraQueueItem { person: PersonRef | null; pending: GaleraCard; live: GaleraCard | null; submittedAt: string }
 export interface GaleraReportItem { person: PersonRef | null; card: GaleraCard | null; count: number; reasons: string[]; firstAt: string }
 export interface GaleraStudio { queue: GaleraQueueItem[]; reports: GaleraReportItem[]; active: number; chance: number }
@@ -88,7 +89,7 @@ const rpc = async <T>(fn: string, args?: Record<string, unknown>): Promise<T> =>
 /* ---- Demonstração ------------------------------------------------------------------------------ */
 const DK = 'wz.demo.galera';
 interface DPerson { owner: string; handle: string; number: number; live: Omit<GaleraCard, 'owner' | 'handle' | 'number' | 'fundador'> | null; pending: Omit<GaleraCard, 'owner' | 'handle' | 'number' | 'fundador'> | null; paused: boolean; hidden: boolean; submittedAt: string }
-interface DState { me: GaleraMine; people: DPerson[]; owned: { owner: string; number: number; drawnAt: string }[]; rolls: Record<string, string | null>; reports: { owner: string; reason: string; at: string }[]; chance: number }
+interface DState { me: GaleraMine; people: DPerson[]; owned: { owner: string; number: number; drawnAt: string; pasted?: boolean }[]; rolls: Record<string, string | null>; reports: { owner: string; reason: string; at: string }[]; chance: number }
 const ago = (d: number) => new Date(Date.now() - d * 86400_000).toISOString();
 function seed(): DState {
   const v = (scene: GaleraScene, game: string, name: string, phrase: string, portrait: string | null) => ({ scene, game, name, phrase, portrait });
@@ -100,7 +101,7 @@ function seed(): DState {
       { owner: 'demo-novato', handle: 'novato_23', number: 118, live: v('planicies', 'Stardew Valley', '', '', null), pending: null, paused: false, hidden: false, submittedAt: ago(3) },
       { owner: 'demo-rafa', handle: 'rafa', number: 142, live: null, pending: v('planicies', 'Need for Speed', 'Rafa', 'Corrida, só corrida.', '/demo/galera/rafa.svg'), paused: false, hidden: false, submittedAt: ago(1) },
     ],
-    owned: [{ owner: 'demo-duda', number: 7, drawnAt: ago(5) }],
+    owned: [{ owner: 'demo-duda', number: 7, drawnAt: ago(5), pasted: true }],
     rolls: {}, reports: [], chance: 0.25,
   };
 }
@@ -193,12 +194,18 @@ export const galeraApi = {
   async collection(): Promise<GaleraCollection> {
     if (!supa()) {
       const d = dLoad();
-      const cards = d.owned.map((o) => { const p = d.people.find((x) => x.owner === o.owner); const c = p ? dCard(p, p.live) : null; return c ? { ...c, drawnAt: o.drawnAt } : { owner: null, handle: null, number: o.number, fundador: false, scene: 'planicies' as GaleraScene, game: '', name: '', phrase: '', portrait: null, retired: true, drawnAt: o.drawnAt }; })
+      const cards = d.owned.map((o) => { const p = d.people.find((x) => x.owner === o.owner); const c = p ? dCard(p, p.live) : null; return c ? { ...c, drawnAt: o.drawnAt, pasted: !!o.pasted } : { owner: null, handle: null, number: o.number, fundador: false, scene: 'planicies' as GaleraScene, game: '', name: '', phrase: '', portrait: null, retired: true, drawnAt: o.drawnAt, pasted: true }; })
         .sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
-      return { cards, total: d.people.filter((p) => p.live && p.owner !== 'demo-voce').length };
+      const live = d.people.filter((p) => p.live && p.owner !== 'demo-voce');
+      return { cards, total: live.length, slots: live.map((p) => p.number).sort((a, b) => a - b) };
     }
     const r = await rpc<GaleraCollection>('galera_collection');
-    return { cards: r.cards ?? [], total: r.total ?? 0 };
+    return { cards: r.cards ?? [], total: r.total ?? 0, slots: r.slots ?? [] };
+  },
+  /** Cola no Álbum da Galera. */
+  async paste(owner: string): Promise<void> {
+    if (!supa()) { const d = dLoad(); const o = d.owned.find((x) => x.owner === owner); if (o) o.pasted = true; dSave(d); return; }
+    await rpc<boolean>('galera_paste', { p_owner: owner });
   },
   async report(owner: string, reason: 'imagem' | 'frase' | 'outro'): Promise<void> {
     if (!supa()) {

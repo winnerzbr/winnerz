@@ -5,7 +5,8 @@
 -- 2. Figurinha da Galera: quem quiser envia a sua (cenário, jogo marcante, nome e frase opcionais, retrato).
 --    Nada sai nos pacotes sem a aprovação da administração. Dá para pausar e sair a qualquer hora.
 -- 3. Nos pacotes: às vezes vem +1 da Galera (o de boas-vindas sempre traz uma). Nunca a sua, nunca de quem tem
---    bloqueio com você, nunca repetida. Quem tirou guarda; se a pessoa sai, a cópia vira "aposentada", sem identidade.
+--    bloqueio com você, nunca repetida. Ela vai para a bandeja do Álbum da Galera, para colar no espaço do número
+--    dela. Se a pessoa sai, a cópia vira "aposentada", sem identidade.
 -- 4. Denúncia: quem tirou pode denunciar. A figurinha sai dos pacotes na hora e vai para a fila do Studio.
 
 -- ------------------------------------------------------------------------------------------------
@@ -47,6 +48,8 @@ create table if not exists public.galera_owned (
   drawn_at timestamptz not null default now(),
   primary key (collector, owner)
 );
+alter table public.galera_owned add column if not exists pasted boolean not null default false;
+alter table public.galera_owned add column if not exists pasted_at timestamptz;
 create index if not exists galera_owned_owner on public.galera_owned (owner);
 
 -- Um sorteio por pacote (com ou sem figurinha da Galera), para abrir de novo não sortear de novo.
@@ -214,13 +217,25 @@ begin
     'cards', coalesce((select jsonb_agg(x.j order by x.n nulls last) from (
         select coalesce(o.owner_no, p.arrival_no) as n,
                case when c.live is not null and p.id is not null
-                    then public.galera_card_json(o.owner, c.live) || jsonb_build_object('drawnAt', o.drawn_at)
-                    else jsonb_build_object('owner', null, 'retired', true, 'number', coalesce(o.owner_no, p.arrival_no), 'drawnAt', o.drawn_at) end as j
+                    then public.galera_card_json(o.owner, c.live) || jsonb_build_object('drawnAt', o.drawn_at, 'pasted', o.pasted)
+                    else jsonb_build_object('owner', null, 'retired', true, 'number', coalesce(o.owner_no, p.arrival_no), 'drawnAt', o.drawn_at, 'pasted', true) end as j
         from galera_owned o
         left join galera_cards c on c.user_id = o.owner
         left join profiles p on p.id = o.owner
         where o.collector = me) x), '[]'::jsonb),
-    'total', (select count(*) from galera_cards c where c.live is not null and c.user_id <> me));
+    'total', (select count(*) from galera_cards c where c.live is not null and c.user_id <> me),
+    -- Os números de quem está na Galera (só o número, sem dizer quem é): os espaços do Álbum da Galera.
+    'slots', coalesce((select jsonb_agg(p.arrival_no order by p.arrival_no) from galera_cards c join profiles p on p.id = c.user_id
+                       where c.live is not null and c.user_id <> me), '[]'::jsonb));
+end; $$;
+
+-- Colar no Álbum da Galera.
+create or replace function public.galera_paste(p_owner uuid) returns boolean
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'not_logged'; end if;
+  update galera_owned set pasted = true, pasted_at = now() where collector = auth.uid() and owner = p_owner and not pasted;
+  return found;
 end; $$;
 
 create or replace function public.galera_report(p_owner uuid, p_reason text) returns boolean
@@ -327,6 +342,7 @@ revoke all on function public.galera_pause(boolean) from public, anon;
 revoke all on function public.galera_leave() from public, anon;
 revoke all on function public.galera_roll(uuid) from public, anon;
 revoke all on function public.galera_collection() from public, anon;
+revoke all on function public.galera_paste(uuid) from public, anon;
 revoke all on function public.galera_report(uuid, text) from public, anon;
 revoke all on function public.studio_galera() from public, anon;
 revoke all on function public.studio_galera_decide(uuid, text, text, text) from public, anon;
@@ -339,6 +355,7 @@ grant execute on function public.galera_pause(boolean) to authenticated;
 grant execute on function public.galera_leave() to authenticated;
 grant execute on function public.galera_roll(uuid) to authenticated;
 grant execute on function public.galera_collection() to authenticated;
+grant execute on function public.galera_paste(uuid) to authenticated;
 grant execute on function public.galera_report(uuid, text) to authenticated;
 grant execute on function public.studio_galera() to authenticated;
 grant execute on function public.studio_galera_decide(uuid, text, text, text) to authenticated;

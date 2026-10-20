@@ -123,3 +123,12 @@ test('IAmiguinho: épocas de festa pelo calendário', async () => {
   assert.equal(epocaDe('2027-02-06'), 'carnaval');
   assert.equal(epocaDe('2027-02-11'), null);
 });
+
+test('IAmiguinho no sofá: a lore do canal e as siglas da tela passam; palavrão, nomes e abandono fora do sofá, não', () => {
+  const sofa = { max: 160, min: 6, leve: true, lore: true, numerosLivres: true, nomes: [] as string[] };
+  assert.equal(checarFala('Largou o chefe de novo? Calma, a live é por temporadas mesmo.', { jogo: 'Hollow Knight' }, [], sofa).ok, true);
+  assert.equal(checarFala('Morreu com 124 de HP sobrando. Isso é talento.', {}, [], sofa).ok, true);
+  assert.equal(checarFala('Essa porra de pulo.', {}, [], sofa).ok, false);
+  assert.equal(checarFala('O Fulano caiu de novo.', {}, [], sofa).ok, false);
+  assert.equal(checarFala('Largou o chefe de novo?', {}, [], { max: 160, leve: true }).ok, false);
+});

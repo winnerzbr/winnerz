@@ -7,7 +7,7 @@
  *
  * Só sai o que aparece na tela da live: título e capa do jogo, horário de início da sessão, o último momento e, no
  * overlay do canal (conta da administração), o drop de figurinhas no ar (E7.2, migração 0067) e a revelação do
- * WinnerZ Awards ao vivo (E7.4, migração 0070).
+ * WinnerZ Awards ao vivo (E7.4, migração 0070) e a fala do IAmiguinho no sofá (migração 0080).
  */
 
 type Req = { method?: string; query: Record<string, string | string[] | undefined>; body?: unknown; headers?: Record<string, string | string[] | undefined> };
@@ -134,12 +134,15 @@ export default async function handler(req: Req, res: Res) {
           nominees: noms.filter((n) => n.games).map((n) => ({ title: n.games.title, cover: n.games.cover ?? null })), winner };
       }
     }
+    // IAmiguinho no sofá (migração 0080): no overlay do canal, a linha da fala (a página lê de novo, mais rápido, enquanto estiver ligado).
+    let sofa: unknown = null;
+    if (profile?.is_admin) { const [l] = await get('sofa_live?select=ligado,calado,fala,cena,falou_em&id=eq.1'); sofa = l ?? null; }
     const [open] = await get(`sessions?select=journey_id,started_at&user_id=eq.${q(user)}&ended_at=is.null&order=started_at.desc&limit=1`);
     const prefs = profile?.prefs ?? {};
     const focus: unknown[] = Array.isArray(prefs.focusIds) ? prefs.focusIds : prefs.focusJourneyId ? [prefs.focusJourneyId] : [];
     // Nada do que vem das preferências entra num filtro sem conferir: só um id no formato certo.
     const candidate = [open?.journey_id, ...focus].find((x): x is string => typeof x === 'string' && UUID.test(x));
-    const empty = { game: null, session: null, moment: null, drop, reveal };
+    const empty = { game: null, session: null, moment: null, drop, reveal, sofa };
     if (!candidate) return res.status(200).json(empty);
     const [journey] = await get(`journeys?select=id,game_id&id=eq.${q(candidate)}&user_id=eq.${q(user)}`);
     if (!journey) return res.status(200).json(empty);
@@ -154,6 +157,7 @@ export default async function handler(req: Req, res: Res) {
       moment: moment ? { title: moment.title, image: await signedPhoto(user, moment.image_path), kind: moment.kind } : null,
       drop,
       reveal,
+      sofa,
     });
   } catch (err) {
     return res.status(500).json(failure('overlay', err));

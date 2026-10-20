@@ -3,15 +3,19 @@ import { useStore, openSession, focusJourneys, sessionsOf } from '../data/store'
 import { hourMin } from '../lib/format';
 import { demoDrop } from '../data/albumApi';
 import { awardsApi, awardsPlus } from '../data/awards';
+import { sofaApi, demoSofa, CENA_CARA, type SofaLinha } from '../data/sofaApi';
+import { Figura } from '../components/IAmiguinho';
 
 type Drop = { code: string; title: string; endsAt: string; left: number | null; kind: 'pacote' | 'figurinha'; packKind: 'onix' | 'prisma' };
 type Reveal = { award: string; category: string; step: 'categoria' | 'indicados' | 'vencedor'; nominees: { title: string; cover: string | null }[]; winner: { title: string; cover: string | null } | null };
-type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null; reveal?: Reveal | null };
+type Data = { game: { title: string; cover: string } | null; session: { startedAt: string; number: number } | null; moment: { title: string; text?: string | null; image?: string | null; kind: string } | null; drop?: Drop | null; reveal?: Reveal | null; sofa?: SofaLinha | null };
 
 /**
  * Overlay de live: fonte de navegador do OBS (fundo transparente). Atualiza sozinho a cada 20 segundos.
  * `/overlay/demo` mostra o que está neste navegador (para testar o visual).
  * E7.2: no overlay do canal, o drop de figurinhas no ar entra por cima, com o código e a contagem.
+ * IAmiguinho no sofá (migração 0080): no overlay do canal, a fala dele aparece num balão embaixo do cartão. Com
+ * ?so=sofa no endereço, o overlay mostra só o balão (para posicionar como outra fonte no OBS).
  */
 export function OverlayPage({ k }: { k: string }) {
   const s = useStore((x) => x);
@@ -35,6 +39,18 @@ export function OverlayPage({ k }: { k: string }) {
     return () => clearInterval(t);
   }, [k]);
   useEffect(() => { const t = setInterval(() => { tick((n) => n + 1); if (k === 'demo') setDemoD(demoDrop()); }, 1000); return () => clearInterval(t); }, [k]);
+  const soSofa = typeof location !== 'undefined' && new URLSearchParams(location.search).get('so') === 'sofa';
+  // O sofá: quando a cabine está ligada, a fala é lida direto do banco a cada 2,5 s (a do resto do overlay é a cada 10 s).
+  const [sofa, setSofa] = useState<SofaLinha | null>(null);
+  const sofaLigado = k === 'demo' || !!data?.sofa?.ligado;
+  useEffect(() => {
+    if (!sofaLigado) { setSofa(data?.sofa ?? null); return; }
+    let alive = true;
+    const ler = async () => { const l = k === 'demo' ? demoSofa() : await sofaApi.linha().catch(() => null); if (alive && l) setSofa(l); };
+    void ler();
+    const t = setInterval(ler, k === 'demo' ? 1000 : 2500);
+    return () => { alive = false; clearInterval(t); };
+  }, [k, sofaLigado, data?.sofa]);
 
   useEffect(() => {
     document.documentElement.classList.add('is-overlay');
@@ -68,11 +84,13 @@ export function OverlayPage({ k }: { k: string }) {
   const d = local ?? data;
 
   if (err) return <div className="ovl ovl--err">{err}</div>;
+  const sofaCard = sofa && <SofaBalao l={sofa} />;
+  if (soSofa) return <div className="ovl ovl--sofa">{sofaCard}</div>;
   const drop = d?.drop && Date.parse(d.drop.endsAt) > Date.now() ? d.drop : null;
   const dropCard = drop && <DropCard key={drop.code} drop={drop} />;
   const revealCard = d?.reveal && <RevealCard key={`${d.reveal.category}-${d.reveal.step}`} r={d.reveal} />;
-  if (revealCard) return <div className="ovl">{dropCard}{revealCard}</div>;
-  if (!d?.game) return dropCard ? <div className="ovl">{dropCard}</div> : <div className="ovl ovl--empty" />;
+  if (revealCard) return <div className="ovl">{dropCard}{revealCard}{sofaCard}</div>;
+  if (!d?.game) return dropCard || sofaCard ? <div className="ovl">{dropCard}{sofaCard}</div> : <div className="ovl ovl--empty" />;
   return (
     <div className="ovl">
       {dropCard}
@@ -91,6 +109,19 @@ export function OverlayPage({ k }: { k: string }) {
         )}
         <img className="ovl__logo" src="/brand/forjado.svg" alt="WinnerZ" />
       </div>
+      {sofaCard}
+    </div>
+  );
+}
+
+/** A fala do IAmiguinho no sofá: aparece por 12 segundos depois de dita, e some na hora se a cabine calar. */
+function SofaBalao({ l }: { l: SofaLinha }) {
+  const t = l.falou_em ? Date.parse(l.falou_em) : 0;
+  if (!l.fala || l.calado || !t || Date.now() - t > 12000) return null;
+  return (
+    <div className="ovl-sofa" key={l.falou_em} role="status">
+      <Figura img={`cara-${CENA_CARA[l.cena ?? 'normal'] ?? 'sorriso-confiante'}`} className="ovl-sofa__cara" width={88} height={88} lazy={false} enfeite={false} />
+      <p className="ovl-sofa__fala"><span className="ovl-sofa__quem">IAmiguinho</span>{l.fala}</p>
     </div>
   );
 }

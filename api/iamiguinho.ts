@@ -605,8 +605,8 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
     const saida = fish
       ? await vozFish(paraVozFish(texto), diag).catch(() => { diag.push('fish_erro'); return null; })
       : await vozGemini(paraVoz(texto), diag).then((a) => (a ? { audio: a, tipo: 'audio/wav' } : null)).catch(() => { diag.push('voz_erro'); return null; });
-    if (!saida) { console.error('iamiguinho: a voz falhou', diag.join(',')); return res.status(200).json({ audio: null, diag }); }
-    return res.status(200).json(saida);
+    if (!saida) { console.error('iamiguinho: a voz falhou', diag.join(',')); return res.status(200).json({ audio: null, diag, servico: fish ? 'fish' : 'google' }); }
+    return res.status(200).json({ ...saida, servico: fish ? 'fish' : 'google' });
   }
 
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'Falta a chave da IA no servidor (ANTHROPIC_API_KEY).' });

@@ -37,6 +37,8 @@
 .sofa__dica { font-size: 12px; line-height: 1.35; color: var(--muted); }
 .sofa__testar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
 .sofa__testar .muted { font-size: 13px; }
+.sofa__servico { margin: 10px 0 0; font-size: 13px; }
+.sofa__servico--aviso { color: var(--danger, #e2725b); }
 .sofa__chat-st { font-size: 12px; color: var(--faint); }
 .sofa__chat-st.is-ligado { color: var(--ok); }
 .sofa__chat-st.is-erro { color: var(--danger); }

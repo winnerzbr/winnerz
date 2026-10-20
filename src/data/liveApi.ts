@@ -21,7 +21,7 @@ export interface AvisoBot { id: string; texto: string; aCadaMin: number; minMsgs
 export interface BotDados { config: BotConfig; comandos: Comando[]; avisos: AvisoBot[]; top: { nome: string; pontos: number; pl: string }[]; pessoas: number }
 export type AcaoBot = 'config' | 'comando-salvar' | 'comando-apagar' | 'aviso-salvar' | 'aviso-apagar' | 'pontos-zerar';
 /* ---- Etapa 4a: a memória do IAmiguinho (migração 0086) ---- */
-export interface PessoaMemoria { quem: string; nome: string; pl: 'tw' | 'yt'; conversas: number; primeiraVez: string; ultimaVez: string; fatos: { t: string; em: string }[]; recentes: { p: string; r: string; em: string }[] }
+export interface PessoaMemoria { quem: string; nome: string; pl: 'tw' | 'yt' | 'dono'; conversas: number; primeiraVez: string; ultimaVez: string; fatos: { t: string; em: string }[]; recentes: { p: string; r: string; em: string }[] }
 export interface Memoria { responde: boolean; total: number; pessoas: PessoaMemoria[] }
 export type AcaoMemoria = 'apagar' | 'apagar-fato' | 'apagar-tudo' | 'mencoes';
 const MK = 'wz.demo.memoria';

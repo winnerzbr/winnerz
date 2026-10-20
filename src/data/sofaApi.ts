@@ -20,6 +20,9 @@ export const CENA_CARA: Record<SofaCena, string> = {
   morte: 'surpreso', chefe: 'curioso', vitoria: 'comemorando', cenario: 'curioso', menu: 'sonolento', dialogo: 'pensando', carregando: 'sonolento', normal: 'sorriso-confiante', outro: 'feliz',
 };
 export interface SofaLook { fala: string | null; cena?: SofaCena; momento?: boolean; parou?: string; calado?: boolean; diag?: string[] }
+/** Etapa 4b: como ele leu o seu humor na conversa por voz. */
+export type SofaHumor = 'brincando' | 'serio' | 'frustrado' | 'focado';
+export interface SofaConversa { fala: string | null; humor: SofaHumor | null; diag?: string[] }
 export interface SofaLinha { ligado: boolean; calado: boolean; fala: string | null; cena: SofaCena | null; falou_em: string | null }
 
 const supa = () => getState().mode === 'supabase';
@@ -60,6 +63,20 @@ export const sofaApi = {
       return { fala, cena: d.cena, momento: d.momento, parou: d.parou ?? '' };
     }
     return post<SofaLook>({ acao: 'olhar', ...p });
+  },
+  /** "Ô iamiguinho!": você fala, ele responde (com a memória de vocês) e lê o seu humor. */
+  async conversa(p: { texto: string; jogo?: string; image?: string }): Promise<SofaConversa> {
+    if (!supa()) {
+      await new Promise((ok) => setTimeout(ok, 1100));
+      const frustrado = /morr|dif[ií]cil|n[aã]o aguento|desisto|travad|raiva|socorro|ajuda/i.test(p.texto);
+      const fala = frustrado
+        ? 'Ei, respira. Você já chegou mais longe que eu em qualquer jogo da vida. A próxima tentativa é a boa, sério.'
+        : /piada/i.test(p.texto) ? 'Comprei um jogo de 40 reais e baixei 120 GB de patch. Agora o jogo é que me deve, kkkk'
+        : 'Ouvi, ouvi. Fingindo que entendi tudo, mas com muita confiança. Pode continuar que eu tô aqui.';
+      if (!demoSofa().calado) demoSet({ ligado: true, fala, cena: 'normal', falou_em: new Date().toISOString() });
+      return { fala, humor: frustrado ? 'frustrado' : 'brincando' };
+    }
+    return post<SofaConversa>({ acao: 'conversa', ...p });
   },
   async estado(p: { ligado?: boolean; calado?: boolean }): Promise<SofaLinha | null> {
     if (!supa()) { demoSet({ ...p, ...(p.calado ? { fala: null } : {}) }); return demoSofa(); }

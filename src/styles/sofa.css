@@ -76,3 +76,18 @@
 .ovl-sofa__quem { display: block; margin-bottom: 4px; font: 800 12px var(--font-ui); letter-spacing: 0.16em; text-transform: uppercase; color: #7FE3FF; }
 @keyframes ovl-sofa-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes ovl-sofa-out { to { opacity: 0; transform: translateY(8px); } }
+
+/* Etapa 4b: "Ô iamiguinho!" pela voz */
+.sofa__escuta { display: grid; gap: 10px; padding: 14px; background: var(--fr-piece); }
+.sofa__escuta-st { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; font-weight: 600; }
+.sofa__escuta-st i { width: 5px; height: 14px; background: var(--dim); transform: skewX(-22deg); }
+.sofa__escuta.is-ouvindo .sofa__escuta-st i { background: var(--ok); }
+.sofa__escuta.is-chamado .sofa__escuta-st i, .sofa__escuta.is-falando .sofa__escuta-st i { background: var(--iam); box-shadow: 0 0 10px var(--iam); animation: ovl-pulse 1s ease-in-out infinite; }
+.sofa__escuta.is-pensando .sofa__escuta-st i { background: var(--iam); animation: ovl-pulse 0.6s ease-in-out infinite; }
+.sofa__escuta.is-sem-suporte .sofa__escuta-st, .sofa__escuta.is-sem-permissao .sofa__escuta-st, .sofa__escuta.is-erro .sofa__escuta-st { color: var(--danger); }
+.sofa__escuta-st .faint { font-weight: 400; overflow-wrap: anywhere; }
+.sofa__escrever { display: flex; gap: 8px; }
+.sofa__escrever .field { flex: 1; min-width: 0; }
+.sofa__apoio { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px 12px; background: var(--surface); box-shadow: inset 3px 0 0 var(--iam); font-size: 14px; }
+.sofa__pergunta { color: var(--muted); font-style: italic; }
+.sofa__falas li .sofa__pergunta { font-size: 13px; }

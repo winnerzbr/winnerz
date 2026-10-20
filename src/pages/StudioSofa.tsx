@@ -12,9 +12,18 @@ import { Figura } from '../components/IAmiguinho';
 import { Sheet } from '../components/Sheet';
 import { CENA_CARA, CENA_NOME, SOFA_NIVEIS, quadro, sofaApi, twitchChat, type ChatEstado, type SofaCena, type SofaNivel } from '../data/sofaApi';
 import { AJUSTE_PADRAO, EFEITOS, MODELOS, ajusteValido, tocar, transformar, type AjusteVoz, type EfeitoVoz } from '../lib/vozRobo';
+import { ouvirMic, suportaMic, type EstadoMic } from '../lib/escuta';
+import { acharChamado, perguntaCompleta } from '../lib/chamado';
 
 type Fonte = 'camera' | 'janela';
-type Fala = { id: string; fala: string; cena: SofaCena; at: number; chamado?: boolean };
+type Fala = { id: string; fala: string; cena: SofaCena; at: number; chamado?: boolean; pergunta?: string };
+/** O estado da conversa por voz ("Ô iamiguinho!"). */
+type Escuta = 'desligado' | 'ouvindo' | 'chamado' | 'pensando' | 'falando' | EstadoMic;
+const ESCUTA: Record<Escuta, string> = {
+  desligado: 'Microfone desligado', ouvindo: 'Ouvindo. Diga “Ô iamiguinho!” e a pergunta', chamado: 'Chamou! Pode falar', pensando: 'Pensando…',
+  falando: 'Falando…', 'sem-suporte': 'Este navegador não ouve o microfone. Use o Chrome.', 'sem-permissao': 'Sem permissão para o microfone: libere no cadeado da barra de endereço.',
+  erro: 'O reconhecimento de voz parou de responder. Desligue e ligue de novo.',
+};
 type Cena = { id: string; url: string; cena: SofaCena; at: number };
 
 const ler = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v) as T; } catch { return d; } };
@@ -71,6 +80,15 @@ export function StudioSofaPage() {
   const ultimaFala = useRef(Date.now());
   const inicio = useRef<number | null>(null);
   const ocupado = useRef(false);
+  // Etapa 4b: "Ô iamiguinho!" pelo microfone, e o modo apoio quando ele percebe que você está travado.
+  const [escutar, setEscutar] = useState<boolean>(() => ler('wz.sofa.escuta', false));
+  const [escuta, setEscuta] = useState<Escuta>('desligado');
+  const [ouvido, setOuvido] = useState('');
+  const [escrito, setEscrito] = useState('');
+  const [apoioAte, setApoioAte] = useState<number | null>(null);
+  const conversando = useRef(false);
+  const esperandoAte = useRef(0);
+  const surdoAte = useRef(0);
 
   useEffect(() => gravar('wz.sofa.fonte', fonte), [fonte]);
   useEffect(() => gravar('wz.sofa.nivel', nivel), [nivel]);
@@ -78,6 +96,7 @@ export function StudioSofaPage() {
   useEffect(() => gravar('wz.sofa.voz', voz), [voz]);
   useEffect(() => gravar('wz.sofa.robo', ajusteVoz), [ajusteVoz]);
   useEffect(() => gravar('wz.sofa.cam', cam), [cam]);
+  useEffect(() => gravar('wz.sofa.escuta', escutar), [escutar]);
 
   // As câmeras do computador (a câmera virtual do OBS aparece aqui depois de ligada no OBS).
   const listarCams = async () => {
@@ -152,7 +171,7 @@ export function StudioSofaPage() {
     ocupado.current = true; setBusy(true); setErr('');
     const chatAgora = novasDoChat.current; novasDoChat.current = [];
     try {
-      const r = await sofaApi.olhar({ image: q.data, jogo, nivel, chamado, recentes: falas.slice(-10).map((f) => f.fala), chat: chatAgora, segundos: Math.round((Date.now() - ultimaFala.current) / 1000) });
+      const r = await sofaApi.olhar({ image: q.data, jogo, nivel: apoioAte && apoioAte > Date.now() ? 'torcedor' : nivel, chamado, recentes: falas.slice(-10).map((f) => f.fala), chat: chatAgora, segundos: Math.round((Date.now() - ultimaFala.current) / 1000) });
       if (r.calado) { setCalado(true); return; }
       if (r.parou) setParou(r.parou);
       if (r.momento) {
@@ -174,6 +193,55 @@ export function StudioSofaPage() {
     const t = setInterval(() => void olharRef.current(false), intervalo * 1000);
     return () => clearInterval(t);
   }, [ligado, calado, video, intervalo]);
+
+  // A conversa por voz: você fala, ele responde em voz alta (mesmo com "Falar em voz alta" desligado) e no balão.
+  const bip = () => {
+    try {
+      const ctx = (audioCtx.current ??= new AudioContext());
+      const o = ctx.createOscillator(), g = ctx.createGain(); const t = ctx.currentTime;
+      o.frequency.setValueAtTime(880, t); o.frequency.setValueAtTime(1320, t + 0.08);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + 0.25);
+    } catch { /* sem som */ }
+  };
+  const conversar = async (texto: string) => {
+    const t = texto.trim();
+    if (!t || conversando.current) return;
+    conversando.current = true; esperandoAte.current = 0; setEscuta('pensando'); setErr('');
+    try {
+      const img = video === 'on' && el.current ? quadro(el.current, 768, 0.72)?.data : undefined;
+      const r = await sofaApi.conversa({ texto: t, jogo, image: img });
+      if (r.humor === 'frustrado') setApoioAte(Date.now() + 10 * 60_000);
+      if (r.fala) {
+        ultimaFala.current = Date.now();
+        setFalas((f) => [...f, { id: uid(), fala: r.fala!, cena: 'normal' as SofaCena, at: Date.now(), chamado: true, pergunta: t }].slice(-60));
+        if (!calado) await falar(r.fala, true);
+      }
+    } catch (e) { setErr(e instanceof Error ? e.message : 'O IAmiguinho não respondeu agora.'); }
+    finally { conversando.current = false; setEscuta((x) => (x === 'pensando' ? (escutar ? 'ouvindo' : 'desligado') : x)); }
+  };
+  const conversarRef = useRef(conversar); conversarRef.current = conversar;
+  // Enquanto ele fala (e um instante depois), o microfone não conta: senão ele ouve a própria voz.
+  const tocandoRef = useRef(false);
+  useEffect(() => {
+    tocandoRef.current = tocando;
+    if (tocando) setEscuta((x) => (x === 'desligado' ? x : 'falando'));
+    else { surdoAte.current = Date.now() + 1200; setEscuta((x) => (x === 'falando' ? (escutar ? 'ouvindo' : 'desligado') : x)); }
+  }, [tocando, escutar]);
+  useEffect(() => {
+    if (!admin || !escutar) { setEscuta('desligado'); return; }
+    if (!suportaMic()) { setEscuta('sem-suporte'); return; }
+    return ouvirMic((texto, final) => {
+      if (tocandoRef.current || conversando.current || Date.now() < surdoAte.current) return;
+      const c = acharChamado(texto);
+      setOuvido(texto);
+      if (!final) { if (c.chamou) setEscuta('chamado'); return; }
+      if (c.chamou && perguntaCompleta(c.resto)) void conversarRef.current(c.resto);
+      else if (c.chamou) { esperandoAte.current = Date.now() + 8000; setEscuta('chamado'); bip(); }
+      else if (Date.now() < esperandoAte.current && perguntaCompleta(texto)) void conversarRef.current(texto);
+      else setEscuta((x) => (x === 'chamado' && Date.now() >= esperandoAte.current ? 'ouvindo' : x));
+    }, (e) => setEscuta(e));
+  }, [admin, escutar]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ligar = async () => {
     if (video !== 'on') await conectar();
@@ -248,6 +316,23 @@ export function StudioSofaPage() {
             <button className="btn quiet lg" disabled={!falas.length || busy} onClick={() => void encerrar()}>Encerrar e resumir</button>
           </div>
           {err && <p className="awards__error" role="alert">{err}</p>}
+
+          <div className={`sofa__escuta is-${escuta}`}>
+            <label className="motion motion--switch" data-on={escutar}>
+              <input type="checkbox" role="switch" className="switch" checked={escutar} onChange={(e) => setEscutar(e.target.checked)} />
+              <span><strong>Chamar pela voz: “Ô iamiguinho!”</strong><span className="muted">Diga o nome dele e a pergunta, numa frase só ou com uma pausa. Ele responde em voz alta e no balão da live. Funciona no Chrome: o navegador transforma a fala em texto, e só o que vem depois do nome dele vai para o site.</span></span>
+            </label>
+            {escutar && (
+              <p className="sofa__escuta-st" role="status"><i aria-hidden="true" />{ESCUTA[escuta]}{ouvido && (escuta === 'ouvindo' || escuta === 'chamado') && <span className="faint"> · ouvi: “{ouvido.slice(-80)}”</span>}</p>
+            )}
+            <form className="sofa__escrever" onSubmit={(e) => { e.preventDefault(); const t = escrito; setEscrito(''); void conversar(t); }}>
+              <input className="field" value={escrito} maxLength={300} placeholder="Ou escreva para ele aqui" onChange={(e) => setEscrito(e.target.value)} aria-label="Escrever para o IAmiguinho" />
+              <button className="btn ghost" type="submit" disabled={!escrito.trim() || escuta === 'pensando'}>{escuta === 'pensando' ? 'Pensando…' : 'Mandar'}</button>
+            </form>
+            {apoioAte && apoioAte > Date.now() && (
+              <p className="sofa__apoio"><span><b>Modo apoio até as {hora(apoioAte)}.</b> Ele percebeu que você está travado: nada de zoar a jogada, só torcida.</span><button className="btn quiet sm" onClick={() => setApoioAte(null)}>Voltar ao normal</button></p>
+            )}
+          </div>
 
           <div className="sofa__ajustes">
             <label className="glr-f sofa__jogo"><span className="glr-f__l">Jogo</span>
@@ -332,7 +417,7 @@ export function StudioSofaPage() {
           <h2 className="kicker">Falas</h2>
           <ol className="sofa__falas">
             {[...falas].reverse().slice(0, 30).map((f) => (
-              <li key={f.id}><span className="faint">{hora(f.at)} · {CENA_NOME[f.cena]}{f.chamado ? ' · chamado' : ''}</span>{f.fala}</li>
+              <li key={f.id}><span className="faint">{hora(f.at)} · {f.pergunta ? 'conversa' : CENA_NOME[f.cena]}{f.chamado && !f.pergunta ? ' · chamado' : ''}</span>{f.pergunta && <span className="sofa__pergunta">Você: {f.pergunta}</span>}{f.fala}</li>
             ))}
             {!falas.length && <li className="faint">Nada ainda.</li>}
           </ol>

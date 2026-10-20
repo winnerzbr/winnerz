@@ -45,15 +45,15 @@ export function PainelMemoria({ onMsg }: { onMsg: (m: string) => void }) {
 
       <div className="lw__bloco">
         <div className="lw__cab"><h3 className="lw__h">O que ele lembra</h3><span className="faint">{m.total} {m.total === 1 ? 'pessoa' : 'pessoas'}</span></div>
-        <p className="faint">Ele guarda só o que a pessoa contou para ele (jogos, gostos, o que está jogando) e as últimas conversas. Nada de saúde, religião, política, idade, onde mora ou contatos. Quem digitar <code>@iamiguinho esquece de mim</code> é apagado na hora. Quanto mais conversa, mais próximo ele fica: nova, conhecida, colega, parça, melhor amizade.</p>
+        <p className="faint">Ele guarda só o que a pessoa contou para ele (e o que você contou na conversa por voz, na linha VOZ) (jogos, gostos, o que está jogando) e as últimas conversas. Nada de saúde, religião, política, idade, onde mora ou contatos. Quem digitar <code>@iamiguinho esquece de mim</code> é apagado na hora. Quanto mais conversa, mais próximo ele fica: nova, conhecida, colega, parça, melhor amizade.</p>
         <label className="glr-f lw__campo"><span className="glr-f__l">Procurar pelo nome</span><input className="field" value={busca} maxLength={40} placeholder="nome no chat" onChange={(e) => setBusca(e.target.value)} /></label>
         {!m.pessoas.length ? <p className="muted">{busca ? 'Ninguém com esse nome.' : 'Ele ainda não conversou com ninguém.'}</p> : (
           <ul className="lm__lista">
             {m.pessoas.map((p: PessoaMemoria) => (
               <li key={p.quem}>
                 <div className="lm__cab">
-                  <span className={`lv-chat__pl is-${p.pl}`}>{p.pl === 'yt' ? 'YT' : 'TW'}</span>
-                  <b className="lm__nome">{p.nome}</b>
+                  <span className={`lv-chat__pl is-${p.pl}`}>{p.pl === 'yt' ? 'YT' : p.pl === 'dono' ? 'VOZ' : 'TW'}</span>
+                  <b className="lm__nome">{p.pl === 'dono' ? 'Você (conversa por voz)' : p.nome}</b>
                   <span className="lm__nivel">{NIVEL(p.conversas)}</span>
                   <span className="faint">{p.conversas} {p.conversas === 1 ? 'conversa' : 'conversas'} · {quando(p.ultimaVez)}</span>
                   <span className="lb__acoes">
@@ -68,7 +68,7 @@ export function PainelMemoria({ onMsg }: { onMsg: (m: string) => void }) {
                 )}
                 {aberta === p.quem && (
                   <ol className="lm__conversas">
-                    {p.recentes.map((c, i) => <li key={i}><span><b>{p.nome}:</b> {c.p}</span><span><b className="lm__iam">IAmiguinho:</b> {c.r}</span><span className="faint">{quando(c.em)}</span></li>)}
+                    {p.recentes.map((c, i) => <li key={i}><span><b>{p.pl === 'dono' ? 'Você' : p.nome}:</b> {c.p}</span><span><b className="lm__iam">IAmiguinho:</b> {c.r}</span><span className="faint">{quando(c.em)}</span></li>)}
                   </ol>
                 )}
               </li>

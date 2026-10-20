@@ -156,3 +156,6 @@
 .glr-radio { display: flex; align-items: center; gap: 10px; font: 500 15px/1.4 var(--font-ui); min-height: 32px; cursor: pointer; }
 .glr-radio input { width: 18px; height: 18px; accent-color: var(--now); }
 .glr-radio input[type='radio'] { -webkit-appearance: radio; appearance: radio; border-radius: 50%; }
+/* No livro do Álbum da Galera */
+.glr-book__card { display: block; width: 100%; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; }
+.glr-book__card:focus-visible { outline: 2px solid var(--now, #ffb25b); outline-offset: 3px; border-radius: 6px; }

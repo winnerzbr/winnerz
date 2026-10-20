@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assuntoSensivel, checarFala, numeroAleatorio, parecida } from '../../api/iamiguinho';
+import { assuntoSensivel, checarFala, numeroAleatorio, parecida, paraVoz, pcmParaWav } from '../../api/iamiguinho';
 import { FALAS, preencher, falaDaBiblioteca, respostaDaBiblioteca } from './iamiguinhoFalas';
 
 const ok = (s: string, f = {}, r: string[] = []) => checarFala(s, f, r);
@@ -131,4 +131,22 @@ test('IAmiguinho no sofá: a lore do canal e as siglas da tela passam; palavrão
   assert.equal(checarFala('Essa porra de pulo.', {}, [], sofa).ok, false);
   assert.equal(checarFala('O Fulano caiu de novo.', {}, [], sofa).ok, false);
   assert.equal(checarFala('Largou o chefe de novo?', {}, [], { max: 160, leve: true }).ok, false);
+});
+
+test('voz: risada de internet vira risada falada, e o resto fica como está', () => {
+  assert.equal(paraVoz('Passar ele passa kkkkk'), 'Passar ele passa <laugh>');
+  assert.equal(paraVoz('HAHAHA respeita o mestre'), '<laugh> respeita o mestre');
+  assert.equal(paraVoz('é ótimo em morrer LMAO. lol kkk'), 'é ótimo em morrer <laugh>');
+  assert.equal(paraVoz('hehe olha isso rsrs'), '<laugh> olha isso <laugh>');
+  assert.equal(paraVoz('Ele morreu de novo. Eu tô contando.'), 'Ele morreu de novo. Eu tô contando.');
+  assert.equal(paraVoz('kakaroto e kk normal'), 'kakaroto e kk normal');
+});
+
+test('voz: o PCM cru ganha cabeçalho WAV de 16 bits, mono, na taxa pedida', () => {
+  const w = pcmParaWav(Buffer.alloc(480), 24000);
+  assert.equal(w.length, 524);
+  assert.equal(w.subarray(0, 4).toString('latin1'), 'RIFF');
+  assert.equal(w.readUInt32LE(24), 24000);
+  assert.equal(w.readUInt16LE(34), 16);
+  assert.equal(w.readUInt32LE(40), 480);
 });

@@ -72,6 +72,13 @@ export const sofaApi = {
     }
     return post({ acao: 'fim', ...p });
   },
+  /** A fala em voz alta (a voz do IAmiguinho criada no Google). Na demonstração não há voz. */
+  async voz(texto: string): Promise<{ audio: string; tipo: string } | null> {
+    if (!supa()) return null;
+    const r = await post<{ audio?: string | null; tipo?: string; diag?: string[] }>({ acao: 'voz', texto });
+    if (!r.audio) throw new Error(`A voz não saiu agora (${(r.diag ?? []).join(', ') || 'sem resposta'}).`);
+    return { audio: r.audio, tipo: r.tipo ?? 'audio/wav' };
+  },
   /** O overlay da live lê a fala do momento (sem login). */
   async linha(): Promise<SofaLinha | null> {
     if (!supa()) return demoSofa();

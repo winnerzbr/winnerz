@@ -613,6 +613,27 @@ const GRACA = `Como ser engraçado de verdade (isto vale mais que qualquer outra
 export const semRisoNoFim = (t: string) => t.replace(/[\s,;]*\b(?:k{3,}|(?:h[aeiu]){2,}h?|(?:rs){2,}|lol|lmao)\b[\s.!]*$/i, '').trim().replace(/[,;]$/, '.');
 /** O modelo das conversas (voz e chat da live): humor pede um modelo melhor que o dos cameos. */
 const MODELO_CONVERSA = () => process.env.IAMIGUINHO_MODEL_CONVERSA || 'claude-sonnet-5-5';
+/**
+ * Pede à IA das conversas. Se o modelo melhor recusar (não liberado na conta, fora do ar, demorou), tenta o modelo de
+ * sempre, para a resposta não cair na biblioteca. diag guarda só códigos (modelo e status), nunca texto.
+ */
+async function iaConversa(corpo: Record<string, unknown>, diag: string[]): Promise<Record<string, unknown> | undefined> {
+  const modelos = [...new Set([MODELO_CONVERSA(), MODEL()])];
+  for (const [i, model] of modelos.entries()) {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ ...corpo, model }),
+      signal: AbortSignal.timeout(i === 0 ? 15000 : 10000),
+    }).catch((e: unknown) => { diag.push(`ia_${e instanceof Error && e.name === 'TimeoutError' ? 'demorou' : 'sem_resposta'}_${i + 1}`); return null; });
+    if (!r) continue;
+    if (!r.ok) { diag.push(`ia_${r.status}_${i + 1}`); if (r.status === 401) break; continue; }
+    const t = ((await r.json().catch(() => ({}))) as { content?: { type: string; input?: Record<string, unknown> }[] }).content?.find((x) => x.type === 'tool_use')?.input;
+    if (t) return t;
+    diag.push(`ia_sem_ferramenta_${i + 1}`);
+  }
+  return undefined;
+}
 /** A pergunta é sobre a tela? Só então a imagem vai junto (senão ele puxa o jogo para tudo). */
 export const falaDaTela = (t: string) => /\b(olha|olhe|tela|isso|isto|aqui|ali|esse|essa|este|esta|chefe|boss|morri|morreu|morro|fase|mapa|onde|como (eu )?passo|como faz|t[aá] vendo|viu|vendo|cen[aá]rio|personagem|inimigo|item|vida|quanto falta)\b/i.test(t);
 
@@ -693,14 +714,7 @@ async function chatLive(b: Record<string, unknown>): Promise<{ fala: string | nu
       recentes.length ? `Suas respostas recentes no chat (não repita):\n- ${recentes.join('\n- ')}` : '',
     ].filter(Boolean).join('\n\n');
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: MODELO_CONVERSA(), max_tokens: 900, system: SISTEMA_CHAT_LIVE, tools: [RESPONDER_CHAT_TOOL], tool_choice: { type: 'tool', name: 'responder_chat' }, messages: [{ role: 'user', content: conteudo }] }),
-        signal: AbortSignal.timeout(12000),
-      });
-      if (!r.ok) throw new Error(`ia_${r.status}`);
-      const t = ((await r.json()) as { content?: { type: string; input?: { modo?: unknown; opcoes?: unknown; lembrar?: unknown } }[] }).content?.find((x) => x.type === 'tool_use')?.input;
+      const t = await iaConversa({ max_tokens: 900, system: SISTEMA_CHAT_LIVE, tools: [RESPONDER_CHAT_TOOL], tool_choice: { type: 'tool', name: 'responder_chat' }, messages: [{ role: 'user', content: conteudo }] }, diag) as { modo?: unknown; opcoes?: unknown; lembrar?: unknown } | undefined;
       const modo = t?.modo === 'tangente' || t?.modo === 'silencio' ? t.modo : 'responder';
       if (modo === 'silencio') return { fala: null, porque: 'moderacao' };
       const contexto = `${pergunta} ${fatos.join(' ')}`;
@@ -942,24 +956,17 @@ async function conversaDono(body: Record<string, unknown>, jogo: string | undefi
   const diag: string[] = [];
   let fala: string | null = null; let humor: Humor | null = null; let lembrar: string[] = [];
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: MODELO_CONVERSA(), max_tokens: 800, system: SISTEMA_CONVERSA, tools: [CONVERSAR_TOOL], tool_choice: { type: 'tool', name: 'conversar' },
-        messages: [{ role: 'user', content: comImagem ? [{ type: 'image', source: { type: 'base64', media_type: tipo, data: image } }, { type: 'text', text: linhas }] : linhas }] }),
-      signal: AbortSignal.timeout(14000),
-    });
-    if (!r.ok) throw new Error(`ia_${r.status}`);
-    const t = ((await r.json()) as { content?: { type: string; input?: { humor?: unknown; opcoes?: unknown; lembrar?: unknown } }[] }).content?.find((x) => x.type === 'tool_use')?.input;
+    const t = await iaConversa({ max_tokens: 800, system: SISTEMA_CONVERSA, tools: [CONVERSAR_TOOL], tool_choice: { type: 'tool', name: 'conversar' },
+      messages: [{ role: 'user', content: comImagem ? [{ type: 'image', source: { type: 'base64', media_type: tipo, data: image } }, { type: 'text', text: linhas }] : linhas }] }, diag) as { humor?: unknown; opcoes?: unknown; lembrar?: unknown } | undefined;
     humor = HUMORES.find((h) => h === t?.humor) ?? null;
     for (const op of opcoesDe(t?.opcoes)) {
-      const v = checarFala(semRisoNoFim(op.texto), { jogo }, recentes, { max: 240, min: 2, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true });
+      const v = checarFala(semRisoNoFim(op.texto), { jogo }, recentes, { max: 240, min: 2, emojis: 1, contexto: `${texto} ${fatos.join(' ')}`, leve: true, lore: true, nomes: op.nomes, numerosLivres: true });
       if (v.ok) { fala = v.fala; break; }
       diag.push(v.porque);
     }
     if (Array.isArray(t?.lembrar)) lembrar = (t!.lembrar as unknown[]).filter(fatoSeguro).map((x) => x.replace(/\s+/g, ' ').trim()).slice(0, 2);
   } catch (e) { diag.push(e instanceof Error && /^ia_\d+$/.test(e.message) ? e.message : 'ia_sem_resposta'); }
-  if (!fala) { fala = sortear(PLANO_B.geral); diag.push('biblioteca'); }
+  if (!fala) { fala = sortear(PLANO_B.geral); diag.push('biblioteca'); console.error(`iamiguinho: conversa caiu na biblioteca (${diag.join(', ')})`); }
   // No balão da live (se não estiver calado) e na memória.
   const agora = await uma('sofa_live?select=calado&id=eq.1').catch(() => null);
   if (agora && agora.calado !== true) await sofaLinha({ ligado: true, fala, cena: 'normal', falou_em: new Date().toISOString() }).catch(() => null);

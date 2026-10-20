@@ -212,6 +212,7 @@ export function StudioSofaPage() {
       const img = video === 'on' && el.current ? quadro(el.current, 768, 0.72)?.data : undefined;
       const r = await sofaApi.conversa({ texto: t, jogo, image: img });
       if (r.humor === 'frustrado') setApoioAte(Date.now() + 10 * 60_000);
+      if (r.diag?.includes('modelo_reserva') && !r.diag.includes('biblioteca')) setErr(`O modelo das conversas não respondeu e ele usou o modelo de sempre (código: ${r.diag.filter((d) => d !== 'modelo_reserva').join(', ') || 'sem detalhe'}).`);
       if (r.diag?.includes('biblioteca')) setErr(`A IA não respondeu desta vez e ele usou uma fala reserva (código: ${r.diag.filter((d) => d !== 'biblioteca').join(', ') || 'sem detalhe'}).`);
       if (r.fala) {
         ultimaFala.current = Date.now();

@@ -21,7 +21,7 @@ type Fala = { id: string; fala: string; cena: SofaCena; at: number; chamado?: bo
 type Escuta = 'desligado' | 'ouvindo' | 'chamado' | 'pensando' | 'falando' | EstadoMic;
 const ESCUTA: Record<Escuta, string> = {
   desligado: 'Microfone desligado', ouvindo: 'Ouvindo. Diga “Ô iamiguinho!” e a pergunta', chamado: 'Chamou! Pode falar', pensando: 'Pensando…',
-  falando: 'Falando…', 'sem-suporte': 'Este navegador não ouve o microfone. Use o Chrome.', 'sem-permissao': 'Sem permissão para o microfone: libere no cadeado da barra de endereço.',
+  falando: 'Falando…', 'sem-suporte': 'Este navegador não ouve o microfone. Use o Chrome.', 'sem-permissao': 'Sem permissão para o microfone: clique no ícone à esquerda do endereço do site, libere o Microfone e ligue a chave de novo.',
   erro: 'O reconhecimento de voz parou de responder. Desligue e ligue de novo.',
 };
 type Cena = { id: string; url: string; cena: SofaCena; at: number };

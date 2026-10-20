@@ -10,7 +10,17 @@ import { actions, useStore } from '../data/store';
 import { Icon } from '../components/Icon';
 import { liveApi, NOME_INSCRICAO, TIPOS_ALERTA, type LiveEstado, type LivePrefs, type TipoAlerta } from '../data/liveApi';
 import { enderecosCenas } from './OverlayLive';
+import { somDoAlerta } from '../lib/sonsLive';
 
+/** Como soa cada alerta (para aprender de ouvido). */
+const SONS: { tipo: TipoAlerta; nome: string; som: string }[] = [
+  { tipo: 'follow', nome: 'Seguidor', som: 'campainha: din-don' },
+  { tipo: 'sub', nome: 'Inscrição', som: 'moeda de videogame' },
+  { tipo: 'resub', nome: 'Renovação', som: 'duas moedas e um brilho' },
+  { tipo: 'gift', nome: 'Presente', som: 'chuva de brilhos subindo' },
+  { tipo: 'cheer', nome: 'Bits', som: 'laser: três piu' },
+  { tipo: 'raid', nome: 'Raid', som: 'tambor e fanfarra' },
+];
 const AVISO_TWITCH: Record<string, string> = {
   ok: 'Canal ligado. Veja abaixo se cada tipo de alerta ficou ligado.',
   erro: 'A Twitch não deixou ligar tudo. Veja abaixo o que ficou de fora e tente de novo.',
@@ -26,6 +36,7 @@ export function StudioLivePage() {
   const [msg, setMsg] = useState(() => { try { return AVISO_TWITCH[new URLSearchParams(location.search).get('twitch') ?? ''] ?? ''; } catch { return ''; } });
   const [copiado, setCopiado] = useState('');
   const [testado, setTestado] = useState('');
+  const somCtx = useRef<AudioContext | null>(null);
 
   // Os textos das cenas: edição local e gravação nas preferências um instante depois de parar de digitar.
   const [live, setLive] = useState<LivePrefs>(() => s.prefs.live ?? {});
@@ -67,6 +78,7 @@ export function StudioLivePage() {
     catch (e) { setMsg(e instanceof Error ? e.message : 'O teste não foi agora.'); }
     finally { setBusy(''); }
   };
+  const ouvir = (tipo: TipoAlerta) => { try { somCtx.current ??= new AudioContext(); void somCtx.current.resume(); somDoAlerta(somCtx.current, tipo); } catch { /* sem som */ } };
   const religar = async () => { setBusy('canal'); try { await liveApi.ligarCanal(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu para abrir a Twitch.'); setBusy(''); } };
   const reinscrever = async () => { setBusy('subs'); try { setMsg(`Inscrições: ${await liveApi.reinscrever()}.`); await carregar(); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu certo agora.'); } finally { setBusy(''); } };
   const contagem = (min: number | null) => mudar({ comecaEm: min == null ? null : new Date(Date.now() + min * 60_000).toISOString() });
@@ -142,6 +154,12 @@ export function StudioLivePage() {
             <button key={x.tipo} className="btn ghost" disabled={!!busy} onClick={() => void testar(x.tipo)}>{testado === x.tipo ? 'Enviado' : x.nome}</button>
           ))}
         </div>
+        <span className="glr-f__l">Ouvir só o som (aqui, sem mandar para a live)</span>
+        <ul className="live-central__sons">
+          {SONS.map((x) => (
+            <li key={x.tipo}><button className="btn quiet sm" onClick={() => ouvir(x.tipo)}><Icon name="play" size={14} />{x.nome}</button><span className="muted">{x.som}</span></li>
+          ))}
+        </ul>
       </section>
 
       <section className="live-central__bloco" aria-labelledby="lc-textos">

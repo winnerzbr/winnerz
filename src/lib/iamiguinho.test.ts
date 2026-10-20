@@ -205,3 +205,13 @@ test('conversas da live: o meme do malandro e do otário passa; insulto de verda
   assert.equal(checarFala(meme, {}, [], { max: 240, leve: true, numerosLivres: true }).ok, false);
   assert.equal(checarFala('Você é um imbecil, kkkk', {}, [], { max: 240, leve: true, acido: true }).ok, false);
 });
+
+test('contexto do Studio: o texto do canal entra no lugar do padrão; vazio volta ao padrão; os limites ficam sempre', async () => {
+  const { vozConversa, PERSONALIDADE_PADRAO, REPERTORIO_PADRAO } = await import('../../api/iamiguinho');
+  const pad = vozConversa();
+  assert.ok(pad.includes(PERSONALIDADE_PADRAO) && pad.includes(REPERTORIO_PADRAO) && pad.includes('Limites que não mudam'));
+  const meu = vozConversa({ personalidade: 'Ele é um pirata.', repertorio: '- só memes de pirata', extra: 'A live é toda terça.' });
+  assert.ok(meu.includes('Ele é um pirata.') && !meu.includes(PERSONALIDADE_PADRAO));
+  assert.ok(meu.includes('- só memes de pirata') && meu.includes('A live é toda terça.') && meu.includes('Limites que não mudam'));
+  assert.equal(vozConversa({ personalidade: '   ', repertorio: null }), pad);
+});

@@ -75,6 +75,7 @@ export function StudioPage() {
         <Link to="/studio/album" className="studio__card"><b>Álbum</b><span className="muted">Catálogo de figurinhas, dar pacotes, retidos, revisões e trocas.</span></Link>
         <Link to="/studio/live" className="studio__card"><b>Central da live</b><span className="muted">Cenas do OBS, alertas da Twitch e os textos da live.</span></Link>
         <Link to="/studio/sofa" className="studio__card"><b>IAmiguinho no sofá</b><span className="muted">O co-apresentador das lives: ele assiste ao jogo e fala no overlay.</span></Link>
+        <Link to="/studio/iamiguinho" className="studio__card"><b>Contexto do IAmiguinho</b><span className="muted">A personalidade, o repertório e a memória dele nas conversas da live. Dá para mudar a qualquer hora.</span></Link>
         <Link to="/eventos/awards/admin" className="studio__card"><b>WinnerZ Awards</b><span className="muted">Montar edições, categorias e indicados.</span></Link>
       </nav>
 

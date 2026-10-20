@@ -91,3 +91,17 @@
 .sofa__apoio { margin: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px 12px; background: var(--surface); box-shadow: inset 3px 0 0 var(--iam); font-size: 14px; }
 .sofa__pergunta { color: var(--muted); font-style: italic; }
 .sofa__falas li .sofa__pergunta { font-size: 13px; }
+
+/* Studio · contexto do IAmiguinho */
+.iamc { display: grid; gap: 22px; padding-top: 18px; padding-bottom: 48px; max-width: 1080px; }
+.iamc__bloco { display: grid; gap: 10px; padding: 20px; background: var(--surface); }
+.iamc__cab { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.iamc__h { margin: 0; font-size: 20px; }
+.iamc__dica { margin: 0; max-width: 76ch; }
+.iamc__selo { font: 700 11px var(--font-ui); letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+.iamc__selo.is-seu { color: var(--iam); }
+.iamc__area { font: 14px/1.5 var(--font-mono); resize: vertical; min-height: 140px; }
+.iamc__previa { background: var(--fr-piece); }
+.iamc__previa summary { cursor: pointer; padding: 10px 14px; font-weight: 700; font-size: 14px; }
+.iamc__previa pre { margin: 0; padding: 4px 14px 14px; max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.55 var(--font-mono); color: var(--muted); }
+.iamc__agora { box-shadow: inset 3px 0 0 var(--iam); }

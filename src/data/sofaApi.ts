@@ -23,6 +23,15 @@ export interface SofaLook { fala: string | null; cena?: SofaCena; momento?: bool
 /** Etapa 4b: como ele leu o seu humor na conversa por voz. */
 export type SofaHumor = 'brincando' | 'serio' | 'frustrado' | 'focado';
 export interface SofaConversa { fala: string | null; humor: SofaHumor | null; diag?: string[] }
+/** O contexto do IAmiguinho no Studio (migração 0088). */
+export interface ContextoIam {
+  migracao: boolean;
+  padrao: { personalidade: string; repertorio: string };
+  atual: { personalidade: string | null; repertorio: string | null; extra: string | null; atualizadoEm: string | null };
+  memoria: { conversas: number; ultimaVez: string | null; fatos: string[]; recentes: { pergunta: string; resposta: string; em: string }[] };
+  previa: { sistema: string; memoria: string };
+  fixo: { limites: string; graca: string; voz: string; chat: string };
+}
 export interface SofaLinha { ligado: boolean; calado: boolean; fala: string | null; cena: SofaCena | null; falou_em: string | null }
 
 const supa = () => getState().mode === 'supabase';
@@ -77,6 +86,20 @@ export const sofaApi = {
       return { fala, humor: frustrado ? 'frustrado' : 'brincando' };
     }
     return post<SofaConversa>({ acao: 'conversa', ...p });
+  },
+  /** Studio · o contexto completo dele (o que vai para a IA nas conversas) e o que dá para mudar. */
+  async contexto(salvar?: Partial<Record<'personalidade' | 'repertorio' | 'extra', string | null>>): Promise<ContextoIam> {
+    if (!supa()) {
+      const k = 'wz.demo.contexto';
+      let atual: ContextoIam['atual'] = { personalidade: null, repertorio: null, extra: null, atualizadoEm: null };
+      try { atual = { ...atual, ...(JSON.parse(localStorage.getItem(k) ?? '{}') as object) }; } catch { /* nada */ }
+      if (salvar) { atual = { ...atual, ...salvar, atualizadoEm: new Date().toISOString() }; try { localStorage.setItem(k, JSON.stringify(atual)); } catch { /* nada */ } }
+      const pad = { personalidade: 'Pense nele como o amigo mais zoeiro da call do Discord: cria da internet, humor ácido, rápido no gatilho...\n(Na demonstração, o texto completo vem do servidor.)', repertorio: '- Preço de jogo no Brasil...\n- Jogo lançado quebrado...\n(Na demonstração, o texto completo vem do servidor.)' };
+      return { migracao: true, padrao: pad, atual, memoria: { conversas: 3, ultimaVez: new Date().toISOString(), fatos: ['joga Elden Ring', 'live toda terça à noite'], recentes: [{ pergunta: 'conta uma piada', resposta: 'Por que o jacaré tirou o filho da escola? Porque ele réptil de ano! HAHAHAHA', em: new Date().toISOString() }] },
+        previa: { sistema: `Você é o IAmiguinho...\n${atual.personalidade || pad.personalidade}\n${atual.repertorio || pad.repertorio}${atual.extra ? `\nContexto do canal:\n${atual.extra}` : ''}\n(regras fixas)`, memoria: 'O que você lembra dele:\n- joga Elden Ring\n- live toda terça à noite' },
+        fixo: { limites: '(Na demonstração, os limites vêm do servidor.)', graca: '(Na demonstração, o guia de humor vem do servidor.)', voz: '(regras da conversa por voz)', chat: '(regras do chat)' } };
+    }
+    return post<ContextoIam>({ acao: 'contexto', ...(salvar ? { salvar } : {}) });
   },
   async estado(p: { ligado?: boolean; calado?: boolean }): Promise<SofaLinha | null> {
     if (!supa()) { demoSet({ ...p, ...(p.calado ? { fala: null } : {}) }); return demoSofa(); }

@@ -38,7 +38,9 @@
  *   (padrão 500 por dia).
  *   Voz do sofá: GEMINI_API_KEY (Google AI Studio, no mesmo projeto da voz). Opcionais: IAMIGUINHO_VOZ (padrão
  *   "iamiguinho2 3", o nome ou o id voice_... da voz criada), IAMIGUINHO_VOZ_ESTILO, IAMIGUINHO_VOZ_MODELO (padrão
- *   gemini-3.8-flash-tts) e IAMIGUINHO_VOZ_MES.
+ *   gemini-3.8-flash-tts) e IAMIGUINHO_VOZ_MES. Com FISH_API_KEY (Fish Audio), a voz sai de lá: FISH_VOZ (o id da voz,
+ *   padrão a escolhida pelo canal), FISH_MODELO (padrão s2.1-pro-free; se recusar, tenta s2.1-pro) e FISH_ESTILO
+ *   (padrão "[sarcastic]", a marca de emoção que vai no começo da fala).
  * Os registros nunca imprimem fala, jogo nem conta (o repositório é público).
  */
 
@@ -594,13 +596,17 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
   if (acao === 'voz') {
     const texto = clip(body.texto, 300);
     if (!texto) return res.status(400).json({ error: 'Nada para falar.' });
-    if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'Falta a chave da voz no servidor (GEMINI_API_KEY).' });
+    // O serviço: a Fish Audio quando a chave dela está na Vercel; senão, o Google.
+    const fish = !!process.env.FISH_API_KEY;
+    if (!fish && !process.env.GEMINI_API_KEY) return res.status(503).json({ error: 'Falta a chave da voz no servidor (FISH_API_KEY ou GEMINI_API_KEY).' });
     const usado = await rpc('api_hit', { p_bucket: 'sofa_voz', p_limit: num(process.env.IAMIGUINHO_VOZ_MES, 1500), p_cost: 1, p_monthly: true }).catch(() => 0);
     if (typeof usado === 'number' && usado < 0) return res.status(429).json({ error: 'A voz chegou ao teto deste mês (IAMIGUINHO_VOZ_MES).' });
     const diag: string[] = [];
-    const audio = await vozGemini(paraVoz(texto), diag).catch(() => { diag.push('voz_erro'); return null; });
-    if (!audio) { console.error('iamiguinho: a voz falhou', diag.join(',')); return res.status(200).json({ audio: null, diag }); }
-    return res.status(200).json({ audio, tipo: 'audio/wav' });
+    const saida = fish
+      ? await vozFish(paraVozFish(texto), diag).catch(() => { diag.push('fish_erro'); return null; })
+      : await vozGemini(paraVoz(texto), diag).then((a) => (a ? { audio: a, tipo: 'audio/wav' } : null)).catch(() => { diag.push('voz_erro'); return null; });
+    if (!saida) { console.error('iamiguinho: a voz falhou', diag.join(',')); return res.status(200).json({ audio: null, diag }); }
+    return res.status(200).json(saida);
   }
 
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'Falta a chave da IA no servidor (ANTHROPIC_API_KEY).' });
@@ -775,4 +781,34 @@ async function vozGemini(texto: string, diag: string[]): Promise<string | null> 
   const parte = (gj?.candidates?.[0]?.content?.parts ?? []).find((x) => x.inlineData?.data);
   if (!parte?.inlineData?.data) { diag.push('gc_sem_audio'); return null; }
   return comoWav(parte.inlineData.data, parte.inlineData.mimeType);
+}
+
+/* ---- A voz pela Fish Audio ----------------------------------------------------------------------------------- */
+
+/** Para a Fish Audio (modelos S2): risada escrita vira a marca [laughing] com a risada falada. */
+export function paraVozFish(t: string): string {
+  return t
+    .replace(/\b(?:k{3,}|(?:h[aeiu]){2,}h?|(?:rs){2,}|lmao|lol)\b[.!]*/gi, ' [laughing] Ha, ha, ha. ')
+    .replace(/(?:\s*\[laughing\] Ha, ha, ha\.\s*){2,}/g, ' [laughing] Ha, ha, ha. ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function vozFish(texto: string, diag: string[]): Promise<{ audio: string; tipo: string } | null> {
+  const voz = (process.env.FISH_VOZ || '006d2399628243b0b983c32351431e1a').trim();
+  const estilo = (process.env.FISH_ESTILO ?? '[sarcastic]').trim();
+  const modelos = [...new Set([process.env.FISH_MODELO || 's2.1-pro-free', 's2.1-pro'])];
+  for (const modelo of modelos) {
+    const r = await fetch('https://api.fish.audio/v1/tts', {
+      method: 'POST', signal: AbortSignal.timeout(25000),
+      headers: { Authorization: `Bearer ${process.env.FISH_API_KEY}`, 'content-type': 'application/json', model: modelo },
+      body: JSON.stringify({ text: `${estilo ? `${estilo} ` : ''}${texto}`, reference_id: voz, format: 'mp3', mp3_bitrate: 128, latency: 'normal', normalize: true }),
+    }).catch(() => null);
+    if (r?.ok) {
+      const buf = Buffer.from(await r.arrayBuffer());
+      if (buf.length > 1000) return { audio: buf.toString('base64'), tipo: 'audio/mpeg' };
+      diag.push(`fish_vazio_${modelo}`);
+    } else diag.push(r ? `fish_${r.status}_${modelo}` : `fish_sem_resposta_${modelo}`);
+  }
+  return null;
 }

@@ -27,6 +27,7 @@ export const MODELOS: { id: string; nome: string; dica: string; ajuste: AjusteVo
   { id: 'lata', nome: 'Robô de lata', dica: 'Robozinho com eco de cabeça de metal.', ajuste: { tom: 6, robo: 45, metal: 35, efeito: 'lata' } },
   { id: 'bits', nome: 'Robô 8 bits', dica: 'Saído de um videogame antigo.', ajuste: { tom: 8, robo: 55, metal: 10, efeito: 'fliperama' } },
   { id: 'helice', nome: 'Robô hélice', dica: 'A voz vibrando no ritmo da hélice.', ajuste: { tom: 7, robo: 30, metal: 15, efeito: 'helice' } },
+  { id: 'original', nome: 'Voz original', dica: 'A voz escolhida, sem transformação.', ajuste: { tom: 0, robo: 0, metal: 0, efeito: 'nenhum' } },
 ];
 export const AJUSTE_PADRAO: AjusteVoz = MODELOS[0].ajuste;
 

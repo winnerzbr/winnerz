@@ -114,14 +114,14 @@ const FALA_ALERTA: Record<TipoAlerta, string[]> = {
 function tituloAlerta(e: LiveEvento): { k: string; nome: string; extra?: string } {
   const v = e.valor ?? 0;
   switch (e.tipo) {
-    case 'follow': return { k: 'Novo seguidor', nome: e.quem };
+    case 'follow': return { k: e.origem === 'youtube' ? 'Novo inscrito no YouTube' : 'Novo seguidor', nome: e.quem };
     case 'sub': return { k: v > 1 ? `Inscrição nível ${v}` : 'Inscrição', nome: e.quem };
     case 'resub': return { k: `Inscrição · ${v} ${v === 1 ? 'mês' : 'meses'}`, nome: e.quem };
-    case 'gift': return { k: `${v} ${v === 1 ? 'inscrição' : 'inscrições'} de presente`, nome: e.quem };
+    case 'gift': return { k: e.origem === 'youtube' ? `${v} ${v === 1 ? 'assinatura' : 'assinaturas'} de membro de presente` : `${v} ${v === 1 ? 'inscrição' : 'inscrições'} de presente`, nome: e.quem };
     case 'cheer': return { k: `${v.toLocaleString('pt-BR')} bits`, nome: e.quem };
     case 'raid': return { k: 'Raid chegando', nome: e.quem, extra: `+ ${v.toLocaleString('pt-BR')} ${v === 1 ? 'pessoa' : 'pessoas'}` };
-    case 'superchat': return { k: 'Super Chat', nome: e.quem, extra: v ? (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : undefined };
-    default: return { k: 'Novo membro', nome: e.quem };
+    case 'superchat': return { k: 'Super Chat', nome: e.quem, extra: e.extra || (v ? (v / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : undefined) };
+    default: return { k: v ? `Membro há ${v} ${v === 1 ? 'mês' : 'meses'}` : e.extra ? `Novo membro · ${e.extra}` : 'Novo membro', nome: e.quem };
   }
 }
 /** O som de cada tipo de alerta (lib/sonsLive: cada um bem diferente do outro). */
@@ -207,8 +207,8 @@ function Alerta({ e, saindo }: { e: LiveEvento; saindo: boolean }) {
 }
 
 /* ---- Chat da Twitch (leitura anônima, sem login) ---- */
-type Msg = { id: number; quem: string; texto: string; cor?: string };
-function lerChat(canal: string, onMsg: (m: Omit<Msg, 'id'>) => void): () => void {
+type Msg = { id: number; quem: string; texto: string; cor?: string; pl: 'tw' | 'yt'; membro?: boolean };
+function lerChat(canal: string, onMsg: (m: Omit<Msg, 'id' | 'pl'>) => void): () => void {
   const nome = canal.trim().replace(/^#/, '').toLowerCase();
   if (!/^[a-z0-9_]{3,25}$/.test(nome)) return () => {};
   let fechado = false, ws: WebSocket | null = null;
@@ -237,16 +237,32 @@ function Chat({ canal, className, max = 12 }: { canal?: string | null; className
   const c = params().get('canal') || canal || '';
   useEffect(() => {
     if (!c) return;
-    return lerChat(c, (m) => setMsgs((l) => [...l, { ...m, id: ++n.current }].slice(-max)));
+    return lerChat(c, (m) => setMsgs((l) => [...l, { ...m, pl: 'tw' as const, id: ++n.current }].slice(-max)));
   }, [c, max]);
+  // O chat do YouTube: o servidor grava (a Central da live lê o YouTube) e o overlay pega as novas a cada 2 s.
+  useEffect(() => {
+    let vivo = true, desde: number | null = null;
+    const ler = async () => {
+      try {
+        const l = await liveApi.chatYoutube(desde);
+        if (!vivo || !l.length) { if (desde == null) desde = 0; return; }
+        desde = l[l.length - 1].id;
+        setMsgs((x) => [...x, ...l.map((m) => ({ id: ++n.current, quem: m.quem, texto: m.texto, pl: 'yt' as const, membro: m.membro }))].slice(-max));
+      } catch { /* tenta de novo */ }
+    };
+    void ler();
+    const t = setInterval(ler, 2000);
+    return () => { vivo = false; clearInterval(t); };
+  }, [max]);
   return (
     <div className={`lv-chat ${className}`} aria-live="polite">
-      {!c && <span className="lv-chat__vazio">Ligue o canal da Twitch na Central da live para o chat aparecer aqui.</span>}
+      {!c && !msgs.length && <span className="lv-chat__vazio">Ligue a Twitch ou o YouTube na Central da live para o chat aparecer aqui.</span>}
       {msgs.map((m) => {
         const iam = m.quem.toLowerCase() === 'iamiguinho';
         return (
           <div key={m.id} className={`lv-chat__msg${iam ? ' is-iam' : ''}`}>
-            <b style={iam ? undefined : ({ color: m.cor ?? '#C9CED4' } as CSSProperties)}>{iam ? 'IAmiguinho' : m.quem}</b> {m.texto}
+            {!iam && <span className={`lv-chat__pl is-${m.pl}`}>{m.pl === 'yt' ? 'YT' : 'TW'}</span>}
+            <b style={iam ? undefined : ({ color: m.pl === 'yt' ? (m.membro ? '#8FDC9B' : '#C9CED4') : m.cor ?? '#C9CED4' } as CSSProperties)}>{iam ? 'IAmiguinho' : m.quem}</b> {m.texto}
           </div>
         );
       })}

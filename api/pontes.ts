@@ -16,6 +16,9 @@
  *   POST /api/pontes (com login, administração) { twitchSub: true }             → refaz as inscrições do EventSub
  *   POST /api/pontes (com login, administração) { live: 'estado' }              → o canal e as inscrições (Central da live)
  *   POST /api/pontes (com login, administração) { live: 'teste', tipo }         → um alerta de teste no overlay
+ *   GET  /youtube/volta (reescrito para ?youtube=volta)                         → o Google devolve o login do canal aqui
+ *   POST /api/pontes (com login, administração) { live: 'youtube-ligar' | 'youtube-desligar' | 'youtube', intervalo? }
+ *        → endereço do login do Google | desliga o canal | uma volta de leitura do YouTube (migração 0083)
  * Sistema de live (migração 0082): o EventSub também avisa seguidor, inscrição, renovação, presente, bits e raid, que
  * vão para live_events (o overlay mostra os alertas). Pede a autorização do canal com os escopos de cada um.
  *
@@ -605,9 +608,12 @@ async function twitchLoginUrl(req: Req, user: string, kind: 'pessoa' | 'canal', 
   return { url: `https://id.twitch.tv/oauth2/authorize?${q}`, nonce };
 }
 /** Os alertas de teste da Central da live (nomes de exemplo). */
-const TESTES_LIVE: Record<string, { quem: string; valor: number | null }> = {
+const TESTES_LIVE: Record<string, { quem: string; valor: number | null; tipo?: string; origem?: string; extra?: string }> = {
   follow: { quem: 'quem_seguiu', valor: null }, sub: { quem: 'quem_se_inscreveu', valor: 1 }, resub: { quem: 'quem_voltou', valor: 7 },
   gift: { quem: 'quem_presenteou', valor: 5 }, cheer: { quem: 'quem_mandou_bits', valor: 500 }, raid: { quem: 'canal_amigo', valor: 42 },
+  'yt-inscrito': { quem: 'Quem se inscreveu', valor: null, tipo: 'follow', origem: 'youtube' },
+  superchat: { quem: '@quem_mandou', valor: 1000, origem: 'youtube', extra: 'R$ 10,00' },
+  member: { quem: '@quem_virou_membro', valor: null, origem: 'youtube' },
 };
 /** Os eventos do canal que o WinnerZ acompanha: os resgates com pontos (álbum) e os alertas da live. */
 type Inscricao = { tipo: string; id: string | null; status: string };
@@ -692,6 +698,175 @@ async function twitchBack(req: Req, res: Res, q: Record<string, string | string[
   try { await rpc('twitch_link_set', { p_user: st.u, p_twitch_id: me.id, p_login: me.login, p_display: me.display_name ?? me.login }); }
   catch { return go('/preferencias?twitch=ocupada#pontes'); }
   return go('/preferencias?twitch=ligada#pontes');
+}
+/* ---- Sistema de live, etapa 2: YouTube (migração 0083) ------------------------------------- */
+// O canal autoriza uma vez (Google, só leitura do YouTube). A chave de renovação fica cifrada no banco. Durante a live,
+// a Central da live (aberta no computador da live) chama { live: 'youtube' } a cada tantos segundos: o servidor procura
+// a live do canal, lê o chat novo, grava os alertas (Super Chat, membros, presentes, inscritos) e o chat do YouTube.
+const YT = 'https://www.googleapis.com/youtube/v3';
+const YT_COOKIE = 'wz_yt_nonce';
+const ytCookie = (value: string, maxAge: number) => `${YT_COOKIE}=${value}; Path=/youtube; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
+const ytSegredo = () => `youtube:${serverSecret()}`;
+async function chaveCifra(): Promise<CryptoKey> {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`youtube-token:${serverSecret()}`));
+  return crypto.subtle.importKey('raw', d, 'AES-GCM', false, ['encrypt', 'decrypt']);
+}
+/** Cifra com a chave do servidor (AES-GCM). */
+export async function cifrar(t: string): Promise<string> {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await chaveCifra(), new TextEncoder().encode(t));
+  return `${Buffer.from(iv).toString('base64url')}.${Buffer.from(new Uint8Array(c)).toString('base64url')}`;
+}
+export async function decifrar(s: string): Promise<string | null> {
+  try {
+    const [a, b] = String(s ?? '').split('.');
+    const p = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: Buffer.from(a, 'base64url') }, await chaveCifra(), Buffer.from(b, 'base64url'));
+    return new TextDecoder().decode(p);
+  } catch { return null; }
+}
+type YtCanal = { channel_id: string | null; titulo: string | null; refresh_cifrado: string | null; live_chat_id: string | null; video_id: string | null; page_token: string | null; procurou_live: string | null; inscritos_vistos: string[] | null; checou_inscritos: string | null; status: string | null };
+const ytLinha = async () => (await sel<YtCanal>('youtube_channel?select=channel_id,titulo,refresh_cifrado,live_chat_id,video_id,page_token,procurou_live,inscritos_vistos,checou_inscritos,status&id=eq.1'))[0] ?? null;
+const ytPatch = (b: Row) => patch('youtube_channel', 'id=eq.1', { ...b, updated_at: new Date().toISOString() });
+
+async function youtubeLoginUrl(req: Req, user: string) {
+  const id = process.env.YOUTUBE_CLIENT_ID;
+  if (!id || !process.env.YOUTUBE_CLIENT_SECRET) return { error: 'O YouTube ainda não foi ligado no servidor (YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET).' };
+  const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(18))).toString('base64url');
+  const state = await signState({ u: user, k: 'canal', t: Date.now() + 15 * 60_000, n: nonce, d: 'live' }, ytSegredo());
+  const q = new URLSearchParams({ client_id: id, redirect_uri: `${SITE(req)}/youtube/volta`, response_type: 'code', scope: 'https://www.googleapis.com/auth/youtube.readonly', access_type: 'offline', prompt: 'consent', state });
+  return { url: `https://accounts.google.com/o/oauth2/v2/auth?${q}`, nonce };
+}
+/** O Google devolveu o login do canal: guarda a chave de renovação (cifrada) e o nome do canal. Só a administração. */
+async function youtubeBack(req: Req, res: Res, q: Record<string, string | string[] | undefined>) {
+  const one = (v: unknown) => (Array.isArray(v) ? String(v[0] ?? '') : String(v ?? ''));
+  const go = (to: string) => { res.setHeader('Location', to); res.status(302); return res.end ? res.end() : res.json({ to }); };
+  const nonce = cookieOf(header(req, 'cookie'), YT_COOKIE);
+  res.setHeader('Set-Cookie', ytCookie('', 0));
+  const st = await readState(one(q.state), ytSegredo());
+  if (!st || !st.n || !nonce || !sameText(st.n, nonce)) return go('/studio/live?youtube=erro');
+  if (one(q.error) || !one(q.code)) return go('/studio/live?youtube=cancelado');
+  const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${st.u}`))[0];
+  if (!adm?.is_admin) return go('/studio/live?youtube=erro');
+  const t = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({
+    client_id: process.env.YOUTUBE_CLIENT_ID ?? '', client_secret: process.env.YOUTUBE_CLIENT_SECRET ?? '', code: one(q.code), grant_type: 'authorization_code', redirect_uri: `${SITE(req)}/youtube/volta` }) }).catch(() => null);
+  const tj = (t ? await t.json().catch(() => ({})) : {}) as { access_token?: string; refresh_token?: string };
+  if (!t?.ok || !tj.access_token || !tj.refresh_token) { console.error(`pontes: login do YouTube falhou (${t?.status ?? 'sem resposta'})`); return go('/studio/live?youtube=erro'); }
+  const c = await fetch(`${YT}/channels?part=snippet&mine=true`, { headers: { Authorization: `Bearer ${tj.access_token}` } }).then((r) => r.json()).catch(() => null) as { items?: { id: string; snippet?: { title?: string } }[] } | null;
+  const ch = c?.items?.[0];
+  if (!ch?.id) return go('/studio/live?youtube=semcanal');
+  ytAcesso = { v: tj.access_token, exp: Date.now() + 50 * 60_000, de: '' };
+  try {
+    await upsert('youtube_channel', [{ id: 1, channel_id: ch.id.slice(0, 40), titulo: (ch.snippet?.title ?? '').slice(0, 100), refresh_cifrado: await cifrar(tj.refresh_token), live_chat_id: null, video_id: null, page_token: null, procurou_live: null, inscritos_vistos: null, checou_inscritos: null, status: 'ligado', updated_at: new Date().toISOString() }], 'id');
+  } catch { return go('/studio/live?youtube=migracao'); }
+  ytAcesso = null;
+  return go('/studio/live?youtube=ok');
+}
+let ytAcesso: { v: string; exp: number; de: string } | null = null;
+/** Um acesso de 1 hora a partir da chave de renovação (guardado na memória da função enquanto vale). */
+async function acessoYoutube(row: YtCanal): Promise<string | null> {
+  if (!row.refresh_cifrado) return null;
+  if (ytAcesso && ytAcesso.de === row.refresh_cifrado && ytAcesso.exp > Date.now() + 60_000) return ytAcesso.v;
+  const rt = await decifrar(row.refresh_cifrado);
+  if (!rt) return null;
+  const t = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({
+    client_id: process.env.YOUTUBE_CLIENT_ID ?? '', client_secret: process.env.YOUTUBE_CLIENT_SECRET ?? '', refresh_token: rt, grant_type: 'refresh_token' }) }).catch(() => null);
+  const j = (t ? await t.json().catch(() => ({})) : {}) as { access_token?: string; expires_in?: number; error?: string };
+  if (!t?.ok || !j.access_token) {
+    if (j.error === 'invalid_grant') await ytPatch({ status: 'a autorização venceu: ligue o canal de novo' }).catch(() => null);
+    return null;
+  }
+  ytAcesso = { v: j.access_token, exp: Date.now() + (j.expires_in ?? 3600) * 1000, de: row.refresh_cifrado };
+  return j.access_token;
+}
+/** Uma mensagem do chat do YouTube: vira linha de chat, alerta, ou os dois (Super Chat com comentário). */
+export function itemYoutube(it: Record<string, any>): { chat?: { quem: string; texto: string; membro: boolean }; alerta?: { tipo: string; quem: string; valor: number | null; extra: string | null } } {
+  const s = it?.snippet ?? {}, a = it?.authorDetails ?? {};
+  const quem = typeof a.displayName === 'string' && a.displayName.trim() ? a.displayName.trim().slice(0, 60) : '';
+  const txt = (v: unknown) => (typeof v === 'string' ? v.replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, 300) : '');
+  const n = (v: unknown) => { const x = Number(v); return Number.isFinite(x) && x >= 0 ? Math.min(10_000_000, Math.round(x)) : null; };
+  if (!quem) return {};
+  const membro = a.isChatSponsor === true;
+  switch (s.type) {
+    case 'textMessageEvent': { const t = txt(s.displayMessage ?? s.textMessageDetails?.messageText); return t ? { chat: { quem, texto: t, membro } } : {}; }
+    case 'superChatEvent': {
+      const d = s.superChatDetails ?? {}; const t = txt(d.userComment);
+      return { alerta: { tipo: 'superchat', quem, valor: n(Number(d.amountMicros) / 10000), extra: txt(d.amountDisplayString).slice(0, 40) || null }, ...(t ? { chat: { quem, texto: t, membro } } : {}) };
+    }
+    case 'superStickerEvent': { const d = s.superStickerDetails ?? {}; return { alerta: { tipo: 'superchat', quem, valor: n(Number(d.amountMicros) / 10000), extra: txt(d.amountDisplayString).slice(0, 40) || null } }; }
+    case 'newSponsorEvent': return { alerta: { tipo: 'member', quem, valor: null, extra: txt(s.newSponsorDetails?.memberLevelName).slice(0, 40) || null } };
+    case 'memberMilestoneChatEvent': { const d = s.memberMilestoneChatDetails ?? {}; const t = txt(d.userComment); return { alerta: { tipo: 'member', quem, valor: n(d.memberMonth), extra: null }, ...(t ? { chat: { quem, texto: t, membro: true } } : {}) }; }
+    case 'membershipGiftingEvent': return { alerta: { tipo: 'gift', quem, valor: n(s.membershipGiftingDetails?.giftMembershipsCount), extra: null } };
+    default: return {};
+  }
+}
+/** Uma volta do YouTube durante a live: procura a live, lê o chat novo e os inscritos novos. Devolve quando voltar. */
+async function puxarYoutube(intervalo: number) {
+  let row: YtCanal | null;
+  try { row = await ytLinha(); } catch { return { ativa: false, esperarMs: 60_000, status: 'Falta rodar a migração 0083 no Supabase.' }; }
+  if (!row?.refresh_cifrado) return { ativa: false, esperarMs: 60_000, status: 'O canal do YouTube não está ligado.' };
+  const tk = await acessoYoutube(row);
+  if (!tk) return { ativa: false, esperarMs: 60_000, status: row.status ?? 'O Google não deu acesso agora.' };
+  const h = { Authorization: `Bearer ${tk}` };
+  const agora = Date.now();
+  const res: { ativa: boolean; esperarMs: number; status: string; mensagens: number; alertas: number; video?: string | null } = { ativa: false, esperarMs: Math.max(10, Math.min(60, intervalo)) * 1000, status: '', mensagens: 0, alertas: 0 };
+  const cota = (r: Response | null, corpo: string) => r?.status === 403 && /quota/i.test(corpo);
+
+  // Inscritos novos (uma vez por minuto; só aparecem os que deixam a inscrição pública).
+  if (!row.checou_inscritos || agora - Date.parse(row.checou_inscritos) > 60_000) {
+    const r = await fetch(`${YT}/subscriptions?part=subscriberSnippet&myRecentSubscribers=true&maxResults=50`, { headers: h }).catch(() => null);
+    if (r?.ok) {
+      const j = (await r.json().catch(() => ({}))) as { items?: { subscriberSnippet?: { channelId?: string; title?: string } }[] };
+      const lista = (j.items ?? []).map((x) => x.subscriberSnippet).filter((x): x is { channelId: string; title?: string } => !!x?.channelId);
+      const vistos = Array.isArray(row.inscritos_vistos) ? row.inscritos_vistos : null;
+      if (vistos) {
+        const novos = lista.filter((x) => !vistos.includes(x.channelId)).slice(0, 10);
+        if (novos.length) {
+          await upsert('live_events', novos.map((x) => ({ origem: 'youtube', tipo: 'follow', quem: (x.title || 'Alguém').slice(0, 60), valor: null, ext_id: `yts:${x.channelId}`.slice(0, 120) })), 'ext_id', true).catch(() => null);
+          res.alertas += novos.length;
+        }
+      }
+      const junto = [...new Set([...lista.map((x) => x.channelId), ...(vistos ?? [])])].slice(0, 300);
+      await ytPatch({ inscritos_vistos: junto, checou_inscritos: new Date().toISOString() }).catch(() => null);
+    } else await ytPatch({ checou_inscritos: new Date().toISOString() }).catch(() => null);
+  }
+
+  // A live: procura uma vez por minuto enquanto não houver.
+  let chat = row.live_chat_id, token = row.page_token;
+  if (!chat) {
+    if (row.procurou_live && agora - Date.parse(row.procurou_live) < 55_000) return { ...res, esperarMs: 30_000, status: 'Nenhuma live no ar no YouTube agora.' };
+    const r = await fetch(`${YT}/liveBroadcasts?part=snippet&broadcastStatus=active&broadcastType=all&maxResults=5`, { headers: h }).catch(() => null);
+    const corpo = r ? await r.text().catch(() => '') : '';
+    if (!r?.ok) { await ytPatch({ procurou_live: new Date().toISOString() }).catch(() => null); return { ...res, esperarMs: cota(r, corpo) ? 600_000 : 60_000, status: cota(r, corpo) ? 'A cota do YouTube de hoje acabou.' : `O YouTube não respondeu (${r?.status ?? 'sem resposta'}).` }; }
+    const b = (JSON.parse(corpo || '{}') as { items?: { id: string; snippet?: { liveChatId?: string; title?: string } }[] }).items?.find((x) => x.snippet?.liveChatId);
+    if (!b) { await ytPatch({ procurou_live: new Date().toISOString() }).catch(() => null); return { ...res, esperarMs: 60_000, status: 'Nenhuma live no ar no YouTube agora.' }; }
+    chat = b.snippet!.liveChatId!; token = null;
+    await ytPatch({ live_chat_id: chat.slice(0, 200), video_id: b.id.slice(0, 40), page_token: null, procurou_live: new Date().toISOString(), status: `ao vivo: ${(b.snippet?.title ?? '').slice(0, 60)}` }).catch(() => null);
+  }
+
+  // O chat novo. A primeira leitura de uma live só marca onde está (as mensagens antigas não viram alerta de novo).
+  const q = new URLSearchParams({ liveChatId: chat, part: 'snippet,authorDetails', maxResults: '200', ...(token ? { pageToken: token } : {}) });
+  const r = await fetch(`${YT}/liveChat/messages?${q}`, { headers: h }).catch(() => null);
+  const corpo = r ? await r.text().catch(() => '') : '';
+  if (!r?.ok) {
+    if (cota(r, corpo)) return { ...res, esperarMs: 600_000, status: 'A cota do YouTube de hoje acabou.' };
+    if (r && (r.status === 403 || r.status === 404)) { await ytPatch({ live_chat_id: null, page_token: null, status: 'a live acabou' }).catch(() => null); return { ...res, esperarMs: 30_000, status: 'A live do YouTube acabou.' }; }
+    return { ...res, esperarMs: 30_000, status: `O YouTube não respondeu (${r?.status ?? 'sem resposta'}).` };
+  }
+  const j = JSON.parse(corpo || '{}') as { items?: Record<string, any>[]; nextPageToken?: string; pollingIntervalMillis?: number; offlineAt?: string };
+  if (token) {
+    const chats: Row[] = [], alertas: Row[] = [];
+    for (const it of j.items ?? []) {
+      const x = itemYoutube(it);
+      if (x.chat) chats.push({ origem: 'youtube', ...x.chat, ext_id: `ytc:${String(it.id ?? '').slice(0, 190)}` });
+      if (x.alerta) alertas.push({ origem: 'youtube', ...x.alerta, ext_id: `yt:${String(it.id ?? '').slice(0, 110)}` });
+    }
+    if (chats.length) await upsert('live_chat', chats, 'ext_id', true).catch(() => null);
+    if (alertas.length) await upsert('live_events', alertas, 'ext_id', true).catch(() => null);
+    res.mensagens = chats.length; res.alertas += alertas.length;
+  }
+  if (j.offlineAt) { await ytPatch({ live_chat_id: null, page_token: null, status: 'a live acabou' }).catch(() => null); return { ...res, esperarMs: 30_000, status: 'A live do YouTube acabou.' }; }
+  await ytPatch({ page_token: j.nextPageToken?.slice(0, 400) ?? null }).catch(() => null);
+  return { ...res, ativa: true, esperarMs: Math.max(res.esperarMs, j.pollingIntervalMillis ?? 0), status: 'Lendo o chat do YouTube.' };
 }
 const done204 = (res: Res) => { res.status(204); return res.end ? res.end() : res.json({}); };
 /** EventSub: confirma a inscrição, recebe os resgates e anota quando a Twitch desliga a inscrição. */
@@ -829,6 +1004,7 @@ export default async function handler(req: Req, res: Res) {
     const q = req.query ?? {};
     // E7.3: a volta do login da Twitch e os avisos do EventSub não usam o login do site.
     if (req.method === 'GET' && q.twitch === 'volta') return await twitchBack(req, res, q);
+    if (req.method === 'GET' && q.youtube === 'volta') return await youtubeBack(req, res, q);
     const raw = req.method === 'POST' ? await readRaw(req) : '';
     if (req.method === 'POST' && q.twitch === 'evento') return await twitchEvent(req, res, raw);
     let parsed: Record<string, unknown> = {};
@@ -843,6 +1019,8 @@ export default async function handler(req: Req, res: Res) {
       let done = 0, added = 0;
       // Os alertas da live só valem no dia; guarda 30 dias para conferência e apaga o resto.
       await fetch(`${db()!.url}/rest/v1/live_events?created_at=lt.${encodeURIComponent(new Date(Date.now() - 30 * 86_400_000).toISOString())}`, { method: 'DELETE', headers: db()!.headers }).catch(() => null);
+      // O chat do YouTube guardado para o overlay só vale no dia.
+      await fetch(`${db()!.url}/rest/v1/live_chat?created_at=lt.${encodeURIComponent(new Date(Date.now() - 86_400_000).toISOString())}`, { method: 'DELETE', headers: db()!.headers }).catch(() => null);
       for (const a of accounts) { if (Date.now() > until) break; added += await syncOne(a); done += 1; }
       // Aproveita a rotina diária para atualizar os cargos ligados do Discord (sem gastar outra rotina da Vercel).
       // O endereço do site vem da configuração (SITE_URL), não do pedido: a chave da rotina não vai para outro lugar.
@@ -861,13 +1039,30 @@ export default async function handler(req: Req, res: Res) {
     if (!user) return res.status(401).json({ error: 'Entre na sua conta.' });
     if (req.method !== 'POST') return res.status(405).json({ error: 'Use POST.' });
     const body = parsed as { link?: string; value?: string; sync?: boolean; force?: boolean; achievements?: string; twitchCanal?: boolean; twitchSub?: boolean; volta?: string; live?: string; tipo?: string };
+    if (body.live === 'youtube' || body.live === 'youtube-ligar' || body.live === 'youtube-desligar') {
+      const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${user}`))[0];
+      if (!adm?.is_admin) return res.status(403).json({ error: 'Só a administração pode fazer isso.' });
+      if (body.live === 'youtube-ligar') {
+        const r = await youtubeLoginUrl(req, user);
+        if ('error' in r) return res.status(503).json(r);
+        res.setHeader('Set-Cookie', ytCookie(r.nonce, 15 * 60));
+        return res.status(200).json({ url: r.url });
+      }
+      if (body.live === 'youtube-desligar') {
+        await ytPatch({ refresh_cifrado: null, live_chat_id: null, page_token: null, status: 'desligado' }).catch(() => null);
+        ytAcesso = null;
+        return res.status(200).json({ ok: true });
+      }
+      return res.status(200).json(await puxarYoutube(Number((parsed as { intervalo?: unknown }).intervalo) || 12));
+    }
     if (body.live === 'estado' || body.live === 'teste') {
       const adm = (await sel<{ is_admin: boolean }>(`profiles?select=is_admin&id=eq.${user}`))[0];
       if (!adm?.is_admin) return res.status(403).json({ error: 'Só a administração pode fazer isso.' });
       if (body.live === 'teste') {
         const t = TESTES_LIVE[String(body.tipo)];
         if (!t) return res.status(400).json({ error: 'Tipo de alerta desconhecido.' });
-        try { await upsert('live_events', [{ origem: 'teste', tipo: String(body.tipo), ...t }], 'id', true); }
+        const { tipo: tipoReal, origem, extra, ...resto } = t;
+        try { await upsert('live_events', [{ origem: origem ?? 'teste', tipo: tipoReal ?? String(body.tipo), ...resto, ...(extra ? { extra } : {}) }], 'id', true); }
         catch { return res.status(503).json({ error: 'Falta rodar a migração 0082 no Supabase.' }); }
         return res.status(200).json({ ok: true });
       }
@@ -884,7 +1079,10 @@ export default async function handler(req: Req, res: Res) {
           await patch('twitch_channel', 'id=eq.1', { subs }).catch(() => null);
         }
       }
-      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: `${SITE(req)}/api/pontes?twitch=evento` });
+      let yt: YtCanal | null = null, migracao = true;
+      try { yt = await ytLinha(); } catch { migracao = false; }
+      const youtube = { servidor: !!process.env.YOUTUBE_CLIENT_ID, ligado: !!yt?.refresh_cifrado, canal: yt?.titulo ?? null, status: yt?.status ?? null, aoVivo: !!yt?.live_chat_id, migracao };
+      return res.status(200).json({ canal: ch?.broadcaster_login ?? null, status: ch?.sub_status ?? null, subs, twitch: !!process.env.TWITCH_CLIENT_ID, callback: `${SITE(req)}/api/pontes?twitch=evento`, youtube });
     }
     if (body.link === 'twitch' || body.twitchCanal || body.twitchSub) {
       if (body.twitchCanal || body.twitchSub) {

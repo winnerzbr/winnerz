@@ -89,3 +89,26 @@ test('live: os eventos da Twitch viram alertas, e os que não são de alerta fic
   assert.equal(alertaDe('channel.channel_points_custom_reward_redemption.add', { user_name: 'x' }), null);
   assert.equal(alertaDe('channel.follow', {}), null);
 });
+
+test('live (YouTube): cada mensagem do chat vira chat, alerta ou os dois', async () => {
+  const { itemYoutube } = await import('../../api/pontes');
+  const a = { displayName: '@fulana', isChatSponsor: false };
+  assert.deepEqual(itemYoutube({ snippet: { type: 'textMessageEvent', displayMessage: 'oi chat' }, authorDetails: a }), { chat: { quem: '@fulana', texto: 'oi chat', membro: false } });
+  const sc = itemYoutube({ snippet: { type: 'superChatEvent', superChatDetails: { amountMicros: '10000000', amountDisplayString: 'R$ 10,00', userComment: 'vai!' } }, authorDetails: a });
+  assert.deepEqual(sc.alerta, { tipo: 'superchat', quem: '@fulana', valor: 1000, extra: 'R$ 10,00' });
+  assert.equal(sc.chat?.texto, 'vai!');
+  assert.equal(itemYoutube({ snippet: { type: 'newSponsorEvent' }, authorDetails: a }).alerta?.tipo, 'member');
+  assert.deepEqual(itemYoutube({ snippet: { type: 'memberMilestoneChatEvent', memberMilestoneChatDetails: { memberMonth: 6 } }, authorDetails: a }).alerta, { tipo: 'member', quem: '@fulana', valor: 6, extra: null });
+  assert.deepEqual(itemYoutube({ snippet: { type: 'membershipGiftingEvent', membershipGiftingDetails: { giftMembershipsCount: 5 } }, authorDetails: a }).alerta, { tipo: 'gift', quem: '@fulana', valor: 5, extra: null });
+  assert.deepEqual(itemYoutube({ snippet: { type: 'messageDeletedEvent' }, authorDetails: a }), {});
+  assert.deepEqual(itemYoutube({ snippet: { type: 'textMessageEvent', displayMessage: 'x' }, authorDetails: {} }), {});
+});
+
+test('live (YouTube): a chave de renovação cifra e decifra com a chave do servidor', async () => {
+  process.env.SUPABASE_SECRET_KEY ||= 'chave-de-teste';
+  const { cifrar, decifrar } = await import('../../api/pontes');
+  const c = await cifrar('1//segredo-do-google');
+  assert.ok(!c.includes('segredo'));
+  assert.equal(await decifrar(c), '1//segredo-do-google');
+  assert.equal(await decifrar(c.slice(0, -2) + 'xx'), null);
+});

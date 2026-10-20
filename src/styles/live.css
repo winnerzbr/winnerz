@@ -94,6 +94,8 @@
 .lv-alerta__extra { font-family: var(--font-mono); font-size: 24px; font-weight: 500; font-stretch: 100%; color: #C9CED4; white-space: nowrap; }
 .lv-alerta__fala { font-size: 17px; color: #9CEBFF; }
 .lv-alerta__tempo { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--cor); transform-origin: left; animation: lv-esvazia linear both; opacity: 0.7; }
+.lv-alerta.is-saindo { animation: lv-alerta-out 0.45s ease-in both; }
+@keyframes lv-alerta-out { to { opacity: 0; transform: translateY(-30px) scale(0.96); } }
 @keyframes lv-alerta-in { from { opacity: 0; transform: translateY(-30px) scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes lv-esvazia { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 

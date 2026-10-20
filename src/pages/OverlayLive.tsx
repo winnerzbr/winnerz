@@ -139,9 +139,13 @@ function tocarSom(tipo: TipoAlerta) {
   } catch { /* sem som */ }
 }
 /** A fila de alertas: pergunta ao banco a cada 2 s e mostra um de cada vez. */
-function useAlertas(ligado: boolean): LiveEvento | null {
+/** Quanto tempo cada alerta fica na tela (o raid fica mais). */
+export const DURACAO_ALERTA = (tipo: TipoAlerta) => (tipo === 'raid' ? 8500 : 6500);
+const SAIDA_ALERTA = 450;
+function useAlertas(ligado: boolean): { e: LiveEvento; saindo: boolean } | null {
   const [fila, setFila] = useState<LiveEvento[]>([]);
   const [atual, setAtual] = useState<LiveEvento | null>(null);
+  const [saindo, setSaindo] = useState(false);
   const ultimo = useRef<number | null>(null);
   useEffect(() => {
     if (!ligado) return;
@@ -158,29 +162,36 @@ function useAlertas(ligado: boolean): LiveEvento | null {
     const t = setInterval(ler, 2000);
     return () => { vivo = false; clearInterval(t); };
   }, [ligado]);
+  // Pega o próximo da fila quando a tela está livre.
   useEffect(() => {
     if (atual || !fila.length) return;
     const [e, ...resto] = fila;
-    setFila(resto); setAtual(e);
+    setFila(resto); setSaindo(false); setAtual(e);
     if (params().get('som') !== '0') tocarSom(e.tipo);
-    const t = setTimeout(() => setAtual(null), e.tipo === 'raid' ? 8500 : 6500);
-    return () => clearTimeout(t);
   }, [fila, atual]);
-  return atual;
+  // O tempo de cada alerta: fica, sai com animação e libera a tela (o relógio é do alerta, não da fila).
+  useEffect(() => {
+    if (!atual) return;
+    const d = DURACAO_ALERTA(atual.tipo);
+    const t1 = setTimeout(() => setSaindo(true), d - SAIDA_ALERTA);
+    const t2 = setTimeout(() => setAtual(null), d + 250);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [atual]);
+  return atual ? { e: atual, saindo } : null;
 }
-function Alerta({ e }: { e: LiveEvento }) {
+function Alerta({ e, saindo }: { e: LiveEvento; saindo: boolean }) {
   const t = tituloAlerta(e);
   const reacao = REACAO[e.tipo];
   const fala = FALA_ALERTA[e.tipo][e.id % FALA_ALERTA[e.tipo].length];
   return (
-    <div className={`lv-alerta is-${COR[e.tipo]}${e.tipo === 'raid' ? ' is-grande' : ''}`} role="status" key={e.id}>
+    <div className={`lv-alerta is-${COR[e.tipo]}${e.tipo === 'raid' ? ' is-grande' : ''}${saindo ? ' is-saindo' : ''}`} role="status">
       <Figura img="cara-sorriso-confiante" expressao={reacao === 'feliz' ? 'feliz' : reacao} className={`lv-alerta__cara${reacao !== 'feliz' ? ` iam-reage--${reacao}` : ''}`} width={112} height={98} lazy={false} enfeite={false} />
       <span className="lv-alerta__txt">
         <span className="lv-alerta__k">{t.k}</span>
         <span className="lv-alerta__nome">{t.nome}{t.extra && <span className="lv-alerta__extra">{t.extra}</span>}</span>
         <span className="lv-alerta__fala">{fala}</span>
       </span>
-      <i className="lv-alerta__tempo" aria-hidden="true" style={{ animationDuration: e.tipo === 'raid' ? '8.5s' : '6.5s' }} />
+      <i className="lv-alerta__tempo" aria-hidden="true" style={{ animationDuration: `${DURACAO_ALERTA(e.tipo) / 1000}s` }} />
     </div>
   );
 }
@@ -239,7 +250,7 @@ export function OverlayLive({ cena, so, d, sofa }: { cena: CenaLive | null; so: 
   const [agora, setAgora] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setAgora(Date.now()), 1000); return () => clearInterval(t); }, []);
   const live = d?.live ?? null;
-  const alertas = <div className={`lv-alertas${cena === 'conversa' ? ' lv-alertas--conversa' : ''}`}>{alerta && <Alerta e={alerta} />}</div>;
+  const alertas = <div className={`lv-alertas${cena === 'conversa' ? ' lv-alertas--conversa' : ''}`}>{alerta && <Alerta key={alerta.e.id} e={alerta.e} saindo={alerta.saindo} />}</div>;
   const camLado = params().get('cam') === 'esquerda' || live?.camLado === 'esquerda' ? 'esquerda' : 'direita';
   const decorrido = d?.session ? tempo(agora - Date.parse(d.session.startedAt)) : null;
 

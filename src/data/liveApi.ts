@@ -1,5 +1,5 @@
 /**
- * Sistema de live (migração 0082): os alertas da Twitch (e, depois, do YouTube) que o overlay mostra, a Central da live
+ * Sistema de live (migração 0082): os alertas da Twitch e do YouTube que o overlay mostra, a Central da live
  * no Studio (estado do canal, testes) e os textos das cenas. O overlay não tem login: lê os alertas do dia direto do
  * banco (só o tipo, o nome público e o número). Na demonstração, tudo fica neste navegador.
  */

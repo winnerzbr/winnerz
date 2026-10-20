@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { assuntoSensivel, checarFala, numeroAleatorio, parecida, paraVoz, pcmParaWav } from '../../api/iamiguinho';
+import { assuntoSensivel, checarFala, numeroAleatorio, parecida, paraVoz, paraVozFish, pcmParaWav } from '../../api/iamiguinho';
 import { FALAS, preencher, falaDaBiblioteca, respostaDaBiblioteca } from './iamiguinhoFalas';
 
 const ok = (s: string, f = {}, r: string[] = []) => checarFala(s, f, r);
@@ -149,4 +149,10 @@ test('voz: o PCM cru ganha cabeçalho WAV de 16 bits, mono, na taxa pedida', () 
   assert.equal(w.readUInt32LE(24), 24000);
   assert.equal(w.readUInt16LE(34), 16);
   assert.equal(w.readUInt32LE(40), 480);
+});
+
+test('voz (Fish Audio): risada de internet vira a marca [laughing] com risada falada', () => {
+  assert.equal(paraVozFish('Passar ele passa kkkkk'), 'Passar ele passa [laughing] Ha, ha, ha.');
+  assert.equal(paraVozFish('lmao kkk de novo'), '[laughing] Ha, ha, ha. de novo');
+  assert.equal(paraVozFish('Sério, de novo esse buraco?'), 'Sério, de novo esse buraco?');
 });

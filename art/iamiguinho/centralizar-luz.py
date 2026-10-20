@@ -1,3 +1,4 @@
+# FORA DE USO (out/2026): a luz do peito saiu do personagem; o apagar-luz.py tira a luz de todas as poses.
 # IAmiguinho: a luz azul do peito fica no centro do tronco. Nas imagens geradas ela saiu deslocada para um lado; este
 # script acha a luz (o círculo azul-claro cercado de bege), apaga e redesenha no centro, na mesma altura. O centro de
 # cada pose foi medido uma a uma, ampliada com régua: o ponto médio entre as duas juntas dos ombros, conferido com o

@@ -32,7 +32,7 @@ final class Widgets {
         { "descansar", "Descansar", "descansar" },
         { "divertir", "Me divertir", "me divertir" },
         { "avancar", "Avançar", "avançar" },
-        { "desafio", "Desafio", "desafio" },
+        { "desafio", "Um desafio", "desafio" },
     };
 
     private Widgets() {}
@@ -126,6 +126,7 @@ final class Widgets {
     static RemoteViews jornada(Context c) {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_jornada);
         v.setViewVisibility(R.id.wj_chips, View.GONE);
+        v.setViewVisibility(R.id.wj_tiles, View.GONE);
         v.setViewVisibility(R.id.wj_cronometro, View.GONE);
         v.setViewVisibility(R.id.wj_ant, View.GONE);
         v.setViewVisibility(R.id.wj_prox, View.GONE);
@@ -171,21 +172,27 @@ final class Widgets {
                     v.setTextViewText(chips[i], INTENCOES[i][1]);
                     v.setOnClickPendingIntent(chips[i], acao(c, "intencao", INTENCOES[i][0], null));
                 }
-                botao(v, R.id.wj_b2, objetivo.isEmpty() ? "+ Objetivo" : "Objetivo", FolhaActivity.abrir(c, "objetivo"));
+                botao(v, R.id.wj_b2, objetivo.isEmpty() ? "+ Objetivo" : "Objetivo", FolhaActivity.abrir(c, "objetivo", false));
                 botao(v, R.id.wj_b3, "Pular", acao(c, "pular", chaveSessao, null));
                 v.setTextViewText(R.id.wj_resumo, "");
                 return v;
             }
 
             capa(c, v, R.id.wj_capa_caixa, R.id.wj_capa, R.id.wj_capa_txt, ab);
-            v.setTextViewText(R.id.wj_sub, !flash.isEmpty() ? flash : objetivo.isEmpty() ? "Guarde momentos e pontos para voltar enquanto joga." : "Objetivo: " + objetivo);
-            botao(v, R.id.wj_b1, "Momento", FolhaActivity.abrir(c, "momento"));
-            botao(v, R.id.wj_b2, "Ponto", FolhaActivity.abrir(c, "ponto"));
-            botao(v, R.id.wj_b3, "Finalizar", FolhaActivity.abrir(c, "finalizar"));
-            if (objetivo.isEmpty()) {
-                v.setTextViewText(R.id.wj_resumo, "+ Objetivo");
-                v.setOnClickPendingIntent(R.id.wj_resumo, FolhaActivity.abrir(c, "objetivo"));
+            if (!flash.isEmpty()) v.setTextViewText(R.id.wj_sub, flash);
+            else if (!objetivo.isEmpty()) v.setTextViewText(R.id.wj_sub, "Objetivo: " + objetivo);
+            else {
+                v.setTextViewText(R.id.wj_sub, "+ Objetivo pequeno (opcional)");
+                v.setOnClickPendingIntent(R.id.wj_sub, FolhaActivity.abrir(c, "objetivo", false));
             }
+            // Como no site: os dois botões grandes abrem a câmera (foto da TV) e depois a folha com nome e nota.
+            v.setViewVisibility(R.id.wj_tiles, View.VISIBLE);
+            v.setTextViewText(R.id.wj_tile1_txt, "Momento");
+            v.setOnClickPendingIntent(R.id.wj_tile1, FolhaActivity.abrir(c, "momento", true));
+            v.setTextViewText(R.id.wj_tile2_txt, "Voltar aqui");
+            v.setOnClickPendingIntent(R.id.wj_tile2, FolhaActivity.abrir(c, "ponto", true));
+            botao(v, R.id.wj_b1, "Finalizar", FolhaActivity.abrir(c, "finalizar", false));
+            botao(v, R.id.wj_b2, "Anotar sem foto", FolhaActivity.abrir(c, "momento", false));
             return v;
         }
 
@@ -427,7 +434,7 @@ final class Widgets {
             v.setViewVisibility(R.id.wt_rotulo, View.GONE);
             v.setViewVisibility(R.id.wt_cronometro, View.VISIBLE);
             v.setChronometer(R.id.wt_cronometro, SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - inicio), null, true);
-            v.setOnClickPendingIntent(R.id.wt_raiz, FolhaActivity.abrir(c, "finalizar"));
+            v.setOnClickPendingIntent(R.id.wt_raiz, FolhaActivity.abrir(c, "finalizar", false));
             return v;
         }
         JSONObject j = jornadaDe(p);

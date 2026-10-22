@@ -50,12 +50,14 @@ public class FolhaActivity extends Activity {
     static final String[] SENTIMENTOS = { "Adorei", "Quero continuar", "Foi suficiente por hoje", "Não encaixou" };
     private static final int FOTO = 41, GALERIA = 42, VOZ = 43;
 
-    static PendingIntent abrir(Context c, String modo) {
+    /** camera = abre a câmera na hora (foto da TV), como os botões grandes do site no celular. */
+    static PendingIntent abrir(Context c, String modo, boolean camera) {
         Intent i = new Intent(c, FolhaActivity.class);
-        i.setData(Uri.parse("winnerz-folha://" + modo));
+        i.setData(Uri.parse("winnerz-folha://" + modo + (camera ? "/camera" : "")));
         i.putExtra("modo", modo);
+        i.putExtra("camera", camera);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        return PendingIntent.getActivity(c, 900 + Math.abs(modo.hashCode() % 90), i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        return PendingIntent.getActivity(c, 900 + Math.abs((modo + camera).hashCode() % 90), i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     private String modo = "momento";
@@ -65,6 +67,8 @@ public class FolhaActivity extends Activity {
     private TextView guardar, rotuloProgresso;
     private Bitmap foto;
     private File arquivoFoto;
+    private Uri fonteFoto;
+    private TextView botaoFoto;
     private EditText falandoEm;
     private String sentimento = "", objetivoFeito = "", intencaoFeita = "";
     private int progresso = -1;
@@ -205,7 +209,26 @@ public class FolhaActivity extends Activity {
             return;
         }
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE | WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+        boolean abrirCamera = getIntent().getBooleanExtra("camera", false);
+        if (salvo != null) {
+            // Voltou depois de o Android fechar a folha enquanto a câmera estava aberta.
+            modo = salvo.getString("modo", modo);
+            String a = salvo.getString("arquivo"), f = salvo.getString("fonte");
+            if (a != null) arquivoFoto = new File(a);
+            if (f != null) fonteFoto = Uri.parse(f);
+            abrirCamera = false;
+        }
         montar();
+        if (fonteFoto != null) mostrarFoto(fonteFoto);
+        if (abrirCamera && ("momento".equals(modo) || "ponto".equals(modo))) tirarFoto();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle b) {
+        super.onSaveInstanceState(b);
+        b.putString("modo", modo);
+        if (arquivoFoto != null) b.putString("arquivo", arquivoFoto.getAbsolutePath());
+        if (fonteFoto != null) b.putString("fonte", fonteFoto.toString());
     }
 
     private void montar() {
@@ -237,7 +260,7 @@ public class FolhaActivity extends Activity {
         long minutos = Math.max(1, (System.currentTimeMillis() - inicio) / 60000);
         String titulo;
         switch (modo) {
-            case "ponto": titulo = "Ponto para voltar"; break;
+            case "ponto": titulo = "Quero voltar aqui"; break;
             case "objetivo": titulo = "Objetivo pequeno"; break;
             case "finalizar": titulo = "Fim da sessão · " + Painel.horas(minutos); break;
             default: titulo = "Momento"; break;
@@ -260,10 +283,9 @@ public class FolhaActivity extends Activity {
         f.addView(jogo);
 
         switch (modo) {
-            case "ponto": montarPonto(f); break;
             case "objetivo": montarObjetivo(f); break;
             case "finalizar": montarFinalizar(f); break;
-            default: montarMomento(f); break;
+            default: montarCaptura(f); break;
         }
 
         // Botões
@@ -284,7 +306,7 @@ public class FolhaActivity extends Activity {
         LinearLayout.LayoutParams lc = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lc.rightMargin = dp(8);
         pe.addView(cancelar, lc);
-        guardar = botao("finalizar".equals(modo) ? "Finalizar sessão" : "Guardar", true);
+        guardar = botao("finalizar".equals(modo) ? "Finalizar sessão" : "ponto".equals(modo) ? "Criar ponto" : "Guardar momento", true);
         guardar.setOnClickListener(v -> enviar());
         pe.addView(guardar);
         f.addView(pe);
@@ -307,36 +329,66 @@ public class FolhaActivity extends Activity {
         setContentView(raiz);
     }
 
-    private void montarMomento(LinearLayout f) {
-        espaco(f, 14);
+    /** Momento e "Quero voltar aqui" (o ponto): foto opcional, nome e nota. Dá para trocar o tipo ali mesmo. */
+    private void montarCaptura(LinearLayout f) {
+        final boolean ponto = "ponto".equals(modo);
+        espaco(f, 12);
+        LinearLayout tipo = new LinearLayout(this);
+        String[][] tipos = { { "momento", "Momento" }, { "ponto", "Quero voltar aqui" } };
+        for (int i = 0; i < tipos.length; i++) {
+            final String id = tipos[i][0];
+            boolean on = id.equals(modo);
+            TextView t = texto(tipos[i][1], 13.5f, on ? 0xFF07080A : 0xFFC9CED4, false);
+            t.setTypeface(Typeface.DEFAULT_BOLD);
+            t.setBackgroundResource(on ? R.drawable.chip_on : R.drawable.chip);
+            t.setGravity(Gravity.CENTER_VERTICAL);
+            t.setPadding(dp(10), 0, dp(14), 0);
+            t.setMinHeight(dp(38));
+            t.setCompoundDrawablesRelativeWithIntrinsicBounds("momento".equals(id) ? (on ? R.drawable.ic_camera_escuro : R.drawable.ic_camera_claro) : (on ? R.drawable.ic_pin_escuro : R.drawable.ic_pin_claro), 0, 0, 0);
+            t.setCompoundDrawablePadding(dp(7));
+            t.setOnClickListener(v -> trocarModo(id));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+            if (i == 0) lp.rightMargin = dp(6);
+            tipo.addView(t, lp);
+        }
+        f.addView(tipo);
+
+        espaco(f, 12);
+        previa = new ImageView(this);
+        previa.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        previa.setVisibility(foto == null ? View.GONE : View.VISIBLE);
+        if (foto != null) previa.setImageBitmap(foto);
+        previa.setContentDescription("Sua foto");
+        previa.setOnClickListener(v -> tirarFoto());
+        LinearLayout.LayoutParams lpv = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(170));
+        lpv.bottomMargin = dp(8);
+        f.addView(previa, lpv);
         LinearLayout fotos = new LinearLayout(this);
-        TextView camera = botao("Tirar foto", false);
-        camera.setOnClickListener(v -> tirarFoto());
+        botaoFoto = botao(foto == null ? "Tirar foto" : "Trocar foto", false);
+        botaoFoto.setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.ic_camera_claro, 0, 0, 0);
+        botaoFoto.setCompoundDrawablePadding(dp(8));
+        botaoFoto.setOnClickListener(v -> tirarFoto());
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.rightMargin = dp(8);
-        fotos.addView(camera, lp);
+        fotos.addView(botaoFoto, lp);
         TextView galeria = botao("Galeria", false);
         galeria.setOnClickListener(v -> escolherFoto());
         fotos.addView(galeria);
         f.addView(fotos);
-        previa = new ImageView(this);
-        previa.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        previa.setVisibility(View.GONE);
-        previa.setContentDescription("Foto do momento");
-        LinearLayout.LayoutParams lpv = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(150));
-        lpv.topMargin = dp(10);
-        f.addView(previa, lpv);
-        nome = campo("A ponte quebrou", false);
-        bloco(f, "Nome", nome);
-        nota = campo("O que aconteceu aqui…", true);
-        bloco(f, "Nota (opcional)", nota);
+
+        String n = v(nome), o = v(nota);
+        nome = campo(ponto ? "Ex.: Quarto trancado, segundo andar" : "Ex.: A porta iluminada", false);
+        nome.setText(n);
+        bloco(f, ponto ? "Que lugar é esse? (opcional)" : "Dê um nome (opcional)", nome);
+        nota = campo(ponto ? "Ex.: preciso da chave que fica no cofre" : "O que você quer lembrar deste instante?", true);
+        nota.setText(o);
+        bloco(f, ponto ? "Por que voltar? (opcional)" : "Nota (opcional)", nota);
     }
 
-    private void montarPonto(LinearLayout f) {
-        nome = campo("O baú trancado perto do elevador", false);
-        bloco(f, "O que é para voltar depois?", nome);
-        nota = campo("Precisa da chave do chefe…", true);
-        bloco(f, "Nota (opcional)", nota);
+    private void trocarModo(String novo) {
+        if (novo.equals(modo)) return;
+        modo = novo;
+        montar();
     }
 
     private void montarObjetivo(LinearLayout f) {
@@ -451,13 +503,18 @@ public class FolhaActivity extends Activity {
         if (pedido == FOTO && arquivoFoto != null && arquivoFoto.length() > 0) u = Uri.fromFile(arquivoFoto);
         if (pedido == GALERIA && dados != null) u = dados.getData();
         if (u == null) return;
-        final Uri fonte = u;
+        fonteFoto = u;
+        mostrarFoto(u);
+    }
+
+    private void mostrarFoto(Uri fonte) {
         new Thread(() -> {
             Bitmap b = carregar(fonte);
             runOnUiThread(() -> {
                 if (b == null) { Toast.makeText(this, "Não deu para abrir essa foto.", Toast.LENGTH_SHORT).show(); return; }
                 foto = b;
                 if (previa != null) { previa.setImageBitmap(b); previa.setVisibility(View.VISIBLE); }
+                if (botaoFoto != null) botaoFoto.setText("Trocar foto");
             });
         }).start();
     }
@@ -509,8 +566,6 @@ public class FolhaActivity extends Activity {
             switch (modo) {
                 case "momento":
                 case "ponto":
-                    if ("ponto".equals(modo) && v(nome).isEmpty()) { nome.setError("Diga o que é para voltar"); return; }
-                    if ("momento".equals(modo) && v(nome).isEmpty() && v(nota).isEmpty() && foto == null) { nome.setError("Dê um nome ou escolha uma foto"); return; }
                     corpo.put("acao", "momento").put("tipo", modo).put("titulo", v(nome)).put("nota", v(nota));
                     break;
                 case "objetivo":

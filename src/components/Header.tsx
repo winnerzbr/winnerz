@@ -194,6 +194,11 @@ export function TabBar() {
               </>
             )}
           </div>
+          <nav className="moremenu__links" aria-label="Sobre o WinnerZ">
+            <Link to="/sobre">Sobre</Link>
+            <Link to="/privacidade">Privacidade</Link>
+            <Link to="/regras">Regras</Link>
+          </nav>
         </Sheet>
       )}
     </>

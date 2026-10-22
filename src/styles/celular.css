@@ -1,0 +1,73 @@
+/* WinnerZ no celular (site e app): revisão do layout em telas estreitas.
+   Vem por último. Regra de ouro: nada passa da largura da tela. Quando algo passava, o navegador do celular
+   reduzia a página ou pulava a rolagem (era o que fazia o álbum voltar para o topo ao virar a página). */
+
+/* ---- Nada mais largo que a tela ---------------------------------------------------------- */
+html, body { overflow-x: clip; }
+/* fieldset nasce com largura mínima do conteúdo e empurra a página; aqui ele encolhe como qualquer bloco. */
+fieldset { min-width: 0; }
+@supports not (overflow-x: clip) { html, body { overflow-x: hidden; } }
+
+/* Grades de uma coluna: "1fr" deixa o conteúdo esticar a coluna além da tela; minmax(0, 1fr) não deixa. */
+@media (max-width: 960px) {
+  .cm-view__grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 900px) {
+  .cm-door, .sofa__grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .live-central, .sofa, .live-central__bloco, .lw, .lw__bloco, .sofa__lado, .sofa__ajustes { grid-template-columns: minmax(0, 1fr); }
+  select.field, select { max-width: 100%; min-width: 0; }
+  .sofa__head > *, .live-central__head > *, .sofa__tela > *, .sofa__acoes > * { min-width: 0; }
+  .sofa__fonte, .sofa__acoes, .sofa__escrever { flex-wrap: wrap; }
+  .sofa__escrever > input, .sofa__escrever > textarea { min-width: 0; flex: 1 1 160px; }
+  .people__tabs { align-self: stretch; max-width: 100%; }
+}
+
+/* ---- Celular ---------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  /* Botões: o texto nunca quebra dentro da peça cortada; quem quebra de linha é a fileira de botões. */
+  .btn { white-space: nowrap; }
+  :is([class*='__actions'], [class*='__acts'], [class*='-actions'], .row-btns) { flex-wrap: wrap; }
+  .wish-card__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  /* Selo de spoiler com nota longa: corta com reticências em vez de passar da tela. */
+  .cm-chip { max-width: 100%; min-width: 0; }
+  .cm-chip__note { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Campos e botão lado a lado (propor troca, convite, busca curta): o campo encolhe, o botão não. */
+  :is(form, div) > input:not([type='checkbox']):not([type='radio']):not([type='range']) { min-width: 0; }
+
+  /* Grupos de opções (.seg): nunca mais largos que a tela; rolam de lado. */
+  .seg { max-width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+
+  /* Abas do Álbum: maiores para o dedo. */
+  .alb-tabs button, .alb-tabs a { min-height: 40px; font-size: 13px; padding-inline: 12px; }
+
+  /* Barra de baixo: nomes longos não estouram a coluna. */
+  .tabbar__item { min-width: 0; overflow: hidden; white-space: nowrap; }
+
+  /* Tabelas e blocos de código largos rolam dentro de si. */
+  table { display: block; max-width: 100%; overflow-x: auto; }
+  pre { max-width: 100%; overflow-x: auto; }
+}
+
+/* Telas bem estreitas (320–360 px): topo e barra mais compactos. */
+@media (max-width: 370px) {
+  .hdr-search__label { display: none; }
+  .hdr-search svg { display: block; }
+  .site-header__tools { gap: 2px; }
+  .tabbar__item { font-size: 9.5px; }
+}
+
+/* ---- Dentro do app de celular ----------------------------------------------------------- */
+/* O rodapé do site (Sobre, Privacidade, Regras) também está no menu Mais; no app ele só ocupava espaço. */
+.no-app .site-footer { display: none; }
+.no-app main { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+/* Toque sem o clarão azul do Android e sem o menu de "copiar" ao segurar botões. */
+.no-app { -webkit-tap-highlight-color: transparent; }
+.no-app :is(button, .btn, .tabbar__item, a.btn) { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+/* Menu Mais: os links do rodapé, discretos, no fim. */
+.moremenu__links { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 16px 12px 6px; margin-top: 8px; border-top: 1px solid var(--line); }
+.moremenu__links a { color: var(--muted); font-size: 14px; text-decoration: none; min-height: 32px; display: inline-flex; align-items: center; }
+.moremenu__links a:hover { color: var(--ink); }

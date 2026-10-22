@@ -20,6 +20,7 @@ import { refreshNews } from '../data/communityApi';
 import { refreshNotifs } from '../data/notifApi';
 import { MODOS } from '../lib/iamiguinho';
 import { FEATURES } from '../lib/features';
+import { noApp, avisosApp, salvarAvisosApp, permissaoAvisos, pedirPermissaoAvisos, type AvisosApp } from '../lib/nativo';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -193,6 +194,7 @@ export function Preferences() {
       <BridgeSettings />
       <DiscordSettings />
       <CommunitySettings />
+      {noApp() && <AppNotifSettings />}
       <NotifSettings />
 
       <section className="prefs__section" aria-labelledby="perfil">
@@ -318,6 +320,38 @@ function CommunitySettings() {
         </select>
       </label>
       {row('visto', true, 'Mostrar “visto”', 'Quem conversa com você vê quando você leu. Desligado, você também não vê o “visto” dos outros.')}
+    </section>
+  );
+}
+
+/** No app de celular: os avisos que o próprio aparelho mostra (Radar e sessão aberta). Ficam guardados neste celular. */
+function AppNotifSettings() {
+  const [a, setA] = useState<AvisosApp>(avisosApp);
+  const [perm, setPerm] = useState<'granted' | 'denied' | 'prompt' | null>(null);
+  useEffect(() => { void permissaoAvisos().then(setPerm); }, []);
+  const set = (patch: Partial<AvisosApp>) => { const n = { ...a, ...patch }; setA(n); salvarAvisosApp(n); };
+  const row = (k: keyof AvisosApp, title: string, hint: string) => (
+    <label className="motion motion--switch" data-on={a[k]} key={k}>
+      <input type="checkbox" role="switch" className="switch" checked={a[k]} onChange={(e) => set({ [k]: e.target.checked })} />
+      <span><strong>{title}</strong><span className="muted">{hint}</span></span>
+    </label>
+  );
+  return (
+    <section aria-labelledby="avisos-celular" className="prefs__section">
+      <h2 id="avisos-celular" className="t">Avisos neste celular</h2>
+      <p className="muted prefs__p">Chegam na barra do celular, mesmo com o app fechado. Valem só para este aparelho.</p>
+      {perm !== 'granted' && (
+        <p className="prefs__p">
+          <button className="btn primary sm" onClick={() => void pedirPermissaoAvisos().then((ok) => { setPerm(ok ? 'granted' : 'denied'); if (ok) salvarAvisosApp(a); })}>Permitir avisos</button>
+          {perm === 'denied' && <span className="muted"> Se não aparecer o pedido, libere os avisos do WinnerZ nos ajustes do celular.</span>}
+        </p>
+      )}
+      <h3 className="prefs__sub">Radar</h3>
+      {row('dia1', 'Um dia antes', 'Às 10h da véspera do lançamento de um jogo do seu Radar.')}
+      {row('nodia', 'No dia', 'Às 9h do dia em que o jogo sai.')}
+      {row('data', 'Mudou a data', 'Quando um jogo do seu Radar for adiado, ganhar data ou for cancelado.')}
+      <h3 className="prefs__sub">Jornada</h3>
+      {row('sessao', 'Sessão aberta na barra', 'Enquanto a sessão estiver aberta, ela fica fixa na barra de avisos, com o tempo correndo e os botões Guardar momento e Finalizar.')}
     </section>
   );
 }

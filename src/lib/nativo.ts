@@ -5,12 +5,13 @@
  * - widgets da Jornada e do Radar na tela inicial (o site manda os dados prontos para exibir);
  * - a sessão aberta fixa na barra de avisos, com o tempo correndo;
  * - avisos do Radar agendados no próprio celular (um dia antes e no dia), sem servidor;
- * - toques nos widgets e nos avisos abrem o app já na tela certa.
+ * - toques nos widgets e nos avisos abrem o app já na tela certa;
+ * - os widgets fazem a sessão inteira (e mais) sem abrir o site, com a "chave do app" (app_parear, migração 0090).
  *
  * A ponte com o app é a do próprio Capacitor (window.Capacitor, que o app injeta na página):
  * o site não carrega nenhuma biblioteca a mais por causa disso.
  */
-import { getState, subscribe, openSession, lastNote } from '../data/store';
+import { getState, subscribe, openSession, lastNote, reloadStore } from '../data/store';
 import type { State, Game } from '../data/types';
 import { navigate } from './router';
 import { loadRadar, daysUntil, type RadarInfo } from './radar';
@@ -69,6 +70,7 @@ export function salvarAvisosApp(a: AvisosApp) {
   ultimoRadar = '';
   void agendarRadar(true);
   void sincronizarSessao(true);
+  void chamar('WinnerzNativo', 'preferencias', { barra: a.sessao });
 }
 export async function pedirPermissaoAvisos(): Promise<boolean> {
   const r = await chamar<{ display?: string }>('LocalNotifications', 'requestPermissions');
@@ -291,6 +293,45 @@ export async function registrarPush(pedir = false): Promise<'ok' | 'sem' | 'nega
   return 'ok';
 }
 
+// ── Chave do app: os widgets agem sozinhos (jogar, momentos, finalizar, jogatina, avisos) ─────────────
+const CHAVE_DONO = 'wz.app.chaveDe';
+let pareando = false;
+/** Com login, entrega ao Android uma chave só dos widgets (o banco guarda só o resumo dela). */
+async function parearApp() {
+  const conta = getState().profile?.id;
+  if (pareando || !conta || plataformaApp() !== 'android') return;
+  const est = await chamar<{ ligada?: boolean }>('WinnerzNativo', 'estado');
+  if (!est) return;
+  let dono = '';
+  try { dono = localStorage.getItem(CHAVE_DONO) ?? ''; } catch { /* sem armazenamento */ }
+  if (est.ligada && dono === conta) return;
+  pareando = true;
+  try {
+    if (est.ligada) await esquecerApp();
+    const sb = await banco();
+    if (!sb) return;
+    const { data, error } = await sb.rpc('app_parear');
+    if (error || typeof data !== 'string') { if (error) console.warn('[app] app_parear', error.message); return; }
+    await chamar('WinnerzNativo', 'configurar', { chave: data, site: location.origin, barra: avisosApp().sessao });
+    try { localStorage.setItem(CHAVE_DONO, conta); } catch { /* sem armazenamento */ }
+  } finally { pareando = false; }
+}
+/** Saiu da conta: o celular esquece a chave e ela deixa de valer no servidor. */
+async function esquecerApp() {
+  const r = await chamar<{ chave?: string }>('WinnerzNativo', 'esquecer');
+  try { localStorage.removeItem(CHAVE_DONO); } catch { /* sem armazenamento */ }
+  if (r?.chave && /^[0-9a-f]{64}$/.test(r.chave)) {
+    try { await fetch('/api/app', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-winnerz-chave': r.chave }, body: '{"acao":"esquecer"}' }); } catch { /* sem internet: a chave fica sem uso */ }
+  }
+}
+/** Voltou para o app depois de usar os widgets (sessão aberta ou guardada por lá): carrega o estado novo. */
+let acaoVista = Date.now();
+async function conferirAcoesDosWidgets() {
+  const est = await chamar<{ ultimaAcao?: number }>('WinnerzNativo', 'estado');
+  const t = Number(est?.ultimaAcao ?? 0);
+  if (t > acaoVista) { acaoVista = t; await reloadStore(); }
+}
+
 // ── Início ──────────────────────────────────────────────────────────────────────
 let iniciado = false;
 export function iniciarNativo() {
@@ -325,8 +366,8 @@ export function iniciarNativo() {
     const atual = getState().profile?.id ?? '';
     if (atual !== conta) {
       const antes = conta; conta = atual;
-      if (atual) void registrarPush(false);
-      else if (antes) void apagarToken();
+      if (atual) { void registrarPush(false); void parearApp(); }
+      else if (antes) { void apagarToken(); void esquecerApp(); }
     }
     clearTimeout(espera);
     espera = setTimeout(async () => {
@@ -343,5 +384,5 @@ export function iniciarNativo() {
   // As datas do Radar mudam fora do app: confere de novo a cada 6 horas e quando o app volta para a frente.
   const reconferir = () => { radarChave = ''; aoMudar(); };
   setInterval(reconferir, 6 * 3600 * 1000);
-  ouvir('App', 'appStateChange', (d) => { if ((d as { isActive?: boolean }).isActive) reconferir(); });
+  ouvir('App', 'appStateChange', (d) => { if ((d as { isActive?: boolean }).isActive) { reconferir(); void conferirAcoesDosWidgets(); } });
 }

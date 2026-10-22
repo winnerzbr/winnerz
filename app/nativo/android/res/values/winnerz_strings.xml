@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="wz_widget_jornada_desc">O jogo atual, o seu recado e um toque para continuar.</string>
+    <string name="wz_widget_jornada_desc">Jornada: o jogo atual e a sessão inteira (jogar, momentos, pontos, finalizar) sem abrir o app.</string>
     <string name="wz_widget_radar_desc">Os próximos lançamentos que você acompanha no Radar.</string>
+    <string name="wz_widget_jogar_hoje_desc">Uma sugestão da sua estante para hoje, com o motivo.</string>
+    <string name="wz_widget_semana_desc">Sua semana de jogo: horas, sessões e os dias em que você jogou.</string>
+    <string name="wz_widget_jogatina_desc">A próxima jogatina: quando é, quem vai, e responder ali mesmo.</string>
+    <string name="wz_widget_atalho_desc">Um toque abre a sessão do seu jogo; com ela aberta, mostra o tempo.</string>
+    <string name="wz_widget_album_desc">Pacotes esperando e quanto falta para completar o álbum.</string>
+    <string name="wz_widget_awards_desc">A contagem do WinnerZ Awards: votação e revelação.</string>
+    <string name="wz_widget_avisos_desc">Os últimos avisos do sino, e marcar como lidos.</string>
+    <string name="wz_widget_live_desc">A live do WinnerZ: quando está no ar, o convite para assistir.</string>
 </resources>

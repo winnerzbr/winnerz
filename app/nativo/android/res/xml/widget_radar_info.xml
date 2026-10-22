@@ -8,7 +8,7 @@
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"
     android:initialLayout="@layout/widget_radar"
-    android:previewLayout="@layout/widget_radar"
+    android:previewImage="@drawable/preview_radar"
     android:description="@string/wz_widget_radar_desc"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen" />

@@ -1,111 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Widget da Jornada no estilo Fresta: peça escura com o canto cortado, traço no rótulo, botão com lasca. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/wj_raiz"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/fundo_widget"
-    android:orientation="vertical"
-    android:paddingStart="18dp"
-    android:paddingTop="14dp"
-    android:paddingEnd="18dp"
-    android:paddingBottom="14dp">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/wj_traco"
-            android:layout_width="6dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/traco"
-            android:importantForAccessibility="no" />
-
-        <TextView
-            android:id="@+id/wj_rotulo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="sans-serif-medium"
-            android:text="Jornada"
-            android:textColor="#9AA1AA"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/wj_quando"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#9AA1AA"
-            android:textSize="12sp" />
-
-        <Chronometer
-            android:id="@+id/wj_cronometro"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-condensed"
-            android:textColor="#E6E9ED"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
+    android:id="@+id/wj_raiz" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/fundo_widget" android:orientation="vertical"
+    android:paddingStart="16dp" android:paddingTop="12dp" android:paddingEnd="16dp" android:paddingBottom="12dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+        <ImageView android:id="@+id/wj_traco" android:layout_width="6dp" android:layout_height="14dp" android:layout_marginEnd="8dp" android:src="@drawable/traco" android:importantForAccessibility="no" />
+        <TextView android:id="@+id/wj_rotulo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:ellipsize="end" android:fontFamily="sans-serif-medium" android:maxLines="1" android:textColor="#9AA1AA" android:textSize="12.5sp" />
+        <TextView android:id="@+id/wj_canto" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:maxLines="1" android:textColor="#9AA1AA" android:textSize="12sp" />
+        <Chronometer android:id="@+id/wj_cronometro" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:fontFamily="sans-serif-condensed" android:textColor="#E6E9ED" android:textSize="20sp" android:textStyle="bold" android:visibility="gone" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/wj_titulo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:ellipsize="end"
-        android:fontFamily="sans-serif-condensed"
-        android:maxLines="1"
-        android:text="Abra o app para ver sua Jornada aqui."
-        android:textColor="#E6E9ED"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/wj_recado"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:textColor="#9AA1AA"
-        android:textSize="13sp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:gravity="bottom|center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/wj_botao"
-            android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:background="@drawable/botao_principal"
-            android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="36dp"
-            android:text="Continuar"
-            android:textColor="#07080A"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/wj_resumo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp"
-            android:gravity="end"
-            android:maxLines="1"
-            android:textColor="#9AA1AA"
-            android:textSize="12sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:gravity="center_vertical" android:orientation="horizontal">
+        <FrameLayout android:id="@+id/wj_capa_caixa" android:layout_width="42dp" android:layout_height="56dp" android:layout_marginEnd="11dp">
+            <ImageView android:id="@+id/wj_capa" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/capa_vazia" android:importantForAccessibility="no" />
+            <TextView android:id="@+id/wj_capa_txt" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="bottom|end" android:padding="5dp" android:textColor="#9AA1AA" android:textSize="10sp" android:textStyle="bold" />
+        </FrameLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/wj_titulo" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:fontFamily="sans-serif-condensed" android:maxLines="1" android:text="Jornada" android:textColor="#E6E9ED" android:textSize="17sp" android:textStyle="bold" />
+            <TextView android:id="@+id/wj_sub" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:ellipsize="end" android:maxLines="2" android:textColor="#9AA1AA" android:textSize="12.5sp" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/wj_chips" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:orientation="horizontal" android:visibility="gone">
+        <TextView android:id="@+id/wj_chip1" android:layout_width="0dp" android:layout_height="28dp" android:layout_weight="1" android:layout_marginEnd="5dp" android:background="@drawable/chip" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="8dp" android:textColor="#C9CED4" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
+        <TextView android:id="@+id/wj_chip2" android:layout_width="0dp" android:layout_height="28dp" android:layout_weight="1" android:layout_marginEnd="5dp" android:background="@drawable/chip" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="8dp" android:textColor="#C9CED4" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
+        <TextView android:id="@+id/wj_chip3" android:layout_width="0dp" android:layout_height="28dp" android:layout_weight="1" android:layout_marginEnd="5dp" android:background="@drawable/chip" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="8dp" android:textColor="#C9CED4" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
+        <TextView android:id="@+id/wj_chip4" android:layout_width="0dp" android:layout_height="28dp" android:layout_weight="1" android:background="@drawable/chip" android:gravity="center_vertical" android:maxLines="1" android:ellipsize="end" android:paddingStart="8dp" android:paddingEnd="8dp" android:textColor="#C9CED4" android:textSize="12sp" android:fontFamily="sans-serif-medium" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:minHeight="4dp" android:orientation="horizontal" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+        <TextView android:id="@+id/wj_b1" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginEnd="6dp" android:background="@drawable/botao_principal" android:gravity="center_vertical" android:maxLines="1" android:paddingStart="12dp" android:paddingEnd="30dp" android:text="" android:textColor="#07080A" android:textSize="13sp" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/wj_b2" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginEnd="6dp" android:background="@drawable/botao_sec" android:gravity="center_vertical" android:maxLines="1" android:paddingStart="12dp" android:paddingEnd="18dp" android:text="" android:textColor="#E6E9ED" android:textSize="13sp" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/wj_b3" android:layout_width="wrap_content" android:layout_height="32dp" android:layout_marginEnd="6dp" android:background="@drawable/botao_sec" android:gravity="center_vertical" android:maxLines="1" android:paddingStart="12dp" android:paddingEnd="18dp" android:text="" android:textColor="#E6E9ED" android:textSize="13sp" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/wj_ant" android:layout_width="34dp" android:layout_height="32dp" android:layout_marginEnd="5dp" android:background="@drawable/botao_quadrado" android:contentDescription="Jogo anterior" android:gravity="center" android:paddingEnd="5dp" android:text="‹" android:textColor="#E6E9ED" android:textSize="18sp" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/wj_prox" android:layout_width="34dp" android:layout_height="32dp" android:background="@drawable/botao_quadrado" android:contentDescription="Próximo jogo" android:gravity="center" android:paddingEnd="5dp" android:text="›" android:textColor="#E6E9ED" android:textSize="18sp" android:textStyle="bold" android:visibility="gone" />
+        <TextView android:id="@+id/wj_resumo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:gravity="end" android:maxLines="1" android:textColor="#9AA1AA" android:textSize="12sp" />
     </LinearLayout>
 </LinearLayout>

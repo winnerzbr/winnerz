@@ -17,6 +17,7 @@ import './styles/tradutor.css';
 import './styles/sofa.css';
 import './styles/tv.css';
 import './styles/live.css';
+import './styles/celular.css';
 
 
 async function boot() {

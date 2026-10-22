@@ -18,6 +18,11 @@ function copiar(de, para) {
 }
 copiar(path.join(nativo, 'java'), path.join(main, 'java'));
 copiar(path.join(nativo, 'res'), path.join(main, 'res'));
+// Firebase (avisos da comunidade): o arquivo de configuração do app Android, baixado no console do Firebase.
+// Não é segredo (vai dentro do app de qualquer jeito); sem ele, o app funciona e só não recebe avisos do servidor.
+const gs = path.join(nativo, 'google-services.json');
+if (fs.existsSync(gs)) { fs.copyFileSync(gs, path.join(raiz, 'android', 'app', 'google-services.json')); console.log('Firebase: google-services.json aplicado.'); }
+else console.log('Firebase: sem google-services.json (avisos da comunidade desligados neste build).');
 
 // ── AndroidManifest: widgets e permissão de avisos ──
 const mf = path.join(main, 'AndroidManifest.xml');
@@ -31,6 +36,14 @@ const receptor = (classe, rotulo, info) => `
         </receiver>`;
 if (!m.includes('.JornadaWidget')) {
   m = m.replace('</application>', `${receptor('JornadaWidget', 'WinnerZ · Jornada', 'widget_jornada_info')}${receptor('RadarWidget', 'WinnerZ · Radar', 'widget_radar_info')}
+    </application>`);
+}
+// Ícone e cor padrão dos avisos que vêm do Firebase.
+if (!m.includes('default_notification_icon')) {
+  m = m.replace('</application>', `
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_winnerz" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/wz_dourado" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="comunidade" />
     </application>`);
 }
 if (!m.includes('android.permission.POST_NOTIFICATIONS')) {

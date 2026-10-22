@@ -5,7 +5,11 @@
   "server": {
     "url": "https://www.winnerz.com.br",
     "errorPath": "erro.html",
-    "allowNavigation": ["www.winnerz.com.br", "winnerz.com.br", "*.supabase.co"]
+    "allowNavigation": [
+      "www.winnerz.com.br",
+      "winnerz.com.br",
+      "*.supabase.co"
+    ]
   },
   "android": {
     "backgroundColor": "#07080a"
@@ -28,6 +32,13 @@
     "LocalNotifications": {
       "smallIcon": "ic_stat_winnerz",
       "iconColor": "#E2BE84"
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     }
   }
 }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lugar da capa quando ela ainda não chegou: grafite com a quina de baixo cortada. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="42dp" android:height="56dp" android:viewportWidth="42" android:viewportHeight="56">
+    <path android:fillColor="#FF262A30" android:pathData="M0,0 L42,0 L42,56 L10,56 L0,46 Z" />
+</vector>

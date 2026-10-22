@@ -1,13 +1,10 @@
 package br.com.winnerz.app;
 
-import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.widget.RemoteViews;
 
-/** Widget da Jornada: o jogo atual, o seu recado e um toque para continuar (ou o tempo da sessão aberta). */
-public class JornadaWidget extends AppWidgetProvider {
+/** Jornada: o jogo atual e a sessão inteira (jogar, momentos, pontos, finalizar) sem abrir o app. */
+public class JornadaWidget extends WidgetBase {
     @Override
-    public void onUpdate(Context c, AppWidgetManager m, int[] ids) {
-        for (int id : ids) m.updateAppWidget(id, Widgets.jornada(c));
-    }
+    RemoteViews montar(Context c) { return Widgets.jornada(c); }
 }

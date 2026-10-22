@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/wt_raiz" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/fundo_atalho">
+    <ImageView android:id="@+id/wt_capa" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no" />
+    <ImageView android:id="@+id/wt_sombra" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/sombra_baixo" android:scaleType="fitXY" android:importantForAccessibility="no" />
+    <ImageView android:id="@+id/wt_traco" android:layout_width="6dp" android:layout_height="14dp" android:layout_gravity="top|start" android:layout_margin="9dp" android:src="@drawable/traco_agora" android:visibility="gone" android:importantForAccessibility="no" />
+    <Chronometer android:id="@+id/wt_cronometro" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|start" android:layout_margin="9dp" android:fontFamily="sans-serif-condensed" android:textColor="#E6E9ED" android:textSize="17sp" android:textStyle="bold" android:visibility="gone" />
+    <TextView android:id="@+id/wt_rotulo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|start" android:layout_margin="9dp" android:maxLines="1" android:textColor="#E6E9ED" android:textSize="12sp" android:textStyle="bold" />
+</FrameLayout>

@@ -34,9 +34,36 @@ const receptor = (classe, rotulo, info) => `
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/${info}" />
         </receiver>`;
-if (!m.includes('.JornadaWidget')) {
-  m = m.replace('</application>', `${receptor('JornadaWidget', 'WinnerZ · Jornada', 'widget_jornada_info')}${receptor('RadarWidget', 'WinnerZ · Radar', 'widget_radar_info')}
+const widgets = [
+  ['JornadaWidget', 'WinnerZ · Jornada', 'widget_jornada_info'],
+  ['RadarWidget', 'WinnerZ · Radar', 'widget_radar_info'],
+  ['JogarHojeWidget', 'WinnerZ · O que jogar hoje', 'widget_jogar_hoje_info'],
+  ['SemanaWidget', 'WinnerZ · Sua semana', 'widget_semana_info'],
+  ['JogatinaWidget', 'WinnerZ · Próxima jogatina', 'widget_jogatina_info'],
+  ['AtalhoWidget', 'WinnerZ · Atalho', 'widget_atalho_info'],
+  ['AlbumWidget', 'WinnerZ · Álbum', 'widget_album_info'],
+  ['AwardsWidget', 'WinnerZ · Awards', 'widget_awards_info'],
+  ['AvisosWidget', 'WinnerZ · Avisos', 'widget_avisos_info'],
+  ['LiveWidget', 'WinnerZ · Live', 'widget_live_info'],
+];
+for (const [classe, rotulo, info] of widgets) {
+  if (!m.includes(`.${classe}"`)) m = m.replace('</application>', `${receptor(classe, rotulo, info)}
     </application>`);
+}
+// Botões dos widgets que agem ali mesmo, a folha que sobe por cima da tela inicial e a câmera do momento.
+if (!m.includes('.AcoesReceiver')) {
+  m = m.replace('</application>', `
+        <receiver android:name=".AcoesReceiver" android:exported="false" />
+        <activity android:name=".FolhaActivity" android:exported="false" android:theme="@style/WinnerZ.Folha"
+            android:taskAffinity="br.com.winnerz.app.folha" android:excludeFromRecents="true" android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize|stateHidden" android:configChanges="orientation|screenSize|keyboardHidden" />
+        <provider android:name=".FotosProvider" android:authorities="\${applicationId}.winnerz.fotos" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/winnerz_fotos" />
+        </provider>
+    </application>`);
+}
+if (!m.includes('android.permission.INTERNET')) {
+  m = m.replace('</manifest>', '    <uses-permission android:name="android.permission.INTERNET" />\n</manifest>');
 }
 // Ícone e cor padrão dos avisos que vêm do Firebase.
 if (!m.includes('default_notification_icon')) {

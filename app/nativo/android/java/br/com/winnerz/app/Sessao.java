@@ -35,8 +35,10 @@ final class Sessao {
             .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setContentIntent(Links.abrir(c, "/sessao", 31))
-            .addAction(0, "Guardar momento", Links.abrir(c, "/sessao?acao=momento", 32))
-            .addAction(0, "Finalizar", Links.abrir(c, "/sessao?finalizar=1", 33));
+            // Com o widget ligado, os botões abrem a folha por cima de tudo (sem sair do jogo).
+            .addAction(0, "Guardar momento", Conta.ligada(c) ? FolhaActivity.abrir(c, "momento") : Links.abrir(c, "/sessao?acao=momento", 32))
+            .addAction(0, "Ponto", Conta.ligada(c) ? FolhaActivity.abrir(c, "ponto") : Links.abrir(c, "/sessao", 34))
+            .addAction(0, "Finalizar", Conta.ligada(c) ? FolhaActivity.abrir(c, "finalizar") : Links.abrir(c, "/sessao?finalizar=1", 33));
         try {
             nm.notify(ID, b.build());
         } catch (SecurityException semPermissao) {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- O traço em âmbar: só para o "agora" (sessão aberta, lançamento amanhã ou hoje). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="6dp" android:height="14dp" android:viewportWidth="6" android:viewportHeight="14">
+    <path android:fillColor="#FFFFB25B" android:pathData="M3.2,0 L6,0 L2.8,14 L0,14 Z" />
+</vector>

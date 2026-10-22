@@ -1,0 +1,58 @@
+# Monta o app WinnerZ para Android (o site dentro do app + widgets, sessão e avisos nativos)
+# e guarda o arquivo de instalação (APK) para baixar. O projeto Android é gerado do zero a cada vez.
+name: App Android
+on:
+  push:
+    branches: [main, app-celular]
+    paths: ['app/**', '.github/workflows/app-android.yml']
+  workflow_dispatch:
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar o Capacitor
+        run: npm install --no-audit --no-fund
+      - name: Gerar o projeto Android
+        run: npx cap add android
+      - name: Ícone e tela de abertura
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#07080a' --iconBackgroundColorDark '#07080a' --splashBackgroundColor '#07080a' --splashBackgroundColorDark '#07080a'
+      - name: Partes nativas do WinnerZ
+        env:
+          WZ_VERSAO: ${{ github.run_number }}
+        run: node scripts/preparar-android.mjs && npx cap sync android
+      # Fase de testes: assina com a chave de teste do repositório (app/chave-teste.jks), só para instalar fora da loja.
+      # Para a Play Store, a chave de envio entra como segredo do GitHub (ANDROID_KEYSTORE_B64 e ANDROID_KEYSTORE_SENHA).
+      - name: Chave de assinatura
+        env:
+          CHAVE: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          SENHA: ${{ secrets.ANDROID_KEYSTORE_SENHA }}
+        run: |
+          if [ -n "$CHAVE" ]; then
+            echo "$CHAVE" | base64 -d > "$RUNNER_TEMP/winnerz.jks"
+            echo "WZ_KEYSTORE=$RUNNER_TEMP/winnerz.jks" >> "$GITHUB_ENV"
+            echo "WZ_KEYSTORE_SENHA=$SENHA" >> "$GITHUB_ENV"
+          else
+            echo "WZ_KEYSTORE=$GITHUB_WORKSPACE/app/chave-teste.jks" >> "$GITHUB_ENV"
+            echo "WZ_KEYSTORE_SENHA=winnerz-teste" >> "$GITHUB_ENV"
+          fi
+      - name: Montar o APK
+        working-directory: app/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Nome do arquivo
+        run: cp android/app/build/outputs/apk/release/app-release*.apk "$RUNNER_TEMP/WinnerZ-${{ github.run_number }}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WinnerZ-android-${{ github.run_number }}
+          path: ${{ runner.temp }}/WinnerZ-${{ github.run_number }}.apk
+          retention-days: 30

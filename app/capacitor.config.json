@@ -1,0 +1,33 @@
+{
+  "appId": "br.com.winnerz.app",
+  "appName": "WinnerZ",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.winnerz.com.br",
+    "errorPath": "erro.html",
+    "allowNavigation": ["www.winnerz.com.br", "winnerz.com.br", "*.supabase.co"]
+  },
+  "android": {
+    "backgroundColor": "#07080a"
+  },
+  "ios": {
+    "backgroundColor": "#07080a",
+    "contentInset": "never"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "backgroundColor": "#07080a",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#07080a",
+      "overlaysWebView": false
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_winnerz",
+      "iconColor": "#E2BE84"
+    }
+  }
+}

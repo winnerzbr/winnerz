@@ -1,0 +1,22 @@
+{
+  "name": "winnerz-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "App WinnerZ para celular: o site completo por dentro, com widgets, avisos e sessão nativos.",
+  "scripts": {
+    "preparar:android": "node scripts/preparar-android.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.4.0",
+    "@capacitor/ios": "^7.4.0",
+    "@capacitor/local-notifications": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.0"
+  }
+}

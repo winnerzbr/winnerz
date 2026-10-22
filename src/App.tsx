@@ -8,7 +8,7 @@ import { DiscordLinkPage } from './components/DiscordSettings';
 import { BridgeSync } from './components/Bridges';
 import { DropBanner } from './components/album/DropBanner';
 import { usePath, match, Link, navigate } from './lib/router';
-import { useStore, openSession, getState } from './data/store';
+import { useStore, openSession, getState, actions } from './data/store';
 
 const isAdminNow = () => !!getState().isAdmin;
 import { applyPrefs } from './lib/theme';
@@ -135,6 +135,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/jogos/:slug', path))) return <GamePage slug={m.slug} />;
   if (match('/preferencias', path)) return <Preferences />;
   if (match('/sessao', path)) return <SessionPage />;
+  if ((m = match('/app/jogar/:id', path))) return <AppJogar gameId={m.id} />;
   // Jogar agora virou o Início (Etapa 1 da revisão): o atalho antigo do celular continua funcionando.
   if (match('/agora', path)) return <GoTo to="/" />;
   if (match('/entrar', path)) return <Login />;
@@ -342,4 +343,17 @@ export function App() {
 function GoTo({ to }: { to: string }) {
   useEffect(() => { navigate(to, { replace: true }); }, [to]);
   return null;
+}
+
+/** Botão "Continuar" do widget da Jornada (app de celular): abre a sessão do jogo, ou volta para a que já está aberta. */
+function AppJogar({ gameId }: { gameId: string }) {
+  const ready = useStore((s) => s.ready);
+  useEffect(() => {
+    if (!ready) return;
+    const s = getState();
+    if (openSession(s)) navigate('/sessao', { replace: true });
+    else if (s.games[gameId] && s.profile) { actions.play(gameId); navigate('/sessao', { replace: true }); }
+    else navigate('/jornada', { replace: true });
+  }, [ready, gameId]);
+  return <div className="boot" aria-busy="true" />;
 }

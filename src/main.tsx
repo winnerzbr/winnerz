@@ -3,6 +3,7 @@ import { App } from './App';
 import { initStore, getState, actions } from './data/store';
 import { demoAdapter } from './data/demoAdapter';
 import { SUPABASE_ON } from './lib/env';
+import { iniciarNativo } from './lib/nativo';
 import './styles/global.css';
 import './styles/components.css';
 import './styles/pages.css';
@@ -42,4 +43,4 @@ createRoot(document.getElementById('root')!).render(<App />);
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => null); });
 }
-boot();
+boot().finally(iniciarNativo);

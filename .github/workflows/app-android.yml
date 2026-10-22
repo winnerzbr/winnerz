@@ -1,0 +1,74 @@
+# Monta o app WinnerZ para Android (o site dentro do app + widgets, sessão e avisos nativos)
+# e publica o arquivo de instalação (APK) numa versão de testes do GitHub, para baixar direto no celular.
+# O projeto Android é gerado do zero a cada vez.
+name: App Android
+on:
+  push:
+    branches: [main, app-celular]
+    paths: ['app/**', '.github/workflows/app-android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+        shell: bash -o pipefail {0}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Instalar o Capacitor
+        run: npm install --no-audit --no-fund 2>&1 | tee -a "$RUNNER_TEMP/registro.txt"
+      - name: Gerar o projeto Android
+        run: npx cap add android 2>&1 | tee -a "$RUNNER_TEMP/registro.txt"
+      - name: Ícone e tela de abertura
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#07080a' --iconBackgroundColorDark '#07080a' --splashBackgroundColor '#07080a' --splashBackgroundColorDark '#07080a' 2>&1 | tee -a "$RUNNER_TEMP/registro.txt"
+      - name: Partes nativas do WinnerZ
+        env:
+          WZ_VERSAO: ${{ github.run_number }}
+        run: (node scripts/preparar-android.mjs && npx cap sync android) 2>&1 | tee -a "$RUNNER_TEMP/registro.txt"
+      # Fase de testes: assina com a chave de teste do repositório (app/chave-teste.jks), só para instalar fora da loja.
+      # Para a Play Store, a chave de envio entra como segredo do GitHub (ANDROID_KEYSTORE_B64 e ANDROID_KEYSTORE_SENHA).
+      - name: Chave de assinatura
+        env:
+          CHAVE: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          SENHA: ${{ secrets.ANDROID_KEYSTORE_SENHA }}
+        run: |
+          if [ -n "$CHAVE" ]; then
+            echo "$CHAVE" | base64 -d > "$RUNNER_TEMP/winnerz.jks"
+            echo "WZ_KEYSTORE=$RUNNER_TEMP/winnerz.jks" >> "$GITHUB_ENV"
+            echo "WZ_KEYSTORE_SENHA=$SENHA" >> "$GITHUB_ENV"
+          else
+            echo "WZ_KEYSTORE=$GITHUB_WORKSPACE/app/chave-teste.jks" >> "$GITHUB_ENV"
+            echo "WZ_KEYSTORE_SENHA=winnerz-teste" >> "$GITHUB_ENV"
+          fi
+      - name: Montar o APK
+        working-directory: app/android
+        run: ./gradlew assembleRelease --no-daemon --console=plain 2>&1 | tee -a "$RUNNER_TEMP/registro.txt"
+      - name: Publicar o APK para baixar
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.run_number }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/WinnerZ-$N.apk"
+          gh release create "app-android-$N" "$RUNNER_TEMP/WinnerZ-$N.apk" --prerelease --target "$GITHUB_SHA" \
+            --title "App Android (teste) nº $N" --notes "Arquivo de instalação do app WinnerZ para Android. Abra este link no celular e toque em WinnerZ-$N.apk."
+      # Se algo der errado, o fim do registro aparece no resumo da execução (anotações), para conferir sem baixar nada.
+      - name: Registro do erro
+        if: failure()
+        run: |
+          grep -n -i -E "error|erro|failed|falh|exception|cannot|não" "$RUNNER_TEMP/registro.txt" | tail -n 60 > "$RUNNER_TEMP/erros.txt" || true
+          tail -n 40 "$RUNNER_TEMP/registro.txt" >> "$RUNNER_TEMP/erros.txt" || true
+          split -l 25 "$RUNNER_TEMP/erros.txt" "$RUNNER_TEMP/parte-"
+          for f in "$RUNNER_TEMP"/parte-*; do
+            msg=$(sed -e 's/%/%25/g' "$f" | sed -e ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=$(basename "$f")::$msg"
+          done

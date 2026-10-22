@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wz_widget_jornada_desc">O jogo atual, o seu recado e um toque para continuar.</string>
+    <string name="wz_widget_radar_desc">Os próximos lançamentos que você acompanha no Radar.</string>
+</resources>

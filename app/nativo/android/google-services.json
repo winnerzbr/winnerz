@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1021630709732",
+    "project_id": "winnerz-f9932",
+    "storage_bucket": "winnerz-f9932.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021630709732:android:2ad5dd4a4a569c93c391f1",
+        "android_client_info": {
+          "package_name": "br.com.winnerz.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUcHAhrndAPm80cxaXW8-SifKv-OkMWHU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

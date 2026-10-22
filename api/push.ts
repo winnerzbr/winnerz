@@ -2,6 +2,7 @@
  * Avisos no celular (app WinnerZ, migração 0089): manda um aviso da Central de Avisos como notificação, pelo Firebase.
  *
  *   POST /api/push  { id: "<id do aviso>" }
+ *   GET  /api/push  → { firebase, banco }: só diz se a configuração está no lugar (para conferir sem mexer em nada).
  *
  * Quem chama é o próprio banco (gatilho em notifications, via pg_net), só com o id. Aqui lemos o aviso com a chave
  * do servidor, marcamos como enviado (cada aviso sai uma vez só, mesmo que o pedido se repita), conferimos as
@@ -122,6 +123,7 @@ function texto(n: Aviso, quem: string): { titulo: string; corpo: string } {
 
 export default async function handler(req: Req, res: Res) {
   res.setHeader('Cache-Control', 'no-store');
+  if (req.method === 'GET') { res.status(200).json({ firebase: !!contaFirebase(), banco: !!db() }); return; }
   if (req.method !== 'POST') { res.status(405).json({ error: 'method' }); return; }
   const c = db(), conta = contaFirebase();
   if (!c || !conta) { res.status(503).json({ error: 'not_configured' }); return; }

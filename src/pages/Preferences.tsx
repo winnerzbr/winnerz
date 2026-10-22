@@ -20,7 +20,7 @@ import { refreshNews } from '../data/communityApi';
 import { refreshNotifs } from '../data/notifApi';
 import { MODOS } from '../lib/iamiguinho';
 import { FEATURES } from '../lib/features';
-import { noApp, avisosApp, salvarAvisosApp, permissaoAvisos, pedirPermissaoAvisos, type AvisosApp } from '../lib/nativo';
+import { noApp, avisosApp, salvarAvisosApp, permissaoAvisos, pedirPermissaoAvisos, type AvisosApp, avisosServidor, salvarAvisosServidor, pushNoApp, registrarPush, type AvisosServidor } from '../lib/nativo';
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
@@ -327,8 +327,17 @@ function CommunitySettings() {
 /** No app de celular: os avisos que o próprio aparelho mostra (Radar e sessão aberta). Ficam guardados neste celular. */
 function AppNotifSettings() {
   const [a, setA] = useState<AvisosApp>(avisosApp);
+  const [sv, setSv] = useState<AvisosServidor>(avisosServidor);
   const [perm, setPerm] = useState<'granted' | 'denied' | 'prompt' | null>(null);
-  useEffect(() => { void permissaoAvisos().then(setPerm); }, []);
+  const [push, setPush] = useState(false);
+  useEffect(() => { void permissaoAvisos().then(setPerm); void pushNoApp().then(setPush); }, []);
+  const setS = (patch: Partial<AvisosServidor>) => { const n = { ...sv, ...patch }; setSv(n); salvarAvisosServidor(n); };
+  const rowS = (k: keyof AvisosServidor, title: string, hint: string, off = false) => (
+    <label className="motion motion--switch" data-on={sv[k] && sv.ligado} key={k}>
+      <input type="checkbox" role="switch" className="switch" checked={sv[k] && (k === 'ligado' || sv.ligado)} disabled={off} onChange={(e) => setS({ [k]: e.target.checked })} />
+      <span><strong>{title}</strong><span className="muted">{hint}</span></span>
+    </label>
+  );
   const set = (patch: Partial<AvisosApp>) => { const n = { ...a, ...patch }; setA(n); salvarAvisosApp(n); };
   const row = (k: keyof AvisosApp, title: string, hint: string) => (
     <label className="motion motion--switch" data-on={a[k]} key={k}>
@@ -342,7 +351,7 @@ function AppNotifSettings() {
       <p className="muted prefs__p">Chegam na barra do celular, mesmo com o app fechado. Valem só para este aparelho.</p>
       {perm !== 'granted' && (
         <p className="prefs__p">
-          <button className="btn primary sm" onClick={() => void pedirPermissaoAvisos().then((ok) => { setPerm(ok ? 'granted' : 'denied'); if (ok) salvarAvisosApp(a); })}>Permitir avisos</button>
+          <button className="btn primary sm" onClick={() => void pedirPermissaoAvisos().then(async (ok) => { setPerm(ok ? 'granted' : 'denied'); if (ok) { salvarAvisosApp(a); await registrarPush(true); } })}>Permitir avisos</button>
           {perm === 'denied' && <span className="muted"> Se não aparecer o pedido, libere os avisos do WinnerZ nos ajustes do celular.</span>}
         </p>
       )}
@@ -352,6 +361,18 @@ function AppNotifSettings() {
       {row('data', 'Mudou a data', 'Quando um jogo do seu Radar for adiado, ganhar data ou for cancelado.')}
       <h3 className="prefs__sub">Jornada</h3>
       {row('sessao', 'Sessão aberta na barra', 'Enquanto a sessão estiver aberta, ela fica fixa na barra de avisos, com o tempo correndo e os botões Guardar momento e Finalizar.')}
+      {push && (
+        <>
+          <h3 className="prefs__sub">Comunidade e amigos</h3>
+          <p className="muted prefs__p">Os avisos do sino, também no celular. Valem as escolhas de “Avisos” logo abaixo, e mais estas:</p>
+          {rowS('ligado', 'Receber no celular', 'Desligado, os avisos continuam só no sino do site.')}
+          {rowS('conversas', 'Conversas', 'Respostas, menções e conversas que você acompanha.', !sv.ligado)}
+          {rowS('grupos', 'Jogatinas e clubes', 'Convites, lembretes de jogatina e novidades dos clubes.', !sv.ligado)}
+          {rowS('amigos', 'Amigos', 'Quem começou a seguir você, pactos e listas para editar junto.', !sv.ligado)}
+          {rowS('jornada', 'Jornada', 'Lançamentos, voltar a um jogo e os resumos.', !sv.ligado)}
+          {rowS('reacoes', 'Reações', 'GG, Curti e as outras. Vem desligado para não chegar aviso demais.', !sv.ligado)}
+        </>
+      )}
     </section>
   );
 }

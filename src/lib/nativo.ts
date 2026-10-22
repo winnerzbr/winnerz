@@ -15,6 +15,7 @@ import type { State, Game } from '../data/types';
 import { navigate } from './router';
 import { loadRadar, daysUntil, type RadarInfo } from './radar';
 import { localDay } from './dates';
+import { SUPABASE_ON } from './env';
 
 type Ponte = {
   isNativePlatform?: () => boolean;
@@ -241,6 +242,55 @@ async function agendarRadar(forcar = false) {
   if (novos.length) await chamar('LocalNotifications', 'schedule', { notifications: novos });
 }
 
+// ── Avisos do servidor (Firebase): respostas, jogatinas, amigos, lançamentos… mesmo com o app fechado ─────────
+export type AvisosServidor = { ligado: boolean; conversas: boolean; grupos: boolean; amigos: boolean; jornada: boolean; reacoes: boolean };
+const CHAVE_PUSH = 'wz.app.push';
+export function avisosServidor(): AvisosServidor {
+  const pad: AvisosServidor = { ligado: true, conversas: true, grupos: true, amigos: true, jornada: true, reacoes: false };
+  try { return { ...pad, ...JSON.parse(localStorage.getItem(CHAVE_PUSH) ?? '{}') }; } catch { return pad; }
+}
+export function salvarAvisosServidor(a: AvisosServidor) {
+  try { localStorage.setItem(CHAVE_PUSH, JSON.stringify(a)); } catch { /* sem armazenamento */ }
+  void registrarPush();
+}
+let pushOk: boolean | null = null;
+/** O app instalado já vem com o Firebase? (as versões de teste mais antigas, não) */
+export async function pushNoApp(): Promise<boolean> {
+  if (!noApp()) return false;
+  if (pushOk === null) pushOk = !!(await chamar<{ ok?: boolean }>('WinnerzNativo', 'temPush'))?.ok;
+  return pushOk;
+}
+const CHAVE_TOKEN = 'wz.app.pushToken';
+let pushToken = (() => { try { return localStorage.getItem(CHAVE_TOKEN) ?? ''; } catch { return ''; } })();
+async function banco() {
+  if (!SUPABASE_ON) return null;
+  try { const { getClient } = await import('../data/supabaseAdapter'); return await getClient(); } catch { return null; }
+}
+async function gravarToken() {
+  const sb = await banco(); const p = plataformaApp();
+  if (!sb || !pushToken || !p || !getState().profile) return;
+  const a = avisosServidor();
+  const { error } = await sb.rpc('push_register', { p_token: pushToken, p_platform: p, p_prefs: { conversas: a.conversas, grupos: a.grupos, amigos: a.amigos, jornada: a.jornada, reacoes: a.reacoes } });
+  if (error) console.warn('[app] push_register', error.message);
+}
+async function apagarToken() {
+  const sb = await banco();
+  if (sb && pushToken) await sb.rpc('push_unregister', { p_token: pushToken });
+}
+/** Pede a permissão (se ainda não tem), cria os canais e registra o celular. Desligado: tira o celular da lista. */
+export async function registrarPush(pedir = false): Promise<'ok' | 'sem' | 'negado' | 'desligado'> {
+  if (!(await pushNoApp()) || !getState().profile) return 'sem';
+  if (!avisosServidor().ligado) { await apagarToken(); return 'desligado'; }
+  let perm = (await chamar<{ receive?: string }>('PushNotifications', 'checkPermissions'))?.receive;
+  if (perm !== 'granted' && pedir) perm = (await chamar<{ receive?: string }>('PushNotifications', 'requestPermissions'))?.receive;
+  if (perm !== 'granted') return perm === 'denied' ? 'negado' : 'sem';
+  await chamar('PushNotifications', 'createChannel', { id: 'comunidade', name: 'Comunidade', description: 'Respostas, menções, jogatinas, clubes e amigos', importance: 4, visibility: 1 });
+  await chamar('PushNotifications', 'createChannel', { id: 'jornada', name: 'Jornada', description: 'Lançamentos, voltar a um jogo e resumos', importance: 3, visibility: 1 });
+  await chamar('PushNotifications', 'register');
+  if (pushToken) await gravarToken();
+  return 'ok';
+}
+
 // ── Início ──────────────────────────────────────────────────────────────────────
 let iniciado = false;
 export function iniciarNativo() {
@@ -255,8 +305,29 @@ export function iniciarNativo() {
     if (url) navigate(url);
   });
 
+  // Avisos do servidor: o token chega por evento; tocar no aviso abre a tela dele.
+  ouvir('PushNotifications', 'registration', (d) => {
+    const t = (d as { value?: string }).value;
+    if (!t) return;
+    pushToken = t;
+    try { localStorage.setItem(CHAVE_TOKEN, t); } catch { /* sem armazenamento */ }
+    void gravarToken();
+  });
+  ouvir('PushNotifications', 'pushNotificationActionPerformed', (d) => {
+    const url = (d as { notification?: { data?: { url?: string } } }).notification?.data?.url;
+    if (url && url.startsWith('/')) navigate(url);
+  });
+
+  let conta = '';
   let espera: ReturnType<typeof setTimeout> | undefined;
   const aoMudar = () => {
+    // Entrou numa conta: registra o celular. Saiu: tira da lista (o celular não recebe avisos de quem saiu).
+    const atual = getState().profile?.id ?? '';
+    if (atual !== conta) {
+      const antes = conta; conta = atual;
+      if (atual) void registrarPush(false);
+      else if (antes) void apagarToken();
+    }
     clearTimeout(espera);
     espera = setTimeout(async () => {
       const s = getState();

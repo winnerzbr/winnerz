@@ -40,6 +40,22 @@ public class WinnerzNativoPlugin extends Plugin {
         call.resolve();
     }
 
+    /** { ok }: o Firebase está configurado neste build? (sem ele, pedir o token de avisos derrubaria o app) */
+    @PluginMethod
+    public void temPush(PluginCall call) {
+        boolean ok = false;
+        try {
+            Class<?> fb = Class.forName("com.google.firebase.FirebaseApp");
+            Object apps = fb.getMethod("getApps", android.content.Context.class).invoke(null, getContext());
+            ok = apps instanceof java.util.List && !((java.util.List<?>) apps).isEmpty();
+        } catch (Throwable semFirebase) {
+            ok = false;
+        }
+        JSObject r = new JSObject();
+        r.put("ok", ok);
+        call.resolve(r);
+    }
+
     @PluginMethod
     public void sessaoFechar(PluginCall call) {
         Sessao.esconder(getContext());

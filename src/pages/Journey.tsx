@@ -307,7 +307,10 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               </button>
               {openState && (
                 <button className="btn ghost focus-toggle" aria-pressed={isFocus} onClick={toggleFocus}>
-                  <span className="focus-toggle__dot" aria-hidden="true" />{isFocus ? (chosenFocus[0] === journeyId && chosenFocus.length > 1 ? 'Jogando agora · principal' : 'Jogando agora') : 'Estou jogando'}
+                  <span className="focus-toggle__dot" aria-hidden="true" />{isFocus ? (
+                    // Com o mouse em cima, o botão diz o que o clique faz: tirar de "Jogando agora".
+                    <><span className="focus-toggle__agora">{chosenFocus[0] === journeyId && chosenFocus.length > 1 ? 'Jogando agora · principal' : 'Jogando agora'}</span><span className="focus-toggle__pausa" aria-hidden="true">Dei uma pausa</span></>
+                  ) : 'Estou jogando'}
                 </button>
               )}
               <button className="btn ghost icon" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-label="Mais opções" title="Mais opções"><Icon name="maisAcoes" size={17} /></button>

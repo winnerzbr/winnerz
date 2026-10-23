@@ -28,10 +28,12 @@ final class Widgets {
     static final int OURO = 0xFFE2BE84;
     static final int ESCURO = 0xFF07080A;
 
+    /** "Jogar só um pouco" fica guardado como objetivo da sessão (igual ao site, src/lib/rest.ts POUCO). */
+    static final String POUCO = "Jogar só um pouco";
     private static final String[][] INTENCOES = {
         { "descansar", "Descansar", "descansar" },
         { "divertir", "Me divertir", "me divertir" },
-        { "avancar", "Avançar", "avançar" },
+        { "avancar", "Avançar na história", "avançar" },
         { "desafio", "Um desafio", "desafio" },
     };
 
@@ -127,6 +129,7 @@ final class Widgets {
         RemoteViews v = new RemoteViews(c.getPackageName(), R.layout.widget_jornada);
         v.setViewVisibility(R.id.wj_chips, View.GONE);
         v.setViewVisibility(R.id.wj_tiles, View.GONE);
+        v.setViewVisibility(R.id.wj_pular, View.GONE);
         v.setViewVisibility(R.id.wj_cronometro, View.GONE);
         v.setViewVisibility(R.id.wj_ant, View.GONE);
         v.setViewVisibility(R.id.wj_prox, View.GONE);
@@ -154,35 +157,42 @@ final class Widgets {
             if (inicio <= 0) inicio = System.currentTimeMillis();
             String intencao = Painel.txt(ab, "intencao"), objetivo = Painel.txt(ab, "objetivo");
             String chaveSessao = ab.optString("id", ab.optString("gameId") + "@" + inicio);
-            boolean comecou = intencao.isEmpty() && !chaveSessao.equals(Conta.texto(c, "pulou")) && System.currentTimeMillis() - inicio < 15 * 60_000L;
 
-            cabeca(v, R.id.wj_traco, R.id.wj_rotulo, intencao.isEmpty() ? "Sessão aberta" : "Sessão aberta · " + rotuloIntencao(intencao), 1);
+            boolean pouco = POUCO.equals(objetivo);
+            boolean comecou = intencao.isEmpty() && objetivo.isEmpty() && !chaveSessao.equals(Conta.texto(c, "pulou")) && System.currentTimeMillis() - inicio < 15 * 60_000L;
+            cabeca(v, R.id.wj_traco, R.id.wj_rotulo, !intencao.isEmpty() ? "Sessão aberta · " + rotuloIntencao(intencao) : pouco ? "Sessão aberta · só um pouco" : "Sessão aberta", 1);
             v.setViewVisibility(R.id.wj_cronometro, View.VISIBLE);
             v.setChronometer(R.id.wj_cronometro, SystemClock.elapsedRealtime() - Math.max(0, System.currentTimeMillis() - inicio), null, true);
             v.setTextViewText(R.id.wj_titulo, Painel.txt(ab, "titulo"));
             v.setOnClickPendingIntent(R.id.wj_raiz, abrir(c, "/sessao", 13));
 
             if (comecou) {
-                // Nos primeiros minutos: para que é a sessão de hoje? (um toque escolhe; dá para pular)
+                // Nos primeiros minutos: para que é a sessão de hoje? Uma escolha só (como no site); dá para pular.
                 v.setViewVisibility(R.id.wj_capa_caixa, View.GONE);
-                v.setTextViewText(R.id.wj_sub, "Hoje é para…");
+                v.setTextViewText(R.id.wj_sub, "Hoje é para… (opcional)");
+                v.setViewVisibility(R.id.wj_pular, View.VISIBLE);
+                v.setOnClickPendingIntent(R.id.wj_pular, acao(c, "pular", chaveSessao, null));
                 v.setViewVisibility(R.id.wj_chips, View.VISIBLE);
-                int[] chips = { R.id.wj_chip1, R.id.wj_chip2, R.id.wj_chip3, R.id.wj_chip4 };
-                for (int i = 0; i < chips.length; i++) {
-                    v.setTextViewText(chips[i], INTENCOES[i][1]);
-                    v.setOnClickPendingIntent(chips[i], acao(c, "intencao", INTENCOES[i][0], null));
+                int[] chips = { R.id.wj_chip1, R.id.wj_chip2, R.id.wj_chip3, R.id.wj_chip4, R.id.wj_chip5, R.id.wj_chip6 };
+                v.setTextViewText(chips[0], POUCO);
+                v.setOnClickPendingIntent(chips[0], acao(c, "plano", "pouco", null));
+                for (int i = 0; i < INTENCOES.length; i++) {
+                    v.setTextViewText(chips[i + 1], INTENCOES[i][1]);
+                    v.setOnClickPendingIntent(chips[i + 1], acao(c, "plano", INTENCOES[i][0], null));
                 }
-                botao(v, R.id.wj_b2, objetivo.isEmpty() ? "+ Objetivo" : "Objetivo", FolhaActivity.abrir(c, "objetivo", false));
-                botao(v, R.id.wj_b3, "Pular", acao(c, "pular", chaveSessao, null));
+                v.setTextViewText(chips[5], "✎ Escrever o meu");
+                v.setOnClickPendingIntent(chips[5], FolhaActivity.abrir(c, "objetivo", false));
                 v.setTextViewText(R.id.wj_resumo, "");
                 return v;
             }
 
             capa(c, v, R.id.wj_capa_caixa, R.id.wj_capa, R.id.wj_capa_txt, ab);
             if (!flash.isEmpty()) v.setTextViewText(R.id.wj_sub, flash);
+            else if (pouco) v.setTextViewText(R.id.wj_sub, "Hoje é para jogar só um pouco.");
             else if (!objetivo.isEmpty()) v.setTextViewText(R.id.wj_sub, "Objetivo: " + objetivo);
+            else if (!intencao.isEmpty()) v.setTextViewText(R.id.wj_sub, "Guarde momentos e pontos para voltar enquanto joga.");
             else {
-                v.setTextViewText(R.id.wj_sub, "+ Objetivo pequeno (opcional)");
+                v.setTextViewText(R.id.wj_sub, "+ Para que é esta sessão? (opcional)");
                 v.setOnClickPendingIntent(R.id.wj_sub, FolhaActivity.abrir(c, "objetivo", false));
             }
             // Como no site: os dois botões grandes abrem a câmera (foto da TV) e depois a folha com nome e nota.
@@ -192,7 +202,6 @@ final class Widgets {
             v.setTextViewText(R.id.wj_tile2_txt, "Voltar aqui");
             v.setOnClickPendingIntent(R.id.wj_tile2, FolhaActivity.abrir(c, "ponto", true));
             botao(v, R.id.wj_b1, "Finalizar", FolhaActivity.abrir(c, "finalizar", false));
-            botao(v, R.id.wj_b2, "Anotar sem foto", FolhaActivity.abrir(c, "momento", false));
             return v;
         }
 

@@ -17,6 +17,7 @@ import { CanalPlaylist, PartVideoButton, VideoSheet } from './PartVideo';
 import { AchievementLinks } from './AchievementLinks';
 import { safeHref } from '../lib/safeHref';
 import { FEATURES } from '../lib/features';
+import { INTENTS, intentOf, POUCO, type Intent } from '../lib/rest';
 
 const durShort = (m?: number) => (!m ? '' : m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}`);
 const STOPS: StopKind[] = ['qualquer', 'fim', 'pontos', 'longe'];
@@ -272,41 +273,53 @@ export function StopCard({ game, history }: { game: Game; history: History }) {
   );
 }
 
-/** "Objetivo desta sessão": um passo pequeno, escolhido entre sugestões ou escrito na hora. */
-export function GoalCard({ game, history, session }: { game: Game; history: History; session: Session }) {
+/**
+ * "Hoje é para…": uma escolha só para a sessão (antes eram dois cartões, intenção e objetivo).
+ * Jogar só um pouco e "Escrever o meu" viram o objetivo; descansar, se divertir, avançar e desafio viram a intenção.
+ * Escolher um apaga o outro. As sugestões de objetivo (recado, cápsula, capítulo) aparecem ao escrever o seu.
+ */
+export function PlanCard({ game, history, session, intents }: { game: Game; history: History; session: Session; intents: boolean }) {
   const s = useStore((x) => x);
   const o = useOutline(game.id);
-  const [short, setShort] = useState(false);
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState('');
   const parts = o?.parts ?? [];
   const cur = partAt(parts, history.progress, history.part);
-  const sug = goalSuggestions({ note: lastNote(s, session.journeyId)?.note, capsuleNext: history.capsule?.next, waypoint: activeWaypoints(s, session.journeyId)[0]?.title, part: cur, next: nextPart(parts, cur), short });
-  const setGoal = (g: string) => { actions.setSessionGoal(session.id, g); setTyping(false); setText(''); };
-  if (session.goal) {
+  const sug = goalSuggestions({ note: lastNote(s, session.journeyId)?.note, capsuleNext: history.capsule?.next, waypoint: activeWaypoints(s, session.journeyId)[0]?.title, part: cur, next: nextPart(parts, cur) });
+  const it = intentOf(session.intent);
+  const goal = (g: string) => { if (session.intent) actions.setSessionIntent(session.id, undefined); actions.setSessionGoal(session.id, g); setTyping(false); setText(''); };
+  const intent = (id: Intent) => { if (session.goal) actions.setSessionGoal(session.id, ''); actions.setSessionIntent(session.id, id); };
+  const trocar = () => { if (session.intent) actions.setSessionIntent(session.id, undefined); if (session.goal) actions.setSessionGoal(session.id, ''); };
+  if (it || session.goal) {
+    const rotulo = it ? it.label.toLowerCase() : session.goal === POUCO ? 'jogar só um pouco' : session.goal;
     return (
-      <section className="goalcard is-set" aria-labelledby="goal-h">
-        <span className="kicker kicker--now" id="goal-h">Objetivo desta sessão</span>
-        <b className="goalcard__goal"><Icon name="check" size={16} /> {session.goal}</b>
-        <button className="btn quiet sm" onClick={() => setGoal('')}>Trocar</button>
+      <section className="goalcard is-set" aria-labelledby="plan-h">
+        <span className="kicker kicker--now" id="plan-h">Hoje é para</span>
+        <b className="goalcard__goal">{rotulo}{it && session.goal ? <span className="faint"> · {session.goal}</span> : null}</b>
+        <button className="btn quiet sm" onClick={trocar}>Trocar</button>
       </section>
     );
   }
   return (
-    <section className="goalcard" aria-labelledby="goal-h">
-      <div className="goalcard__head">
-        <span className="kicker" id="goal-h">Objetivo desta sessão <span className="faint">(opcional)</span></span>
-        <button className="chip" aria-pressed={short} onClick={() => setShort(!short)}><Icon name="relogio" size={13} /> Tenho 20 minutos</button>
-      </div>
-      <div className="chips goalcard__sug">
-        {sug.map((g) => <button key={g} className="chip" onClick={() => setGoal(g)}>{g}</button>)}
+    <section className="goalcard" aria-labelledby="plan-h">
+      <div className="goalcard__head"><span className="kicker" id="plan-h">Hoje é para… <span className="faint">(opcional)</span></span></div>
+      <div className="chips goalcard__sug" role="group" aria-label="Para que é esta sessão">
+        <button className="chip" onClick={() => goal(POUCO)}><Icon name="relogio" size={13} /> Jogar só um pouco</button>
+        {intents && INTENTS.map((x) => <button key={x.id} className="chip" onClick={() => intent(x.id)}>{x.label}</button>)}
         {!typing && <button className="chip chip--add" onClick={() => setTyping(true)}><Icon name="caneta" size={13} /> Escrever o meu</button>}
       </div>
       {typing && (
-        <form className="goalcard__own" onSubmit={(e) => { e.preventDefault(); if (text.trim()) setGoal(text); }}>
-          <input className="field" autoFocus value={text} maxLength={140} onChange={(e) => setText(e.target.value)} placeholder="Ex.: achar a chave do porão" aria-label="Seu objetivo" />
-          <button className="btn primary sm" disabled={!text.trim()}>Pronto</button>
-        </form>
+        <>
+          <form className="goalcard__own" onSubmit={(e) => { e.preventDefault(); if (text.trim()) goal(text); }}>
+            <input className="field" autoFocus value={text} maxLength={140} onChange={(e) => setText(e.target.value)} placeholder="Ex.: achar a chave do porão" aria-label="O que você quer desta sessão" />
+            <button className="btn primary sm" disabled={!text.trim()}>Pronto</button>
+          </form>
+          {sug.length > 0 && (
+            <div className="chips goalcard__sug goalcard__ideias" role="group" aria-label="Ideias">
+              {sug.map((g) => <button key={g} className="chip" onClick={() => goal(g)}>{g}</button>)}
+            </div>
+          )}
+        </>
       )}
     </section>
   );

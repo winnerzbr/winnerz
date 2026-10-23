@@ -65,6 +65,12 @@ public class AcoesReceiver extends BroadcastReceiver {
                 switch (acao) {
                     case "jogar": corpo.put("gameId", a); break;
                     case "intencao": corpo.put("intencao", a); break;
+                    case "plano":
+                        // Uma escolha só: a intenção apaga o objetivo e "só um pouco" (que é objetivo) apaga a intenção.
+                        boolean pouco = "pouco".equals(a);
+                        Api.chamar(c, new JSONObject().put("acao", "intencao").put("intencao", pouco ? "" : a));
+                        corpo.put("acao", "objetivo").put("objetivo", pouco ? Widgets.POUCO : "");
+                        break;
                     case "rsvp": corpo.put("id", a).put("resposta", b); break;
                     default: break;
                 }
@@ -110,11 +116,13 @@ public class AcoesReceiver extends BroadcastReceiver {
                     if (Conta.barra(c)) Sessao.mostrar(c, ab.optString("titulo", "Sessão aberta"), System.currentTimeMillis());
                     return true;
                 }
-                case "intencao": {
+                case "intencao": case "plano": {
                     JSONObject j = p.optJSONObject("jornada");
                     JSONObject ab = j == null ? null : j.optJSONObject("aberta");
                     if (ab == null) return false;
-                    ab.put("intencao", a);
+                    boolean pouco = "plano".equals(acao) && "pouco".equals(a);
+                    ab.put("intencao", pouco ? JSONObject.NULL : a);
+                    if ("plano".equals(acao)) ab.put("objetivo", pouco ? Widgets.POUCO : JSONObject.NULL);
                     Conta.salvarPainel(c, p);
                     return true;
                 }

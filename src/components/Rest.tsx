@@ -1,35 +1,12 @@
 /**
- * "Jogar como descanso" (J6b): o cartão "Hoje é para…" na sessão e o resumo do mês em Meu ritmo.
+ * "Jogar como descanso" (J6b): o resumo do mês em Meu ritmo. (O "Hoje é para…" da sessão fica em Outline: PlanCard.)
  */
 import { useMemo, useState } from 'react';
-import { actions, useStore } from '../data/store';
-import { INTENTS, intentOf, monthRest, restMonths, type MonthRest } from '../lib/rest';
+import { useStore } from '../data/store';
+import { monthRest, restMonths, type MonthRest } from '../lib/rest';
 import { CoverArt } from './CoverArt';
 import { Link } from '../lib/router';
-import type { Session } from '../data/types';
 import { durLabel } from '../lib/format';
-
-/** Antes de jogar: para que é esta sessão. Opcional, um toque. */
-export function IntentCard({ session }: { session: Session }) {
-  const it = intentOf(session.intent);
-  if (it) {
-    return (
-      <section className="goalcard intentcard is-set" aria-labelledby="intent-h">
-        <span className="kicker kicker--now" id="intent-h">Hoje é para</span>
-        <b className="goalcard__goal">{it.label.toLowerCase()}</b>
-        <button className="btn quiet sm" onClick={() => actions.setSessionIntent(session.id, undefined)}>Trocar</button>
-      </section>
-    );
-  }
-  return (
-    <section className="goalcard intentcard" aria-labelledby="intent-h">
-      <div className="goalcard__head"><span className="kicker" id="intent-h">Hoje é para… <span className="faint">(opcional)</span></span></div>
-      <div className="chips goalcard__sug" role="group" aria-label="Para que é esta sessão">
-        {INTENTS.map((x) => <button key={x.id} className="chip" onClick={() => actions.setSessionIntent(session.id, x.id)}>{x.label}</button>)}
-      </div>
-    </section>
-  );
-}
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 

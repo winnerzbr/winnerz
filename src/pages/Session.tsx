@@ -6,7 +6,6 @@ import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
 import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, hasV43, sessionMinutes } from '../data/store';
-import { IntentCard } from '../components/Rest';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -21,7 +20,7 @@ import { say as toneLine } from '../lib/tone';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { marcarZerado } from '../lib/iamiguinho';
 import { Previously, CapsuleSheet } from '../components/Retomada';
-import { GoalCard, StopCard } from '../components/Outline';
+import { PlanCard, StopCard } from '../components/Outline';
 import { StartPartCard } from '../components/PartPicker';
 import { recapFor, wantsRecap } from '../lib/recap';
 import { FinishFlow } from './SessionFinish';
@@ -83,6 +82,15 @@ export function SessionPage() {
   const photoKind = useRef<'momento' | 'ponto'>('momento');
   const prefill = useRef('');
   const fileInput = useRef<HTMLInputElement>(null);
+  // No celular "Guardar momento" abre a câmera direto. Se a pessoa fechar a câmera sem foto, a folha abre do mesmo jeito,
+  // para anotar só com texto (por isso não precisa de um botão "Anotar sem foto").
+  useEffect(() => {
+    const el = fileInput.current;
+    if (!el) return;
+    const semFoto = () => setDraft((d) => d ?? { kind: photoKind.current, title: prefill.current, note: '' });
+    el.addEventListener('cancel', semFoto);
+    return () => el.removeEventListener('cancel', semFoto);
+  });
 
   // Depois de zerar a sessão fecha; a celebração continua na tela.
   if (celebrate) return <Celebrated historyId={celebrate.historyId} onClose={() => { marcarZerado(celebrate.historyId); const h = s.histories.find((x) => x.id === celebrate.historyId); const j = h && s.journeys.find((x) => x.id === h.journeyId); navigate(j ? `/jornada/${s.games[j.gameId].slug}` : '/'); }} />;
@@ -177,14 +185,11 @@ export function SessionPage() {
           </div>
           <div className="session__cards">
             <StartPartCard game={g} history={h} session={session} />
-            {hasV43(s) && <IntentCard session={session} />}
-            <GoalCard game={g} history={h} session={session} />
+            <PlanCard game={g} history={h} session={session} intents={hasV43(s)} />
             <StopCard game={g} history={h} />
           </div>
           <div className="session__more">
-            <button className="btn quiet sm" onClick={() => setDraft({ kind: 'momento', title: '', note: '' })}><Icon name="caneta" size={16} />Anotar sem foto</button>
             <Link className="btn quiet sm" to={`/jogos/${g.slug}/traduzir`}><Icon name="mensagem" size={16} />Traduzir a tela</Link>
-            <button className="btn quiet sm" onClick={() => setFinishing('recado')}><Icon name="mensagem" size={16} />Recado para a próxima vez</button>
             <button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}><Icon name="pin" size={16} />Cápsula de Retomada</button>
           </div>
         </div>

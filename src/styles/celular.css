@@ -71,3 +71,5 @@ fieldset { min-width: 0; }
 .moremenu__links { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 16px 12px 6px; margin-top: 8px; border-top: 1px solid var(--line); }
 .moremenu__links a { color: var(--muted); font-size: 14px; text-decoration: none; min-height: 32px; display: inline-flex; align-items: center; }
 .moremenu__links a:hover { color: var(--ink); }
+.goalcard__ideias { margin-top: 2px; }
+.goalcard__ideias .chip { font-size: 12.5px; opacity: 0.9; }

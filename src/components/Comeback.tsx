@@ -2,9 +2,8 @@
  * Jornada 2 · J1: o que ajuda a voltar a um jogo.
  * - "Você parou em…": o cartão de retomada (onde parou, recado, quanto tempo faz).
  * - Sugestão de pausa depois de três sessões que "não encaixaram".
- * - Carta para o eu que vai zerar (lacrada até o marco).
  */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore, currentHistory, lastSession, lastNote, activeWaypoints, daysAway, fitHint, sessionsOf } from '../data/store';
 import type { ID, State, Game, History } from '../data/types';
@@ -12,8 +11,6 @@ import { awayLabel, recapFor } from '../lib/recap';
 import { dayMonth, durLabel, longDay } from '../lib/format';
 import { track } from '../lib/track';
 import { PlayButton } from './PlayButton';
-import { say as toneLine } from '../lib/tone';
-import { Sheet } from './Sheet';
 import { Icon } from './Icon';
 
 /** Rola até o bloco de volta (ou o cartão "Onde você parou") na Jornada do jogo. */
@@ -65,52 +62,6 @@ export function FitCard({ journeyId, onPaused }: { journeyId: ID; onPaused?: (hi
         <button className="btn quiet sm" onClick={() => actions.dismissFit(hint.historyId, hint.lastSessionId)}>Continuar mesmo assim</button>
       </div>
     </section>
-  );
-}
-
-/** Linha da carta dentro do cartão de progresso: escrever, ou lembrar que ela está lacrada. */
-export function LetterLine({ historyId }: { historyId: ID }) {
-  const s = useStore((x) => x);
-  const h = s.histories.find((x) => x.id === historyId);
-  const [open, setOpen] = useState(false);
-  if (!h || h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') return null;
-  return (
-    <>
-      <div className="letter-line">
-        <Icon name="carta" size={16} />
-        {h.letter ? <span>Carta lacrada. Abre quando você zerar.</span> : <span>Escreva para quem você vai ser no fim.</span>}
-        <button className="btn quiet sm" onClick={() => setOpen(true)}>{h.letter ? 'Reescrever' : 'Escrever a carta'}</button>
-      </div>
-      {open && <LetterSheet historyId={historyId} onClose={() => setOpen(false)} />}
-    </>
-  );
-}
-
-function LetterSheet({ historyId, onClose }: { historyId: ID; onClose: () => void }) {
-  const s = useStore((x) => x);
-  const h = s.histories.find((x) => x.id === historyId)!;
-  const [text, setText] = useState('');
-  const [saved, setSaved] = useState(false);
-  return (
-    <Sheet title={h.letter ? 'Reescrever a carta' : 'Uma carta para o fim'} onClose={onClose} labelId="letter-t">
-      {saved ? (
-        <div className="letter-sheet__done">
-          <p className="t">Carta lacrada.</p>
-          <p className="muted">{toneLine('carta', s.prefs.tone)}</p>
-          <button className="btn primary" onClick={onClose}>Fechar</button>
-        </div>
-      ) : (
-        <form className="letter-sheet" onSubmit={(e) => { e.preventDefault(); if (!text.trim()) return; actions.writeLetter(historyId, text); setSaved(true); }}>
-          <p className="muted">Fica lacrada e ninguém lê, nem você. Ela abre na celebração, quando você zerar.{h.letter ? ' Escrever de novo troca a carta anterior, sem abri-la.' : ''}</p>
-          <label htmlFor="letter-text" className="finish__label">Para quem vai zerar</label>
-          <textarea id="letter-text" className="field" rows={7} maxLength={4000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Por que você começou? O que espera sentir no fim?" />
-          <div className="sheet__actions">
-            <button type="submit" className="btn primary lg" disabled={!text.trim()}>Lacrar a carta</button>
-            <button type="button" className="btn quiet" onClick={onClose}>Cancelar</button>
-          </div>
-        </form>
-      )}
-    </Sheet>
   );
 }
 

@@ -860,3 +860,37 @@ body:has(.login__art) .site-footer__in > svg, body:has(.login__art) .site-footer
 .cm-tiles { grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); }
 /* Início: "O que jogar hoje" na largura toda, embaixo das três colunas */
 .home-what { padding-top: 28px; }
+
+/* ── Jornada: o progresso se arrasta no próprio topo (o ponto de luz é o controle) ── */
+.jhero__prog { display: flex; flex-direction: column; gap: 4px; max-width: 560px; margin-top: 2px; }
+.jhero__progrow { display: flex; align-items: center; gap: 14px; }
+.jhero__pct { min-width: 4ch; text-align: right; font-size: 13px; color: var(--ink-2); }
+.jhero__range { -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: 26px; margin: 0; background: transparent; cursor: grab; }
+.jhero__range:active { cursor: grabbing; }
+.jhero__range::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, rgba(255, 178, 91, 0.25) 0, var(--now) var(--p, 0%), rgba(201, 206, 212, 0.16) var(--p, 0%)); }
+.jhero__range::-moz-range-track { height: 2px; background: rgba(201, 206, 212, 0.16); }
+.jhero__range::-moz-range-progress { height: 2px; background: linear-gradient(90deg, rgba(255, 178, 91, 0.25), var(--now)); }
+.jhero__range::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -6px; border: 0; border-radius: 50%; background: var(--now-hi); box-shadow: 0 0 12px 4px rgba(255, 178, 91, 0.55); transition: transform 0.15s var(--fr-ease), box-shadow 0.15s; }
+.jhero__range::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--now-hi); box-shadow: 0 0 12px 4px rgba(255, 178, 91, 0.55); transition: transform 0.15s var(--fr-ease), box-shadow 0.15s; }
+.jhero__range:hover::-webkit-slider-thumb, .jhero__range:active::-webkit-slider-thumb { transform: scale(1.3); box-shadow: 0 0 18px 6px rgba(255, 178, 91, 0.6); }
+.jhero__range:hover::-moz-range-thumb, .jhero__range:active::-moz-range-thumb { transform: scale(1.3); box-shadow: 0 0 18px 6px rgba(255, 178, 91, 0.6); }
+.jhero__range:focus-visible { outline: none; }
+.jhero__range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(242, 244, 246, 0.85), 0 0 18px 6px rgba(255, 178, 91, 0.6); }
+.jhero__range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(242, 244, 246, 0.85), 0 0 18px 6px rgba(255, 178, 91, 0.6); }
+.jhero__arraste { position: relative; display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0; padding-right: calc(4ch + 14px); font-size: 12.5px; color: var(--ink-2); }
+.jhero__arraste .jprog__saved { position: absolute; right: 0; }
+/* "i" com a explicação ao passar o mouse (ou ao tocar, no celular) */
+.dica { position: relative; display: inline-flex; outline: none; }
+.dica__i { width: 16px; height: 16px; border: 1px solid rgba(230, 233, 237, 0.45); border-radius: 50%; font: italic 700 10.5px/14px Georgia, serif; text-align: center; color: #C9CED4; cursor: help; transition: border-color 0.2s, color 0.2s; }
+.dica:hover .dica__i, .dica:focus-visible .dica__i { border-color: var(--now); color: var(--now); }
+.dica__txt { position: absolute; bottom: calc(100% + 10px); left: 50%; z-index: 6; width: 260px; padding: 10px 14px 10px 12px; background: #14171b; color: #E6E9ED; font-size: 12.5px; line-height: 1.45; text-align: left; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); opacity: 0; transform: translate(-50%, 4px); pointer-events: none; transition: opacity 0.18s, transform 0.18s var(--fr-ease); }
+.dica:hover .dica__txt, .dica:focus .dica__txt { opacity: 1; transform: translate(-50%, 0); }
+.jhero__info .jhero__actions { margin-top: 4px; }
+/* Dificuldade na linha dos números do topo */
+.jhero .feats__dif--inline { align-self: flex-start; display: inline-flex; align-items: baseline; gap: 8px; margin-top: -10px; font-size: 14px; color: var(--ink-2); }
+.feats__dif--inline .feats__dif-l { color: var(--ink-2); }
+.jhero .feats__dif--inline .field { width: 14ch; height: auto; min-height: 0; padding: 2px 2px 3px; background: transparent; border: 0; border-bottom: 1px dashed rgba(230, 233, 237, 0.35); border-radius: 0; box-shadow: none; color: #F2F4F6; font-weight: 600; font-size: 14px; }
+.jhero .feats__dif--inline .field::placeholder { color: rgba(230, 233, 237, 0.45); font-weight: 500; }
+.jhero .feats__dif--inline .field:focus { outline: none; border-bottom: 1px solid var(--now); }
+@media (max-width: 560px) { .dica__txt { width: 220px; } .jhero__arraste { padding-right: 0; } }
+.jhero__row { align-items: flex-start; }

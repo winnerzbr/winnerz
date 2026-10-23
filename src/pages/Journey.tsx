@@ -1,8 +1,6 @@
 import { SnipShareSheet } from '../components/SnipShare';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { TrailerButton } from '../components/Trailer';
-import { PactList } from '../components/Pacts';
-import { usePacts } from '../data/pactApi';
 import { discordApi } from '../data/discordApi';
 import { packAfterFinish } from '../components/album/afterFinish';
 import { ShareCardButton } from '../components/ShareCard';
@@ -32,8 +30,8 @@ import { ActionToast } from '../components/Toast';
 import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
-import { FitCard, LetterLine, ComebackBlock, COMEBACK_AFTER_DAYS } from '../components/Comeback';
-import { OutlineSheet, OutlineStrip } from '../components/Outline';
+import { FitCard, ComebackBlock, COMEBACK_AFTER_DAYS } from '../components/Comeback';
+import { OutlineSheet } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
 import { isOpenWorld, partAt, partsTimeline, unitOf, type OutlinePart } from '../lib/outline';
 import { useVideos } from '../data/videoApi';
@@ -141,8 +139,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   /** A carta de cada História: lacrada enquanto joga, pronta para abrir depois de zerar, ou já aberta. */
   const letters = Object.fromEntries(histories.filter((h) => h.letter).map((h) => [h.id, { ready: h.state === 'concluida', text: h.letter!.openedAt ? h.letter!.text : undefined }]));
 
-  const pacts = usePacts();
-  const hasPacts = !!pacts?.some((p) => p.game.id === game.id);
 
   const stickerImage = [...allEvents].reverse().find((e) => e.image)?.image ?? bg ?? game.cover;
 
@@ -164,10 +160,9 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const away = daysAway(s, journeyId);
   // Uma semana longe: "Onde você parou" vira o bloco de volta (a antiga página "Preparar a volta").
   const back = away != null && away >= COMEBACK_AFTER_DAYS && isOpenState(current.state);
-  const [moreOpen, setMoreOpen] = useState(false);
   useEffect(() => {
     if (location.hash === '#voltar') document.getElementById('voltar')?.scrollIntoView({ block: 'start' });
-    if (location.hash === '#progresso') { setMoreOpen(true); setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center' }), 50); }
+    if (location.hash === '#progresso') setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center' }), 50);
   }, [journeyId]);
   const showToday = !selHist || selHist.id === current.id ? isOpenState(current.state) : false;
   const allItems: TLItem[] = useMemo(() => buildTimeline({
@@ -293,15 +288,29 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   {waypoints.length > 0 && <> <span className="jstats-line__now"><b>{waypoints.length}</b> {waypoints.length === 1 ? 'ponto' : 'pontos'} para voltar.</span></>}
                 </p>
               )}
-              {openState && !light && current.progress != null && (
-                <div className="jhero__prog">
-                  <div className="hline" aria-hidden="true"><i style={{ width: `${current.progress}%` }} /><b style={{ left: `${current.progress}%` }} /></div>
-                  <span className="mono">{current.progress}%</span>
-                  <button className="btn quiet sm" onClick={() => { setMoreOpen(true); setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50); }}>Atualizar</button>
+              <DifficultyField key={current.id} history={current} inline />
+              {openState && (
+                // O ponto de luz é o próprio controle: arrastar já grava o progresso, sem descer até outro cartão.
+                <div className="jhero__prog" id="progresso">
+                  <div className="jhero__progrow">
+                    <input className="jhero__range" type="range" min={0} max={100} step={1} value={progress}
+                      style={{ ['--p' as string]: `${progress}%` }}
+                      aria-label={`Seu progresso ${current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}`} aria-valuetext={`${progress} por cento`}
+                      onChange={(e) => setProgress(Number(e.target.value))}
+                      onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
+                    <span className="mono jhero__pct">{progress}%</span>
+                  </div>
+                  <p className="jhero__arraste">
+                    <span>Arraste para informar</span>
+                    <span className="dica" tabIndex={0} aria-label="O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.">
+                      <span className="dica__i" aria-hidden="true">i</span>
+                      <span className="dica__txt" role="tooltip">O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.</span>
+                    </span>
+                    <span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Salvo</span>}</span>
+                  </p>
                 </div>
               )}
-            </div>
-            <div className="jhero__actions">
+              <div className="jhero__actions">
               <button className={`btn ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}
               </button>
@@ -313,7 +322,13 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   ) : 'Estou jogando'}
                 </button>
               )}
+              {openState && (zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
+                ? <ConfirmButton className="btn ghost" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
+                : <button className="btn ghost" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>)}
+              {openState && <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'dropada'); stateChanged(current.id, current.state === 'ativa' ? 'Largado, sem culpa. Dá para retomar quando quiser.' : 'Largado, sem culpa.'); }}>Largar</button>}
+              {openState && <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'encerrada'); stateChanged(current.id, 'Encerrado do seu jeito.'); }}>Encerrar sem zerar</button>}
               <button className="btn ghost icon" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-label="Mais opções" title="Mais opções"><Icon name="maisAcoes" size={17} /></button>
+            </div>
             </div>
           </div>
           {playCta.hint && <p className="faint jhero__hint">{playCta.hint}</p>}
@@ -408,31 +423,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </div>
         )}
 
-        {openState && (
-          <details className="card jmore" open={moreOpen} onToggle={(e) => setMoreOpen((e.currentTarget as HTMLDetailsElement).open)}>
-            <summary><span className="kicker">Mais desta Jornada</span><span className="muted">{['progresso e Zerei', current.letter ? 'carta lacrada' : 'carta para o fim', current.mode ? `dificuldade: ${current.mode}` : 'dificuldade', hasPacts ? 'pactos' : null].filter(Boolean).join(' · ')}</span></summary>
-            <div className="jprog jprog--in" id="progresso">
-              <div className="jprog__head">
-                <label id="prog-label" htmlFor="prog" className="kicker">Seu progresso {current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}</label>
-                <span className="t jprog__v">{progress}%</span>
-              </div>
-              <input id="prog" className="range lg jprog__range" type="range" min={0} max={100} step={1} value={progress}
-                style={{ ['--p' as string]: `${progress}%` }}
-                aria-valuetext={`${progress} por cento`}
-                onChange={(e) => setProgress(Number(e.target.value))}
-                onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
-              <div className="mono jprog__ends"><span>Começo</span><span>Metade</span><span>Fim da campanha</span></div>
-              <OutlineStrip game={game} history={current} />
-              <p className="muted jprog__hint">Arraste para informar. O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.<span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Progresso salvo</span>}</span></p>
-              {zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
-                ? <ConfirmButton className="btn ghost jprog__done" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
-                : <button className="btn ghost jprog__done" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>}
-            </div>
-            <LetterLine historyId={current.id} />
-            <DifficultyField key={current.id} history={current} />
-            {hasPacts && <PactList gameId={game.id} game={game} title="Pactos deste jogo" />}
-          </details>
-        )}
 
         <section className="jline" aria-labelledby="jline-h">
           <div className="jline__head">

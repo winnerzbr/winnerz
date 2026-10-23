@@ -6,14 +6,14 @@ import { FEATS, speedrunTime } from '../lib/feats';
 const DIFFS = ['Fácil', 'Normal', 'Difícil', 'Muito difícil', 'Máximo'];
 
 /** Dificuldade em que a pessoa joga ou jogou. Salva ao sair do campo. */
-export function DifficultyField({ history }: { history: History }) {
+export function DifficultyField({ history, inline }: { history: History; inline?: boolean }) {
   const [v, setV] = useState(history.mode ?? '');
   const save = () => { if (v.trim() !== (history.mode ?? '')) actions.setDifficulty(history.id, v); };
   const id = `dif-${history.id}`;
   return (
-    <label className="feats__dif" htmlFor={id}>
-      <span className="kicker">Dificuldade</span>
-      <input id={id} className="field" value={v} maxLength={40} placeholder="Opcional, ex.: Difícil" list="dif-sugestoes"
+    <label className={inline ? 'feats__dif feats__dif--inline' : 'feats__dif'} htmlFor={id}>
+      <span className={inline ? 'feats__dif-l' : 'kicker'}>Dificuldade</span>
+      <input id={id} className="field" value={v} maxLength={40} placeholder={inline ? 'escolher' : 'Opcional, ex.: Difícil'} list="dif-sugestoes"
         onChange={(e) => setV(e.target.value)} onBlur={save} onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
       <datalist id="dif-sugestoes">{DIFFS.map((d) => <option key={d} value={d} />)}</datalist>
     </label>

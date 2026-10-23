@@ -173,6 +173,8 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/regras', path)) return <RulesPage />;
   if (match('/sobre', path)) return <AboutPage />;
   if (match('/eventos', path)) return <EventsIndex />;
+  // Endereço curto das peças de divulgação: winnerz.com.br/awards
+  if (path === '/awards' || path === '/awards/') return <GoTo to="/eventos/awards" />;
   if (match('/eventos/awards', path)) return <AwardsPage />;
   if (match('/eventos/awards/admin', path)) return <AwardsAdminPage />;
   if (match('/eventos/awards/revelar', path)) return <AwardsRevealPage />;

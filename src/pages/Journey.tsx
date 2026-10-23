@@ -38,7 +38,6 @@ import { useVideos } from '../data/videoApi';
 import { PartVideoButton } from '../components/PartVideo';
 import { RegionView } from '../components/RegionView';
 import { Faixa, type FaixaToday } from '../components/Faixa';
-import { PaintedMap } from '../components/PaintedMap';
 import { buildTimeline, byParts, weaveEchoes, weaveParts, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
 import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
@@ -91,8 +90,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const moments = allEvents.filter((e) => e.kind === 'momento').length;
   const light = !!s.prefs.light;
 
-  const [mode, setModeRaw] = useState<'faixa' | 'mapa'>(() => { try { return localStorage.getItem('wz.linha.modo') === 'mapa' ? 'mapa' : 'faixa'; } catch { return 'faixa'; } });
-  const setMode = (m: 'faixa' | 'mapa') => { setModeRaw(m); setFull(false); try { localStorage.setItem('wz.linha.modo', m); } catch { /* sem armazenamento: só nesta visita */ } };
   // S3: organizar a linha pela estrutura do jogo (capítulos ou regiões) ou pela data.
   const [org, setOrgRaw] = useState<'estrutura' | 'data'>(() => { try { return localStorage.getItem('wz.linha.org') === 'data' ? 'data' : 'estrutura'; } catch { return 'estrutura'; } });
   const setOrg = (o: 'estrutura' | 'data') => { setOrgRaw(o); try { localStorage.setItem('wz.linha.org', o); } catch { /* só nesta visita */ } };
@@ -441,12 +438,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   <button aria-pressed={org === 'data'} onClick={() => setOrg('data')}>Por data</button>
                 </div>
               )}
-              {!(byStructure && openWorld) && <div className="seg seg--sm" role="group" aria-label="Modo da linha do tempo">
-                <button aria-pressed={mode === 'faixa'} onClick={() => setMode('faixa')}>Rolagem</button>
-                <button aria-pressed={mode === 'mapa'} onClick={() => setMode('mapa')}>Mapa</button>
-              </div>}
               <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
-              {(mode === 'faixa' || (byStructure && openWorld)) && <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>}
+              <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
             </div>
           </div>
           <div className="chips jline__filters" role="group" aria-label="Mostrar na linha">
@@ -458,12 +451,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
           ) : !hasEvents && !todayInfo && !byStructure ? (
             <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
-          ) : mode === 'faixa' && byStructure ? (
+          ) : byStructure ? (
             <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
-          ) : mode === 'faixa' ? (
-            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
           ) : (
-            <PaintedMap items={visible} historyId={selHist?.id ?? `todas-${journeyId}`} title={game.title} subtitle={selHist ? (selHist.ordinal > 1 ? `${selHist.title}, História ${selHist.ordinal} · mapa da Jornada` : 'Mapa da Jornada') : 'Todas as Histórias · mapa da Jornada'} play={playCta} today={todayInfo} onEdit={setEditEvent} reduced={reduced} />
+            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+
           )}
         </section>
       </div>

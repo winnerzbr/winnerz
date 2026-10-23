@@ -261,7 +261,7 @@ public class FolhaActivity extends Activity {
         String titulo;
         switch (modo) {
             case "ponto": titulo = "Quero voltar aqui"; break;
-            case "objetivo": titulo = "Objetivo pequeno"; break;
+            case "objetivo": titulo = "Hoje é para…"; break;
             case "finalizar": titulo = "Fim da sessão · " + Painel.horas(minutos); break;
             default: titulo = "Momento"; break;
         }
@@ -392,10 +392,11 @@ public class FolhaActivity extends Activity {
     }
 
     private void montarObjetivo(LinearLayout f) {
-        objetivo = campo("Chegar ao próximo banco", false);
-        objetivo.setText(Painel.txt(aberta, "objetivo"));
+        objetivo = campo("Ex.: achar a chave do porão", false);
+        String atual = Painel.txt(aberta, "objetivo");
+        objetivo.setText(Widgets.POUCO.equals(atual) ? "" : atual);
         objetivo.setImeOptions(EditorInfo.IME_ACTION_DONE);
-        bloco(f, "Um objetivo pequeno para esta sessão", objetivo);
+        bloco(f, "O que você quer desta sessão?", objetivo);
     }
 
     private void montarFinalizar(LinearLayout f) {
@@ -417,7 +418,7 @@ public class FolhaActivity extends Activity {
         }
         String obj = Painel.txt(aberta, "objetivo");
         if (!obj.isEmpty()) {
-            opcoes(f, "Cumpriu o objetivo? “" + obj + "”", new String[] { "sim", "quase", "nao" }, new String[] { "Cumpri", "Quase", "Não" }, 3, id -> objetivoFeito = id);
+            opcoes(f, Widgets.POUCO.equals(obj) ? "Deu para parar na hora?" : "Cumpriu o objetivo? “" + obj + "”", new String[] { "sim", "quase", "nao" }, Widgets.POUCO.equals(obj) ? new String[] { "Sim", "Passei um pouco", "Não deu" } : new String[] { "Cumpri", "Quase", "Não" }, 3, id -> objetivoFeito = id);
         }
 
         espaco(f, 14);
@@ -570,6 +571,7 @@ public class FolhaActivity extends Activity {
                     break;
                 case "objetivo":
                     corpo.put("acao", "objetivo").put("objetivo", v(objetivo));
+                    if (!v(objetivo).isEmpty()) corpo.put("limparIntencao", true);
                     break;
                 default:
                     corpo.put("acao", "finalizar").put("onde", v(onde)).put("sentimento", sentimento).put("recado", v(recado))
@@ -591,6 +593,7 @@ public class FolhaActivity extends Activity {
                     aEnviar.compress(Bitmap.CompressFormat.JPEG, 82, o);
                     corpo.put("imagem", Base64.encodeToString(o.toByteArray(), Base64.NO_WRAP));
                 }
+                if (corpo.optBoolean("limparIntencao")) { corpo.remove("limparIntencao"); Api.chamar(app, new JSONObject().put("acao", "intencao").put("intencao", "")); }
                 JSONObject r = Api.chamar(app, corpo);
                 Conta.marcarAcao(app);
                 final String ok;

@@ -115,6 +115,14 @@ a.kicker::before, button.kicker::before, .kicker:empty::before { content: none; 
 .ghero__actions .btn.ghost, .jhero__actions .btn.ghost, .focus__actions .btn.ghost, .wish-card__actions .btn.ghost,
 .reveal__actions .btn.ghost, .awhero__admin .btn.ghost { background: rgba(27, 30, 34, 0.86); }
 .ghero__actions .btn[aria-pressed='true'], .ghero__actions .btn.is-fav, .ghero__actions .btn.is-radar { background: #F2F4F6; color: #07080A; }
+/* "Jogando agora" (Jornada): ligado é a peça escura com o ponto âmbar; com o mouse em cima continua legível e vira "Dei uma pausa". */
+.jhero__actions .btn.focus-toggle[aria-pressed='true'], .jhero__actions .btn.focus-toggle[aria-pressed='true']:hover { background: rgba(27, 30, 34, 0.86); color: #F2F4F6; }
+.jhero__actions .btn.focus-toggle[aria-pressed='true']:hover { background: rgba(42, 46, 52, 0.95); }
+.focus-toggle__pausa { display: none; }
+.focus-toggle[aria-pressed='true']:hover .focus-toggle__agora, .focus-toggle[aria-pressed='true']:focus-visible .focus-toggle__agora { display: none; }
+.focus-toggle[aria-pressed='true']:hover .focus-toggle__pausa, .focus-toggle[aria-pressed='true']:focus-visible .focus-toggle__pausa { display: inline; }
+.focus-toggle[aria-pressed='true']:hover .focus-toggle__dot { background: rgba(230, 233, 237, 0.45); box-shadow: none; }
+@media (hover: none) { .focus-toggle[aria-pressed='true']:hover .focus-toggle__agora { display: inline; } .focus-toggle[aria-pressed='true']:hover .focus-toggle__pausa { display: none; } }
 
 /* Link com traço: o traço anda para a frente */
 .lk { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); text-decoration: none; }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { actions, useStore, sessionsOf, sessionMinutes } from '../data/store';
-import { intentOf, MET } from '../lib/rest';
+import { intentOf, MET, POUCO } from '../lib/rest';
 import { Icon } from '../components/Icon';
 import { Backdrop } from '../components/Backdrop';
 import { durLabel, hourMin } from '../lib/format';
@@ -15,6 +15,7 @@ export type FinishData = { note?: string; whereStopped?: string; feeling?: strin
 
 export const FEELINGS = ['Adorei', 'Quero continuar', 'Foi suficiente por hoje', 'Não encaixou'];
 const GOALS = [['sim', 'Cumpri'], ['quase', 'Quase'], ['nao', 'Fica para a próxima']] as const;
+const POUCO_RESP = [['sim', 'Sim'], ['quase', 'Passei um pouco'], ['nao', 'Não deu']] as const;
 
 type Step = 'fez' | 'obj' | 'intent' | 'como' | 'recado' | 'quem' | 'num';
 
@@ -154,10 +155,19 @@ export function FinishFlow({ game, history, sessionNumber, onSavePhoto, progress
 
         {step === 'obj' && (
           <>
-            <h1 id="ff-q" ref={heading} tabIndex={-1} className="ff__q">Você cumpriu o objetivo?</h1>
-            <p className="ff__lead">No começo da sessão você escreveu: <b>“{goal}”</b></p>
+            {goal === POUCO ? (
+              <>
+                <h1 id="ff-q" ref={heading} tabIndex={-1} className="ff__q">Deu para parar na hora?</h1>
+                <p className="ff__lead">A ideia era jogar só um pouco.</p>
+              </>
+            ) : (
+              <>
+                <h1 id="ff-q" ref={heading} tabIndex={-1} className="ff__q">Você cumpriu o objetivo?</h1>
+                <p className="ff__lead">No começo da sessão você escreveu: <b>“{goal}”</b></p>
+              </>
+            )}
             <div className="ff__tiles ff__tiles--3" role="group" aria-label="Cumpriu o objetivo?">
-              {GOALS.map(([k, l]) => <button type="button" key={k} className="ff__tile" aria-pressed={done === k} onClick={() => { if (done === k) setDone(undefined); else { setDone(k); thenNext(); } }}>{l}</button>)}
+              {(goal === POUCO ? POUCO_RESP : GOALS).map(([k, l]) => <button type="button" key={k} className="ff__tile" aria-pressed={done === k} onClick={() => { if (done === k) setDone(undefined); else { setDone(k); thenNext(); } }}>{l}</button>)}
             </div>
           </>
         )}

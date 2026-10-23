@@ -19,6 +19,8 @@ export const MET: { id: IntentMet; label: string }[] = [
   { id: 'nao', label: 'Não' },
 ];
 export const intentOf = (id?: string) => INTENTS.find((x) => x.id === id);
+/** "Jogar só um pouco": fica guardado como o objetivo da sessão (no fim, a pergunta é se deu para parar na hora). */
+export const POUCO = 'Jogar só um pouco';
 export const metLabel = (id?: string) => MET.find((x) => x.id === id)?.label;
 
 const MONTHS = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];

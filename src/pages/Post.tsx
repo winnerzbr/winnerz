@@ -33,10 +33,32 @@ export function PostPage({ id }: { id: string }) {
   const [post, setPost] = useState<PostFull | null | undefined>(undefined);
   const [since, setSince] = useState<string | null | undefined>(undefined);
   const [err, setErr] = useState('');
+  // A última versão mostrada: a releitura automática só troca a tela quando algo mudou de verdade.
+  const visto = useRef('');
   const load = useCallback(async () => {
-    try { setPost(await communityApi.post(id)); } catch (e) { setErr(errOf(e)); setPost(null); }
+    try { const p = await communityApi.post(id); visto.current = JSON.stringify(p); setPost(p); } catch (e) { setErr(errOf(e)); setPost(null); }
   }, [id]);
   useEffect(() => { void load(); }, [load]);
+  // Ao vivo: as respostas novas (de qualquer pessoa e do IAmiguinho) aparecem sozinhas, sem atualizar a página.
+  // Relê a cada 8 s só com a aba à vista, e na hora em que a pessoa volta para a aba.
+  const [tique, setTique] = useState(0);
+  useEffect(() => {
+    let vivo = true; let lendo = false;
+    const reler = async () => {
+      if (lendo || document.visibilityState !== 'visible') return;
+      lendo = true;
+      try {
+        const p = await communityApi.post(id);
+        const k = JSON.stringify(p);
+        if (vivo && p && k !== visto.current) { visto.current = k; setPost(p); }
+      } catch { /* sem rede agora: tenta na próxima */ } finally { lendo = false; }
+      if (vivo) setTique((n) => n + 1);
+    };
+    const t = setInterval(() => void reler(), 8_000);
+    const voltou = () => { if (document.visibilityState === 'visible') void reler(); };
+    document.addEventListener('visibilitychange', voltou);
+    return () => { vivo = false; clearInterval(t); document.removeEventListener('visibilitychange', voltou); };
+  }, [id]);
   // A visita anterior (para a linha "novas desde a sua visita"); abrir já conta como lida.
   useEffect(() => { let alive = true; communityApi.read(id).then((x) => alive && setSince(x)).catch(() => alive && setSince(null)); return () => { alive = false; }; }, [id]);
   useEffect(() => { if (post) document.title = `${postTitle(post)} · ${post.community ? post.community.name : 'Praça'} · WinnerZ`; }, [post]);
@@ -56,10 +78,10 @@ export function PostPage({ id }: { id: string }) {
       <Link to="/comunidade">Voltar para a Praça</Link>
     </main>
   );
-  return <PostBody post={post} setPost={setPost} reload={load} since={since} />;
+  return <PostBody post={post} setPost={setPost} reload={load} since={since} tique={tique} />;
 }
 
-function PostBody({ post, setPost, reload, since }: { post: PostFull; setPost: (p: PostFull) => void; reload: () => Promise<void>; since: string | null }) {
+function PostBody({ post, setPost, reload, since, tique }: { post: PostFull; setPost: (p: PostFull) => void; reload: () => Promise<void>; since: string | null; tique: number }) {
   const me = useMe();
   const isAdmin = useStore((s) => !!s.isAdmin);
   const [covered, reveal, reached] = usePostCovered(post);
@@ -127,7 +149,7 @@ function PostBody({ post, setPost, reload, since }: { post: PostFull; setPost: (
             {err && <p className="awards__error" role="alert">{err}</p>}
           </article>
 
-          <Thread post={post} covered={covered} onReveal={reveal} onAnswer={answer} reload={reload} since={since} />
+          <Thread post={post} covered={covered} onReveal={reveal} onAnswer={answer} reload={reload} since={since} tique={tique} />
         </div>
 
         <aside className="cm-post__side">
@@ -227,7 +249,7 @@ function flashTo(elId: string) {
 
 const score = (r: Reply) => Object.entries(r.reactions).reduce((n, [k, v]) => (k === 'mine' ? n : n + (typeof v === 'number' ? v : 0)), 0);
 
-function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: PostFull; covered: boolean; onReveal: () => void; onAnswer: (id: string | null) => void; reload: () => Promise<void>; since: string | null }) {
+function Thread({ post, covered, onReveal, onAnswer, reload, since, tique }: { post: PostFull; covered: boolean; onReveal: () => void; onAnswer: (id: string | null) => void; reload: () => Promise<void>; since: string | null; tique: number }) {
   const me = useMe();
   const signedOut = useStore((s) => s.mode === 'supabase' && !s.profile);
   const [replyTo, setReplyTo] = useState<{ top: string; quote: string; nonce: number } | null>(null);
@@ -238,7 +260,20 @@ function Thread({ post, covered, onReveal, onAnswer, reload, since }: { post: Po
   const [pensando, setPensando] = useState<string | null>(null);
   const chamado = useRef(false);
   const onde = { postId: post.id, title: postTitle(post), place: post.community?.name ?? 'Praça' };
-  useEffect(() => { let vivo = true; void iamiguinhoApi.fio(post.id).then((l) => { if (vivo) setMascote(l); }); return () => { vivo = false; }; }, [post.id, post.thread.length]);
+  // Relida junto com a conversa (a cada releitura automática): a resposta dele a quem chamou aparece sozinha.
+  useEffect(() => {
+    let vivo = true;
+    void iamiguinhoApi.fio(post.id).then((l) => {
+      if (!vivo) return;
+      // Uma resposta que acabou de chegar pelo "pensando" fica, mesmo se esta leitura saiu antes dela.
+      const juntas = [...l, ...mascoteRecentes(l)];
+      setMascote((atual) => (JSON.stringify(atual) === JSON.stringify(juntas) ? atual : juntas));
+    });
+    return () => { vivo = false; };
+  }, [post.id, post.thread.length, tique]);
+  const atualRef = useRef<MascoteResposta[]>([]);
+  atualRef.current = mascote;
+  const mascoteRecentes = (l: MascoteResposta[]) => atualRef.current.filter((x) => !l.some((y) => y.id === x.id) && Date.now() - Date.parse(x.createdAt) < 30_000);
   const chamar = async (origem: 'post' | 'resposta', id: string, texto: string) => {
     if (!chamouIamiguinho(texto)) return;
     setPensando(id);

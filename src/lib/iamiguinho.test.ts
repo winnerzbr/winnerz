@@ -223,4 +223,5 @@ test('o mesmo contexto no site e na live: só os limites mudam', async () => {
   for (const v of [site, live]) assert.ok(v.includes('Ele é um pirata.') && v.includes('- só memes de pirata') && v.includes('A live é toda terça.'));
   assert.ok(site.includes('nunca humilha nem zoa a pessoa') && !site.includes('Zoeira ácida de internet entre amigos está liberada'));
   assert.ok(live.includes('Zoeira ácida de internet entre amigos está liberada'));
+  for (const v of [site, live]) assert.ok(v.includes('Assunto: o mundo inteiro') && v.includes('não são repertório'));
 });

@@ -894,3 +894,10 @@ body:has(.login__art) .site-footer__in > svg, body:has(.login__art) .site-footer
 .jhero .feats__dif--inline .field:focus { outline: none; border-bottom: 1px solid var(--now); }
 @media (max-width: 560px) { .dica__txt { width: 220px; } .jhero__arraste { padding-right: 0; } }
 .jhero__row { align-items: flex-start; }
+/* Topo da Jornada: título e números à esquerda, o progresso no espaço da direita, botões embaixo. */
+.jhero__top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px 48px; }
+.jhero__head { display: flex; flex-direction: column; gap: 18px; flex: 1 1 360px; min-width: 0; }
+.jhero__top .jhero__prog { flex: 0 1 520px; width: 100%; max-width: 520px; align-items: stretch; margin: 0 0 2px; }
+.jhero__top .jhero__progrow { width: 100%; }
+.dica__txt { width: auto; white-space: nowrap; }
+@media (max-width: 900px) { .jhero__top .jhero__prog { flex-basis: 100%; max-width: none; } }

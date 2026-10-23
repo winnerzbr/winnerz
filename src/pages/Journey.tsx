@@ -277,6 +277,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   <button aria-current={histSel === 0 ? 'true' : undefined} onClick={() => setHistSel(0)}>Todas</button>
                 </nav>
               )}
+              <div className="jhero__top">
+              <div className="jhero__head">
               <h1 id="jtitle" className="t jhero__title">{game.title}</h1>
               {!light && (
                 // Fresta: os números entram numa frase, no lugar de "número grande + legenda".
@@ -289,6 +291,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                 </p>
               )}
               <DifficultyField key={current.id} history={current} inline />
+              </div>
               {openState && (
                 // O ponto de luz é o próprio controle: arrastar já grava o progresso, sem descer até outro cartão.
                 <div className="jhero__prog" id="progresso">
@@ -302,14 +305,15 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   </div>
                   <p className="jhero__arraste">
                     <span>Arraste para informar</span>
-                    <span className="dica" tabIndex={0} aria-label="O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.">
+                    <span className="dica" tabIndex={0} aria-label="Chegar a 100% não marca Zerou sozinho.">
                       <span className="dica__i" aria-hidden="true">i</span>
-                      <span className="dica__txt" role="tooltip">O WinnerZ nunca calcula por você, e chegar a 100% não marca Zerou sozinho.</span>
+                      <span className="dica__txt" role="tooltip">Chegar a 100% não marca Zerou sozinho.</span>
                     </span>
                     <span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Salvo</span>}</span>
                   </p>
                 </div>
               )}
+              </div>
               <div className="jhero__actions">
               <button className={`btn ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}

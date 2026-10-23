@@ -30,7 +30,8 @@ export interface ContextoIam {
   atual: { personalidade: string | null; repertorio: string | null; extra: string | null; atualizadoEm: string | null };
   memoria: { conversas: number; ultimaVez: string | null; fatos: string[]; recentes: { pergunta: string; resposta: string; em: string }[] };
   previa: { sistema: string; memoria: string };
-  fixo: { limites: string; graca: string; voz: string; chat: string };
+  /** sofa, site, mencao e limitesSite: só depois de o servidor novo estar no ar. */
+  fixo: { limites: string; limitesSite?: string; graca: string; voz: string; chat: string; sofa?: string; site?: string; mencao?: string };
 }
 export interface SofaLinha { ligado: boolean; calado: boolean; fala: string | null; cena: SofaCena | null; falou_em: string | null }
 
@@ -87,7 +88,7 @@ export const sofaApi = {
     }
     return post<SofaConversa>({ acao: 'conversa', ...p });
   },
-  /** Studio · o contexto completo dele (o que vai para a IA nas conversas) e o que dá para mudar. */
+  /** Studio · o contexto completo dele (o mesmo no site e na live) e o que dá para mudar. */
   async contexto(salvar?: Partial<Record<'personalidade' | 'repertorio' | 'extra', string | null>>): Promise<ContextoIam> {
     if (!supa()) {
       const k = 'wz.demo.contexto';

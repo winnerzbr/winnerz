@@ -215,3 +215,12 @@ test('contexto do Studio: o texto do canal entra no lugar do padrão; vazio volt
   assert.ok(meu.includes('- só memes de pirata') && meu.includes('A live é toda terça.') && meu.includes('Limites que não mudam'));
   assert.equal(vozConversa({ personalidade: '   ', repertorio: null }), pad);
 });
+
+test('o mesmo contexto no site e na live: só os limites mudam', async () => {
+  const { vozIam } = await import('../../api/iamiguinho');
+  const ctx = { personalidade: 'Ele é um pirata.', repertorio: '- só memes de pirata', extra: 'A live é toda terça.' };
+  const site = vozIam(ctx, 'site'); const live = vozIam(ctx, 'live');
+  for (const v of [site, live]) assert.ok(v.includes('Ele é um pirata.') && v.includes('- só memes de pirata') && v.includes('A live é toda terça.'));
+  assert.ok(site.includes('nunca humilha nem zoa a pessoa') && !site.includes('Zoeira ácida de internet entre amigos está liberada'));
+  assert.ok(live.includes('Zoeira ácida de internet entre amigos está liberada'));
+});

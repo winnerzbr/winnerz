@@ -1,6 +1,6 @@
 /**
- * Studio · o contexto do IAmiguinho (migração 0088). Tudo o que ele recebe nas conversas da live (voz e chat), sempre
- * atualizado: a personalidade, o repertório, o contexto do canal, o que ele lembra de você e as últimas conversas.
+ * Studio · o contexto do IAmiguinho (migração 0088). O mesmo em todo lugar onde ele fala (balões do site, respostas na
+ * Comunidade, sofá da live, conversa por voz e chat), sempre atualizado: a personalidade, o repertório, o contexto do canal, o que ele lembra de você e as últimas conversas.
  * Os três textos e as lembranças mudam aqui, a qualquer hora; a identidade e os limites de segurança ficam fixos.
  */
 import { useCallback, useEffect, useState } from 'react';
@@ -80,7 +80,7 @@ export function StudioIAmiguinhoPage() {
       <header className="live-central__head">
         <Link to="/studio" className="sofa__back"><Icon name="voltar" size={16} />Studio</Link>
         <h1 className="t sofa__title">Contexto do IAmiguinho</h1>
-        <p className="muted sofa__lead">Tudo o que ele recebe nas conversas da live (pela voz e no chat), sempre atualizado. Mude a personalidade, o repertório e o contexto do canal quando quiser: vale na próxima conversa.</p>
+        <p className="muted sofa__lead">O mesmo contexto em todo lugar onde ele aparece: nos balões e nas respostas da Comunidade no site, no sofá da live, na conversa por voz e no chat. Mude a personalidade, o repertório e o contexto do canal quando quiser: vale em todos, na próxima fala.</p>
       </header>
       {erro && <p className="awards__error" role="alert">{erro}</p>}
       {msg && <p className="live-central__msg" role="status">{msg}</p>}
@@ -93,7 +93,7 @@ export function StudioIAmiguinhoPage() {
               <h2 id="iamc-agora" className="t iamc__h">Como ele está agora</h2>
               <span className="faint">{c.atual.atualizadoEm ? `Textos mudados em ${quando(c.atual.atualizadoEm)}` : 'Com os textos padrão'} · atualiza sozinho</span>
             </div>
-            <p className="muted iamc__dica">Exatamente o que vai para a IA numa conversa por voz, menos a sua pergunta e a tela do jogo (que mudam a cada vez). No chat, a parte de cima é a mesma; muda só o fim (as regras do chat).</p>
+            <p className="muted iamc__dica">Exatamente o que vai para a IA numa conversa por voz, menos a sua pergunta e a tela do jogo (que mudam a cada vez). No sofá e no chat, a parte de cima é a mesma; no site também, com os limites do site no lugar da zoeira de amigo. Muda só o fim (as regras de cada lugar, lá embaixo).</p>
             <details className="iamc__previa" open>
               <summary>O texto dele (personalidade, repertório, contexto e regras)</summary>
               <pre>{c.previa.sistema}</pre>
@@ -104,7 +104,7 @@ export function StudioIAmiguinhoPage() {
             </details>
           </section>
 
-          <Texto campo="personalidade" titulo="Personalidade" dica="Quem ele é e como ele fala: o jeito de zoar, a autoestima, as manias. Comece do texto padrão e mude o que quiser." valor={c.atual.personalidade ?? c.padrao.personalidade} padrao={c.padrao.personalidade} salvo={c.atual.personalidade != null} onSalvar={(k, v) => void salvar(k, v)} busy={busy} />
+          <Texto campo="personalidade" titulo="Personalidade" dica="Quem ele é e como ele fala, no site e na live: o jeito de zoar, a autoestima, as manias. Comece do texto padrão e mude o que quiser." valor={c.atual.personalidade ?? c.padrao.personalidade} padrao={c.padrao.personalidade} salvo={c.atual.personalidade != null} onSalvar={(k, v) => void salvar(k, v)} busy={busy} />
           <Texto campo="repertorio" titulo="Repertório de memes e referências" dica="Os consensos da comunidade gamer e os memes da internet que ele conhece. Uma linha por assunto, começando com um traço." valor={c.atual.repertorio ?? c.padrao.repertorio} padrao={c.padrao.repertorio} salvo={c.atual.repertorio != null} onSalvar={(k, v) => void salvar(k, v)} busy={busy} />
           <Texto campo="extra" titulo="Contexto do canal" dica="O que ele precisa saber sobre o canal e a live: dia e horário, o que você está jogando na temporada, apelidos, piadas internas do chat, assuntos que você não quer na live. Ele trata como verdade." valor={c.atual.extra ?? ''} padrao={null} salvo={c.atual.extra != null} onSalvar={(k, v) => void salvar(k, v)} busy={busy} />
 
@@ -133,10 +133,14 @@ export function StudioIAmiguinhoPage() {
           <section className="iamc__bloco" aria-labelledby="iamc-fixo">
             <h2 id="iamc-fixo" className="t iamc__h">Regras fixas</h2>
             <p className="muted iamc__dica">Estas não mudam por aqui: são os limites que deixam ele seguro ao vivo e as regras de cada lugar onde ele fala.</p>
-            <details className="iamc__previa"><summary>Limites</summary><pre>{c.fixo.limites}</pre></details>
+            <details className="iamc__previa"><summary>Limites na live</summary><pre>{c.fixo.limites}</pre></details>
+            {c.fixo.limitesSite && <details className="iamc__previa"><summary>Limites no site</summary><pre>{c.fixo.limitesSite}</pre></details>}
             <details className="iamc__previa"><summary>Como ser engraçado (guia de humor)</summary><pre>{c.fixo.graca}</pre></details>
             <details className="iamc__previa"><summary>Na conversa por voz</summary><pre>{c.fixo.voz}</pre></details>
             <details className="iamc__previa"><summary>No chat da live</summary><pre>{c.fixo.chat}</pre></details>
+            {c.fixo.sofa && <details className="iamc__previa"><summary>No sofá da live (comentando a tela)</summary><pre>{c.fixo.sofa}</pre></details>}
+            {c.fixo.site && <details className="iamc__previa"><summary>Nos balões do site</summary><pre>{c.fixo.site}</pre></details>}
+            {c.fixo.mencao && <details className="iamc__previa"><summary>Nas respostas da Comunidade (@iamiguinho)</summary><pre>{c.fixo.mencao}</pre></details>}
           </section>
         </>
       )}

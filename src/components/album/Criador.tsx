@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { artSrc, reloadAlbum, studioAlbumApi, type AlbumArt, type AlbumBook, type AlbumPage, type Catalog, type Sticker } from '../../data/albumApi';
 import { TIER_LABEL, TIER_MATERIAL, TIERS, type Tier } from '../../lib/album';
-import { chunk, clampFraming, COVER_ASPECT, cropRect, FRAMING_INICIAL, moveTo, OVERSCAN, pan, placeInBox, STICKER_ASPECT, ZOOM_MAX, type Framing } from '../../lib/enquadrar';
+import { chunk, clampFraming, COVER_ASPECT, coversAll, cropRect, FRAMING_INICIAL, moveTo, OVERSCAN, pan, placeInBox, STICKER_ASPECT, ZOOM_MAX, ZOOM_MIN, type Framing } from '../../lib/enquadrar';
 import { coverHTML, ensureDefs, num3, stickerHTML } from './render';
 import { StickerView } from './StickerView';
 import { ConfirmButton } from '../Sheet';
@@ -41,7 +41,17 @@ async function renderCrop(src: string, aspect: number, f: Framing, outW: number)
   c.width = outW; c.height = Math.round(outW / aspect);
   const g = c.getContext('2d')!;
   g.imageSmoothingQuality = 'high';
-  g.drawImage(img, r.sx, r.sy, r.sw, r.sh, 0, 0, c.width, c.height);
+  const W = img.naturalWidth, H = img.naturalHeight;
+  if (!coversAll(W, H, r)) {
+    // Sobra além da pintura: preenche com a própria pintura, ampliada e desfocada (como no Criador).
+    const k = Math.max(c.width / W, c.height / H) * 1.15;
+    g.filter = `blur(${Math.round(c.width / 28)}px) brightness(0.72) saturate(1.1)`;
+    g.drawImage(img, (c.width - W * k) / 2, (c.height - H * k) / 2, W * k, H * k);
+    g.filter = 'none';
+  }
+  // A pintura no lugar escolhido (o recorte pode começar fora dela).
+  const sx = c.width / r.sw, sy = c.height / r.sh;
+  g.drawImage(img, -r.sx * sx, -r.sy * sy, W * sx, H * sy);
   return await new Promise<Blob>((ok, bad) => c.toBlob((b) => (b ? ok(b) : bad(new Error('Não consegui gerar o recorte.'))), 'image/jpeg', 0.9));
 }
 
@@ -281,6 +291,11 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
     if (!nat) { img.style.visibility = 'hidden'; return; }
     const p = placeInBox(nat.w, nat.h, aspect, framing, overscan);
     Object.assign(img.style, { visibility: '', left: `${p.left}%`, top: `${p.top}%`, width: `${p.width}%`, height: `${p.height}%` });
+    // A sobra além da pintura aparece preenchida com ela mesma, desfocada (igual ao recorte que vai ser gerado).
+    let fill = img.parentElement?.querySelector<HTMLImageElement>('img.cr-fill');
+    if (!fill) { fill = document.createElement('img'); fill.className = 'cr-fill'; fill.alt = ''; fill.draggable = false; img.before(fill); }
+    if (fill.src !== img.src) fill.src = img.src;
+    fill.hidden = coversAll(nat.w, nat.h, cropRect(nat.w, nat.h, aspect, framing));
   });
   // Rodinha do mouse: zoom (precisa de ouvinte não passivo para não rolar a página).
   useEffect(() => {
@@ -312,12 +327,15 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
         }}
         onDragOver={(e) => { if (onDropArt && hasType(e, T_ART)) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)}
         onDrop={(e) => { setOver(false); if (onDropArt && hasType(e, T_ART)) { e.preventDefault(); onDropArt(e); } }} />
+      {nat && <span className="cr-framer__tip" aria-hidden="true">Arraste para mover · rodinha para zoom</span>}
       <div className="cr-zoom">
         <span aria-hidden="true">−</span>
-        <input type="range" min={1} max={ZOOM_MAX} step={0.01} value={framing.z} aria-label="Zoom" disabled={!nat}
+        <input type="range" min={ZOOM_MIN} max={ZOOM_MAX} step={0.01} value={framing.z} aria-label="Zoom" disabled={!nat}
           onChange={(e) => nat && onChange(clampFraming(nat.w, nat.h, aspect, { ...framing, z: Number(e.target.value) }))} />
         <span aria-hidden="true">+</span>
         <button type="button" className="btn quiet sm" disabled={!nat} onClick={() => onChange({ ...FRAMING_INICIAL })}>Encaixar</button>
+        <button type="button" className="btn quiet sm" disabled={!nat} title="Afasta até a pintura caber inteira na moldura"
+          onClick={() => { if (!nat) return; const b = cropRect(nat.w, nat.h, aspect, { x: 0.5, y: 0.5, z: 1 }); onChange(clampFraming(nat.w, nat.h, aspect, { x: 0.5, y: 0.5, z: Math.min(b.sw / nat.w, b.sh / nat.h) / overscan })); }}>Pintura inteira</button>
       </div>
     </div>
   );

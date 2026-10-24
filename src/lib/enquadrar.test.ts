@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chunk, clampFraming, cropRect, moveTo, pan, placeInBox, slotLayout, STICKER_ASPECT } from './enquadrar';
+import { chunk, clampFraming, coversAll, cropRect, moveTo, pan, placeInBox, slotLayout, snapInside, STICKER_ASPECT } from './enquadrar';
 
 const near = (a: number, b: number, e = 0.01) => assert.ok(Math.abs(a - b) <= e, `${a} ≠ ${b}`);
 
@@ -11,11 +11,19 @@ test('o recorte inicial é o maior 5:7 que cabe, centrado', () => {
   near(v.sw, 1000); near(v.sh, 1400); near(v.sy, 300);
 });
 
-test('zoom e centro nunca deixam o recorte sair da imagem', () => {
+test('enquadramento livre: dá para afastar e passar da borda; Encaixar traz para dentro', () => {
   const r = cropRect(2000, 1400, STICKER_ASPECT, { x: 0, y: 1, z: 2 });
-  near(r.sw, 500); near(r.sh, 700); near(r.sx, 0); near(r.sy, 700);
+  near(r.sw, 500); near(r.sh, 700); near(r.sx, -250); near(r.sy, 1050);
+  assert.equal(coversAll(2000, 1400, r), false);
   const f = clampFraming(2000, 1400, STICKER_ASPECT, { x: -3, y: 9, z: 99 });
-  assert.ok(f.z <= 5 && f.x > 0 && f.y < 1);
+  assert.deepEqual(f, { x: 0, y: 1, z: 5 });
+  near(clampFraming(2000, 1400, STICKER_ASPECT, { x: 0.5, y: 0.5, z: 0.01 }).z, 0.4);
+  const s = snapInside(2000, 1400, STICKER_ASPECT, { x: 0, y: 1, z: 0.5 });
+  assert.equal(s.z, 1);
+  assert.ok(coversAll(2000, 1400, cropRect(2000, 1400, STICKER_ASPECT, s)));
+  // uma pintura quase no formato da figurinha agora também anda para os lados
+  const g = pan(1000, 1450, STICKER_ASPECT, { x: 0.5, y: 0.5, z: 1 }, 100, 0, 250, 350);
+  assert.ok(g.x < 0.5);
 });
 
 test('arrastar para a direita mostra mais da esquerda da pintura', () => {

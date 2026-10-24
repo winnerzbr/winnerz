@@ -105,6 +105,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0066 no Supabase.'));
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0056 no Supabase.'));
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0055 no Supabase.'));
+    if (/studio_album_sticker_delete_many/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0094 no Supabase.'));
     if (/landscape|leaf|\bpos\b/i.test(m) && /column|does not exist/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0093 no Supabase.'));
     if (/album_arts|studio_album_sticker_order|per_page|framing/i.test(m) && /not find|does not exist|schema cache|column/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0092 no Supabase.'));
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
@@ -387,6 +388,20 @@ export const studioAlbumApi = {
   async deleteSticker(id: string): Promise<Catalog> {
     if (!supa()) return dMutate((d) => { d.stickers = d.stickers.filter((x) => x.id !== id); d.items = d.items.filter((x) => x.id !== id); });
     return rpc<Catalog>('studio_album_sticker_delete', { p_id: id });
+  },
+  /**
+   * Apaga várias figurinhas. Com force, apaga de vez mesmo as que alguém já tem (somem da coleção de todo mundo e as
+   * trocas abertas com elas são canceladas). Sem force, as que alguém tem só saem dos pacotes. Migração 0094.
+   */
+  async deleteStickers(ids: string[], force: boolean): Promise<Catalog> {
+    if (!supa()) return dMutate((d) => {
+      const set = new Set(ids);
+      const owned = new Set(d.items.filter((x) => x.qty > 0).map((x) => x.id));
+      for (const s of d.stickers) if (set.has(s.id) && !force && owned.has(s.id)) s.active = false;
+      d.stickers = d.stickers.filter((x) => !set.has(x.id) || (!force && owned.has(x.id)));
+      if (force) d.items = d.items.filter((x) => !set.has(x.id));
+    });
+    return rpc<Catalog>('studio_album_sticker_delete_many', { p_ids: ids, p_force: force });
   },
   /** Reordena (e renumera) várias figurinhas de uma vez (arrastar no quadro do álbum). */
   async order(list: StickerOrder[]): Promise<Catalog> {

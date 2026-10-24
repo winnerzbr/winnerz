@@ -197,7 +197,8 @@ export function Criador({ say, fail }: Say) {
               owned={draft.id ? cat.owned[draft.id] ?? 0 : 0} numberTaken={cat.stickers.some((s) => s.season === draft.season && s.number === draft.number && s.id !== draft.id)}
               artFromDrop={artFromDrop} upload={upload} pickedArt={picked} takePicked={() => { if (picked) { setDraft((d) => (d ? { ...d, source: picked.path, framing: { ...FRAMING_INICIAL }, changed: true } : d)); setPicked(null); } }}
               onSave={(n) => void salvar(n)} onCancel={() => setDraft(null)}
-              onDelete={draft.id ? async () => { const c = await apply(studioAlbumApi.deleteSticker(draft.id!), cat.owned[draft.id!] ? 'Figurinha tirada dos pacotes (quem tem continua tendo).' : 'Figurinha apagada.'); if (c) setDraft(null); } : undefined} />
+              onDelete={draft.id ? async () => { const c = await apply(studioAlbumApi.deleteSticker(draft.id!), cat.owned[draft.id!] ? 'Figurinha tirada dos pacotes (quem tem continua tendo).' : 'Figurinha apagada.'); if (c) setDraft(null); } : undefined}
+              onDeleteForever={draft.id && cat.owned[draft.id] ? async () => { const c = await apply(studioAlbumApi.deleteStickers([draft.id!], true), 'Figurinha apagada de vez.'); if (c) setDraft(null); } : undefined} />
           )}
         </section>
 
@@ -379,10 +380,10 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
 }
 
 /* ---- Editor da figurinha (na mesa) ------------------------------------------------------------------------------ */
-function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDrop, upload, pickedArt, takePicked, onSave, onCancel, onDelete }: {
+function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDrop, upload, pickedArt, takePicked, onSave, onCancel, onDelete, onDeleteForever }: {
   d: Draft; set: (p: Partial<Draft>) => void; books: AlbumBook[]; section: string; saving: boolean; owned: number; numberTaken: boolean;
   artFromDrop: (e: DragEvent) => AlbumArt | null; upload: (f: File[]) => Promise<AlbumArt[]>; pickedArt: AlbumArt | null; takePicked: () => void;
-  onSave: (next: boolean) => void; onCancel: () => void; onDelete?: () => void;
+  onSave: (next: boolean) => void; onCancel: () => void; onDelete?: () => void; onDeleteForever?: () => void;
 }) {
   const preview: Sticker = { id: d.id ?? 'mesa', season: d.season, number: d.number || 0, name: d.name.trim() || 'Nome da figurinha', tier: d.tier, art: d.source ?? d.art, credit: d.credit, pageId: d.pageId, slot: d.slot, active: d.active, landscape: d.landscape };
   const html = `<div class="wsw">${stickerHTML(preview, section)}</div>`;
@@ -434,6 +435,7 @@ function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDro
             {!d.id && <button className="btn ghost" disabled={saving || numberTaken} onClick={() => onSave(true)}>Salvar e escolher a próxima arte</button>}
             <button className="btn quiet" disabled={saving} onClick={onCancel}>{d.changed ? 'Descartar' : 'Fechar'}</button>
             {onDelete && <ConfirmButton label={owned ? 'Tirar dos pacotes' : 'Apagar'} confirm={owned ? 'Já tem gente com ela. Tirar dos pacotes?' : 'Apagar mesmo?'} onConfirm={onDelete} />}
+            {onDeleteForever && <ConfirmButton label="Apagar de vez" confirm={`Some também da coleção de ${owned} ${owned === 1 ? 'pessoa' : 'pessoas'}. Apagar?`} onConfirm={onDeleteForever} />}
           </div>
           <p className="faint cr-hint">Ctrl + S salva. O recorte final sai em {d.landscape ? '1400 × 1000' : '1000 × 1400'}.</p>
         </div>
@@ -508,6 +510,23 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
   };
 
   /* ---- arrastar as figurinhas nas páginas (com o mouse, sem o arrastar do navegador) ---- */
+  /* ---- apagar várias: marcar clicando nas figurinhas ---- */
+  const [sel, setSel] = useState<Set<string> | null>(null);
+  const toggle = (id: string) => setSel((x) => { if (!x) return x; const n = new Set(x); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  const idsDoAlbum = new Set(pages.map((p) => p.id));
+  const doAlbum = cat.stickers.filter((x) => (x.pageId && idsDoAlbum.has(x.pageId)) || loose.includes(x));
+  const antigas = doAlbum.filter((x) => !x.source);
+  const comDono = sel ? [...sel].filter((id) => (cat.owned[id] ?? 0) > 0).length : 0;
+  useEffect(() => {
+    document.querySelectorAll<HTMLElement>('.cr-quadro .alb-slot[data-slot], .cr-quadro .cr-mini[data-sid]').forEach((el) => el.classList.toggle('is-sel', !!sel?.has(el.dataset.slot ?? el.dataset.sid ?? '')));
+  });
+  const apagar = async () => {
+    if (!sel?.size) return;
+    const n = sel.size;
+    const c = await apply(studioAlbumApi.deleteStickers([...sel], true), n === 1 ? 'Figurinha apagada de vez.' : `${n} figurinhas apagadas de vez.`);
+    if (c) setSel(null);
+  };
+
   const live = useRef({ drop, onEdit, byId });
   live.current = { drop, onEdit, byId };
   const arrasto = useRef<{ id: string; x0: number; y0: number; el: HTMLElement; dx: number; dy: number; w: number; h: number; cap: number; moved: boolean; ghost?: HTMLElement; alvo?: HTMLElement | null } | null>(null);
@@ -516,6 +535,7 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
     if (e.button > 0) return;
     const slot = (e.target as HTMLElement).closest<HTMLElement>('.cr-leaf .alb-slot[data-slot]'); if (!slot) return;
     e.preventDefault();
+    if (sel) { toggle(slot.dataset.slot!); return; }
     const st = slot.querySelector<HTMLElement>('.wsw') ?? slot;
     const r = st.getBoundingClientRect(), rs = slot.getBoundingClientRect();
     arrasto.current = { id: slot.dataset.slot!, x0: e.clientX, y0: e.clientY, el: slot, dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, h: r.height, cap: (rs.top + rs.height / 2) - (r.top + r.height / 2), moved: false };
@@ -551,7 +571,7 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
   };
 
   return (
-    <section className="cr-quadro" aria-label="Álbum">
+    <section className={`cr-quadro${sel ? ' is-marcando' : ''}`} aria-label="Álbum">
       <div className="cr-books" role="tablist" aria-label="Álbuns">
         {cat.books.map((b) => (
           <button key={b.id} role="tab" aria-selected={b.id === book?.id} className="cr-book" onClick={() => setBook(b.id)}>
@@ -564,6 +584,20 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
         <>
           <AjustesDoAlbum key={book.id} book={book} pages={pages} byPage={byPage} apply={apply} fail={fail} artFromDrop={artFromDrop} upload={upload} picked={picked} setPicked={setPicked} onRenumber={renumber}
             firstNumber={Math.min(...pages.flatMap((p) => (byPage[p.id] ?? []).map((s) => s.number)), nextNumber(book.season))} />
+          {sel ? (
+            <div className="cr-apagar" role="region" aria-label="Apagar figurinhas">
+              <p><b>{sel.size} {sel.size === 1 ? 'marcada' : 'marcadas'}</b> <span className="faint">Clique nas figurinhas para marcar ou desmarcar.</span></p>
+              <div className="sa-row">
+                <button type="button" className="btn quiet sm" onClick={() => setSel(new Set(antigas.map((x) => x.id)))}>Feitas antes do Criador ({antigas.length})</button>
+                <button type="button" className="btn quiet sm" onClick={() => setSel(new Set(doAlbum.map((x) => x.id)))}>Todas deste álbum ({doAlbum.length})</button>
+                <button type="button" className="btn quiet sm" disabled={!sel.size} onClick={() => setSel(new Set())}>Desmarcar</button>
+                {sel.size > 0 && <ConfirmButton className="btn danger sm" label={`Apagar ${sel.size} de vez`} confirm={comDono ? `${comDono} já ${comDono === 1 ? 'está' : 'estão'} na coleção de alguém e some${comDono === 1 ? '' : 'm'} de lá também. Apagar?` : `Apagar ${sel.size} de vez?`} onConfirm={() => void apagar()} />}
+                <button type="button" className="btn ghost sm" onClick={() => setSel(null)}>Cancelar</button>
+              </div>
+            </div>
+          ) : (
+            <div className="sa-row"><button type="button" className="btn ghost sm" onClick={() => setSel(new Set())}>Apagar figurinhas…</button></div>
+          )}
           <p className="muted cr-dica">Arraste as figurinhas dentro das páginas para colocar cada uma onde quiser, ou leve para outra página (ou para "Nova página"). Clique numa figurinha para editar. Solte uma arte da biblioteca numa página para criar a figurinha ali.</p>
           <div className="cr-secs" onPointerDown={onDown}>
             {pages.map((p, i) => (
@@ -575,7 +609,7 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
           </div>
           <div data-cr-loose="" className="cr-loose">
             <StripDrop label="Sem seção" hint={loose.length ? 'Não entram no álbum nem nos pacotes até ganhar uma página. Arraste para uma página.' : 'Arraste uma figurinha para cá para tirá-la do álbum (ela continua salva).'} onSticker={(id) => void drop(id, { loose: true })}>
-              {loose.map((s) => <Mini key={s.id} s={s} section="" editing={editing === s.id} onEdit={() => onEdit(s)} onDragSticker={onDragSticker} owned={cat.owned[s.id] ?? 0} />)}
+              {loose.map((s) => <Mini key={s.id} s={s} section="" editing={editing === s.id} onEdit={() => (sel ? toggle(s.id) : onEdit(s))} onDragSticker={onDragSticker} owned={cat.owned[s.id] ?? 0} />)}
             </StripDrop>
           </div>
         </>

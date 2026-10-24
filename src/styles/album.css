@@ -699,7 +699,7 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .cr-framer__stage:active { cursor: grabbing; }
 .cr-framer__stage:focus-visible { outline: 2px solid var(--now); outline-offset: 4px; }
 .cr-framer.is-over .cr-framer__stage { filter: drop-shadow(0 0 16px rgba(255,178,91,.6)); }
-.cr-framer .wst__art, .cr-framer .alb-cover__img { inset: auto !important; max-width: none !important; max-height: none !important; object-fit: fill !important; transform: none !important; transition: none !important; pointer-events: none; }
+.cr-framer .wst__art, .cr-framer .alb-cover__img { right: auto !important; bottom: auto !important; max-width: none !important; max-height: none !important; object-fit: fill !important; transform: none !important; transition: none !important; pointer-events: none; }
 .cr-framer.is-loading .cr-framer__stage { opacity: .85; }
 .cr-framer .cr-ghost { position: absolute; z-index: -1; max-width: none; pointer-events: none; opacity: 0; transition: opacity .15s; }
 .cr-framer.is-moving .cr-ghost { opacity: .45; }

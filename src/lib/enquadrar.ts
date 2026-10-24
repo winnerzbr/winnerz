@@ -9,6 +9,7 @@ export interface Framing { x: number; y: number; z: number }
 export interface Rect { sx: number; sy: number; sw: number; sh: number }
 
 export const STICKER_ASPECT = 5 / 7;
+export const STICKER_ASPECT_H = 7 / 5;
 export const COVER_ASPECT = 460 / 640;
 export const ZOOM_MAX = 5;
 export const ZOOM_MIN = 0.4;
@@ -89,6 +90,33 @@ export function slotLayout(n: number): { cols: number; cw: number } {
   return { cols, cw: Math.floor(size(cols) * 10) / 10 };
 }
 
+/**
+ * Página com figurinhas em pé e deitadas: as duas têm a mesma área (mesmo destaque). A em pé tem largura L e altura
+ * 1,4·L; a deitada, largura 1,4·L e altura L. As figurinhas vão em fileiras centradas, na ordem; devolve a maior
+ * largura L (em % da largura da página) que faz tudo caber.
+ */
+export function mixedLayout(kinds: ('v' | 'h')[]): { pw: number; rows: number[][] } {
+  const W = 84, H = 96, gap = 3.4, cap = 8;
+  const n = kinds.length;
+  if (!n) return { pw: 24, rows: [] };
+  const width = (k: 'v' | 'h', L: number) => (k === 'h' ? 1.4 * L : L);
+  const height = (k: 'v' | 'h', L: number) => (k === 'h' ? L : 1.4 * L);
+  const pack = (L: number) => {
+    const rows: number[][] = []; let cur: number[] = [], used = 0;
+    kinds.forEach((k, i) => {
+      const w = width(k, L);
+      if (cur.length && used + gap + w > W + 0.01) { rows.push(cur); cur = []; used = 0; }
+      used += (cur.length ? gap : 0) + w; cur.push(i);
+    });
+    if (cur.length) rows.push(cur);
+    const total = rows.reduce((t, r) => t + Math.max(...r.map((i) => height(kinds[i], L))) + cap, 0) + gap * (rows.length - 1);
+    return { rows, ok: total <= H + 0.01 };
+  };
+  const max = n === 1 ? (kinds[0] === 'h' ? 40 : 40) : 30;
+  for (let L = max; L >= 8; L -= 0.2) { const r = pack(L); if (r.ok) return { pw: Math.floor(L * 10) / 10, rows: r.rows }; }
+  return { pw: 8, rows: pack(8).rows };
+}
+
 /** Divide as figurinhas de uma seção em páginas de até perPage. */
 export function chunk<T>(list: T[], perPage: number): T[][] {
   const n = Math.max(1, Math.min(12, Math.round(perPage) || 6));
@@ -108,3 +136,29 @@ export function moveTo<T>(list: T[], item: T, before: number): T[] {
   out.splice(Math.max(0, Math.min(out.length, at)), 0, item);
   return out;
 }
+
+/** O lugar de uma figurinha na página montada à mão: centro em % da largura (x) e da altura (y) da página. */
+export interface Pos { x: number; y: number }
+interface LeafItem { leaf?: number | null; pos?: Pos | null; landscape?: boolean }
+
+/**
+ * As páginas de uma seção. Com leaf (página escolhida à mão), agrupa por ela; as que ainda não têm vão para páginas
+ * novas depois, divididas por perPage. Sem nenhuma leaf, divide tudo por perPage. A ordem de dentro é a de entrada.
+ */
+export function sectionLeaves<T extends LeafItem>(list: T[], perPage: number): T[][] {
+  const chosen = list.filter((s) => s.leaf != null && s.leaf > 0);
+  if (!chosen.length) return chunk(list, perPage);
+  const groups = new Map<number, T[]>();
+  for (const s of chosen) { const g = groups.get(s.leaf!) ?? []; g.push(s); groups.set(s.leaf!, g); }
+  const out = [...groups.keys()].sort((a, b) => a - b).map((k) => groups.get(k)!);
+  const rest = list.filter((s) => !(s.leaf != null && s.leaf > 0));
+  if (rest.length) out.push(...chunk(rest, perPage));
+  return out;
+}
+
+/** Como uma página arruma as suas figurinhas: em fileiras (automático) ou nos lugares escolhidos (livre). */
+export function leafMode(list: LeafItem[]): 'rows' | 'free' {
+  return list.length > 0 && list.some((s) => s.pos && Number.isFinite(s.pos.x) && Number.isFinite(s.pos.y)) ? 'free' : 'rows';
+}
+
+export const clampPos = (p: Pos): Pos => ({ x: Math.round(Math.min(96, Math.max(4, p.x)) * 10) / 10, y: Math.round(Math.min(97, Math.max(3, p.y)) * 10) / 10 });

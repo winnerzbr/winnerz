@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chunk, clampFraming, coversAll, cropRect, moveTo, pan, placeInBox, slotLayout, snapInside, STICKER_ASPECT } from './enquadrar';
+import { leafMode, sectionLeaves, mixedLayout, chunk, clampFraming, coversAll, cropRect, moveTo, pan, placeInBox, slotLayout, snapInside, STICKER_ASPECT } from './enquadrar';
 
 const near = (a: number, b: number, e = 0.01) => assert.ok(Math.abs(a - b) <= e, `${a} ≠ ${b}`);
 
@@ -57,4 +57,24 @@ test('mover na lista ao arrastar', () => {
   assert.deepEqual(moveTo(['a', 'b', 'c', 'd'], 'd', 0), ['d', 'a', 'b', 'c']);
   assert.deepEqual(moveTo(['a', 'b', 'c'], 'b', -1), ['a', 'c', 'b']);
   assert.deepEqual(moveTo(['a', 'b'], 'x', 1), ['a', 'x', 'b']);
+});
+
+test('página mista: deitada e em pé com a mesma área, tudo cabe', () => {
+  for (const kinds of [['h', 'v', 'v'], ['h', 'h'], ['v', 'h', 'v', 'h', 'v', 'v'], ['v', 'v', 'v', 'v', 'v', 'v'], ['h']] as ('v' | 'h')[][]) {
+    const { pw, rows } = mixedLayout(kinds);
+    assert.ok(pw >= 14, `${kinds.join('')} pequeno demais (${pw})`);
+    assert.equal(rows.flat().length, kinds.length);
+    for (const r of rows) assert.ok(r.reduce((t, i) => t + (kinds[i] === 'h' ? 1.4 * pw : pw), 0) + 3.4 * (r.length - 1) <= 84.1);
+  }
+  // mesma área: 1,4·L × L = L × 1,4·L
+  const { pw } = mixedLayout(['h', 'v']);
+  near(1.4 * pw * pw, pw * 1.4 * pw);
+});
+
+test('páginas da seção: escolhidas à mão ou divididas sozinhas', () => {
+  const a = (id: string, leaf?: number) => ({ id, leaf });
+  assert.deepEqual(sectionLeaves([a('1'), a('2'), a('3')], 2).map((g) => g.map((x) => x.id)), [['1', '2'], ['3']]);
+  assert.deepEqual(sectionLeaves([a('1', 2), a('2', 1), a('3', 2), a('4')], 6).map((g) => g.map((x) => x.id)), [['2'], ['1', '3'], ['4']]);
+  assert.equal(leafMode([{ pos: null }, { pos: { x: 10, y: 20 } }]), 'free');
+  assert.equal(leafMode([{}, {}]), 'rows');
 });

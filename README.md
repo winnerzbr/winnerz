@@ -125,7 +125,9 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
 - Arraste as imagens do computador para a biblioteca; arraste uma arte para a moldura da raridade; enquadre arrastando
   dentro da moldura e com o zoom. Ao salvar, o navegador gera o recorte 5:7 e envia; a original fica guardada.
 - No quadro do álbum: capa (também enquadrável), títulos, figurinhas por página, seções (faixa, chamada, texto, ordem) e as
-  figurinhas de cada seção, que dá para arrastar entre posições e seções. "Numerar na ordem do álbum" renumera tudo.
+  páginas de cada seção, iguais às do álbum. Arraste as figurinhas para qualquer lugar da página, para outra página ou para
+  "Nova página" (migração 0093: figurinhas deitadas 7:5, leaf e pos). "Automático" volta a página às fileiras.
+  "Numerar na ordem do álbum" renumera tudo.
 
 ### 7. Abrir o site
 

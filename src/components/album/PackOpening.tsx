@@ -153,10 +153,10 @@ export function PackOpening({ pack, stickers, sections, more, onPaste, onNext, o
       go('rising'); cardsBox.innerHTML = ''; cards = [];
       (contents ?? []).forEach((d, i) => {
         const s = stickersOf(d.id);
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'pk__card';
+        const b = document.createElement('button'); b.type = 'button'; b.className = s?.landscape ? 'pk__card is-h' : 'pk__card';
         b.setAttribute('aria-label', `Figurinha ${i + 1}, virada para baixo. Toque para revelar`);
         const front = s ? `<div class="wsw alb-face">${stickerHTML(s, data.current.sections[d.id] ?? '')}</div>` : '<div class="wsw alb-face"></div>';
-        b.innerHTML = `<div class="pk__rot">${front}<div class="alb-face alb-face--b"${d.tier === 'rara' || d.tier === 'lendaria' ? ` data-hint="${d.tier}"` : ''}><div class="wsw">${mysteryHTML()}</div></div></div><span class="pk__badge ${d.dup ? 'pk__badge--dup' : 'pk__badge--new'}">${d.dup ? 'Repetida +1' : 'Nova'}</span>`;
+        b.innerHTML = `<div class="pk__rot">${front}<div class="alb-face alb-face--b"${d.tier === 'rara' || d.tier === 'lendaria' ? ` data-hint="${d.tier}"` : ''}><div class="wsw">${mysteryHTML(!!s?.landscape)}</div></div></div><span class="pk__badge ${d.dup ? 'pk__badge--dup' : 'pk__badge--new'}">${d.dup ? 'Repetida +1' : 'Nova'}</span>`;
         cardsBox.append(b); cards.push({ el: b, d, open: false, base: { x: 0, y: 0, r: 0 } });
         b.addEventListener('click', () => reveal(i));
       });

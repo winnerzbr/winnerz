@@ -36,32 +36,34 @@ const CORNER_S = `<path d="M0 13V3Q0 0 3 0H13" fill="none" stroke-width=".55"/><
 const CORNER_G = CORNER + `<path d="M9.5 1.2C14.5 1.2 17.6 3.4 18.2 6.6M1.2 9.5C1.2 14.5 3.4 17.6 6.6 18.2" fill="none" stroke-width=".3"/><path d="M10.6 10.6l1.3-1.3 1.3 1.3-1.3 1.3z" stroke="none"/><circle cx="18.4" cy="7.4" r=".55" stroke="none"/><circle cx="7.4" cy="18.4" r=".55" stroke="none"/>`;
 const FLOUR = `<path d="M-16 0C-10 0 -6.5 -.6 -3.6 -3M16 0C10 0 6.5 -.6 3.6 -3" fill="none" stroke-width=".4"/><path d="M-9 0C-6.5 1.6 -3.5 1.8 -1.6 .4M9 0C6.5 1.6 3.5 1.8 1.6 .4" fill="none" stroke-width=".3"/><path d="M0 -5.6L2 -2.6L0 .4L-2 -2.6Z" stroke="none"/>`;
 
-/** Cantoneiras (e losangos e arremate, quando pedidos) sobre um retângulo de 100 por 140. */
-export function ornaments(o: number, sc: number, sides: boolean, g: 'gold' | 'silver' = 'gold', kind: 'simple' | 'ornate' | 'grand' = 'ornate', flour = false) {
+/** Cantoneiras (e losangos e arremate, quando pedidos) sobre um retângulo de 100 por 140 (ou 140 por 100, deitada). */
+export function ornaments(o: number, sc: number, sides: boolean, g: 'gold' | 'silver' = 'gold', kind: 'simple' | 'ornate' | 'grand' = 'ornate', flour = false, deitada = false) {
+  const W = deitada ? 140 : 100, H = deitada ? 100 : 140;
   const C = kind === 'simple' ? CORNER_S : kind === 'grand' ? CORNER_G : CORNER;
   const id = g === 'silver' ? 'alb-sksilver' : 'alb-skgold';
   const c = (x: number, y: number, sx: number, sy: number) => `<g transform="translate(${x} ${y}) scale(${sx * sc} ${sy * sc})">${C}</g>`;
-  return `<svg class="sk-orn" viewBox="0 0 100 140" aria-hidden="true"><g fill="url(#${id})" stroke="url(#${id})">${c(o, o, 1, 1)}${c(100 - o, o, -1, 1)}${c(o, 140 - o, 1, -1)}${c(100 - o, 140 - o, -1, -1)}${sides ? `<g transform="translate(${o + 0.2} 70)">${SIDE}</g><g transform="translate(${100 - o - 0.2} 70)">${SIDE}</g>` : ''}${flour ? `<g transform="translate(50 ${140 - o - 0.6})">${FLOUR}</g>` : ''}</g></svg>`;
+  return `<svg class="sk-orn" viewBox="0 0 ${W} ${H}" aria-hidden="true"><g fill="url(#${id})" stroke="url(#${id})">${c(o, o, 1, 1)}${c(W - o, o, -1, 1)}${c(o, H - o, 1, -1)}${c(W - o, H - o, -1, -1)}${sides ? `<g transform="translate(${o + 0.2} ${H / 2})">${SIDE}</g><g transform="translate(${W - o - 0.2} ${H / 2})">${SIDE}</g>` : ''}${flour ? `<g transform="translate(${W / 2} ${H - o - 0.6})">${FLOUR}</g>` : ''}</g></svg>`;
 }
 
 /** A frente de uma figurinha Coroa (o elemento .wst; quem chama põe dentro de um .wsw). */
 export function stickerHTML(s: Sticker, section = ''): string {
   const T = s.tier;
   const silver = T === 'comum';
-  const orn = T === 'comum' ? ornaments(2.6, 0.85, false, 'silver', 'simple') : T === 'incomum' ? ornaments(3.1, 1, false) : T === 'rara' ? ornaments(3.1, 1.05, true) : ornaments(3.1, 1.12, true, 'gold', 'grand', true);
+  const h = !!s.landscape;
+  const orn = T === 'comum' ? ornaments(2.6, 0.85, false, 'silver', 'simple', false, h) : T === 'incomum' ? ornaments(3.1, 1, false, 'gold', 'ornate', false, h) : T === 'rara' ? ornaments(3.1, 1.05, true, 'gold', 'ornate', false, h) : ornaments(3.1, 1.12, true, 'gold', 'grand', true, h);
   const art = artSrc(s.art);
   const crest = silver ? '' : `<span class="sk-crest">${logoSvg('#e6c27a')}</span>${T === 'rara' ? '<span class="sk-gem"></span>' : ''}`;
-  return `<div class="wst" data-tier="${T}"><span class="sk-frame"></span><div class="sk-art">${art ? `<img class="wst__art" src="${esc(art)}" alt="" draggable="false" loading="lazy" decoding="async">` : `<span class="wst__noart">${num3(s.number)}</span>`}${T === 'lendaria' ? '<span class="sk-halo"></span>' : ''}<span class="sk-shade"></span><span class="sk-leak"></span><span class="wst__sheen"></span><span class="wst__holo"></span><div class="wst__spark"></div></div><span class="sk-fil"></span>${crest}<div class="sk-plate">${section ? `<span class="sk-over">${esc(section)}</span>` : ''}<span class="sk-name ${silver ? 'sk-st' : 'sk-gt'}">${esc(s.name)}</span><span class="sk-rule"><i></i><b>${'✦'.repeat(TIER_STARS[T])}</b><i></i></span><span class="sk-num">Nº ${num3(s.number)} · ${TIER_LABEL[T]}</span></div>${orn}<span class="wst__glare"></span></div>`;
+  return `<div class="wst" data-tier="${T}"${h ? ' data-or="h"' : ''}><span class="sk-frame"></span><div class="sk-art">${art ? `<img class="wst__art" src="${esc(art)}" alt="" draggable="false" loading="lazy" decoding="async">` : `<span class="wst__noart">${num3(s.number)}</span>`}${T === 'lendaria' ? '<span class="sk-halo"></span>' : ''}<span class="sk-shade"></span><span class="sk-leak"></span><span class="wst__sheen"></span><span class="wst__holo"></span><div class="wst__spark"></div></div><span class="sk-fil"></span>${crest}<div class="sk-plate">${section ? `<span class="sk-over">${esc(section)}</span>` : ''}<span class="sk-name ${silver ? 'sk-st' : 'sk-gt'}">${esc(s.name)}</span><span class="sk-rule"><i></i><b>${'✦'.repeat(TIER_STARS[T])}</b><i></i></span><span class="sk-num">Nº ${num3(s.number)} · ${TIER_LABEL[T]}</span></div>${orn}<span class="wst__glare"></span></div>`;
 }
 
 /** O verso de uma figurinha. */
 export function backHTML(s: Sticker, section = ''): string {
-  return `<div class="alb-back"><span class="alb-back__mark">${logoGold()}</span><b>${num3(s.number)}</b><span>${esc(s.name)}</span><small>${section ? `${esc(section)} · ` : ''}${TIER_LABEL[s.tier]} ${'✦'.repeat(TIER_STARS[s.tier])}<br>${s.credit ? esc(s.credit) : 'WinnerZ'} · Temporada ${s.season}</small>${ornaments(3.6, 0.8, false, 'gold', 'simple')}</div>`;
+  return `<div class="alb-back"${s.landscape ? ' data-or="h"' : ''}><span class="alb-back__mark">${logoGold()}</span><b>${num3(s.number)}</b><span>${esc(s.name)}</span><small>${section ? `${esc(section)} · ` : ''}${TIER_LABEL[s.tier]} ${'✦'.repeat(TIER_STARS[s.tier])}<br>${s.credit ? esc(s.credit) : 'WinnerZ'} · Temporada ${s.season}</small>${ornaments(3.6, 0.8, false, 'gold', 'simple', false, !!s.landscape)}</div>`;
 }
 
 /** As costas de uma figurinha ainda virada (dentro do pacote). */
-export function mysteryHTML(): string {
-  return `<div class="alb-back alb-mys"><span class="alb-back__mark">${logoGold()}</span><small>WinnerZ · Temporada 1</small>${ornaments(3.1, 1, true)}</div>`;
+export function mysteryHTML(deitada = false): string {
+  return `<div class="alb-back alb-mys"${deitada ? ' data-or="h"' : ''}><span class="alb-back__mark">${logoGold()}</span><small>WinnerZ · Temporada 1</small>${ornaments(3.1, 1, true, 'gold', 'ornate', false, deitada)}</div>`;
 }
 
 const COVER_ORN = (() => {

@@ -55,7 +55,7 @@ export function StickerZoom({ s, section = '', from, onClose }: { s: Sticker; se
   return (
     <div className="alb-zoom" role="dialog" aria-modal="true" aria-label={s.name} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="alb-zoom__in">
-        <div className={`alb-zoom__card${back ? ' is-back' : ''}`} ref={card} onPointerMove={move} onPointerLeave={leave}>
+        <div className={`alb-zoom__card${back ? ' is-back' : ''}${s.landscape ? ' is-h' : ''}`} ref={card} onPointerMove={move} onPointerLeave={leave}>
           <div className="alb-zoom__tilt" ref={tilt}>
             <div className="alb-zoom__rot">
               <div className="wsw alb-face" dangerouslySetInnerHTML={{ __html: stickerHTML(s, section) }} />

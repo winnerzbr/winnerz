@@ -11,17 +11,17 @@ import { SUPABASE_URL } from '../lib/env';
 import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 import { setupNote } from '../lib/setupNote';
-import type { Framing } from '../lib/enquadrar';
+import type { Framing, Pos } from '../lib/enquadrar';
 
 export type PackKind = 'onix' | 'prisma';
 export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo' | 'twitch';
 export type PackState = 'retido' | 'fechado' | 'aberto' | 'desfeito' | 'negado';
 export interface AlbumPage { id: string; position: number; kicker: string; title: string; body: string; banner: string | null; legendary: boolean }
 export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[]; /** Figurinhas por página (migração 0092; sem ela, 6). */ perPage?: number; coverSource?: string | null; coverFraming?: Framing | null }
-export interface Sticker { id: string; season: number; number: number; name: string; tier: Tier; art: string | null; credit: string; pageId: string | null; slot: number; active: boolean; /** Arte original e enquadramento (Criador, migração 0092). */ source?: string | null; framing?: Framing | null }
+export interface Sticker { id: string; season: number; number: number; name: string; tier: Tier; art: string | null; credit: string; pageId: string | null; slot: number; active: boolean; /** Arte original e enquadramento (Criador, migração 0092). */ source?: string | null; framing?: Framing | null; /** Deitada, 7:5; página da seção e lugar na página (migração 0093). */ landscape?: boolean; leaf?: number | null; pos?: Pos | null }
 /** Uma arte da biblioteca do Criador (a imagem original, antes do recorte). */
 export interface AlbumArt { id: string; path: string; name: string; width: number; height: number; createdAt: string }
-export interface StickerOrder { id: string; pageId?: string | null; slot?: number; number?: number }
+export interface StickerOrder { id: string; pageId?: string | null; slot?: number; number?: number; leaf?: number | null; pos?: Pos | null }
 export interface AlbumItem { id: string; qty: number; pasted: boolean }
 export interface PackReview { state: 'aberta' | 'respondida'; message: string; answer: string | null; createdAt: string }
 export interface Pack {
@@ -105,6 +105,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0066 no Supabase.'));
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0056 no Supabase.'));
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0055 no Supabase.'));
+    if (/landscape|leaf|\bpos\b/i.test(m) && /column|does not exist/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0093 no Supabase.'));
     if (/album_arts|studio_album_sticker_order|per_page|framing/i.test(m) && /not find|does not exist|schema cache|column/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0092 no Supabase.'));
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
     if (/violates check constraint/i.test(m)) throw new Error('Algum campo está fora do formato. Confira nome, número e textos.');
@@ -369,7 +370,7 @@ export const studioAlbumApi = {
       if (d.stickers.some((x) => x.number === s.number && x.season === (s.season ?? 1) && x.id !== s.id)) throw new Error(MSG.sticker_number_taken);
       const cur = d.stickers.find((x) => x.id === s.id);
       if (cur) Object.assign(cur, s);
-      else d.stickers.push({ id: `demo-s${rid()}`, season: s.season ?? 1, number: s.number ?? d.stickers.length + 1, name: s.name ?? 'Figurinha', tier: s.tier ?? 'comum', art: s.art ?? null, credit: s.credit ?? '', pageId: s.pageId ?? null, slot: s.slot ?? 0, active: s.active ?? true, source: s.source ?? null, framing: s.framing ?? null });
+      else d.stickers.push({ id: `demo-s${rid()}`, season: s.season ?? 1, number: s.number ?? d.stickers.length + 1, name: s.name ?? 'Figurinha', tier: s.tier ?? 'comum', art: s.art ?? null, credit: s.credit ?? '', pageId: s.pageId ?? null, slot: s.slot ?? 0, active: s.active ?? true, source: s.source ?? null, framing: s.framing ?? null, landscape: !!s.landscape, leaf: s.leaf ?? null, pos: s.pos ?? null });
     });
     return rpc<Catalog>('studio_album_sticker_save', { p: s });
   },
@@ -384,7 +385,7 @@ export const studioAlbumApi = {
       for (const o of list) if (o.number != null) nums.set(o.id, o.number);
       const seen = new Set<string>();
       for (const x of d.stickers) { const k = `${x.season}:${nums.get(x.id)}`; if (seen.has(k)) throw new Error(MSG.sticker_number_taken); seen.add(k); }
-      for (const o of list) { const cur = d.stickers.find((x) => x.id === o.id); if (!cur) continue; if (o.pageId !== undefined) cur.pageId = o.pageId; if (o.slot != null) cur.slot = o.slot; if (o.number != null) cur.number = o.number; }
+      for (const o of list) { const cur = d.stickers.find((x) => x.id === o.id); if (!cur) continue; if (o.pageId !== undefined) cur.pageId = o.pageId; if (o.slot != null) cur.slot = o.slot; if (o.number != null) cur.number = o.number; if (o.leaf !== undefined) cur.leaf = o.leaf; if (o.pos !== undefined) cur.pos = o.pos; }
     });
     return rpc<Catalog>('studio_album_sticker_order', { p: list });
   },

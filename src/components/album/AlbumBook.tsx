@@ -11,7 +11,7 @@ import { coverHTML, esc, logoGold, num3, stickerHTML } from './render';
 import { AURORA, burst, DUST, GOLD, HOLO, reduceMotion, sfx, vibrate } from './fx';
 import { StickerView, lightFollow, lightReset } from './StickerView';
 import { CameoJornada } from '../IAmiguinho';
-import { chunk, slotLayout } from '../../lib/enquadrar';
+import { leafMode, mixedLayout, sectionLeaves } from '../../lib/enquadrar';
 
 /* St.PageFlip vem como script (MIT), em /vendor/page-flip. */
 interface PageFlip {
@@ -37,13 +37,39 @@ export function bookPages(book: Book, stickers: Sticker[]): BookPage[] {
     stickers: stickers.filter((s) => s.pageId === p.id).sort((a, b) => a.slot - b.slot || a.number - b.number) }));
 }
 
-/** As páginas que aparecem no livro: uma seção com mais figurinhas que o álbum põe por página continua na seguinte. */
-export function bookLeaves(book: Book, stickers: Sticker[]): (BookPage & { part: number })[] {
-  return bookPages(book, stickers).flatMap((p) => p.legendary ? [{ ...p, part: 1 }] : chunk(p.stickers, book.perPage ?? 6).map((st, i) => ({ ...p, id: i ? `${p.id}~${i + 1}` : p.id, banner: i ? null : p.banner, body: i ? '' : p.body, kicker: i ? (p.kicker ? `${p.kicker} · continuação` : 'Continuação') : p.kicker, stickers: st, part: i + 1 })));
-}
-
 /** O selo de página completa: o traço dourado com o ✓ e o texto. */
 const STAMP = '<i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i><b>Página completa</b>';
+
+/**
+ * As páginas que aparecem no livro. Cada seção vira uma ou mais páginas: as escolhidas à mão no Criador (leaf) ou,
+ * sem escolha, divididas pelas "figurinhas por página" do álbum. leafId: o id da seção, mais ~2, ~3… nas seguintes.
+ */
+export function bookLeaves(book: Book, stickers: Sticker[]): (BookPage & { part: number; section: string })[] {
+  return bookPages(book, stickers).flatMap((p) => (p.legendary ? [p.stickers] : sectionLeaves(p.stickers, book.perPage ?? 6)).map((st, i) => ({ ...p, section: p.id, id: i ? `${p.id}~${i + 1}` : p.id, banner: i ? null : p.banner, body: i ? '' : p.body, kicker: i ? (p.kicker ? `${p.kicker} · continuação` : 'Continuação') : p.kicker, stickers: st, part: i + 1 })));
+}
+
+/**
+ * Uma página do livro (também usada pelo Criador, para a prévia ficar igual). Figurinhas em pé e deitadas têm a mesma
+ * área; em fileiras centradas (automático) ou nos lugares escolhidos (livre, pos em % da página).
+ */
+export function leafHTML(p: BookPage, num: number, pasted: (id: string) => boolean, done: boolean, fill?: (s: Sticker) => string): string {
+  const st = p.stickers, n = st.length;
+  const { pw } = mixedLayout(st.map((s) => (s.landscape ? 'h' : 'v')));
+  const w = (s: Sticker, L = pw) => `${Math.round((s.landscape ? 1.4 * L : L) * 10) / 10}cqw`;
+  const slot = (s: Sticker, style: string) => `<div class="alb-slot${s.landscape ? ' is-h' : ''}" data-slot="${s.id}" style="${style}">${pasted(s.id) ? (fill?.(s) ?? '') : `<div class="alb-well${s.landscape ? ' is-h' : ''}" data-well="${s.id}"><span>${num3(s.number)}</span></div>`}<span class="alb-slot__cap"><b>${esc(s.name)}</b>${num3(s.number)}</span></div>`;
+  let body: string;
+  if (!n) body = '<div class="alb-slots"><p class="alb-pg__desc">As figurinhas desta página ainda vão chegar.</p></div>';
+  else if (p.legendary) body = `<div class="alb-slots alb-slots--rows"><div class="alb-row">${st.map((s) => slot(s, `width:${w(s, 40)}`)).join('')}</div></div>`;
+  else if (leafMode(st) === 'free') {
+    const loose = st.filter((s) => !s.pos);
+    body = `<div class="alb-slots alb-slots--free">${st.map((s) => { const q = s.pos ?? { x: ((loose.indexOf(s) + 1) / (loose.length + 1)) * 100, y: 84 }; return slot(s, `width:${w(s)};left:${q.x}%;top:${q.y}%`); }).join('')}</div>`;
+  } else {
+    const { rows } = mixedLayout(st.map((s) => (s.landscape ? 'h' : 'v')));
+    body = `<div class="alb-slots alb-slots--rows">${rows.map((r) => `<div class="alb-row">${r.map((i) => slot(st[i], `width:${w(st[i])}`)).join('')}</div>`).join('')}</div>`;
+  }
+  return `<div class="alb-pg${p.legendary ? ' alb-pg--center' : ''}" data-page="${p.id}">${p.banner && !p.legendary ? `<div class="alb-pg__banner" style="background-image:url('${esc(artSrc(p.banner) ?? '')}')"></div>` : ''}<span class="alb-pg__kick">${esc(p.kicker || (p.legendary ? 'Página lendária' : ''))}</span><h3 class="alb-pg__ttl">${esc(p.title)}</h3>${p.body ? `<p class="alb-pg__desc">${esc(p.body)}</p>` : ''}${body}<span class="alb-pg__num">${String(num).padStart(2, '0')}</span>${done ? `<span class="alb-stamp is-still">${STAMP}</span>` : ''}</div>`;
+}
+
 const onScreen = (el: Element | null) => { if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 12 && r.left >= -2 && r.right <= innerWidth + 2 && r.top < innerHeight && r.bottom > 0; };
 
 /** Uma figurinha pessoal (Minhas páginas): a foto do jogo zerado, como polaroide presa com fita. */
@@ -90,10 +116,8 @@ export function AlbumBook({ book, vol, state, personal, onZoom, onBack }: { book
     const list: string[] = [];
     list.push(`<div class="alb-pg alb-pg--center"><span class="alb-pg__kick">${esc(book.subtitle || 'Temporada ' + book.season)}</span><span class="alb-pg__mark">${logoGold()}</span><h3 class="alb-pg__ttl">${esc(book.title)}</h3>${handle ? `<p class="alb-pg__desc">Este álbum pertence a @${esc(handle)}</p>` : ''}<span class="alb-pg__kick" data-count>${pastedCount(ids, it)} de ${ids.length} coladas</span></div>`);
     pages.forEach((p, k) => {
-      const n = p.stickers.length;
-      const slots = p.stickers.map((s) => `<div class="alb-slot" data-slot="${s.id}">${it[s.id]?.pasted ? '' : `<div class="alb-well" data-well="${s.id}"><span>${num3(s.number)}</span></div>`}<span class="alb-slot__cap"><b>${esc(s.name)}</b>${num3(s.number)}</span></div>`).join('');
-      const done = n > 0 && p.stickers.every((s) => it[s.id]?.pasted);
-      list.push(`<div class="alb-pg${p.legendary ? ' alb-pg--center' : ''}" data-page="${p.id}">${p.banner && !p.legendary ? `<div class="alb-pg__banner" style="background-image:url('${esc(artSrc(p.banner) ?? '')}')"></div>` : ''}<span class="alb-pg__kick">${esc(p.kicker || (p.legendary ? 'Página lendária' : ''))}</span><h3 class="alb-pg__ttl">${esc(p.title)}</h3>${p.body ? `<p class="alb-pg__desc">${esc(p.body)}</p>` : ''}<div class="alb-slots${p.legendary || n === 1 ? ' alb-slots--one' : ' alb-slots--fit'}"${p.legendary || n <= 1 ? '' : ` style="--cols:${slotLayout(n).cols};--cw:${slotLayout(n).cw}cqw"`}>${slots || '<p class="alb-pg__desc">As figurinhas desta página ainda vão chegar.</p>'}</div><span class="alb-pg__num">${String(k + 2).padStart(2, '0')}</span>${done ? `<span class="alb-stamp is-still">${STAMP}</span>` : ''}</div>`);
+      const done = p.stickers.length > 0 && p.stickers.every((s) => it[s.id]?.pasted);
+      list.push(leafHTML(p, k + 2, (id) => !!it[id]?.pasted, done));
     });
     if (personal) {
       const n = personal.length;

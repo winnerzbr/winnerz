@@ -11,16 +11,20 @@
  * enquadramento ficam guardados para reenquadrar quando quiser.
  * Sem mouse (celular): toque numa arte para escolher e depois toque na moldura ou no "+" da seção.
  */
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import { artSrc, reloadAlbum, studioAlbumApi, type AlbumArt, type AlbumBook, type AlbumPage, type Catalog, type Sticker } from '../../data/albumApi';
 import { TIER_LABEL, TIER_MATERIAL, TIERS, type Tier } from '../../lib/album';
-import { chunk, clampFraming, COVER_ASPECT, coversAll, cropRect, FRAMING_INICIAL, moveTo, OVERSCAN, pan, placeInBox, STICKER_ASPECT, ZOOM_MAX, ZOOM_MIN, type Framing } from '../../lib/enquadrar';
+import { clampFraming, clampPos, COVER_ASPECT, coversAll, cropRect, FRAMING_INICIAL, leafMode, OVERSCAN, pan, placeInBox, sectionLeaves, STICKER_ASPECT, STICKER_ASPECT_H, ZOOM_MAX, ZOOM_MIN, type Framing, type Pos } from '../../lib/enquadrar';
+import { bookLeaves, leafHTML } from './AlbumBook';
+import type { StickerOrder } from '../../data/albumApi';
 import { coverHTML, ensureDefs, num3, stickerHTML } from './render';
 import { StickerView } from './StickerView';
 import { ConfirmButton } from '../Sheet';
 
 type Say = { say: (m: string) => void; fail: (e: unknown) => void };
-interface Draft { id?: string; number: number; name: string; tier: Tier; pageId: string | null; slot: number; credit: string; active: boolean; season: number; art: string | null; source: string | null; framing: Framing; changed: boolean }
+interface Draft { id?: string; number: number; name: string; tier: Tier; pageId: string | null; slot: number; credit: string; active: boolean; season: number; art: string | null; source: string | null; framing: Framing; changed: boolean; landscape: boolean; leaf: number | null; pos: Pos | null }
+/** Onde a figurinha nova entra: a página da seção e o lugar nela (quando a arte é solta numa página). */
+interface Lugar { leaf: number | null; pos: Pos | null }
 
 const T_ART = 'application/x-wz-art';
 const T_STICKER = 'application/x-wz-sticker';
@@ -64,6 +68,8 @@ export function Criador({ say, fail }: Say) {
   const [picked, setPicked] = useState<AlbumArt | null>(null);
   const [dragging, setDragging] = useState<'art' | 'sticker' | null>(null);
   const [saving, setSaving] = useState(false);
+  /** Formato das figurinhas novas (a escolha da mesa). */
+  const [deitada, setDeitada] = useState(false);
   const mesa = useRef<HTMLElement>(null);
   /** A seção da última figurinha salva: a próxima nasce nela. */
   const lastPage = useRef<string | null>(null);
@@ -93,18 +99,19 @@ export function Criador({ say, fail }: Say) {
 
   /* ---- começar uma figurinha ---- */
   const busyDraft = () => { if (draft?.changed) { fail(new Error('Salve ou cancele a figurinha que está na mesa antes de começar outra.')); mesa.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return true; } return false; };
-  const startFromArt = (a: AlbumArt, tier: Tier, pageId?: string | null) => {
+  const startFromArt = (a: AlbumArt, tier: Tier, pageId?: string | null, lugar?: Lugar) => {
     if (busyDraft()) return;
     const season = book?.season ?? 1;
     const pg = pageId !== undefined ? pageId : (lastPage.current && pages.some((p) => p.id === lastPage.current) ? lastPage.current : pages.find((p) => !p.legendary)?.id ?? pages[0]?.id ?? null);
     const slot = (cat?.stickers.filter((s) => s.pageId === pg).reduce((m, s) => Math.max(m, s.slot), 0) ?? 0) + 1;
-    setDraft({ number: nextNumber(season), name: nomeDaArte(a.name), tier, pageId: pg, slot, credit: lastCredit(), active: true, season, art: null, source: a.path, framing: { ...FRAMING_INICIAL }, changed: true });
+    const land = lugar ? a.width > a.height * 1.15 : deitada;
+    setDraft({ number: nextNumber(season), name: nomeDaArte(a.name), tier, pageId: pg, slot, credit: lastCredit(), active: true, season, art: null, source: a.path, framing: { ...FRAMING_INICIAL }, changed: true, landscape: land, leaf: lugar?.leaf ?? null, pos: lugar?.pos ?? null });
     setPicked(null);
     mesa.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const edit = (s: Sticker) => {
     if (busyDraft()) return;
-    setDraft({ id: s.id, number: s.number, name: s.name, tier: s.tier, pageId: s.pageId, slot: s.slot, credit: s.credit, active: s.active, season: s.season, art: s.art, source: s.source ?? s.art, framing: s.framing ?? { ...FRAMING_INICIAL }, changed: false });
+    setDraft({ id: s.id, number: s.number, name: s.name, tier: s.tier, pageId: s.pageId, slot: s.slot, credit: s.credit, active: s.active, season: s.season, art: s.art, source: s.source ?? s.art, framing: s.framing ?? { ...FRAMING_INICIAL }, changed: false, landscape: !!s.landscape, leaf: s.leaf ?? null, pos: s.pos ?? null });
     mesa.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
   const artFromDrop = (e: DragEvent): AlbumArt | null => { const id = e.dataTransfer.getData(T_ART); return arts.find((a) => a.id === id) ?? null; };
@@ -133,10 +140,10 @@ export function Criador({ say, fail }: Say) {
     setSaving(true);
     try {
       let art = draft.art;
-      if (draft.source && (draft.changed || !art)) art = await studioAlbumApi.uploadCrop(await renderCrop(draft.source, STICKER_ASPECT, draft.framing, 1000));
+      if (draft.source && (draft.changed || !art)) art = await studioAlbumApi.uploadCrop(await renderCrop(draft.source, draft.landscape ? STICKER_ASPECT_H : STICKER_ASPECT, draft.framing, draft.landscape ? 1400 : 1000));
       saveCredit(draft.credit);
       lastPage.current = draft.pageId;
-      const c = await apply(studioAlbumApi.saveSticker({ id: draft.id, number: draft.number, name: draft.name.trim(), tier: draft.tier, pageId: draft.pageId, slot: draft.slot, credit: draft.credit.trim(), active: draft.active, season: draft.season, art, source: draft.source, framing: draft.framing }),
+      const c = await apply(studioAlbumApi.saveSticker({ id: draft.id, number: draft.number, name: draft.name.trim(), tier: draft.tier, pageId: draft.pageId, slot: draft.slot, credit: draft.credit.trim(), active: draft.active, season: draft.season, art, source: draft.source, framing: draft.framing, landscape: draft.landscape, ...(draft.id ? {} : { leaf: draft.leaf, pos: draft.pos }) }),
         draft.id ? `Figurinha ${num3(draft.number)} salva.` : `Figurinha ${num3(draft.number)} criada.`);
       if (c) {
         setDraft(null);
@@ -170,11 +177,15 @@ export function Criador({ say, fail }: Say) {
             <>
               <header className="cr-mesa__head">
                 <h2>Mesa</h2>
-                <p className="muted">{picked ? <>Arte escolhida: <b>{picked.name || 'sem nome'}</b>. Agora toque na moldura da raridade.</> : 'Arraste uma arte da biblioteca para a moldura da raridade. A figurinha nasce nessa raridade.'}</p>
+                <p className="muted">{picked ? <>Arte escolhida: <b>{picked.name || 'sem nome'}</b>. Agora toque na moldura da raridade.</> : 'Arraste uma arte da biblioteca para a moldura da raridade. A figurinha nasce nessa raridade e nesse formato.'}</p>
+                <div className="seg cr-formato" role="group" aria-label="Formato">
+                  <button aria-pressed={!deitada} onClick={() => setDeitada(false)}>Em pé</button>
+                  <button aria-pressed={deitada} onClick={() => setDeitada(true)}>Deitada</button>
+                </div>
               </header>
-              <div className="cr-molduras">
+              <div className={`cr-molduras${deitada ? ' is-h' : ''}`}>
                 {[...TIERS].reverse().map((t) => (
-                  <DropFrame key={t} tier={t} picked={!!picked}
+                  <DropFrame key={t} tier={t} picked={!!picked} deitada={deitada}
                     onArt={(e) => { const a = artFromDrop(e); if (a) startFromArt(a, t); }}
                     onFiles={async (f) => { const l = await upload(f); if (l[0]) startFromArt(l[0], t); }}
                     onClick={() => { if (picked) startFromArt(picked, t); }} />
@@ -191,7 +202,7 @@ export function Criador({ say, fail }: Say) {
         </section>
 
         <Quadro cat={cat} book={book} pages={pages} setBook={setBookId} apply={apply} fail={fail} say={say} arts={artByPath} picked={picked} setPicked={setPicked}
-          editing={draft?.id ?? null} onEdit={edit} onNewIn={(a, pageId) => startFromArt(a, 'comum', pageId)} artFromDrop={artFromDrop} upload={upload}
+          editing={draft?.id ?? null} onEdit={edit} onNewIn={(a, pageId, lugar) => startFromArt(a, 'comum', pageId, lugar)} artFromDrop={artFromDrop} upload={upload}
           onDragSticker={() => setDragging('sticker')} nextNumber={nextNumber} />
       </div>
     </div>
@@ -251,11 +262,11 @@ function Biblioteca({ arts, usage, picked, sending, onPick, onUpload, onDragArt,
 }
 
 /* ---- Moldura vazia (alvo para soltar a arte) ------------------------------------------------------------------- */
-function DropFrame({ tier, picked, onArt, onFiles, onClick, small, active }: { tier: Tier; picked?: boolean; onArt: (e: DragEvent) => void; onFiles: (f: File[]) => void; onClick: () => void; small?: boolean; active?: boolean }) {
+function DropFrame({ tier, picked, onArt, onFiles, onClick, small, active, deitada = false }: { tier: Tier; picked?: boolean; onArt: (e: DragEvent) => void; onFiles: (f: File[]) => void; onClick: () => void; small?: boolean; active?: boolean; deitada?: boolean }) {
   const [over, setOver] = useState(false);
-  const html = useMemo(() => stickerHTML({ id: `molde-${tier}`, season: 1, number: 0, name: TIER_MATERIAL[tier], tier, art: null, credit: '', pageId: null, slot: 0, active: true }, TIER_LABEL[tier]), [tier]);
+  const html = useMemo(() => stickerHTML({ id: `molde-${tier}`, season: 1, number: 0, name: TIER_MATERIAL[tier], tier, art: null, credit: '', pageId: null, slot: 0, active: true, landscape: deitada }, TIER_LABEL[tier]), [tier, deitada]);
   return (
-    <button type="button" className={`cr-drop${small ? ' cr-drop--sm' : ''}${over ? ' is-over' : ''}${active ? ' is-active' : ''}${picked ? ' is-ready' : ''}`}
+    <button type="button" className={`cr-drop${deitada ? ' is-h' : ''}${small ? ' cr-drop--sm' : ''}${over ? ' is-over' : ''}${active ? ' is-active' : ''}${picked ? ' is-ready' : ''}`}
       aria-label={`Moldura ${TIER_LABEL[tier]} (${TIER_MATERIAL[tier]})${small ? '' : '. Solte uma arte aqui'}`} aria-pressed={small ? !!active : undefined}
       onDragOver={(e) => { if (hasType(e, T_ART) || isFiles(e)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; setOver(true); } }}
       onDragLeave={() => setOver(false)}
@@ -360,7 +371,7 @@ function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDro
   artFromDrop: (e: DragEvent) => AlbumArt | null; upload: (f: File[]) => Promise<AlbumArt[]>; pickedArt: AlbumArt | null; takePicked: () => void;
   onSave: (next: boolean) => void; onCancel: () => void; onDelete?: () => void;
 }) {
-  const preview: Sticker = { id: d.id ?? 'mesa', season: d.season, number: d.number || 0, name: d.name.trim() || 'Nome da figurinha', tier: d.tier, art: d.source ?? d.art, credit: d.credit, pageId: d.pageId, slot: d.slot, active: d.active };
+  const preview: Sticker = { id: d.id ?? 'mesa', season: d.season, number: d.number || 0, name: d.name.trim() || 'Nome da figurinha', tier: d.tier, art: d.source ?? d.art, credit: d.credit, pageId: d.pageId, slot: d.slot, active: d.active, landscape: d.landscape };
   const html = `<div class="wsw">${stickerHTML(preview, section)}</div>`;
   const pages = useMemo(() => books.flatMap((b) => [...b.pages].sort((a, c) => a.position - c.position).map((p) => ({ id: p.id, label: `${b.title} · ${p.title}` }))), [books]);
   const setArt = (a: AlbumArt | null) => { if (a) set({ source: a.path, framing: { ...FRAMING_INICIAL }, changed: true }); };
@@ -370,17 +381,21 @@ function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDro
         <h2>{d.id ? `Figurinha ${num3(d.number)}` : 'Nova figurinha'}{d.changed && <span className="cr-dot" title="Mudanças não salvas" aria-label="Mudanças não salvas" />}</h2>
         <p className="muted">Arraste a pintura dentro da moldura para enquadrar. Rodinha do mouse ou a barra dão zoom. Solte outra arte na moldura para trocar a pintura.</p>
       </header>
-      <div className="cr-ed__body">
+      <div className={`cr-ed__body${d.landscape ? ' is-h' : ''}`}>
         <div className="cr-ed__stage">
-          <Framer html={html} src={d.source} aspect={STICKER_ASPECT} overscan={OVERSCAN} imgSel=".wst__art" boxSel=".sk-art" framing={d.framing} label="Enquadramento da figurinha"
+          <Framer key={d.landscape ? 'h' : 'v'} html={html} src={d.source} aspect={d.landscape ? STICKER_ASPECT_H : STICKER_ASPECT} overscan={OVERSCAN} imgSel=".wst__art" boxSel=".sk-art" framing={d.framing} label="Enquadramento da figurinha"
             onChange={(f) => set({ framing: f, changed: true })} onDropArt={(e) => setArt(artFromDrop(e))} className="cr-framer--sticker" />
           {pickedArt && <button type="button" className="btn ghost sm" onClick={takePicked}>Usar a arte escolhida ({pickedArt.name || 'sem nome'})</button>}
           {!d.source && <p className="faint" style={{ margin: 0 }}>Sem arte. Solte uma arte da biblioteca na moldura.</p>}
         </div>
         <div className="cr-ed__form">
+          <div className="seg cr-formato" role="group" aria-label="Formato">
+            <button aria-pressed={!d.landscape} onClick={() => set({ landscape: false, framing: { ...FRAMING_INICIAL }, changed: true })}>Em pé</button>
+            <button aria-pressed={d.landscape} onClick={() => set({ landscape: true, framing: { ...FRAMING_INICIAL }, changed: true })}>Deitada</button>
+          </div>
           <div className="cr-tiers" role="group" aria-label="Raridade (moldura)">
             {[...TIERS].reverse().map((t) => (
-              <DropFrame key={t} tier={t} small active={d.tier === t}
+              <DropFrame key={t} tier={t} small active={d.tier === t} deitada={d.landscape}
                 onArt={(e) => { const a = artFromDrop(e); set({ tier: t, ...(a ? { source: a.path, framing: { ...FRAMING_INICIAL } } : {}), changed: true }); }}
                 onFiles={async (f) => { const l = await upload(f); set({ tier: t, ...(l[0] ? { source: l[0].path, framing: { ...FRAMING_INICIAL } } : {}), changed: true }); }}
                 onClick={() => set({ tier: t, changed: true })} />
@@ -407,18 +422,19 @@ function Editor({ d, set, books, section, saving, owned, numberTaken, artFromDro
             <button className="btn quiet" disabled={saving} onClick={onCancel}>{d.changed ? 'Descartar' : 'Fechar'}</button>
             {onDelete && <ConfirmButton label={owned ? 'Tirar dos pacotes' : 'Apagar'} confirm={owned ? 'Já tem gente com ela. Tirar dos pacotes?' : 'Apagar mesmo?'} onConfirm={onDelete} />}
           </div>
-          <p className="faint cr-hint">Ctrl + S salva. O recorte final sai em 1000 × 1400.</p>
+          <p className="faint cr-hint">Ctrl + S salva. O recorte final sai em {d.landscape ? '1400 × 1000' : '1000 × 1400'}.</p>
         </div>
       </div>
     </div>
   );
 }
 
-/* ---- Quadro do álbum: capa, ajustes e as seções com as figurinhas ---------------------------------------------- */
+/* ---- Quadro do álbum: capa, ajustes e as seções com as páginas ------------------------------------------------- */
+type Alvo = { sec: string; leaf: number; pos: Pos } | { loose: true };
 function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, setPicked, editing, onEdit, onNewIn, artFromDrop, upload, onDragSticker, nextNumber }: Say & {
   cat: Catalog; book: AlbumBook | null; pages: AlbumPage[]; setBook: (id: string) => void; apply: (p: Promise<Catalog>, m?: string) => Promise<Catalog | null>;
   arts: Record<string, AlbumArt>; picked: AlbumArt | null; setPicked: (a: AlbumArt | null) => void; editing: string | null; onEdit: (s: Sticker) => void;
-  onNewIn: (a: AlbumArt, pageId: string) => void; artFromDrop: (e: DragEvent) => AlbumArt | null; upload: (f: File[]) => Promise<AlbumArt[]>; onDragSticker: () => void; nextNumber: (season: number) => number;
+  onNewIn: (a: AlbumArt, pageId: string, lugar?: Lugar) => void; artFromDrop: (e: DragEvent) => AlbumArt | null; upload: (f: File[]) => Promise<AlbumArt[]>; onDragSticker: () => void; nextNumber: (season: number) => number;
 }) {
   const byPage = useMemo(() => {
     const m: Record<string, Sticker[]> = {};
@@ -428,17 +444,45 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
   }, [cat]);
   const loose = cat.stickers.filter((s) => !s.pageId || !cat.books.some((b) => b.pages.some((p) => p.id === s.pageId)));
   const byId = useMemo(() => Object.fromEntries(cat.stickers.map((s) => [s.id, s])), [cat]);
+  const leaves = useMemo(() => (book ? bookLeaves(book, cat.stickers) : []), [book, cat.stickers]);
 
-  /** Solta uma figurinha numa seção, antes da figurinha "before" (ou no fim). Reordena a seção de origem e a de destino. */
-  const moveSticker = async (id: string, pageId: string | null, before: string | null) => {
-    const s = byId[id]; if (!s) return;
-    const dest = pageId ? (byPage[pageId] ?? []).filter((x) => x.id !== id) : [];
-    const idx = before ? dest.findIndex((x) => x.id === before) : -1;
-    const list = pageId ? moveTo(dest, s, idx < 0 ? dest.length : idx) : [];
-    const order = list.map((x, i) => ({ id: x.id, pageId, slot: i + 1 }));
-    if (!pageId) order.push({ id, pageId: null, slot: 0 });
-    if (s.pageId && s.pageId !== pageId) (byPage[s.pageId] ?? []).filter((x) => x.id !== id).forEach((x, i) => order.push({ id: x.id, pageId: s.pageId, slot: i + 1 }));
-    await apply(studioAlbumApi.order(order));
+  /**
+   * Solta uma figurinha numa página (ou fora do álbum). As páginas das seções envolvidas passam a ser "escolhidas à mão"
+   * (leaf), e a página de destino vira livre: as que já estavam nela ficam exatamente onde apareciam.
+   */
+  const drop = async (id: string, alvo: Alvo) => {
+    const s = byId[id]; if (!s || !book) return;
+    const per = book.perPage ?? 6;
+    const leavesOf = (sec: string) => { const pg = pages.find((p) => p.id === sec); const st = byPage[sec] ?? []; return pg?.legendary ? [st] : sectionLeaves(st, per); };
+    const ups = new Map<string, StickerOrder>();
+    const up = (sid: string, patch: Partial<StickerOrder>) => ups.set(sid, { ...(ups.get(sid) ?? { id: sid }), ...patch });
+    const secs = new Set<string>([s.pageId ?? '', 'sec' in alvo ? alvo.sec : ''].filter(Boolean));
+    for (const sec of secs) leavesOf(sec).forEach((lf, i) => lf.forEach((x) => { if (x.id !== id) up(x.id, { pageId: sec, leaf: i + 1 }); }));
+    if ('sec' in alvo) {
+      const atual = leavesOf(alvo.sec)[alvo.leaf - 1] ?? [];
+      const pg = document.querySelector<HTMLElement>(`[data-cr-leaf="${alvo.sec}:${alvo.leaf}"] .alb-pg`);
+      if (pg) {
+        const r = pg.getBoundingClientRect();
+        for (const x of atual) {
+          if (x.id === id || x.pos) continue;
+          const el = pg.querySelector<HTMLElement>(`.alb-slot[data-slot="${x.id}"]`); if (!el) continue;
+          const b = el.getBoundingClientRect();
+          up(x.id, { pos: clampPos({ x: ((b.left + b.width / 2 - r.left) / r.width) * 100, y: ((b.top + b.height / 2 - r.top) / r.height) * 100 }) });
+        }
+      }
+      up(id, { pageId: alvo.sec, leaf: alvo.leaf, pos: clampPos(alvo.pos) });
+    } else up(id, { pageId: null, leaf: null, pos: null });
+    // Ordem dentro da seção: página, depois de cima para baixo e da esquerda para a direita.
+    for (const sec of secs) {
+      const final = cat.stickers.map((x) => ({ ...x, ...(ups.get(x.id) ?? {}) })).filter((x) => x.pageId === sec);
+      final.sort((p, q) => (p.leaf ?? 99) - (q.leaf ?? 99) || (p.pos?.y ?? 0) - (q.pos?.y ?? 0) || (p.pos?.x ?? 0) - (q.pos?.x ?? 0) || p.slot - q.slot);
+      final.forEach((x, i) => up(x.id, { slot: i + 1 }));
+    }
+    await apply(studioAlbumApi.order([...ups.values()]));
+  };
+  const automatico = async (sec: string, leaf: number) => {
+    const lf = leaves.filter((l) => l.section === sec)[leaf - 1]?.stickers ?? [];
+    await apply(studioAlbumApi.order(lf.map((x) => ({ id: x.id, pos: null }))), 'Página voltou a se organizar sozinha, em fileiras.');
   };
   const renumber = async (from: number) => {
     if (!book) return;
@@ -448,6 +492,49 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
   const newBook = async () => {
     const c = await apply(studioAlbumApi.saveBook({ slug: `album-${Date.now().toString(36)}`, title: 'Novo álbum', subtitle: 'Temporada 1', season: 1, position: cat.books.length + 1, published: false, perPage: 6 }), 'Álbum criado (como rascunho).');
     const b = c?.books[c.books.length - 1]; if (b) setBook(b.id);
+  };
+
+  /* ---- arrastar as figurinhas nas páginas (com o mouse, sem o arrastar do navegador) ---- */
+  const live = useRef({ drop, onEdit, byId });
+  live.current = { drop, onEdit, byId };
+  const arrasto = useRef<{ id: string; x0: number; y0: number; el: HTMLElement; dx: number; dy: number; w: number; h: number; cap: number; moved: boolean; ghost?: HTMLElement; alvo?: HTMLElement | null } | null>(null);
+  const alvoEm = (x: number, y: number) => document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-cr-leaf], [data-cr-loose]') ?? null;
+  const onDown = (e: RPointerEvent) => {
+    if (e.button > 0) return;
+    const slot = (e.target as HTMLElement).closest<HTMLElement>('.cr-leaf .alb-slot[data-slot]'); if (!slot) return;
+    e.preventDefault();
+    const st = slot.querySelector<HTMLElement>('.wsw') ?? slot;
+    const r = st.getBoundingClientRect(), rs = slot.getBoundingClientRect();
+    arrasto.current = { id: slot.dataset.slot!, x0: e.clientX, y0: e.clientY, el: slot, dx: e.clientX - r.left, dy: e.clientY - r.top, w: r.width, h: r.height, cap: (rs.top + rs.height / 2) - (r.top + r.height / 2), moved: false };
+    const move = (ev: PointerEvent) => {
+      const d = arrasto.current; if (!d) return;
+      if (!d.moved && Math.hypot(ev.clientX - d.x0, ev.clientY - d.y0) < 5) return;
+      if (!d.moved) {
+        d.moved = true;
+        const g = document.createElement('div'); g.className = 'cr-lift';
+        g.style.width = `${d.w}px`;
+        g.innerHTML = (d.el.querySelector('.wsw')?.outerHTML) ?? '';
+        document.body.append(g); d.ghost = g; d.el.classList.add('is-lifted');
+      }
+      d.ghost!.style.transform = `translate(${ev.clientX - d.dx}px, ${ev.clientY - d.dy}px)`;
+      const a = alvoEm(ev.clientX, ev.clientY);
+      if (a !== d.alvo) { d.alvo?.classList.remove('is-target'); a?.classList.add('is-target'); d.alvo = a; }
+    };
+    const end = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end);
+      const d = arrasto.current; arrasto.current = null; if (!d) return;
+      d.ghost?.remove(); d.el.classList.remove('is-lifted'); d.alvo?.classList.remove('is-target');
+      if (!d.moved) { const s = live.current.byId[d.id]; if (s) live.current.onEdit(s); return; }
+      if (ev.type === 'pointercancel') return;
+      const a = alvoEm(ev.clientX, ev.clientY); if (!a) return;
+      if (a.dataset.crLoose !== undefined) { void live.current.drop(d.id, { loose: true }); return; }
+      const [sec, leaf] = (a.dataset.crLeaf ?? '').split(':');
+      const pg = a.querySelector<HTMLElement>('.alb-pg'); if (!pg || !sec) return;
+      const r = pg.getBoundingClientRect();
+      const cx = ev.clientX - d.dx + d.w / 2, cy = ev.clientY - d.dy + d.h / 2 + d.cap;
+      void live.current.drop(d.id, { sec, leaf: Number(leaf), pos: { x: ((cx - r.left) / r.width) * 100, y: ((cy - r.top) / r.height) * 100 } });
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
   };
 
   return (
@@ -464,19 +551,20 @@ function Quadro({ cat, book, pages, setBook, apply, say, fail, arts, picked, set
         <>
           <AjustesDoAlbum key={book.id} book={book} pages={pages} byPage={byPage} apply={apply} fail={fail} artFromDrop={artFromDrop} upload={upload} picked={picked} setPicked={setPicked} onRenumber={renumber}
             firstNumber={Math.min(...pages.flatMap((p) => (byPage[p.id] ?? []).map((s) => s.number)), nextNumber(book.season))} />
-          <div className="cr-secs">
+          <p className="muted cr-dica">Arraste as figurinhas dentro das páginas para colocar cada uma onde quiser, ou leve para outra página (ou para "Nova página"). Clique numa figurinha para editar. Solte uma arte da biblioteca numa página para criar a figurinha ali.</p>
+          <div className="cr-secs" onPointerDown={onDown}>
             {pages.map((p, i) => (
-              <Secao key={p.id} book={book} page={p} index={i} total={pages.length} stickers={byPage[p.id] ?? []} owned={cat.owned} editing={editing} arts={arts} picked={picked} setPicked={setPicked}
-                apply={apply} fail={fail} onEdit={onEdit} onNewIn={onNewIn} artFromDrop={artFromDrop} onDragSticker={onDragSticker} moveSticker={moveSticker}
+              <Secao key={p.id} book={book} page={p} index={i} total={pages.length} stickers={byPage[p.id] ?? []} leaves={leaves.filter((l) => l.section === p.id)} editing={editing} picked={picked} setPicked={setPicked}
+                apply={apply} fail={fail} onNewIn={onNewIn} artFromDrop={artFromDrop} onDropSticker={(id, alvo) => void drop(id, alvo)} onAuto={(leaf) => void automatico(p.id, leaf)}
                 onMove={(dir) => { const other = pages[i + dir]; if (!other) return; void (async () => { await studioAlbumApi.savePage(book.id, { id: p.id, position: other.position }); await apply(studioAlbumApi.savePage(book.id, { id: other.id, position: p.position })); })(); }} />
             ))}
             <button className="btn ghost" onClick={() => void apply(studioAlbumApi.savePage(book.id, { title: 'Nova seção', kicker: '', position: (pages[pages.length - 1]?.position ?? 0) + 1 }), 'Seção criada.')}>Nova seção</button>
           </div>
-          {loose.length > 0 && (
-            <StripDrop label="Sem seção" hint="Não entram no álbum nem nos pacotes até ganhar uma seção. Arraste para uma seção." onSticker={(id) => void moveSticker(id, null, null)}>
+          <div data-cr-loose="" className="cr-loose">
+            <StripDrop label="Sem seção" hint={loose.length ? 'Não entram no álbum nem nos pacotes até ganhar uma página. Arraste para uma página.' : 'Arraste uma figurinha para cá para tirá-la do álbum (ela continua salva).'} onSticker={(id) => void drop(id, { loose: true })}>
               {loose.map((s) => <Mini key={s.id} s={s} section="" editing={editing === s.id} onEdit={() => onEdit(s)} onDragSticker={onDragSticker} owned={cat.owned[s.id] ?? 0} />)}
             </StripDrop>
-          )}
+          </div>
         </>
       )}
     </section>
@@ -493,7 +581,7 @@ function AjustesDoAlbum({ book, pages, byPage, apply, fail, artFromDrop, upload,
   const [from, setFrom] = useState(firstNumber);
   const dirty = d.title !== book.title || d.subtitle !== book.subtitle || d.slug !== book.slug || d.season !== book.season || d.position !== book.position || d.perPage !== (book.perPage ?? 6);
   const total = pages.reduce((n, p) => n + (byPage[p.id]?.length ?? 0), 0);
-  const leaves = pages.reduce((n, p) => n + (p.legendary ? 1 : chunk(byPage[p.id] ?? [], d.perPage).length), 0);
+  const leaves = pages.reduce((n, p) => n + (p.legendary ? 1 : sectionLeaves(byPage[p.id] ?? [], d.perPage).length), 0);
   const html = coverHTML({ title: d.title, subtitle: d.subtitle, cover: cover.source }, book.position || 1);
   const salvarCapa = async () => {
     if (!cover.source) { await apply(studioAlbumApi.saveBook({ id: book.id, cover: null, coverSource: null, coverFraming: null }), 'Capa tirada.'); setCover((c) => ({ ...c, changed: false })); return; }
@@ -536,7 +624,7 @@ function AjustesDoAlbum({ book, pages, byPage, apply, fail, artFromDrop, upload,
         <div className="sa-row">
           <label>Endereço (/album/…)<input className="field" maxLength={40} value={d.slug} onChange={(e) => setD({ ...d, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })} /></label>
         </div>
-        <div className="cr-pgbox"><PaginaPreview perPage={d.perPage} /><span>Assim fica uma página com {d.perPage} {d.perPage === 1 ? 'figurinha' : 'figurinhas'}. Nas seções, a linha tracejada mostra onde o álbum vira a página.</span></div>
+        <div className="cr-pgbox"><PaginaPreview perPage={d.perPage} /><span>Seções divididas sozinhas usam {d.perPage} {d.perPage === 1 ? 'figurinha' : 'figurinhas'} por página. As páginas que você monta à mão, arrastando, ficam do seu jeito.</span></div>
         <div className="sa-row">
           {dirty && <button className="btn primary sm" onClick={() => void apply(studioAlbumApi.saveBook({ id: book.id, ...d }), 'Álbum salvo.')}>Salvar álbum</button>}
           <button className="btn ghost sm" onClick={() => void apply(studioAlbumApi.saveBook({ id: book.id, published: !book.published }), book.published ? 'Álbum voltou a ser rascunho.' : 'Álbum publicado: já entra nos pacotes.')}>{book.published ? 'Despublicar' : 'Publicar'}</button>
@@ -565,11 +653,11 @@ function PaginaPreview({ perPage }: { perPage: number }) {
   );
 }
 
-function Secao({ book, page, index, total, stickers, owned, editing, picked, setPicked, apply, fail, onEdit, onNewIn, artFromDrop, onDragSticker, moveSticker, onMove }: {
-  book: AlbumBook; page: AlbumPage; index: number; total: number; stickers: Sticker[]; owned: Record<string, number>; editing: string | null; arts: Record<string, AlbumArt>;
+function Secao({ book, page, index, total, stickers, leaves, editing, picked, setPicked, apply, fail, onNewIn, artFromDrop, onDropSticker, onAuto, onMove }: {
+  book: AlbumBook; page: AlbumPage; index: number; total: number; stickers: Sticker[]; leaves: ReturnType<typeof bookLeaves>; editing: string | null;
   picked: AlbumArt | null; setPicked: (a: AlbumArt | null) => void; apply: (p: Promise<Catalog>, m?: string) => Promise<Catalog | null>; fail: (e: unknown) => void;
-  onEdit: (s: Sticker) => void; onNewIn: (a: AlbumArt, pageId: string) => void; artFromDrop: (e: DragEvent) => AlbumArt | null; onDragSticker: () => void;
-  moveSticker: (id: string, pageId: string | null, before: string | null) => Promise<void>; onMove: (dir: -1 | 1) => void;
+  onNewIn: (a: AlbumArt, pageId: string, lugar?: Lugar) => void; artFromDrop: (e: DragEvent) => AlbumArt | null;
+  onDropSticker: (id: string, alvo: Alvo) => void; onAuto: (leaf: number) => void; onMove: (dir: -1 | 1) => void;
 }) {
   const [d, setD] = useState({ kicker: page.kicker, title: page.title, body: page.body });
   useEffect(() => { setD({ kicker: page.kicker, title: page.title, body: page.body }); }, [page.kicker, page.title, page.body]);
@@ -579,9 +667,8 @@ function Secao({ book, page, index, total, stickers, owned, editing, picked, set
     if (k === 'title' && v.length < 1) { setD({ ...d, title: page.title }); fail(new Error('A seção precisa de um título.')); return; }
     void apply(studioAlbumApi.savePage(book.id, { id: page.id, [k]: v }), 'Seção salva.');
   };
-  const per = book.perPage ?? 6;
-  const leaves = page.legendary ? 1 : chunk(stickers, per).length;
   const [bannerOver, setBannerOver] = useState(false);
+  const novo = leaves.length + (stickers.length ? 1 : 0);
   return (
     <article className="cr-sec">
       <header className="cr-sec__head">
@@ -602,19 +689,57 @@ function Secao({ book, page, index, total, stickers, owned, editing, picked, set
           <input className="field" maxLength={160} value={d.body} placeholder="Texto da seção (opcional)" aria-label="Texto da seção" onChange={(e) => setD({ ...d, body: e.target.value })} onBlur={() => commit('body')} />
         </div>
         <div className="cr-sec__meta">
-          <span className="faint">{stickers.length} {stickers.length === 1 ? 'figurinha' : 'figurinhas'} · {leaves} {leaves === 1 ? 'página' : 'páginas'}</span>
+          <span className="faint">{stickers.length} {stickers.length === 1 ? 'figurinha' : 'figurinhas'} · {leaves.length} {leaves.length === 1 ? 'página' : 'páginas'}</span>
           <label className="cr-check"><input type="checkbox" checked={page.legendary} onChange={(e) => void apply(studioAlbumApi.savePage(book.id, { id: page.id, legendary: e.target.checked }), e.target.checked ? 'Seção marcada como página lendária.' : 'Seção voltou ao normal.')} /> Página lendária</label>
           <ConfirmButton label="Apagar seção" confirm="Apagar? As figurinhas ficam sem seção." onConfirm={() => void apply(studioAlbumApi.deletePage(page.id), 'Seção apagada. As figurinhas dela ficaram sem seção.')} />
         </div>
       </header>
-      <StripDrop label="" onSticker={(id, before) => void moveSticker(id, page.id, before)} onArt={(e) => { const a = artFromDrop(e); if (a) onNewIn(a, page.id); }}
-        breaks={page.legendary ? [] : chunk(stickers, per).slice(0, -1).map((c) => c[c.length - 1]?.id ?? '')}>
-        {stickers.map((s) => <Mini key={s.id} s={s} section={page.title} editing={editing === s.id} onEdit={() => onEdit(s)} onDragSticker={onDragSticker} owned={owned[s.id] ?? 0} />)}
-        <button type="button" className={`cr-add${picked ? ' is-ready' : ''}`} onClick={() => { if (picked) onNewIn(picked, page.id); }} aria-label={picked ? 'Criar figurinha nesta seção com a arte escolhida' : 'Solte uma arte aqui para criar uma figurinha nesta seção'}>
-          <span>+</span><small>{picked ? 'Criar aqui' : 'Solte uma arte'}</small>
-        </button>
-      </StripDrop>
+      <div className="cr-leaves">
+        {leaves.map((lf, i) => (
+          <Folha key={lf.id} leaf={lf} num={i + 1} sec={page.id} editing={editing} picked={picked} onNewIn={onNewIn} artFromDrop={artFromDrop} onDropSticker={onDropSticker}
+            onAuto={!page.legendary && leafMode(lf.stickers) === 'free' ? () => onAuto(i + 1) : undefined} />
+        ))}
+        {!page.legendary && stickers.length > 0 && (
+          <Folha leaf={{ id: `${page.id}~novo`, section: page.id, part: novo, kicker: '', title: '', body: '', banner: null, legendary: false, stickers: [] }} num={novo} sec={page.id} editing={null} picked={picked}
+            onNewIn={onNewIn} artFromDrop={artFromDrop} onDropSticker={onDropSticker} nova />
+        )}
+      </div>
     </article>
+  );
+}
+
+/** Uma página da seção, igual à do álbum. Recebe figurinhas arrastadas e artes da biblioteca. */
+function Folha({ leaf, num, sec, editing, picked, onNewIn, artFromDrop, onDropSticker, onAuto, nova = false }: {
+  leaf: ReturnType<typeof bookLeaves>[number]; num: number; sec: string; editing: string | null; picked: AlbumArt | null;
+  onNewIn: (a: AlbumArt, pageId: string, lugar?: Lugar) => void; artFromDrop: (e: DragEvent) => AlbumArt | null; onDropSticker: (id: string, alvo: Alvo) => void; onAuto?: () => void; nova?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [over, setOver] = useState(false);
+  const html = useMemo(() => nova ? '<div class="alb-pg alb-pg--center"><span class="alb-pg__kick">Nova página</span><p class="alb-pg__desc">Arraste uma figurinha para cá para começar outra página nesta seção.</p></div>'
+    : leafHTML(leaf, num, () => true, false, (s) => `<div class="wsw">${stickerHTML(s, leaf.title)}</div>`), [leaf, num, nova]);
+  useEffect(() => {
+    ref.current?.querySelectorAll('.alb-slot.is-editing').forEach((x) => x.classList.remove('is-editing'));
+    if (editing) ref.current?.querySelector(`.alb-slot[data-slot="${editing}"]`)?.classList.add('is-editing');
+  });
+  const posAt = (e: { clientX: number; clientY: number }): Pos => {
+    const r = ref.current!.querySelector<HTMLElement>('.alb-pg')!.getBoundingClientRect();
+    return { x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 };
+  };
+  return (
+    <div className={`cr-leaf${nova ? ' cr-leaf--new' : ''}${over ? ' is-target' : ''}`} data-cr-leaf={`${sec}:${num}`} ref={ref}
+      onDragOver={(e) => { if (hasType(e, T_ART) || hasType(e, T_STICKER)) { e.preventDefault(); setOver(true); } }} onDragLeave={() => setOver(false)}
+      onDrop={(e) => {
+        setOver(false);
+        if (hasType(e, T_STICKER)) { e.preventDefault(); onDropSticker(e.dataTransfer.getData(T_STICKER), { sec, leaf: num, pos: posAt(e) }); return; }
+        const a = artFromDrop(e); if (a) { e.preventDefault(); onNewIn(a, sec, { leaf: num, pos: clampPos(posAt(e)) }); }
+      }}
+      onClick={(e) => { if (picked && !(e.target as HTMLElement).closest('.alb-slot, button')) onNewIn(picked, sec, { leaf: num, pos: clampPos(posAt(e)) }); }}>
+      <div className="alb-page" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="cr-leaf__bar">
+        <span>{nova ? 'Nova página' : `Página ${num}`}{!nova && <span className="faint"> · {leafMode(leaf.stickers) === 'free' ? 'montada à mão' : 'automática'}</span>}</span>
+        {onAuto && <button type="button" className="btn quiet sm" onClick={onAuto}>Automático</button>}
+      </div>
+    </div>
   );
 }
 

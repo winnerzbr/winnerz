@@ -701,6 +701,9 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .cr-framer.is-over .cr-framer__stage { filter: drop-shadow(0 0 16px rgba(255,178,91,.6)); }
 .cr-framer .wst__art, .cr-framer .alb-cover__img { inset: auto !important; max-width: none !important; max-height: none !important; object-fit: fill !important; transform: none !important; transition: none !important; pointer-events: none; }
 .cr-framer.is-loading .cr-framer__stage { opacity: .85; }
+.cr-framer .cr-fill { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover; filter: blur(14px) brightness(.72) saturate(1.1); pointer-events: none; }
+.cr-framer__tip { justify-self: center; font-size: 12px; color: var(--muted); }
+.cr-framer__stage:hover .wst__glare, .cr-framer__stage:hover .wst__holo { opacity: 0 !important; }
 .cr-framer--sticker { width: min(340px, 100%); }
 .cr-framer--sticker .cr-framer__stage { width: 100%; }
 .cr-framer--cover { width: min(230px, 100%); }

@@ -419,7 +419,7 @@ export const studioAlbumApi = {
     if (up.error) throw new Error(/row-level|policy|not authorized/i.test(up.error.message) ? 'Só a administração envia artes do álbum.' : /bucket/i.test(up.error.message) ? MIGRATION() : /size|large/i.test(up.error.message) ? 'Essa imagem ficou grande demais mesmo reduzida. Tente outra.' : up.error.message);
     try {
       const mini = await shrinkSized(blob, MINI, 0.82);
-      await (await client()).storage.from('album').upload(miniPath(path)!, mini.blob, { contentType: 'image/jpeg', upsert: true, cacheControl: '31536000' });
+      await (await client()).storage.from('album').upload(miniPath(path)!, mini.blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
       miniFeitas.add(path);
     } catch { /* sem miniatura: a biblioteca gera depois */ }
     const r = await (await client()).from('album_arts').insert({ path, name, width, height }).select('id, path, name, width, height, created_at').single();
@@ -445,8 +445,9 @@ export const studioAlbumApi = {
     miniFeitas.add(path);
     try {
       const mini = await shrinkFrom(artSrc(path)!, MINI, 0.82);
-      const { error } = await (await client()).storage.from('album').upload(mp, mini.blob, { contentType: 'image/jpeg', upsert: true, cacheControl: '31536000' });
-      return !error;
+      const { error } = await (await client()).storage.from('album').upload(mp, mini.blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
+      // Sem permissão de leitura no armazenamento, não dá para sobrescrever: se já existe, está tudo certo.
+      return !error || /exists|duplicate/i.test(error.message);
     } catch { return false; }
   },
   /** Envia um recorte pronto (gerado no navegador a partir da original) e devolve o caminho. */

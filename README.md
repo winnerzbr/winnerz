@@ -102,6 +102,20 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
 # 3. Fotos: a pasta storage/ tem uma subpasta por bucket (momentos, avatares), com os mesmos caminhos.
 ```
 
+### 6b. Entrar com Google, Discord, Twitch e Steam
+
+- **Google, Discord e Twitch** são do próprio Supabase. Cada um pede um app criado no painel do serviço, com o endereço
+  de volta `https://<projeto>.supabase.co/auth/v1/callback`; o ID e a chave secreta vão **só** no Supabase
+  (Authentication → Sign In / Providers). O botão aparece na entrada sozinho assim que o serviço é ligado lá.
+  Em Authentication → URL Configuration → Redirect URLs, deixe `https://www.winnerz.com.br/**` e `https://winnerz.com.br/**`.
+  Para ligar esses logins a contas que já existem (Preferências → Conta → Contas ligadas), ligue "Allow manual linking".
+- **Steam** usa OpenID 2.0, que o Supabase não faz: quem cuida é `api/conta.ts` (`/steam/entrar` e `/steam/volta`).
+  Precisa só da migração `0091_login_steam.sql`. Conta nova pela Steam ganha um e-mail interno
+  (`<SteamID>@steam.winnerz.com.br`) que nunca recebe nada; o nome vem da `STEAM_API_KEY`.
+- **No app**, o login abre no navegador do celular (plugin `@capacitor/browser`; o Google não aceita login dentro de app)
+  e o app entra pelo mesmo caminho do Modo TV, depois de a pessoa confirmar no navegador.
+- O passo a passo de cada painel está na lista do **Studio**.
+
 ### 7. Abrir o site
 
 O site nasce fechado: só a conta com `is_admin` e quem tem convite usam o site; as outras pessoas veem "Em breve". Desde a migração 0076, o próprio banco e as funções da Vercel recusam quem não passa (não é só a tela). A lista completa, com o que já foi feito, fica em **Studio** (menu Mais, ou Preferências → Administração). Para abrir ou fechar: **Studio → "Abrir o site para todos"** (vale na hora). Sem a migração 0076, vale a variável `VITE_SITE_PRIVATE` da Vercel (`0` abre).

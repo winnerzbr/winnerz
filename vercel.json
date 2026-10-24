@@ -5,6 +5,14 @@
       "destination": "/api/pontes?twitch=volta"
     },
     {
+      "source": "/steam/entrar",
+      "destination": "/api/conta?steam=entrar"
+    },
+    {
+      "source": "/steam/volta",
+      "destination": "/api/conta?steam=volta"
+    },
+    {
       "source": "/youtube/volta",
       "destination": "/api/pontes?youtube=volta"
     },

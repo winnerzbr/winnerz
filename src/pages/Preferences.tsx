@@ -12,6 +12,7 @@ import { SUPABASE_ON } from '../lib/env';
 import { resetDemo } from '../data/demoAdapter';
 import { GaleraEditor } from '../components/galera/GaleraEditor';
 import { DeleteAccount, ExportData } from '../components/AccountData';
+import { ContasLigadas } from '../components/ContasLigadas';
 import { ProfileSettings } from '../components/ProfileSettings';
 import { BlockedList } from '../components/Moderation';
 import { Link } from '../lib/router';
@@ -241,6 +242,7 @@ export function Preferences() {
         ) : (
           <p className="muted prefs__p">Você está no modo demonstração: tudo fica neste navegador. <button className="btn quiet sm" onClick={resetDemo}>Recomeçar a demonstração</button></p>
         )}
+        <ContasLigadas />
         <DeleteAccount />
       </section>
       </div>

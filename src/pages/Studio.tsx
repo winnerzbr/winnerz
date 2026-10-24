@@ -4,13 +4,15 @@ import { canReview, fixesApi } from '../data/fixesApi';
 import { moderationApi } from '../data/moderationApi';
 import { FREE, fmtBytes, loadFeatureUse, loadUsage, type FeatureUse, type Usage } from '../data/usageApi';
 import { USAGE_AREAS, usageLabel } from '../lib/usageLabels';
-import { SITE_PRIVATE } from '../lib/env';
+import { SITE_PRIVATE, SUPABASE_URL } from '../lib/env';
 import { notifApi } from '../data/notifApi';
 import { Link } from '../lib/router';
 import { ConfirmButton } from '../components/Sheet';
 import { invitesApi, inviteLink, type Invite } from '../data/invitesApi';
 
 const LAUNCH_KEY = 'wz.launch.v1';
+/** O endereço de volta que Google, Discord e Twitch pedem (é o do Supabase, não o do site). */
+const CALLBACK = `${SUPABASE_URL || 'https://<seu-projeto>.supabase.co'}/auth/v1/callback`;
 const STEPS: { k: string; t: string; how: string }[] = [
   { k: 'dominio', t: 'Domínio verificado no Resend', how: 'resend.com → Domains → Add domain (winnerz.com.br). Copie os registros que ele mostrar para o Registro.br (DNS → Editar Zona) e espere ficar "Verified".' },
   { k: 'smtp', t: 'Supabase mandando e-mail pelo Resend', how: 'Supabase → Authentication → Emails → SMTP Settings: host smtp.resend.com, porta 465, usuário resend, senha = uma chave da API do Resend. Remetente: entrar@winnerz.com.br, nome WinnerZ.' },
@@ -19,6 +21,13 @@ const STEPS: { k: string; t: string; how: string }[] = [
   { k: 'limite', t: 'Limite de e-mails por hora conferido', how: 'Supabase → Authentication → Rate Limits. Com SMTP próprio começa em 30 por hora; no dia da abertura, suba para 100 se o Resend for o gratuito (100 por dia).' },
   { k: 'backup', t: 'Backup semanal ligado', how: 'No repositório privado winnerz-backup-private do GitHub: Settings → Secrets and variables → Actions com SUPABASE_DB_URL, BACKUP_PASSPHRASE, SUPABASE_URL e SUPABASE_SECRET_KEY. Em Actions → Backup semanal, a última execução precisa estar verde.' },
   { k: 'senha', t: 'Senha do backup guardada fora do computador', how: 'Sem a BACKUP_PASSPHRASE o backup não abre. Guarde num gerenciador de senhas.' },
+  { k: 'steam', t: 'Login com a Steam', how: 'Supabase → SQL Editor: rode o arquivo supabase/migrations/0091_login_steam.sql do repositório. Só isso: o botão da Steam já funciona na entrada (o nome da Steam vem da STEAM_API_KEY, que já está na Vercel).' },
+  { k: 'voltas', t: 'Endereços de volta do login', how: 'Supabase → Authentication → URL Configuration → Redirect URLs: confira que estão lá https://www.winnerz.com.br/** e https://winnerz.com.br/** (com os dois asteriscos). Sem eles, o login do Google, Discord e Twitch volta sempre para o início.' },
+  { k: 'google', t: 'Login com o Google', how: `console.cloud.google.com → crie o projeto WinnerZ → Google Auth Platform (ou "Tela de consentimento OAuth"): tipo Externo, nome WinnerZ, e-mail de suporte e domínio winnerz.com.br. Em Clientes → Criar cliente → Aplicativo da Web, no campo "URIs de redirecionamento autorizados" cole ${CALLBACK}. Copie o ID do cliente e a chave secreta direto para o Supabase → Authentication → Sign In / Providers → Google (e ligue). Por fim, em Público-alvo, toque em "Publicar app" (sem isso, só contas de teste entram).` },
+  { k: 'discord', t: 'Login com o Discord', how: `discord.com/developers/applications → New Application (WinnerZ) → OAuth2 → Redirects: cole ${CALLBACK}. Copie o Client ID e o Client Secret direto para o Supabase → Authentication → Sign In / Providers → Discord (e ligue).` },
+  { k: 'twitch', t: 'Login com a Twitch', how: `dev.twitch.tv/console → Register Your Application: nome "WinnerZ Login", OAuth Redirect URL ${CALLBACK}, categoria Website Integration, tipo Confidential. Copie o Client ID e um New Secret direto para o Supabase → Authentication → Sign In / Providers → Twitch (e ligue). Use um app novo, separado do que o IGDB usa.` },
+  { k: 'ligar-contas', t: 'Ligar contas que já existem', how: 'Supabase → Authentication → Sign In / Providers → "Allow manual linking" ligado. Assim cada pessoa liga Google, Discord e Twitch à conta que já tem em Preferências → Conta → Contas ligadas.' },
+  { k: 'app-login', t: 'App novo no celular', how: 'GitHub → Actions → App Android → baixe e instale o app novo. É ele que abre o login do Google, Discord, Twitch e Steam no navegador do celular e volta sozinho para o app.' },
   { k: 'abrir', t: 'Abrir o site', how: 'Aqui no Studio, no alto da página: "Abrir o site para todos". Vale na hora, para o app e para o banco. Para fechar de novo, o mesmo botão.' },
 ];
 

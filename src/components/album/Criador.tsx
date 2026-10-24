@@ -290,7 +290,10 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
     img.loading = 'eager';
     if (!nat) { img.style.visibility = 'hidden'; return; }
     const p = placeInBox(nat.w, nat.h, aspect, framing, overscan);
-    Object.assign(img.style, { visibility: '', left: `${p.left}%`, top: `${p.top}%`, width: `${p.width}%`, height: `${p.height}%` });
+    // Com !important: as regras da figurinha (posição e tamanho fixos da arte) não podem vencer o enquadramento.
+    img.style.visibility = '';
+    img.style.setProperty('left', `${p.left}%`, 'important'); img.style.setProperty('top', `${p.top}%`, 'important');
+    img.style.setProperty('width', `${p.width}%`, 'important'); img.style.setProperty('height', `${p.height}%`, 'important');
     // A sobra além da pintura aparece preenchida com ela mesma, desfocada (igual ao recorte que vai ser gerado).
     let fill = img.parentElement?.querySelector<HTMLImageElement>('img.cr-fill');
     if (!fill) { fill = document.createElement('img'); fill.className = 'cr-fill'; fill.alt = ''; fill.draggable = false; img.before(fill); }

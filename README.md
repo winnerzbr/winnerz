@@ -118,6 +118,15 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
   e o app entra pelo mesmo caminho do Modo TV, depois de a pessoa confirmar no navegador.
 - O passo a passo de cada painel está na lista do **Studio**.
 
+### 6c. Criador de figurinhas (Studio → Álbum → Criador)
+
+- Rode `supabase/migrations/0092_criador_de_figurinhas.sql` (biblioteca de artes, arte original e enquadramento de cada
+  figurinha e da capa, figurinhas por página e reordenar de uma vez).
+- Arraste as imagens do computador para a biblioteca; arraste uma arte para a moldura da raridade; enquadre arrastando
+  dentro da moldura e com o zoom. Ao salvar, o navegador gera o recorte 5:7 e envia; a original fica guardada.
+- No quadro do álbum: capa (também enquadrável), títulos, figurinhas por página, seções (faixa, chamada, texto, ordem) e as
+  figurinhas de cada seção, que dá para arrastar entre posições e seções. "Numerar na ordem do álbum" renumera tudo.
+
 ### 7. Abrir o site
 
 O site nasce fechado: só a conta com `is_admin` e quem tem convite usam o site; as outras pessoas veem "Em breve". Desde a migração 0076, o próprio banco e as funções da Vercel recusam quem não passa (não é só a tela). A lista completa, com o que já foi feito, fica em **Studio** (menu Mais, ou Preferências → Administração). Para abrir ou fechar: **Studio → "Abrir o site para todos"** (vale na hora). Sem a migração 0076, vale a variável `VITE_SITE_PRIVATE` da Vercel (`0` abre).

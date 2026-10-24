@@ -11,13 +11,17 @@ import { SUPABASE_URL } from '../lib/env';
 import { shrink } from '../lib/image';
 import { drawPack, judgeFinish, vaultCheck, type Drawn, type HoldRule, type PackSignals, type Tier, type VaultGive } from '../lib/album';
 import { setupNote } from '../lib/setupNote';
+import type { Framing } from '../lib/enquadrar';
 
 export type PackKind = 'onix' | 'prisma';
 export type PackOrigin = 'jornada' | 'memoria' | 'studio' | 'boas_vindas' | 'codigo' | 'twitch';
 export type PackState = 'retido' | 'fechado' | 'aberto' | 'desfeito' | 'negado';
 export interface AlbumPage { id: string; position: number; kicker: string; title: string; body: string; banner: string | null; legendary: boolean }
-export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[] }
-export interface Sticker { id: string; season: number; number: number; name: string; tier: Tier; art: string | null; credit: string; pageId: string | null; slot: number; active: boolean }
+export interface AlbumBook { id: string; slug: string; season: number; title: string; subtitle: string; cover: string | null; position: number; published: boolean; pages: AlbumPage[]; /** Figurinhas por página (migração 0092; sem ela, 6). */ perPage?: number; coverSource?: string | null; coverFraming?: Framing | null }
+export interface Sticker { id: string; season: number; number: number; name: string; tier: Tier; art: string | null; credit: string; pageId: string | null; slot: number; active: boolean; /** Arte original e enquadramento (Criador, migração 0092). */ source?: string | null; framing?: Framing | null }
+/** Uma arte da biblioteca do Criador (a imagem original, antes do recorte). */
+export interface AlbumArt { id: string; path: string; name: string; width: number; height: number; createdAt: string }
+export interface StickerOrder { id: string; pageId?: string | null; slot?: number; number?: number }
 export interface AlbumItem { id: string; qty: number; pasted: boolean }
 export interface PackReview { state: 'aberta' | 'respondida'; message: string; answer: string | null; createdAt: string }
 export interface Pack {
@@ -57,6 +61,7 @@ const MSG: Record<string, string> = {
   pack_already_opened: 'Esse pacote já foi aberto e não dá mais para desfazer.',
   album_in_use: 'Esse álbum já tem figurinhas com pessoas. Deixe sem publicar em vez de apagar.',
   sticker_number_taken: 'Já existe uma figurinha com esse número nesta Temporada.',
+  order_format: 'Não deu para reordenar agora. Recarregue a página.',
   not_admin: 'Só a administração pode fazer isso.',
   not_found: 'Não achei esse pacote.',
   not_logged: 'Entre na sua conta para ver o seu álbum.',
@@ -100,6 +105,7 @@ const ok = <T>(r: { data: T; error: { message: string } | null }): T => {
     if (/album_redeem|studio_code/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0066 no Supabase.'));
     if (/album_trade|studio_album_trades/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0056 no Supabase.'));
     if (/album_vault/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0055 no Supabase.'));
+    if (/album_arts|studio_album_sticker_order|per_page|framing/i.test(m) && /not find|does not exist|schema cache|column/i.test(m)) throw new Error(setupNote('Falta rodar a migração 0092 no Supabase.'));
     if (/album_|studio_pack|studio_album|schema cache/i.test(m) && /not find|does not exist|schema cache/i.test(m)) throw new Error(MIGRATION());
     if (/violates check constraint/i.test(m)) throw new Error('Algum campo está fora do formato. Confira nome, número e textos.');
     throw new Error(m);
@@ -111,6 +117,21 @@ const supa = () => getState().mode === 'supabase';
 const rpc = async <T>(fn: string, args?: Record<string, unknown>): Promise<T> => ok(await (await client()).rpc(fn, args)) as T;
 
 /* ---- Demonstração ------------------------------------------------------------------------------ */
+/** Biblioteca de artes na demonstração: só na memória desta aba (as imagens são grandes demais para guardar). */
+const demoArts: AlbumArt[] = [];
+/** Reduz a imagem e diz o tamanho final (a biblioteca guarda largura e altura para enquadrar). */
+async function shrinkSized(file: File, max: number, q: number): Promise<{ blob: Blob; width: number; height: number }> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((res, bad) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => bad(new Error('Não consegui abrir essa imagem.')); i.src = url; });
+    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+    c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+    const blob = await new Promise<Blob>((res, bad) => c.toBlob((b) => (b ? res(b) : bad(new Error('imagem'))), 'image/jpeg', q));
+    return { blob, width: c.width, height: c.height };
+  } finally { URL.revokeObjectURL(url); }
+}
 const DK = 'wz.demo.album';
 const ago = (d: number) => new Date(Date.now() - d * 86400_000).toISOString();
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -320,7 +341,7 @@ export const studioAlbumApi = {
     if (!supa()) return dMutate((d) => {
       const cur = d.books.find((x) => x.id === b.id);
       if (cur) Object.assign(cur, { ...b, pages: cur.pages });
-      else d.books.push({ id: `demo-b${rid()}`, slug: b.slug ?? rid(), season: b.season ?? 1, title: b.title ?? 'Álbum', subtitle: b.subtitle ?? '', cover: b.cover ?? null, position: b.position ?? d.books.length + 1, published: !!b.published, pages: [] });
+      else d.books.push({ id: `demo-b${rid()}`, slug: b.slug ?? rid(), season: b.season ?? 1, title: b.title ?? 'Álbum', subtitle: b.subtitle ?? '', cover: b.cover ?? null, position: b.position ?? d.books.length + 1, published: !!b.published, perPage: b.perPage ?? 6, pages: [] });
     });
     const { pages: _p, ...rest } = b;
     return rpc<Catalog>('studio_album_book_save', { p: rest });
@@ -348,13 +369,65 @@ export const studioAlbumApi = {
       if (d.stickers.some((x) => x.number === s.number && x.season === (s.season ?? 1) && x.id !== s.id)) throw new Error(MSG.sticker_number_taken);
       const cur = d.stickers.find((x) => x.id === s.id);
       if (cur) Object.assign(cur, s);
-      else d.stickers.push({ id: `demo-s${rid()}`, season: s.season ?? 1, number: s.number ?? d.stickers.length + 1, name: s.name ?? 'Figurinha', tier: s.tier ?? 'comum', art: s.art ?? null, credit: s.credit ?? '', pageId: s.pageId ?? null, slot: s.slot ?? 0, active: s.active ?? true });
+      else d.stickers.push({ id: `demo-s${rid()}`, season: s.season ?? 1, number: s.number ?? d.stickers.length + 1, name: s.name ?? 'Figurinha', tier: s.tier ?? 'comum', art: s.art ?? null, credit: s.credit ?? '', pageId: s.pageId ?? null, slot: s.slot ?? 0, active: s.active ?? true, source: s.source ?? null, framing: s.framing ?? null });
     });
     return rpc<Catalog>('studio_album_sticker_save', { p: s });
   },
   async deleteSticker(id: string): Promise<Catalog> {
     if (!supa()) return dMutate((d) => { d.stickers = d.stickers.filter((x) => x.id !== id); d.items = d.items.filter((x) => x.id !== id); });
     return rpc<Catalog>('studio_album_sticker_delete', { p_id: id });
+  },
+  /** Reordena (e renumera) várias figurinhas de uma vez (arrastar no quadro do álbum). */
+  async order(list: StickerOrder[]): Promise<Catalog> {
+    if (!supa()) return dMutate((d) => {
+      const nums = new Map(d.stickers.map((x) => [x.id, x.number]));
+      for (const o of list) if (o.number != null) nums.set(o.id, o.number);
+      const seen = new Set<string>();
+      for (const x of d.stickers) { const k = `${x.season}:${nums.get(x.id)}`; if (seen.has(k)) throw new Error(MSG.sticker_number_taken); seen.add(k); }
+      for (const o of list) { const cur = d.stickers.find((x) => x.id === o.id); if (!cur) continue; if (o.pageId !== undefined) cur.pageId = o.pageId; if (o.slot != null) cur.slot = o.slot; if (o.number != null) cur.number = o.number; }
+    });
+    return rpc<Catalog>('studio_album_sticker_order', { p: list });
+  },
+  /** A biblioteca de artes originais do Criador. */
+  async arts(): Promise<AlbumArt[]> {
+    if (!supa()) return [...demoArts];
+    const r = await (await client()).from('album_arts').select('id, path, name, width, height, created_at').order('created_at', { ascending: true });
+    const l = ok(r as { data: { id: string; path: string; name: string; width: number; height: number; created_at: string }[]; error: { message: string } | null });
+    return (l ?? []).map((a) => ({ id: a.id, path: a.path, name: a.name, width: a.width, height: a.height, createdAt: a.created_at }));
+  },
+  /** Envia uma arte original para a biblioteca (até 2400 px no lado maior, para dar margem ao enquadramento). */
+  async addArt(file: File): Promise<AlbumArt> {
+    const { blob, width, height } = await shrinkSized(file, 2400, 0.88);
+    const name = file.name.replace(/\.[a-z0-9]+$/i, '').slice(0, 120);
+    if (!supa()) {
+      const a: AlbumArt = { id: `demo-a${rid()}`, path: await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(blob); }), name, width, height, createdAt: new Date().toISOString() };
+      demoArts.push(a); return a;
+    }
+    const path = `originais/${Date.now().toString(36)}-${rid()}.jpg`;
+    const up = await (await client()).storage.from('album').upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
+    if (up.error) throw new Error(/row-level|policy|not authorized/i.test(up.error.message) ? 'Só a administração envia artes do álbum.' : /bucket/i.test(up.error.message) ? MIGRATION() : /size|large/i.test(up.error.message) ? 'Essa imagem ficou grande demais mesmo reduzida. Tente outra.' : up.error.message);
+    const r = await (await client()).from('album_arts').insert({ path, name, width, height }).select('id, path, name, width, height, created_at').single();
+    const a = ok(r as { data: { id: string; path: string; name: string; width: number; height: number; created_at: string }; error: { message: string } | null });
+    return { id: a.id, path: a.path, name: a.name, width: a.width, height: a.height, createdAt: a.created_at };
+  },
+  async renameArt(id: string, name: string): Promise<void> {
+    if (!supa()) { const a = demoArts.find((x) => x.id === id); if (a) a.name = name; return; }
+    ok(await (await client()).from('album_arts').update({ name: name.slice(0, 120) }).eq('id', id) as { data: unknown; error: { message: string } | null });
+  },
+  /** Tira uma arte da biblioteca (o arquivo também, se nenhuma figurinha, capa ou faixa usa). */
+  async removeArt(a: AlbumArt, inUse: boolean): Promise<void> {
+    if (!supa()) { const i = demoArts.findIndex((x) => x.id === a.id); if (i >= 0) demoArts.splice(i, 1); return; }
+    const sb = await client();
+    ok(await sb.from('album_arts').delete().eq('id', a.id) as { data: unknown; error: { message: string } | null });
+    if (!inUse) await sb.storage.from('album').remove([a.path]).catch(() => null);
+  },
+  /** Envia um recorte pronto (gerado no navegador a partir da original) e devolve o caminho. */
+  async uploadCrop(blob: Blob): Promise<string> {
+    if (!supa()) return await new Promise<string>((res) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.readAsDataURL(blob); });
+    const path = `t1/c-${Date.now().toString(36)}-${rid()}.jpg`;
+    const { error } = await (await client()).storage.from('album').upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
+    if (error) throw new Error(/row-level|policy|not authorized/i.test(error.message) ? 'Só a administração envia artes do álbum.' : error.message);
+    return path;
   },
   /** Envia uma arte (reduzida no navegador) e devolve o caminho para guardar no catálogo. */
   async upload(file: File): Promise<string> {

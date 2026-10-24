@@ -108,6 +108,8 @@ psql --single-transaction --variable ON_ERROR_STOP=1 \
   de volta `https://<projeto>.supabase.co/auth/v1/callback`; o ID e a chave secreta vão **só** no Supabase
   (Authentication → Sign In / Providers). O botão aparece na entrada sozinho assim que o serviço é ligado lá.
   Em Authentication → URL Configuration → Redirect URLs, deixe `https://www.winnerz.com.br/**` e `https://winnerz.com.br/**`.
+  No Google, a variável `VITE_GOOGLE_CLIENT_ID` (o ID do cliente, que é público) troca o botão pelo oficial do Google
+  (`signInWithIdToken`), e a janela de login mostra `winnerz.com.br` em vez do endereço do Supabase.
   Para ligar esses logins a contas que já existem (Preferências → Conta → Contas ligadas), ligue "Allow manual linking".
 - **Steam** usa OpenID 2.0, que o Supabase não faz: quem cuida é `api/conta.ts` (`/steam/entrar` e `/steam/volta`).
   Precisa só da migração `0091_login_steam.sql`. Conta nova pela Steam ganha um e-mail interno

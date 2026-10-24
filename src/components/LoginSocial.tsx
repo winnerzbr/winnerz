@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SUPABASE_KEY, SUPABASE_ON, SUPABASE_URL } from '../lib/env';
 import { navigate } from '../lib/router';
 import { abrirNoNavegador, fecharNavegador, navegadorNoApp, noApp } from '../lib/nativo';
@@ -14,6 +14,65 @@ export { caminhoSeguro, eServico, ERROS_LOGIN, erroDoEndereco, NOME, servicosDe,
  * pelo mesmo caminho do Modo TV.
  */
 const CHAVE = 'wz_login_servicos';
+/** ID do cliente do Google (é público: aparece na própria página). Com ele, o botão do Google é o oficial, aberto
+ *  direto deste site: a janela do Google mostra "Prosseguir para winnerz.com.br" e não o endereço do Supabase. */
+const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
+/** O botão oficial vale no navegador; dentro do app, o login abre no navegador do celular (e lá usa o oficial). */
+export const googleOficial = () => !!GOOGLE_CLIENT_ID && !noApp();
+
+type Gsi = { accounts: { id: { initialize: (o: object) => void; renderButton: (el: HTMLElement, o: object) => void } } };
+let gsi: Promise<Gsi | null> | null = null;
+function carregarGsi(): Promise<Gsi | null> {
+  gsi ??= new Promise((ok) => {
+    const pronto = () => (window as unknown as { google?: Gsi }).google ?? null;
+    if (pronto()) { ok(pronto()); return; }
+    const sc = document.createElement('script');
+    sc.src = 'https://accounts.google.com/gsi/client';
+    sc.async = true;
+    const t = setTimeout(() => ok(pronto()), 10000);
+    sc.onload = () => { clearTimeout(t); ok(pronto()); };
+    sc.onerror = () => { clearTimeout(t); gsi = null; ok(null); };
+    document.head.appendChild(sc);
+  });
+  return gsi;
+}
+const hex = (b: ArrayBuffer | Uint8Array) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+
+/** O botão oficial do Google (desenhado pelo próprio Google). Entra com o token dele no Supabase (signInWithIdToken). */
+function GoogleOficial({ volta, onErro, onFalha }: { volta: string; onErro: (m: string) => void; onFalha: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let vivo = true;
+    void (async () => {
+      const g = await carregarGsi();
+      if (!vivo || !ref.current) return;
+      if (!g) { onFalha(); return; }
+      // Número de uso único: o Google assina o resumo dele no token, e o Supabase confere com o original.
+      const bruto = hex(crypto.getRandomValues(new Uint8Array(16)));
+      const resumo = hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(bruto)));
+      if (!vivo || !ref.current) return;
+      try {
+        g.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID, nonce: resumo, ux_mode: 'popup', auto_select: false, itp_support: true,
+          callback: async ({ credential }: { credential?: string }) => {
+            if (!credential) { onErro('O Google não confirmou o login. Tente de novo.'); return; }
+            onErro('');
+            try {
+              const { getClient } = await import('../data/supabaseAdapter');
+              const { error } = await (await getClient()).auth.signInWithIdToken({ provider: 'google', token: credential, nonce: bruto });
+              if (error) onErro('Não deu para entrar com o Google. Tente de novo ou use o e-mail.');
+              else navigate(caminhoSeguro(volta));
+            } catch { onErro('Não deu para entrar com o Google. Tente de novo ou use o e-mail.'); }
+          },
+        });
+        const largura = Math.min(400, Math.max(200, Math.round(ref.current.clientWidth || 400)));
+        g.accounts.id.renderButton(ref.current, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'left', width: largura, locale: 'pt-BR' });
+      } catch { onFalha(); }
+    })();
+    return () => { vivo = false; };
+  }, [volta, onErro, onFalha]);
+  return <div ref={ref} className="social__gsi" />;
+}
 
 /** Lê o que está ligado no Supabase (e guarda, para os botões não piscarem na próxima visita). */
 export function useServicos(): Servico[] {
@@ -77,6 +136,8 @@ type Espera = { code: string; secret: string; servico: Servico; ate: number };
 export function LoginSocial({ servicos, volta, onErro }: { servicos: Servico[]; volta: string; onErro: (m: string) => void }) {
   const [indo, setIndo] = useState<Servico | null>(null);
   const [espera, setEspera] = useState<Espera | null>(null);
+  const [gsiFalhou, setGsiFalhou] = useState(false);
+  const falhou = useCallback(() => setGsiFalhou(true), []);
   const vivo = useRef(true);
   useEffect(() => () => { vivo.current = false; }, []);
 
@@ -138,11 +199,12 @@ export function LoginSocial({ servicos, volta, onErro }: { servicos: Servico[]; 
   const outros = servicos.filter((s) => s !== 'google');
   return (
     <div className="social">
-      {google && (
-        <button type="button" className="btn primary lg social__btn social__btn--google" disabled={!!indo} onClick={() => void entrar('google')}>
-          <Marca s="google" /><span>{indo === 'google' ? 'Abrindo o Google…' : 'Continuar com Google'}</span>
+      {google && (googleOficial() && !gsiFalhou ? <GoogleOficial volta={volta} onErro={onErro} onFalha={falhou} /> : (
+        // No app (abre o navegador) ou sem o ID do cliente: o mesmo desenho do botão oficial, feito aqui.
+        <button type="button" className="social__google" disabled={!!indo} onClick={() => void entrar('google')}>
+          <Marca s="google" /><span>{indo === 'google' ? 'Abrindo o Google…' : 'Continuar com o Google'}</span>
         </button>
-      )}
+      ))}
       {outros.length > 0 && (
         <div className="social__row" style={{ gridTemplateColumns: `repeat(${outros.length}, 1fr)` }}>
           {outros.map((s) => (

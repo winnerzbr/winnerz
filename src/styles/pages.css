@@ -687,7 +687,7 @@ a.session__back-link:hover { color: var(--ink); }
 .login__brand { position: absolute; left: 56px; right: 56px; bottom: 64px; display: flex; flex-direction: column; gap: 10px; font-size: 18px; color: #C9CED4; }
 .login__name { font: 600 22px/1 var(--font-title); font-stretch: 125%; letter-spacing: 0.4em; text-transform: uppercase; color: #F2F4F6; }
 .login__side { flex: 1 1 480px; display: flex; align-items: center; justify-content: center; padding: 56px 32px; }
-.login { width: min(420px, 100%); display: flex; flex-direction: column; gap: 16px; }
+.login { width: min(400px, 100%); display: flex; flex-direction: column; gap: 16px; }
 .login .kicker { margin: 0; }
 .login__title { font-size: 52px; }
 .login__lead { margin: 0; font-size: 16px; line-height: 1.55; }
@@ -833,10 +833,18 @@ a.session__back-link:hover { color: var(--ink); }
 .btn.social__btn:not(.primary):hover { background: var(--fr-piece-hi); }
 .social__mark { width: 20px; height: 20px; flex: none; }
 /* Com o Google em destaque, o botão do e-mail vira peça comum, para não haver duas ações principais. */
-.login:has(.social__btn--google) > .btn.primary { background: var(--fr-piece); color: var(--ink); }
-.login:has(.social__btn--google) > .btn.primary:hover { background: var(--fr-piece-hi); color: var(--ink); }
+.login:has(.social__google, .social__gsi) > .btn.primary { background: var(--fr-piece); color: var(--ink); }
+.login:has(.social__google, .social__gsi) > .btn.primary:hover { background: var(--fr-piece-hi); color: var(--ink); }
+/* Google: o botão oficial (desenhado pelo Google, tema claro) ou o mesmo desenho feito aqui, no app. */
+.social__gsi { min-height: 40px; display: flex; justify-content: center; color-scheme: light; }
+.social__google { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 40px; padding: 0 12px;
+  background: #fff; border: 1px solid #747775; border-radius: 4px; color: #1f1f1f; cursor: pointer;
+  font: 500 14px/1 Roboto, Arial, sans-serif; letter-spacing: 0.25px; }
+.social__google:hover { background: #f8faff; }
+.social__google:disabled { opacity: 0.7; cursor: default; }
+.social__google .social__mark { position: absolute; left: 12px; width: 18px; height: 18px; }
 .social__row { display: grid; gap: 10px; }
-.social__row .social__btn { min-height: 48px; padding: 0 12px; font-size: 14px; }
+.social__row .social__btn { min-height: 44px; padding: 0 12px; font-size: 14px; }
 .social__btn--steam:hover .social__mark { color: #fff; }
 .social__btn--discord:hover .social__mark { color: #8891F7; }
 .social__btn--twitch:hover .social__mark { color: #A970FF; }

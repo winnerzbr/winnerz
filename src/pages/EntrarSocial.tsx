@@ -3,7 +3,7 @@ import { BrandMark } from '../components/Brand';
 import { Link, navigate } from '../lib/router';
 import { useStore } from '../data/store';
 import { tvApi } from '../tv/tvApi';
-import { caminhoSeguro, comecarLogin, eServico, LoginSocial, NOME, useServicos } from '../components/LoginSocial';
+import { caminhoSeguro, comecarLogin, eServico, googleOficial, LoginSocial, NOME, useServicos } from '../components/LoginSocial';
 
 function Moldura({ children }: { children: ReactNode }) {
   return (
@@ -76,7 +76,8 @@ export function EntrarApp() {
 
   // Sem conta aberta e com o serviço escolhido no app: vai direto para o login dele.
   useEffect(() => {
-    if (profile || comecou.current || code.length !== 6 || !eServico(via)) return;
+    // O Google com o botão oficial precisa de um toque na própria página (é ele que mostra winnerz.com.br).
+    if (profile || comecou.current || code.length !== 6 || !eServico(via) || (via === 'google' && googleOficial())) return;
     comecou.current = true;
     void comecarLogin(via, aqui).then((e) => { if (e) setErro(e); });
   }, [profile, code, via, aqui]);
@@ -89,8 +90,13 @@ export function EntrarApp() {
       <Moldura>
         <p className="kicker">App WinnerZ</p>
         <h1 className="t login__title">Entrar no app</h1>
-        <p className="muted login__lead">{eServico(via) && !erro ? `Abrindo o login ${via === 'steam' ? 'da' : 'do'} ${NOME[via]}…` : 'Escolha como entrar. Depois, é só confirmar e voltar para o app.'}</p>
-        {(erro || !eServico(via)) && <LoginSocial servicos={servicos} volta={aqui} onErro={setErro} />}
+        {(() => {
+          const auto = eServico(via) && !erro && !(via === 'google' && googleOficial());
+          return <>
+            <p className="muted login__lead">{auto && eServico(via) ? `Abrindo o login ${via === 'steam' ? 'da' : 'do'} ${NOME[via]}…` : 'Escolha como entrar. Depois, é só confirmar e voltar para o app.'}</p>
+            {!auto && <LoginSocial servicos={servicos} volta={aqui} onErro={setErro} />}
+          </>;
+        })()}
         {erro && <p role="alert" className="login__error">{erro}</p>}
       </Moldura>
     );

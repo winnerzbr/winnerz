@@ -56,6 +56,7 @@ import { RadarPage } from './pages/Radar';
 import { Preferences } from './pages/Preferences';
 import { SessionPage } from './pages/Session';
 import { Login } from './pages/Login';
+import { EntrarApp, EntrarSteam } from './pages/EntrarSocial';
 import { CommunityPage } from './pages/Community';
 import { PrivacyPage } from './pages/Privacy';
 import { AboutPage } from './pages/About';
@@ -139,6 +140,8 @@ function Routes({ path }: { path: string }): ReactNode {
   // Jogar agora virou o Início (Etapa 1 da revisão): o atalho antigo do celular continua funcionando.
   if (match('/agora', path)) return <GoTo to="/" />;
   if (match('/entrar', path)) return <Login />;
+  if (match('/entrar/steam', path)) return <EntrarSteam />;
+  if (match('/entrar/app', path)) return <EntrarApp />;
   if (match('/comunidade', path)) return <CommunityPage />;
   if (match('/comunidade/pessoas', path)) return <PeoplePage />;
   if (match('/busca', path)) return <SearchPage />;
@@ -285,6 +288,8 @@ export function App() {
     if (match('/privacidade', path)) return <PrivacyPage standalone />;
     if (match('/sobre', path)) return <AboutPage standalone />;
     if (match('/regras', path)) return <RulesPage standalone />;
+    if (match('/entrar/steam', path)) return <EntrarSteam />;
+    if (match('/entrar/app', path)) return <EntrarApp />;
     return match('/entrar', path) ? <Login /> : <PrivateTeaser />;
   }
 

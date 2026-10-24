@@ -5,6 +5,7 @@ import { BrandMark } from '../components/Brand';
 import { authMessage } from '../lib/authMessage';
 import { pendingInvite } from '../data/invitesApi';
 import { pelaTelaInicial } from '../lib/appInstalado';
+import { LoginSocial, erroDoEndereco, useServicos } from '../components/LoginSocial';
 
 /** Lado da arte: a marca pousada na linha do horizonte. */
 function LoginArt() {
@@ -27,6 +28,8 @@ export function Login() {
   const [codeErr, setCodeErr] = useState('');
   const [wait, setWait] = useState(0);
   const [noApp] = useState(pelaTelaInicial);
+  const servicos = useServicos();
+  const [socialErr, setSocialErr] = useState(erroDoEndereco);
 
   useEffect(() => { if (wait <= 0) return; const t = setTimeout(() => setWait((w) => w - 1), 1000); return () => clearTimeout(t); }, [wait]);
 
@@ -109,7 +112,11 @@ export function Login() {
           <form onSubmit={send} className="login">
             <p className="kicker">Sua conta</p>
             <h1 className="t login__title">Entrar</h1>
-            <p className="muted login__lead">Sem senha. Mandamos um link e um código de acesso para o seu e-mail, e suas Jornadas ficam em todos os seus aparelhos.</p>
+            <p className="muted login__lead">{servicos.length
+              ? 'Use a conta que você já tem, ou receba um link no e-mail. Sem senha, e suas Jornadas ficam em todos os seus aparelhos.'
+              : 'Sem senha. Mandamos um link e um código de acesso para o seu e-mail, e suas Jornadas ficam em todos os seus aparelhos.'}</p>
+            <LoginSocial servicos={servicos} volta={pendingInvite() ? `/convite/${pendingInvite()}` : '/'} onErro={setSocialErr} />
+            {socialErr && <p role="alert" className="login__error">{socialErr}</p>}
             <label htmlFor="email" className="login__label">E-mail</label>
             <input id="email" className="field" type="email" required autoComplete="email" placeholder="voce@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} />
             <button className="btn primary lg" disabled={state === 'sending'}>{state === 'sending' ? 'Enviando…' : noApp ? 'Receber código de acesso' : 'Receber link de acesso'}</button>

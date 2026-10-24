@@ -826,3 +826,30 @@ a.session__back-link:hover { color: var(--ink); }
 .arrive-card__txt b { font-size: 17px; }
 .arrive-card__acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 @media (max-width: 760px) { .arrive-card { grid-template-columns: 1fr; } }
+
+/* Login com outros serviços: Google em destaque, os demais lado a lado, e o e-mail logo abaixo. */
+.social { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.social__btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.btn.social__btn:not(.primary):hover { background: var(--fr-piece-hi); }
+.social__mark { width: 20px; height: 20px; flex: none; }
+/* Com o Google em destaque, o botão do e-mail vira peça comum, para não haver duas ações principais. */
+.login:has(.social__btn--google) > .btn.primary { background: var(--fr-piece); color: var(--ink); }
+.login:has(.social__btn--google) > .btn.primary:hover { background: var(--fr-piece-hi); color: var(--ink); }
+.social__row { display: grid; gap: 10px; }
+.social__row .social__btn { min-height: 48px; padding: 0 12px; font-size: 14px; }
+.social__btn--steam:hover .social__mark { color: #fff; }
+.social__btn--discord:hover .social__mark { color: #8891F7; }
+.social__btn--twitch:hover .social__mark { color: #A970FF; }
+.social__ou { display: flex; align-items: center; gap: 12px; margin: 10px 0 0; font-size: 13px; color: var(--faint); }
+.social__ou::before, .social__ou::after { content: ''; flex: 1; height: 1px; background: var(--fr-hair); }
+@media (max-width: 359px) { .social__row .social__btn span { display: none; } }
+/* Telas curtas do login (Steam voltando, confirmar o app): só a coluna do formulário. */
+.login-page--so .login__side { flex-basis: 100%; }
+.login__mini { color: #E2BE84; margin-bottom: 8px; }
+.social--espera .login__lead { margin: 0; }
+/* Preferências → Conta → Contas ligadas */
+.contas__lista { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.contas__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 46px; padding: 0 0 0 14px; background: var(--fr-piece); }
+.contas__nome { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
+.contas__acao { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; }
+.contas__item > .faint { font-size: 13px; padding-right: 14px; }

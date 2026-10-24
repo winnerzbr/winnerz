@@ -59,6 +59,14 @@ function ouvir(plugin: string, evento: string, cb: (dados: unknown) => void) {
 }
 
 // ── Preferências dos avisos no celular (ficam neste aparelho) ───────────────────
+/** Login com Google, Discord, Twitch ou Steam dentro do app: abre no navegador do celular (o Google não deixa entrar
+ *  dentro de app), e o app espera a confirmação (o mesmo caminho do Modo TV). Precisa do plugin Browser (app novo). */
+export function navegadorNoApp(): boolean {
+  try { return noApp() && !!(ponte() as Ponte & { isPluginAvailable?: (n: string) => boolean })?.isPluginAvailable?.('Browser'); } catch { return false; }
+}
+export async function abrirNoNavegador(url: string): Promise<void> { await chamar('Browser', 'open', { url }); }
+export async function fecharNavegador(): Promise<void> { await chamar('Browser', 'close'); }
+
 export type AvisosApp = { dia1: boolean; nodia: boolean; data: boolean; sessao: boolean };
 const CHAVE_AVISOS = 'wz.app.avisos';
 export function avisosApp(): AvisosApp {

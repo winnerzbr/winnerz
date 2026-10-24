@@ -48,6 +48,9 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .sk-gt { background: var(--goldtext); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .35cqmin .3cqmin rgba(0,0,0,.8)); }
 .sk-st { background: var(--silvertext); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 .35cqmin .3cqmin rgba(0,0,0,.8)); }
 .sk-name { text-wrap: balance; overflow-wrap: anywhere; }
+/* O dourado/prateado é pintado só dentro da caixa do texto; com a linha justa, o acento das maiúsculas (Ã, É, Ç) ficava
+   de fora e sumia. A folga em cima e embaixo, desfeita pela margem negativa, mantém o lugar e mostra o acento. */
+.sk-gt, .sk-st, .sk-name, .alb-back b, .alb-cover__ttl { padding-block: .3em .15em; margin-block: -.3em -.15em; }
 .sk-rule { display: flex; align-items: center; gap: 2.2cqmin; width: 86%; }
 .sk-rule i { flex: 1; height: .26cqmin; background: linear-gradient(90deg, transparent, var(--rule, #d9b56f)); }
 .sk-rule i:last-child { background: linear-gradient(270deg, transparent, var(--rule, #d9b56f)); }

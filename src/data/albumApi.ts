@@ -121,18 +121,28 @@ const rpc = async <T>(fn: string, args?: Record<string, unknown>): Promise<T> =>
 /** Biblioteca de artes na demonstração: só na memória desta aba (as imagens são grandes demais para guardar). */
 const demoArts: AlbumArt[] = [];
 /** Reduz a imagem e diz o tamanho final (a biblioteca guarda largura e altura para enquadrar). */
-async function shrinkSized(file: File, max: number, q: number): Promise<{ blob: Blob; width: number; height: number }> {
+async function shrinkSized(file: Blob, max: number, q: number): Promise<{ blob: Blob; width: number; height: number }> {
   const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise<HTMLImageElement>((res, bad) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => bad(new Error('Não consegui abrir essa imagem.')); i.src = url; });
-    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement('canvas');
-    c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
-    c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
-    const blob = await new Promise<Blob>((res, bad) => c.toBlob((b) => (b ? res(b) : bad(new Error('imagem'))), 'image/jpeg', q));
-    return { blob, width: c.width, height: c.height };
-  } finally { URL.revokeObjectURL(url); }
+  try { return await shrinkFrom(url, max, q); } finally { URL.revokeObjectURL(url); }
 }
+async function shrinkFrom(src: string, max: number, q: number): Promise<{ blob: Blob; width: number; height: number }> {
+  const img = await new Promise<HTMLImageElement>((res, bad) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => bad(new Error('Não consegui abrir essa imagem.')); i.src = src; });
+  const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+  const g = c.getContext('2d')!;
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(img, 0, 0, c.width, c.height);
+  const blob = await new Promise<Blob>((res, bad) => c.toBlob((b) => (b ? res(b) : bad(new Error('imagem'))), 'image/jpeg', q));
+  return { blob, width: c.width, height: c.height };
+}
+/**
+ * Miniatura de uma arte original (até 480 px), para a biblioteca e as faixas do Criador: a original tem até 2400 px
+ * e dezenas delas na tela deixavam a página pesada. Fica ao lado da original, em miniaturas/.
+ */
+export const miniPath = (path: string | null | undefined): string | null => (path && /^originais\//.test(path) ? path.replace(/^originais\//, 'miniaturas/') : null);
+const MINI = 480;
+const miniFeitas = new Set<string>();
 const DK = 'wz.demo.album';
 const ago = (d: number) => new Date(Date.now() - d * 86400_000).toISOString();
 const rid = () => Math.random().toString(36).slice(2, 10);
@@ -407,6 +417,11 @@ export const studioAlbumApi = {
     const path = `originais/${Date.now().toString(36)}-${rid()}.jpg`;
     const up = await (await client()).storage.from('album').upload(path, blob, { contentType: 'image/jpeg', upsert: false, cacheControl: '31536000' });
     if (up.error) throw new Error(/row-level|policy|not authorized/i.test(up.error.message) ? 'Só a administração envia artes do álbum.' : /bucket/i.test(up.error.message) ? MIGRATION() : /size|large/i.test(up.error.message) ? 'Essa imagem ficou grande demais mesmo reduzida. Tente outra.' : up.error.message);
+    try {
+      const mini = await shrinkSized(blob, MINI, 0.82);
+      await (await client()).storage.from('album').upload(miniPath(path)!, mini.blob, { contentType: 'image/jpeg', upsert: true, cacheControl: '31536000' });
+      miniFeitas.add(path);
+    } catch { /* sem miniatura: a biblioteca gera depois */ }
     const r = await (await client()).from('album_arts').insert({ path, name, width, height }).select('id, path, name, width, height, created_at').single();
     const a = ok(r as { data: { id: string; path: string; name: string; width: number; height: number; created_at: string }; error: { message: string } | null });
     return { id: a.id, path: a.path, name: a.name, width: a.width, height: a.height, createdAt: a.created_at };
@@ -420,7 +435,19 @@ export const studioAlbumApi = {
     if (!supa()) { const i = demoArts.findIndex((x) => x.id === a.id); if (i >= 0) demoArts.splice(i, 1); return; }
     const sb = await client();
     ok(await sb.from('album_arts').delete().eq('id', a.id) as { data: unknown; error: { message: string } | null });
-    if (!inUse) await sb.storage.from('album').remove([a.path]).catch(() => null);
+    const mp = miniPath(a.path);
+    if (!inUse) await sb.storage.from('album').remove(mp ? [a.path, mp] : [a.path]).catch(() => null);
+  },
+  /** Gera e envia a miniatura de uma arte que ainda não tem (as enviadas antes das miniaturas existirem). */
+  async ensureMini(path: string): Promise<boolean> {
+    const mp = miniPath(path);
+    if (!supa() || !mp || miniFeitas.has(path)) return false;
+    miniFeitas.add(path);
+    try {
+      const mini = await shrinkFrom(artSrc(path)!, MINI, 0.82);
+      const { error } = await (await client()).storage.from('album').upload(mp, mini.blob, { contentType: 'image/jpeg', upsert: true, cacheControl: '31536000' });
+      return !error;
+    } catch { return false; }
   },
   /** Envia um recorte pronto (gerado no navegador a partir da original) e devolve o caminho. */
   async uploadCrop(blob: Blob): Promise<string> {

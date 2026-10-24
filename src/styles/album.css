@@ -695,19 +695,21 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
 .cr-hint { margin: 0; font-size: 12.5px; }
 /* Enquadrar */
 .cr-framer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; width: 100%; }
-.cr-framer__stage { position: relative; min-width: 0; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; }
+.cr-framer__stage { position: relative; isolation: isolate; min-width: 0; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; }
 .cr-framer__stage:active { cursor: grabbing; }
 .cr-framer__stage:focus-visible { outline: 2px solid var(--now); outline-offset: 4px; }
 .cr-framer.is-over .cr-framer__stage { filter: drop-shadow(0 0 16px rgba(255,178,91,.6)); }
 .cr-framer .wst__art, .cr-framer .alb-cover__img { inset: auto !important; max-width: none !important; max-height: none !important; object-fit: fill !important; transform: none !important; transition: none !important; pointer-events: none; }
 .cr-framer.is-loading .cr-framer__stage { opacity: .85; }
+.cr-framer .cr-ghost { position: absolute; z-index: -1; max-width: none; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.cr-framer.is-moving .cr-ghost { opacity: .45; }
+.cr-mesa, .cr-ajustes { overflow: hidden; }
 .cr-framer .cr-fill { position: absolute; inset: -12%; width: 124%; height: 124%; max-width: none; object-fit: cover; filter: blur(14px) brightness(.72) saturate(1.1); pointer-events: none; }
 .cr-framer__tip { justify-self: center; font-size: 12px; color: var(--muted); }
 .cr-framer__stage:hover .wst__glare, .cr-framer__stage:hover .wst__holo { opacity: 0 !important; }
 .cr-framer--sticker { width: min(340px, 100%); }
 .cr-framer--sticker .cr-framer__stage { width: 100%; }
 .cr-framer--cover { width: min(230px, 100%); }
-.cr-framer--cover .cr-framer__stage { overflow: hidden; border-radius: 3px 8px 8px 3px; }
 .cr-framer--sticker .wsw { filter: drop-shadow(0 14px 22px rgba(0,0,0,.5)); }
 .cr-framer--cover .alb-cover { width: 100%; aspect-ratio: 460 / 640; border-radius: 3px 8px 8px 3px; box-shadow: 0 18px 30px rgba(0,0,0,.45); }
 .cr-zoom { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; color: var(--muted); font-size: 15px; }

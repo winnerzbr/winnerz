@@ -28,7 +28,7 @@ const CREDIT_KEY = 'wz.criador.credito';
 const lastCredit = () => { try { return localStorage.getItem(CREDIT_KEY) ?? ''; } catch { return ''; } };
 const saveCredit = (c: string) => { try { localStorage.setItem(CREDIT_KEY, c); } catch { /* sem armazenamento */ } };
 /** Nome de arquivo de câmera não vira nome de figurinha. */
-const nomeDaArte = (n: string) => (/^(img|dsc|pxl|mvimg|whatsapp|screenshot|captura|foto|image|photo)[\s_-]?\d|^\d+$/i.test(n.trim()) ? '' : n.replace(/[_-]+/g, ' ').trim().slice(0, 40));
+const nomeDaArte = (n: string) => (/^(img|dsc|pxl|mvimg|whatsapp|screenshot|captura|foto|image|photo)[\s_-]?\d|^[\d\s_()[\].-]+$|^\d{6,}/i.test(n.trim()) ? '' : n.replace(/[_-]+/g, ' ').trim().slice(0, 40));
 const hasType = (e: DragEvent, t: string) => Array.from(e.dataTransfer?.types ?? []).includes(t);
 const isFiles = (e: DragEvent) => hasType(e, 'Files');
 
@@ -296,6 +296,15 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
     if (!fill) { fill = document.createElement('img'); fill.className = 'cr-fill'; fill.alt = ''; fill.draggable = false; img.before(fill); }
     if (fill.src !== img.src) fill.src = img.src;
     fill.hidden = coversAll(nat.w, nat.h, cropRect(nat.w, nat.h, aspect, framing));
+    // A pintura inteira, apagada, por fora da moldura: mostra o que fica de fora e para onde ela está indo.
+    const stage = ref.current!, box = stage.querySelector<HTMLElement>(boxSel);
+    let ghost = stage.querySelector<HTMLImageElement>(':scope > img.cr-ghost');
+    if (!ghost) { ghost = document.createElement('img'); ghost.className = 'cr-ghost'; ghost.alt = ''; ghost.draggable = false; stage.prepend(ghost); }
+    if (ghost.src !== img.src) ghost.src = img.src;
+    if (box) {
+      const sr = stage.getBoundingClientRect(), br = box.getBoundingClientRect();
+      Object.assign(ghost.style, { left: `${br.left - sr.left + (p.left / 100) * br.width}px`, top: `${br.top - sr.top + (p.top / 100) * br.height}px`, width: `${(p.width / 100) * br.width}px`, height: `${(p.height / 100) * br.height}px` });
+    }
   });
   // Rodinha do mouse: zoom (precisa de ouvinte não passivo para não rolar a página).
   useEffect(() => {
@@ -309,14 +318,15 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
     return () => el.removeEventListener('wheel', w);
   }, [aspect]);
   const drag = useRef<{ x: number; y: number; f: Framing; id: number } | null>(null);
+  const [moving, setMoving] = useState(false);
   const box = () => ref.current?.querySelector<HTMLElement>(boxSel)?.getBoundingClientRect() ?? ref.current!.getBoundingClientRect();
   return (
-    <div className={`cr-framer ${className}${over ? ' is-over' : ''}${nat ? '' : ' is-loading'}`}>
+    <div className={`cr-framer ${className}${over ? ' is-over' : ''}${nat ? '' : ' is-loading'}${moving ? ' is-moving' : ''}`}>
       <div ref={ref} className="cr-framer__stage" role="application" tabIndex={0} aria-label={`${label}. Arraste para enquadrar; setas movem, + e − dão zoom`}
         dangerouslySetInnerHTML={{ __html: html }}
-        onPointerDown={(e) => { if (!nat || e.button > 0) return; e.currentTarget.setPointerCapture(e.pointerId); drag.current = { x: e.clientX, y: e.clientY, f: framing, id: e.pointerId }; }}
+        onPointerDown={(e) => { if (!nat || e.button > 0) return; e.preventDefault(); e.currentTarget.setPointerCapture(e.pointerId); drag.current = { x: e.clientX, y: e.clientY, f: framing, id: e.pointerId }; setMoving(true); }}
         onPointerMove={(e) => { const d = drag.current; if (!d || !nat || d.id !== e.pointerId) return; const b = box(); onChange(pan(nat.w, nat.h, aspect, d.f, e.clientX - d.x, e.clientY - d.y, b.width, b.height, overscan)); }}
-        onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}
+        onPointerUp={() => { drag.current = null; setMoving(false); }} onPointerCancel={() => { drag.current = null; setMoving(false); }}
         onKeyDown={(e) => {
           if (!nat) return;
           const b = box(); const step = e.shiftKey ? 20 : 4;

@@ -825,3 +825,12 @@ button.wsw { display: block; border: 0; padding: 0; background: none; cursor: po
       figurinhas redesenhava a página o tempo todo. A figurinha da mesa continua com o efeito. */
 .cr-main, .cr-mesa, .cr-ed, .cr-ed__stage, .cr-drop, .cr-quadro, .cr-secs, .cr-sec, .cr-strip, .cr-mini, .cr-leaf, .cr-ajustes__capa { grid-template-columns: minmax(0, 1fr); }
 .cr-leaf .wst, .cr-leaf .wst *, .cr-mini .wst, .cr-mini .wst *, .cr-drop .wst, .cr-drop .wst *, .cr-lift .wst, .cr-lift .wst * { animation: none !important; }
+
+/* ---- Apagar várias figurinhas (marcar clicando) ---------------------------------------------------------------- */
+.cr-apagar { position: sticky; top: calc(var(--hdr, 71px) + 8px); z-index: 6; display: grid; gap: 8px; padding: 12px 14px; background: var(--surface); border: 1px solid #8a3a2c; box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+.cr-apagar p { margin: 0; font-size: 14px; }
+.cr-quadro.is-marcando .cr-leaf .alb-slot { cursor: pointer; }
+.cr-quadro.is-marcando .alb-slot:not(.is-sel) .wsw, .cr-quadro.is-marcando .cr-mini:not(.is-sel) .wsw { opacity: .6; }
+.cr-quadro .alb-slot.is-sel .wsw, .cr-quadro .cr-mini.is-sel .wsw { outline: 3px solid #ff6a5a; outline-offset: 2px; }
+.cr-quadro .cr-mini.is-sel small { color: #ff8a7c; }
+

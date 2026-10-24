@@ -12,7 +12,7 @@
  * Sem mouse (celular): toque numa arte para escolher e depois toque na moldura ou no "+" da seção.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type DragEvent, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
-import { artSrc, reloadAlbum, studioAlbumApi, type AlbumArt, type AlbumBook, type AlbumPage, type Catalog, type Sticker } from '../../data/albumApi';
+import { artSrc, miniPath, reloadAlbum, studioAlbumApi, type AlbumArt, type AlbumBook, type AlbumPage, type Catalog, type Sticker } from '../../data/albumApi';
 import { TIER_LABEL, TIER_MATERIAL, TIERS, type Tier } from '../../lib/album';
 import { clampFraming, clampPos, COVER_ASPECT, coversAll, cropRect, FRAMING_INICIAL, leafMode, OVERSCAN, pan, placeInBox, sectionLeaves, STICKER_ASPECT, STICKER_ASPECT_H, ZOOM_MAX, ZOOM_MIN, type Framing, type Pos } from '../../lib/enquadrar';
 import { bookLeaves, leafHTML } from './AlbumBook';
@@ -209,6 +209,15 @@ export function Criador({ say, fail }: Say) {
   );
 }
 
+/** Miniatura leve de uma arte (480 px). Se ainda não existe, mostra a original e gera a miniatura para a próxima vez. */
+function ArtThumb({ path, className }: { path: string; className?: string }) {
+  const mini = miniPath(path);
+  const [src, setSrc] = useState(() => artSrc(mini ?? path) ?? '');
+  useEffect(() => { setSrc(artSrc(miniPath(path) ?? path) ?? ''); }, [path]);
+  return <img className={className} src={src} alt="" loading="lazy" decoding="async" draggable={false}
+    onError={() => { const orig = artSrc(path) ?? ''; if (src !== orig) { setSrc(orig); void studioAlbumApi.ensureMini(path); } }} />;
+}
+
 /* ---- Biblioteca de artes ---------------------------------------------------------------------------------------- */
 function Biblioteca({ arts, usage, picked, sending, onPick, onUpload, onDragArt, onRename, onRemove }: {
   arts: AlbumArt[]; usage: Record<string, number>; picked: AlbumArt | null; sending: { done: number; total: number } | null;
@@ -242,7 +251,7 @@ function Biblioteca({ arts, usage, picked, sending, onPick, onUpload, onDragArt,
             <li key={a.id} className={`cr-art${picked?.id === a.id ? ' is-picked' : ''}`}>
               <button type="button" className="cr-art__img" draggable aria-pressed={picked?.id === a.id} aria-label={`${a.name || 'Arte'}${usage[a.path] ? `, usada ${usage[a.path]} ${usage[a.path] === 1 ? 'vez' : 'vezes'}` : ''}. Arraste para uma moldura ou toque para escolher`}
                 onDragStart={(e) => { e.dataTransfer.setData(T_ART, a.id); e.dataTransfer.effectAllowed = 'copy'; onDragArt(); }} onClick={() => onPick(a)}>
-                <img src={artSrc(a.path) ?? ''} alt="" loading="lazy" decoding="async" draggable={false} />
+                <ArtThumb path={a.path} />
                 {usage[a.path] ? <span className="cr-art__used">{usage[a.path]}×</span> : null}
               </button>
               <button type="button" className="cr-art__more" aria-expanded={open === a.id} aria-label="Opções da arte" onClick={() => setOpen(open === a.id ? null : a.id)}>⋯</button>
@@ -308,7 +317,11 @@ function Framer({ html, src, aspect, overscan, imgSel, boxSel, framing, onChange
     // A sobra além da pintura aparece preenchida com ela mesma, desfocada (igual ao recorte que vai ser gerado).
     let fill = img.parentElement?.querySelector<HTMLImageElement>('img.cr-fill');
     if (!fill) { fill = document.createElement('img'); fill.className = 'cr-fill'; fill.alt = ''; fill.draggable = false; img.before(fill); }
-    if (fill.src !== img.src) fill.src = img.src;
+    // O preenchimento é desfocado: a miniatura basta e pesa muito menos que a original (com a original de reserva).
+    if (fill.dataset.for !== img.src) {
+      const f = fill, full = img.src, mini = src ? artSrc(miniPath(src)) : null;
+      f.dataset.for = full; f.onerror = () => { f.onerror = null; f.src = full; }; f.src = mini ?? full;
+    }
     fill.hidden = coversAll(nat.w, nat.h, cropRect(nat.w, nat.h, aspect, framing));
     // A pintura inteira, apagada, por fora da moldura: mostra o que fica de fora e para onde ela está indo.
     const stage = ref.current!, box = stage.querySelector<HTMLElement>(boxSel);
@@ -676,9 +689,10 @@ function Secao({ book, page, index, total, stickers, leaves, editing, picked, se
           <button type="button" className="btn quiet sm" disabled={index === 0} aria-label="Subir seção" onClick={() => onMove(-1)}>↑</button>
           <button type="button" className="btn quiet sm" disabled={index === total - 1} aria-label="Descer seção" onClick={() => onMove(1)}>↓</button>
         </div>
-        <div className={`cr-sec__banner${bannerOver ? ' is-over' : ''}`} style={page.banner ? { backgroundImage: `url("${artSrc(page.banner)}")` } : undefined}
+        <div className={`cr-sec__banner${bannerOver ? ' is-over' : ''}${page.banner ? ' has-img' : ''}`}
           onDragOver={(e) => { if (hasType(e, T_ART)) { e.preventDefault(); setBannerOver(true); } }} onDragLeave={() => setBannerOver(false)}
           onDrop={(e) => { setBannerOver(false); const a = artFromDrop(e); if (a) { e.preventDefault(); void apply(studioAlbumApi.savePage(book.id, { id: page.id, banner: a.path }), 'Faixa da seção trocada.'); } }}>
+          {page.banner && <ArtThumb path={page.banner} className="cr-sec__bimg" />}
           {picked ? <button type="button" className="btn quiet sm" onClick={() => { void apply(studioAlbumApi.savePage(book.id, { id: page.id, banner: picked.path }), 'Faixa da seção trocada.'); setPicked(null); }}>Usar como faixa</button>
             : page.banner ? <button type="button" className="btn quiet sm" onClick={() => void apply(studioAlbumApi.savePage(book.id, { id: page.id, banner: null }), 'Faixa tirada.')}>Tirar faixa</button>
               : <span>Faixa: solte uma arte</span>}

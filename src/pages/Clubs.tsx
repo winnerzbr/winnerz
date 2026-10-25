@@ -56,8 +56,9 @@ export function ClubTile({ c }: { c: Club }) {
 }
 
 /** Ficha do jogo: jogatinas marcadas e clubes deste jogo. */
-export function GameClubs({ gameId, slug, title }: { gameId: string; slug: string; title: string }) {
+export function GameClubs({ gameId, slug, title, onCount }: { gameId: string; slug: string; title: string; /** Quantos itens há (a ficha recolhe a parte da comunidade quando tudo está vazio). */ onCount?: (n: number) => void }) {
   const [list, setList] = useState<Club[] | null>(null);
+  useEffect(() => { if (list) onCount?.(list.length); }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let alive = true;
     clubApi.list('todos', gameId).then((l) => alive && setList(l)).catch(() => alive && setList([]));

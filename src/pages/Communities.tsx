@@ -41,9 +41,10 @@ export function CommunityTile({ c }: { c: Community }) {
 }
 
 /** Ficha do jogo: a comunidade do jogo (ou o convite para criar). */
-export function GameCommunity({ gameId, slug, title }: { gameId: string; slug: string; title: string }) {
+export function GameCommunity({ gameId, slug, title, onCount }: { gameId: string; slug: string; title: string; /** Quantos itens há (a ficha recolhe a parte da comunidade quando tudo está vazio). */ onCount?: (n: number) => void }) {
   const canCreate = useCanCreateCommunity();
   const [list, setList] = useState<Community[] | null>(null);
+  useEffect(() => { if (list) onCount?.(list.length); }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let alive = true;
     communityApi.ofGame(gameId).then((l) => alive && setList(l)).catch(() => alive && setList([]));

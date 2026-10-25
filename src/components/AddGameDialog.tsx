@@ -5,7 +5,15 @@ import { Icon } from './Icon';
 import { BarcodeScan, ConfirmList, PhotoRead, foundFromPhoto, resolveAll, resolveFound, type Found } from './CameraAdd';
 import { igdbFetch } from '../lib/igdbFetch';
 
-export interface Hit { igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game }
+export interface Hit {
+  igdbId?: number; slug: string; title: string; year?: number; cover: string; platforms: string[]; local?: Game;
+  /** Da busca do IGDB: tipo do registro (main, remake, remaster, port, expanded, dlc, expansion, bundle…). */
+  kind?: string;
+  /** O jogo de origem (versão/edição ou DLC de outro registro). */
+  parent?: number; versionOf?: boolean; versionTitle?: string;
+  /** Cancelado ou nunca lançado oficialmente. */
+  cancelled?: boolean;
+}
 
 /** Converte a linha do cache (formato do banco) em Game. */
 export function gameFromApi(r: any): Game {

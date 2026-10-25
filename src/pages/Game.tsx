@@ -77,6 +77,13 @@ function GameView({ gameId }: { gameId: string }) {
   const reviews = s.reviews.filter((r) => r.gameId === gameId);
   const mine = reviews.find((r) => r.mine) ?? null;
   const others = reviews.filter((r) => !r.mine);
+  // A parte social: o que cada bloco achou (conversas, comunidades, clubes, listas). Tudo vazio: fica recolhida.
+  const [social, setSocial] = useState<Record<string, number>>({});
+  const conta = (k: string, n: number) => setSocial((x) => (x[k] === n ? x : { ...x, [k]: n }));
+  useEffect(() => setSocial({}), [gameId]);
+  const socialConhecido = ['conversas', 'clubes', 'listas'].every((k) => k in social);
+  const socialVazio = socialConhecido && !others.length && !Object.values(social).some((n) => n > 0);
+  const socialResumo = [others.length ? `${others.length} ${others.length === 1 ? 'análise' : 'análises'}` : '', social.conversas ? `${social.conversas} ${social.conversas === 1 ? 'conversa' : 'conversas'}` : '', social.comunidades ? `${social.comunidades} ${social.comunidades === 1 ? 'comunidade' : 'comunidades'}` : '', social.clubes ? `${social.clubes} ${social.clubes === 1 ? 'clube' : 'clubes'}` : '', social.listas ? `${social.listas} ${social.listas === 1 ? 'lista' : 'listas'}` : ''].filter(Boolean).join(' · ');
   const stats = s.reviewStats[gameId];
   const [revealed, setRevealed] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
@@ -245,28 +252,31 @@ function GameView({ gameId }: { gameId: string }) {
             )}
           </section>
 
-          <section aria-labelledby="comunidade" className="community-reviews">
-            <div className="sec-head">
-              <h2 id="comunidade" className="t sec-title">Análises da comunidade</h2>
-              {lockedAny ? <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoilers protegidos{progressOf != null ? ` · você está em ${progressOf}%` : ''}</span> : others.length > 0 && <span className="kicker">{others.length} {others.length === 1 ? 'análise' : 'análises'}</span>}
-            </div>
-            {others.length === 0 && <p className="muted">Ninguém além de você escreveu sobre este jogo ainda.</p>}
-            <div className="reviews">
-              {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
-            </div>
-          </section>
-
-          <GameJourneyStats slug={g.slug} title={g.title} />
-
-          <GameConversations gameId={g.id} title={g.title} />
-
-          <GameCommunity gameId={g.id} slug={g.slug} title={g.title} />
-          <GameClubs gameId={g.id} slug={g.slug} title={g.title} />
-          <GameLists slug={g.slug} title={g.title} />
-
+          {/* Etapa 6 da revisão: primeiro o jogo (imagens e o que vem depois); a parte social vem junta e, vazia, recolhida. */}
           <MediaGallery title={g.title} items={media} gameId={g.id} />
 
           <GameUniverse game={g} part="next" />
+
+          <details className="game-social" open={socialConhecido && !socialVazio}>
+            <summary className="game-social__sum"><span className="t sec-title">Na comunidade</span><span className="muted">{!socialConhecido ? '' : socialVazio ? `Ainda sem análises, conversas, clubes ou listas sobre ${g.title}. Abrir para começar.` : socialResumo}</span></summary>
+            <section aria-labelledby="comunidade" className="community-reviews">
+              <div className="sec-head">
+                <h2 id="comunidade" className="t sec-title">Análises da comunidade</h2>
+                {lockedAny ? <span className="kicker sec-head__note"><span className="dot-now" aria-hidden="true" />Spoilers protegidos{progressOf != null ? ` · você está em ${progressOf}%` : ''}</span> : others.length > 0 && <span className="kicker">{others.length} {others.length === 1 ? 'análise' : 'análises'}</span>}
+              </div>
+              {others.length === 0 && <p className="muted">Ninguém além de você escreveu sobre este jogo ainda.</p>}
+              <div className="reviews">
+                {others.map((r) => <ReviewItem key={r.id} r={r} scale={scale} locked={!!r.spoiler && !revealed.includes(r.id)} reveal={() => setRevealed([...revealed, r.id])} progress={progressOf ?? null} />)}
+              </div>
+            </section>
+
+
+            <GameJourneyStats slug={g.slug} title={g.title} />
+            <GameConversations gameId={g.id} title={g.title} onCount={(n) => conta('conversas', n)} />
+            <GameCommunity gameId={g.id} slug={g.slug} title={g.title} onCount={(n) => conta('comunidades', n)} />
+            <GameClubs gameId={g.id} slug={g.slug} title={g.title} onCount={(n) => conta('clubes', n)} />
+            <GameLists slug={g.slug} title={g.title} onCount={(n) => conta('listas', n)} />
+          </details>
         </div>
 
         <aside className="game-aside">

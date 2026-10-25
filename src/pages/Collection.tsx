@@ -16,6 +16,7 @@ import { titleKey } from '../lib/importer';
 import { collectionCsv, download } from '../lib/exportData';
 import { LoanPanel, loanDate, overdue } from '../components/LoanPanel';
 import { MascoteVazio } from '../components/IAmiguinho';
+import { listsApi, type GameList } from '../data/listsApi';
 
 type Status = 'tudo' | 'nunca' | 'jogando' | 'zerados' | 'largados' | 'naovou' | 'prioridade' | 'favoritos' | 'especial' | 'emprestados';
 type Sort = 'az' | 'plataforma' | 'prioridade' | 'curtos' | 'recentes';
@@ -51,6 +52,9 @@ export function Collection() {
   const [open, setOpen] = useState<string | null>(null);
   const [limit, setLimit] = useState(PAGE);
   const sentinel = useRef<HTMLDivElement>(null);
+  // Etapa 7 da revisão: seleção de várias capas para mudar tudo de uma vez.
+  const [sel, setSel] = useState<Set<string> | null>(null);
+  const toggleSel = (id: string) => setSel((x) => { const n = new Set(x ?? []); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   useEffect(() => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(view)); } catch { /* nada */ } }, [view]);
   useEffect(() => setLimit(PAGE), [q, platform, kind, status, view]);
@@ -140,6 +144,7 @@ export function Collection() {
             <Link className="btn ghost" to="/colecao/importar">Importar planilha</Link>
             <button className="btn ghost" onClick={() => download(new Blob([collectionCsv(s)], { type: 'text/csv;charset=utf-8' }), `winnerz-colecao-${new Date().toISOString().slice(0, 10)}.csv`)} disabled={!s.copies.length}>Exportar planilha</button>
             <button className="btn ghost collection__cam" onClick={() => setAdding('codigo')}><Icon name="camera" size={16} />Pela câmera</button>
+            {s.copies.length > 1 && <button className="btn ghost" aria-pressed={!!sel} onClick={() => setSel(sel ? null : new Set())}>{sel ? 'Parar de selecionar' : 'Selecionar'}</button>}
             <button className="btn primary" onClick={() => setAdding('nome')}><Icon name="mais" size={16} />Adicionar jogo</button>
           </div>
           <SubNav pillar="colecao" />
@@ -232,11 +237,12 @@ export function Collection() {
       ) : list.length === 0 ? (
         <p className="card tl-empty">Nada aqui com esses filtros.</p>
       ) : (
-        <div className="cgrid">
+        <div className={`cgrid${sel ? ' is-marcando' : ''}`}>
+          {sel && <BulkBar s={s} sel={sel} all={list.map((c) => c.id)} setSel={setSel} />}
           {cells.map((cell) => cell.type === 'head' ? (
             <h2 key={`h-${cell.platform}`} className="cgrid__head t">{shortPlatform(cell.platform)} <span className="faint">{cell.n}</span></h2>
           ) : (
-            <CopyTile key={cell.c.id} s={s} c={cell.c} onOpen={() => setOpen(cell.c.id)} />
+            <CopyTile key={cell.c.id} s={s} c={cell.c} onOpen={() => (sel ? toggleSel(cell.c.id) : setOpen(cell.c.id))} selected={sel ? sel.has(cell.c.id) : undefined} />
           ))}
           <div ref={sentinel} className="cgrid__sentinel" aria-hidden="true" />
         </div>
@@ -252,7 +258,7 @@ export function Collection() {
   );
 }
 
-function CopyTile({ s, c, onOpen }: { s: State; c: Copy; onOpen: () => void }) {
+function CopyTile({ s, c, onOpen, selected }: { s: State; c: Copy; onOpen: () => void; /** Definido no modo de seleção. */ selected?: boolean }) {
   const g = s.games[c.gameId];
   const st = situation(s, c.gameId);
   const m = myGame(s, c.gameId);
@@ -260,12 +266,62 @@ function CopyTile({ s, c, onOpen }: { s: State; c: Copy; onOpen: () => void }) {
   const lent = !!activeLoan(s, { copyId: c.id });
   const badge = lent ? 'Emprestado' : st.zerou ? 'Zerado' : st.h?.state === 'ativa' ? 'Jogando' : st.h?.state === 'pausada' ? 'Pausado' : st.left ? 'Largado' : m.wontPlay ? 'Não vou jogar' : null;
   return (
-    <button className={`ctile${m.wontPlay ? ' is-muted' : ''}`} onClick={onOpen} aria-label={`${g.title}, ${shortPlatform(c.platform)}${badge ? `, ${badge.toLowerCase()}` : ''}${fav ? ', favorito' : ''}`}>
+    <button className={`ctile${m.wontPlay ? ' is-muted' : ''}${selected ? ' is-sel' : ''}`} onClick={onOpen} aria-pressed={selected} aria-label={`${g.title}, ${shortPlatform(c.platform)}${badge ? `, ${badge.toLowerCase()}` : ''}${fav ? ', favorito' : ''}`}>
+      {selected !== undefined && <span className="ctile__check" aria-hidden="true">{selected ? '✓' : ''}</span>}
       <span className="ctile__cover"><CoverArt game={g} platform={c.platform} /></span>
       {badge && <span className={`ctile__badge ctile__badge--${lent ? 'loan' : st.zerou ? 'ok' : st.open ? 'now' : 'off'}`} aria-hidden="true">{badge}</span>}
       {fav && <span className="ctile__fav" aria-hidden="true"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z" /></svg></span>}
       <span className="ctile__meta" aria-hidden="true"><span className="ctile__title">{g.title}</span><span className="ctile__plat">{shortPlatform(c.platform)} · {c.kind === 'digital' ? 'digital' : c.kind === 'fisico' ? 'físico' : c.kind === 'assinatura' ? 'assinatura' : 'outro'}</span></span>
     </button>
+  );
+}
+
+/** A barra da seleção: muda prioridade, situação e formato de vários exemplares de uma vez, põe numa lista ou manda para a lixeira. */
+function BulkBar({ s, sel, all, setSel }: { s: State; sel: Set<string>; all: string[]; setSel: (x: Set<string> | null) => void }) {
+  const copies = s.copies.filter((c) => sel.has(c.id));
+  const games = [...new Set(copies.map((c) => c.gameId))];
+  const [msg, setMsg] = useState('');
+  const [listas, setListas] = useState<GameList[] | null>(null);
+  const [lista, setLista] = useState(false);
+  const trash = s.mode === 'demo' || !!s.schemaV14;
+  const feito = (t: string) => setMsg(t);
+  const n = copies.length;
+  const plural = (k: number, um: string, v: string) => `${k} ${k === 1 ? um : v}`;
+  const prioridade = (v: string) => { const p = v === 'x' ? undefined : (Number(v) as 1 | 2 | 3); for (const g of games) actions.setMyGame(g, { priority: p }); feito(`Prioridade ${p === 1 ? 'alta' : p === 2 ? 'média' : p === 3 ? 'baixa' : 'tirada'} em ${plural(games.length, 'jogo', 'jogos')}.`); };
+  const situacao = (v: string) => { for (const g of games) actions.setMyGame(g, { wontPlay: v === 'naovou' }); feito(v === 'naovou' ? `${plural(games.length, 'jogo marcado', 'jogos marcados')} como “não vou jogar”.` : `“Não vou jogar” desfeito em ${plural(games.length, 'jogo', 'jogos')}.`); };
+  const formato = (v: string) => { for (const c of copies) actions.updateCopy(c.id, { kind: v as CopyKind }); feito(`Formato mudado em ${plural(n, 'exemplar', 'exemplares')}.`); };
+  const abrirListas = async () => { setLista(true); if (!listas) { try { const m = await listsApi.mine(); setListas([...m.minhas, ...m.comigo]); } catch { setListas([]); } } };
+  const porNaLista = async (l: GameList) => {
+    setLista(false); let ok = 0;
+    for (const id of games) { const g = s.games[id]; if (!g) continue; try { await listsApi.add(l.id, { id: g.id, slug: g.slug, title: g.title, cover: g.cover || null, backdrop: g.backdrop ?? null }); ok++; } catch { /* segue com os outros */ } }
+    feito(ok ? `${plural(ok, 'jogo posto', 'jogos postos')} em “${l.title}”.` : 'Não consegui pôr na lista agora.');
+  };
+  return (
+    <div className="cbulk" role="region" aria-label="Seleção">
+      <strong className="cbulk__n" aria-live="polite">{n ? plural(n, 'selecionado', 'selecionados') : 'Toque nas capas'}</strong>
+      <button type="button" className="cbulk__btn" onClick={() => setSel(new Set(n === all.length ? [] : all))}>{n === all.length ? 'Nenhum' : `Todos (${all.length})`}</button>
+      {n > 0 && (
+        <>
+          <select className="cbulk__sel" value="" onChange={(e) => prioridade(e.target.value)} aria-label="Prioridade"><option value="" disabled>Prioridade</option><option value="1">Alta</option><option value="2">Média</option><option value="3">Baixa</option><option value="x">Sem prioridade</option></select>
+          <select className="cbulk__sel" value="" onChange={(e) => situacao(e.target.value)} aria-label="Situação"><option value="" disabled>Situação</option><option value="naovou">Não vou jogar</option><option value="desfazer">Desfazer “não vou jogar”</option></select>
+          <select className="cbulk__sel" value="" onChange={(e) => formato(e.target.value)} aria-label="Formato"><option value="" disabled>Formato</option><option value="fisico">Mídia física</option><option value="digital">Digital</option><option value="assinatura">Assinatura</option><option value="outro">Outro</option></select>
+          <span className="cbulk__lista">
+            <button type="button" className="cbulk__btn" aria-expanded={lista} onClick={() => (lista ? setLista(false) : abrirListas())}>Pôr numa lista</button>
+            {lista && (
+              <span className="cbulk__menu" role="menu">
+                {listas == null ? <span className="cbulk__hint">Carregando…</span> : !listas.length ? <Link to="/listas" className="cbulk__hint">Você ainda não tem listas. Criar uma →</Link>
+                  : listas.map((l) => <button key={l.id} type="button" role="menuitem" onClick={() => porNaLista(l)}>{l.title}</button>)}
+              </span>
+            )}
+          </span>
+          <span className="cbulk__fim">
+            <ConfirmButton className="cbulk__danger" label={trash ? 'Mandar para a lixeira' : 'Tirar da coleção'} confirm={`Toque de novo: ${plural(n, 'exemplar', 'exemplares')}`} onConfirm={() => { for (const c of copies) actions.deleteCopy(c.id); setSel(new Set()); feito(`${plural(n, 'exemplar foi', 'exemplares foram')} para ${trash ? 'a lixeira (30 dias para voltar)' : 'fora da coleção'}.`); }} />
+          </span>
+        </>
+      )}
+      <button type="button" className="cbulk__btn cbulk__cancel" onClick={() => setSel(null)}>Cancelar</button>
+      {msg && <span className="cbulk__msg" role="status">{msg}</span>}
+    </div>
   );
 }
 
@@ -286,11 +342,15 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
   const st = situation(s, c.gameId);
   const m = myGame(s, c.gameId);
   const kindLabel = c.kind === 'fisico' ? 'Mídia física' : c.kind === 'digital' ? 'Digital' : c.kind === 'assinatura' ? 'Pelo serviço de assinatura' : 'Outro';
-  const rows: [string, string | undefined][] = [
-    ['Região', c.region], ['Edição', c.edition], ['Condição da mídia', c.condition], ['Caixa e encarte', c.boxCondition],
-    ['Itens inclusos', c.items], ['Comprado em', dateBr(c.purchasedOn)], ['Onde comprou', c.purchasePlace],
-    ['Valor pago', money(c.pricePaid)], ['Valor atual (estimado)', money(c.priceNow)], ['Como chegou', c.origin],
-  ];
+  // Etapa 7: a ficha mostra só o que faz sentido para o formato (no digital não há caixa, encarte nem condição).
+  const fisico = c.kind === 'fisico' || c.kind === 'outro';
+  const rows: [string, string | undefined][] = c.kind === 'assinatura'
+    ? [['Serviço', c.purchasePlace], ['Desde', dateBr(c.purchasedOn)], ['Como chegou', c.origin]]
+    : c.kind === 'digital'
+      ? [['Edição', c.edition], ['Loja', c.purchasePlace], ['Comprado em', dateBr(c.purchasedOn)], ['Valor pago', money(c.pricePaid)], ['Como veio', c.origin]]
+      : [['Região', c.region], ['Edição', c.edition], ['Condição da mídia', c.condition], ['Caixa e encarte', c.boxCondition],
+        ['Itens inclusos', c.items], ['Comprado em', dateBr(c.purchasedOn)], ['Onde comprou', c.purchasePlace],
+        ['Valor pago', money(c.pricePaid)], ['Valor atual (estimado)', money(c.priceNow)], ['Como chegou', c.origin]];
   const journeyText = !st.j ? (m.wontPlay ? 'Marcado como “não vou jogar”. Ter não obriga a jogar.' : 'Nenhuma Jornada com este jogo ainda. Ter não obriga a jogar.')
     : `${STATE_LABEL[st.h!.state]}${st.h?.state === 'ativa' && st.h.progress != null ? `, ${st.h.progress}%` : ''}.${st.zerou && st.h?.state !== 'concluida' ? ' Já zerou antes.' : ''}`;
 
@@ -328,11 +388,11 @@ function CopySheet({ copyId, onClose }: { copyId: string; onClose: () => void })
             {!st.open && <button className="btn quiet sm" aria-pressed={!!m.wontPlay} onClick={() => actions.toggleWontPlay(g.id)}>{m.wontPlay ? 'Não vou jogar (desfazer)' : 'Não vou jogar'}</button>}
           </div>
 
-          <LoanPanel item={{ copyId: c.id }} />
+          {(fisico || activeLoan(s, { copyId: c.id })) && <LoanPanel item={{ copyId: c.id }} />}
 
           {rows.some(([, v]) => v) ? (
             <dl className="csheet__dl">{rows.filter(([, v]) => v).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-          ) : <p className="faint">A ficha deste exemplar está em branco. Região, edição, condição e compra são opcionais.</p>}
+          ) : <p className="faint">A ficha deste exemplar está em branco. {c.kind === 'digital' ? 'Loja, edição e compra são opcionais.' : c.kind === 'assinatura' ? 'O serviço e desde quando são opcionais.' : 'Região, edição, condição e compra são opcionais.'}</p>}
           {c.note && <div className="copy-panel__note"><div className="faint"><Icon name="cadeado" size={12} /> Nota só sua</div><p className="quote">“{c.note}”</p></div>}
 
           {swapped && <p className="gswap__ok" role="status">{swapped}</p>}
@@ -378,16 +438,35 @@ function CopyForm({ copy, onDone, onDeleted }: { copy: Copy; onDone: () => void;
       <div className="cform__grid">
         <label>Plataforma<select className="field" value={canonicalPlatform(f.platform)} onChange={set('platform')}>{plats.map((p) => <option key={p} value={p}>{shortPlatform(p)}</option>)}</select></label>
         <label>Formato<select className="field" value={f.kind} onChange={set('kind')}><option value="fisico">Mídia física</option><option value="digital">Digital</option><option value="assinatura">Assinatura</option><option value="outro">Outro</option></select></label>
-        <label>Região<input className="field" value={f.region} onChange={set('region')} placeholder="Ex.: BR, US, JP" list="regions" /></label>
-        <label>Edição<input className="field" value={f.edition} onChange={set('edition')} placeholder="Ex.: Greatest Hits" /></label>
-        <label>Condição da mídia<input className="field" value={f.condition} onChange={set('condition')} list="conds" /></label>
-        <label>Caixa e encarte<input className="field" value={f.boxCondition} onChange={set('boxCondition')} list="conds" /></label>
-        <label className="cform__wide">Itens inclusos<input className="field" value={f.items} onChange={set('items')} placeholder="Ex.: caixa, disco, manual, pôster" /></label>
-        <label>Data da compra<input className="field" type="date" value={f.purchasedOn} onChange={set('purchasedOn')} /></label>
-        <label>Onde comprou<input className="field" value={f.purchasePlace} onChange={set('purchasePlace')} /></label>
-        <label>Valor pago (R$)<input className="field" inputMode="decimal" value={f.pricePaid} onChange={set('pricePaid')} /></label>
-        <label>Valor atual estimado (R$)<input className="field" inputMode="decimal" value={f.priceNow} onChange={set('priceNow')} /></label>
-        <label className="cform__wide">Como chegou<input className="field" value={f.origin} onChange={set('origin')} placeholder="Ex.: presente do meu irmão, 2009" /></label>
+        {/* Etapa 7: o formulário muda com o formato. No digital somem caixa, encarte e condição; na assinatura, a compra. */}
+        {f.kind === 'assinatura' ? (
+          <>
+            <label>Serviço<input className="field" value={f.purchasePlace} onChange={set('purchasePlace')} placeholder="Ex.: PS Plus Extra, Game Pass" /></label>
+            <label>Desde<input className="field" type="date" value={f.purchasedOn} onChange={set('purchasedOn')} /></label>
+            <label className="cform__wide">Como chegou<input className="field" value={f.origin} onChange={set('origin')} placeholder="Ex.: entrou no catálogo em março" /></label>
+          </>
+        ) : f.kind === 'digital' ? (
+          <>
+            <label>Loja<input className="field" value={f.purchasePlace} onChange={set('purchasePlace')} placeholder="Ex.: PlayStation Store, Steam" /></label>
+            <label>Edição<input className="field" value={f.edition} onChange={set('edition')} placeholder="Ex.: Deluxe" /></label>
+            <label>Data da compra<input className="field" type="date" value={f.purchasedOn} onChange={set('purchasedOn')} /></label>
+            <label>Valor pago (R$)<input className="field" inputMode="decimal" value={f.pricePaid} onChange={set('pricePaid')} /></label>
+            <label className="cform__wide">Como veio<input className="field" value={f.origin} onChange={set('origin')} placeholder="Ex.: comprado na promoção, PS Plus, presente" /></label>
+          </>
+        ) : (
+          <>
+            <label>Região<input className="field" value={f.region} onChange={set('region')} placeholder="Ex.: BR, US, JP" list="regions" /></label>
+            <label>Edição<input className="field" value={f.edition} onChange={set('edition')} placeholder="Ex.: Greatest Hits" /></label>
+            <label>Condição da mídia<input className="field" value={f.condition} onChange={set('condition')} list="conds" /></label>
+            <label>Caixa e encarte<input className="field" value={f.boxCondition} onChange={set('boxCondition')} list="conds" /></label>
+            <label className="cform__wide">Itens inclusos<input className="field" value={f.items} onChange={set('items')} placeholder="Ex.: caixa, disco, manual, pôster" /></label>
+            <label>Data da compra<input className="field" type="date" value={f.purchasedOn} onChange={set('purchasedOn')} /></label>
+            <label>Onde comprou<input className="field" value={f.purchasePlace} onChange={set('purchasePlace')} /></label>
+            <label>Valor pago (R$)<input className="field" inputMode="decimal" value={f.pricePaid} onChange={set('pricePaid')} /></label>
+            <label>Valor atual estimado (R$)<input className="field" inputMode="decimal" value={f.priceNow} onChange={set('priceNow')} /></label>
+            <label className="cform__wide">Como chegou<input className="field" value={f.origin} onChange={set('origin')} placeholder="Ex.: presente do meu irmão, 2009" /></label>
+          </>
+        )}
         <label className="cform__wide">Nota só sua<textarea className="field" rows={2} value={f.note} onChange={set('note')} /></label>
       </div>
       <label className="cform__check"><input type="checkbox" checked={f.special} onChange={(e) => setF({ ...f, special: e.target.checked })} /> Especial para mim</label>

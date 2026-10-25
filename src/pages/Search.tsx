@@ -89,11 +89,11 @@ export function SearchPage() {
               // Etapa 6: o jogo principal uma vez só, com as versões dele; remakes, DLCs e cancelados à parte.
               const gr = agruparBusca(jogos);
               const plats = (h: Hit) => h.platforms.slice(0, 3).map(shortPlatform).join(', ');
-              const versao = (v: Hit) => [v.versionTitle || (v.kind === 'port' ? plats(v) : v.title), v.year].filter(Boolean).join(' · ');
+              const versao = (v: Hit, de: Hit) => [v.versionTitle || (v.title !== de.title ? v.title : ''), plats(v), v.year].filter(Boolean).join(' · ');
               const card = ({ hit: h, versoes }: { hit: Hit; versoes: Hit[] }) => (
                 <li key={h.slug}>
                   <Link to={`/jogos/${h.slug}`}><CoverArt game={{ title: h.title, cover: h.cover }} /><span>{h.title}<small className="faint">{[h.year, plats(h)].filter(Boolean).join(' · ')}</small></span></Link>
-                  {versoes.length > 0 && <span className="search__vers">{versoes.length === 1 ? 'Outra versão: ' : `${versoes.length} versões: `}{versoes.map((v, i) => <span key={v.slug}>{i ? ', ' : ''}<Link to={`/jogos/${v.slug}`}>{versao(v)}</Link></span>)}</span>}
+                  {versoes.length > 0 && <span className="search__vers">{versoes.length === 1 ? 'Outra versão: ' : `${versoes.length} versões: `}{versoes.map((v, i) => <span key={v.slug}>{i ? ', ' : ''}<Link to={`/jogos/${v.slug}`}>{versao(v, h)}</Link></span>)}</span>}
                 </li>
               );
               const linha = (h: Hit, extra?: string) => (

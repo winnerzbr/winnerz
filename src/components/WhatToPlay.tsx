@@ -124,7 +124,7 @@ const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um :
 function amados(s: State): { g: Game; como: string }[] {
   const out: { g: Game; como: string }[] = []; const vistos = new Set<string>();
   const add = (id: string, como: string) => { const g = s.games[id]; if (g?.igdbId && !vistos.has(id)) { vistos.add(id); out.push({ g, como }); } };
-  for (const r of s.reviews.filter((x) => x.mine && x.rating.normalized >= 80).sort((x, y) => y.rating.normalized - x.rating.normalized)) add(r.gameId, `avaliou com ${formatScore(r.rating.normalized, s.prefs.scale)}`);
+  for (const r of s.reviews.filter((x) => x.mine && x.rating.normalized >= 800).sort((x, y) => y.rating.normalized - x.rating.normalized)) add(r.gameId, `avaliou com ${formatScore(r.rating.normalized, s.prefs.scale)}`);
   for (const id of s.favorites) add(id, 'favoritou');
   return out;
 }

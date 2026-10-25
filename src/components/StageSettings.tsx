@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { useStore } from '../data/store';
+import { useStore, hasV96 } from '../data/store';
 import type { Game } from '../data/types';
 import { coverSrc, profileApi, type ProfileStage, type StageCover } from '../data/profileApi';
 import { igdbSize } from '../lib/backdrop';
@@ -65,7 +65,9 @@ export const stageKey = (s?: ProfileStage) => JSON.stringify({
 /** O Palco do perfil: o jogo que te definiu, os três da vida e desde quando você joga. */
 export function StageSettings({ stage, onChange }: { stage: ProfileStage; onChange: (s: ProfileStage) => void }) {
   const list = useMyGameList();
-  const top = [0, 1, 2].map((i) => stage.top?.[i] ?? { game: '' });
+  // Etapa 8: com a migração 0096, quatro jogos da vida (antes, três).
+  const quatro = useStore(hasV96);
+  const top = (quatro ? [0, 1, 2, 3] : [0, 1, 2]).map((i) => stage.top?.[i] ?? { game: '' });
   const setTop = (i: number, v: { game: string; quote?: string }) => onChange({ ...stage, top: top.map((t, k) => (k === i ? v : t)) });
   const year = new Date().getFullYear();
   return (
@@ -82,7 +84,7 @@ export function StageSettings({ stage, onChange }: { stage: ProfileStage; onChan
       </div>
       <CoverPicker stage={stage} list={list} onChange={(cover) => onChange({ ...stage, cover })} />
       <div className="pfs__field">
-        <span>Os três da vida</span>
+        <span>{quatro ? 'Os quatro da vida' : 'Os três da vida'}</span>
         <ol className="pfs__top">
           {top.map((t, i) => (
             <li key={i}>

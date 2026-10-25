@@ -272,6 +272,7 @@ function Overview({ data, mine, qs, at, goTab }: { data: PublicProfile; mine: bo
   const live = data.live;
   const top = st?.top ?? [];
   const order = top.length === 3 ? [1, 0, 2] : top.map((_, i) => i);
+  const daVida = top.length === 4 ? 'Os quatro da vida' : top.length === 3 ? 'Os três da vida' : top.length === 2 ? 'Os dois da vida' : 'O jogo da vida';
   const mural = (data.mural ?? []).filter((m) => m.image).slice(0, 5);
   const life = useMemo(() => lifeline(data), [data]);
   const [more, setMore] = useState(false);
@@ -304,7 +305,7 @@ function Overview({ data, mine, qs, at, goTab }: { data: PublicProfile; mine: bo
         )}
 
         {top.length > 0 && (
-          <Block title="Os três da vida" aside="Escolhidos a dedo">
+          <Block title={daVida} aside="Escolhidos a dedo">
             <ol className={`pd-three pd-three--${top.length}`}>
               {order.map((i) => {
                 const g = top[i];

@@ -8,6 +8,7 @@ import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, f
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { useBridges, PROVIDER_NAME, type Provider } from '../data/bridgeApi';
 import { navigate } from '../lib/router';
+import { assistiLabel } from '../components/Assisti';
 import type { State, Journey, History } from '../data/types';
 import { dayMonth, durLabel } from '../lib/format';
 import { whenLabel, partsOf, localDay } from '../lib/dates';
@@ -298,6 +299,8 @@ export function ConcludedPage() {
   }).filter((x) => x.g)
     .sort((a, b) => (b.year ?? -1) - (a.year ?? -1) || (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? ''));
   const years = [...new Set(done.map((d) => d.year))];
+  // "Assisti": acompanhou numa live ou num vídeo, sem jogar. Fica como lembrança, separado dos zerados.
+  const assistidos = Object.values(s.myGames).filter((m) => m.watchedAt && s.games[m.gameId]).map((m) => ({ g: s.games[m.gameId], m })).sort((a, b) => (b.m.watchedAt ?? '').localeCompare(a.m.watchedAt ?? ''));
   const totalHours = done.reduce((a, d) => a + (d.h.hours ?? 0), 0);
   const honor = [...done].sort((a, b) => (b.h.completedAt ?? '').localeCompare(a.h.completedAt ?? '')).slice(0, 4);
   const when = (h: History) => (h.completedAt && h.completedPrecision !== 'desconhecida' ? whenLabel(h.completedAt, h.completedPrecision, { short: true }) : 'sem data');
@@ -370,6 +373,22 @@ export function ConcludedPage() {
           </section>
         );
       })}
+      {assistidos.length > 0 && (
+        <section className="concluded__year" aria-labelledby="assistidos">
+          <div className="yr"><h2 id="assistidos" className="t">Assisti</h2><i aria-hidden="true" /><span className="kicker">sem jogar · não conta como zerado</span></div>
+          <ul className="concluded__list">
+            {assistidos.map(({ g, m }) => (
+              <li key={g.id}>
+                <Link to={`/jogos/${g.slug}`} className="crow">
+                  <span className="crow__cover"><CoverArt game={g} /></span>
+                  <span className="crow__text"><span className="t crow__title">{g.title}</span><span className="muted crow__meta">{m.watchedWhere || 'Acompanhou sem jogar'}</span></span>
+                  <span className="mono crow__date">{assistiLabel(m.watchedAt)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

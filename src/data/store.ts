@@ -445,6 +445,8 @@ export const hasV8 = (s: State) => s.mode === 'demo' || !!s.schemaV8;
 export const hasV43 = (s: State) => s.mode === 'demo' || !!s.schemaV43;
 /** Os marcadores da sessão podem ser guardados (demonstração ou migração 0095). */
 export const hasV95 = (s: State) => s.mode === 'demo' || !!s.schemaV95;
+/** "Assisti" e os quatro da vida podem ser guardados (demonstração ou migração 0096). */
+export const hasV96 = (s: State) => s.mode === 'demo' || !!s.schemaV96;
 /** Marcadores já usados, dos mais frequentes aos menos, mais os sugeridos. */
 export function knownTags(s: State): string[] {
   const n = new Map<string, number>();

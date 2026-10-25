@@ -58,6 +58,8 @@ let v43 = false;
 export function schemaV43() { return v43; }
 /** A migração 0095 já rodou? (marcadores da sessão: co-op, ao vivo, DLC…) */
 let v95 = false;
+/** A migração 0096 já rodou? ("Assisti" em my_games) */
+let v96 = false;
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -191,6 +193,7 @@ const myGameFromRow = (r: any): MyGame => ({
   wontPlay: !!r.wont_play, genre: r.genre ?? undefined, note: r.note ?? undefined,
   notNowUntil: r.not_now_until ?? undefined, notNowReason: r.not_now_reason ?? undefined,
   steamMinutes: r.steam_minutes ?? undefined, onRadar: r.on_radar || undefined,
+  watchedAt: r.watched_at ?? undefined, watchedWhere: r.watched_where ?? undefined,
 });
 export const reviewFromRow = (r: any, me: string | null): Review => {
   const name: string = r.profiles?.display_name ?? 'Jogador';
@@ -249,6 +252,7 @@ const myGameToRow = (m: MyGame) => ({
   game_id: m.gameId, priority: m.priority ?? null, est_hours: m.estHours ?? null, wont_play: !!m.wontPlay,
   genre: m.genre ?? null, note: m.note ?? null, updated_at: new Date().toISOString(),
   ...(v6 ? { not_now_until: m.notNowUntil ?? null, not_now_reason: m.notNowReason ?? null, steam_minutes: m.steamMinutes ?? null, on_radar: !!m.onRadar } : {}),
+  ...(v96 ? { watched_at: m.watchedAt ?? null, watched_where: m.watchedWhere ?? null } : {}),
 });
 const reviewToRow = (r: Review) => ({
   id: r.id, game_id: r.gameId, normalized: r.rating.normalized, original_scale: r.rating.originalScale,
@@ -341,6 +345,7 @@ export const supabaseAdapter: Adapter = {
     v43 = v39 && !(await sb.from('sessions').select('intent,intent_met').limit(1)).error;
     v61 = v43 && !(await sb.from('sessions').select('part_marks').limit(1)).error;
     v95 = v61 && !(await sb.from('sessions').select('tags').limit(1)).error;
+    v96 = v6 && !(await sb.from('my_games').select('watched_at').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {
@@ -404,6 +409,7 @@ export const supabaseAdapter: Adapter = {
       schemaV8: v8,
       schemaV43: v43,
       schemaV95: v95,
+      schemaV96: v96,
       isAdmin: !!p?.is_admin,
       isGuest: !!p?.is_guest,
       loadIncomplete,

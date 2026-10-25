@@ -71,10 +71,15 @@ export function Preferences() {
         <p className="kicker">{profile ? 'Preferências de' : 'Suas'}</p>
         <h1 className="t prefs__name">{profile ? profile.name : 'Preferências'}</h1>
         <nav className="prefs__nav" aria-label="Seções das preferências" ref={navRef}>
-          <a href="#tema">Aparência e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tradutor">Tradutor</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a><a href="#ovl-h">Overlay de live</a><a href="#comunidade">Comunidade</a><a href="#perfil">Perfil e privacidade</a><a href="#figurinha">Minha figurinha</a><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
+          <span className="prefs__navg">Aparência</span><a href="#tema">Tema e notas</a><a href="#mov">Animações</a><a href="#leve">Modo leve</a><a href="#tom">Celebrações</a><a href="#iamiguinho">IAmiguinho</a>
+          <span className="prefs__navg">Jornada e jogos</span><a href="#jornada-pref">Jornada</a><a href="#pontes">Pontes</a><a href="#tradutor">Tradutor</a>
+          <span className="prefs__navg">Perfil e comunidade</span><a href="#perfil">Perfil e privacidade</a><a href="#figurinha">Minha figurinha</a><a href="#comunidade">Comunidade</a><a href="#discord-h">Discord</a>
+          <span className="prefs__navg">Avisos e live</span><a href="#avisos">Avisos</a><a href="#ovl-h">Overlay de live</a>
+          <span className="prefs__navg">Conta e dados</span><a href="#chegada">A chegada</a><a href="#dados">Seus dados</a><a href="#conta">Conta</a>
         </nav>
       </aside>
       <div className="prefs__main">
+      <p className="prefs__gk" id="g-aparencia">Aparência</p>
       <section aria-labelledby="tema" className="prefs__section prefs__section--first">
         <h2 id="tema" className="t">Aparência e notas</h2>
         <p className="muted prefs__p">Vale para todos os seus aparelhos. A página muda na hora para você ver o resultado.</p>
@@ -153,14 +158,6 @@ export function Preferences() {
         </label>
       </section>
 
-      <section aria-labelledby="tradutor" className="prefs__section">
-        <h2 id="tradutor" className="t">Tradutor de tela</h2>
-        <label className="motion motion--switch" data-on={prefs.trGalera !== false}>
-          <input type="checkbox" role="switch" className="switch" checked={prefs.trGalera !== false} onChange={(e) => actions.setPrefs({ trGalera: e.target.checked })} />
-          <span><strong>Usar e compartilhar o glossário da Galera</strong><span className="muted">Quem traduz o mesmo jogo aproveita os nomes que você anotou (personagens, lugares, itens), e você aproveita os deles. Só os termos circulam, nunca o texto traduzido.</span></span>
-        </label>
-      </section>
-
       <section aria-labelledby="tom" className="prefs__section">
         <h2 id="tom" className="t">Tom das celebrações</h2>
         <p className="muted">Como o WinnerZ comemora com você. A festa grande fica só para quando você zera; os outros marcos ganham uma mensagem curta.</p>
@@ -190,14 +187,26 @@ export function Preferences() {
         </div>
       </section>
 
-      <OverlaySettings />
-
+      <p className="prefs__gk" id="g-jornada">Jornada e jogos</p>
+      <section aria-labelledby="jornada-pref" className="prefs__section">
+        <h2 id="jornada-pref" className="t">Jornada</h2>
+        <label className="prefs__row" htmlFor="lembrete">
+          <span><strong>Lembrete de jogo parado</strong><span className="muted">Um aviso discreto na página da Jornada quando um jogo em andamento fica muito tempo sem sessão. Desligado por padrão.</span></span>
+          <select id="lembrete" className="field" value={prefs.lembreteParado ?? 0} onChange={(e) => { const n = Number(e.target.value); actions.setPrefs({ lembreteParado: n === 7 || n === 14 || n === 30 ? n : null }); }}>
+            <option value={0}>Desligado</option><option value={7}>Depois de 7 dias</option><option value={14}>Depois de 14 dias</option><option value={30}>Depois de 30 dias</option>
+          </select>
+        </label>
+      </section>
       <BridgeSettings />
-      <DiscordSettings />
-      <CommunitySettings />
-      {noApp() && <AppNotifSettings />}
-      <NotifSettings />
+      <section aria-labelledby="tradutor" className="prefs__section">
+        <h2 id="tradutor" className="t">Tradutor de tela</h2>
+        <label className="motion motion--switch" data-on={prefs.trGalera !== false}>
+          <input type="checkbox" role="switch" className="switch" checked={prefs.trGalera !== false} onChange={(e) => actions.setPrefs({ trGalera: e.target.checked })} />
+          <span><strong>Usar e compartilhar o glossário da Galera</strong><span className="muted">Quem traduz o mesmo jogo aproveita os nomes que você anotou (personagens, lugares, itens), e você aproveita os deles. Só os termos circulam, nunca o texto traduzido.</span></span>
+        </label>
+      </section>
 
+      <p className="prefs__gk" id="g-perfil">Perfil e comunidade</p>
       <section className="prefs__section" aria-labelledby="perfil">
         <h2 id="perfil" className="t">Perfil e privacidade</h2>
         <ProfileSettings />
@@ -213,6 +222,14 @@ export function Preferences() {
         <GaleraEditor />
       </section>
 
+      <CommunitySettings />
+      <DiscordSettings />
+      <p className="prefs__gk" id="g-avisos">Avisos</p>
+      {noApp() && <AppNotifSettings />}
+      <NotifSettings />
+      <p className="prefs__gk" id="g-live">Live</p>
+      <OverlaySettings />
+      <p className="prefs__gk" id="g-conta">Conta e dados</p>
       <section className="prefs__section" aria-labelledby="chegada">
         <h2 id="chegada" className="t">A chegada</h2>
         <p className="muted prefs__p">O passeio da primeira visita: Coleção, Jornada, Jogos, Comunidade e Álbum, em uns 5 minutos. Rever não apaga nada; o que você escolher de novo se soma ao que já tem.</p>

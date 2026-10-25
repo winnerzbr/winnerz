@@ -15,7 +15,12 @@ import { Link } from '../lib/router';
 import { useBridges, PROVIDER_NAME, type Provider } from '../data/bridgeApi';
 
 const tz = 'America/Sao_Paulo';
-const diaCurto = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz }).replace(/\./g, '');
+/** "Qui 22 out": o dia da semana, o dia e o mês, sem pontos nem "de". */
+const diaCurto = (iso: string) => {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz }).formatToParts(new Date(iso)).map((x) => [x.type, x.value.replace('.', '')]));
+  const wd = p.weekday ?? '';
+  return `${wd.charAt(0).toUpperCase()}${wd.slice(1, 3)} ${p.day} ${p.month}`;
+};
 const diaLongo = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', timeZone: tz }).replace(/\./g, '');
 const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const FONTE: Record<string, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
@@ -116,7 +121,8 @@ export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Ses
       const ks = KINDS[f];
       return l.t === 'sessao' ? l.evs.some((e) => ks.includes(e.kind)) : l.t === 'evento' && ks.includes(l.e.kind);
     };
-    const vazia = (l: Linha) => l.t === 'sessao' && !l.s.note && !l.s.whereStopped && !l.s.feeling && !l.evs.length;
+    // Sem recado, sem lugar e sem registros: entra no grupo (a palavra do fim da sessão aparece ao abrir).
+    const vazia = (l: Linha) => l.t === 'sessao' && !l.s.note && !l.s.whereStopped && !l.evs.length;
     const out: Linha[] = [];
     for (const l of todas.filter(passa)) {
       // Sessões sem nada escrito ficam juntas numa linha só (dá para abrir), quando a consulta é "Tudo" e sem busca.
@@ -171,7 +177,7 @@ export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Ses
           <div key={key} className="jreg__row jreg__row--vazias">
             <div className="jreg__when"><b>{l.list.length > 1 && diaCurto(de) !== diaCurto(ate) ? `${diaCurto(de)} – ${diaCurto(ate)}` : diaCurto(ate)}</b></div>
             <button type="button" className="jreg__vazias" onClick={() => setAbertas(new Set([...abertas, key]))}>
-              {l.list.length === 1 ? '1 sessão sem anotações' : `${l.list.length} sessões sem anotações`}{min ? ` · ${durLabel(min)} registradas` : ''} · ver
+              {l.list.length === 1 ? '1 sessão sem recado' : `${l.list.length} sessões sem recado`}{min ? ` · ${durLabel(min)} registradas` : ''} · ver
             </button>
           </div>
         );
@@ -237,7 +243,7 @@ export function DiasJogados({ sessions, title }: { sessions: Session[]; title: s
         {Array.from({ length: vazios }, (_, i) => <span key={`v${i}`} />)}
         {cells.map((c) => (
           <span key={c.n} role="gridcell" className={`jcal__d${nivel(c.min)}${c.hoje ? ' is-today' : ''}${c.futuro ? ' is-fut' : ''}`} aria-label={`${c.n}${c.min ? `, ${durLabel(c.min)}` : ''}${c.hoje ? ', hoje' : ''}`}>
-            <b>{c.n}</b>{c.min ? <i>{durLabel(c.min).replace(' ', '')}</i> : null}
+            <b>{c.n}</b>{c.min ? <i>{durLabel(c.min).replace(/ /g, '')}</i> : null}
           </span>
         ))}
       </div>

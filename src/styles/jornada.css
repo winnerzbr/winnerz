@@ -192,3 +192,18 @@
 .jauto p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 .jauto .linklike { align-self: flex-start; font-size: 14px; font-weight: 600; text-decoration: none; }
 .jauto .linklike:hover { text-decoration: underline; }
+
+/* Celular: o Começar sessão ocupa a linha toda; Sessão passada e Ações dividem a de baixo. Nada cortado. */
+@media (max-width: 900px) {
+  .jhero.jhero--compact .jhero__actions > .jhero__play { flex: 1 1 100%; min-width: 0; }
+  .jhero.jhero--compact .jhero__actions > .jhero__past, .jhero.jhero--compact .jhero__actions > .more { flex: 1 1 0; min-width: 0; }
+  .jhero.jhero--compact .jhero__actions .btn { white-space: nowrap; }
+}
+@media (max-width: 560px) {
+  .jhero__meta-n { flex-basis: 100%; margin-top: 2px; }
+  .jhero__meta-n i { display: none; }
+  .jret__photo img { aspect-ratio: 16 / 7; }
+  .jdet__box { padding: 18px 16px; }
+  .jbloco, .jcal { padding: 18px 16px; }
+}
+.jdet__box > .faint { margin: 0; }

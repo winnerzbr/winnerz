@@ -396,3 +396,7 @@
 .prefs__row > span { display: flex; flex-direction: column; gap: 4px; flex: 1 1 320px; }
 .prefs__row .muted { font-size: 14px; }
 .prefs__row .field { width: auto; min-width: 200px; }
+
+/* Início: topo mais baixo (sem o vão grande entre o menu e o primeiro texto). */
+.home .hero__row { min-height: 0; padding-top: 44px; padding-bottom: 48px; }
+@media (max-width: 760px) { .home .hero__row { padding-top: 28px; padding-bottom: 32px; } }

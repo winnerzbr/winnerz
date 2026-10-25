@@ -541,6 +541,19 @@ export const HUMOR: Record<string, { com?: number[]; sem?: number[]; semTemas?: 
   relaxar: { com: [9, 13, 2, 35, 7, 26, 30], sem: [4, 5], semTemas: [19, 21, 39, 20] },
 };
 
+/**
+ * Quanto uma sessão costuma pedir, pelos ids de gênero e tema do IGDB (o mesmo critério de src/lib/tempo.ts):
+ * longa = RPG, simulador, estratégia, RTS, por turnos, tático, visual novel, ou mundo aberto, 4X, sandbox;
+ * curta = luta, música, plataforma, quebra-cabeça, corrida, esporte, quiz, pinball, arcade, cartas.
+ */
+const SESSAO_LONGA_G = new Set([12, 13, 15, 11, 16, 24, 34]), SESSAO_LONGA_T = new Set([38, 41, 33]);
+const SESSAO_CURTA_G = [4, 7, 8, 9, 10, 14, 26, 30, 33, 35];
+const sessaoDoJogo = (g: any): 'curta' | 'media' | 'longa' =>
+  (g.genres ?? []).some((x: number) => SESSAO_LONGA_G.has(x)) || (g.themes ?? []).some((x: number) => SESSAO_LONGA_T.has(x)) ? 'longa'
+    : (g.genres ?? []).some((x: number) => SESSAO_CURTA_G.includes(x)) ? 'curta' : 'media';
+/** O tempo que a pessoa tem: 20 min só sessão curta; 45 min nada de sessão longa; 3 horas ou mais, sem as curtas. */
+const cabeNoTempo = (g: any, tempo: number) => { const s = sessaoDoJogo(g); return !tempo ? true : tempo <= 20 ? s === 'curta' : tempo <= 45 ? s !== 'longa' : tempo >= 180 ? s !== 'curta' : true; };
+
 async function explore(q: Record<string, string | string[] | undefined>) {
   const now = Math.floor(Date.now() / 1000);
   const where: string[] = ['cover != null', 'version_parent = null', 'parent_game = null'];
@@ -548,7 +561,9 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   if (humor?.com) where.push(`genres = (${humor.com.join(',')})`);
   // As exclusões (gêneros e temas do humor, e nunca conteúdo erótico, tema 42) são feitas aqui no código.
   const semG = new Set(humor?.sem ?? []), semT = new Set([42, ...(humor?.semTemas ?? [])]);
-  const passa = (g: any) => !(g.genres ?? []).some((x: number) => semG.has(x)) && !(g.themes ?? []).some((x: number) => semT.has(x));
+  const tempo = Math.max(0, Number(q.tempo) || 0);
+  if (tempo && tempo <= 20) where.push(`genres = (${SESSAO_CURTA_G.join(',')})`);
+  const passa = (g: any) => !(g.genres ?? []).some((x: number) => semG.has(x)) && !(g.themes ?? []).some((x: number) => semT.has(x)) && cabeNoTempo(g, tempo);
   const genre = ints(q.genre), platform = ints(q.platform), mode = ints(q.mode), theme = ints(q.theme);
   if (genre.length) where.push(`genres = (${genre.join(',')})`);
   if (platform.length) where.push(`platforms = (${platform.join(',')})`);
@@ -576,6 +591,7 @@ async function explore(q: Record<string, string | string[] | undefined>) {
   const out = (g: any) => ({
     ...hit(g), rating: g.total_rating ? Math.round(g.total_rating) : undefined, date: g.first_release_date ? new Date(g.first_release_date * 1000).toISOString().slice(0, 10) : undefined,
     critica: g.aggregated_rating != null && g.aggregated_rating_count ? Math.round(g.aggregated_rating) : undefined, criticas: g.aggregated_rating_count ?? 0, jogadores: g.rating_count ?? 0,
+    sessao: sessaoDoJogo(g),
   });
   if (sort === 'rating') {
     // Os 500 mais avaliados com os filtros, ordenados pela nota com reconhecimento; a página sai dessa lista.

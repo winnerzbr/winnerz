@@ -17,6 +17,42 @@ import { MOODS, LENGTHS, STATUSES, recommend, reachableGames, noteShown, markMis
 import { vibesApi } from '../data/vibesApi';
 import { Icon } from './Icon';
 import { useBackdrop } from './Backdrop';
+import { currentHistory } from '../data/store';
+import { durLabel } from '../lib/format';
+
+/** Etapa 5 da revisão: quanto tempo você tem agora (lembrado neste navegador). */
+const TEMPOS = [{ min: 20, label: '20 min' }, { min: 45, label: '45 min' }, { min: 90, label: '1h30' }, { min: 240, label: 'A noite toda' }] as const;
+
+/**
+ * O porquê que depende do tempo: quanto a sessão de hoje rende no jogo e quantas sessões faltam, pelo tempo médio
+ * para zerar e o que você já jogou nesta História. Sem o tempo médio, não chuta.
+ */
+function tempoWhy(s: State, g: Game, tempo: number | null): Reason[] {
+  const out: Reason[] = [];
+  const j = s.journeys.find((x) => x.gameId === g.id);
+  const h = j ? currentHistory(s, j.id) : null;
+  const d = gameDna(g, s);
+  const curtas = d.traits.some((t) => t.key === 'curtas');
+  if (tempo && tempo <= 45) {
+    if (curtas) out.push({ icon: 'relogio', text: `Partes curtas: dá para fechar alguma coisa em ${durLabel(tempo)}.` });
+    else if (d.hours != null && d.hours >= 40) out.push({ icon: 'relogio', text: `Jogo longo: em ${durLabel(tempo)} rende um pedaço, sem pressa de terminar.` });
+  } else if (tempo && tempo >= 240 && d.hours != null && d.hours <= 6) out.push({ icon: 'relogio', text: `Curto: cerca de ${fmtHours(d.hours)} do começo ao fim. Cabe numa noite.` });
+  if (h && (h.state === 'ativa' || h.state === 'pausada') && d.hours != null) {
+    const sess = s.sessions.filter((x) => x.historyId === h.id && x.minutes);
+    const jogado = sess.reduce((n, x) => n + (x.minutes ?? 0), 0);
+    if (jogado > 0) {
+      const resto = d.hours * 60 - jogado;
+      const media = Math.round(sess.reduce((n, x) => n + (x.minutes ?? 0), 0) / sess.length);
+      const por = tempo ?? Math.max(20, media);
+      if (resto <= 0) out.push({ icon: 'jornada', text: 'Você já passou do tempo médio para zerar: o fim pode estar perto.' });
+      else {
+        const n = Math.max(1, Math.ceil(resto / por));
+        out.push({ icon: 'jornada', text: n === 1 ? `Pelo tempo médio para zerar e o que você já jogou, dá para terminar numa sessão de ${durLabel(por)}.` : `Pelo tempo médio para zerar e o que você já jogou, faltam umas ${n} sessões${tempo ? ` de ${durLabel(por)}` : ` do seu jeito (${durLabel(por)} em média)`}.` });
+      }
+    }
+  }
+  return out;
+}
 
 export type { Idea } from '../lib/recommend';
 
@@ -204,6 +240,10 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const s = useStore((x) => x);
   const [path, setPath] = useState<'alcance' | 'descobrir'>('alcance');
   const [mood, setMood] = useState<MoodId>('surpresa');
+  const [tempo, setTempoRaw] = useState<number | null>(() => { try { const v = Number(localStorage.getItem('wz.oqj.tempo')); return TEMPOS.some((t) => t.min === v) ? v : null; } catch { return null; } });
+  const setTempo = (v: number | null) => { setTempoRaw(v); setAlt(0); try { if (v) localStorage.setItem('wz.oqj.tempo', String(v)); else localStorage.removeItem('wz.oqj.tempo'); } catch { /* só nesta visita */ } track('oqj.tempo'); };
+  // Poucas sessões registradas: as contas de ritmo são aproximadas, e a tela diz isso.
+  const poucasSessoes = s.sessions.filter((x) => x.endedAt).length < 10;
   const [seed, setSeed] = useState(() => Math.random());
   const [alt, setAlt] = useState(0);
   const [skipped, setSkipped] = useState<string[]>([]);
@@ -212,7 +252,9 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const [catalog, setCatalog] = useState<{ key: string; items: Idea[]; state: 'loading' | 'ok' | 'error' } | null>(null);
   // O catálogo muda com o filtro do dia (gênero, tema e tempo para zerar no servidor).
   const catKey = mood;
-  const moodDef = MOODS.find((m) => m.id === mood)!;
+  // O tempo que você tem conta como o antigo "Tenho pouco tempo" / "Uma noite inteira" quando o clima é Surpresa.
+  const eff: MoodId = mood === 'surpresa' && tempo ? (tempo <= 45 ? 'pouco' : tempo >= 240 ? 'noite' : 'surpresa') : mood;
+  const moodDef = MOODS.find((m) => m.id === eff)!;
   // Filtros extras, combináveis (lembrados neste navegador).
   const [extra, setExtraState] = useState<Extra>(() => { try { return JSON.parse(localStorage.getItem('wz.oqj.extra') || '{}'); } catch { return {}; } });
   const [panel, setPanel] = useState(false);
@@ -241,11 +283,11 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
   const seen = useRef(new Set<string>());
   const ideas = useMemo(() => {
     const base = path === 'alcance'
-      ? recommend(s, mood, { excludeJourneyId, seed: mood === 'surpresa' ? Math.floor(seed * 1e6) : undefined, vibe: vibesApi.get, extra })
-      : [...shuffle(wishIdeas(s, mood, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])].filter((i) => matchesExtra(s, i.game, { ...extra, status: undefined }));
+      ? recommend(s, eff, { excludeJourneyId, seed: eff === 'surpresa' ? Math.floor(seed * 1e6) : undefined, vibe: vibesApi.get, extra })
+      : [...shuffle(wishIdeas(s, eff, localDay(), seed), daySeed()), ...(catalog?.key === catKey ? catalog.items : [])].filter((i) => matchesExtra(s, i.game, { ...extra, status: undefined }));
     const fresh = base.filter((i) => !skipped.includes(i.game.id));
     return [...fresh.filter((i) => !seen.current.has(i.game.id)), ...fresh.filter((i) => seen.current.has(i.game.id))];
-  }, [s, path, mood, excludeJourneyId, skipped, catalog, catKey, seed, vibeTick, extra]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s, path, eff, excludeJourneyId, skipped, catalog, catKey, seed, vibeTick, extra]); // eslint-disable-line react-hooks/exhaustive-deps
   const idea = ideas.length ? ideas[alt % ideas.length] : null;
   useEffect(() => { if (idea) seen.current.add(idea.game.id); }, [idea?.game.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const bg = useBackdrop(idea?.game);
@@ -277,15 +319,19 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
 
   return (
     <section aria-labelledby={headingId} className="card what">
-      <h2 id={headingId} className="t">O que jogar hoje?</h2>
+      <h2 id={headingId} className="t">O que jogar agora?</h2>
       <div role="tablist" aria-label="Por onde procurar" className="what__paths">
         <button role="tab" aria-selected={path === 'alcance'} onClick={() => { setPath('alcance'); reset(); }}>Ao meu alcance</button>
         <button role="tab" aria-selected={path === 'descobrir'} onClick={() => { setPath('descobrir'); reset(); track('oqj.descobrir'); }}>Descobrir algo</button>
       </div>
       <div className="what__filters">
+        <span className="what__flabel" id={`${headingId}-tempo`}>Quanto tempo você tem?</span>
+        <div role="group" aria-labelledby={`${headingId}-tempo`} className="chips what__tempos">
+          {TEMPOS.map((t) => <button key={t.min} className="chip" aria-pressed={tempo === t.min} onClick={() => setTempo(tempo === t.min ? null : t.min)}>{t.label}</button>)}
+        </div>
         <span className="what__flabel" id={`${headingId}-mood`}>Como está seu dia?</span>
         <div role="group" aria-labelledby={`${headingId}-mood`} className="chips what__moods">
-          {MOODS.map((m) => (
+          {MOODS.filter((m) => m.id !== 'pouco' && m.id !== 'noite').map((m) => (
             <button key={m.id} className="chip" aria-pressed={mood === m.id} onClick={() => { setMood(m.id); setSeed(Math.random()); reset(); track(`oqj.filtro.${m.id}`); }}>{m.label}</button>
           ))}
         </div>
@@ -331,8 +377,9 @@ export function WhatToPlay({ excludeJourneyId, headingId = 'oqj' }: { excludeJou
             <div className="t what__title">{idea.game.title}</div>
             <div className="muted what__meta">{idea.meta}</div>
             <ul className="what__why" aria-label="Por que pode ser para você">
-              {idea.why.map((w) => <li key={w.text}><Icon name={w.icon} size={14} /><span>{w.text}</span></li>)}
+              {[...idea.why, ...(path === 'alcance' && idea.known ? tempoWhy(s, idea.game, tempo) : [])].filter((w) => w.text).map((w) => <li key={w.text}><Icon name={w.icon} size={14} /><span>{w.text}</span></li>)}
             </ul>
+            {path === 'alcance' && poucasSessoes && <p className="faint what__conf">Ainda conhecendo o seu ritmo: as dicas melhoram com mais sessões registradas.</p>}
             {asking ? (
               <div className="what__later" role="group" aria-label="Não agora">
                 <span className="muted">Não agora porque…</span>

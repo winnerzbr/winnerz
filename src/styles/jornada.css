@@ -207,3 +207,10 @@
   .jbloco, .jcal { padding: 18px 16px; }
 }
 .jdet__box > .faint { margin: 0; }
+@media (max-width: 900px) {
+  /* Em coluna, cada bloco ocupa a largura da tela (sem isso, a linha do tempo se esticava para fora). */
+  .jgrid { align-items: stretch; }
+  .jgrid .jret, .jgrid .jbloco, .jgrid .jtabs, .jgrid .jcal, .jgrid .jauto, .jgrid__main > * { width: 100%; min-width: 0; max-width: 100%; }
+}
+.jtabs__panel .jline__tools { flex-wrap: wrap; }
+@media (max-width: 560px) { .jtabs__list { gap: 20px; } .jtabs__tab { font-size: 13px; letter-spacing: .04em; } }

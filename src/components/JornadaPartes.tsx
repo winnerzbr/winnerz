@@ -46,7 +46,7 @@ export function Retomar({ last, note, where, waypoints, photo, away, onCapsule, 
         <h2 id="jret-h" className="jret__k"><span className="tr now" aria-hidden="true" />Onde você parou</h2>
         {recado ? <p className="jret__note">“{recado}”</p>
           : where ? <p className="jret__note jret__note--where">Parou em {where}.</p>
-          : last ? <p className="jret__none">Sem recado da última vez. No fim da próxima sessão, deixe uma frase para você mesmo.</p>
+          : last ? <p className="jret__none">Sem recado da última vez. No fim da próxima sessão, deixe uma frase para a próxima vez.</p>
           : <p className="jret__none">Nada registrado ainda. Comece uma sessão: no fim, você deixa um recado para a próxima vez.</p>}
         {meta && <span className="jret__meta">{meta}</span>}
         {(recado && where) || extra.length ? (

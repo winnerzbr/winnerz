@@ -15,6 +15,7 @@ import { whenLabel } from '../lib/when';
 import { track } from '../lib/track';
 import { ListCard } from './Lists';
 import { MascoteVazio } from '../components/IAmiguinho';
+import { agruparBusca } from '../lib/buscaGrupos';
 
 const TABS = [
   ['tudo', 'Tudo'], ['jogos', 'Jogos'], ['pessoas', 'Pessoas'], ['conversas', 'Conversas'], ['comunidades', 'Comunidades'], ['grupos', 'Clubes e jogatinas'], ['listas', 'Listas'], ['acervo', 'Seu acervo'],
@@ -84,11 +85,44 @@ export function SearchPage() {
                 <ul className="search__games">{acervo.slice(0, lim(8)).map((g) => <li key={g.id}><Link to={s.journeys.some((j) => j.gameId === g.id) ? `/jornada/${g.slug}` : `/jogos/${g.slug}`}><CoverArt game={g} /><span>{g.title}</span></Link></li>)}</ul>
               </section>
             )}
-            {show('jogos') && jogos.length > 0 && (
-              <section className="search__group"><h2 className="kicker">Jogos</h2>
-                <ul className="search__games">{jogos.slice(0, lim(8)).map((h) => <li key={h.slug}><Link to={`/jogos/${h.slug}`}><CoverArt game={{ title: h.title, cover: h.cover }} /><span>{h.title}<small className="faint">{[h.year, h.platforms.slice(0, 2).map(shortPlatform).join(', ')].filter(Boolean).join(' · ')}</small></span></Link></li>)}</ul>
-              </section>
-            )}
+            {show('jogos') && jogos.length > 0 && (() => {
+              // Etapa 6: o jogo principal uma vez só, com as versões dele; remakes, DLCs e cancelados à parte.
+              const gr = agruparBusca(jogos);
+              const plats = (h: Hit) => h.platforms.slice(0, 3).map(shortPlatform).join(', ');
+              const versao = (v: Hit) => [v.versionTitle || (v.kind === 'port' ? plats(v) : v.title), v.year].filter(Boolean).join(' · ');
+              const card = ({ hit: h, versoes }: { hit: Hit; versoes: Hit[] }) => (
+                <li key={h.slug}>
+                  <Link to={`/jogos/${h.slug}`}><CoverArt game={{ title: h.title, cover: h.cover }} /><span>{h.title}<small className="faint">{[h.year, plats(h)].filter(Boolean).join(' · ')}</small></span></Link>
+                  {versoes.length > 0 && <span className="search__vers">{versoes.length === 1 ? 'Outra versão: ' : `${versoes.length} versões: `}{versoes.map((v, i) => <span key={v.slug}>{i ? ', ' : ''}<Link to={`/jogos/${v.slug}`}>{versao(v)}</Link></span>)}</span>}
+                </li>
+              );
+              const linha = (h: Hit, extra?: string) => (
+                <li key={h.slug}><Link to={`/jogos/${h.slug}`} className="search__row"><span className="search__cv"><CoverArt game={{ title: h.title, cover: h.cover }} /></span><span><b>{h.title}</b><small className="faint">{[h.year, extra, plats(h)].filter(Boolean).join(' · ')}</small></span></Link></li>
+              );
+              const TIPO: Record<string, string> = { remake: 'remake', remaster: 'remaster', dlc: 'DLC', expansion: 'expansão', standalone: 'expansão independente', bundle: 'pacote', pack: 'pacote', mod: 'mod', episode: 'episódio', season: 'temporada', update: 'atualização' };
+              return (
+                <>
+                  <section className="search__group"><h2 className="kicker">Jogos</h2>
+                    <ul className="search__games">{gr.principais.slice(0, lim(8)).map(card)}</ul>
+                  </section>
+                  {gr.relancamentos.length > 0 && (
+                    <section className="search__group"><h2 className="kicker">Remakes e relançamentos</h2>
+                      <ul className="search__rows">{gr.relancamentos.slice(0, lim(6)).map((r) => linha(r.hit, [TIPO[r.hit.kind ?? ''], r.versoes.length ? `+${r.versoes.length} ${r.versoes.length === 1 ? 'versão' : 'versões'}` : ''].filter(Boolean).join(', ')))}</ul>
+                    </section>
+                  )}
+                  {gr.extras.length > 0 && (
+                    <details className="search__group search__fold"><summary className="kicker">DLCs, expansões e pacotes · {gr.extras.length}</summary>
+                      <ul className="search__rows">{gr.extras.map((h) => linha(h, TIPO[h.kind ?? '']))}</ul>
+                    </details>
+                  )}
+                  {gr.cancelados.length > 0 && (
+                    <details className="search__group search__fold"><summary className="kicker">{gr.cancelados.length === 1 ? '1 registro sem lançamento oficial' : `${gr.cancelados.length} registros sem lançamento oficial`} (cancelados ou protótipos)</summary>
+                      <ul className="search__rows">{gr.cancelados.map((h) => linha(h, 'cancelado'))}</ul>
+                    </details>
+                  )}
+                </>
+              );
+            })()}
             {show('pessoas') && c.pessoas.length > 0 && (
               <section className="search__group"><h2 className="kicker">Pessoas</h2>
                 <ul className="search__rows">{c.pessoas.slice(0, lim(6)).map((p) => <li key={p.id}><Link to={`/@${(p.handle ?? '').toLowerCase()}`} className="search__row"><PersonAvatar p={p} size={40} /><span><b>@{p.handle}</b>{p.bio && <small className="muted">{p.bio}</small>}</span></Link></li>)}</ul>

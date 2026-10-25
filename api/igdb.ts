@@ -259,10 +259,25 @@ const lightRow = (g: any) => ({
   updated_at: new Date().toISOString(),
 });
 
+/** Tipo do registro no IGDB (jogo principal, remake, versão, DLC…), pelo campo novo (game_type) ou pelo antigo (category). */
+const KIND_BY_CAT: Record<number, string> = { 0: 'main', 1: 'dlc', 2: 'expansion', 3: 'bundle', 4: 'standalone', 5: 'mod', 6: 'episode', 7: 'season', 8: 'remake', 9: 'remaster', 10: 'expanded', 11: 'port', 12: 'fork', 13: 'pack', 14: 'update' };
+const KIND_BY_TYPE: Record<string, string> = { 'main game': 'main', 'dlc': 'dlc', 'dlc addon': 'dlc', 'expansion': 'expansion', 'bundle': 'bundle', 'standalone expansion': 'standalone', 'mod': 'mod', 'episode': 'episode', 'season': 'season', 'remake': 'remake', 'remaster': 'remaster', 'expanded game': 'expanded', 'port': 'port', 'fork': 'fork', 'pack': 'pack', 'update': 'update' };
+function kindOf(g: any): string | undefined {
+  const t = typeof g.game_type === 'object' ? g.game_type?.type : undefined;
+  if (typeof t === 'string') return KIND_BY_TYPE[t.toLowerCase().replace(/[^a-z ]/g, '').trim()] ?? 'other';
+  return typeof g.category === 'number' ? KIND_BY_CAT[g.category] ?? 'other' : undefined;
+}
+const cancelled = (g: any) => /cancel/i.test(String(g.game_status?.status ?? '')) || g.status === 6;
+
 const hit = (g: any) => ({
   igdbId: g.id, slug: g.slug, title: g.name,
   year: g.first_release_date ? new Date(g.first_release_date * 1000).getUTCFullYear() : undefined,
   cover: image(g.cover?.image_id), platforms: (g.platforms ?? []).map((p: any) => p.name),
+  // Para a busca agrupar versões e edições (só vem quando a consulta pediu esses campos).
+  ...(kindOf(g) ? { kind: kindOf(g) } : {}),
+  ...(g.version_parent || g.parent_game ? { parent: g.version_parent ?? g.parent_game, versionOf: !!g.version_parent } : {}),
+  ...(g.version_title ? { versionTitle: g.version_title } : {}),
+  ...(cancelled(g) ? { cancelled: true } : {}),
 });
 
 const sleep = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
@@ -929,8 +944,14 @@ export default async function handler(req: Req, res: Res) {
         rows = await igdb('games', `where ${ref ? `slug = "${ref.toLowerCase()}"` : `id = ${Number(idq)}`}; fields ${SEARCH_FIELDS}; limit 1;`);
       } else {
         const safe = cleanTitle(q) || '-';
-        const [[same], found] = await Promise.all([exactMany([safe]), igdb('games', `search "${safe}"; fields ${SEARCH_FIELDS}; limit 15;`)]);
-        rows = mergeRows(same ?? [], found).slice(0, 20);
+        // Com os campos de versão (para agrupar edições, remakes e DLCs); se o IGDB recusar algum, cai na busca simples.
+        const extra = `${SEARCH_FIELDS},version_parent,parent_game,version_title,game_type.type,category,game_status.status,status`;
+        const busca = (f: string) => igdb('games', `search "${safe}"; fields ${f}; limit 20;`);
+        const [found, [same]] = await Promise.all([busca(extra).catch(() => busca(SEARCH_FIELDS)), exactMany([safe])]);
+        rows = mergeRows(same ?? [], found).slice(0, 24);
+        // O registro exato não traz os campos de versão: completa pelo que veio na busca.
+        const byId = new Map(found.map((x: any) => [x.id, x]));
+        rows = rows.map((x: any) => byId.get(x.id) ?? x);
       }
       res.setHeader('Cache-Control', 's-maxage=3600');
       return res.status(200).json(rows.map(hit));

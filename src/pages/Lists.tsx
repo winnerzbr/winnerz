@@ -378,8 +378,9 @@ export function AddToList({ game }: { game: GameMini }) {
 }
 
 /** "Em listas da comunidade": listas públicas (e de amigos) que têm o jogo. */
-export function GameLists({ slug, title }: { slug: string; title: string }) {
+export function GameLists({ slug, title, onCount }: { slug: string; title: string; /** Quantos itens há (a ficha recolhe a parte da comunidade quando tudo está vazio). */ onCount?: (n: number) => void }) {
   const [list, setList] = useState<GameList[] | null>(null);
+  useEffect(() => { if (list) onCount?.(list.length); }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { let alive = true; listsApi.withGame(slug, 6).then((l) => alive && setList(l)).catch(() => alive && setList([])); return () => { alive = false; }; }, [slug]);
   if (!list || list.length === 0) return null;
   return (

@@ -299,3 +299,22 @@
 @media (max-width: 700px) { .jlem { grid-template-columns: 44px minmax(0, 1fr); } .jlem__acts { grid-column: 1 / -1; } }
 .jx__head { flex-wrap: wrap; row-gap: 6px; }
 .what__conf { margin: 2px 0 0; font-size: 13px; line-height: 1.45; }
+
+/* ---- Etapa 6: ficha do jogo, a parte social junta ------------------------------------------------------------- */
+.game-social { display: flex; flex-direction: column; }
+.game-social > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); cursor: pointer; list-style: none; }
+.game-social > summary::-webkit-details-marker { display: none; }
+.game-social > summary::before { content: '+'; font-family: var(--font-mono); color: var(--muted); width: 12px; }
+.game-social[open] > summary::before { content: '–'; }
+.game-social > summary .muted { font-size: 14px; }
+.game-social[open] > summary { margin-bottom: 28px; }
+.game-social[open] > :not(summary) + :not(summary) { margin-top: 40px; }
+
+/* ---- Etapa 6: busca agrupada --------------------------------------------------------------------------------- */
+.search__vers { display: block; margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--muted); }
+.search__vers a { color: var(--ink-2); }
+.search__fold > summary { cursor: pointer; list-style: none; padding: 6px 0; }
+.search__fold > summary::-webkit-details-marker { display: none; }
+.search__fold > summary::before { content: '+ '; }
+.search__fold[open] > summary::before { content: '– '; }
+.search__vers a { display: inline; }

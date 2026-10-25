@@ -503,8 +503,9 @@ export function GameSearchPick({ value, onChange, label }: { value: GameMini | n
 /* ------------------------------------------------------------------ */
 /* Ficha do jogo: conversas sobre ele                                   */
 /* ------------------------------------------------------------------ */
-export function GameConversations({ gameId, title }: { gameId: string; title: string }) {
+export function GameConversations({ gameId, title, onCount }: { gameId: string; title: string; /** Quantos itens há (a ficha recolhe a parte da comunidade quando tudo está vazio). */ onCount?: (n: number) => void }) {
   const [list, setList] = useState<Post[] | null>(null);
+  useEffect(() => { if (list) onCount?.(list.length); }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let alive = true;
     communityApi.forGame(gameId).then((l) => alive && setList(l)).catch(() => alive && setList([]));

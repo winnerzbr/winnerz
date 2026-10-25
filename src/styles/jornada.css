@@ -297,3 +297,4 @@
 .jlem__txt p { margin: 4px 0 0; font-size: 14px; color: var(--muted); overflow-wrap: anywhere; }
 .jlem__acts { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 700px) { .jlem { grid-template-columns: 44px minmax(0, 1fr); } .jlem__acts { grid-column: 1 / -1; } }
+.jx__head { flex-wrap: wrap; row-gap: 6px; }

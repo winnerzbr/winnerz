@@ -154,7 +154,7 @@ function Destaque({ s, row, chosen }: { s: State; row: Row; chosen: boolean }) {
         {pontos > 0 && <span className="jdest__pts">{pontos === 1 ? '1 ponto para voltar' : `${pontos} pontos para voltar`}</span>}
       </div>
       <div className="jdest__acts">
-        <PlayButton gameId={g.id} className="btn primary lg" idle="Começar sessão" />
+        <PlayButton gameId={g.id} className="btn lg" idle="Começar sessão" cont="Começar sessão" />
         <Link className="btn ghost lg" to={`/jornada/${g.slug}`}>Abrir a Jornada</Link>
       </div>
     </section>
@@ -216,7 +216,7 @@ function LembreteParado({ row, dias, onPaused }: { row: Row; dias: number; onPau
         <p>{row.note?.note ? `Seu último recado: “${row.note.note}”` : 'Quer voltar, pausar ou deixar para depois? Sem cobrança.'}</p>
       </div>
       <div className="jlem__acts">
-        <PlayButton gameId={row.g.id} className="btn ghost sm" idle="Voltar a jogar" />
+        <PlayButton gameId={row.g.id} className="btn sm" idle="Voltar a jogar" cont="Voltar a jogar" />
         <button type="button" className="btn quiet sm" onClick={() => { actions.setHistoryState(row.h!.id, 'pausada'); onPaused(); }}>Pausar</button>
         <button type="button" className="btn quiet sm" onClick={adiar}>Agora não</button>
       </div>

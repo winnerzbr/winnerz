@@ -253,6 +253,11 @@ export type Winner = { categoryId: string; category: string; game: AwardGame; vo
 export type AwardSticker = { sticker: import('./albumApi').Sticker; claimed: boolean; voted: boolean; open: boolean } | null;
 export type RevealStep = 'categoria' | 'indicados' | 'vencedor' | 'fim';
 
+/** O troféu do WinnerZ Awards: o Zênite, o ponto mais alto do céu (onde mora a estrela da bandeira do troféu). */
+export const TROFEU = 'Zênite';
+/** Selo de quem venceu a categoria (com empate, o Zênite é dividido). */
+export const seloVencedor = (n: number) => (n > 1 ? `Empate · ${TROFEU} dividido` : `Leva o ${TROFEU}`);
+
 const MSG70: Record<string, string> = {
   award_nominations_closed: 'A indicação aberta não está valendo agora.',
   award_suggest_limit: 'Você já indicou 3 jogos nesta categoria. Tire um para indicar outro.',

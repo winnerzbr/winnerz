@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, canAdmin, nomineeArt, phaseOf, publicAt, type Award, type AwardFull, type AwardGame, type Category, type Phase } from '../data/awards';
+import { awardsApi, canAdmin, nomineeArt, seloVencedor, TROFEU, phaseOf, publicAt, type Award, type AwardFull, type AwardGame, type Category, type Phase } from '../data/awards';
 import type { Game } from '../data/types';
 import { FORJADO_PATH } from '../components/Brand';
 import { useBackdrop } from '../components/Backdrop';
@@ -243,6 +243,7 @@ export function AwardsPage() {
             <Link to="/eventos" className="back awhero__back">← Eventos</Link>
             <div className="awhero__brand"><AwardsMark width={120} relief /><h1 className="t awhero__title" aria-label={full.award.title}>{shortTitle(full.award.title)}</h1></div>
             {full.award.intro && <p className="awhero__intro">{full.award.intro}</p>}
+            <p className="awhero__zen"><span>O troféu</span> <b>{TROFEU}</b> <span>· um para cada categoria</span></p>
             <p className="awhero__line">
               {phase === 'aberta'
                 ? <>{full.voters > 0 && <><span className="mono awhero__num">{full.voters.toLocaleString('pt-BR')}</span> {full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}. </>}Um voto por categoria, e dá para mudar até o fim.</>
@@ -311,7 +312,7 @@ export function AwardsPage() {
           // A cena: a escolhida (seu voto ou, no resultado, o vencedor) se abre em widescreen.
           const openId = showResult ? winners[0]?.id : full.myVotes[c.id];
           const next = withNominees[k + 1];
-          const tag = showResult ? (winners.length > 1 ? 'Empate' : 'Vencedor') : 'Seu voto';
+          const tag = showResult ? seloVencedor(winners.length) : 'Seu voto';
           return (
             <section key={c.id} id={`cat-${c.id}`} className="awcat" aria-labelledby={`cath-${c.id}`}>
               <div className={`scene${openId ? ' has' : ''}`}>

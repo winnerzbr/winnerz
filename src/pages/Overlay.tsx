@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useStore, openSession, focusJourneys, sessionsOf } from '../data/store';
 import { hourMin } from '../lib/format';
 import { demoDrop } from '../data/albumApi';
-import { awardsApi, awardsPlus } from '../data/awards';
+import { awardsApi, awardsPlus, seloVencedor } from '../data/awards';
 import { sofaApi, demoSofa, CENA_CARA, type SofaLinha } from '../data/sofaApi';
 import { Figura } from '../components/IAmiguinho';
 import { OverlayLive, cenaValida, type DadosCena } from './OverlayLive';
@@ -161,7 +161,7 @@ function RevealCard({ r }: { r: Reveal }) {
       {r.winner ? (
         <div className="ovl-aw__win">
           {r.winner.cover && <img src={r.winner.cover} alt="" />}
-          <span><span className="ovl-aw__tag">Vencedor</span><b>{r.winner.title}</b></span>
+          <span><span className="ovl-aw__tag">{seloVencedor(1)}</span><b>{r.winner.title}</b></span>
         </div>
       ) : (
         <ul className="ovl-aw__noms">{r.nominees.slice(0, 6).map((n) => <li key={n.title}>{n.cover && <img src={n.cover} alt="" />}<span>{n.title}</span></li>)}</ul>

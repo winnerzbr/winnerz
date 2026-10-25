@@ -5,7 +5,7 @@ import { packAfterFinish } from '../components/album/afterFinish';
 import { WhatNext } from '../components/WhatNext';
 import { useEffect, useRef, useState } from 'react';
 import { Link, navigate, usePath } from '../lib/router';
-import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, hasV43, sessionMinutes } from '../data/store';
+import { actions, useStore, openSession, sessionsOf, lastNote, currentHistory, uid, knownCompanions, hasV8, hasV43, hasV95, knownTags, sessionMinutes } from '../data/store';
 import { SUPABASE_ON } from '../lib/env';
 import { Icon } from '../components/Icon';
 import { Toast } from '../components/Toast';
@@ -228,11 +228,14 @@ export function SessionPage() {
           onCancel={() => setFinishing(false)}
           companions={knownCompanions(s)}
           canWho={hasV8(s)}
+          tagsOn={hasV95(s)}
+          knownTags={knownTags(s)}
           onFinish={(data) => {
             // Marcos do caminho: primeira sessão, dez sessões, metade do progresso. Festa pequena, sem cobrança.
             const nth = sessionsOf(s, h.id).filter((x) => x.endedAt).length + 1;
             const before = h.progress ?? 0, after = data.progress ?? before;
             const mins = data.minutes ?? sessionMinutes(session.startedAt, new Date().toISOString());
+            for (const t of data.points ?? []) actions.addMoment(session.id, { kind: 'ponto', text: t });
             actions.finishSession(session.id, data);
             discordApi.publish('sessao', session.id);
             const tone = s.prefs.tone;
@@ -243,7 +246,7 @@ export function SessionPage() {
             else noticeSaved('Sessão guardada', [g.title, mins ? durLabel(mins) : '', after ? `progresso ${after}%` : ''].filter(Boolean).join(' · '));
             navigate(`/jornada/${g.slug}`);
           }}
-          onZerei={(data) => { actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); packAfterFinish(h.id, g.id); setCelebrate({ historyId: h.id }); }}
+          onZerei={(data) => { for (const t of data.points ?? []) actions.addMoment(session.id, { kind: 'ponto', text: t }); actions.finishSession(session.id, data); actions.completeHistory(h.id); discordApi.publish('zerou', h.id); packAfterFinish(h.id, g.id); setCelebrate({ historyId: h.id }); }}
         />
       )}
       {capsuleOpen && <CapsuleSheet historyId={h.id} gameTitle={g.title} onClose={() => setCapsuleOpen(false)} />}

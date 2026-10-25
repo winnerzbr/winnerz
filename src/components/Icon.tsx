@@ -48,6 +48,7 @@ const paths: Record<string, ReactElement> = {
   caixa: <><path d="M3.5 8 12 4l8.5 4v9L12 21l-8.5-4z" strokeLinejoin="round" /><path d="M3.5 8 12 12l8.5-4M12 12v9" /></>,
   imagem: <><rect x="3.5" y="5" width="17" height="14" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M20.5 16l-5-5-8 8" /></>,
   pergunta: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.3c-.7.3-1.1 1-1.1 1.7v.5M12 17h.01" /></>,
+  parar: <rect x="7" y="7" width="10" height="10" fill="currentColor" stroke="none" />,
   maisAcoes: <><circle cx="5.5" cy="12" r="1.4" fill="currentColor" /><circle cx="12" cy="12" r="1.4" fill="currentColor" /><circle cx="18.5" cy="12" r="1.4" fill="currentColor" /></>,
 };
 

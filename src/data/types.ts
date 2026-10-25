@@ -256,6 +256,8 @@ export interface Session {
   intentMet?: 'sim' | 'meio' | 'nao';
   /** Onde a sessão começou e terminou na estrutura do jogo (capítulo, missão, área…; migração 0061). */
   partMarks?: SessionParts;
+  /** Marcadores livres da sessão (co-op, ao vivo, DLC, pós-jogo…; migração 0095). */
+  tags?: string[];
 }
 /** Um item da lista do jogo, com o nome do momento (a lista pode mudar depois) e como a pessoa chegou nele. */
 export interface PartMark { id: string; name: string; src?: 'lista' | 'texto' | 'foto' }
@@ -419,6 +421,8 @@ export interface State {
   schemaV8?: boolean;
   /** A migração 0043 (intenção da sessão: "jogar como descanso") já rodou? */
   schemaV43?: boolean;
+  /** A migração 0095 (marcadores da sessão) já rodou? */
+  schemaV95?: boolean;
   /** Administração (monta os Awards). */
   isAdmin?: boolean;
   /** Entrou por um convite: vê o site mesmo com o modo privado ligado (migração 0023). */

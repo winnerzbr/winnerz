@@ -1,0 +1,34 @@
+# Prévia em modo demonstração (sem banco, sem chaves): a cada envio de um ramo de trabalho, monta o site com os
+# dados de exemplo e guarda o resultado no ramo "previa", para conferir telas novas sem mexer nos dados reais.
+name: Prévia
+on:
+  push:
+    branches-ignore: [main, previa]
+permissions:
+  contents: write
+concurrency:
+  group: previa
+  cancel-in-progress: true
+jobs:
+  previa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - name: Build da demonstração
+        run: npm run build
+        env:
+          VITE_SITE_PRIVATE: '0'
+      - name: Guardar no ramo previa
+        run: |
+          cd dist
+          git init -q -b previa
+          git config user.name "WinnerZ CI"
+          git config user.email "ci@users.noreply.github.com"
+          echo "${GITHUB_SHA}" > .commit
+          git add -A
+          git commit -qm "Prévia de ${GITHUB_REF_NAME} (${GITHUB_SHA::7})"
+          git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" previa

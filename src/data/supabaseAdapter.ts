@@ -56,6 +56,8 @@ export function schemaV39() { return v39; }
 /** A migração 0043 já rodou? (intenção da sessão: "jogar como descanso") */
 let v43 = false;
 export function schemaV43() { return v43; }
+/** A migração 0095 já rodou? (marcadores da sessão: co-op, ao vivo, DLC…) */
+let v95 = false;
 /** Alguma página não carregou: o importador fica bloqueado para não duplicar o que não apareceu. */
 let loadIncomplete = false;
 export function schemaV4() { return v4; }
@@ -133,6 +135,7 @@ const sessionFromRow = (r: any): Session => ({
   goal: r.goal ?? undefined, goalDone: r.goal_done ?? undefined, source: r.source ?? undefined,
   intent: r.intent ?? undefined, intentMet: r.intent_met ?? undefined,
   partMarks: r.part_marks && typeof r.part_marks === 'object' && (r.part_marks.from || r.part_marks.to || r.part_marks.done?.length) ? r.part_marks : undefined,
+  tags: Array.isArray(r.tags) && r.tags.length ? r.tags : undefined,
 });
 const eventFromRow = (r: any): TimelineEvent => ({
   id: r.id, journeyId: r.journey_id, historyId: r.history_id, sessionId: r.session_id ?? undefined,
@@ -219,6 +222,7 @@ const sessionToRow = (x: Session) => ({
   ...(v39 ? { source: x.source ?? null } : {}),
   ...(v43 ? { intent: x.intent ?? null, intent_met: x.intentMet ?? null } : {}),
   ...(v61 ? { part_marks: x.partMarks ?? null } : {}),
+  ...(v95 ? { tags: x.tags?.length ? x.tags : null } : {}),
 });
 const eventToRow = (e: TimelineEvent) => {
   const row: Record<string, unknown> = {
@@ -336,6 +340,7 @@ export const supabaseAdapter: Adapter = {
     v73 = !(await sb.from('histories').select('feats').limit(1)).error;
     v43 = v39 && !(await sb.from('sessions').select('intent,intent_met').limit(1)).error;
     v61 = v43 && !(await sb.from('sessions').select('part_marks').limit(1)).error;
+    v95 = v61 && !(await sb.from('sessions').select('tags').limit(1)).error;
     v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
     v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
     if (v14) {
@@ -398,6 +403,7 @@ export const supabaseAdapter: Adapter = {
       schemaV6: v6,
       schemaV8: v8,
       schemaV43: v43,
+      schemaV95: v95,
       isAdmin: !!p?.is_admin,
       isGuest: !!p?.is_guest,
       loadIncomplete,

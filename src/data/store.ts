@@ -443,6 +443,15 @@ export function closedBy(s: State, e: TimelineEvent): History | null {
 export const hasV8 = (s: State) => s.mode === 'demo' || !!s.schemaV8;
 /** A intenção da sessão pode ser guardada (demonstração ou migração 0043). */
 export const hasV43 = (s: State) => s.mode === 'demo' || !!s.schemaV43;
+/** Os marcadores da sessão podem ser guardados (demonstração ou migração 0095). */
+export const hasV95 = (s: State) => s.mode === 'demo' || !!s.schemaV95;
+/** Marcadores já usados, dos mais frequentes aos menos, mais os sugeridos. */
+export function knownTags(s: State): string[] {
+  const n = new Map<string, number>();
+  for (const x of s.sessions) for (const t of x.tags ?? []) n.set(t, (n.get(t) ?? 0) + 1);
+  const usados = [...n].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  return [...new Set([...usados, 'co-op', 'ao vivo', 'DLC', 'pós-jogo'])].slice(0, 12);
+}
 
 /** Nomes de quem já jogou com você, dos mais frequentes aos menos (para sugerir na sessão). */
 export function knownCompanions(s: State): string[] {
@@ -805,7 +814,7 @@ export const actions = {
     });
   },
 
-  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark; partDone?: PartMark[] }) {
+  finishSession(sessionId: ID, data: { note?: string; whereStopped?: string; feeling?: string; minutes?: number; progress?: number; endedAt?: string; companions?: string[]; goalDone?: 'sim' | 'quase' | 'nao'; intentMet?: 'sim' | 'meio' | 'nao'; partTo?: PartMark; partDone?: PartMark[]; tags?: string[] }) {
     const ses = state.sessions.find((x) => x.id === sessionId);
     if (!ses) return;
     const at = data.endedAt ?? nowIso();
@@ -813,7 +822,8 @@ export const actions = {
     const companions = (data.companions ?? []).map((x) => x.trim()).filter(Boolean).slice(0, 8);
     const minutes = data.minutes ?? sessionMinutes(ses.startedAt, at);
     const known = data.progress ?? state.histories.find((h) => h.id === ses.historyId)?.progress;
-    const done: Session = { ...ses, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined,
+    const tags = [...new Set((data.tags ?? []).map((x) => x.trim().slice(0, 24)).filter(Boolean))].slice(0, 6);
+    const done: Session = { ...ses, tags: tags.length ? tags : ses.tags, endedAt: at, note: data.note || undefined, whereStopped: data.whereStopped || undefined, feeling: data.feeling, minutes, companions: companions.length ? companions : undefined, progress: known, goalDone: ses.goal ? data.goalDone : undefined, intentMet: ses.intent ? data.intentMet : undefined,
       partMarks: data.partTo || data.partDone?.length ? { ...ses.partMarks, ...(data.partTo ? { to: data.partTo } : {}), ...(data.partDone?.length ? { done: data.partDone.slice(0, 60) } : {}) } : ses.partMarks };
     if (ses.intent && data.intentMet) track(`sessao.intencao.${ses.intent}.${data.intentMet}`);
     const withText = companions.length ? `Com ${companions.length > 1 ? `${companions.slice(0, -1).join(', ')} e ${companions.at(-1)}` : companions[0]}.` : '';

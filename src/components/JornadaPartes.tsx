@@ -113,7 +113,7 @@ export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Ses
       ...soltos.map((e) => ({ t: 'evento' as const, at: e.at, e })),
     ].sort((a, b) => b.at.localeCompare(a.at));
     const busca = semAcento(q.trim());
-    const textoDe = (l: Linha) => l.t === 'sessao' ? [l.s.note, l.s.whereStopped, l.s.feeling, l.s.goal, ...(l.s.companions ?? []), ...l.evs.flatMap((e) => [e.title, e.text, e.quote])].filter(Boolean).join(' ') : l.t === 'evento' ? [l.e.title, l.e.text, l.e.quote].filter(Boolean).join(' ') : '';
+    const textoDe = (l: Linha) => l.t === 'sessao' ? [l.s.note, l.s.whereStopped, l.s.feeling, l.s.goal, ...(l.s.companions ?? []), ...(l.s.tags ?? []), ...l.evs.flatMap((e) => [e.title, e.text, e.quote])].filter(Boolean).join(' ') : l.t === 'evento' ? [l.e.title, l.e.text, l.e.quote].filter(Boolean).join(' ') : '';
     const passa = (l: Linha) => {
       if (busca && !semAcento(textoDe(l)).includes(busca)) return false;
       if (f === 'tudo') return true;
@@ -144,6 +144,7 @@ export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Ses
         {x.note && <p className="jreg__note">{x.note}</p>}
         {x.whereStopped && <p className="jreg__where">Parou em {x.whereStopped}</p>}
         {(x.feeling || x.companions?.length) && <p className="jreg__meta">{[x.feeling ? `Foi “${x.feeling}”` : '', x.companions?.length ? `com ${x.companions.join(', ')}` : ''].filter(Boolean).join(' · ')}</p>}
+        {x.tags?.length ? <p className="jreg__tags">{x.tags.map((t) => <span key={t}>{t}</span>)}</p> : null}
         {evs.map((e) => <Evento key={e.id} e={e} onEdit={onEdit} onPhoto={onPhoto} />)}
         {!x.note && !x.whereStopped && !x.feeling && !evs.length && <p className="jreg__meta">Sessão sem anotações.</p>}
       </div>

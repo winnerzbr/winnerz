@@ -214,6 +214,8 @@ export interface Capsule {
   next?: string;
   remember?: string;
   ai?: boolean;
+  /** Bloco da campanha: notas fixas que valem para a campanha toda (build, o que não vender, missões pela metade). */
+  pinned?: string;
   updatedAt?: string;
 }
 

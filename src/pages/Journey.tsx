@@ -41,7 +41,10 @@ import { Faixa, type FaixaToday } from '../components/Faixa';
 import { buildTimeline, byParts, weaveEchoes, weaveParts, weaveTalks, durText, type TLItem, type ChapterItem, type Compare, type Talk } from '../lib/chapters';
 import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
-import { awayLabel } from '../lib/recap';
+import { shortPlatform } from '../lib/platforms';
+import { MoreActions, type MoreItem } from '../components/MoreActions';
+import { PastSessionButton } from '../components/PastSession';
+import { Retomar, Registros, DiasJogados, BlocoCampanha, RegistroAuto } from '../components/JornadaPartes';
 
 
 export const eventDate = (e: TimelineEvent, short = true) => e.dateLabel ?? whenLabel(e.at, e.precision, { short });
@@ -112,6 +115,12 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [shareEvent, setShareEvent] = useState<string | null>(null);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [toast, setToast] = useState<{ id: number; text: string; historyId?: string } | null>(null);
+  const [confirmZ, setConfirmZ] = useState(false);
+  const [foto, setFoto] = useState<{ src: string; title: string } | null>(null);
+  // Abas da História: Registros (consulta rápida), Capítulos (a linha do tempo de antes) e Detalhes.
+  const [aba, setAbaRaw] = useState<Aba>(() => { try { const v = localStorage.getItem('wz.jornada.aba'); return v === 'capitulos' || v === 'detalhes' ? v : 'registros'; } catch { return 'registros'; } });
+  const setAba = (a: Aba) => { setAbaRaw(a); try { localStorage.setItem('wz.jornada.aba', a); } catch { /* só nesta visita */ } };
+  const irPara = (a: Aba, id: string) => { setAba(a); setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60); };
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
   useEffect(() => setHistSel(current.ordinal), [current.ordinal]);
 
@@ -141,7 +150,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
   // Botão de jogar: abre a sessão deste jogo, ou leva à sessão já aberta (nunca troca uma sessão em silêncio).
   const ps = playStateFor(s, game.id);
-  const playCta: PlayCta = { label: ps.label, now: ps.now, onClick: ps.go, hint: ps.hint };
+  // Aqui dentro da Jornada o botão diz o que acontece: começa uma sessão (o "Continuar" fica para as listas).
+  const playCta: PlayCta = { label: !ps.now && ps.label === 'Continuar' ? 'Começar sessão' : ps.label, now: ps.now, onClick: ps.go, hint: ps.hint };
   const chosenFocus = focusJourneys(s).filter((f) => f.chosen).map((f) => f.journey.id);
   const isFocus = chosenFocus.includes(journeyId);
   const toggleFocus = () => {
@@ -159,7 +169,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const back = away != null && away >= COMEBACK_AFTER_DAYS && isOpenState(current.state);
   useEffect(() => {
     if (location.hash === '#voltar') document.getElementById('voltar')?.scrollIntoView({ block: 'start' });
-    if (location.hash === '#progresso') setTimeout(() => document.getElementById('progresso')?.scrollIntoView({ block: 'center' }), 50);
+    if (location.hash === '#progresso') irPara('detalhes', 'progresso');
   }, [journeyId]);
   const showToday = !selHist || selHist.id === current.id ? isOpenState(current.state) : false;
   const allItems: TLItem[] = useMemo(() => buildTimeline({
@@ -257,81 +267,68 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const u = unitOf(outline);
   const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [], part: curPart ? { n: curPart.n, total: curPart.total, name: curPart.part.name } : undefined } : null;
 
+  // Etapa 2 da revisão: o topo diz só plataforma, campanha, estado e tempo; o resto mora nas abas e na lateral.
+  const copy = s.copies.find((c) => c.gameId === game.id);
+  const platform = copy ? shortPlatform(copy.platform) : undefined;
+  const campanha = current.title && !/^hist[óo]ria \d/i.test(current.title) ? current.title : current.ordinal > 1 ? `${current.ordinal}ª campanha` : 'Primeira campanha';
+  const minutosTotais = s.sessions.filter((x) => x.journeyId === journeyId).reduce((n, x) => n + (x.minutes ?? 0), 0);
+  const curEvents = allEvents.filter((e) => e.historyId === current.id);
+  const lastPhoto = [...curEvents].reverse().find((e) => e.image && e.kind !== 'carta');
+  const regSessions = selHist ? sessionsOf(s, selHist.id) : s.sessions.filter((x) => x.journeyId === journeyId);
+  const jSessions = s.sessions.filter((x) => x.journeyId === journeyId);
+  const pedeConfirmar = openState && zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress);
+  const acoes: MoreItem[] = [
+    ...(openState ? [
+      { key: 'foco', label: isFocus ? 'Tirar de “Jogando agora”' : 'Pôr em “Jogando agora”', on: isFocus, onSelect: toggleFocus },
+      { key: 'zerei', label: 'Zerei', onSelect: () => (pedeConfirmar ? setConfirmZ(true) : zerei()) },
+      ...(current.state === 'ativa' ? [{ key: 'pausar', label: 'Pausar', onSelect: () => { actions.setHistoryState(current.id, 'pausada'); stateChanged(current.id, 'Pausado. Ele espera, sem pressa.'); } }] : []),
+      { key: 'largar', label: 'Largar', onSelect: () => { actions.setHistoryState(current.id, 'dropada'); stateChanged(current.id, current.state === 'ativa' ? 'Largado, sem culpa. Dá para retomar quando quiser.' : 'Largado, sem culpa.'); } },
+      { key: 'encerrar', label: 'Encerrar sem zerar', onSelect: () => { actions.setHistoryState(current.id, 'encerrada'); stateChanged(current.id, 'Encerrado do seu jeito.'); } },
+      { key: 'progresso', label: 'Ajustar o progresso', onSelect: () => irPara('detalhes', 'progresso') },
+    ] : []),
+    { key: 'mais', label: 'Mais opções…', onSelect: () => setMenu(true) },
+  ];
+  const tabs: [Aba, string][] = [['registros', 'Registros'], ['capitulos', structured ? (openWorld ? 'Regiões' : u.title) : 'Linha do tempo'], ['detalhes', 'Detalhes']];
+
   return (
     <main className="journey">
-      <section className="jhero on-photo" aria-labelledby="jtitle">
+      <section className="jhero jhero--compact on-photo" aria-labelledby="jtitle">
         {bg && <img className="jhero__bg" src={bg} alt="" />}
         <div className="jhero__shade" aria-hidden="true" />
         <div className="jhero__fade" aria-hidden="true" />
         <div className="page jhero__in">
-          <Link to="/jornada" className="back jhero__back">← Jornada</Link>
           <div className="jhero__row">
             <Link to={`/jogos/${game.slug}`} className="jhero__cover" aria-label="Abrir a ficha do jogo"><CoverArt game={game} lazy={false} /></Link>
             <div className="jhero__info">
+              <Link to="/jornada" className="back jhero__back">← Jornada</Link>
+              <h1 id="jtitle" className="t jhero__title">{game.title}</h1>
+              <p className="jhero__meta">
+                {[platform, campanha].filter(Boolean).map((x) => <span key={x}>{x}<i aria-hidden="true">/</i></span>)}
+                <span>{openHere && <span className="tr now" aria-hidden="true" />}{openHere ? 'Jogando agora' : STATE_LABEL[current.state]}</span>
+                {totalSessions > 0 && <span className="jhero__meta-n"><i aria-hidden="true">/</i>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}{minutosTotais > 0 ? ` · ${durLabel(minutosTotais)}` : ''}</span>}
+              </p>
               {histories.length > 1 && (
                 <nav className="subnav jhero__hists" aria-label="Histórias">
                   {histories.map((h) => <button key={h.id} aria-current={histSel === h.ordinal ? 'true' : undefined} onClick={() => setHistSel(h.ordinal)}>{histLabel(h)}</button>)}
                   <button aria-current={histSel === 0 ? 'true' : undefined} onClick={() => setHistSel(0)}>Todas</button>
                 </nav>
               )}
-              <div className="jhero__top">
-              <div className="jhero__head">
-              <h1 id="jtitle" className="t jhero__title">{game.title}</h1>
-              {!light && (
-                // Fresta: os números entram numa frase, no lugar de "número grande + legenda".
-                // A tela se adapta ao que você registra: contadores zerados não aparecem.
-                <p className="jstats-line">
-                  {totalSessions > 0
-                    ? <>Você jogou <b>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}</b>{histories.length > 1 && <> em <b>{histories.length} histórias</b></>}{moments > 0 && <> e guardou <b>{moments} {moments === 1 ? 'momento' : 'momentos'}</b></>}.</>
-                    : <>Nenhuma sessão ainda.</>}
-                  {waypoints.length > 0 && <> <span className="jstats-line__now"><b>{waypoints.length}</b> {waypoints.length === 1 ? 'ponto' : 'pontos'} para voltar.</span></>}
-                </p>
-              )}
-              <DifficultyField key={current.id} history={current} inline />
-              </div>
-              {openState && (
-                // O ponto de luz é o próprio controle: arrastar já grava o progresso, sem descer até outro cartão.
-                <div className="jhero__prog" id="progresso">
-                  <div className="jhero__progrow">
-                    <input className="jhero__range" type="range" min={0} max={100} step={1} value={progress}
-                      style={{ ['--p' as string]: `${progress}%` }}
-                      aria-label={`Seu progresso ${current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}`} aria-valuetext={`${progress} por cento`}
-                      onChange={(e) => setProgress(Number(e.target.value))}
-                      onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
-                    <span className="mono jhero__pct">{progress}%</span>
-                  </div>
-                  <p className="jhero__arraste">
-                    <span>Arraste para informar</span>
-                    <span className="dica" tabIndex={0} aria-label="Chegar a 100% não marca Zerou sozinho.">
-                      <span className="dica__i" aria-hidden="true">i</span>
-                      <span className="dica__txt" role="tooltip">Chegar a 100% não marca Zerou sozinho.</span>
-                    </span>
-                    <span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Salvo</span>}</span>
-                  </p>
-                </div>
-              )}
-              </div>
-              <div className="jhero__actions">
-              <button className={`btn ${playCta.now ? 'now' : 'primary'}`} onClick={playCta.onClick} title={playCta.hint}>
+            </div>
+            <div className="jhero__actions">
+              <button className={`btn ${playCta.now ? 'now' : 'primary'} jhero__play`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}
               </button>
-              {openState && (
-                <button className="btn ghost focus-toggle" aria-pressed={isFocus} onClick={toggleFocus}>
-                  <span className="focus-toggle__dot" aria-hidden="true" />{isFocus ? (
-                    // Com o mouse em cima, o botão diz o que o clique faz: tirar de "Jogando agora".
-                    <><span className="focus-toggle__agora">{chosenFocus[0] === journeyId && chosenFocus.length > 1 ? 'Jogando agora · principal' : 'Jogando agora'}</span><span className="focus-toggle__pausa" aria-hidden="true">Dei uma pausa</span></>
-                  ) : 'Estou jogando'}
-                </button>
-              )}
-              {openState && (zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress)
-                ? <ConfirmButton className="btn ghost" label={<><span className="diamond" aria-hidden="true" />Zerei</>} confirm="Pouco tempo e pouco progresso. Zerou mesmo? Toque de novo" onConfirm={zerei} />
-                : <button className="btn ghost" onClick={zerei}><span className="diamond" aria-hidden="true" />Zerei</button>)}
-              {openState && <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'dropada'); stateChanged(current.id, current.state === 'ativa' ? 'Largado, sem culpa. Dá para retomar quando quiser.' : 'Largado, sem culpa.'); }}>Largar</button>}
-              {openState && <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'encerrada'); stateChanged(current.id, 'Encerrado do seu jeito.'); }}>Encerrar sem zerar</button>}
-              <button className="btn ghost icon" onClick={() => setMenu(true)} aria-haspopup="dialog" aria-label="Mais opções" title="Mais opções"><Icon name="maisAcoes" size={17} /></button>
-            </div>
+              {!openHere && current.state !== 'concluida' && <PastSessionButton gameId={game.id} className="btn ghost jhero__past" label="Sessão passada" />}
+              <MoreActions items={acoes} label="Ações" showLabel className="btn ghost jhero__acoes" align="right" />
             </div>
           </div>
+          {confirmZ && (
+            <div className="jhero__confirm" role="alert">
+              <span>Pouco tempo e pouco progresso registrados. Zerou mesmo?</span>
+              <button className="btn primary sm" onClick={() => { setConfirmZ(false); zerei(); }}><span className="diamond" aria-hidden="true" />Sim, zerei</button>
+              <button className="btn quiet sm" onClick={() => setConfirmZ(false)}>Cancelar</button>
+            </div>
+          )}
           {playCta.hint && <p className="faint jhero__hint">{playCta.hint}</p>}
         </div>
       </section>
@@ -340,124 +337,175 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         {isOpenState(current.state) && <BackBuddy journeyId={journeyId} />}
         <FitCard journeyId={journeyId} onPaused={(id) => stateChanged(id, 'Pausado. Ele espera, sem pressa.')} />
 
-        {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
-          <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
-            <div>
-              <h2 id="state-h" className="t">{STATE_LABEL[current.state]}{current.completedAt && current.state !== 'pausada' ? `, ${whenLabel(current.completedAt, current.completedPrecision)}` : ''}</h2>
-              {current.note ? <p className="state-card__note">“{current.note}”</p> : <p className="muted">{current.state === 'pausada' ? 'Sem pressa. Ele espera.' : 'Sem julgamento. Dá para retomar quando quiser.'}</p>}
-            </div>
-            <div className="state-card__actions">
-              <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'ativa'); stateChanged(current.id, toneLine('retomou', s.prefs.tone)); }}>Retomar</button>
-              <button className="btn quiet sm" onClick={() => setNoteFor(current.id)}>{current.note ? 'Editar recado' : 'Escrever por quê'}</button>
-            </div>
-          </section>
-        )}
+        <div className="jgrid">
+          <div className="jgrid__main">
+            {(current.state === 'pausada' || current.state === 'dropada' || current.state === 'encerrada') && (
+              <section className={`card state-card state-card--${current.state}`} aria-labelledby="state-h">
+                <div>
+                  <h2 id="state-h" className="t">{STATE_LABEL[current.state]}{current.completedAt && current.state !== 'pausada' ? `, ${whenLabel(current.completedAt, current.completedPrecision)}` : ''}</h2>
+                  {current.note ? <p className="state-card__note">“{current.note}”</p> : <p className="muted">{current.state === 'pausada' ? 'Sem pressa. Ele espera.' : 'Sem julgamento. Dá para retomar quando quiser.'}</p>}
+                </div>
+                <div className="state-card__actions">
+                  <button className="btn ghost" onClick={() => { actions.setHistoryState(current.id, 'ativa'); stateChanged(current.id, toneLine('retomou', s.prefs.tone)); }}>Retomar</button>
+                  <button className="btn quiet sm" onClick={() => setNoteFor(current.id)}>{current.note ? 'Editar recado' : 'Escrever por quê'}</button>
+                </div>
+              </section>
+            )}
 
-        {capsuleOpen && <CapsuleSheet historyId={current.id} gameTitle={game.title} onClose={() => setCapsuleOpen(false)} />}
+            {capsuleOpen && <CapsuleSheet historyId={current.id} gameTitle={game.title} onClose={() => setCapsuleOpen(false)} />}
 
-        {/* Etapa 2 da revisão: no alto, só onde você parou (ou o bloco de volta), o Jogar e a linha do tempo. */}
-        {current.state === 'concluida' ? (
-          <div className="jcards">
-            <section className="card jprog jprog--done">
-              <span className="kicker jprog__gold">História concluída</span>
-              <p className="t jprog__title">{current.title}</p>
-              <p className="muted">Zerou em {current.completedAt ? dayMonthYear(current.completedAt) : 'data não informada'}. Nada é obrigatório agora. Se quiser, comece outra História: esta continua guardada.</p>
-              <div className="jprog__actions">
-                <button className="btn ghost" onClick={() => { actions.play(game.id); navigate('/sessao'); }}>Jogar de novo</button>
-                <TrailerButton game={game} history={current} className="btn ghost" />
-                <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
+            {current.state === 'concluida' ? (
+              <div className="jcards">
+                <section className="card jprog jprog--done">
+                  <span className="kicker jprog__gold">História concluída</span>
+                  <p className="t jprog__title">{current.title}</p>
+                  <p className="muted">Zerou em {current.completedAt ? dayMonthYear(current.completedAt) : 'data não informada'}. Nada é obrigatório agora. Se quiser, comece outra História: esta continua guardada.</p>
+                  <div className="jprog__actions">
+                    <button className="btn ghost" onClick={() => { actions.play(game.id); navigate('/sessao'); }}>Jogar de novo</button>
+                    <TrailerButton game={game} history={current} className="btn ghost" />
+                    <ConfirmButton className="btn quiet sm" label="Não zerei: desfazer" confirm="Toque de novo: volta a “jogando”" onConfirm={() => actions.reopenHistory(current.id)} />
+                  </div>
+                  {current.letter && <SealedLetter key={current.id} text={current.letter.text} date={dayMonthYear(current.startedAt)} opened={!!current.letter.openedAt} onOpen={() => actions.openLetter(current.id)} />}
+                  <FeatsPanel key={`f-${current.id}`} history={current} />
+                </section>
+                {waypoints.length > 0 && (
+                  <section className="card jcap" aria-labelledby="capsula">
+                    <div className="jcap__head">
+                      <h2 id="capsula" className="t">{waypoints.length === 1 ? 'Um ponto ficou aberto' : `${waypoints.length} pontos ficaram abertos`}</h2>
+                      <button className="btn ghost sm" onClick={() => waypoints.forEach((w) => actions.resolveWaypoint(w.id))}>Resolver todos</button>
+                    </div>
+                    <p className="muted">Você zerou com estes pontos para voltar. Resolva os que já não importam; os outros esperam uma próxima História.</p>
+                    <div className="jcap__wps">
+                      <ul>
+                        {waypoints.map((w) => (
+                          <li key={w.id}>
+                            {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
+                            <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
+                            <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </section>
+                )}
               </div>
-              {current.letter && <SealedLetter key={current.id} text={current.letter.text} date={dayMonthYear(current.startedAt)} opened={!!current.letter.openedAt} onOpen={() => actions.openLetter(current.id)} />}
-              <FeatsPanel key={`f-${current.id}`} history={current} />
-            </section>
-            <section className="card jcap" aria-labelledby="capsula">
-              <div className="jcap__head">
-                <h2 id="capsula" className="t">{waypoints.length === 1 ? 'Um ponto ficou aberto' : `${waypoints.length} pontos ficaram abertos`}</h2>
-                <button className="btn ghost sm" onClick={() => waypoints.forEach((w) => actions.resolveWaypoint(w.id))}>Resolver todos</button>
-              </div>
-              <p className="muted">Você zerou com estes pontos para voltar. Resolva os que já não importam; os outros esperam uma próxima História.</p>
-              <div className="jcap__wps">
-                <ul>
-                  {waypoints.map((w) => (
-                    <li key={w.id}>
-                      {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
-                      <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
-                      <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
-          </div>
-        ) : current.state === 'dropada' || current.state === 'encerrada' ? null : back ? (
-          <ComebackBlock journeyId={journeyId} game={game} history={current} onCapsule={() => setCapsuleOpen(true)} onViewWaypoint={(i) => i >= 0 && setWpViewer(i)} />
-        ) : (
-          <div className="jcards">
-            <section className="card jcap" aria-labelledby="capsula">
-              <div className="jcap__head">
-                <h2 id="capsula" className="t">Onde você parou</h2>
-                <span className="jcap__tools"><Link className="btn quiet sm" to={`/jogos/${game.slug}/traduzir`}>Traduzir a tela</Link><button className="btn quiet sm" onClick={() => setCapsuleOpen(true)}>{current.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button></span>
-              </div>
-              <div className="jcap__grid">
-                {where && <div><span className="kicker">Lugar</span><strong>{where}</strong></div>}
-                {last && <div><span className="kicker">Última sessão</span><span className="mono">{longDay(last.startedAt)}{last.minutes ? ` · ${dur(last.minutes)}` : ''}{away != null && away > 1 ? ` · ${awayLabel(away)}` : ''}</span></div>}
-                {last?.companions?.length ? <div><span className="kicker">Com quem</span><strong>{last.companions.join(', ')}</strong></div> : null}
-                {extra.map((f) => <div key={f.key}><span className="kicker">{f.label}</span><strong>{current.capsule![f.key]}</strong></div>)}
-                {!where && !last && !extra.length && <div><span className="kicker">Registrado</span><span className="muted">Ainda nada. Ao finalizar uma sessão, você pode deixar um recado para a próxima vez.</span></div>}
-              </div>
-              {note?.note && <p className="jcap__note">“{note.note}”</p>}
-              <div className="jcap__wps">
-                <div className="kicker">Pontos para voltar · {waypoints.length}</div>
-                {waypoints.length === 0 && <p className="muted jcap__empty">Nenhum ativo. Durante uma sessão, toque em “Quero voltar aqui”.</p>}
-                <ul>
-                  {waypoints.map((w) => (
-                    <li key={w.id}>
-                      {w.image ? <button className="jcap__img" onClick={() => setWpViewer(waypoints.filter((x) => x.image).indexOf(w))} aria-label={`Ver foto: ${w.title}`}><img src={w.image} alt="" /></button> : <span className="jcap__img jcap__img--none"><Icon name="pin" size={16} /></span>}
-                      <div><div className="jcap__wtitle">{w.title}</div><div className="muted">{[w.text, dayMonth(w.at)].filter(Boolean).join(' · ')}</div></div>
-                      <button className="btn ghost sm" onClick={() => actions.resolveWaypoint(w.id)}>Resolver</button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <p className="faint jcap__src">Montado com o que você registrou. Nada aqui foi inventado.{current.capsule?.ai ? ' A Cápsula partiu de uma sugestão da IA que você confirmou.' : ''}</p>
-            </section>
-          </div>
-        )}
+            ) : current.state === 'dropada' || current.state === 'encerrada' ? null : back ? (
+              <ComebackBlock journeyId={journeyId} game={game} history={current} onCapsule={() => setCapsuleOpen(true)} onViewWaypoint={(i) => i >= 0 && setWpViewer(i)} />
+            ) : (
+              <Retomar last={last ?? null} note={note ?? null} where={where} waypoints={waypoints} photo={lastPhoto?.image ? { src: lastPhoto.image, at: lastPhoto.at } : undefined}
+                away={away} onCapsule={() => setCapsuleOpen(true)} hasCapsule={!!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember)}
+                onPhoto={(i) => setWpViewer(Math.max(0, i))} onLastPhoto={lastPhoto?.image ? () => setFoto({ src: lastPhoto.image!, title: lastPhoto.title }) : undefined}
+                history={current} translateHref={`/jogos/${game.slug}/traduzir`} extra={extra.map((f) => ({ label: f.label, text: current.capsule![f.key] as string }))} />
+            )}
 
+            <section className="jtabs" aria-label="A História da campanha">
+              <div className="jtabs__list" role="tablist" aria-label="Ver">
+                {tabs.map(([id, label]) => (
+                  <button key={id} id={`jtab-${id}`} type="button" role="tab" aria-selected={aba === id} aria-controls={`jpanel-${id}`} tabIndex={aba === id ? 0 : -1}
+                    className="jtabs__tab" onClick={() => setAba(id)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                      const i = tabs.findIndex((t) => t[0] === aba);
+                      const nx = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length][0];
+                      setAba(nx); document.getElementById(`jtab-${nx}`)?.focus();
+                    }}>{label}</button>
+                ))}
+              </div>
 
-        <section className="jline" aria-labelledby="jline-h">
-          <div className="jline__head">
-            <div>
-              <h2 id="jline-h" className="t">{selHist ? (selHist.ordinal > 1 || histories.length > 1 ? `A História ${selHist.ordinal}` : 'A sua História') : 'Todas as Histórias'}</h2>
-              <p className="muted">{selHist ? `${selHist.title && !/^hist/i.test(selHist.title) ? `${selHist.title}. ` : ''}Começou em ${whenLabel(selHist.startedAt, selHist.startedPrecision ?? 'dia')}.` : `Desde ${allEvents[0] ? eventDate(allEvents[0], false) : '—'}.`}{!light ? ` ${nSessSel} ${nSessSel === 1 ? 'sessão' : 'sessões'}, ${events.length} ${events.length === 1 ? 'registro' : 'registros'}.` : ''}</p>
-            </div>
-            <div className="jline__tools">
-              {structured && (
-                <div className="seg seg--sm" role="group" aria-label="Organizar a linha do tempo">
-                  <button aria-pressed={org === 'estrutura'} onClick={() => setOrg('estrutura')}>{openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`}</button>
-                  <button aria-pressed={org === 'data'} onClick={() => setOrg('data')}>Por data</button>
+              {aba === 'registros' && (
+                <div id="jpanel-registros" role="tabpanel" aria-labelledby="jtab-registros" className="jtabs__panel">
+                  <Registros sessions={regSessions} events={events} onEdit={setEditEvent} onPhoto={(src, title) => setFoto({ src, title })} />
                 </div>
               )}
-              <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
-              <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
-            </div>
-          </div>
-          <div className="chips jline__filters" role="group" aria-label="Mostrar na linha">
-            {FILTERS.map(([id, label]) => <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}
-          </div>
-          {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
 
-          {byStructure && openWorld && outline ? (
-            <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
-          ) : !hasEvents && !todayInfo && !byStructure ? (
-            <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
-          ) : byStructure ? (
-            <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
-          ) : (
-            <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+              {aba === 'capitulos' && (
+                <div id="jpanel-capitulos" role="tabpanel" aria-labelledby="jtab-capitulos" className="jtabs__panel jline">
+                  <div className="jline__head">
+                    <div>
+                      <h2 id="jline-h" className="t">{selHist ? (selHist.ordinal > 1 || histories.length > 1 ? `A História ${selHist.ordinal}` : 'A sua História') : 'Todas as Histórias'}</h2>
+                      <p className="muted">{selHist ? `${selHist.title && !/^hist/i.test(selHist.title) ? `${selHist.title}. ` : ''}Começou em ${whenLabel(selHist.startedAt, selHist.startedPrecision ?? 'dia')}.` : `Desde ${allEvents[0] ? eventDate(allEvents[0], false) : '—'}.`}{!light ? ` ${nSessSel} ${nSessSel === 1 ? 'sessão' : 'sessões'}, ${events.length} ${events.length === 1 ? 'registro' : 'registros'}.` : ''}</p>
+                    </div>
+                    <div className="jline__tools">
+                      {structured && (
+                        <div className="seg seg--sm" role="group" aria-label="Organizar a linha do tempo">
+                          <button aria-pressed={org === 'estrutura'} onClick={() => setOrg('estrutura')}>{openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`}</button>
+                          <button aria-pressed={org === 'data'} onClick={() => setOrg('data')}>Por data</button>
+                        </div>
+                      )}
+                      <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
+                      <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
+                    </div>
+                  </div>
+                  <div className="chips jline__filters" role="group" aria-label="Mostrar na linha">
+                    {FILTERS.map(([id, label]) => <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}
+                  </div>
 
-          )}
-        </section>
+                  {byStructure && openWorld && outline ? (
+                    <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
+                  ) : !hasEvents && !todayInfo && !byStructure ? (
+                    <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
+                  ) : byStructure ? (
+                    <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
+                  ) : (
+                    <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+                  )}
+                </div>
+              )}
+
+              {aba === 'detalhes' && (
+                <div id="jpanel-detalhes" role="tabpanel" aria-labelledby="jtab-detalhes" className="jtabs__panel jdet">
+                  {openState && (
+                    <section className="jdet__box" id="progresso" aria-labelledby="jdet-prog">
+                      <h2 id="jdet-prog" className="jside__k">Progresso {current.ordinal > 1 ? `na ${current.title}` : 'nesta campanha'}</h2>
+                      <div className="jhero__progrow">
+                        <input className="jhero__range" type="range" min={0} max={100} step={1} value={progress}
+                          style={{ ['--p' as string]: `${progress}%` }}
+                          aria-label={`Seu progresso ${current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}`} aria-valuetext={`${progress} por cento`}
+                          onChange={(e) => setProgress(Number(e.target.value))}
+                          onPointerUp={() => commitProgress(progress)} onKeyUp={() => commitProgress(progress)} onBlur={() => progress !== current.progress && commitProgress(progress)} />
+                        <span className="mono jhero__pct">{progress}%</span>
+                      </div>
+                      <p className="jhero__arraste">
+                        <span>Arraste para informar. Chegar a 100% não marca Zerou sozinho.</span>
+                        <span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Salvo</span>}</span>
+                      </p>
+                    </section>
+                  )}
+                  <section className="jdet__box">
+                    <DifficultyField key={current.id} history={current} inline />
+                    {!light && (
+                      <p className="jstats-line">
+                        {totalSessions > 0
+                          ? <>Você jogou <b>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}</b>{minutosTotais > 0 && <> (<b>{durLabel(minutosTotais)}</b>)</>}{histories.length > 1 && <> em <b>{histories.length} histórias</b></>}{moments > 0 && <> e guardou <b>{moments} {moments === 1 ? 'momento' : 'momentos'}</b></>}.</>
+                          : <>Nenhuma sessão ainda.</>}
+                      </p>
+                    )}
+                  </section>
+                  <section className="jdet__box" aria-labelledby="jdet-hist">
+                    <h2 id="jdet-hist" className="jside__k">{histories.length > 1 ? `${histories.length} Histórias com este jogo` : 'A História com este jogo'}</h2>
+                    <ul className="jdet__hists">
+                      {histories.map((h) => (
+                        <li key={h.id}>
+                          <div><b>{histLabel(h)}</b><span>{[`começou ${whenLabel(h.startedAt, h.startedPrecision ?? 'dia')}`, h.completedAt && h.state !== 'pausada' && h.state !== 'ativa' ? `${STATE_LABEL[h.state].toLowerCase()} ${whenLabel(h.completedAt, h.completedPrecision)}` : '', `${sessionsOf(s, h.id).length} ${sessionsOf(s, h.id).length === 1 ? 'sessão' : 'sessões'}`].filter(Boolean).join(' · ')}</span></div>
+                          <button className="btn quiet sm" onClick={() => setEditHist(h.id)}>Editar</button>
+                        </li>
+                      ))}
+                    </ul>
+                    {platform && <p className="faint">Plataforma do seu exemplar: {platform}. Muda na Coleção.</p>}
+                  </section>
+                  <div><button className="btn ghost sm" onClick={() => setMenu(true)}><Icon name="maisAcoes" size={16} />Mais opções</button></div>
+                </div>
+              )}
+              {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
+            </section>
+          </div>
+
+          <aside className="jgrid__side" aria-label="Sobre a campanha">
+            <BlocoCampanha history={current} />
+            <DiasJogados sessions={jSessions} title={game.title} />
+            <RegistroAuto sessions={jSessions} />
+          </aside>
+        </div>
       </div>
 
       {celebrating && (
@@ -488,6 +536,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       {shareEvent && s.events.some((x) => x.id === shareEvent) && <SnipShareSheet event={s.events.find((x) => x.id === shareEvent)!} game={game} onClose={() => setShareEvent(null)} />}
       {noteFor && <StateNoteSheet historyId={noteFor} onClose={() => setNoteFor(null)} />}
       {toast && <ActionToast key={toast.id} text={toast.text} action={toast.historyId ? 'Escrever por quê' : undefined} onAction={() => setNoteFor(toast.historyId!)} onDone={() => setToast(null)} />}
+      {foto && <PhotoViewer title={game.title} items={[{ kind: 'image' as const, src: foto.src, label: foto.title }]} start={0} onClose={() => setFoto(null)} />}
       {wpViewer !== null && (
         <PhotoViewer title={game.title} items={waypoints.filter((x) => x.image).map((x) => ({ kind: 'image' as const, src: x.image!, label: x.title }))} start={Math.max(0, wpViewer)} onClose={() => setWpViewer(null)} />
       )}
@@ -496,7 +545,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 }
 
 type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
-const dur = (m: number) => durLabel(m);
+type Aba = 'registros' | 'capitulos' | 'detalhes';
 
 /**
  * Retomada: depois de um mês longe do jogo, o IAmiguinho dá as boas-vindas com os dias reais (no máximo uma vez por

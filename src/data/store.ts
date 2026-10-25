@@ -681,9 +681,33 @@ export const actions = {
     const h = state.histories.find((x) => x.id === historyId);
     if (!h) return;
     const clean = Object.fromEntries(Object.entries(capsule).filter(([k, v]) => k === 'ai' ? v : typeof v === 'string' ? v.trim() : v != null).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v])) as Capsule;
-    const empty = !clean.where && !clean.doing && !clean.next && !clean.remember;
+    // O Bloco da campanha mora junto, mas não é parte da Cápsula: guardar a Cápsula não o apaga.
+    if (h.capsule?.pinned && clean.pinned === undefined) clean.pinned = h.capsule.pinned;
+    const empty = !clean.where && !clean.doing && !clean.next && !clean.remember && !clean.pinned;
     track(capsule.ai ? 'retomada.capsula-ia' : 'retomada.capsula');
     dispatch({ type: 'history.update', history: { ...h, capsule: empty ? undefined : { ...clean, updatedAt: nowIso() } } });
+  },
+
+  /** Bloco da campanha: texto livre, uma nota por linha. Vazio apaga. */
+  setPinned(historyId: ID, text: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const pinned = text.trim().slice(0, 1500) || undefined;
+    const rest = { ...(h.capsule ?? {}), pinned };
+    const empty = !rest.where && !rest.doing && !rest.next && !rest.remember && !pinned;
+    track('jornada.bloco');
+    dispatch({ type: 'history.update', history: { ...h, capsule: empty ? undefined : rest } });
+  },
+
+  /** Ponto para voltar escrito fora de uma sessão (na tela "Onde você parou"). */
+  addWaypoint(historyId: ID, text: string): ID | null {
+    const h = state.histories.find((x) => x.id === historyId);
+    const t = text.trim();
+    if (!h || !t) return null;
+    const id = uid();
+    track('jornada.ponto');
+    dispatch({ type: 'event.add', event: { id, journeyId: h.journeyId, historyId, kind: 'ponto', at: nowIso(), title: pontoTitulo(t), text: t } });
+    return id;
   },
 
   deleteHistory(historyId: ID) {

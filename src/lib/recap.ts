@@ -34,8 +34,10 @@ export function recapFor(s: State, journeyId: ID, now = Date.now()): Recap | nul
   const points = evs.filter((e) => e.kind === 'ponto' && !e.resolved).sort((a, b) => b.at.localeCompare(a.at));
   const moments = evs.filter((e) => e.kind === 'momento').sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3);
   const last = sessions[0];
-  const any = !!(last?.note || last?.whereStopped || points.length || moments.length || h.capsule);
-  return { history: h, daysAway: lastAt ? Math.floor((now - Date.parse(lastAt)) / DAY) : null, last, sessionsCount: sessions.length, points, moments, capsule: h.capsule, any };
+  // O Bloco da campanha mora junto da Cápsula, mas só conta como Cápsula quando há algum dos quatro campos.
+  const capsule = h.capsule && (h.capsule.where || h.capsule.doing || h.capsule.next || h.capsule.remember) ? h.capsule : undefined;
+  const any = !!(last?.note || last?.whereStopped || points.length || moments.length || capsule);
+  return { history: h, daysAway: lastAt ? Math.floor((now - Date.parse(lastAt)) / DAY) : null, last, sessionsCount: sessions.length, points, moments, capsule, any };
 }
 
 /** Vale mostrar o resumo completo? Depois de alguns dias longe, ou com a História pausada. */

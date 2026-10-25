@@ -18,6 +18,7 @@ import './styles/sofa.css';
 import './styles/tv.css';
 import './styles/live.css';
 import './styles/celular.css';
+import './styles/jornada.css';
 
 
 async function boot() {

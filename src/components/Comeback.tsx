@@ -95,7 +95,7 @@ export function ComebackBlock({ journeyId, game, history, onCapsule, onViewWaypo
               : <p className="muted">Ainda não há um próximo passo. Monte a Cápsula: onde você está, o que fazia e o que fazer depois.</p>}
             <div className="jback__acts">
               <PlayButton gameId={game.id} className="btn" />
-              <button className="btn quiet sm" onClick={onCapsule}>{history.capsule ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button>
+              <button className="btn quiet sm" onClick={onCapsule}>{history.capsule?.where || history.capsule?.doing || history.capsule?.next || history.capsule?.remember ? 'Atualizar a Cápsula' : 'Montar a Cápsula'}</button>
             </div>
           </div>
           {sessions.length > 0 && (

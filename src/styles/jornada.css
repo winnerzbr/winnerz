@@ -389,7 +389,7 @@
 
 /* ---- Etapa 9: Preferências em grupos ------------------------------------------------------------------------- */
 .prefs__gk { margin: 56px 0 -8px; padding-top: 16px; border-top: 1px solid var(--line-2); font-family: var(--font-mono); font-size: 12px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); scroll-margin-top: calc(var(--hdr, 71px) + 16px); }
-.prefs__main > .prefs__gk:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
+.prefs__main > .prefs__gk:first-child { display: none; }
 .prefs__navg { display: block; margin: 14px 0 2px; padding: 0 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
 .prefs__navg:first-child { margin-top: 0; }
 .prefs__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 18px; background: var(--surface); }

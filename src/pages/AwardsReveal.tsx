@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from '../lib/router';
 import { useStore } from '../data/store';
-import { awardsApi, awardsPlus, canAdmin, adminResultsOpen, nomineeArt, type AwardFull } from '../data/awards';
+import { awardsApi, awardsPlus, canAdmin, adminResultsOpen, nomineeArt, seloVencedor, TROFEU, type AwardFull } from '../data/awards';
 import { fmtWhen, fmtDay, Countdown } from './Awards';
 import { BrandMark } from '../components/Brand';
 
@@ -109,7 +109,7 @@ export function AwardsRevealPage() {
   const winners = cat ? cat.nominees.filter((n) => top > 0 && (res[n.id] ?? 0) === top) : [];
   const isShown = !!cat && !!shown[cat.id];
   const isSus = !!cat && suspense === cat.id;
-  const tag = winners.length > 1 ? 'Empate' : 'Vencedor';
+  const tag = seloVencedor(winners.length);
   const full_ = () => { const el = document.documentElement; if (document.fullscreenElement) void document.exitFullscreen(); else void el.requestFullscreen?.(); };
   const pctOf = (id: string) => (total ? Math.round(((res[id] ?? 0) / total) * 100) : 0);
 
@@ -179,7 +179,7 @@ export function AwardsRevealPage() {
           <div className="reveal__actions rvc__actions">
             <button className="btn ghost" disabled={i === 0} onClick={() => setI(i - 1)}>← Anterior</button>
             {isShown ? <span className="reveal__hint">Revelado</span>
-              : isSus ? <span className="reveal__hint rvc__wait">E o vencedor é…</span>
+              : isSus ? <span className="reveal__hint rvc__wait">E o {TROFEU} vai para…</span>
               : <button className="btn primary lg" onClick={reveal}>Revelar o vencedor</button>}
             <button className="btn ghost" disabled={i >= cats.length - 1} onClick={() => setI(i + 1)}>Próxima →</button>
           </div>

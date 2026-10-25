@@ -2145,6 +2145,9 @@ a.gev { color: var(--ink); }
 .awhero__title { font-size: clamp(48px, 5.6vw, 84px); line-height: 0.88; letter-spacing: -0.02em; }
 .awhero__intro { margin: 0; font-size: 16px; color: #C9CED4; max-width: 64ch; }
 .awhero__line { margin: 0; font-size: 17px; color: #C9CED4; }
+/* O troféu (Zênite): rótulo em maiúsculas; o nome do troféu leva o ouro (ouro só na marca e nos troféus). */
+.awhero__zen { margin: 0; font: 500 12px/1.4 var(--font-mono); letter-spacing: .2em; text-transform: uppercase; color: #9aa1ab; }
+.awhero__zen b { font: 800 15px var(--font-title); font-stretch: 125%; letter-spacing: .06em; color: #E2BE84; margin: 0 .2em; }
 .awhero__num { color: #F2F4F6; }
 .awhero__login { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: #9AA1AA; }
 .awhero__note { margin: 0; color: #9AA1AA; font-size: 14px; }

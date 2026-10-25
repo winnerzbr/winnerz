@@ -339,6 +339,10 @@ export interface Prefs {
   fitDismissed?: Record<ID, ID>;
   /** Temporadas criadas pela pessoa (as estações do ano entram sozinhas). */
   seasons?: { id: string; name: string; from: string; to: string }[];
+  /** Lembrete de jogo parado: depois de quantos dias sem jogar um jogo em andamento (desligado quando ausente). */
+  lembreteParado?: 7 | 14 | 30 | null;
+  /** "Agora não" no lembrete: até quando cada Jornada fica sem lembrete. */
+  lembreteAdiado?: Record<ID, string>;
   /** Revisão do backlog: o trimestre ("2026-T4") e quando foi feita ou dispensada. */
   review?: { quarter: string; at: string; how: 'feita' | 'dispensada' };
   /** Desafio semanal sem punição: o convite desta semana, as semanas cumpridas e se a pessoa desligou. */

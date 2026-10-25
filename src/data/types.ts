@@ -164,6 +164,9 @@ export interface MyGame {
   steamMinutes?: number;
   /** Acompanhando no Radar (lançamento, data, adiamento). Não é posse nem desejo. */
   onRadar?: boolean;
+  /** "Assisti": acompanhou numa live ou num vídeo, sem jogar (AAAA-MM-DD) e onde (migração 0096). */
+  watchedAt?: string;
+  watchedWhere?: string;
 }
 
 export interface Wish {
@@ -427,6 +430,8 @@ export interface State {
   schemaV43?: boolean;
   /** A migração 0095 (marcadores da sessão) já rodou? */
   schemaV95?: boolean;
+  /** A migração 0096 (Assisti, quatro da vida, notas e comunidade) já rodou? */
+  schemaV96?: boolean;
   /** Administração (monta os Awards). */
   isAdmin?: boolean;
   /** Entrou por um convite: vê o site mesmo com o modo privado ligado (migração 0023). */

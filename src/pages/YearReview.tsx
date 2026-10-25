@@ -10,6 +10,8 @@ import { CoverArt } from '../components/CoverArt';
 import { Icon } from '../components/Icon';
 import { durLabel, dayMonth } from '../lib/format';
 import { track } from '../lib/track';
+import { AnoCalendario, CartaoDoAno } from '../components/AnoMemoria';
+import { useMyHandle } from '../components/Moderation';
 
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -124,6 +126,8 @@ export function YearBody({ year }: { year: number }) {
 }
 
 function Numbers({ r, light }: { r: YearReview; light: boolean }) {
+  const s = useStore((x) => x);
+  const handle = useMyHandle();
   const max = Math.max(1, ...r.months);
   const nums: [string, string][] = light ? [] : [
     [String(r.sessions), r.sessions === 1 ? 'sessão' : 'sessões'], [String(r.days), r.days === 1 ? 'dia de jogo' : 'dias de jogo'],
@@ -135,6 +139,8 @@ function Numbers({ r, light }: { r: YearReview; light: boolean }) {
   return (
     <div className="yrv__nums">
       {nums.length > 0 && <dl className="season__stats">{nums.map(([n, l]) => <div key={l}><dd className="t">{n}</dd><dt>{l}</dt></div>)}</dl>}
+      <AnoCalendario s={s} year={r.year} />
+      {!light && r.sessions > 0 && <CartaoDoAno r={r} handle={handle} />}
       {!light && r.sessions > 0 && (
         <section className="card yrv__box"><h2 className="kicker">Sessões por mês</h2>
           <div className="yrv__months yrv__months--flat">{r.months.map((n, i) => <span key={i} className={n === max ? 'is-top' : undefined} title={`${n} em ${MONTHS[i]}`}><i style={{ height: `${Math.max(4, (n / max) * 100)}%` }} /><b>{MONTHS[i]}</b></span>)}</div>

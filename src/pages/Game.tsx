@@ -1,3 +1,4 @@
+import { AssistiField } from '../components/Assisti';
 import { GameJourneyStats } from '../components/GameJourneyStats';
 import { AddToList, GameLists } from './Lists';
 import { useEffect, useMemo, useState } from 'react';
@@ -294,6 +295,7 @@ function GameView({ gameId }: { gameId: string }) {
             {mine2.steamMinutes != null && mine2.steamMinutes > 0 && <div className="kv"><span className="muted">Tempo na Steam</span><span className="kv__v">{mine2.steamMinutes < 60 ? `${mine2.steamMinutes} min` : `${(Math.round(mine2.steamMinutes / 6) / 10).toLocaleString('pt-BR')} h`} <span className="prov">Informado pela Steam</span></span></div>}
             {mine2.estHours != null && <div className="kv"><span className="muted">Tempo estimado</span><span className="kv__v">{String(mine2.estHours).replace('.', ',')} h</span></div>}
             {mine2.genre && <div className="kv"><span className="muted">Seu gênero</span><span className="kv__v">{mine2.genre}</span></div>}
+            <AssistiField gameId={gameId} />
             {!j && !mine2.wontPlay && <p className="faint relation__hint">Jogar cria a primeira História da sua Jornada.</p>}
             {(!h || h.state !== 'ativa') && (
               <button className="btn quiet sm relation__wont" aria-pressed={!!mine2.wontPlay} onClick={() => actions.toggleWontPlay(gameId)}>{mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar'}</button>

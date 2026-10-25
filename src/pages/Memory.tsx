@@ -1,3 +1,4 @@
+import { SuasNotas } from '../components/SuasNotas';
 import { useEffect, useMemo, useState } from 'react';
 import { PactList } from '../components/Pacts';
 import { Link } from '../lib/router';
@@ -217,6 +218,7 @@ export function RhythmBody() {
               <div className="rhythm__head"><h2 id="rm" className="kicker">Últimos 12 meses</h2><span className="muted">Meses vazios são só meses. Jogar menos também é jogar.</span></div>
               <Bars values={r.months.map((m) => m.count)} labels={r.months.map((m) => m.label)} label="Sessões nos últimos 12 meses" />
             </section>
+            <SuasNotas />
             {r.companions.length > 0 && (
               <section className="card rhythm__card rhythm__card--wide" aria-labelledby="rc">
                 <div className="rhythm__head"><h2 id="rc" className="kicker">Com quem você jogou</h2></div>

@@ -74,7 +74,7 @@ export function ProfileSettings() {
 
   return (
     <div className="pfs">
-      <p className="muted prefs__p">Tudo começa só seu. Escolha, pilar por pilar, quem pode ver. Recados, fotos, sessões, preços e com quem você jogou nunca aparecem no perfil.</p>
+      <p className="muted prefs__p">Tudo começa só seu. Escolha, pilar por pilar, quem pode ver. Recados, pontos para voltar, preços e com quem você jogou nunca aparecem no perfil. Sessões e momentos com foto só aparecem nas Jornadas que você mandar mostrar, uma por uma.</p>
 
       <AvatarEditor />
 

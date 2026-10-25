@@ -45,7 +45,7 @@ export function MonthRestCard({ month }: { month?: string } = {}) {
         <>
           <p className="restmonth__lead">
             {m.withIntent === 1 ? 'Uma sessão' : `${m.withIntent} sessões`} com intenção marcada{m.sessions > m.withIntent ? `, de ${m.sessions} no mês` : ''}.
-            {rest && rest.answered ? <> Quando o plano era descansar, <b>{rest.sim === rest.answered ? (rest.sim === 1 ? 'deu certo' : 'deu certo todas as vezes') : `deu certo ${rest.sim} de ${rest.answered} ${rest.answered === 1 ? 'vez' : 'vezes'}`}</b>{rest.meio && rest.sim !== rest.answered ? `; ${rest.meio === 1 ? 'em outra' : `em ${rest.meio}`}, mais ou menos` : ''}.</> : null}
+            {rest && rest.answered ? <> Quando o plano era descansar, <b>{rest.sim === rest.count ? (rest.sim === 1 ? 'deu certo' : 'deu certo todas as vezes') : `deu certo ${rest.sim} de ${rest.count} ${rest.count === 1 ? 'vez' : 'vezes'}`}</b>{rest.meio ? `; ${rest.meio === 1 ? 'em uma' : `em ${rest.meio}`}, mais ou menos` : ''}{rest.count > rest.answered ? `; ${rest.count - rest.answered === 1 ? 'uma ficou' : `${rest.count - rest.answered} ficaram`} sem resposta` : ''}.</> : null}
             {m.bestPeriod ? <> O descanso costuma funcionar melhor <b>{m.bestPeriod}</b>.</> : null}
             {m.restMinutes && !light ? <> No total, {durLabel(m.restMinutes)} de descanso que funcionou.</> : null}
           </p>

@@ -16,6 +16,7 @@ import { pt } from './igdbPt';
 import { shortPlatform } from './platforms';
 import { parts } from './memory';
 import { NOT_FIT } from './sessions';
+import { sessaoDe, cabeNoTempo, pesoDoTempo, motivoDoTempo } from './tempo';
 
 export const MOODS = [
   { id: 'pouco', label: 'Tenho pouco tempo', title: 'Para um tempinho' },
@@ -401,16 +402,24 @@ export function markMismatch(gameId: ID, mood: MoodId) {
   try { const m = loadMismatch(); m[gameId] = [...new Set([...(m[gameId] ?? []), mood])]; localStorage.setItem(NKEY, JSON.stringify(m)); } catch { /* só nesta visita */ }
 }
 
-export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined; mismatch?: Record<ID, MoodId[]>; extra?: Extra } = {}): Idea[] {
+export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: string; today?: string; now?: number; hist?: Hist; seed?: number; vibe?: (id: ID) => Vibe | undefined; mismatch?: Record<ID, MoodId[]>; extra?: Extra; /** Minutos disponíveis agora (20, 45, 90, 180 ou o dia todo). */ tempo?: number | null } = {}): Idea[] {
   const now = opts.now ?? Date.now();
   const today = opts.today ?? new Date(now).toISOString().slice(0, 10);
   const hist = opts.hist ?? loadHist();
   const t = tasteProfile(s);
   const mism = opts.mismatch ?? loadMismatch();
-  const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood) && (!opts.extra || matchesExtra(s, c.game, opts.extra, c.kind)));
+  // O tempo que a pessoa tem é um filtro de verdade: o que não cabe (um RPG longo em 20 minutos) não entra.
+  const sessao = (c: Cand) => sessaoDe(c.game, opts.vibe?.(c.game.id)?.short);
+  const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood) && (!opts.extra || matchesExtra(s, c.game, opts.extra, c.kind)) && cabeNoTempo(sessao(c), opts.tempo));
   const r = rnd(opts.seed ?? daySeed(now));
-  const scored = cands.map((c) => { const x = score(c, mood, t, s, hist, now, opts.vibe?.(c.game.id)); return x && { c, ...x, jitter: r() }; }).filter((x): x is NonNullable<typeof x> => !!x);
-  if (mood === 'surpresa') scored.sort((a, b) => a.jitter - b.jitter);
+  const scored = cands.map((c) => {
+    const x = score(c, mood, t, s, hist, now, opts.vibe?.(c.game.id));
+    if (!x) return null;
+    const se = sessao(c);
+    const motivo = motivoDoTempo(se, opts.tempo, c.dna.hours);
+    return { c, score: x.score + pesoDoTempo(se, opts.tempo, c.dna.hours), why: motivo ? [{ icon: 'relogio', text: motivo }, ...x.why.filter((w) => w.icon !== 'relogio')] : x.why, jitter: r() };
+  }).filter((x): x is NonNullable<typeof x> => !!x);
+  if (mood === 'surpresa') scored.sort((a, b) => (opts.tempo ? pesoDoTempo(sessao(b.c), opts.tempo, b.c.dna.hours) - pesoDoTempo(sessao(a.c), opts.tempo, a.c.dna.hours) : 0) || a.jitter - b.jitter);
   else scored.sort((a, b) => b.score + b.jitter * 1.2 - (a.score + a.jitter * 1.2));
   // Variedade: evita duas ideias seguidas do mesmo gênero principal.
   const out: typeof scored = [];

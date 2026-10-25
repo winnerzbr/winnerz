@@ -185,3 +185,4 @@
   .ff1__more > summary { padding: 14px 16px; }
   .ff1__sections { padding: 4px 14px 18px; }
 }
+.ff1 .ff1__main .chips, .ff1 .ff1__main .pp__quick { justify-content: flex-start; }

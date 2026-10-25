@@ -18,16 +18,20 @@ const LONGA = ['role-playing', 'rpg', 'strategy', 'estrategia', 'simulator', 'si
 const CURTA = ['fighting', 'luta', 'racing', 'corrida', 'sport', 'esporte', 'puzzle', 'quebra-cabeca', 'arcade', 'pinball', 'card & board', 'cartas', 'quiz', 'party', 'festa', 'music', 'musica', 'ritmo', 'platform', 'plataforma', 'battle royale', 'roguelike', 'roguelite', 'rogue-lite', 'shoot \'em up', 'beat \'em up'];
 
 /**
- * Quanto uma sessão costuma pedir, pelos gêneros, temas e modos do jogo (e pela comunidade, quando há:
- * `curtaPelaComunidade` de 0 a 3). Gênero longo vence gênero curto ("RPG de ação" é longo).
+ * Quanto uma sessão costuma pedir, pelos gêneros, temas e modos do jogo. Gênero longo vence gênero curto
+ * ("RPG de ação" é longo). A comunidade (curto de 0 a 3, história de 0 a 3) ajusta: 3 é curto de verdade,
+ * 0 é longo; no meio, só aproxima um passo, e história muito forte nunca vira sessão curta.
  */
-export function sessaoDe(g: Pick<Game, 'genres' | 'themes' | 'modes'>, curtaPelaComunidade?: number): Sessao {
-  if (curtaPelaComunidade != null) { if (curtaPelaComunidade >= 2) return 'curta'; if (curtaPelaComunidade === 0) return 'longa'; }
+export function sessaoDe(g: Pick<Game, 'genres' | 'themes' | 'modes'>, vibe?: { short?: number; story?: number } | null): Sessao {
   const b = ` ${norm([g.genres ?? '', ...(g.themes ?? []), ...(g.modes ?? [])].join(' | '))} `;
   const tem = (ws: string[]) => ws.some((w) => new RegExp(`(^|[^a-z])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`).test(b));
-  if (tem(LONGA)) return 'longa';
-  if (tem(CURTA)) return 'curta';
-  return 'media';
+  const pelaFicha: Sessao = tem(LONGA) ? 'longa' : tem(CURTA) ? 'curta' : 'media';
+  const c = vibe?.short;
+  if (c == null) return pelaFicha;
+  if (c >= 3) return 'curta';
+  if (c <= 0) return 'longa';
+  if (c === 2) return pelaFicha === 'longa' ? 'media' : pelaFicha === 'media' && (vibe?.story ?? 0) < 3 ? 'curta' : pelaFicha;
+  return pelaFicha === 'curta' ? 'media' : pelaFicha;
 }
 
 /** Cabe no tempo? 20 min: só sessão curta. 45 min: nada de sessão longa. Daí para cima, tudo cabe. */

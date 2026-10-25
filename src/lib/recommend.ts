@@ -409,7 +409,7 @@ export function recommend(s: State, mood: MoodId, opts: { excludeJourneyId?: str
   const t = tasteProfile(s);
   const mism = opts.mismatch ?? loadMismatch();
   // O tempo que a pessoa tem é um filtro de verdade: o que não cabe (um RPG longo em 20 minutos) não entra.
-  const sessao = (c: Cand) => sessaoDe(c.game, opts.vibe?.(c.game.id)?.short);
+  const sessao = (c: Cand) => sessaoDe(c.game, opts.vibe?.(c.game.id));
   const cands = candidates(s, opts.excludeJourneyId, today, now).filter((c) => !mism[c.game.id]?.includes(mood) && (!opts.extra || matchesExtra(s, c.game, opts.extra, c.kind)) && cabeNoTempo(sessao(c), opts.tempo));
   const r = rnd(opts.seed ?? daySeed(now));
   const scored = cands.map((c) => {

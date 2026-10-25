@@ -9,7 +9,11 @@ test('RPG, estratégia e mundo aberto pedem sessão longa; luta e corrida, curta
   assert.equal(sessaoDe({ genres: 'Racing, Sport' }), 'curta');
   assert.equal(sessaoDe({ genres: 'Adventure', themes: ['Action', 'Open world'] }), 'longa');
   assert.equal(sessaoDe({ genres: 'Adventure', themes: ['Horror'] }), 'media');
-  assert.equal(sessaoDe({ genres: 'Role-playing (RPG)' }, 3), 'curta');
+  assert.equal(sessaoDe({ genres: 'Role-playing (RPG)' }, { short: 3 }), 'curta');
+  // Yakuza: RPG de história longa, com atividades curtas na cidade: sessão média (cabe em 45, não em 20).
+  assert.equal(sessaoDe({ genres: 'Ação e RPG' }, { short: 2, story: 3 }), 'media');
+  // Um FPS que a comunidade diz que rende em partidas curtas.
+  assert.equal(sessaoDe({ genres: 'Tiro em primeira pessoa' }, { short: 2, story: 1 }), 'curta');
 });
 
 test('Dragon Age Inquisition não cabe em 20 nem em 45 minutos', () => {

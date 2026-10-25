@@ -87,7 +87,7 @@ export function wishIdeas(s: State, mood: MoodId, today = localDay(), seed = 1, 
     const released = g.releasedOn ? g.releasedOn <= today : g.year != null && g.year < year;
     if (!released) continue;
     const d = gameDna(g, s);
-    const se = sessaoDe(g, vibesApi.get(g.id)?.short);
+    const se = sessaoDe(g, vibesApi.get(g.id));
     if (!cabeNoTempo(se, tempo)) continue;
     if (mood === 'alguem' && !d.fits.together) continue;
     if (mood === 'historia' && !d.fits.story) continue;

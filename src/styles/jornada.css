@@ -400,3 +400,8 @@
 /* Início: topo mais baixo (sem o vão grande entre o menu e o primeiro texto). */
 .home .hero__row { min-height: 0; padding-top: 44px; padding-bottom: 48px; }
 @media (max-width: 760px) { .home .hero__row { padding-top: 28px; padding-bottom: 32px; } }
+
+/* Ficha do jogo: topo mais baixo (sem o vão entre o menu e a capa). */
+.ghero { min-height: 0; }
+.ghero__row { padding-top: 44px; padding-bottom: 48px; }
+@media (max-width: 760px) { .ghero__row { padding-top: 28px; padding-bottom: 32px; } }

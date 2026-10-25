@@ -947,11 +947,10 @@ export default async function handler(req: Req, res: Res) {
         // Com os campos de versão (para agrupar edições, remakes e DLCs); se o IGDB recusar algum, cai na busca simples.
         const extra = `${SEARCH_FIELDS},version_parent,parent_game,version_title,game_type.type,category,game_status.status,status`;
         const busca = (f: string) => igdb('games', `search "${safe}"; fields ${f}; limit 20;`);
-        const [found, [same]] = await Promise.all([busca(extra).catch(() => busca(SEARCH_FIELDS)), exactMany([safe])]);
+        // O nome exato também com os campos de versão: são justamente as várias edições com o mesmo nome.
+        const exato = (f: string) => igdb('games', `where name ~ "${safe}"; fields ${f}; sort total_rating_count desc; limit 12;`);
+        const [found, same] = await Promise.all([busca(extra).catch(() => busca(SEARCH_FIELDS)), exato(extra).catch(() => exactMany([safe]).then((r) => r[0] ?? []))]);
         rows = mergeRows(same ?? [], found).slice(0, 24);
-        // O registro exato não traz os campos de versão: completa pelo que veio na busca.
-        const byId = new Map(found.map((x: any) => [x.id, x]));
-        rows = rows.map((x: any) => byId.get(x.id) ?? x);
       }
       res.setHeader('Cache-Control', 's-maxage=3600');
       return res.status(200).json(rows.map(hit));

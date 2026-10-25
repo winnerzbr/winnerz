@@ -88,7 +88,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
       className={`star-input${dragging ? ' is-dragging' : ''}${hover !== null ? ' is-preview' : ''}${live ? ' is-live' : ''}${value === 5 && !live ? ' is-max' : ''}`}
       role="slider" tabIndex={0}
       aria-labelledby={labelledBy}
-      aria-valuemin={0} aria-valuemax={5} aria-valuenow={value} aria-valuetext={`${fmt(value)} ${value === 1 ? 'estrela' : 'estrelas'}`}
+      aria-valuemin={0} aria-valuemax={5} aria-valuenow={value} aria-valuetext={`${fmt(value)} de 5`}
       onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={leave} onKeyDown={key}
       style={{ gap: Math.round(size * 0.14), ['--score-h' as string]: scoreHue(shown / 5), ['--k' as string]: shown / 5 } as CSSProperties}
     >

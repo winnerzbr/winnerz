@@ -194,7 +194,7 @@ function GameView({ gameId }: { gameId: string }) {
                 <h2 className="kicker">Comunidade WinnerZ</h2>
                 <div className="seg seg--sm" role="group" aria-label="Escala das notas">
                   <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
-                  <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>5 estrelas</button>
+                  <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>0–5</button>
                 </div>
               </div>
               <div className="rate-card__body">
@@ -350,7 +350,7 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
       <div className="review__head">
         <span className="review__avatar" aria-hidden="true">{r.author.initial}</span>
         <div className="review__who"><div className="review__name">{r.author.name}</div>{r.context && <div className="mono review__ctx">{r.context}</div>}</div>
-        <div className="review__score" title={orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}>
+        <div className="review__score" title={orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada de 0 a 5')}>
           <span className="t">{formatScore(r.rating.normalized, scale)}</span>
           {scale === 'FIVE_STAR' && <Stars normalized={r.rating.normalized} size={12} />}
         </div>
@@ -369,7 +369,7 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
           <p className="review__text">{r.text}</p>
         </>
       )}
-      <div className="faint review__foot">{orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada em estrelas')}{r.useful != null ? ` · ${r.useful} pessoas acharam útil` : ''}</div>
+      <div className="faint review__foot">{orig ?? (r.rating.originalScale === 'TEN_POINT' ? 'Nota dada de 0 a 10' : 'Nota dada de 0 a 5')}{r.useful != null ? ` · ${r.useful} pessoas acharam útil` : ''}</div>
     </article>
   );
 }
@@ -396,7 +396,7 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
     <div className="editor">
       <h2 className="t my-review__title">{existing ? 'Editar sua análise' : 'Sua análise'}</h2>
       {rounded && existing && (
-        <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'Em estrelas, ela aparece arredondada para a meia estrela mais próxima' : 'De 0 a 10, ela aparece arredondada para o meio ponto mais próximo'}; só muda se você mexer na nota.</p>
+        <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'De 0 a 5, ela aparece arredondada para o meio ponto mais próximo' : 'De 0 a 10, ela aparece arredondada para o meio ponto mais próximo'}; só muda se você mexer na nota.</p>
       )}
       <div className="editor__score">
         <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>
@@ -411,7 +411,7 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
             {!existing && !touched ? <span className="editor__unset">Toque para dar a nota</span> : <AnimatedScore value={value} max={max} />}
           </div>
         )}
-        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre as estrelas ou clique. Dá para dar meia estrela.</p>}
+        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre os traços ou clique. Dá para dar meio ponto.</p>}
       </div>
       <label htmlFor="rev-title" className="editor__label">Título (opcional)</label>
       <input id="rev-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Em uma frase, como foi?" />

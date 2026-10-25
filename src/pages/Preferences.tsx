@@ -25,7 +25,7 @@ import { noApp, avisosApp, salvarAvisosApp, permissaoAvisos, pedirPermissaoAviso
 
 const SAMPLES = [
   { who: 'Uma nota 9,5 de 0 a 10', r: normalize(9.5, 'TEN_POINT') },
-  { who: 'Uma nota de 4,5 estrelas', r: normalize(4.5, 'FIVE_STAR') },
+  { who: 'Uma nota 4,5 de 0 a 5', r: normalize(4.5, 'FIVE_STAR') },
   { who: 'Uma nota 8,5 de 0 a 10', r: normalize(8.5, 'TEN_POINT') },
 ];
 
@@ -118,10 +118,10 @@ export function Preferences() {
 
       <section aria-labelledby="notas" className="prefs__section prefs__section--sub">
         <h3 id="notas" className="prefs__sub">Escala das notas</h3>
-        <p className="muted prefs__p">A nota pertence a quem avaliou; a escala pertence a quem está vendo. Nada é arredondado: uma nota 8,5 aparece como 4,25 estrelas, com a estrela preenchida na medida certa.</p>
+        <p className="muted prefs__p">A nota pertence a quem avaliou; a escala pertence a quem está vendo. Nada é arredondado: uma nota 8,5 aparece como 4,25 na escala de 0 a 5, com o traço preenchido na medida certa.</p>
         <div className="seg" role="group" aria-label="Escala das notas">
           <button aria-pressed={prefs.scale === 'TEN_POINT'} onClick={() => actions.setPrefs({ scale: 'TEN_POINT' })}>De 0 a 10</button>
-          <button aria-pressed={prefs.scale === 'FIVE_STAR'} onClick={() => actions.setPrefs({ scale: 'FIVE_STAR' })}>5 estrelas</button>
+          <button aria-pressed={prefs.scale === 'FIVE_STAR'} onClick={() => actions.setPrefs({ scale: 'FIVE_STAR' })}>De 0 a 5</button>
         </div>
         <ul className="samples">
           {SAMPLES.map((x) => (

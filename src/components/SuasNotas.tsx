@@ -24,7 +24,7 @@ export function SuasNotas() {
   }, [s.mode, s.profile?.id, mine.length]); // eslint-disable-line react-hooks/exhaustive-deps
   if (mine.length < 3) return null;
   const cinco = scale === 'FIVE_STAR';
-  const rot = cinco ? ['5 ★', '4 ★', '3 ★', '2 ★', '1 ★'] : ['9 a 10', '7 a 8', '5 a 6', '3 a 4', '0 a 2'];
+  const rot = cinco ? ['5', '4', '3', '2', '1'] : ['9 a 10', '7 a 8', '5 a 6', '3 a 4', '0 a 2'];
   const bins = [0, 0, 0, 0, 0];
   for (const r of mine) {
     const v = r.rating.normalized;
@@ -36,7 +36,7 @@ export function SuasNotas() {
   if (cmp && cmp.length >= 3) {
     const d = cmp.reduce((a, x) => a + (x.mine - Number(x.others)), 0) / cmp.length;
     const v = Math.abs(d) / (cinco ? 200 : 100);
-    const un = cinco ? (Math.abs(v - 0.5) < 0.13 ? 'meia estrela' : `${v.toFixed(1).replace('.', ',')} ${v >= 1.95 ? 'estrelas' : 'estrela'}`) : `${v.toFixed(1).replace('.', ',')} ${v >= 1.95 ? 'pontos' : 'ponto'}`;
+    const un = cinco ? (Math.abs(v - 0.5) < 0.13 ? 'meio ponto' : `${v.toFixed(1).replace('.', ',')} ${v >= 1.95 ? 'pontos' : 'ponto'}`) : `${v.toFixed(1).replace('.', ',')} ${v >= 1.95 ? 'pontos' : 'ponto'}`;
     frase = v < (cinco ? 0.15 : 0.3) ? `Suas notas ficam perto das da comunidade nos ${cmp.length} jogos que dá para comparar.` : `Você dá, em média, ${un} ${d > 0 ? 'a mais' : 'a menos'} que a comunidade (em ${cmp.length} jogos com notas de 3 ou mais pessoas).`;
   }
   return (

@@ -50,9 +50,12 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
   }, [parts, doneAt, sessions]);
   const cur = partAt(parts, history.progress, history.part);
   const curKey = cur ? cur.group ?? '—' : regions.find((r) => r.done < r.items.length)?.key ?? regions[0]?.key;
-  // Até onde os nomes aparecem: as regiões visitadas e as duas seguintes.
+  // Spoiler: só aparecem o nome e o conteúdo das regiões em que você já esteve. A seguinte fica coberta (tocar para ver)
+  // e as demais nem são contadas: o nome, a quantidade de etapas e quantas regiões faltam também contam o jogo.
   const lastSeen = Math.max(regions.findIndex((r) => r.key === curKey), ...regions.map((r, i) => (r.done || r.sessions.length ? i : -1)));
-  const named = regions.slice(0, lastSeen + 3);
+  const [revealed, setRevealed] = useState<Set<string>>(() => new Set());
+  const isOpen = (r: Region, i: number) => i <= lastSeen || revealed.has(r.key);
+  const named = regions.slice(0, lastSeen + 2);
   const hidden = regions.length - named.length;
   const [sel, setSel] = useState<string | undefined>(undefined);
   const region = regions.find((r) => r.key === (sel ?? curKey)) ?? regions[0];
@@ -90,6 +93,12 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
       )}
       <nav className="rv__list" aria-label="Regiões">
         {named.map((r, i) => {
+          if (!isOpen(r, i)) return (
+            <button key={r.key} type="button" className={`rv__reg is-far is-covered${r === region ? ' is-sel' : ''}`} onClick={() => { setRevealed(new Set([...revealed, r.key])); setSel(r.key); }}>
+              <span className="rv__reg-top"><b>Região {i + 1}</b><span className="mono">a seguir</span></span>
+              <small>Com spoiler · tocar para ver</small>
+            </button>
+          );
           const pct = r.items.length ? (r.done / r.items.length) * 100 : 0;
           const here = r.key === curKey, full = r.done === r.items.length && r.done > 0;
           return (
@@ -100,9 +109,15 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
             </button>
           );
         })}
-        {hidden > 0 && <p className="rv__more">Mais {plural(hidden, 'região', 'regiões')} à frente · nomes escondidos</p>}
+        {hidden > 0 && <p className="rv__more">Mais regiões à frente · escondidas até você chegar</p>}
       </nav>
 
+      {!isOpen(region, ri) ? (
+      <section className="rv__main" aria-label={`Região ${ri + 1}`}>
+        <div className="rv__head"><div><span className="rv__k">Região {ri + 1}</span><h3 className="rv__name">Ainda não apareceu para você</h3></div></div>
+        <button type="button" className="rv__cover" onClick={() => setRevealed(new Set([...revealed, region.key]))}>Com spoiler · tocar para ver</button>
+      </section>
+      ) : (
       <section className="rv__main" aria-label={region.name}>
         {img && <div className="rv__bg" style={{ backgroundImage: `url(${img})` }} aria-hidden="true" />}
         <div className="rv__head">
@@ -159,6 +174,7 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
           ) : <p className="faint">Nenhuma sessão marcada nesta região ainda. No fim da sessão, marque o que você fez.</p>}
         </div>
       </section>
+      )}
     </div>
   );
 }

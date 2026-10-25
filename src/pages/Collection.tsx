@@ -133,7 +133,7 @@ export function Collection() {
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Coleção</h1>
-          <p className="muted lead">{!uniqueGames ? 'Nenhum jogo ainda.' : <><span className="lead__strong">{uniqueGames} {uniqueGames === 1 ? 'jogo' : 'jogos'}</span> em {platforms.length} {platforms.length === 1 ? 'plataforma' : 'plataformas'}{s.wishes.length ? `, mais ${s.wishes.length} ${s.wishes.length === 1 ? 'desejo' : 'desejos'}` : ''}.</>}</p>
+          <p className="muted lead">{!uniqueGames ? 'Nenhum jogo ainda.' : <><span className="lead__strong">{uniqueGames.toLocaleString('pt-BR')} {uniqueGames === 1 ? 'título' : 'títulos'}</span>{s.copies.length !== uniqueGames ? <> · {s.copies.length.toLocaleString('pt-BR')} exemplares</> : null} em {platforms.length} {platforms.length === 1 ? 'plataforma' : 'plataformas'}{s.wishes.length ? `, mais ${s.wishes.length} ${s.wishes.length === 1 ? 'desejo' : 'desejos'}` : ''}.</>}</p>
         </div>
         <div className="page-head__side">
           <div className="collection__tools">
@@ -193,7 +193,7 @@ export function Collection() {
               <span>Separar por plataforma</span>
               <input type="checkbox" role="switch" className="switch" checked={view.group} onChange={() => setView({ ...view, group: !view.group })} />
             </label>
-            {filtered && <p className="muted cbar__count">{list.length} {list.length === 1 ? 'cópia' : 'cópias'} com esses filtros. <button className="linklike" onClick={() => { setQ(''); setPlatform(''); setKind('tudo'); setStatus('tudo'); }}>Limpar filtros</button></p>}
+            {filtered && <p className="muted cbar__count">{list.length} {list.length === 1 ? 'exemplar' : 'exemplares'} com esses filtros. <button className="linklike" onClick={() => { setQ(''); setPlatform(''); setKind('tudo'); setStatus('tudo'); }}>Limpar filtros</button></p>}
           </div>
         </aside>
       )}
@@ -241,7 +241,7 @@ export function Collection() {
           <div ref={sentinel} className="cgrid__sentinel" aria-hidden="true" />
         </div>
       )}
-      {limit < list.length && <p className="faint cgrid__more">Mostrando {limit} de {list.length}. Role para ver mais.</p>}
+      {limit < list.length && <p className="faint cgrid__more">Mostrando {limit} de {list.length} exemplares. Role para ver mais.</p>}
       {(s.trashCopies?.length ?? 0) + (s.trashHardware?.length ?? 0) > 0 && <p className="collection__trash"><Link to="/colecao/lixeira">Lixeira ({(s.trashCopies?.length ?? 0) + (s.trashHardware?.length ?? 0)})</Link> · o que você tirou da coleção nos últimos 30 dias</p>}
       </div>
       </div>

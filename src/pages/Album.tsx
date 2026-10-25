@@ -221,7 +221,7 @@ function PacksView({ state, maps }: { state: AlbumState; maps: Maps }) {
                 <b>{packTitle(p)}</b>
                 <p className="muted">{packWhy(p)} · aberto em {dateLabel(p.openedAt ?? p.createdAt)}</p>
                 <div className="alb-packrow__mini">{(p.contents ?? []).map((d, i) => maps.byId[d.id] ? <StickerView key={i} s={maps.byId[d.id]} /> : null)}</div>
-                {p.contents && <p className="faint" style={{ fontSize: 12 }}>{p.contents.map((d) => `${maps.byId[d.id]?.name ?? '?'} (${TIER_LABEL[d.tier]}${d.dup ? ', repetida' : ''})`).join(' · ')}</p>}
+                {p.contents && <p className="faint" style={{ fontSize: 12 }}>{p.contents.map((d) => maps.byId[d.id] ? `${maps.byId[d.id].name} (${TIER_LABEL[d.tier]}${d.dup ? ', repetida' : ''})` : `figurinha retirada do álbum (${TIER_LABEL[d.tier]})`).join(' · ')}</p>}
               </div>
             </li>))}</ul>
         </section>

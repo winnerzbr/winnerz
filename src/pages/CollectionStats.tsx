@@ -6,6 +6,7 @@ import { SubNav } from '../components/SubNav';
 import { canonicalPlatform, platformRank, shortPlatform } from '../lib/platforms';
 import { pt } from '../lib/igdbPt';
 import { partsOf } from '../lib/dates';
+import { daysUntil } from '../lib/radar';
 import { CoverArt } from '../components/CoverArt';
 import { Backdrop } from '../components/Backdrop';
 import { Sheet, ConfirmButton } from '../components/Sheet';
@@ -45,6 +46,7 @@ function compute(s: State) {
   const gameIds = [...new Set(s.copies.map((c) => c.gameId))].filter((g) => s.games[g]);
   const physical = s.copies.filter((c) => c.kind === 'fisico').length;
   const digital = s.copies.filter((c) => c.kind === 'digital').length;
+  const assinatura = s.copies.length - physical - digital;
   const zeradosIds = s.journeys.filter((j) => historiesOf(s, j.id).some((h) => h.state === 'concluida')).map((j) => j.gameId);
   const zeradosOwned = gameIds.filter((g) => zeradosIds.includes(g));
   const never = gameIds.filter((g) => !journeyForGame(s, g) && !myGame(s, g).wontPlay);
@@ -68,7 +70,7 @@ function compute(s: State) {
   const yearCount = countBy(done, (h) => (h.completedAt && h.completedPrecision !== 'desconhecida' ? String(partsOf(h.completedAt).y) : 'Sem data'));
   const byYear = Object.keys(yearCount).sort((a, b) => (a === 'Sem data' ? 1 : b === 'Sem data' ? -1 : Number(b) - Number(a))).map((label) => ({ label, n: yearCount[label] }));
 
-  return { games: gameIds.length, copies: s.copies.length, physical, digital, zerados: zeradosIds.length, zeradosOwned: zeradosOwned.length, never: never.length, backlogHours, paid, now, byPlatform, byGenre, byDuration, byPriority, byYear, wishes: s.wishes.length };
+  return { games: gameIds.length, copies: s.copies.length, physical, digital, assinatura, zerados: zeradosIds.length, zeradosOwned: zeradosOwned.length, never: never.length, backlogHours, paid, now, byPlatform, byGenre, byDuration, byPriority, byYear, wishes: s.wishes.length };
 }
 
 const brl = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
@@ -92,7 +94,7 @@ export function CollectionStats() {
       ) : (
         <>
           <div className="kpis">
-            <div className="kpi"><span className="kpi__n t">{k.games.toLocaleString('pt-BR')}</span><span className="kpi__l">jogos na coleção</span><span className="kpi__s">{k.physical} físicos, {k.digital} digitais</span></div>
+            <div className="kpi"><span className="kpi__n t">{k.games.toLocaleString('pt-BR')}</span><span className="kpi__l">títulos na coleção</span><span className="kpi__s">{k.copies.toLocaleString('pt-BR')} exemplares: {k.physical} físicos, {k.digital} digitais{k.assinatura > 0 ? `, ${k.assinatura} por assinatura` : ''}</span></div>
             <div className="kpi"><span className="kpi__n t">{k.zerados}</span><span className="kpi__l">jogos zerados</span><span className="kpi__s">{pctDone}% da coleção</span></div>
             <div className="kpi"><span className="kpi__n t">{k.never.toLocaleString('pt-BR')}</span><span className="kpi__l">nunca jogados</span><span className="kpi__s">{k.backlogHours ? `cerca de ${Math.round(k.backlogHours).toLocaleString('pt-BR')} h somando suas estimativas` : 'sem pressa'}</span></div>
             {k.paid > 0 ? (
@@ -102,7 +104,7 @@ export function CollectionStats() {
             )}
           </div>
           <div className="stats__grid">
-            <BarList title="Por plataforma" rows={k.byPlatform} unit="cópias" sorted={false} />
+            <BarList title="Por plataforma" rows={k.byPlatform} unit="exemplares" sorted={false} />
             <BarList title="Por gênero" rows={k.byGenre} sorted={false} note="Seu gênero quando veio da planilha; senão, o primeiro da ficha do jogo." />
             <BarList title="Nunca jogados, por duração" rows={k.byDuration} sorted={false} note="Pelo tempo estimado para zerar que você informou." />
             <BarList title="Nunca jogados, por prioridade" rows={k.byPriority} sorted={false} />
@@ -133,8 +135,8 @@ export function Wishes() {
         <div className="wish-cards">
           {list.map((w) => {
             const g = s.games[w.gameId];
-            const rel = g.releasedOn ? new Date(`${g.releasedOn.slice(0, 10)}T12:00:00-03:00`) : null;
-            const days = rel ? Math.ceil((rel.getTime() - Date.now()) / 86_400_000) : null;
+            // Mesma conta do Radar (dias de calendário, no fuso de quem vê), para os dois nunca discordarem.
+            const days = g.releasedOn ? daysUntil(g.releasedOn.slice(0, 10)) : null;
             const future = days != null && days > 0;
             return (
               <article key={w.gameId} className={`wish-card on-photo${future ? ' is-soon' : ''}`}>
@@ -143,7 +145,7 @@ export function Wishes() {
                 <Link to={`/jogos/${g.slug}`} className="wish-card__link" aria-label={`Abrir a ficha de ${g.title}`} />
                 <div className="wish-card__body">
                   <span className="wish-card__top">
-                    <span className={`kicker${future ? ' kicker--now' : ''}`}>{future ? `Lança em ${rel!.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' })}` : 'Desejo'}</span>
+                    <span className={`kicker${future ? ' kicker--now' : ''}`}>{future ? `Lança em ${new Date(`${g.releasedOn!.slice(0, 10)}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: 'UTC' })}` : 'Desejo'}</span>
                     {future && <span className="wish-card__days"><span className="t">{days}</span><span className="kicker">{days === 1 ? 'dia' : 'dias'}</span></span>}
                   </span>
                   <span className="wish-card__main">

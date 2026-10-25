@@ -345,3 +345,6 @@
 .ctile.is-sel .ctile__cover { outline: 3px solid var(--ink); outline-offset: 2px; }
 .cgrid.is-marcando .ctile:not(.is-sel) .ctile__cover { opacity: .6; }
 @media (max-width: 640px) { .cbulk { top: calc(var(--hdr, 60px) + 4px); padding: 10px; } .cbulk__fim { margin-left: 0; } }
+.cbulk__sel { width: 140px; }
+.cgrid.is-marcando .ctile__badge { display: none; }
+@media (max-width: 640px) { .cbulk__sel { width: auto; flex: 1 1 40%; } .cbulk__lista { flex: 1 1 40%; } .cbulk__lista .cbulk__btn { width: 100%; } }

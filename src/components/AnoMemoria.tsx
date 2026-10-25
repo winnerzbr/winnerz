@@ -91,6 +91,7 @@ async function desenhar(r: YearReview, handle?: string | null): Promise<Blob | n
   titulo.forEach((t, i) => c.fillText(t, 90, 520 + i * 116));
   const nums: [string, string][] = [[String(r.done.length), r.done.length === 1 ? 'jogo zerado' : 'jogos zerados'], [String(r.days), r.days === 1 ? 'dia jogado' : 'dias jogados'], [String(r.allMoments), r.allMoments === 1 ? 'momento guardado' : 'momentos guardados']];
   if (r.minutes) nums.push([durLabel(r.minutes), 'de jogo informadas']);
+  nums.splice(0, nums.length, ...nums.filter(([n]) => n !== '0'));
   nums.forEach(([n, l], i) => {
     const y = 860 + i * 150;
     c.font = '800 96px Archivo, sans-serif'; c.fillStyle = '#F2F4F6'; c.fillText(n, 90, y);

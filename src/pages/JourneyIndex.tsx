@@ -2,11 +2,14 @@ import { featBadge, sortFeats } from '../lib/feats';
 import { PastSessionButton } from '../components/PastSession';
 import { Buddy, useBuddy } from '../components/Buddy';
 import { BridgeInbox } from '../components/Bridges';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Link } from '../lib/router';
-import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, focusJourneys } from '../data/store';
+import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, focusJourneys, activeWaypoints } from '../data/store';
+import { MoreActions, type MoreItem } from '../components/MoreActions';
+import { useBridges, PROVIDER_NAME, type Provider } from '../data/bridgeApi';
+import { navigate } from '../lib/router';
 import type { State, Journey, History } from '../data/types';
-import { ago, dayMonth } from '../lib/format';
+import { dayMonth, durLabel } from '../lib/format';
 import { whenLabel, partsOf, localDay } from '../lib/dates';
 import { shortPlatform } from '../lib/platforms';
 import { SubNav } from '../components/SubNav';
@@ -32,75 +35,25 @@ export function JourneyIndex() {
   const s = useStore((x) => x);
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null);
   const focus = focusJourneys(s);
-  const principal = focus[0] ?? null;
-  // Só o primeiro vira destaque; os outros fixados entram no topo da lista, compactos.
   const pinned = new Set(focus.filter((f) => f.chosen).map((f) => f.journey.id));
-  const principalId = principal?.journey.id ?? null;
-  const [showAll, setShowAll] = useState<{ paused?: boolean }>({});
   const rows = s.journeys.map((j) => rowFor(s, j)).filter((r) => r.g);
-  // A biblioteca: o principal primeiro, depois os fixados em "Jogando agora", depois o resto pelo mais recente.
-  const going = rows.filter((r) => r.h && (r.h.state === 'ativa' || r.j.id === principalId))
-    .sort((a, b) => Number(b.j.id === principalId) - Number(a.j.id === principalId) || Number(pinned.has(b.j.id)) - Number(pinned.has(a.j.id)) || (b.last?.startedAt ?? '').localeCompare(a.last?.startedAt ?? ''));
-  const paused = rows.filter((r) => r.h && r.h.state === 'pausada' && r.j.id !== principalId);
+  const recentFirst = (a: Row, b: Row) => (b.last?.startedAt ?? b.h?.startedAt ?? '').localeCompare(a.last?.startedAt ?? a.h?.startedAt ?? '');
+  // Etapa 4 da revisão: um destaque só (o fixado por você ou o último jogo), os outros em linhas baixas com o último contexto.
+  const goingAll = rows.filter((r) => r.h && r.h.state === 'ativa').sort((a, b) => Number(pinned.has(b.j.id)) - Number(pinned.has(a.j.id)) || recentFirst(a, b));
+  const principalId = focus[0]?.journey.id ?? goingAll[0]?.j.id ?? null;
+  const destaque = rows.find((r) => r.j.id === principalId && r.h && (r.h.state === 'ativa' || r.h.state === 'pausada')) ?? null;
+  const going = goingAll.filter((r) => r.j.id !== destaque?.j.id);
+  const paused = rows.filter((r) => r.h && r.h.state === 'pausada' && r.j.id !== destaque?.j.id).sort(recentFirst);
   const done = rows.filter((r) => r.h && r.h.state === 'concluida')
     .sort((a, b) => (b.h!.completedAt ?? '').localeCompare(a.h!.completedAt ?? ''));
   const left = rows.filter((r) => r.h && (r.h.state === 'dropada' || r.h.state === 'encerrada'));
   const putInFocus = (id: string) => { if (!actions.addFocus(id)) setToast({ id: Date.now(), text: 'Você já tem 3 jogos em “Jogando agora”. Tire um deles para pôr outro.' }); };
   const light = !!s.prefs.light;
+  const say = (text: string) => setToast({ id: Date.now(), text });
 
-  const metaOf = ({ h, n, last, note, platform }: Row) => {
-    if (!h) return '';
-    if (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada') return '';
-    const bits = [
-      platform,
-      h.state === 'pausada' ? (last ? `Pausado desde ${monthOf(last.startedAt)}` : 'Pausado') : last ? `Última sessão ${ago(last.startedAt)}` : n > 1 ? `${n} Histórias` : 'Primeira História',
-      !light && h.progress ? `${h.progress}%` : null,
-      note?.note ? `“${note.note}”` : last?.whereStopped ? `Parou em ${last.whereStopped}` : h.state === 'ativa' ? 'Sem recado' : null,
-    ];
-    return bits.filter(Boolean).join(' · ');
-  };
-
-  const Group = ({ title, list, hint, more, kind }: { title: string; list: Row[]; hint?: string; more?: ReactNode; kind: 'going' | 'paused' | 'done' | 'left' }) => list.length ? (
-    <section className={`jlist jlist--${kind}`} aria-label={title}>
-      <div className="jlist__head"><h2 className="t">{title}</h2>{more ?? (hint ? <span className="muted">{hint}</span> : <span className="kicker">{list.length} {list.length === 1 ? 'jogo' : 'jogos'}</span>)}</div>
-      <ul>
-        {list.map((r) => {
-          const { j, g, h, n } = r;
-          const ended = h && (h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada');
-          return (
-            <li key={j.id} className="jrow">
-              <Link to={`/jornada/${g.slug}`} className="jrow__link">
-                <span className="jrow__cover"><CoverArt game={g} /></span>
-                <span className="jrow__text">
-                  <span className="t jrow__title">{g.title}{j.id === principalId && kind === 'going' && <span className="kicker kicker--now jrow__tag">Principal</span>}</span>
-                  {ended ? (
-                    <span className="mono jrow__date">{h!.state === 'concluida' ? 'Zerou' : h!.state === 'dropada' ? 'Largou' : 'Encerrou'} {h!.completedPrecision === 'desconhecida' || !h!.completedAt ? 'sem data' : `em ${whenLabel(h!.completedAt, h!.completedPrecision, { short: true })}`}{n > 1 ? ` · ${n} Histórias` : ''}</span>
-                  ) : (
-                    <span className="muted jrow__meta">{metaOf(r)}</span>
-                  )}
-                </span>
-              </Link>
-              {kind === 'going' && j.id === principalId ? (
-                <span className="jrow__actions"><PlayButton gameId={g.id} className="btn now sm" idle="Continuar" />{pinned.has(j.id) && <button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)} title="Tirar de “Jogando agora”">Soltar</button>}</span>
-              ) : kind === 'going' && (pinned.has(j.id)
-                ? <span className="jrow__actions"><button className="btn ghost sm" onClick={() => actions.makePrincipal(j.id)}>Tornar principal</button><button className="btn quiet sm" onClick={() => actions.removeFocus(j.id)} title="Tirar de “Jogando agora”">Soltar</button></span>
-                : <button className="btn ghost sm" onClick={() => putInFocus(j.id)} title="Destacar esta Jornada aqui e no Início (até 3)">Estou jogando</button>)}
-              {kind === 'paused' && (
-                <span className="jrow__actions">
-                  <button className="btn ghost sm" onClick={() => actions.setHistoryState(h!.id, 'ativa')}>Retomar</button>
-                  <button className="btn quiet sm" onClick={() => putInFocus(j.id)}>Estou jogando</button>
-                </span>
-              )}
-              {kind === 'done' && <span className="jrow__mark" aria-label="Marco" />}
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  ) : null;
-
-  // O fundo da página é a imagem do jogo principal, bem apagada, para a Jornada abrir no clima do que você está jogando.
-  const ambientGame = !light && principal ? s.games[principal.journey.gameId] : undefined;
+  // O fundo da página é a imagem do jogo em destaque, bem apagada, para a Jornada abrir no clima do que você está jogando.
+  const ambientGame = !light && destaque ? destaque.g : undefined;
+  const parado = lembreteDe(s, goingAll);
 
   return (
     <div className="jindex-wrap">
@@ -110,11 +63,10 @@ export function JourneyIndex() {
         <div className="jamb__shade" />
       </div>
     )}
-    <main className="page pad jindex">
+    <main className="page pad jindex jindex--v2">
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Jornada</h1>
-          <p className="muted lead">Toda história tem um próximo instante. O resto pode esperar.</p>
         </div>
         <SubNav pillar="jornada" />
       </header>
@@ -128,19 +80,47 @@ export function JourneyIndex() {
       )}
 
       <BridgeInbox />
-      {rows.length > 0 && <div className="jindex__quick"><PastSessionButton /></div>}
+      {parado && <LembreteParado row={parado.row} dias={parado.dias} onPaused={() => say('Pausado. Ele espera, sem pressa.')} />}
+      {destaque && <Destaque s={s} row={destaque} chosen={pinned.has(destaque.j.id)} />}
 
       {rows.length > 0 && (
         <div className="jindex__cols">
           <div className="jindex__main">
-            <Group kind="going" title="Em andamento" list={going} />
-            <Group kind="paused" title="Pausados" list={showAll.paused ? paused : paused.slice(0, 3)} more={paused.length > 3 ? <button className="btn quiet sm" onClick={() => setShowAll({ ...showAll, paused: !showAll.paused })}>{showAll.paused ? 'Mostrar menos' : `Ver os ${paused.length}`}</button> : undefined} hint="Sem pressa. Eles esperam." />
-            <Group kind="done" title="Zerados recentemente" list={done.slice(0, 3)} more={<Link className="arrow-link" to="/jornada/concluidas">Ver Concluídas</Link>} />
-            <Group kind="left" title="Deixados de lado" list={left} hint="Largados ou encerrados sem zerar. Sem julgamento." />
+            {going.length > 0 && (
+              <section className="jx" aria-labelledby="jx-outros">
+                <div className="jx__head"><h2 id="jx-outros" className="jx__k">{destaque ? 'Outros em andamento' : 'Em andamento'} · {going.length}</h2><PastSessionButton className="linklike jx__past" label="Joguei sem registrar" /></div>
+                <ul className="jx__list">{going.map((r) => <Linha key={r.j.id} s={s} r={r} pinned={pinned.has(r.j.id)} onFocus={putInFocus} onPaused={() => say('Pausado. Ele espera, sem pressa.')} />)}</ul>
+              </section>
+            )}
+            {!going.length && rows.length > 0 && <div className="jx__head jx__head--solo"><span /><PastSessionButton className="linklike jx__past" label="Joguei sem registrar" /></div>}
+            {paused.length > 0 && (
+              <details className="jx jx--fold">
+                <summary><span className="jx__k">Pausados · {paused.length}</span><span className="jx__sum">os recados ficam guardados</span></summary>
+                <ul className="jx__list">{paused.map((r) => <Linha key={r.j.id} s={s} r={r} pinned={false} onFocus={putInFocus} />)}</ul>
+              </details>
+            )}
+            {done.length > 0 && (
+              <section className="jx" aria-labelledby="jx-zerados">
+                <div className="jx__head"><h2 id="jx-zerados" className="jx__k">Zerados recentemente</h2><Link className="linklike jx__more" to="/jornada/concluidas">Ver Concluídas →</Link></div>
+                <ul className="jx__covers">
+                  {done.slice(0, 4).map((r) => (
+                    <li key={r.j.id}><Link to={`/jornada/${r.g.slug}`}><span className="jx__cover"><CoverArt game={r.g} /></span><span className="jx__cap">{r.g.title}{r.h!.completedAt && r.h!.completedPrecision !== 'desconhecida' ? ` · ${whenLabel(r.h!.completedAt, r.h!.completedPrecision, { short: true })}` : ''}</span></Link></li>
+                  ))}
+                </ul>
+              </section>
+            )}
+            {left.length > 0 && (
+              <details className="jx jx--fold">
+                <summary><span className="jx__k">Deixados de lado · {left.length}</span><span className="jx__sum">largados ou encerrados sem zerar, sem julgamento</span></summary>
+                <ul className="jx__list">{left.map((r) => <Linha key={r.j.id} s={s} r={r} pinned={false} onFocus={putInFocus} />)}</ul>
+              </details>
+            )}
           </div>
           <aside className="jindex__aside">
+            <Pontes />
             <ReviewCard />
             {!light && <MonthCard s={s} />}
+            <LembreteAjuste s={s} />
             <Link to="/" className="arrow-link jindex__today">Sem ideia do que jogar? Veja no Início →</Link>
           </aside>
         </div>
@@ -151,26 +131,154 @@ export function JourneyIndex() {
   );
 }
 
+const campanhaDe = (h: History) => (h.title && !/^hist[óo]ria \d/i.test(h.title) ? h.title : h.ordinal > 1 ? `${h.ordinal}ª campanha` : 'Primeira campanha');
+const diasDesde = (iso?: string) => (iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 86400000)) : null);
+const haDias = (n: number | null) => (n == null ? '' : n === 0 ? 'hoje' : n === 1 ? 'ontem' : `há ${n} dias`);
+
+/** O jogo em destaque: fixado por você ou, sem fixar, o último que você jogou. */
+function Destaque({ s, row, chosen }: { s: State; row: Row; chosen: boolean }) {
+  const { j, g, h, last, note, platform } = row;
+  const pontos = activeWaypoints(s, j.id).length;
+  const recado = note?.note;
+  const quando = haDias(diasDesde(last?.endedAt ?? last?.startedAt));
+  return (
+    <section className="jdest on-photo" aria-labelledby="jdest-h">
+      <Backdrop game={g} className="jdest__bg" />
+      <span className="jdest__shade" aria-hidden="true" />
+      <Link to={`/jornada/${g.slug}`} className="jdest__cover" tabIndex={-1} aria-hidden="true"><CoverArt game={g} /></Link>
+      <div className="jdest__body">
+        <span className="jdest__k"><span className={`tr${chosen ? ' now' : ''}`} aria-hidden="true" />{chosen ? 'Fixado por você' : 'Último jogo'}</span>
+        <h2 id="jdest-h" className="t jdest__title"><Link to={`/jornada/${g.slug}`}>{g.title}</Link></h2>
+        <span className="jdest__meta">{[platform, h ? campanhaDe(h) : '', h?.state === 'pausada' ? 'pausado' : last ? `última sessão ${quando}` : 'ainda sem sessões'].filter(Boolean).join(' · ')}</span>
+        {recado ? <p className="jdest__note">“{recado}”</p> : last?.whereStopped ? <p className="jdest__note">Parou em {last.whereStopped}.</p> : null}
+        {pontos > 0 && <span className="jdest__pts">{pontos === 1 ? '1 ponto para voltar' : `${pontos} pontos para voltar`}</span>}
+      </div>
+      <div className="jdest__acts">
+        <PlayButton gameId={g.id} className="btn primary lg" idle="Começar sessão" />
+        <Link className="btn ghost lg" to={`/jornada/${g.slug}`}>Abrir a Jornada</Link>
+      </div>
+    </section>
+  );
+}
+
+/** Linha baixa: capa pequena, o último contexto (recado ou sessão) e um menu com o resto. */
+function Linha({ s, r, pinned, onFocus, onPaused }: { s: State; r: Row; pinned: boolean; onFocus: (id: string) => void; onPaused?: () => void }) {
+  const { j, g, h, last, note, platform, n } = r;
+  if (!h) return null;
+  const ended = h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada';
+  const contexto = ended
+    ? `${h.state === 'dropada' ? 'Largou' : h.state === 'encerrada' ? 'Encerrou' : 'Zerou'} ${h.completedPrecision === 'desconhecida' || !h.completedAt ? 'sem data' : `em ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}`}${n > 1 ? ` · ${n} Histórias` : ''}`
+    : note?.note ? `“${note.note}”` : last?.whereStopped ? `Parou em ${last.whereStopped}` : last ? `Sem recado · última sessão${last.minutes ? ` de ${durLabel(last.minutes)}` : ''}` : 'Começou, ainda sem sessões';
+  const lado = [platform, !ended && last ? haDias(diasDesde(last.endedAt ?? last.startedAt)) : ''].filter(Boolean).join(' · ');
+  const itens: MoreItem[] = [
+    { key: 'abrir', label: 'Abrir a Jornada', onSelect: () => navigate(`/jornada/${g.slug}`) },
+    ...(h.state === 'ativa' ? [
+      pinned ? { key: 'soltar', label: 'Tirar de “Jogando agora”', onSelect: () => actions.removeFocus(j.id) } : { key: 'fixar', label: 'Fixar em “Jogando agora”', onSelect: () => onFocus(j.id) },
+      ...(pinned ? [{ key: 'principal', label: 'Pôr em destaque', onSelect: () => actions.makePrincipal(j.id) }] : []),
+      { key: 'pausar', label: 'Pausar', onSelect: () => { actions.setHistoryState(h.id, 'pausada'); onPaused?.(); } },
+    ] : []),
+    ...(h.state === 'pausada' || h.state === 'dropada' || h.state === 'encerrada' ? [{ key: 'retomar', label: 'Retomar', onSelect: () => actions.setHistoryState(h.id, 'ativa') }] : []),
+  ];
+
+  return (
+    <li className="jx__row">
+      <Link to={`/jornada/${g.slug}`} className="jx__link">
+        <span className="jx__mini"><CoverArt game={g} /></span>
+        <span className="jx__txt"><strong>{g.title}{pinned && <span className="jx__pin"> · fixado</span>}</strong><span>{contexto}</span></span>
+      </Link>
+      {lado && <span className="jx__side">{lado}</span>}
+      <MoreActions items={itens} label={`Mais opções: ${g.title}`} className="btn quiet icon jx__dots" />
+    </li>
+  );
+}
+
+/** Lembrete de jogo parado (desligado por padrão): um jogo em andamento sem sessão há N dias, um de cada vez. */
+function lembreteDe(s: State, going: Row[]): { row: Row; dias: number } | null {
+  const n = s.prefs.lembreteParado;
+  if (!n) return null;
+  const agora = Date.now();
+  const adiado = s.prefs.lembreteAdiado ?? {};
+  const lista = going.map((r) => ({ row: r, dias: diasDesde(r.last?.endedAt ?? r.last?.startedAt ?? r.h?.startedAt) ?? 0 }))
+    .filter((x) => x.dias >= n && !(adiado[x.row.j.id] && Date.parse(adiado[x.row.j.id]) > agora))
+    .sort((a, b) => b.dias - a.dias);
+  return lista[0] ?? null;
+}
+
+function LembreteParado({ row, dias, onPaused }: { row: Row; dias: number; onPaused: () => void }) {
+  const s = useStore((x) => x);
+  const n = s.prefs.lembreteParado ?? 14;
+  const adiar = () => actions.setPrefs({ lembreteAdiado: { ...(s.prefs.lembreteAdiado ?? {}), [row.j.id]: new Date(Date.now() + n * 86400000).toISOString() } });
+  return (
+    <section className="jlem" aria-labelledby="jlem-h">
+      <span className="jlem__mini"><CoverArt game={row.g} /></span>
+      <div className="jlem__txt">
+        <h2 id="jlem-h" className="jlem__t">{row.g.title} está parado há {dias} dias</h2>
+        <p>{row.note?.note ? `Seu último recado: “${row.note.note}”` : 'Quer voltar, pausar ou deixar para depois? Sem cobrança.'}</p>
+      </div>
+      <div className="jlem__acts">
+        <PlayButton gameId={row.g.id} className="btn ghost sm" idle="Voltar a jogar" />
+        <button type="button" className="btn quiet sm" onClick={() => { actions.setHistoryState(row.h!.id, 'pausada'); onPaused(); }}>Pausar</button>
+        <button type="button" className="btn quiet sm" onClick={adiar}>Agora não</button>
+      </div>
+    </section>
+  );
+}
+
+function LembreteAjuste({ s }: { s: State }) {
+  const v = s.prefs.lembreteParado ?? 0;
+  return (
+    <section className="jside-card" aria-labelledby="jlemaj-h">
+      <h2 id="jlemaj-h" className="jx__k">Lembrete de jogo parado</h2>
+      <p>Um aviso discreto aqui na Jornada quando um jogo em andamento fica muito tempo sem sessão.</p>
+      <label className="jside-card__sel">
+        <span className="sr-only">Avisar depois de</span>
+        <select className="field" value={v} onChange={(e) => { const n = Number(e.target.value); actions.setPrefs({ lembreteParado: n === 7 || n === 14 || n === 30 ? n : null }); }}>
+          <option value={0}>Desligado</option>
+          <option value={7}>Depois de 7 dias</option>
+          <option value={14}>Depois de 14 dias</option>
+          <option value={30}>Depois de 30 dias</option>
+        </select>
+      </label>
+    </section>
+  );
+}
+
+/** As pontes que registram sessões sozinhas, com o estado de cada uma. */
+function Pontes() {
+  const b = useBridges();
+  const on = new Set((b?.accounts ?? []).filter((a) => a.auto).map((a) => a.provider));
+  const lista: Provider[] = ['steam', 'playnite', 'ra'];
+  return (
+    <section className="jside-card" aria-labelledby="jpontes-h">
+      <h2 id="jpontes-h" className="jx__k">Registrar sessões automaticamente</h2>
+      <p>Ligue a Steam, o Playnite ou o RetroAchievements e as sessões entram sozinhas na Jornada.</p>
+      <ul className="jside-card__list">
+        {lista.map((p) => <li key={p} className={on.has(p) ? 'is-on' : ''}><span className="tr" aria-hidden="true" />{PROVIDER_NAME[p]} · {on.has(p) ? (p === 'playnite' ? 'ligado' : 'ligada') : (p === 'playnite' ? 'desligado' : 'desligada')}</li>)}
+      </ul>
+      {on.size < 3 && <Link to="/preferencias#pontes" className="linklike">{on.size ? 'Ligar mais →' : 'Ligar →'}</Link>}
+    </section>
+  );
+}
+
 const dm = (iso: string) => dayMonth(iso).replace(' de ', ' ');
 const monthOf = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
 
-/** Seu mês até aqui: sessões, momentos guardados e pontos para voltar em aberto. */
+/** Seu mês até aqui, numa frase: dias jogados, momentos guardados e jogos zerados. */
 function MonthCard({ s }: { s: State }) {
   const month = localDay().slice(0, 7);
   const inMonth = (iso: string) => localDay(0, new Date(iso)).slice(0, 7) === month;
-  const sessions = s.sessions.filter((x) => inMonth(x.startedAt)).length;
+  const dias = new Set(s.sessions.filter((x) => inMonth(x.startedAt)).map((x) => localDay(0, new Date(x.startedAt)))).size;
   const moments = s.events.filter((e) => e.kind === 'momento' && inMonth(e.at)).length;
-  const back = s.events.filter((e) => e.kind === 'ponto' && !e.resolved).length;
-  if (!sessions && !moments && !back) return null;
+  const zerados = s.histories.filter((h) => h.state === 'concluida' && h.completedAt && h.completedPrecision !== 'desconhecida' && inMonth(h.completedAt)).length;
+  if (!dias && !moments && !zerados) return null;
+  const nome = new Date().toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
+  const partes = [dias ? `${dias} ${dias === 1 ? 'dia jogado' : 'dias jogados'}` : '', moments ? `${moments} ${moments === 1 ? 'momento guardado' : 'momentos guardados'}` : '', zerados ? `${zerados} ${zerados === 1 ? 'jogo zerado' : 'jogos zerados'}` : ''].filter(Boolean);
+  const frase = partes.length > 1 ? `${partes.slice(0, -1).join(', ')} e ${partes.at(-1)}` : partes[0];
   return (
-    <section className="card month-card" aria-labelledby="mes">
-      <h2 id="mes" className="kicker">Seu mês até aqui</h2>
-      <div className="month-card__grid">
-        <div><div className="t">{sessions}</div><div className="muted">{sessions === 1 ? 'sessão' : 'sessões'}</div></div>
-        <div><div className="t">{moments}</div><div className="muted">{moments === 1 ? 'momento' : 'momentos'}</div></div>
-        <div><div className="t month-card__now">{back}</div><div className="muted">para voltar</div></div>
-      </div>
-      <Link to="/jornada/retrospectivas" className="arrow-link">Ver as retrospectivas</Link>
+    <section className="jside-card" aria-labelledby="mes">
+      <h2 id="mes" className="jx__k">Seu {nome}</h2>
+      <p>{frase.charAt(0).toUpperCase() + frase.slice(1)}.</p>
+      <Link to="/jornada/retrospectivas" className="linklike">Ver a retrospectiva →</Link>
     </section>
   );
 }

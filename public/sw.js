@@ -19,7 +19,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/steam/') || url.pathname === '/version.json') return;
+  // /demo/: páginas à parte (como o vôlei feito no Godot) não passam por aqui nem viram a página guardada do site
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/steam/') || url.pathname.startsWith('/demo/') || url.pathname === '/version.json') return;
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then((res) => {
       if (res.ok) { const copy = res.clone(); caches.open(VERSAO).then((c) => c.put(PAGINA, copy)); }

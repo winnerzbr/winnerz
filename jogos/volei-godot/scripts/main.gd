@@ -40,7 +40,19 @@ func _ready() -> void:
 	for k in range(8):
 		var a := AudioStreamPlayer.new(); a.volume_db = -6.0; add_child(a); players.append(a)
 	demo_ai = V.new_ai()
+	map_pad_ui()
 	show_title()
+
+# menus no controle: ✕ confirma, ○ volta, direcional e analógico mudam de botão
+func map_pad_ui() -> void:
+	var jb = func(b: int) -> InputEventJoypadButton:
+		var e := InputEventJoypadButton.new(); e.device = -1; e.button_index = b; return e
+	var ja = func(a: int, v: float) -> InputEventJoypadMotion:
+		var e := InputEventJoypadMotion.new(); e.device = -1; e.axis = a; e.axis_value = v; return e
+	InputMap.action_add_event("ui_accept", jb.call(JOY_BUTTON_A))
+	InputMap.action_add_event("ui_cancel", jb.call(JOY_BUTTON_B))
+	InputMap.action_add_event("ui_up", jb.call(JOY_BUTTON_DPAD_UP)); InputMap.action_add_event("ui_up", ja.call(JOY_AXIS_LEFT_Y, -1.0))
+	InputMap.action_add_event("ui_down", jb.call(JOY_BUTTON_DPAD_DOWN)); InputMap.action_add_event("ui_down", ja.call(JOY_AXIS_LEFT_Y, 1.0))
 
 func play(n: String) -> void:
 	if not sfx.has(n): return
@@ -84,12 +96,15 @@ func read_input() -> Dictionary:
 	return c
 
 func _unhandled_input(ev: InputEvent) -> void:
-	var pause := false
-	if ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode in [KEY_ESCAPE, KEY_P]: pause = true
-	if ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_START: pause = true
-	if pause:
-		if mode == "play": show_pause()
-		elif mode == "pause": resume()
+	var esc: bool = ev is InputEventKey and ev.pressed and not ev.echo and ev.physical_keycode in [KEY_ESCAPE, KEY_P]
+	var start: bool = ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_START
+	var back: bool = ev is InputEventJoypadButton and ev.pressed and ev.button_index == JOY_BUTTON_B
+	var used := true
+	if mode == "play" and (esc or start): show_pause()
+	elif mode == "pause" and (esc or start or back): resume()
+	elif (mode == "title" or mode == "over") and start: start_game()
+	else: used = false
+	if used: get_viewport().set_input_as_handled()
 
 # ---------------------------------------------------------------- laço principal
 func _process(delta: float) -> void:

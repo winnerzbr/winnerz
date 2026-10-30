@@ -47,6 +47,19 @@
     if (v.state !== 'rally' || cl <= 30) return 9;
     return Math.max(0, d - VRB - 10) / cl;
   }
+  // estado de locomoção com folga: velocidade suavizada, e cada estado fica pelo menos um instante
+  function locoOf5(s, p, face, dt) {
+    s.fvx = s.fvx ?? p.vx; s.fvx += (p.vx - s.fvx) * Math.min(1, dt * 9);
+    const fs = Math.abs(s.fvx), fa = (fs - (s.fsp ?? fs)) / Math.max(dt, .001); s.fsp = fs;
+    s.fac = (s.fac ?? 0) + (fa - (s.fac ?? 0)) * Math.min(1, dt * 8);
+    const moving = s.L && s.L !== 'stand' ? fs > 6 : fs > 20;
+    let c = 'stand';
+    if (moving) c = s.fvx * face < -12 || (s.L === 'back' && s.fvx * face < 0) ? 'back' : s.fac > 260 && fs < 95 ? 'ssA' : s.fac < -260 && fs < 105 && s.L !== 'stand' ? 'ssD' : 'run';
+    s.Lt = (s.Lt ?? 9) + dt;
+    const hold = s.L === 'ssA' ? .22 : s.L === 'ssD' ? .26 : .16;
+    if (!s.L || (c !== s.L && s.Lt >= hold)) { s.L = c; s.Lt = 0; }
+    return s.L;
+  }
   function drawIA5(v, p, i, tt, base) {
     const s = stOf('ia5' + i), dt = clamp(tt - (s.tt ?? tt), 0, .05); s.tt = tt;
     const P = poseOf(v, p, i, tt, s, dt), an0 = P.anim, sf = i ? -1 : 1;
@@ -60,6 +73,7 @@
     const face = P.face; if (s.face === undefined) s.face = face;
     if (face !== s.face) { if (p.g && !p.dv) { s.tn = 0; s.tnTo = face; } s.face = face; } s.tn = (s.tn ?? 9) + dt;
     const sp = Math.abs(p.vx), acc = (sp - (s.sp ?? sp)) / Math.max(dt, .001); s.sp = sp;
+    const LOC = locoOf5(s, p, face, dt);
     let an = 'idle', k = 0, mode = p.g ? 'g' : 'a', mir = face !== sf ? sf > 0 : sf < 0, y = p.y, x = p.x;
     if ((an0 === 'comemora' || an0 === 'triste') && !p.g) { an = 'jump'; k = p.vy < 0 ? 4 + Math.floor(clamp((p.vy + PJUMP) / PJUMP, 0, .999) * 8) : 12 + Math.min(3, Math.floor(p.vy / 90)); }
     else if (an0 === 'comemora') { an = 'party'; k = Math.floor(tt * 10) % 16; mir = false; }
@@ -106,12 +120,15 @@
     } else if (s.tn < .3) { an = 'turn'; const q = Math.min(7, Math.floor(s.tn / .3 * 8)); k = s.tnTo === sf ? 7 - q : q; mir = sf < 0; }
     else if (s.lt < .3 && sp < 60) { an = 'jump'; k = 16 + Math.min(7, Math.floor(s.lt / .3 * 8)); }
     else if (s.rt < .3 && sp < 60) { an = s.srv ? 'serve' : 'gnd'; k = s.srv ? 32 + Math.min(7, Math.floor(s.rt / .3 * 8)) : 12 + Math.min(3, Math.floor(s.rt / .3 * 4)); }
-    else if ((s.mv = s.mv ? sp > 5 : sp > 18)) {
-      const backw = p.vx * face < 0;
-      if (backw) { an = 'back'; k = Math.floor((((p.ph || 0) / TAU) % 1 + 1) % 1 * 8) % 8; }
-      else if (acc > 200 && sp < 100) { an = 'ss'; k = Math.min(3, Math.floor(sp / 100 * 4)); }
-      else if (acc < -200 && sp < 110) { an = 'ss'; k = 4 + Math.min(3, Math.floor((1 - sp / 110) * 4)); }
+    else if (LOC !== 'stand') {
+      // andar, arrancar, frear e recuar: decididos pela velocidade suavizada e mantidos por um instante mínimo
+      // (antes, pequenas correções de posição trocavam de desenho a cada quadro e ele parecia tremer)
+      const L = s.L, fs = Math.abs(s.fvx);
+      if (L === 'back') { an = 'back'; k = Math.floor((((p.ph || 0) / TAU) % 1 + 1) % 1 * 8) % 8; }
+      else if (L === 'ssA') { an = 'ss'; k = Math.min(3, Math.floor(clamp(s.Lt / .22, 0, .999) * 4)); }
+      else if (L === 'ssD') { an = 'ss'; k = 4 + Math.min(3, Math.floor(clamp(s.Lt / .26, 0, .999) * 4)); }
       else { an = 'run'; k = Math.floor((((p.ph || 0) / (2 * TAU)) % 1 + 1) % 1 * 16) % 16; }
+      void fs;
     } else if (v.state === 'rally') {
       // espera olhando para a bola: a cabeça sobe ou desce conforme a altura da bola (com folga para não ficar trocando)
       an = 'ready'; k = Math.floor(tt * 8) % 8;

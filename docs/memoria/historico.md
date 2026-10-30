@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Amiguinho sem tremer ao se mexer
+O dono mandou dois vídeos do Amiguinho tremendo.
+- **Causa vista nos vídeos:** em poucos quadros, ele passava por espera, corrida, arrancada, recuo e espera de novo. Pequenas correções de posição do cérebro novo trocavam o desenho a cada quadro.
+- **Correção:**
+  - O desenho de locomoção (parado, correndo, arrancando, freando, recuando) agora sai da velocidade suavizada.
+  - Cada um fica pelo menos 0,16 s; arrancar e frear ficam o tempo da animação.
+  - Vale para os dois personagens.
+- **Cérebro:** não troca o lugar planejado por diferença pequena (menos de 9 px e sem ganho claro), e o alvo anda suave.
+- **Medição em uma partida** (trechos de locomoção com menos de 0,1 s):
+  - Amiguinho: de 109 para 19;
+  - IAmiguinho: de 68 para 24.
+- A força do Amiguinho continua a mesma.
+
 ## 30/10/2026: Jogos de Verão, cabeça olhando para a bola sem tremer
 O dono notou que o Amiguinho parecia tremer andando. Ele trocava muito rápido entre olhar para a frente e olhar para cima, e entre andar e ficar parado.
 - **Olhar para a bola:** entre a espera e a espera olhando para cima ou para baixo, entraram dois desenhos do meio, a 1/3 e a 2/3 do caminho, no IAmiguinho e no Amiguinho.

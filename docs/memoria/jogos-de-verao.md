@@ -69,6 +69,7 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
   - Encaixe do Amiguinho: parado no chão, os pés ficam presos; andando ou no ar, segue o centro do corpo. É o mesmo em todas as animações.
   - Quadros intermediários (`cart2/mids.py`): entre desenhos parecidos, um quadro do meio por fluxo óptico. O jogo mostra o do meio na primeira metade de cada troca. Vale no IAmiguinho e no Amiguinho; no skate, ainda não.
   - Olhar para a bola: entre a espera e a espera olhando para cima ou para baixo há dois desenhos do meio (1/3 e 2/3), feitos entortando um desenho só. A cabeça passa por eles aos poucos. Andar e parar trocam com folga de velocidade, para não ficar alternando.
+  - Locomoção (parado, correndo, arrancando, freando, recuando): sai da velocidade suavizada e cada desenho fica pelo menos 0,16 s, para não trocar a cada quadro.
 - **Adversários (cérebro novo, `cart2/aivolei.js`):**
   - Antes de cada toque, ele simula posições e escolhe a melhor: mandar longe de você ou levantar para cortar.
   - Calcula o pulo da cortada e, nos níveis altos, saca com cortada.

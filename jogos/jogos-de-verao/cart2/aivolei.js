@@ -185,15 +185,18 @@ volei.brain = function (i, dt, A, cfg) {
       const bad = cands[Math.min(cands.length - 1, 5 + Math.floor(Math.random() * 16))];
       pick = { k: Math.random() < .5 ? 'g' : bad.k, tx: clamp(bad.tx + A.bias, i ? VNX + MARGIN : 14, i ? W - 14 : VNX - MARGIN), s: bad.s };
     }
-    // já no ar com a cortada combinada: não troca de ideia no meio do pulo
-    if (!(A.plan && A.plan.k === 'sp' && !p.g)) A.plan = pick;
+    // já no ar com a cortada combinada: não troca de ideia no meio do pulo; e não fica mudando de lugar por pouca coisa
+    const old = A.plan;
+    if (old && old.k === 'sp' && !p.g) { /* mantém */ }
+    else if (old && old.k === pick.k && old.tx !== undefined && pick.tx !== undefined && Math.abs(old.tx - pick.tx) < 9 && pick.s < (old.s ?? -99) + 4) { old.s = pick.s; }
+    else A.plan = pick;
   }
   const P = A.plan;
   if (P.k === 'sp') {
     steer(b.x + behind * (P.off || 30), 10);
     if (p.g && this.t - P.t0 >= P.jt - 1e-6) out.u = true;
   } else {
-    steer(P.tx);
+    A.stx = A.stx === undefined || Math.abs(A.stx - P.tx) > 60 ? P.tx : A.stx + (P.tx - A.stx) * Math.min(1, dt * 8); steer(A.stx);
     const bx = b.x - p.x, by = (p.y - 22) - b.y;
     if (P.k !== 'g') out.u = p.g && Math.abs(bx) < 24 && by > 18 && by < 86 && b.vy > -60;
     if (P.k === 'jf' && !p.g && Math.abs(bx) < 40) { out.ax = toNet; out.l = toNet < 0; out.r = toNet > 0; }

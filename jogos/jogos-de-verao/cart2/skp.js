@@ -41,6 +41,7 @@
   // no chão: qual prancha e qual quadro, a partir do estado do half-pipe
   function skGround(h, tt) {
     const dt = clamp(tt - SKST.tt, 0, .05); SKST.tt = tt;
+    if (tt < SKST.lastAir) SKST.lastAir = -9; // relógio recomeçou (partida nova): não está pousando
     const sl = tt - SKST.lastAir;
     const mode = h.wob > 0 ? 'wob' : h.braking ? 'brake' : sl < .34 ? 'land' : h.pumping ? 'pump' : 'idle';
     if (mode !== SKST.mode) { SKST.mode = mode; SKST.t0 = tt; if (mode === 'pump') SKST.pf = 0; }
@@ -73,7 +74,7 @@
     const BODY = { a: 'super', b: 'cristo', c: 'foguete', e: 'helice' }, GRAB = { u: 'indy', d: 'rabeta', ul: 'melao' };
     halfpipe.drawAir = function (tt) {
       if (!SKOK()) return air16.call(this, tt);
-      SKST.lastAir = tt;
+      if (mode === 'play') SKST.lastAir = tt; // a demonstração do menu (e as miniaturas) não contam como pulo
       const sd = this.side, xw = HPX + sd * (HPF + HPR) - sd, fy = HPY - HPR - this.ah, tr = this.trick, pr = tr ? Math.min(1, tr.t / tr.d) : 1, k = tr && tr.k, key = tr && tr.key;
       const c = Math.cos(this.rot * Math.PI / 180), sc = Math.abs(c) < .18 ? (c < 0 ? -.18 : .18) : c;
       const face = sd * this.stance < 0 ? -1 : 1, expr = this.doneTr.length || (tr && pr > .5) ? 2 : 0;

@@ -1,5 +1,4 @@
-  /* ============================================================ Amiguinho: pranchas aprovadas (parado, espera, corrida)
-     Os movimentos que ainda não têm prancha usam o desenho antigo da bolha. Cor do adversário trocada no desenho. */
+  /* ============================================================ Amiguinho: pranchas aprovadas (todos os movimentos do vôlei, versão da ficha de modelo). Cor do adversário trocada no desenho. */
   const MB = window.MVB, MBI = {}, MBK = {}, MBT = {};
   if (MB) for (const [nm, a] of Object.entries(MB.a)) { MBI[nm] = new Image(); MBI[nm].src = a.src; MBK[nm] = new Image(); MBK[nm].src = a.mask; }
   const MVBOK = () => !!MB && Object.keys(MBI).every((n) => MBI[n].complete && MBI[n].naturalWidth > 0 && MBK[n].complete && MBK[n].naturalWidth > 0);
@@ -112,17 +111,29 @@
       else if (acc > 200 && sp < 100) { an = 'ss'; k = Math.min(3, Math.floor(sp / 100 * 4)); }
       else if (acc < -200 && sp < 110) { an = 'ss'; k = 4 + Math.min(3, Math.floor((1 - sp / 110) * 4)); }
       else { an = 'run'; k = Math.floor((((p.ph || 0) / (2 * TAU)) % 1 + 1) % 1 * 16) % 16; }
-    } else if (v.state === 'rally') { an = 'ready'; k = Math.floor(tt * 8) % 8; }
+    } else if (v.state === 'rally') {
+      // espera olhando para a bola: o corpo inclina para cima ou para baixo conforme a altura da bola (com folga para não ficar trocando)
+      an = 'ready'; k = Math.floor(tt * 8) % 8;
+      if (MB.a.readyU && MB.a.readyD) {
+        const b = v.b, dx = b.x - p.x, dy = b.y - (p.y - 42 * CHAR_K), d = Math.hypot(dx, dy) || 1, el = -dy / d;
+        const was = s.rv || 0, up = el > (was === 1 ? .45 : .6), down = dy > 0 && el < (was === -1 ? -.25 : -.4) && d < 150;
+        s.rv = up ? 1 : down ? -1 : (was === 1 && el > .3) || (was === -1 && el < -.1) ? was : 0;
+        if (s.rv === 1) an = 'readyU'; else if (s.rv === -1) an = 'readyD';
+      }
+    }
     else { an = 'idle'; k = Math.floor(tt * 8) % 16; }
     if (an === 'turn' || an === 'party' || an === 'sad') { /* espelho já decidido */ }
     s.last = an; if (an === 'serve') s.sk = k;
-    // armando no chão e andando: por enquanto o desenho armado quica no ritmo do passo (até chegarem as pranchas próprias)
-    if (an === 'gnd' && p.ch && p.g && sp > 8) { const ph = p.ph || 0; y -= Math.abs(Math.sin(ph)) * 1.6; k = 2 + (Math.floor(ph / Math.PI) % 3); }
+    // armando no chão e andando: pranchas próprias (para a frente: quadros 0-7; para trás: 8-15)
+    if (an === 'gnd' && p.ch && p.g && sp > 8) {
+      if (MB.a.gndw) { const backw = p.vx * face < 0; an = 'gndw'; k = (backw ? 8 : 0) + Math.floor((((p.ph || 0) / TAU) % 1 + 1) % 1 * 8) % 8; }
+      else { const ph = p.ph || 0; y -= Math.abs(Math.sin(ph)) * 1.6; k = 2 + (Math.floor(ph / Math.PI) % 3); }
+    }
     ctx.save(); ctx.setTransform(base.multiply(new DOMMatrix().translate(x, y)));
     { // olha para a bola durante o rali (o rosto anda dentro do visor, suave)
       const b = v.b, live = (v.state === 'rally' || v.state === 'serve') && !['party', 'sad', 'dive', 'turn'].includes(an);
       let lx = 0, ly = 0;
-      if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6); }
+      if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6) * (an === 'readyU' || an === 'readyD' ? .35 : 1); }
       s.lk = s.lk || [0, 0]; const a = Math.min(1, dt * 10); s.lk[0] += (lx - s.lk[0]) * a; s.lk[1] += (ly - s.lk[1]) * a; LOOKB = s.lk;
     }
     frameB5(an, k, mode, P.ex, mir);

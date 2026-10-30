@@ -4,6 +4,23 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Amiguinho do vôlei completo
+- Chegaram mais 22 pranchas. Com elas, o Amiguinho tem todos os movimentos do vôlei na versão da ficha de modelo.
+- **Entraram no jogo e na Prévia:**
+  - saque, parte 5;
+  - espera olhando para cima e para baixo;
+  - cortada no ar;
+  - cortada no chão;
+  - cortada no chão andando;
+  - especial;
+  - peixinho;
+  - comemoração;
+  - tristeza.
+- As duas pranchas "sem par" da leva anterior eram tentativas da parte 5 do saque.
+- **Novidade no jogo:** o Amiguinho também olha para a bola, inclinando o corpo para cima ou para baixo como o IAmiguinho. E anda de verdade com o braço armado na cortada no chão; antes, só quicava no lugar.
+- Quando vieram tentativas repetidas, ficou uma e as outras ficaram guardadas na Prévia como "outra tentativa".
+- **Pendente no vôlei:** placar, menus e HUD pintados; ajustes de jogabilidade.
+
 ## 30/10/2026: Jogos de Verão, Amiguinho do vôlei (17 pranchas)
 - Chegaram 19 pranchas novas do Amiguinho. Entraram no jogo e na Prévia:
   - posição de espera;

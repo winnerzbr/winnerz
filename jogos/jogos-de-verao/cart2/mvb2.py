@@ -23,6 +23,25 @@ SH = {
  'bv2_srv1': (0.972, 'linha', 1),
  'bv2_srv2': (1.03, 'linha', 1),
  'bv2_srv3': (1.043, 'linha', 1),
+ 'bv2_srv5': (0.974, 'linha', 1),
+ 'bv2_spk1': (1.002, 'linha', 1),
+ 'bv2_spk2': (1.017, 'linha', 1),
+ 'bv2_spk3': (1.014, 'linha', 1),
+ 'bv2_gnd1a': (0.989, 'linha', 1),
+ 'bv2_gnd2': (0.969, 'linha', 1),
+ 'bv2_walkA': (0.972, 'linha', 1),
+ 'bv2_walkC': (0.965, 'linha', 1),
+ 'bv2_spec': (0.962, 'linha', 1),
+ 'bv2_dive1': (1.083, 'linha', 1),
+ 'bv2_dive2': (1.217, 'linha', 1),
+ 'bv2_dive3b': (1.316, 'linha', 1),
+ 'bv2_getup': (1.125, 'linha', 1),
+ 'bv2_party1b': (1.068, 'linha', 1),
+ 'bv2_party2': (1.017, 'linha', 1),
+ 'bv2_sad1': (0.983, 'linha', 1),
+ 'bv2_sad2': (0.978, 'linha', 1),
+ 'bv2_lookup': (0.976, 'linha', 1),
+ 'bv2_lookdn': (0.98, 'linha', 1),
  'bv2_srv4': (1.026, 'linha', 1),
   # escala de cada prancha: medida automática para a cabeça (IAmiguinho) / a massa (Amiguinho) ficarem do mesmo tamanho
  'bl_land': (0.994, 'linha', 1),
@@ -60,8 +79,20 @@ SH = {
  'b_b': (0.993, 'unica', 0.35),
  'b_e': (1.001, 'unica', 0.35),
 }
-ANIM = {'idle': ['bv2_idleA', 'bv2_idleB'], 'ready': ['bv2_espera'], 'run': ['bv2_run1', 'bv2_run2'], 'ss': ['bv2_ss'], 'back': ['bv2_back'], 'turn': ['bv2_turn'], 'jump': ['bv2_jump1', 'bv2_jump2', 'bv2_jump3'], 'set': ['bv2_set1', 'bv2_set2'], 'bump': ['bv2_bump1', 'bv2_bump2'], 'serve': ['bv2_srv1', 'bv2_srv2', 'bv2_srv3', 'bv2_srv4', 'bl_land'], 'spike': ['bl_spk1', 'bl_spkA', 'bl_airA'], 'gnd': ['bl_gnd1', 'bl_gnd2'], 'spec': ['bl_spec'], 'dive': ['bl_dive1', 'bl_dive2', 'bl_dive3', 'bl_getup'], 'party': ['bl_party1', 'bl_party2'], 'sad': ['bl_sad1', 'bl_sad2']}
+ANIM = {'idle': ['bv2_idleA', 'bv2_idleB'], 'ready': ['bv2_espera'], 'readyU': ['bv2_lookup'], 'readyD': ['bv2_lookdn'], 'run': ['bv2_run1', 'bv2_run2'], 'ss': ['bv2_ss'], 'back': ['bv2_back'], 'turn': ['bv2_turn'], 'jump': ['bv2_jump1', 'bv2_jump2', 'bv2_jump3'], 'set': ['bv2_set1', 'bv2_set2'], 'bump': ['bv2_bump1', 'bv2_bump2'], 'serve': ['bv2_srv1', 'bv2_srv2', 'bv2_srv3', 'bv2_srv4', 'bv2_srv5'], 'spike': ['bv2_spk1', 'bv2_spk2', 'bv2_spk3'], 'gnd': ['bv2_gnd1a', 'bv2_gnd2'], 'gndw': ['bv2_walkA', 'bv2_walkC'], 'spec': ['bv2_spec'], 'dive': ['bv2_dive1', 'bv2_dive2', 'bv2_dive3b', 'bv2_getup'], 'party': ['bv2_party1b', 'bv2_party2'], 'sad': ['bv2_sad1', 'bv2_sad2']}
+# espera olhando para cima/baixo: os pés ficam no mesmo lugar da espera (a troca entre as três não pode dar pulo para o lado)
+ALIGN = {'bv2_lookup': 'bv2_espera', 'bv2_lookdn': 'bv2_espera'}
 FRONT = {'party', 'sad'}
+
+
+def _ax(a):
+    al = a[..., 3] > 100; H, W = al.shape; hx = np.where(al[:int(H * .45)].any(0))[0]
+    return (hx.min() + hx.max()) / 2 if W < H * 1.2 else W * .55
+def _feet(a):
+    al = a[..., 3] > 100; H = al.shape[0]; c = np.where(al[int(H * .85):].any(0))[0]; return (c.min() + c.max()) / 2
+AOFF = {}
+for nm, ref in ALIGN.items():
+    AOFF[nm] = float(np.median([(lambda a: _ax(a) - _feet(a))(np.array(Image.open(f'mv2/{ref}_{j}.png'))) for j in range(len(I[ref]))]))
 
 
 def screen(a):
@@ -93,6 +124,7 @@ for an, sheets in ANIM.items():
             im = Image.open(f'mv2/{nm}_{j}.png'); a = np.array(im); H, W = a.shape[:2]
             al = a[..., 3] > 100; hx = np.where(al[:int(H * .45)].any(0))[0]
             ax = (hx.min() + hx.max()) / 2 if W < H * 1.2 else W * .55
+            if nm in AOFF: ax = _feet(a) + AOFF[nm]
             ay = H + (g[j // 4] - q['bot']) * pulo
             m, sz = visor(a, True)  # tela inteira: parte escura + borda de vidro iluminada
             s = None; rot = None; area = 0; so = 0

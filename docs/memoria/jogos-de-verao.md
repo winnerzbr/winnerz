@@ -10,7 +10,7 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
   - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.
   - O 16 bits fica só como backup e nas provas que ainda vão ter as regras revistas.
 - **Ordem de migração:**
-  1. vôlei (feito, menos o Amiguinho);
+  1. vôlei (feito);
   2. skate (feito);
   3. as outras provas, depois de revisar as regras de cada uma;
   4. as provas novas, depois que o dono aprovar as regras.
@@ -64,10 +64,7 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
 - **IAmiguinho:** 38 pranchas, completo.
   - Inclui a espera olhando para a bola: a cabeça sobe e desce conforme a altura da bola.
   - Inclui o saque só jogando a bola para cima.
-- **Amiguinho:** sendo refeito com a ficha de modelo (pedidos no Moveset do Vôlei).
-  - **Prontos:** parado, espera, corrida, arrancar e frear, andar para trás, virar, pulo, toque, manchete e saque (partes 1 a 4).
-  - **Ainda com as pranchas antigas:** fim do saque, cortadas, especial, peixinho, comemoração, tristeza e espera olhando para a bola.
-  - Duas pranchas sem par (`bv2_x1` e `bv2_x2`) estão guardadas, esperando o dono dizer qual movimento são.
+- **Amiguinho:** completo na versão da ficha de modelo (41 pranchas), com os mesmos movimentos do IAmiguinho: olha para a bola e anda armando a cortada no chão.
   - Régua do Amiguinho: tamanho pela massa (raiz da área da silhueta), igual ao Amiguinho de antes; em cada quadro a massa é igualada (até ±10%), porque a geleia amassa e estica mas não muda de quantidade.
 - **Pendente:**
   - placar, menus e HUD pintados;

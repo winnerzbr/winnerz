@@ -121,7 +121,7 @@ volei.brain = function (i, dt, A, cfg) {
     A.bias = rand(-1, 1) * lerp(26, 10); A.spUse = Math.random() < Math.pow(acc, 2.5); A.diveOK = Math.random() < acc; A.plan = null; A.t = 0;
   }
   const out = { l: false, r: false, u: false, ax: 0, d: false, dir: 0, sp: false, pow: .5 + .45 * clamp(acc, 0, 1) };
-  const steer = (tx, k = 14) => { const dx = tx - p.x; if (Math.abs(dx) > 3) { out.ax = clamp(dx / k, -1, 1); out.l = dx < 0; out.r = dx > 0; } };
+  const steer = (tx, k = 14) => { const dx = tx - p.x; if (Math.abs(dx) > 5) { out.ax = clamp(dx / k, -1, 1); out.l = dx < 0; out.r = dx > 0; } };
   // ---------- saque dele
   if (this.server === i && this.hits === 0 && (this.state === 'serve' || (this.state === 'rally' && (this.tossT ?? 9) < 2.5))) {
     if (A.srvFor !== this.rallies) {

@@ -1,7 +1,7 @@
 """Moveset aprovado do IAmiguinho -> mv5.js (atlas por animação + máscara da tela do rosto + âncoras)."""
 import numpy as np, json, base64, io
 from PIL import Image
-from mids import add_mids
+from mids import add_mids, look_anims
 from scipy import ndimage
 from visor import visor, geom, solid
 I = json.load(open('mv2/info.json')); Q = .5  # pixels guardados por pixel original (já na escala igualada)
@@ -126,6 +126,7 @@ R0 = np.median([(lambda g: g[2] / g[3])(geom(visor(np.array(Image.open(f'mv2/{nm
 print('R0', R0)
 MIDS = True
 OUT = {'q': Q, 'scrh': round(SCRH * Q, 1), 'a': {}}
+TL = {}
 for an, sheets in ANIM.items():
     tiles, metas = [], []
     for nm in sheets:
@@ -187,6 +188,8 @@ for an, sheets in ANIM.items():
     b = io.BytesIO(); atl.save(b, 'WEBP', quality=84, method=5)
     mm = Image.new('RGBA', msk.size, (255, 255, 255, 0)); mm.putalpha(msk); b2 = io.BytesIO(); mm.save(b2, 'WEBP', quality=60, method=5)
     OUT['a'][an] = {'src': 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode(), 'mask': 'data:image/webp;base64,' + base64.b64encode(b2.getvalue()).decode(), 'front': an in FRONT, 'f': metas}
+    TL[an] = (tiles, metas)
     if MIDS: OUT['a'][an].update(add_mids(tiles, metas, an in {'idle', 'ready', 'readyU', 'readyD', 'run', 'back', 'spec', 'party'})); print('   quadros do meio:', OUT['a'][an].get('_n', 0))
     print(an, [round(np.degrees(m['r'])) for m in metas], atl.size, len(b.getvalue()) // 1024, 'KB', len(b2.getvalue()) // 1024, 'KB máscara')
+if MIDS: OUT['a'].update(look_anims(TL))
 open('mvb.js', 'w').write('window.MVB = ' + json.dumps(OUT) + ';\n'); print(len(open('mvb.js').read()) // 1024, 'KB', 'scrh', OUT['scrh'])

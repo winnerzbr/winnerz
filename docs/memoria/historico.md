@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, cabeça olhando para a bola sem tremer
+O dono notou que o Amiguinho parecia tremer andando. Ele trocava muito rápido entre olhar para a frente e olhar para cima, e entre andar e ficar parado.
+- **Olhar para a bola:** entre a espera e a espera olhando para cima ou para baixo, entraram dois desenhos do meio, a 1/3 e a 2/3 do caminho, no IAmiguinho e no Amiguinho.
+  - Eles são feitos entortando um único desenho, sem misturar dois, o que deixaria fantasma (`cart2/mids.py`, `look_anims`).
+  - A cabeça agora sobe e desce aos poucos, em cerca de um quarto de segundo, passando por esses desenhos.
+- **Andar e parar:** ele só passa a andar acima de uma velocidade maior e só volta à espera abaixo de uma menor. Antes, andando devagar, trocava toda hora entre os dois desenhos.
+- O Amiguinho ignora correções de posição muito pequenas, para não ficar dando passinhos no lugar.
+
 ## 30/10/2026: Jogos de Verão, cérebro novo do Amiguinho e animações sem tremer
 O dono jogou de novo e relatou:
 - o Amiguinho jogava a bola muito para trás;

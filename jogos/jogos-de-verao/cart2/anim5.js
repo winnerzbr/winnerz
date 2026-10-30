@@ -106,7 +106,7 @@
     } else if (s.tn < .3) { an = 'turn'; const q = Math.min(7, Math.floor(s.tn / .3 * 8)); k = s.tnTo === sf ? 7 - q : q; mir = sf < 0; }
     else if (s.lt < .3 && sp < 60) { an = 'jump'; k = 16 + Math.min(7, Math.floor(s.lt / .3 * 8)); }
     else if (s.rt < .3 && sp < 60) { an = s.srv ? 'serve' : 'gnd'; k = s.srv ? 32 + Math.min(7, Math.floor(s.rt / .3 * 8)) : 12 + Math.min(3, Math.floor(s.rt / .3 * 4)); }
-    else if (sp > 8) {
+    else if ((s.mv = s.mv ? sp > 5 : sp > 18)) {
       const backw = p.vx * face < 0;
       if (backw) { an = 'back'; k = Math.floor((((p.ph || 0) / TAU) % 1 + 1) % 1 * 8) % 8; }
       else if (acc > 200 && sp < 100) { an = 'ss'; k = Math.min(3, Math.floor(sp / 100 * 4)); }
@@ -119,10 +119,14 @@
         const b = v.b, dx = b.x - p.x, dy = b.y - (p.y - 42 * CHAR_K), d = Math.hypot(dx, dy) || 1, el = -dy / d;
         const was = s.rv || 0, up = el > (was === 1 ? .45 : .6), down = dy > 0 && el < (was === -1 ? -.25 : -.4) && d < 150;
         s.rv = up ? 1 : down ? -1 : (was === 1 && el > .3) || (was === -1 && el < -.1) ? was : 0;
-        if (s.rv === 1) an = 'readyU'; else if (s.rv === -1) an = 'readyD';
+        // a cabeça sobe e desce aos poucos: passa pelos dois desenhos do meio (1/3 e 2/3) em vez de pular direto
+        s.lv = s.lv ?? 0; s.lv += clamp(s.rv - s.lv, -dt * 4.5, dt * 4.5);
+        const q = Math.round(Math.abs(s.lv) * 3), dirn = s.lv > 0 ? 'readyU' : 'readyD';
+        if (q >= 3) an = dirn; else if (q > 0 && M5.a[dirn + '_' + q]) an = dirn + '_' + q;
       }
     }
     else { an = 'idle'; k = Math.floor(tt * 8) % 16; }
+    if (!/^ready/.test(an)) s.lv = 0;
     if (an === 'turn' || an === 'party' || an === 'sad') { /* espelho já decidido */ }
     s.last = an; if (an === 'serve') s.sk = k;
     // armando no chão e andando: pranchas próprias (para a frente: quadros 0-7; para trás: 8-15)
@@ -131,7 +135,7 @@
     { // olha para a bola durante o rali (o rosto anda dentro do visor, suave)
       const b = v.b, live = (v.state === 'rally' || v.state === 'serve') && !['party', 'sad', 'dive', 'turn'].includes(an);
       let lx = 0, ly = 0;
-      if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6) * (an === 'readyU' || an === 'readyD' ? .35 : 1); }
+      if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6) * (/^ready[UD]/.test(an) ? .35 : 1); }
       s.lk = s.lk || [0, 0]; const a = Math.min(1, dt * 10); s.lk[0] += (lx - s.lk[0]) * a; s.lk[1] += (ly - s.lk[1]) * a; LOOK = s.lk;
     }
     frame5(an, midK(s, an, k, tt, M5.a[an]), mode, P.ex, mir);

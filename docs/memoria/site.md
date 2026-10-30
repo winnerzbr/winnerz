@@ -37,7 +37,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 ## Áreas e ideias
 - **IAmiguinho:** é o mascote e o guia do site, com perfil próprio, @iamiguinho.
 - **Museu:** a primeira versão é a visita guiada. O museu jogável vem depois, como novidade.
-- **Arcade do IAmiguinho e Fase da Semana:** aprovados.
+- **Arcade do IAmiguinho e Fase da Semana:** aprovados. O Minigolfe saiu dos Jogos de Verão e vai entrar no Arcade, com os gráficos do Arcade.
 - **IAmiguinho: Jogos de Verão:** ver `jogos-de-verao.md`.
 - **Álbum de figurinhas:** deixado de lado por causa de direitos autorais. Nada de figurinhas com arte de IA.
 - **Cartas Vivas** (cartas no estilo super trunfo): guardada para depois. Não usar o nome "Super Trunfo", que é marca da Grow.

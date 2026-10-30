@@ -1,6 +1,6 @@
 # IAmiguinho: Jogos de Verão
 
-Minigames de praia inspirados em California Games, com 19 provas. Roda no navegador e é publicado como página (artefato) no Claude.
+Minigames de praia inspirados em California Games. Roda no navegador e é publicado como página (artefato) no Claude.
 
 ## Decisões em vigor
 - **Plataforma:** continua no navegador.
@@ -12,7 +12,8 @@ Minigames de praia inspirados em California Games, com 19 provas. Roda no navega
 - **Ordem de migração:**
   1. vôlei (feito, menos o Amiguinho);
   2. skate (feito);
-  3. as outras provas, depois de revisar as regras de cada uma.
+  3. as outras provas, depois de revisar as regras de cada uma;
+  4. as provas novas, depois que o dono aprovar as regras.
 - **Animações:** desenhos inteiros quadro a quadro, de 12 a 24 quadros por movimento, em pranchas 4×2 com fundo verde.
   - O quadro mostrado segue a física do jogo.
   - Cada golpe tem o seu quadro de contato.
@@ -21,15 +22,31 @@ Minigames de praia inspirados em California Games, com 19 provas. Roda no navega
   - Ver o doc "Jogos de Verão: plano visual".
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
+## Provas
+O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Salto do píer, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
+- **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
+- **Troca:** o Salto do píer vira Salto do penhasco, na Falésia do Farol, com as mesmas regras e 5 alturas cada vez maiores.
+- **Novas, ainda não feitas:** as regras propostas aguardam a aprovação do dono. As novas já nascem pintadas, sem passar pelo 16 bits.
+
+  | Prova | Lugar | Pontos principais |
+  |---|---|---|
+  | Voo do teco-teco | Aeroclube da Restinga, sobrevoando a costa | vista de lado: argolas, balões, rasantes nos marcos, looping e turbo |
+  | Frescobol | Praia Lotada | cooperativo contra o recorde; sozinho, um Amiguinho é o parceiro; pode ser jogado em duas pessoas |
+  | Paraquedismo em formação | Céu da Enseada Cristal | queda livre fechando a roda, abrir o paraquedas baixo e pousar no alvo |
+  | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito |
+  | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
+  | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol, onda); 3 voltas e a Copa das Dunas com 3 pistas |
+
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |
 |---|---|---|
-| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (vôlei e skate pintados) |
+| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (16 provas; vôlei e skate pintados) |
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |
 | Moveset do Skate | https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3 | pedidos das pranchas do skate, das manobras combinadas e do cenário |
-| Plano visual (doc) | https://claude.ai/artifact/N2TAefrFeShKPgXHgzkEgw | Costa WinnerZ, cenários, horários, itens e ordem de produção |
+| Plano visual (doc) | https://claude.ai/artifact/N2TAefrFeShKPgXHgzkEgw | Costa WinnerZ, cenários, horários, itens, regras das provas novas e ordem de produção |
 
 ## Como uma prancha vira jogo
 1. O dono gera a prancha no ChatGPT, com estes anexos:

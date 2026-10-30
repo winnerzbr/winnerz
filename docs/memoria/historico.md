@@ -4,6 +4,21 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, troca de provas
+- **Saíram do jogo:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas continua no backup em 16 bits. O Minigolfe vai para o Arcade do IAmiguinho, com os gráficos do Arcade.
+- **Troca:** o Salto do píer vai virar Salto do penhasco, na Falésia do Farol. Enquanto o penhasco não fica pronto, o Salto do píer continua no jogo.
+- **Provas novas aprovadas:**
+  - Voo do teco-teco;
+  - Frescobol (precisa ter modo para uma pessoa, com um Amiguinho de parceiro);
+  - Paraquedismo em formação;
+  - Pingue-pongue no quiosque;
+  - Bocha na areia;
+  - Corrida de bugue: vista de cima, com mecânicas de corrida de kart e itens para acertar quem corre contra.
+- Com as novas, o jogo fica com 22 provas. Hoje o jogo publicado tem 16 provas, e os textos da tela não dizem mais o número.
+- O plano visual (doc) ganhou o lugar, o horário da capa, a paleta, os extras, os desafios e as **regras propostas** de cada prova nova.
+- O Parque do Boardwalk ficou sem prova. A ideia é que vire a porta do Arcade no mapa (a decidir).
+- **Pendente:** o dono aprovar as regras propostas antes de começar qualquer prova nova.
+
 ## 30/10/2026: Jogos de Verão, Amiguinho do vôlei
 - Começaram as pranchas novas do Amiguinho (com a ficha de modelo). Parado (partes 1 e 2) aprovado e já no jogo e na Prévia.
 - Tamanho igualado pela massa ao Amiguinho de antes; cada quadro com a mesma massa (o 1º quadro da parte 1 tinha vindo 6% menor).

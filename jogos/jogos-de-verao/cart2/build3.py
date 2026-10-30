@@ -7,6 +7,14 @@ def sub1(old, new, text):
     assert text.count(old) == 1, (old[:80], text.count(old)); return text.replace(old, new)
 # vôlei: menus em HTML como as outras provas (a interface pintada vem depois)
 s = sub1("const vuiOn = () => cur === volei && !seq;", "const vuiOn = () => false; // vôlei pintado: menus em HTML por enquanto", s)
+# 30/10/2026: o dono tirou Salto de hélice, Corrida do isopor e Minigolfe (o minigolfe vai para o Arcade do IAmiguinho).
+# O código delas continua no backup em 16 bits (verao/index.html); só saem da lista.
+# Os textos não dizem mais quantas provas são, porque o número vai mudar com as provas novas.
+s = sub1("<p>Dezenove provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", "<p>Provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", s)
+s = sub1("say('Boas-vindas à orla! Dezenove provas e sete por semana valendo pódio. Todas minhas, em teoria.');",
+         "say('Boas-vindas à orla! Toda semana, sete provas valendo pódio. Todas minhas, em teoria.');", s)
+s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, planador, isopor, bmx, obstaculos, frisbee, arco, minigolfe, duelo, canoagem, futebol, natacao, jetski, volei];",
+         "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx, obstaculos, frisbee, arco, duelo, canoagem, futebol, natacao, jetski, volei];", s)
 # vôlei desenhado em 1280 × 720, liso
 s = sub1("  const hi = mode !== 'podium' && (cur === volei || !!cur.hi); // vôlei e provas com a arte gerada: desenho em dobro\n"
          "  if (cv.width !== (hi ? W * 2 : W) || cv.height !== (hi ? H * 2 : H)) { cv.width = hi ? W * 2 : W; cv.height = hi ? H * 2 : H; ctx.imageSmoothingEnabled = false; requestAnimationFrame(fitFs); }\n"

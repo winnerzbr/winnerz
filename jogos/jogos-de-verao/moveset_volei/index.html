@@ -1,0 +1,316 @@
+<title>Moveset do Vôlei</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Nunito+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: uma coluna de trabalho. Topo com a troca de personagem e o progresso; depois o passo 1 (regras) e os movimentos, cada prancha um cartão com copiar e marcar como feita. */
+:root {
+  --bg: #f6f1ff; --panel: #ffffff; --ink: #1b1f4f; --mut: #5d5f86; --line: #dcd6ee; --code: #f1edfb;
+  --ia: #2f74dc; --bl: #e0569a; --ok: #2c8a52; --chroma: #00c853;
+  --f-disp: "Fredoka", "Nunito Sans", system-ui, sans-serif; --f-body: "Nunito Sans", system-ui, sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #10122b; --panel: #191c3d; --ink: #eceeff; --mut: #a5a8d4; --line: #2e3263; --code: #20244a; --ia: #74a8ff; --bl: #ff86c0; --ok: #5fd68c; --chroma: #4ef08a; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #10122b; --panel: #191c3d; --ink: #eceeff; --mut: #a5a8d4; --line: #2e3263; --code: #20244a; --ia: #74a8ff; --bl: #ff86c0; --ok: #5fd68c; --chroma: #4ef08a; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px }
+.wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 26px }
+header { display: grid; gap: 10px }
+.k { font: 500 12px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--mut) }
+h1 { margin: 0; font: 700 clamp(32px, 6vw, 54px)/1 var(--f-disp); letter-spacing: -.01em; text-wrap: balance }
+header p { margin: 0; max-width: 66ch; color: var(--mut) }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line) }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+.seg { display: inline-flex; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden }
+.seg button { border: 0; background: transparent; color: var(--ink); font: 600 14px var(--f-disp); padding: 7px 16px; cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+.prog { display: flex; align-items: center; gap: 10px; font: 500 13px var(--f-mono); color: var(--mut); min-width: 0 }
+.meter { width: 160px; max-width: 40vw; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden }
+.meter i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .3s }
+.tips { display: grid; gap: 8px; padding: 14px 16px; border-left: 4px solid var(--chroma); background: var(--panel); border-radius: 0 12px 12px 0 }
+.tips b { font-family: var(--f-disp); font-weight: 600 }
+.tips ol { margin: 0; padding-left: 20px; display: grid; gap: 4px }
+section { display: grid; gap: 12px; min-width: 0 }
+section > h2 { margin: 0; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font: 700 24px/1.15 var(--f-disp) }
+section > h2 small { font: 500 12px var(--f-mono); color: var(--mut) }
+section > p { margin: 0; color: var(--mut); max-width: 70ch }
+.card { background: var(--panel); border: 1.5px solid var(--line); border-radius: 14px; display: grid; min-width: 0; overflow: hidden }
+.card.done { border-color: color-mix(in srgb, var(--ok) 55%, var(--line)) }
+.card .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line) }
+.card .top .t { display: grid; gap: 2px; min-width: 0 }
+.card .top b { font: 600 15.5px var(--f-disp) }
+.card .top span { font: 500 12px var(--f-mono); color: var(--mut) }
+.acts { display: flex; gap: 8px; align-items: center }
+.card pre { margin: 0; padding: 12px 14px 14px; background: var(--code); font: 12.5px/1.6 var(--f-mono); white-space: pre-wrap; word-break: break-word; max-height: 230px; overflow: auto }
+button.cp { border: 2px solid var(--ink); background: var(--ink); color: var(--bg); border-radius: 999px; font: 600 13px var(--f-disp); padding: 5px 14px; cursor: pointer }
+button.cp.ok { background: var(--ok); border-color: var(--ok) }
+label.chk { display: inline-flex; align-items: center; gap: 6px; font: 600 13px var(--f-disp); cursor: pointer; padding: 4px 6px }
+label.chk input { width: 18px; height: 18px; accent-color: var(--ok) }
+.who { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--ia); margin-right: 6px; vertical-align: 1px }
+body.bl .who { background: var(--bl) }
+.contact { font: 500 12px var(--f-mono); color: var(--mut); padding: 8px 14px; border-top: 1px dashed var(--line) }
+.contact b { color: var(--ink); font-weight: 500 }
+.files { display: flex; gap: 10px; flex-wrap: wrap }
+a.dl { border: 2px solid var(--ink); border-radius: 999px; padding: 6px 16px; font: 600 14px var(--f-disp); color: var(--ink); text-decoration: none }
+a.dl:hover { background: var(--ink); color: var(--bg) }
+.thumbs { display: grid; grid-template-columns: 1.5fr 1fr; gap: 10px }
+.thumbs img { width: 100%; height: auto; border-radius: 10px; border: 1.5px solid var(--line); display: block }
+@media (max-width: 620px) { .thumbs { grid-template-columns: 1fr } }
+figure.pose { margin: 0; padding: 10px 14px 12px; border-top: 1px dashed var(--line); display: grid; gap: 6px }
+figure.pose img { width: 100%; max-width: 520px; height: auto; border-radius: 8px; border: 1px solid var(--line); display: block }
+figure.pose figcaption { font: 500 12px var(--f-mono); color: var(--mut) }
+:focus-visible { outline: 3px solid var(--chroma); outline-offset: 2px }
+@media (max-width: 520px) { .card .top { align-items: flex-start } .meter { width: 90px } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="k">WinnerZ · IAmiguinho Jogos de Verão · estilo pintado</span>
+    <h1>Moveset do Vôlei</h1>
+    <p>Versão 2: todas as pranchas do vôlei refeitas com a ficha de modelo e a grade-guia, para o personagem ficar com as mesmas proporções em todas as animações. São 38 pranchas de 8 quadros por personagem (304 quadros), na ordem de pedir ao ChatGPT. Cada pedido já começa lembrando dos anexos. Troque entre IAmiguinho e Amiguinho no topo.</p>
+  </header>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Personagem">
+      <button id="b-ia" aria-pressed="true">IAmiguinho</button>
+      <button id="b-bl" aria-pressed="false">Amiguinho</button>
+    </div>
+    <div class="prog"><span id="pg">0 de 36 pranchas</span><span class="meter"><i id="pm"></i></span></div>
+  </div>
+
+  <div class="tips">
+    <b>Como pedir</b>
+    <ol>
+      <li>Abra uma conversa nova para cada personagem. Mande a ficha de modelo e a grade-guia (logo abaixo) junto com as regras do passo 1.</li>
+      <li>Peça uma prancha por mensagem, na ordem da página, sempre com a ficha de modelo e a grade-guia anexadas. Depois que o PARADO ficar bom, anexe também essa prancha em todas as mensagens seguintes, como referência de tamanho.</li>
+      <li>Anexe também a referência de pose em cinza de cada prancha (aparece no cartão dela). Ela é a prancha antiga aprovada: o ChatGPT copia a pose de lá e os tamanhos da ficha e da grade. Isso evita braços e pernas invertidos.</li>
+      <li>Se só um quadro sair errado, use a edição do próprio ChatGPT: selecione só aquele quadro e peça, por exemplo, "redraw only this frame with the pose of frame 5 of the pose reference". Se ainda assim falhar, peça para refazer só aquela prancha dizendo o quadro, por exemplo: "redo this sheet, frame 6 has the wrong leg forward".</li>
+      <li>Me mande as pranchas como forem saindo. Eu recorto, acerto a escala e marco o quadro de contato de cada golpe com a bola.</li>
+    </ol>
+  </div>
+
+  <main id="main" style="display:grid;gap:26px"></main>
+</div>
+
+<script>
+const NAME = { ia: 'IAmiguinho', bl: 'Amiguinho' };
+const RULES = {
+  ia: `I'm going to ask you for animation sprite sheets of this exact character, IAmiguinho (see the attached MODEL SHEET: front, 3/4, side and back views with proportion lines, and the attached GUIDE GRID). The frames will be played in a game at 60 fps, so they must work as smooth in-between animation. Follow these rules in EVERY sheet:
+- Exactly the same design, proportions, colors, thick dark navy outline and hand-painted cartoon style as the reference sheet: big round cream head with an empty dark screen face, blue and cream striped cap with a blue propeller, blue headphones with glowing cyan rings, small egg-shaped cream body, thin cream arms and legs, white gloves with FIVE fingers (four fingers and a thumb) and blue wristbands, big blue sneakers with white soles. Every hand always has five fingers, in every frame, even when the reference shows fewer.
+- The image is a grid of 4 columns x 2 rows of equal cells, 8 frames in reading order (left to right, top to bottom). The character never touches or crosses the cell borders.
+- Proportions: the attached MODEL SHEET is the only valid model. The head (cap top to chin) is 41% of the standing height, the body from neck to feet is 48% (only a little taller than the head), the propeller 11%. Keep these proportions in EVERY pose: lying, jumping, stretching or turning must never make the body, arms or legs bigger or longer.
+- Layout and scale: draw every sheet on the attached GUIDE GRID: same 4x2 cells, same ground line, and standing upright the character fills exactly the space from the GROUND line to the PROPELLER TOP line; the head always fits between the CAP TOP and CHIN lines in size. Never draw the guide lines, labels or numbers in the result.
+- The ground line of the guide grid is the same in every cell. Feet touch it when on the ground; when airborne, draw the character higher in the cell, as high as the motion needs.
+- Keep the head near the horizontal center of the cell, so the body moves around a fixed point, unless the prompt says the body travels.
+- Side 3/4 view facing RIGHT unless the prompt says otherwise. Light comes from the top left in every frame.
+- The face screen is always EMPTY: plain dark glass, no eyes, no mouth (the game draws the face).
+- Flat pure green background (#00FF00). No ground shadow, no motion lines, no dust, no sand, no ball, no text, no numbers, no cell borders.
+- Consecutive frames change only a little: they are real in-betweens. When a sheet is "part 2" or later, its first frame continues exactly from the last frame of the previous part.
+- Arms and legs: elbows bend only backward and knees only forward, like a real body; never twisted, reversed or crossing the body in an impossible way. "Near" means the limb closest to the camera, "far" the one behind the body. When walking or running, the near arm swings opposite to the near leg. Always exactly two arms, two legs and two hands, each hand with five fingers (four fingers and a thumb).
+- Keep arms, legs and hands slightly apart from the body whenever the pose allows, so parts overlap as little as possible.
+Reply "ok" and wait for my first sheet request.`,
+  bl: `I'm going to ask you for animation sprite sheets of this exact character, Amiguinho (see the attached MODEL SHEET: front, 3/4, side and back views with proportion lines, and the attached GUIDE GRID). The frames will be played in a game at 60 fps, so they must work as smooth in-between animation. Follow these rules in EVERY sheet:
+- Exactly the same design, proportions, color, thick dark navy outline and hand-painted cartoon style as the reference sheet: a pink egg-shaped jelly blob with a wide horizontal dark visor, two round floating hands and two dome-shaped feet. It has NO arms and NO legs: hands and feet float close to the body and move with it.
+- The body is soft jelly: it squashes when it lands or loads up and stretches when it jumps or reaches, always keeping the same volume.
+- The image is a grid of 4 columns x 2 rows of equal cells, 8 frames in reading order (left to right, top to bottom). The character never touches or crosses the cell borders.
+- Proportions: the attached MODEL SHEET is the only valid model: visor in the upper half of the body, hands and feet small separate balls that never change size. Squash and stretch change the shape but never the amount of body.
+- Layout and scale: draw every sheet on the attached GUIDE GRID: same 4x2 cells, same ground line, and standing still the character fills exactly the space from the GROUND line to the BODY TOP line. Never draw the guide lines, labels or numbers in the result.
+- The ground line of the guide grid is the same in every cell. Feet touch it when on the ground; when airborne, draw the character higher in the cell, as high as the motion needs.
+- Keep the body near the horizontal center of the cell, unless the prompt says the body travels.
+- Side 3/4 view facing RIGHT unless the prompt says otherwise. Light comes from the top left in every frame.
+- The visor is always EMPTY: plain dark glass, no eyes (the game draws the face).
+- Flat pure green background (#00FF00). No ground shadow, no motion lines, no dust, no sand, no ball, no text, no numbers, no cell borders.
+- Consecutive frames change only a little: they are real in-betweens. When a sheet is "part 2" or later, its first frame continues exactly from the last frame of the previous part.
+- Hands and feet: always exactly two floating hands and two feet, the same size in every frame; "near" means closest to the camera, "far" the one behind the body. When walking or hopping, the near hand swings opposite to the near foot.
+- Keep the hands slightly apart from the body whenever the pose allows.
+Reply "ok" and wait for my first sheet request.`,
+};
+// cada movimento: nome em português, para que serve no jogo, e as pranchas (texto do IAmiguinho e do Amiguinho)
+const MOVES = [
+  { n: 'Parado', use: 'Em pé entre os lances. Repete sem parar.', sheets: [
+    { t: 'Parte 1 de 2 · quadros 1–8', ia: `Sheet: IDLE loop, part 1 of 2 (frames 1-8). Relaxed standing, breathing in. 1: neutral stance, arms relaxed at the sides. 2: chest starts rising. 3: shoulders lift a little, arms drift slightly outward. 4: chest higher. 5: top of the breath, body slightly taller. 6: weight starts shifting onto the back foot. 7: weight on the back foot, head tilting very slightly. 8: hold, tiny head tilt. The propeller turns a little in every frame.`,
+      bl: `Sheet: IDLE loop, part 1 of 2 (frames 1-8). Standing still, breathing in like jelly. 1: neutral, hands floating at the sides. 2: body starts stretching up. 3: body taller and thinner, hands rise a little. 4: taller. 5: top of the breath, tallest. 6: body sways slightly back. 7: leaning back a bit, hands drifting outward. 8: hold, tiny wobble.` },
+    { t: 'Parte 2 de 2 · quadros 9–16', ia: `Sheet: IDLE loop, part 2 of 2 (frames 9-16). 9: breathing out starts, chest lowers. 10: arms drift back in. 11: chest lower. 12: weight shifts back to the center. 13: tiny knee bounce down. 14: small glance down. 15: glance back up, knees straightening. 16: almost the same pose as frame 1, so the loop closes smoothly. The propeller keeps turning slowly.`,
+      bl: `Sheet: IDLE loop, part 2 of 2 (frames 9-16). 9: breathing out, body starts squashing. 10: wider and shorter. 11: hands come back in. 12: body sways back to the center. 13: small wobble down. 14: small wobble up. 15: settling. 16: almost the same pose as frame 1, so the loop closes smoothly.` },
+  ] },
+  { n: 'Posição de espera', use: 'Esperando a bola durante o rally. Repete.', sheets: [
+    { t: 'Prancha única · 8 quadros', ia: `Sheet: READY STANCE loop (8 frames), waiting for the ball. Knees bent, body leaning slightly forward, both hands open in front of the belly, palms down, weight on the balls of the feet. 1: ready. 2: bouncing down. 3: lower. 4: lowest. 5: coming up. 6: higher. 7: highest, heels slightly up. 8: coming down, flowing into frame 1.`,
+      bl: `Sheet: READY STANCE loop (8 frames), waiting for the ball. Body leaning slightly forward, slightly squashed, both hands floating in front, feet apart. 1: ready. 2: bouncing down, squashing. 3: lower. 4: lowest, widest. 5: coming up. 6: stretching. 7: highest, tallest. 8: coming down, flowing into frame 1.` },
+  ] },
+  { n: 'Corrida', use: 'Correndo para frente. Repete; o passo acompanha a velocidade.', sheets: [
+    { t: 'Parte 1 de 2 · quadros 1–8 (um passo)', ia: `Sheet: RUN cycle, part 1 of 2 (frames 1-8) = one stride. This is RUNNING, NOT WALKING: long strides, body leaning forward about 15 degrees, knees lifting high, and in frames 6, 7 and 8 BOTH feet are off the ground (draw the body higher in the cell). The body stays in the same place in every cell, like running on a treadmill. Energetic cartoon run, body leaning forward, fists loosely closed, arms swinging opposite to the legs. 1: right foot touches the ground in front, left leg stretched behind. 2: body sinks, right knee bends taking the weight. 3: lowest point, left leg starts swinging forward. 4: passing, left knee under the body. 5: right leg pushes off, body rising. 6: left knee comes up in front. 7: highest point, both feet off the ground, left leg reaching forward. 8: left foot about to touch the ground.`,
+      bl: `Sheet: RUN cycle, part 1 of 2 (frames 1-8) = one hop-step. The blob runs with quick bouncy steps, leaning forward, hands pumping. 1: right foot lands in front, body squashes. 2: deepest squash. 3: body starts stretching, left foot swings forward. 4: passing, feet together under the body. 5: pushing off, body stretching tall. 6: in the air, stretched, left foot forward. 7: highest point. 8: left foot about to land, body round again.` },
+    { t: 'Parte 2 de 2 · quadros 9–16 (outro passo)', ia: `Sheet: RUN cycle, part 2 of 2 (frames 9-16), the same as part 1 with legs and arms swapped. RUNNING, NOT WALKING: in frames 14, 15 and 16 BOTH feet are off the ground; the body stays in the same place in every cell. 9: left foot touches the ground in front, right leg stretched behind. 10: body sinks, left knee bends. 11: lowest point, right leg starts swinging forward. 12: passing, right knee under the body. 13: left leg pushes off, body rising. 14: right knee comes up in front. 15: highest point, both feet off the ground. 16: right foot about to touch the ground, flowing into part 1 frame 1.`,
+      bl: `Sheet: RUN cycle, part 2 of 2 (frames 9-16), the same as part 1 with feet and hands swapped. 9: left foot lands in front, body squashes. 10: deepest squash. 11: stretching, right foot swings forward. 12: passing. 13: pushing off, tall. 14: in the air, right foot forward. 15: highest point. 16: right foot about to land, flowing into part 1 frame 1.` },
+  ] },
+  { n: 'Arrancar e frear', use: 'Começo e fim da corrida, para não cortar seco.', sheets: [
+    { t: 'Prancha única · 8 quadros', ia: `Sheet: RUN START and STOP (8 frames). Frames 1-4 START: 1: ready stance. 2: leaning forward, weight on the front foot. 3: back foot pushes off, arms swing. 4: first running step. Frames 5-8 STOP: 5: front foot plants and slides, body leans back. 6: both feet sliding, arms out for balance. 7: stopped, body swinging forward a little. 8: settled in the ready stance.`,
+      bl: `Sheet: RUN START and STOP (8 frames). Frames 1-4 START: 1: ready. 2: body leans forward and squashes. 3: pushes off, stretching forward. 4: first hop-step. Frames 5-8 STOP: 5: feet plant, body squashes and leans back. 6: body sloshes forward like jelly. 7: wobbles back. 8: settled in the ready stance.` },
+  ] },
+  { n: 'Andar para trás', use: 'Recuando de frente para a rede. Repete.', sheets: [
+    { t: 'Prancha única · 8 quadros', ia: `Sheet: BACKPEDAL loop (8 frames): moving BACKWARD (to the left) while still facing right. Quick small backward steps, knees bent, hands open in front, ready. 1: right foot steps back. 2: weight moves back onto it. 3: left foot lifts. 4: left foot passes behind. 5: left foot lands behind. 6: weight moves back. 7: right foot lifts. 8: right foot passing, flowing into frame 1.`,
+      bl: `Sheet: BACKPEDAL loop (8 frames): moving BACKWARD (to the left) while still facing right. Small backward hops, hands floating in front. 1: right foot steps back. 2: body squashes back. 3: left foot lifts. 4: body stretches. 5: left foot lands behind. 6: squash. 7: right foot lifts. 8: stretching, flowing into frame 1.` },
+  ] },
+  { n: 'Virar', use: 'Quando troca de lado (aparece pouco no vôlei).', sheets: [
+    { t: 'Prancha única · 8 quadros', ia: `Sheet: TURN AROUND (8 frames), from facing RIGHT to facing LEFT, passing through the front view with a tiny hop. 1: 3/4 view facing right. 2: turning, side-front. 3: almost front, feet leaving the ground. 4: front view, in a tiny hop. 5: almost front, turned slightly to the left. 6: 3/4 view facing left. 7: landing, facing left. 8: 3/4 view facing left, settled.`,
+      bl: `Sheet: TURN AROUND (8 frames), from facing RIGHT to facing LEFT, passing through the front view with a tiny hop. 1: 3/4 facing right. 2: turning, squashing to hop. 3: hop, stretching, almost front. 4: front view in the air. 5: almost front, turned slightly left. 6: 3/4 facing left, landing. 7: squash on landing. 8: 3/4 facing left, settled.` },
+  ] },
+  { n: 'Pulo', use: 'Pulo para bloquear ou alcançar a bola.', sheets: [
+    { t: 'Parte 1 de 3 · impulso · quadros 1–8', ia: `Sheet: JUMP, part 1 of 3: TAKEOFF (frames 1-8). 1: ready stance. 2: crouch begins, arms swing back. 3: deepest crouch, arms far back. 4: legs start extending, arms swing forward. 5: legs almost straight, arms up in front. 6: toes leaving the ground, body stretched tall. 7: just off the ground, arms high. 8: rising, knees start bending.`,
+      bl: `Sheet: JUMP, part 1 of 3: TAKEOFF (frames 1-8). 1: ready. 2: squash begins, hands go down. 3: deepest squash, very wide and flat. 4: springing up, body stretching. 5: very tall and thin, hands up. 6: leaving the ground. 7: just off the ground, stretched. 8: rising, body getting round again.` },
+    { t: 'Parte 2 de 3 · no ar · quadros 9–16', ia: `Sheet: JUMP, part 2 of 3: IN THE AIR (frames 9-16). 9: rising fast, body stretched. 10: knees tuck up. 11: near the top. 12: top of the jump, knees tucked, arms up. 13: starting to fall. 14: legs extend downward. 15: falling, arms out for balance. 16: legs straight, feet pointing down, ready to land.`,
+      bl: `Sheet: JUMP, part 2 of 3: IN THE AIR (frames 9-16). 9: rising, stretched. 10: getting round. 11: near the top. 12: top of the jump, round, hands up, feet tucked. 13: starting to fall. 14: body stretches downward a little. 15: falling, hands out for balance. 16: feet pointing down, ready to land.` },
+    { t: 'Parte 3 de 3 · pouso · quadros 17–24', ia: `Sheet: JUMP, part 3 of 3: LANDING (frames 17-24). 17: toes touch the ground. 18: heels down, knees start bending. 19: deep knee bend, arms out. 20: deepest squash. 21: pushing back up. 22: small overshoot, body slightly stretched. 23: settling. 24: ready stance.`,
+      bl: `Sheet: JUMP, part 3 of 3: LANDING (frames 17-24). 17: feet touch the ground. 18: body starts squashing. 19: very squashed and wide. 20: deepest squash. 21: bouncing back up. 22: overshoot, tall and thin. 23: small wobble. 24: ready stance.` },
+  ] },
+  { n: 'Toque', use: 'Levantamento por cima da cabeça. O quadro 8 é o contato com a bola.', contact: 'quadro 8: as duas mãos acima da testa', sheets: [
+    { t: 'Parte 1 de 2 · preparação · quadros 1–8', ia: `Sheet: OVERHEAD SET, part 1 of 2: PREPARATION (frames 1-8). 1: ready stance. 2: steps under the ball, looking up. 3: knees bend more, hands rising in front of the chest. 4: hands at chin height, fingers opening. 5: hands at forehead height. 6: hands above the forehead, fingers spread in a triangle window, elbows out. 7: knees at their deepest bend, whole body loaded. 8: CONTACT: wrists bent back, fingers flat as if a ball touches them, body slightly squashed.`,
+      bl: `Sheet: OVERHEAD SET, part 1 of 2: PREPARATION (frames 1-8). 1: ready. 2: moves under the ball, looking up. 3: body squashes, hands rising in front. 4: hands at visor height. 5: hands above the top of the head. 6: both hands together above the head, palms up. 7: deepest squash, loaded. 8: CONTACT: hands flat above the head as if a ball touches them, body squashed.` },
+    { t: 'Parte 2 de 2 · empurrar e voltar · quadros 9–16', ia: `Sheet: OVERHEAD SET, part 2 of 2: PUSH AND RECOVERY (frames 9-16). 9: push starts, legs extending, arms extending up. 10: arms half extended. 11: arms fully extended upward, fingers pointing to the sky, on tiptoes. 12: hold of the follow-through. 13: arms start coming down. 14: arms at head height, heels down. 15: hands in front of the chest. 16: ready stance.`,
+      bl: `Sheet: OVERHEAD SET, part 2 of 2: PUSH AND RECOVERY (frames 9-16). 9: body springs up, stretching. 10: hands pushing up. 11: tallest and thinnest, hands high above. 12: hold. 13: hands start coming down. 14: body getting round. 15: small squash. 16: ready stance.` },
+  ] },
+  { n: 'Manchete', use: 'Defesa com os antebraços. O quadro 8 é o contato.', contact: 'quadro 8: antebraços juntos, abaixo da cintura', sheets: [
+    { t: 'Parte 1 de 2 · preparação · quadros 1–8', ia: `Sheet: FOREARM BUMP, part 1 of 2: PREPARATION (frames 1-8). 1: ready stance. 2: steps toward the ball, knees bending. 3: arms reach forward and down. 4: hands meet, one fist wrapped in the other hand. 5: arms straight, forming a flat platform below the waist, thumbs together. 6: knees at their deepest bend, back straight. 7: platform angled slightly upward. 8: CONTACT: platform still, body slightly squashed.`,
+      bl: `Sheet: FOREARM BUMP, part 1 of 2: PREPARATION (frames 1-8). 1: ready. 2: leans toward the ball, squashing. 3: both hands move down in front. 4: hands meet, one on top of the other. 5: joined hands low in front of the body. 6: deepest squash. 7: hands angled slightly upward. 8: CONTACT: joined hands still, body squashed.` },
+    { t: 'Parte 2 de 2 · levantar e voltar · quadros 9–16', ia: `Sheet: FOREARM BUMP, part 2 of 2: LIFT AND RECOVERY (frames 9-16). 9: legs push up, arms rise a little, staying straight. 10: arms at waist height. 11: arms at chest height, body upright. 12: hold. 13: hands separate. 14: arms come down to the sides. 15: settling. 16: ready stance.`,
+      bl: `Sheet: FOREARM BUMP, part 2 of 2: LIFT AND RECOVERY (frames 9-16). 9: body stretches up, joined hands rise. 10: hands at belly height. 11: hands at visor height, body tall. 12: hold. 13: hands separate. 14: body getting round. 15: settling. 16: ready stance.` },
+  ] },
+  { n: 'Saque', use: 'Segurar, carregar a força, jogar a bola para cima e bater. O quadro 28 é o contato.', contact: 'quadro 28: mão aberta no alto, à frente da cabeça', sheets: [
+    { t: 'Parte 1 de 5 · segurando a bola · quadros 1–8', ia: `Sheet: SERVE, part 1 of 5: HOLDING THE BALL loop (frames 1-8). The FRONT hand is open with the palm up at chest height, as if holding a ball (no ball drawn). The other arm relaxed at the side. Small breathing motion: 1-4 slowly up, 5-8 slowly down; frame 8 flows into frame 1.`,
+      bl: `Sheet: SERVE, part 1 of 5: HOLDING THE BALL loop (frames 1-8). The FRONT hand floats in front of the body with the palm up at visor height, as if holding a ball (no ball drawn). Small jelly breathing: 1-4 slowly stretching, 5-8 slowly squashing; frame 8 flows into frame 1.` },
+    { t: 'Parte 2 de 5 · carregando · quadros 9–16', ia: `Sheet: SERVE, part 2 of 5: CHARGING (frames 9-16). Front palm up as in part 1 (no ball). 9: holding. 10: knees start bending. 11: lower, hitting arm pulls slightly back. 12: lower. 13: deep, body coiled. 14: deepest charge. 15: trembling with energy (tiny change). 16: ready to toss.`,
+      bl: `Sheet: SERVE, part 2 of 5: CHARGING (frames 9-16). Front palm up as in part 1 (no ball). 9: holding. 10: body starts squashing. 11: wider, hitting hand pulls back. 12: wider. 13: very squashed. 14: maximum squash. 15: trembling with energy (tiny change). 16: ready to toss.` },
+    { t: 'Parte 3 de 5 · jogando a bola · quadros 17–24', ia: `Sheet: SERVE, part 3 of 5: TOSS (frames 17-24). 17: front palm up, knees bent. 18: legs extend, front hand lifts. 19: front arm rising past the shoulder. 20: front arm fully up, palm open (the toss), looking up. 21: front arm lowering, hitting arm swings back. 22: hitting arm behind the head, elbow high. 23: body twisted, leaning back, arm fully cocked. 24: maximum stretch, ready to swing.`,
+      bl: `Sheet: SERVE, part 3 of 5: TOSS (frames 17-24). 17: front palm up, squashed. 18: body stretches up, front hand lifts. 19: front hand rising above the head. 20: front hand at its highest, palm open (the toss), looking up. 21: front hand lowering, hitting hand swings back. 22: hitting hand far behind the body. 23: body leaning back, stretched like a bow. 24: maximum stretch, ready to swing.` },
+    { t: 'Parte 4 de 5 · batida · quadros 25–32', ia: `Sheet: SERVE, part 4 of 5: HIT (frames 25-32). 25: hitting arm starts swinging forward. 26: elbow passes the head. 27: arm almost straight above and in front of the head. 28: CONTACT: arm fully extended up and forward, hand flat and open, body stretched. 29: arm continues forward. 30: arm at shoulder height in front. 31: arm down in front of the body. 32: arm across the body, weight on the front foot.`,
+      bl: `Sheet: SERVE, part 4 of 5: HIT (frames 25-32). 25: hitting hand starts swinging forward over the head. 26: hand above the head. 27: hand high and in front. 28: CONTACT: hand flat and open, high and in front of the body, body stretched toward it. 29: hand continues forward. 30: hand at visor height in front. 31: hand low in front. 32: body leaning forward, squashing.` },
+    { t: 'Parte 5 de 5 · finalização · quadros 33–40', ia: `Sheet: SERVE, part 5 of 5: FOLLOW-THROUGH (frames 33-40). 33: body leaning forward, arm across the belly. 34: back foot steps forward. 35: body coming upright. 36: arms returning to the sides. 37: settling. 38: knees bending into the ready stance. 39: almost ready. 40: ready stance.`,
+      bl: `Sheet: SERVE, part 5 of 5: FOLLOW-THROUGH (frames 33-40). 33: leaning forward, squashed. 34: back foot steps forward. 35: body sloshes back upright. 36: hands return to the sides. 37: small wobble. 38: settling. 39: almost ready. 40: ready stance.` },
+  ] },
+  { n: 'Cortada no ar', use: 'Ataque pulando. O quadro 11 é o contato.', contact: 'quadro 11: mão aberta no alto, à frente do corpo', sheets: [
+    { t: 'Parte 1 de 3 · armando · quadros 1–8', ia: `Sheet: SPIKE, part 1 of 3: IN THE AIR, WIND-UP (frames 1-8). All frames in the air. 1: just jumped, both arms high. 2: rising, knees bending. 3: hitting arm pulls back behind the head, elbow high, other arm pointing up at the ball. 4: back arching like a bow. 5: maximum arch, hitting arm fully cocked, knees bent behind. 6: hold of the arch (tiny change). 7: body starts uncurling, elbow comes forward. 8: hitting arm whipping forward, elbow above the head.`,
+      bl: `Sheet: SPIKE, part 1 of 3: IN THE AIR, WIND-UP (frames 1-8). All frames in the air. 1: just jumped, stretched, both hands high. 2: rising, getting round. 3: hitting hand pulls far back behind the body, other hand pointing up at the ball. 4: body bending back like a bow. 5: maximum bend, hitting hand fully back. 6: hold (tiny change). 7: body starts snapping forward. 8: hitting hand whipping forward above the body.` },
+    { t: 'Parte 2 de 3 · golpe e contato · quadros 9–16', ia: `Sheet: SPIKE, part 2 of 3: SWING AND CONTACT (frames 9-16). All frames in the air. 9: arm whipping forward, almost straight. 10: arm straight up and forward. 11: CONTACT: hitting arm fully extended high in front, hand flat and open, wrist snapping, body stretched. 12: wrist snaps down. 13: arm swinging down in front. 14: arm at belly height, body folding forward. 15: follow-through, arm across the belly, knees up. 16: body starts straightening.`,
+      bl: `Sheet: SPIKE, part 2 of 3: SWING AND CONTACT (frames 9-16). All frames in the air. 9: hand whipping forward. 10: hand high in front. 11: CONTACT: hitting hand flat and open, high in front, body stretched toward it. 12: hand snaps down. 13: hand swinging down in front. 14: body folding forward, squashing. 15: follow-through, hand low in front. 16: body getting round again.` },
+    { t: 'Parte 3 de 3 · queda · quadros 17–24', ia: `Sheet: SPIKE, part 3 of 3: FALL (frames 17-24). All frames in the air, falling. 17: body straightening. 18: legs extend downward. 19: arms open for balance. 20: falling, legs straight. 21: arms out. 22: feet down. 23: preparing to land. 24: feet about to touch the ground.`,
+      bl: `Sheet: SPIKE, part 3 of 3: FALL (frames 17-24). All frames in the air, falling. 17: round. 18: feet move down. 19: hands open for balance. 20: falling, body slightly stretched downward. 21: hands out. 22: feet down. 23: preparing to land. 24: feet about to touch the ground.` },
+  ] },
+  { n: 'Cortada no chão', use: 'Ataque sem pular, quando a bola vem baixa. O quadro 9 é o contato.', contact: 'quadro 9: mão aberta no alto, à frente', sheets: [
+    { t: 'Parte 1 de 2 · armando · quadros 1–8', ia: `Sheet: GROUND HIT, part 1 of 2: WIND-UP (frames 1-8). Feet on the ground, wide stance. 1: ready stance. 2: steps forward with the front foot. 3: hitting arm swings back behind the head, elbow high. 4: body twists, weight on the back foot. 5: maximum wind-up. 6: arm starts swinging forward. 7: elbow passes the head. 8: arm high and forward, almost straight.`,
+      bl: `Sheet: GROUND HIT, part 1 of 2: WIND-UP (frames 1-8). On the ground. 1: ready. 2: steps forward. 3: hitting hand swings far back. 4: body leans back, stretching. 5: maximum wind-up. 6: hand starts swinging forward. 7: hand above the body. 8: hand high and forward.` },
+    { t: 'Parte 2 de 2 · contato e volta · quadros 9–16', ia: `Sheet: GROUND HIT, part 2 of 2: CONTACT AND RECOVERY (frames 9-16). 9: CONTACT: arm fully extended up and forward, hand flat. 10: arm swings down. 11: arm across the body, weight on the front foot. 12: body leaning forward. 13: back foot steps forward. 14: coming upright. 15: arms back to the sides. 16: ready stance.`,
+      bl: `Sheet: GROUND HIT, part 2 of 2: CONTACT AND RECOVERY (frames 9-16). 9: CONTACT: hand flat and open, high in front, body stretched toward it. 10: hand swings down. 11: hand low in front, body squashing forward. 12: leaning forward. 13: back foot steps forward. 14: body sloshes upright. 15: small wobble. 16: ready stance.` },
+  ] },
+  { n: 'Cortada no chão andando', use: 'Andando com o braço armado (segurando o botão da cortada no chão). Repete enquanto anda.', sheets: [
+    { t: 'Parte 1 de 2 · andando para a frente · quadros 1–8', ia: `Sheet: GROUND HIT WIND-UP WALK FORWARD, loop of 8 frames. The character walks forward (to the right) while holding the ground-hit wind-up pose: hitting arm pulled back behind the head with the elbow high, the other arm forward for balance, body slightly twisted. The upper body keeps this same cocked pose in every frame; only the legs walk and the body bobs gently. 1: right foot forward touching the ground. 2: weight on the right foot, body lowest. 3: left leg passing under the body. 4: body highest, left foot reaching forward. 5: left foot forward touching the ground. 6: weight on the left foot, body lowest. 7: right leg passing. 8: body highest, right foot reaching forward, flowing into frame 1. The body stays in the same place in every cell, like walking on a treadmill.`,
+      bl: `Sheet: GROUND HIT WIND-UP WALK FORWARD, loop of 8 frames. The blob hops forward (to the right) in small steps while holding the ground-hit wind-up pose: hitting hand pulled far back behind the body, the other hand forward, body leaning back a little. The hands keep this same wind-up position in every frame; only the feet step and the jelly body squashes and stretches gently. 1: right foot forward, body squashed. 2: deepest squash. 3: stretching, left foot passing. 4: tallest, left foot forward. 5: left foot lands, squash. 6: deepest squash. 7: stretching, right foot passing. 8: tallest, flowing into frame 1. The body stays in the same place in every cell.` },
+    { t: 'Parte 2 de 2 · andando para trás · quadros 9–16', ia: `Sheet: GROUND HIT WIND-UP WALK BACKWARD, loop of 8 frames. Same cocked ground-hit wind-up pose as the forward walk (hitting arm behind the head, elbow high, other arm forward), still FACING RIGHT, but taking small steps BACKWARD (to the left). The upper body keeps the same pose; only the legs step back and the body bobs gently. 9: right foot steps back. 10: weight moves back, body lowest. 11: left foot lifts. 12: body highest, left foot passing behind. 13: left foot lands behind. 14: body lowest. 15: right foot lifts. 16: body highest, flowing into frame 9. The body stays in the same place in every cell.`,
+      bl: `Sheet: GROUND HIT WIND-UP WALK BACKWARD, loop of 8 frames. Same wind-up pose as the forward walk (hitting hand far back, other hand forward), still FACING RIGHT, but hopping BACKWARD (to the left) in small steps. Hands keep the same position; feet step back and the jelly body squashes and stretches gently. 9: right foot steps back, squash. 10: deepest squash. 11: left foot lifts, stretching. 12: tallest. 13: left foot lands behind, squash. 14: deepest squash. 15: right foot lifts. 16: tallest, flowing into frame 9. The body stays in the same place in every cell.` },
+  ] },
+  { n: 'Especial', use: 'O momento parado antes da supercortada, enquanto o jogador mira. Repete.', sheets: [
+    { t: 'Prancha única · 8 quadros', ia: `Sheet: SPECIAL POWER SPIKE loop (8 frames), in the air, frozen in the moment before a super spike: hitting arm fully cocked behind the head, back arched, other arm pointing at the ball, knees bent. The body trembles with energy: only tiny changes between frames (small shifts, propeller spinning, fingers flexing). Frame 8 flows back into frame 1. No glow and no effects drawn.`,
+      bl: `Sheet: SPECIAL POWER SPIKE loop (8 frames), in the air, frozen in the moment before a super spike: body bent back like a bow, hitting hand far back, other hand pointing at the ball. The jelly body trembles with energy: only tiny wobbles between frames. Frame 8 flows back into frame 1. No glow and no effects drawn.` },
+  ] },
+  { n: 'Peixinho', use: 'Mergulho para salvar a bola, deslizando na areia, e levantar.', contact: 'quadros 9 a 12: mãos esticadas à frente', sheets: [
+    { t: 'Parte 1 de 4 · impulso · quadros 1–8', ia: `Sheet: DIVE, part 1 of 4: LAUNCH (frames 1-8), diving to the RIGHT. The body travels to the right inside each cell. 1: low ready stance. 2: big step forward with the right foot. 3: body leaning far forward, arms reaching. 4: pushing off the ground. 5: leaving the ground, body diagonal, arms stretched forward. 6: flying, body almost horizontal. 7: fully horizontal, arms forward, legs behind. 8: still flying, slightly lower.`,
+      bl: `Sheet: DIVE, part 1 of 4: LAUNCH (frames 1-8), diving to the RIGHT. The body travels to the right inside each cell. 1: low ready. 2: big step forward. 3: leaning far forward, squashing. 4: pushing off. 5: leaving the ground, body stretched long and diagonal, hands forward. 6: flying, almost horizontal, stretched like a torpedo. 7: fully horizontal. 8: still flying, slightly lower.` },
+    { t: 'Parte 2 de 4 · voo e barriga na areia · quadros 9–16', ia: `Sheet: DIVE, part 2 of 4: FLIGHT AND BELLY LANDING (frames 9-16). 9: flying horizontally, hands reaching far forward. 10: lower. 11: hands almost at the ground. 12: hands touch the ground. 13: chest and belly touch the ground, chin up. 14: belly on the ground, legs lifted behind. 15: sliding. 16: sliding, legs coming down.`,
+      bl: `Sheet: DIVE, part 2 of 4: FLIGHT AND BELLY LANDING (frames 9-16). 9: flying horizontally, hands far forward. 10: lower. 11: hands almost at the ground. 12: hands touch the ground. 13: belly touches the ground, body squashes flat. 14: flat on the ground, feet up behind. 15: sliding. 16: sliding, feet coming down.` },
+    { t: 'Parte 3 de 4 · deslizando · quadros 17–24', ia: `Sheet: DIVE, part 3 of 4: SLIDE AND STOP (frames 17-24). Lying on the belly, sliding forward on the sand and slowing down. 17: sliding, arms forward, legs slightly lifted. 18: sliding. 19: slower. 20: slower, legs lowering. 21: almost stopped. 22: almost stopped, legs flat. 23: stopping. 24: lying flat, stopped, head up.`,
+      bl: `Sheet: DIVE, part 3 of 4: SLIDE AND STOP (frames 17-24). Flat on the belly, sliding forward and slowing down, the jelly body rippling. 17: sliding. 18: ripple. 19: slower. 20: slower. 21: almost stopped. 22: small ripple. 23: stopping. 24: lying flat, stopped, visor looking up.` },
+    { t: 'Parte 4 de 4 · levantando · quadros 25–32', ia: `Sheet: DIVE, part 4 of 4: GET UP (frames 25-32). 25: lying flat on the belly. 26: pushing up with both hands. 27: chest up. 28: one knee forward under the body. 29: kneeling on one knee. 30: standing up. 31: almost standing. 32: ready stance.`,
+      bl: `Sheet: DIVE, part 4 of 4: GET UP (frames 25-32). 25: lying flat. 26: hands push down. 27: body rounds up from the ground. 28: rolling up onto the feet. 29: standing, squashed. 30: stretching up. 31: small wobble. 32: ready stance.` },
+  ] },
+  { n: 'Comemoração', use: 'Depois de fazer ponto. De frente para a câmera. Repete.', sheets: [
+    { t: 'Parte 1 de 2 · quadros 1–8', ia: `Sheet: CELEBRATION, part 1 of 2 (frames 1-8), FACING THE CAMERA (front view). 1: squat down, fists at the chest. 2: jump starts, arms rising. 3: leaving the ground, arms up. 4: top of the jump, both arms raised high, legs spread, very happy energy. 5: falling, arms still up. 6: landing, knees bending. 7: squash. 8: rising, one fist pumping.`,
+      bl: `Sheet: CELEBRATION, part 1 of 2 (frames 1-8), FACING THE CAMERA (front view). 1: squashed down, hands at the sides. 2: springing up, stretching. 3: leaving the ground, hands up. 4: top of the jump, tall and thin, both hands high, very happy energy. 5: falling. 6: landing. 7: big squash. 8: bouncing up, one hand pumping.` },
+    { t: 'Parte 2 de 2 · quadros 9–16', ia: `Sheet: CELEBRATION, part 2 of 2 (frames 9-16), front view. 9: fist pump up. 10: fist pump down, body bouncing. 11: second fist pump up. 12: down. 13: small hop, both hands waving. 14: in the air, waving. 15: landing. 16: squat with fists at the chest, flowing into part 1 frame 1.`,
+      bl: `Sheet: CELEBRATION, part 2 of 2 (frames 9-16), front view. 9: hand pump up. 10: hand pump down, body wobbling. 11: other hand pumps up. 12: down. 13: small hop, both hands waving. 14: in the air, waving. 15: landing. 16: squashed down, flowing into part 1 frame 1.` },
+  ] },
+  { n: 'Tristeza', use: 'Depois de perder o ponto. De frente para a câmera.', sheets: [
+    { t: 'Parte 1 de 2 · quadros 1–8', ia: `Sheet: SAD, part 1 of 2 (frames 1-8), FACING THE CAMERA. 1: standing, surprised. 2: shoulders start to drop. 3: head lowering. 4: head down, arms hanging. 5: knees slightly bent, slumped. 6: a big sigh, chest rises. 7: chest drops. 8: fully slumped, propeller drooping.`,
+      bl: `Sheet: SAD, part 1 of 2 (frames 1-8), FACING THE CAMERA. 1: standing, surprised, stretched a little. 2: body starts sagging. 3: visor tilting down. 4: sagging more, hands hanging low. 5: slumped and wide. 6: a big sigh, body rises a little. 7: drops again. 8: fully slumped, almost a puddle.` },
+    { t: 'Parte 2 de 2 · quadros 9–16 (repete)', ia: `Sheet: SAD, part 2 of 2 (frames 9-16), loop, front view, fully slumped with very small motion. 9: slumped. 10: a slow sigh starts. 11: chest rising slowly. 12: top of the sigh. 13: chest dropping slowly. 14: one foot kicks the sand a little. 15: foot back down. 16: flows back into frame 9.`,
+      bl: `Sheet: SAD, part 2 of 2 (frames 9-16), loop, front view, slumped with very small motion. 9: slumped. 10: slow sigh starts. 11: body rising slowly. 12: top of the sigh. 13: sagging slowly. 14: one hand pokes the sand. 15: hand back. 16: flows back into frame 9.` },
+  ] },
+  { n: 'Espera olhando para a bola', use: 'A mesma posição de espera, com a cabeça inclinada para cima ou para baixo. O jogo troca entre as três conforme a altura da bola, então a cabeça acompanha a bola.', sheets: [
+    { t: 'Parte 1 de 2 · olhando para cima · quadros 1–8', ia: `Sheet: READY STANCE LOOKING UP, loop of 8 frames. EXACTLY the same body, legs, arms and bounce as the approved READY STANCE sheet (attach it): same pose in every frame, frame by frame. The ONLY difference: the whole head is tilted back about 30 degrees, looking up at a ball high above and slightly in front. The neck stays attached, the cap tilts back with the head, the headphones stay on the ears. The face screen stays EMPTY. Do not change the size of the head.`,
+      bl: `Sheet: READY STANCE LOOKING UP, loop of 8 frames. EXACTLY the same body, hands, feet and bounce as the approved READY STANCE sheet (attach it), frame by frame. The ONLY difference: the jelly body leans back a little so the visor faces up about 30 degrees, looking at a ball high above. The visor stays EMPTY. Same amount of body.` },
+    { t: 'Parte 2 de 2 · olhando para baixo · quadros 9–16', ia: `Sheet: READY STANCE LOOKING DOWN, loop of 8 frames. EXACTLY the same body, legs, arms and bounce as the approved READY STANCE sheet (attach it), frame by frame. The ONLY difference: the whole head is tilted forward about 25 degrees, looking down at a ball low in front, near the sand. The neck stays attached, the cap tilts with the head, the headphones stay on the ears. The face screen stays EMPTY. Do not change the size of the head.`,
+      bl: `Sheet: READY STANCE LOOKING DOWN, loop of 8 frames. EXACTLY the same body, hands, feet and bounce as the approved READY STANCE sheet (attach it), frame by frame. The ONLY difference: the jelly body leans forward a little so the visor faces down about 25 degrees, looking at a ball low in front. The visor stays EMPTY. Same amount of body.` },
+  ] },
+];
+
+// lembrete que vai no começo de cada pedido (versão 2: tudo refeito com a ficha de modelo e a grade-guia)
+const POSE = 'Also attached: the POSE REFERENCE (gray sheet). Copy the pose of each frame exactly from the frame in the same position of the gray sheet (1 = top left, 8 = bottom right): which arm and which leg are forward, how they bend and where the hands are. Do NOT copy its sizes or proportions: those come only from the model sheet and the guide grid. ';
+const PRE = {
+  ia: (first, pose) => 'Attached: the MODEL SHEET (the only valid proportions) and the GUIDE GRID (draw on exactly this layout)' + (first ? '' : ', plus the approved IDLE sheet for size') + '. ' + (pose ? POSE : '') + 'In every frame the head has the size of the space between the CAP TOP and CHIN lines, and the body, arms and legs keep the model-sheet size, whatever the pose. Do not draw the guide lines, labels or numbers.\n\n',
+  bl: (first, pose) => 'Attached: the MODEL SHEET (the only valid proportions) and the GUIDE GRID (draw on exactly this layout)' + (first ? '' : ', plus the approved IDLE sheet for size') + '. ' + (pose ? POSE : '') + 'Standing still, the body fills the space from the GROUND line to the BODY TOP line; squash and stretch change the shape but never the amount of body; hands and feet never change size. Do not draw the guide lines, labels or numbers.\n\n',
+};
+// avisos extras nas pranchas que já saíram fora do modelo uma vez (corpo saiu fora de proporção com a cabeça)
+const REDO = { ia: [
+  ['Peixinho', 3, 'In the previous version the lying and crawling body came out much too big for the head. Lying down, the body must stay as small and thin as in the model sheet: torso about one third of the head height, thin short arms and legs.'],
+  ['Cortada no ar', 1, 'In the previous version the stretched body and arms came out too big for the head. In the air, the torso, arms and legs keep exactly the model-sheet size: stretching bends the limbs, it never makes them longer or thicker.'],
+  ['Cortada no ar', 2, 'In the previous version the body came out too big for the head. Keep the model-sheet sizes while falling: small egg torso, thin limbs.'],
+  ['Saque', 2, 'In the previous version the body came out too big for the head. Keep the model-sheet sizes: small egg torso, thin arms and legs, big head.'],
+  ['Saque', 3, 'The previous version had NO real hit: the arm only went to shoulder height and then jumped straight back down to the side. This sheet must show the WHOLE overhead swing, one clear step per frame, with the HITTING arm (the one that was cocked behind the head in the previous sheet): frames 1-2 hand behind the head, elbow high; frame 3 elbow passing above the head; frame 4 (CONTACT) arm completely straight and vertical, hand open far ABOVE the propeller; frame 5 arm straight, pointing up and forward at 45 degrees; frame 6 arm straight forward at shoulder height; frame 7 arm swung DOWN in front of the belly, crossing the body; frame 8 arm down at the opposite hip, body leaning forward, back foot lifting. The arm never jumps from one position to another: it travels like the hand of a clock, from behind the head, over the top, down to the opposite hip. Keep the model-sheet sizes: small egg torso, thin arms and legs, big head.'],
+  ['Especial', 0, 'In the previous version the body came out too big for the head. Keep the model-sheet sizes in the air: small egg torso, thin limbs, big head.'],
+], bl: [] };
+const REDO_HEAD = 'REDO this sheet, because the previous version was OFF-MODEL. Attached: (1) the MODEL SHEET, the only valid proportions; (2) the GUIDE GRID, draw on exactly this layout; (3) the approved IDLE sheet, for size. In every frame the head must have exactly the size of the space between the CAP TOP and CHIN lines of the guide grid, even when the character lies down, jumps or turns. Do not draw the guide lines, labels or numbers: only the character on flat pure green (#00FF00). ';
+const TOTAL = MOVES.reduce((a, m) => a + m.sheets.length, 0);
+let who = 'ia';
+const KEY = 'moveset-volei-feitas-v2'; // versão 2: todas refeitas com a ficha de modelo
+let done = {};
+try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { done = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+try { const w = localStorage.getItem('moveset-volei-quem'); if (w === 'bl' || w === 'ia') who = w; } catch (e) {}
+
+function esc(s) { return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+function card(id, title, sub, text, extra) {
+  const k = who + ':' + id, isDone = !!done[k];
+  return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b><span class="who" aria-hidden="true"></span>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts">${id === 'rules' ? '' : `<label class="chk"><input type="checkbox" id="c-${k.replace(/[^a-z0-9]/gi, '_')}" ${isDone ? 'checked' : ''}>Feita</label>`}<button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre>${extra || ''}</div>`;
+}
+function render() {
+  document.body.classList.toggle('bl', who === 'bl');
+  document.getElementById('b-ia').setAttribute('aria-pressed', String(who === 'ia'));
+  document.getElementById('b-bl').setAttribute('aria-pressed', String(who === 'bl'));
+  let h = `<section><h2>Passo 1 · regras <small>mandar uma vez, com a ficha e a grade</small></h2><p>Cole isto junto com a folha de referência do ${NAME[who]}. Só depois peça as pranchas.</p>${card('rules', 'Regras das pranchas · ' + NAME[who], 'cole primeiro', RULES[who])}</section>`;
+  const fk = who === 'ia' ? 'iamiguinho' : 'amiguinho';
+  h += `<section><h2>Anexos fixos <small>ficha de modelo e grade-guia</small></h2><p>Anexe estas duas imagens em todo pedido de prancha, junto com a prancha do PARADO aprovada. A ficha mostra as proporções que valem em qualquer pose; a grade-guia tem o mesmo formato das pranchas, com o chão e as linhas da cabeça em cada quadro.</p><p>Os arquivos das duas imagens (ficha_${fk}.png e grade_${fk}.png) estão na conversa com o Claude, prontos para anexar.</p><div class="thumbs"><img src="ficha/ficha_${fk}.png" alt="Ficha de modelo do ${NAME[who]} com as quatro vistas e as linhas de proporção"><img src="ficha/grade_${fk}.png" alt="Grade-guia em 4 por 2 quadros com as linhas de proporção"></div></section>`;
+  let n = 0;
+  MOVES.forEach((m, i) => {
+    const frames = m.sheets.length * 8;
+    h += `<section><h2>${esc(m.n)} <small>${frames} quadros · ${m.sheets.length} ${m.sheets.length > 1 ? 'pranchas' : 'prancha'}</small></h2><p>${esc(m.use)}</p>`;
+    m.sheets.forEach((s, j) => {
+      n++;
+      const extra = m.contact && s[who].includes('CONTACT') ? `<div class="contact">Contato com a bola: <b>${esc(m.contact)}</b></div>` : '';
+      const fix = (REDO[who].find((r) => r[0] === m.n && r[1] === j) || [])[2];
+      const pose = m.n !== 'Cortada no chão andando' && m.n !== 'Espera olhando para a bola', pimg = pose ? `<figure class="pose"><img src="pose/${who}_${i}_${j}.jpg" alt="Referência de pose desta prancha: a prancha antiga aprovada, em cinza" loading="lazy"><figcaption>Referência de pose (anexe junto): pose_${who}_${i}_${j}.jpg</figcaption></figure>` : '';
+      h += card(i + '-' + j, `${n}. ${m.n}`, s.t, PRE[who](i === 0 && j === 0, pose) + (fix ? 'Attention: ' + fix + '\n\n' : '') + s[who], pimg + extra);
+    });
+    h += '</section>';
+  });
+  document.getElementById('main').innerHTML = h;
+  prog();
+}
+function prog() {
+  let c = 0; MOVES.forEach((m, i) => m.sheets.forEach((s, j) => { if (done[who + ':' + i + '-' + j]) c++; }));
+  document.getElementById('pg').textContent = `${NAME[who]}: ${c} de ${TOTAL} pranchas feitas`;
+  document.getElementById('pm').style.width = (c / TOTAL * 100) + '%';
+}
+document.getElementById('main').addEventListener('click', async (e) => {
+  const b = e.target.closest('button.cp'); if (!b) return;
+  const pre = b.closest('.card').querySelector('pre');
+  try { await navigator.clipboard.writeText(pre.textContent); b.textContent = 'Copiado'; b.classList.add('ok'); }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Selecionado'; }
+  setTimeout(() => { b.textContent = 'Copiar'; b.classList.remove('ok'); }, 1600);
+});
+document.getElementById('main').addEventListener('change', (e) => {
+  if (!e.target.matches('label.chk input')) return;
+  const c = e.target.closest('.card'), k = c.dataset.k;
+  if (e.target.checked) done[k] = 1; else delete done[k];
+  c.classList.toggle('done', e.target.checked); save(); prog();
+});
+for (const [id, w] of [['b-ia', 'ia'], ['b-bl', 'bl']]) document.getElementById(id).addEventListener('click', () => { who = w; try { localStorage.setItem('moveset-volei-quem', w); } catch (e) {} render(); });
+render();
+</script>

@@ -1,0 +1,31 @@
+<title>Prévia das pranchas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: mesa de luz de animação — cada prancha tocando em loop sobre a linha do chão, com o veredito embaixo */
+:root { --bg:#f6f1ff; --panel:#fff; --ink:#1b1f4f; --mut:#5d5f86; --line:#dcd6ee; --ok:#2c8a52; --warn:#b5651d; --stage:#e9e4f7;
+  --f-d:"Fredoka","Nunito Sans",system-ui,sans-serif; --f-b:"Nunito Sans",system-ui,sans-serif; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#10122b; --panel:#191c3d; --ink:#eceeff; --mut:#a5a8d4; --line:#2e3263; --ok:#5fd68c; --warn:#f0a35e; --stage:#232755; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#10122b; --panel:#191c3d; --ink:#eceeff; --mut:#a5a8d4; --line:#2e3263; --ok:#5fd68c; --warn:#f0a35e; --stage:#232755; color-scheme:dark }
+body{ background:var(--bg); color:var(--ink); font:15px/1.5 var(--f-b); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:24px 48px }
+.wrap{ max-width:1000px; margin:0 auto; display:grid; gap:20px }
+h1{ margin:0; font:700 clamp(28px,5vw,44px)/1 var(--f-d) }
+header p{ margin:6px 0 0; color:var(--mut); max-width:68ch }
+.ctl{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; font:600 14px var(--f-d) }
+.ctl input{ accent-color:var(--ink) }
+.grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px }
+.card{ background:var(--panel); border:1.5px solid var(--line); border-radius:14px; overflow:hidden; display:grid; min-width:0 }
+.card canvas{ width:100%; aspect-ratio:1; background:var(--stage); display:block }
+.card{ align-content:start } .card div{ padding:10px 12px; display:grid; gap:4px; align-content:start }
+.card b{ font:600 15px var(--f-d) }
+.card span{ font-size:13.5px; color:var(--mut) } .card .k{ font:600 11px var(--f-d); letter-spacing:.1em; text-transform:uppercase }
+.tag{ font:600 12px var(--f-d); justify-self:start; padding:2px 10px; border-radius:999px; border:1.5px solid currentColor }
+.tag.ok{ color:var(--ok) } .tag.warn{ color:var(--warn) } .tag.info{ color:var(--mut) }
+h2{ margin:0 0 10px; font:700 22px var(--f-d); display:flex; gap:10px; align-items:baseline; flex-wrap:wrap } h2 small{ font:500 13px var(--f-b); color:var(--mut) }
+</style>
+<div class="wrap">
+<header><h1>Prévia das pranchas</h1><p>Todas as animações dos Jogos de Verão no estilo pintado, tocando em loop como no jogo, na mesma escala e na mesma linha do chão. Cada prancha nova entra aqui antes de ir para o jogo, com o veredito: aprovada, refazer ou só referência.</p></header>
+<div class="ctl"><label for="fps">Velocidade</label><input id="fps" type="range" min="4" max="24" value="12"><span id="fv">12 quadros por segundo</span></div>
+<div id="g" style="display:grid;gap:22px"></div>
+</div>
+<script>

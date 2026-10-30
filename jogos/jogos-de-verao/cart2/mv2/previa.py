@@ -1,0 +1,188 @@
+"""Gera previa/frames.js: animações agrupadas por movimento (a lista cresce a cada prancha nova)."""
+import json, base64, io, numpy as np
+from PIL import Image
+I = json.load(open('mv2/info.json')); K = .6
+# cada animação: personagem, movimento, título, pranchas (na ordem), veredito, nota, como alinhar o chão
+#   chao='linha': mesma linha do chão de cada fileira · 'unica': a da fileira de cima vale para as duas (pranchas com quadros no ar)
+#   pulo: quanto da subida desenhada fica (1 = tudo)
+ANIM = [
+ dict(p='IAmiguinho', m='Skate · parado no skate', t='Skate · parado no skate', sh=['sk_idle'], v='ok',
+      n='Primeira prancha do half-pipe pintado, já no jogo, com o skate da folha de modelo. Régua: cabeça igual em todos os quadros (varia só 1,2%) e corpo/cabeça 1,00 da ficha. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · impulso', t='Skate · impulso', sh=['sk_imp'], v='ok',
+      n='Já no jogo. Agacha no fundo plano e estica subindo a parede. Régua: corpo/cabeça 1,01; a cabeça muda até 12% no agachamento mais fundo e o jogo iguala quadro a quadro. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · freio', t='Skate · freio', sh=['sk_freio'], v='ok',
+      n='Já no jogo. Pé de trás arrastando no chão; os quadros 5 a 8 repetem enquanto segura. Régua: cabeça varia só 4%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · desequilíbrio', t='Skate · desequilíbrio', sh=['sk_deseq'], v='ok',
+      n='Já no jogo. Braços girando depois de um pouso torto. Régua: corpo/cabeça 1,04, cabeça varia 4%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · saída da rampa', t='Skate · saída da rampa', sh=['sk_saida'], v='ok',
+      n='Já no jogo. No jogo entram os quadros 4 a 8, logo que ele sai da borda. Régua: 0,99. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · no ar', t='Skate · no ar', sh=['sk_noar'], v='ok',
+      n='Já no jogo. Encolhido subindo e esticando as pernas perto do pouso. Escolhida entre 2 tentativas: a de cabeça mais constante (varia 2%). Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · pouso', t='Skate · pouso', sh=['sk_pouso'], v='ok',
+      n='Já no jogo. Toca a rampa, amortece e volta a ficar em pé. Régua: 1,06; a cabeça muda até 13% no agachamento e o jogo iguala. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · flip (corpo)', t='Skate · flip (corpo)', sh=['sk_flip'], v='ok',
+      n='Já no jogo. Corpo dos flips, sem o skate; o jogo desenha o skate girando embaixo dos pés. Régua: 0,95. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · skate girando', t='Skate · skate girando', sh=['sk_bkf', 'sk_bsv_b'], v='ok',
+      n='Já no jogo. Kickflip (gira no comprimento) e shove-it (gira deitado). No kickflip escolhida a tentativa que mostra a lixa e o fundo inteiros; no shove-it a que cabe nos quadros sem encostar na borda. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · pegada indy', t='Skate · pegada indy', sh=['sk_indy'], v='ok',
+      n='Já no jogo. Mão de trás no meio do skate, braço da frente aberto. Régua: 1,01. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · pegada de rabeta', t='Skate · pegada de rabeta', sh=['sk_rabeta'], v='ok',
+      n='Já no jogo. Mão na rabeta, braço da frente para cima. Régua: 1,02. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · pegada melão', t='Skate · pegada melão', sh=['sk_melao'], v='ok',
+      n='Já no jogo. Mão da frente no meio do skate, braço de trás acenando. Régua: 0,98. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · superman', t='Skate · superman', sh=['sk_super'], v='ok',
+      n='Já no jogo. Escolhida entre 2 tentativas quase iguais: a de cabeça mais constante (varia 5%). Régua: 0,92 (esticado o corpo aparece mais fino). Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · cristo', t='Skate · cristo', sh=['sk_cristo'], v='ok',
+      n='Já no jogo. Skate em pé ao lado do corpo, braço aberto. Régua: 1,09, contando o skate. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · foguete', t='Skate · foguete', sh=['sk_foguete'], v='ok',
+      n='Já no jogo. Skate em pé na frente do corpo, pés na rabeta. Régua: cabeça varia 4%, corpo/cabeça 0,97. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · hélice', t='Skate · hélice', sh=['sk_helice'], v='ok',
+      n='Já no jogo. A hélice do boné muda de ângulo em cada quadro; no jogo gira rápido enquanto ele paira. Régua: cabeça varia só 1,2%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · giro no ar', t='Skate · giro no ar', sh=['sk_giro1', 'sk_giro2'], v='ok',
+      n='Já no jogo. Versão refeita, de braços para cima e as poses certas nos dois sentidos: de lado, de frente, do outro lado e de costas. As duas partes repetem os lados uma da outra, então o jogo usa 14 vistas diferentes (uma a cada 26 graus). Com manobra no meio do giro, a pose da manobra aparece quando ele está quase de lado. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · manual na borda', t='Skate · manual na borda', sh=['sk_manual'], v='ok',
+      n='Já no jogo. Régua: cabeça varia só 1,9%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · parada de mão', t='Skate · parada de mão', sh=['sk_plant_c'], v='ok',
+      n='Já no jogo. Escolhida entre 3 tentativas: a de cabeça mais constante (varia 3,9%). De ponta-cabeça o rosto aceso gira junto. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · grind', t='Skate · grind', sh=['sk_grind'], v='ok',
+      n='Já no jogo. Com as faíscas desenhadas. Régua: cabeça varia 3%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · stall', t='Skate · stall', sh=['sk_stall'], v='ok',
+      n='Já no jogo. Régua: cabeça varia 3%. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · tombo', t='Skate · tombo', sh=['sk_tombo1_a', 'sk_tombo2'], v='ok',
+      n='Já no jogo. Caindo e sentado tonto. Na queda, escolhida entre 2 tentativas quase iguais. As poses da queda já giram no desenho, então o jogo só leva ele pelo caminho. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · superman giratório', t='Skate · superman giratório (combinada)', sh=['sk_cbsuper'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Pose do Superman vista de 8 lados. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · cristo giratório', t='Skate · cristo giratório (combinada)', sh=['sk_cbcristo_a'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Escolhida entre 2 tentativas: a que mostra o fundo laranja do skate quando ele está de costas (a outra mostrava a lixa dos dois lados). Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · foguete espiral', t='Skate · foguete espiral (combinada)', sh=['sk_cbfoguete'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Pose do Foguete vista de 8 lados. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · helicóptero', t='Skate · helicóptero (combinada)', sh=['sk_cbhelice'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Hélice como um disco borrado, girando rápido, em todas as vistas. Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · indy giratória', t='Skate · indy giratória (combinada)', sh=['sk_cbindy_b'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Escolhida entre 2 tentativas: a de cabeça mais constante e braço aberto (na outra a mão tampava o visor de frente). Aprovada.'),
+ dict(p='IAmiguinho', m='Skate · rabeta giratória', t='Skate · rabeta giratória (combinada)', sh=['sk_cbrabeta_b'], v='ok',
+      n='Já no jogo: aparece quando ele gira segurando a manobra. Escolhida entre 2 tentativas: a que não tampa o visor com a mão na vista de frente. Aprovada.'),
+ dict(p='IAmiguinho', m='Parado', t='Parado · versão 2', sh=['v2_idleA', 'v2_idleB'], v='ok',
+      n='Feita com a ficha de modelo, já no jogo. Régua: corpo/cabeça 0,97 da ficha nas duas partes (igual ao Parado antigo); a cabeça varia no máximo 4% entre quadros, dentro do limite; na parte 2 o corpo baixa um pouco ao soltar o ar. Aprovada.'),
+ dict(p='IAmiguinho', m='Posição de espera', t='Posição de espera · versão 2', sh=['v2_ready'], v='ok',
+      n='Feita com a ficha de modelo, já no jogo. Régua: corpo/cabeça 0,99 da ficha; a cabeça varia no máximo 3,5% entre quadros; o quique muda a altura do corpo, como deve. Aprovada.'),
+ dict(p='IAmiguinho', m='Corrida', t='Corrida · versão 2', sh=['v2_runA', 'v2_runB'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Régua: corpo/cabeça 0,95 e 0,97 da ficha (a antiga estava em 0,91); poses certas nas duas partes. A cabeça muda até 8 a 11% entre alguns quadros: no jogo cada quadro é ajustado sozinho para a cabeça ficar igual. Aprovada.'),
+ dict(p='IAmiguinho', m='Arrancar e frear', t='Arrancar e frear · versão 2', sh=['v2_ss'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Régua: corpo/cabeça 0,99 da ficha; poses iguais à referência. A cabeça muda até 8% entre quadros: no jogo cada quadro é ajustado sozinho. Aprovada.'),
+ dict(p='IAmiguinho', m='Andar para trás', t='Andar para trás · versão 2', sh=['v2_back'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Régua: corpo/cabeça 0,97 da ficha; a cabeça varia menos de 2% entre quadros (a mais constante até agora); poses iguais à referência. Aprovada.'),
+ dict(p='IAmiguinho', m='Virar', t='Virar · versão 2', sh=['v2_turn'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Régua: corpo/cabeça 0,97 da ficha; o giro passa certinho pela frente (quadros 3 e 4) e termina olhando para a esquerda, igual à referência. A cabeça varia até 5% entre quadros. Aprovada.'),
+ dict(p='IAmiguinho', m='Pulo', t='Pulo completo · versão 2', sh=['v2_jump1', 'v2_jump2', 'v2_jump3'], v='ok',
+      n='Impulso, no ar e pouso feitos com a ficha e a referência de pose, já no jogo. As três pranchas têm o visor do mesmo tamanho (diferença de 1%), então o pulo não muda de tamanho de uma parte para a outra; poses iguais à referência. Régua: corpo/cabeça 0,96, 0,91 (no ar, com as pernas encolhidas) e 0,94. Aprovada.'),
+ dict(p='IAmiguinho', m='Toque', t='Toque · versão 2', sh=['v2_set1', 'v2_set2'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Preparação e empurrar. Escolhida entre 2 tentativas (a outra subia menos as mãos). Régua: corpo/cabeça 0,94 da ficha.'),
+ dict(p='IAmiguinho', m='Manchete', t='Manchete · versão 2', sh=['v2_bump1', 'v2_bump2'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Preparação e levantar. Escolhida entre 2 tentativas quase iguais (a de cabeça mais constante). Régua: 0,95 e 1,00.'),
+ dict(p='IAmiguinho', m='Saque', t='Saque completo · versão 2', sh=['v2_serve1', 'v2_serve2', 'v2_serve3', 'v2_serve4', 'v2_serve5'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. As 5 partes refeitas juntas, então o saque emenda de uma parte na outra. Na batida o braço agora passa por cima da cabeça (quadro 4, o contato) e desce cruzando o corpo até o quadril. Régua: corpo/cabeça 0,99 a 1,04 da ficha. Aprovada.'),
+ dict(p='IAmiguinho', m='Cortada no ar', t='Cortada no ar · versão 2', sh=['v2_spk1', 'v2_spk2', 'v2_spk3'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Armar, golpe e queda. No golpe, escolhida a do braço girando por cima (a outra quase não girava); na queda, a do tamanho certo (a outra saiu pequena). Régua: 0,93 a 1,00.'),
+ dict(p='IAmiguinho', m='Cortada no chão', t='Cortada no chão · versão 2', sh=['v2_gnd1', 'v2_gnd2'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Armar e bater. Na batida, escolhida a que tem o braço no alto no contato, igual à referência. Régua: 1,00 e 0,99.'),
+ dict(p='IAmiguinho', m='Cortada no chão andando', t='Cortada no chão andando · nova', sh=['v2_gndwF', 'v2_gndwB'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Andando com o braço armado, para a frente e para trás. Substitui o balanço provisório. Uma tentativa ficou de fora: o braço não estava armado.'),
+ dict(p='IAmiguinho', m='Especial', t='Especial · versão 2', sh=['v2_spec'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Parado no ar antes da supercortada. Escolhida a de hélice girando, igual à referência. Régua: 0,94 e cabeça variando só 1%.'),
+ dict(p='IAmiguinho', m='Peixinho', t='Peixinho completo · versão 2', sh=['v2_dive1', 'v2_dive2', 'v2_dive3', 'v2_getup'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. Impulso, voo e barriga na areia, deslizar e levantar (o levantar agora tem 8 quadros, do deitado até em pé). Escolhidas entre 5 tentativas do impulso (uma não chegava a mergulhar), 2 do deslizar e 3 do levantar (a que começa deitada, igual à referência). Régua: 0,89 a 0,94; deitado o corpo aparece menos, então o número cai um pouco.'),
+ dict(p='IAmiguinho', m='Comemoração', t='Comemoração · versão 2', sh=['v2_party1', 'v2_party2'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. De frente para a câmera. Na parte 1, escolhida a que fica de frente o tempo todo (a outra virava o boné de lado). Régua: 0,87 a 0,94.'),
+ dict(p='IAmiguinho', m='Tristeza', t='Tristeza · versão 2', sh=['v2_sad1', 'v2_sad2'], v='ok',
+      n='Feita com a ficha e a referência de pose, já no jogo. De frente, a aba do boné desce sobre o visor; a parte 2 repete com o chutinho na areia. Escolhida a parte 1 que começa com os braços abertos de susto, igual à referência. Régua: 0,95.'),
+ dict(p='IAmiguinho', m='Espera olhando para a bola', t='Espera olhando para cima e para baixo', sh=['v2_readyU', 'v2_readyD'], v='ok',
+      n='Mesmo corpo da posição de espera, só a cabeça inclinada; já no jogo. O jogo troca entre as três esperas conforme a altura da bola, alinhando pelos pés para o corpo não pular. Régua: corpo/cabeça 1,02 (cima) e 0,94 (baixo). Aprovada.'),
+ dict(p='IAmiguinho', m='Parado', t='Parado', sh=['idleA', 'idleB'], v='ok',
+      n='As duas pranchas tocam uma depois da outra. O movimento é bem leve, como uma respiração.'),
+ dict(p='IAmiguinho', m='Posição de espera', t='Posição de espera', sh=['ready'], v='ok',
+      n='Joelhos dobrados, mãos à frente e o quique. Os fiapos de cor perto das mãos eu limpo no recorte.'),
+ dict(p='IAmiguinho', m='Corrida', t='Corrida', sh=[dict(n='run2A', chao='unica', pulo=.35), dict(n='run2B', chao='unica', pulo=.35)], v='ok',
+      n='Corrida de verdade, com os dois pés no ar nos quadros 5 a 8. No jogo ele sobe só um terço da altura desenhada, para não ficar saltitante.'),
+ dict(p='IAmiguinho', m='Arrancar e frear', t='Arrancar e frear', sh=['startstop'], v='ok',
+      n='Quadros 1 a 4 arrancam (do parado ao primeiro passo); 5 a 8 freiam, deslizando com os braços abertos. No jogo cada metade toca na hora certa, não em loop.'),
+ dict(p='IAmiguinho', m='Andar para trás', t='Andar para trás', sh=['back'], v='ok',
+      n='Passinhos para trás olhando para a rede, com as mãos prontas. Fecha o loop sem pulo.'),
+ dict(p='IAmiguinho', m='Virar', t='Virar', sh=[dict(n='turn', k=1.06)], v='ok',
+      n='Passa pela frente e termina olhando para a esquerda. Esta prancha veio um pouco menor e eu aumentei 6% para igualar.'),
+ dict(p='IAmiguinho', m='Pulo', t='Pulo completo', sh=['jump1', dict(n='jump2', chao='fixo'), dict(n='jump3', k=1.08)], v='ok',
+      n='Impulso, no ar e pouso, emendando bem de uma prancha para a outra. A altura do pulo vem da física do jogo; aqui ele quase não sai do chão. O pouso veio 8% menor e eu igualei.'),
+ dict(p='IAmiguinho', m='Toque', t='Toque', sh=['set1', 'set2'], v='ok',
+      n='Preparação, contato e empurrão para cima. Nos quadros do contato as mãos ficam na frente da tela do rosto; no jogo o rosto aceso vai aparecer só na parte da tela que não está coberta, então as mãos continuam na frente.'),
+ dict(p='IAmiguinho', m='Manchete', t='Manchete', sh=['bump1', 'bump2'], v='ok',
+      n='Mãos juntas embaixo, contato no quadro 8 e o levantar dos braços. Bem clara.'),
+ dict(p='IAmiguinho', m='Saque', t='Saque completo', sh=['serve1', 'serve2', 'serve3', 'serve4', dict(n='serve5', k=.945)], v='ok',
+      n='Segurando, carregando, jogando a bola, batida e finalização. O contato com a bola é no quadro 28 (braço todo esticado para cima). No jogo o segurar e o carregar repetem enquanto o botão estiver apertado. A finalização veio 6% maior e eu igualei.'),
+ dict(p='IAmiguinho', m='Cortada no ar', t='Cortada no ar', sh=[dict(n='spk1', k=.94), dict(n='spk2', k=1.13), dict(n='spk3', k=1.12)], v='ok',
+      n='Armando, golpe e queda. O contato com a bola é no quadro 11 (braço esticado no alto, à frente). Cada prancha veio num tamanho e eu igualei pela cabeça.'),
+ dict(p='IAmiguinho', m='Cortada no chão', t='Cortada no chão', sh=[dict(n='gnd1', k=1.19), dict(n='gnd2', k=1.065)], v='ok',
+      n='Braço armado atrás da cabeça, contato no quadro 9 e volta à posição de espera.'),
+ dict(p='IAmiguinho', m='Especial', t='Especial', sh=[dict(n='specB', k=.93)], v='ok',
+      n='Parado no ar com o braço armado, tremendo de energia enquanto o jogador mira. Repete. Das duas versões que vieram, ficou esta; a outra é praticamente igual.'),
+ dict(p='IAmiguinho', m='Peixinho', t='Peixinho', sh=[dict(n='dive1', k=.98), dict(n='dive2', k=.98), dict(n='dive3', k=1.0), dict(n='getup', k=.98)], v='ok',
+      n='Impulso, voo, barriga na areia, deslizando e levantando. A parte de levantar não veio nesta leva, então usei a da leva anterior, que encaixa bem.'),
+ dict(p='IAmiguinho', m='Comemoração', t='Comemoração', sh=[dict(n='party1', k=.88), dict(n='party2', k=.92)], v='ok',
+      n='De frente para a câmera: punhos no peito, pulo com os braços para cima e depois os socos no ar. Repete. A segunda prancha veio bem maior e eu igualei.'),
+ dict(p='IAmiguinho', m='Tristeza', t='Tristeza', sh=[dict(n='sad1', k=.87), dict(n='sad2', k=.87)], v='ok',
+      n='De frente: abaixa a cabeça até o boné cobrir a tela, depois fica parado chutando a areia de leve. A segunda parte repete.'),
+ dict(p='Amiguinho', m='Parado', t='Parado', sh=['b_h', 'b_g'], v='ok',
+      n='Duas pranchas em sequência: o corpo de gelatina estica e volta a amassar, como uma respiração. Das três versões que vieram, estas duas emendam melhor.'),
+ dict(p='Amiguinho', m='Posição de espera', t='Posição de espera', sh=['b_f'], v='ok',
+      n='Inclinado para a frente, com uma mão na frente do corpo, quicando.'),
+ dict(p='Amiguinho', m='Corrida', t='Corrida', sh=[dict(n='b_b', chao='unica', pulo=.35), dict(n='b_e', chao='unica', pulo=.35)], v='ok',
+      n='Passinhos saltitantes com os dois pés no ar nos quadros 5 a 8. Como na corrida do IAmiguinho, no jogo ele sobe só um terço da altura desenhada.'),
+ dict(p='Amiguinho', m='Arrancar e frear', t='Arrancar e frear', sh=[dict(n='bl_ss', k=0.98)], v='ok', n='Inclina e sai; depois planta os pés e balança como gelatina.'),
+ dict(p='Amiguinho', m='Andar para trás', t='Andar para trás', sh=[dict(n='bl_back', k=1.04)], v='ok', n='Pulinhos para trás com as mãos na frente.'),
+ dict(p='Amiguinho', m='Virar', t='Virar', sh=[dict(n='bl_turn', k=1.02)], v='ok', n='Passa pela frente e termina olhando para o outro lado.'),
+ dict(p='Amiguinho', m='Pulo', t='Pulo completo', sh=[dict(n='bl_jump1', k=1.03), dict(n='bl_jump2', k=1.07), dict(n='bl_jump3', k=1.03)], v='ok', n='Amassa, estica bem fino no impulso, fica redondo no alto e amassa no pouso.'),
+ dict(p='Amiguinho', m='Toque', t='Toque', sh=[dict(n='bl_set1', k=1.02), dict(n='bl_set2', k=1.05)], v='ok', n='Mãos juntas em cima da cabeça, contato no quadro 8, empurrão para cima.'),
+ dict(p='Amiguinho', m='Manchete', t='Manchete', sh=[dict(n='bl_bump1', k=1.0), dict(n='bl_bump2', k=1.0)], v='ok', n='Mãos juntas embaixo, contato no quadro 8 e o corpo esticando para cima.'),
+ dict(p='Amiguinho', m='Saque', t='Saque completo', sh=[dict(n='bl_srv1', k=0.99), dict(n='bl_srv2', k=1.04), dict(n='bl_srv3', k=1.05), dict(n='bl_srv4', k=1.05), dict(n='bl_land', k=0.99)], v='ok', n='Segurando, carregando (amassa cada vez mais), jogando para cima, batida e finalização.'),
+ dict(p='Amiguinho', m='Cortada no ar', t='Cortada no ar', sh=[dict(n='bl_spk1', k=1.05), dict(n='bl_spkA', k=1.05), dict(n='bl_airA', k=1.1)], v='ok', n='Armando, golpe e queda. Das duas versões do golpe e da queda, ficou a primeira de cada; as outras são quase iguais.'),
+ dict(p='Amiguinho', m='Cortada no chão', t='Cortada no chão', sh=[dict(n='bl_gnd1', k=1.0), dict(n='bl_gnd2', k=1.0)], v='ok', n='Mão vai para trás, bate no alto à frente e volta à espera.'),
+ dict(p='Amiguinho', m='Especial', t='Especial', sh=[dict(n='bl_spec', k=1.03)], v='ok', n='Parado no ar com a mão armada, tremendo de leve.'),
+ dict(p='Amiguinho', m='Peixinho', t='Peixinho', sh=[dict(n='bl_dive1', k=1.04), dict(n='bl_dive2', k=1.02), dict(n='bl_dive3', k=1.06), dict(n='bl_getup', k=1.04)], v='ok', n='Mergulho, barriga na areia, deslize achatado e levantar.'),
+ dict(p='Amiguinho', m='Comemoração', t='Comemoração', sh=[dict(n='bl_party1', k=1.06), dict(n='bl_party2', k=1.05)], v='ok', n='De frente: pulo com as mãos para cima e mãozinhas no ar.'),
+ dict(p='Amiguinho', m='Tristeza', t='Tristeza', sh=[dict(n='bl_sad1', k=1.0), dict(n='bl_sad2', k=1.04)], v='ok', n='De frente: vai murchando até virar quase uma poça.'),
+ dict(p='IAmiguinho', m='Andar', t='Andar (reserva)', sh=['runC'], v='info',
+      n='Uma das tentativas antigas da corrida que saiu como caminhada limpa. Fica guardada caso o jogo precise de um andar.'),
+]
+KA = json.load(open('mv2/k_auto.json')) if __import__('os').path.exists('mv2/k_auto.json') else {}  # escala automática por tamanho da cabeça/massa
+
+# régua de proporção: corpo comparado à cabeça, já com a cabeça igualada (1 = igual à ficha de modelo)
+PR = json.load(open('mv2/proporcao_ia.json')) if __import__('os').path.exists('mv2/proporcao_ia.json') else {'corpo': {}}
+for a in ANIM:
+    if a['p'] != 'IAmiguinho': continue
+    names = [sh if isinstance(sh, str) else sh['n'] for sh in a['sh']]
+    fora = [(j + 1, PR['corpo'][n]) for j, n in enumerate(names) if n in PR['corpo'] and abs(PR['corpo'][n] - 1) >= .06]
+    if not names or not any(n in PR['corpo'] for n in names): continue
+    if not fora: a['n'] += ' Régua de proporção: cabeça e corpo dentro da ficha de modelo.'
+    else:
+        partes = ', '.join(f"parte {j} com corpo {'+' if r > 1 else '−'}{abs(r - 1) * 100:.0f}%" for j, r in fora)
+        a['n'] += f' Régua de proporção: {partes} em relação à cabeça (ficha de modelo).'
+        if any(abs(r - 1) >= .10 for _, r in fora): a['v'] = 'warn'; a['n'] += ' No jogo está no meio-termo; refazer com a ficha de modelo.'
+FR = {}
+for a in ANIM:
+    lst = []
+    for sh in a['sh']:
+        sh = sh if isinstance(sh, dict) else dict(n=sh)
+        nm, chao, pulo, kk = sh['n'], sh.get('chao', 'linha'), sh.get('pulo', 1), KA.get(sh['n'], sh.get('k', 1))
+        fr = I[nm]; g = [max(q['bot'] for q in fr[:4]), max(q['bot'] for q in fr[4:])]
+        if chao == 'unica': g = [g[0], g[0]]
+        if chao == 'fixo': g = [410, 392]
+        for k, q in enumerate(fr):
+            key = f'{nm}_{k}'
+            if key not in FR:
+                im = Image.open(f'mv2/{key}.png'); al = np.array(im)[..., 3] > 100; H = al.shape[0]
+                hx = np.where(al[:int(H * .45)].any(0))[0]
+                im2 = im.resize((round(im.width * K), round(im.height * K)), Image.LANCZOS); b = io.BytesIO(); im2.save(b, 'WEBP', quality=86)
+                FR[key] = {'s': 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode(), 'w': im2.width, 'h': im2.height, 'cx': round(((hx.min() + hx.max()) / 2 if im.width < im.height * 1.2 else im.width * .55) * K, 1)}
+            lst.append({'k': key, 'gy': round((g[k // 4] - q['bot']) * K * pulo * kk, 1), 'z': kk})
+    a['f'] = lst
+open('../previa/frames.js', 'w').write('window.FR=' + json.dumps(FR) + ';window.ANIM=' + json.dumps(ANIM) + ';')
+print(len(open('../previa/frames.js').read()) // 1024, 'KB', len(FR), 'quadros')

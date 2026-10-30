@@ -1,0 +1,23 @@
+const g = document.getElementById('g'), C = [], TAG = { ok: 'Aprovada', warn: 'Refazer', info: 'Referência' };
+const IM = {}; for (const [k, f] of Object.entries(FR)) { IM[k] = new Image(); IM[k].src = f.s; }
+const grid = document.createElement('div'); grid.className = 'grid'; g.appendChild(grid);
+for (const a of ANIM) {
+  const d = document.createElement('div'); d.className = 'card';
+  d.innerHTML = `<canvas width="460" height="460" aria-label="${a.t} em loop"></canvas><div><span class="k">${a.p}</span><b>${a.t}</b><span class="tag ${a.v}">${TAG[a.v]}</span><span>${a.f.length} quadros. ${a.n}</span></div>`;
+  grid.appendChild(d); C.push({ cv: d.querySelector('canvas'), a });
+}
+let fps = 12; const fv = document.getElementById('fv');
+document.getElementById('fps').addEventListener('input', (e) => { fps = +e.target.value; fv.textContent = fps + ' quadros por segundo'; });
+const ink = () => getComputedStyle(document.documentElement).getPropertyValue('--mut').trim() || '#888';
+function tick(t) {
+  const f = Math.floor(t / 1000 * fps), S = 1.75, G = 440;
+  for (const c of C) {
+    const x = c.cv.getContext('2d'), q = c.a.f[f % c.a.f.length], fr = FR[q.k], im = IM[q.k];
+    x.clearRect(0, 0, 460, 460);
+    x.strokeStyle = ink(); x.globalAlpha = .5; x.beginPath(); x.moveTo(20, G); x.lineTo(440, G); x.stroke(); x.globalAlpha = 1;
+    if (im.complete) { const z = S * (q.z || 1); x.drawImage(im, 230 - fr.cx * z, G - q.gy * S - fr.h * z, fr.w * z, fr.h * z); }
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>

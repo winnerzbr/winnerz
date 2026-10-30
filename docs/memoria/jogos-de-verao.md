@@ -82,5 +82,7 @@ Minigames de praia inspirados em California Games, com 19 provas. Roda no navega
   - Rampa: madeira azul, pista de compensado, deck, corrimão e borda de metal. O chão é de concreto.
 - **Pendente:** ajustes de jogabilidade e, se o dono quiser, bônus por segurar mais tempo.
 
-## Onde estão os arquivos de trabalho
-Os scripts de recorte e régua, os montadores e as pranchas originais ficam na área de trabalho temporária do Claude, e não no repositório. Ver o histórico de 30/10/2026: a ideia é guardar as fontes no repositório.
+## Onde estão os arquivos
+- As fontes estão em `jogos/jogos-de-verao/`: o jogo base, os programas, os quadros das pranchas aprovadas, a ficha, o cenário e as páginas de pedidos. O `README.md` dessa pasta explica como montar o jogo e como incluir uma prancha nova.
+- Os montados grandes (`mv5.js`, `mvsk.js`…) não ficam no repositório. Eles saem de novo dos quadros.
+- **Toda prancha aprovada nova** precisa ir para essa pasta, com o recorte em `cart2/mv2/` e a prancha original quando for do skate, no mesmo commit em que entra no jogo.

@@ -7,6 +7,23 @@ I = json.load(open('mv2/info.json')); Q = .5  # pixels guardados por pixel origi
 SH = {
  'bv2_idleA': (0.943, 'linha', 1),
  'bv2_idleB': (0.951, 'linha', 1),
+ 'bv2_espera': (0.983, 'linha', 1),
+ 'bv2_run1': (1.025, 'linha', 0.5),
+ 'bv2_run2': (1.023, 'linha', 0.5),
+ 'bv2_ss': (0.977, 'linha', 1),
+ 'bv2_back': (1.0, 'linha', 1),
+ 'bv2_turn': (1.002, 'linha', 1),
+ 'bv2_jump1': (1.068, 'linha', 1),
+ 'bv2_jump2': (1.042, 'linha', 1),
+ 'bv2_jump3': (1.0, 'linha', 1),
+ 'bv2_set1': (1.007, 'linha', 1),
+ 'bv2_set2': (1.086, 'linha', 1),
+ 'bv2_bump1': (1.02, 'linha', 1),
+ 'bv2_bump2': (0.991, 'linha', 1),
+ 'bv2_srv1': (0.972, 'linha', 1),
+ 'bv2_srv2': (1.03, 'linha', 1),
+ 'bv2_srv3': (1.043, 'linha', 1),
+ 'bv2_srv4': (1.026, 'linha', 1),
   # escala de cada prancha: medida automática para a cabeça (IAmiguinho) / a massa (Amiguinho) ficarem do mesmo tamanho
  'bl_land': (0.994, 'linha', 1),
  'bl_getup': (1.094, 'linha', 1),
@@ -43,7 +60,7 @@ SH = {
  'b_b': (0.993, 'unica', 0.35),
  'b_e': (1.001, 'unica', 0.35),
 }
-ANIM = {'idle': ['bv2_idleA', 'bv2_idleB'], 'ready': ['b_f'], 'run': ['b_b', 'b_e'], 'ss': ['bl_ss'], 'back': ['bl_back'], 'turn': ['bl_turn'], 'jump': ['bl_jump1', 'bl_jump2', 'bl_jump3'], 'set': ['bl_set1', 'bl_set2'], 'bump': ['bl_bump1', 'bl_bump2'], 'serve': ['bl_srv1', 'bl_srv2', 'bl_srv3', 'bl_srv4', 'bl_land'], 'spike': ['bl_spk1', 'bl_spkA', 'bl_airA'], 'gnd': ['bl_gnd1', 'bl_gnd2'], 'spec': ['bl_spec'], 'dive': ['bl_dive1', 'bl_dive2', 'bl_dive3', 'bl_getup'], 'party': ['bl_party1', 'bl_party2'], 'sad': ['bl_sad1', 'bl_sad2']}
+ANIM = {'idle': ['bv2_idleA', 'bv2_idleB'], 'ready': ['bv2_espera'], 'run': ['bv2_run1', 'bv2_run2'], 'ss': ['bv2_ss'], 'back': ['bv2_back'], 'turn': ['bv2_turn'], 'jump': ['bv2_jump1', 'bv2_jump2', 'bv2_jump3'], 'set': ['bv2_set1', 'bv2_set2'], 'bump': ['bv2_bump1', 'bv2_bump2'], 'serve': ['bv2_srv1', 'bv2_srv2', 'bv2_srv3', 'bv2_srv4', 'bl_land'], 'spike': ['bl_spk1', 'bl_spkA', 'bl_airA'], 'gnd': ['bl_gnd1', 'bl_gnd2'], 'spec': ['bl_spec'], 'dive': ['bl_dive1', 'bl_dive2', 'bl_dive3', 'bl_getup'], 'party': ['bl_party1', 'bl_party2'], 'sad': ['bl_sad1', 'bl_sad2']}
 FRONT = {'party', 'sad'}
 
 
@@ -91,7 +108,7 @@ for an, sheets in ANIM.items():
             rgb = im.resize((w2, h2), Image.LANCZOS)
             mk = Image.fromarray(((ndimage.binary_dilation(m, iterations=1) if m is not None else np.zeros((H, W), bool)) * 255).astype(np.uint8)).resize((w2, h2), Image.BILINEAR)
             hd = None
-            if nm in ('bl_srv1', 'bl_srv2'):  # palma da mão da frente (onde a bola fica)
+            if nm in ('bl_srv1', 'bl_srv2', 'bv2_srv1', 'bv2_srv2'):  # palma da mão da frente (onde a bola fica)
                 cols = np.where(al.any(0))[0]; xr = cols.max(); band = al[:, max(0, xr - 14):xr + 1]; yy = np.where(band.any(1))[0]
                 y0h, y1h = yy.min(), yy.max(); sub = al[y0h:y1h + 1, max(0, xr - 60):xr + 1]; hx = np.where(sub)[1].mean() + max(0, xr - 60)
                 hd = [round(float(hx) * f, 1), round(float(y0h) * f, 1)]

@@ -64,7 +64,10 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
 - **IAmiguinho:** 38 pranchas, completo.
   - Inclui a espera olhando para a bola: a cabeça sobe e desce conforme a altura da bola.
   - Inclui o saque só jogando a bola para cima.
-- **Amiguinho:** sendo refeito com a ficha de modelo (pedidos no Moveset do Vôlei). Pronto: Parado (2 pranchas). O resto ainda usa as pranchas antigas.
+- **Amiguinho:** sendo refeito com a ficha de modelo (pedidos no Moveset do Vôlei).
+  - **Prontos:** parado, espera, corrida, arrancar e frear, andar para trás, virar, pulo, toque, manchete e saque (partes 1 a 4).
+  - **Ainda com as pranchas antigas:** fim do saque, cortadas, especial, peixinho, comemoração, tristeza e espera olhando para a bola.
+  - Duas pranchas sem par (`bv2_x1` e `bv2_x2`) estão guardadas, esperando o dono dizer qual movimento são.
   - Régua do Amiguinho: tamanho pela massa (raiz da área da silhueta), igual ao Amiguinho de antes; em cada quadro a massa é igualada (até ±10%), porque a geleia amassa e estica mas não muda de quantidade.
 - **Pendente:**
   - placar, menus e HUD pintados;

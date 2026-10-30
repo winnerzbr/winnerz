@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Amiguinho do vôlei (17 pranchas)
+- Chegaram 19 pranchas novas do Amiguinho. Entraram no jogo e na Prévia:
+  - posição de espera;
+  - corrida (2 partes);
+  - arrancar e frear;
+  - andar para trás;
+  - virar;
+  - pulo (3 partes);
+  - toque (2 partes);
+  - manchete (2 partes);
+  - saque, partes 1 a 4. A parte 5 ainda é a antiga.
+- Tamanho igualado pela massa ao Amiguinho de antes, e cada quadro com a mesma massa. O visor ocupa a mesma parte do corpo que antes.
+- Na corrida, o Amiguinho sobe metade da altura desenhada.
+- Duas pranchas quase iguais (`bv2_x1` e `bv2_x2`) não batem com nenhum cartão. Ficaram fora do jogo; perguntado ao dono qual movimento são.
+- **Faltam:** saque parte 5, cortada no ar (3), cortada no chão (2), cortada no chão andando (2), especial, peixinho (4), comemoração (2), tristeza (2) e espera olhando para a bola (2).
+
 ## 30/10/2026: Jogos de Verão, troca de provas
 - **Saíram do jogo:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas continua no backup em 16 bits. O Minigolfe vai para o Arcade do IAmiguinho, com os gráficos do Arcade.
 - **Troca:** o Salto do píer vai virar Salto do penhasco, na Falésia do Farol. Enquanto o penhasco não fica pronto, o Salto do píer continua no jogo.

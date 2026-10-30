@@ -1,0 +1,86 @@
+# IAmiguinho: Jogos de Verão
+
+Minigames de praia inspirados em California Games, com 19 provas. Roda no navegador e é publicado como página (artefato) no Claude.
+
+## Decisões em vigor
+- **Plataforma:** continua no navegador.
+  - O Godot foi testado: o vôlei foi refeito nele e está em `/demo/volei-godot`, com o código em `jogos/volei-godot`.
+  - O Unity foi avaliado e descartado.
+- **Estilo:** desenho animado pintado no jogo inteiro, incluindo menus e HUD.
+  - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.
+  - O 16 bits fica só como backup e nas provas que ainda vão ter as regras revistas.
+- **Ordem de migração:**
+  1. vôlei (feito, menos o Amiguinho);
+  2. skate (feito);
+  3. as outras provas, depois de revisar as regras de cada uma.
+- **Animações:** desenhos inteiros quadro a quadro, de 12 a 24 quadros por movimento, em pranchas 4×2 com fundo verde.
+  - O quadro mostrado segue a física do jogo.
+  - Cada golpe tem o seu quadro de contato.
+- **Cenários:** cada prova tem um lugar próprio na Costa WinnerZ, sem repetir cenário.
+  - Todo cenário existe em 4 horários (manhã, dia, entardecer e noite), e o jogo usa o relógio de quem joga.
+  - Ver o doc "Jogos de Verão: plano visual".
+- **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
+
+## Páginas publicadas (Claude)
+| Página | Endereço | Para quê |
+|---|---|---|
+| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (vôlei e skate pintados) |
+| Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
+| Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
+| Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |
+| Moveset do Skate | https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3 | pedidos das pranchas do skate, das manobras combinadas e do cenário |
+| Plano visual (doc) | https://claude.ai/artifact/N2TAefrFeShKPgXHgzkEgw | Costa WinnerZ, cenários, horários, itens e ordem de produção |
+
+## Como uma prancha vira jogo
+1. O dono gera a prancha no ChatGPT, com estes anexos:
+   - o pedido em inglês da página de moveset;
+   - a ficha de modelo e a grade-guia;
+   - a referência de pose em cinza;
+   - as pranchas aprovadas que o cartão pedir.
+2. O Claude recorta os 8 quadros e passa a régua de proporção, que compara a cabeça e o corpo com a ficha.
+   - A escala é igualada pela cabeça.
+   - Cada quadro recebe um ajuste próprio de até ±12%.
+3. Entre várias tentativas, fica a de cabeça mais constante e pose certa. O motivo vai para a Prévia.
+4. A prancha entra no jogo e na Prévia, os dois são publicados, e o histórico registra.
+
+## Vôlei
+- **IAmiguinho:** 38 pranchas, completo.
+  - Inclui a espera olhando para a bola: a cabeça sobe e desce conforme a altura da bola.
+  - Inclui o saque só jogando a bola para cima.
+- **Amiguinho:** as pranchas ainda não foram refeitas. Os pedidos estão no Moveset do Vôlei.
+- **Pendente:**
+  - placar, menus e HUD pintados;
+  - ajustes de jogabilidade.
+
+## Skate (Half-pipe)
+- **Pranchas:** o IAmiguinho está todo pintado.
+  - No chão: parado, impulso, freio, desequilíbrio e pouso.
+  - No ar: saída da rampa, voo, flips (o corpo e o skate girando em separado), 3 pegadas e as 4 manobras dos botões.
+  - Giro em 14 vistas.
+  - Borda: manual, parada de mão, grind e stall.
+  - Tombo.
+- **Segurar a manobra:** segurar o botão ou a direção mantém a manobra, e ela só termina quando o jogador solta.
+  - Vale para os botões e para as pegadas. Os flips terminam sozinhos.
+  - Pousar segurando derruba.
+- **Manobras combinadas:** segurar a manobra e girar meia volta ou mais cria uma manobra nova. Ela vale a manobra × 1,5, mais o giro, × 1,3.
+  - As 6 têm prancha própria, com 8 vistas.
+
+  | Comando | Manobra |
+  |---|---|
+  | ✕ + giro | Superman Giratório |
+  | ○ + giro | Cristo Giratório |
+  | □ + giro | Foguete Espiral |
+  | △ + giro | Helicóptero |
+  | ↑ + giro | Indy Giratória |
+  | ↓ + giro | Rabeta Giratória |
+
+  A Pegada Melão (↖) ficou de fora, porque o comando dela se confunde com o giro.
+- **Cenário:** Skatepark do Viaduto (bairro Cidade da Costa WinnerZ), nos 4 horários.
+  - Camadas: cidade ao fundo, viaduto grafitado e a rampa.
+  - À noite, as luzes ficam numa camada própria que pulsa.
+  - A rampa, o chão e os personagens pegam a cor da luz do horário.
+  - Rampa: madeira azul, pista de compensado, deck, corrimão e borda de metal. O chão é de concreto.
+- **Pendente:** ajustes de jogabilidade e, se o dono quiser, bônus por segurar mais tempo.
+
+## Onde estão os arquivos de trabalho
+Os scripts de recorte e régua, os montadores e as pranchas originais ficam na área de trabalho temporária do Claude, e não no repositório. Ver o histórico de 30/10/2026: a ideia é guardar as fontes no repositório.

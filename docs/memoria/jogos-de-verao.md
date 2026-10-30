@@ -66,9 +66,16 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
   - Inclui o saque só jogando a bola para cima.
 - **Amiguinho:** completo na versão da ficha de modelo (41 pranchas), com os mesmos movimentos do IAmiguinho: olha para a bola e anda armando a cortada no chão.
   - Régua do Amiguinho: tamanho pela massa (raiz da área da silhueta), igual ao Amiguinho de antes; em cada quadro a massa é igualada (até ±10%), porque a geleia amassa e estica mas não muda de quantidade.
+  - Encaixe do Amiguinho: parado no chão, os pés ficam presos; andando ou no ar, segue o centro do corpo. É o mesmo em todas as animações.
+- **Adversários:** quanto mais forte, menos atraso, menos erro, mais cortadas e mais perto da bola ele se posiciona.
+  - Torneio: fácil, médio, difícil e final.
+  - A dificuldade se adapta ao placar: se você está na frente, ele se concentra; se ele está na frente, relaxa um pouco. Nos adversários fortes vale sempre.
+  - As simulações estão em `jogos/jogos-de-verao/testes`.
+- **Pontos:** partida normal até 7; a final do torneio e da Copa vai até 10.
+- **Cortada:** a carregada até o fim sai mais rápida.
 - **Pendente:**
   - placar, menus e HUD pintados;
-  - ajustes de jogabilidade.
+  - o dono testar os botões no celular.
 
 ## Skate (Half-pipe)
 - **Pranchas:** o IAmiguinho está todo pintado.
@@ -98,7 +105,9 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
   - À noite, as luzes ficam numa camada própria que pulsa.
   - A rampa, o chão e os personagens pegam a cor da luz do horário.
   - Rampa: madeira azul, pista de compensado, deck, corrimão e borda de metal. O chão é de concreto.
-- **Pendente:** ajustes de jogabilidade e, se o dono quiser, bônus por segurar mais tempo.
+- **Pouso:** cai com giro mais de 35° fora ou faltando mais de 20% da manobra; desequilibra acima de 10° ou faltando mais de 4%.
+- **Bônus por segurar:** +60% da manobra por segundo segurado, até dobrar. O nome mostra o tempo.
+- **Pendente:** o dono testar melhor os pontos das manobras combinadas.
 
 ## Onde estão os arquivos
 - As fontes estão em `jogos/jogos-de-verao/`: o jogo base, os programas, os quadros das pranchas aprovadas, a ficha, o cenário e as páginas de pedidos. O `README.md` dessa pasta explica como montar o jogo e como incluir uma prancha nova.

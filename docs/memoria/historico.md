@@ -4,6 +4,27 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, ajustes de jogabilidade (vôlei e skate)
+O dono jogou e pediu os ajustes abaixo.
+- **Vôlei, dificuldade:** o Amiguinho Dourado (final do torneio) estava fácil. O motivo, achado em simulação: quando ia cortar, ele se posicionava longe demais da bola; se a cortada não saía, a bola batia de lado na cabeça e ia reta na rede.
+  - Agora, quanto mais forte o adversário, mais perto da bola ele se posiciona.
+  - No nível mais alto, os erros por toque caíram de 5,6% para 2,3%, e as cortadas por partida subiram de 3,8 para 7.
+  - Contra o jogador automático das simulações: nível fácil e médio quase sempre perdem; o difícil ganha 19 de 20; o final ganha 20 de 20, deixando cerca de 2 pontos.
+- **Vôlei, dificuldade que se adapta:** é a mesma do 16 bits. Se você está na frente, o adversário se concentra e erra menos; se ele está na frente, pode relaxar. Os adversários fortes (difícil e final) agora sempre usam isso; antes era sorteado a cada partida.
+- **Vôlei, pontos:** partida normal até 7 e final até 10, no torneio e na Copa. Antes era 5 nas primeiras fases.
+- **Vôlei, cortada:** a cortada carregada até o fim sai até 14% mais rápida.
+- **Vôlei, animação do Amiguinho com "cara de stop-motion":** o encaixe de cada desenho seguia o alto do corpo. Como a geleia inclina, os pés escorregavam até 6 pixels da quadra de um quadro para o outro.
+  - Agora, parado no chão, os pés ficam presos. Andando ou no ar, segue o centro do corpo.
+  - É o mesmo encaixe em todos os movimentos, para a troca entre eles não dar pulinho.
+  - A Prévia também foi ajustada.
+  - A troca de um quadro para o outro ficou parecida com a do IAmiguinho.
+  - Se ainda parecer travado, o próximo passo são pranchas de quadros intermediários.
+- **Skate, pouso mais difícil:**
+  - cai com giro mais de 35° fora (antes 45°) ou faltando mais de 20% da manobra (antes 30%);
+  - desequilibra acima de 10° (antes 15°) ou faltando mais de 4% (antes 6%).
+- **Skate, bônus por segurar:** +60% da manobra por segundo segurado, até dobrar. O nome mostra o tempo, por exemplo "Superman (0,7 s)", e vale também nas combinadas.
+- **Pendente:** o dono vai testar os botões no celular e os pontos das manobras combinadas.
+
 ## 30/10/2026: Jogos de Verão, Amiguinho do vôlei completo
 - Chegaram mais 22 pranchas. Com elas, o Amiguinho tem todos os movimentos do vôlei na versão da ficha de modelo.
 - **Entraram no jogo e na Prévia:**

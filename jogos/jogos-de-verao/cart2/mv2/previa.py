@@ -223,7 +223,13 @@ for a in ANIM:
                 im = Image.open(f'mv2/{key}.png'); al = np.array(im)[..., 3] > 100; H = al.shape[0]
                 hx = np.where(al[:int(H * .45)].any(0))[0]
                 im2 = im.resize((round(im.width * K), round(im.height * K)), Image.LANCZOS); b = io.BytesIO(); im2.save(b, 'WEBP', quality=86)
-                FR[key] = {'s': 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode(), 'w': im2.width, 'h': im2.height, 'cx': round(((hx.min() + hx.max()) / 2 if im.width < im.height * 1.2 else im.width * .55) * K, 1)}
+                cx0 = (hx.min() + hx.max()) / 2 if im.width < im.height * 1.2 else im.width * .55
+                if nm.startswith('bv2_'):  # Amiguinho novo: o mesmo encaixe do jogo (pés presos quando parado, centro da massa quando anda ou voa)
+                    aa = np.array(im); fl = __import__('scipy.ndimage', fromlist=['x']).binary_fill_holes(aa[..., 3] > 128); mx = float(np.where(fl)[1].mean())
+                    fc = np.where(al[int(H * .85):].any(0))[0]; ft = (fc.min() + fc.max()) / 2
+                    plant = any(nm.startswith('bv2_' + t) for t in ('idle', 'espera', 'look', 'ss', 'turn', 'set', 'bump', 'srv', 'gnd', 'sad', 'party'))
+                    cx0 = ft + 2.5 if plant else mx
+                FR[key] = {'s': 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode(), 'w': im2.width, 'h': im2.height, 'cx': round(cx0 * K, 1)}
             lst.append({'k': key, 'gy': round((g[k // 4] - q['bot']) * K * pulo * kk, 1), 'z': kk})
     a['f'] = lst
 open('../previa/frames.js', 'w').write('window.FR=' + json.dumps(FR) + ';window.ANIM=' + json.dumps(ANIM) + ';')

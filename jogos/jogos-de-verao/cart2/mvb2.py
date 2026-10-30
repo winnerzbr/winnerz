@@ -95,6 +95,21 @@ for nm, ref in ALIGN.items():
     AOFF[nm] = float(np.median([(lambda a: _ax(a) - _feet(a))(np.array(Image.open(f'mv2/{ref}_{j}.png'))) for j in range(len(I[ref]))]))
 
 
+# âncora horizontal das pranchas novas: antes era o meio do alto do corpo, e como a geleia inclina e estica,
+# os pés escorregavam de um quadro para o outro (até 6 pixels da quadra) e o movimento parecia aos trancos.
+# Parado no chão: os pés ficam presos no lugar. Andando, correndo ou no ar: segue o centro da massa do corpo.
+PLANT = {'idle', 'ready', 'readyU', 'readyD', 'set', 'bump', 'serve', 'gnd', 'sad', 'party', 'turn', 'ss'}
+NOHOP = {'idle', 'ready', 'readyU', 'readyD', 'set', 'bump', 'serve', 'gnd', 'sad'}  # pés sempre no chão
+def _mass(a):
+    al = ndimage.binary_fill_holes(a[..., 3] > 128); ys, xs = np.where(al); return float(xs.mean())
+def _ref(an, a): return _feet(a) if an in PLANT else _mass(a)
+# o mesmo encaixe em todas as animações (senão a troca de uma para outra dava um pulinho para o lado):
+# no ar e andando, o centro da massa fica em cima do ponto do jogo; parado, os pés ficam onde estariam no parado normal
+DFEET = float(np.median([(_mass(np.array(Image.open(f'mv2/{nm}_{j}.png'))) - _feet(np.array(Image.open(f'mv2/{nm}_{j}.png')))) * SH[nm][0] * Q for nm in ANIM['idle'] for j in range(len(I[nm]))]))
+CANC = {an: (DFEET if an in PLANT else 0.0) for an, sheets in ANIM.items() if all(n.startswith('bv2_') for n in sheets)}
+print('pés em relação à massa (parado):', round(DFEET, 1))
+
+
 def screen(a):
     al = a[..., 3] > 200; lum = a[..., :3].astype(float).mean(2); H = a.shape[0]
     dk = (lum < 75) & (a[..., 2].astype(int) > a[..., 0].astype(int)) & al; dk[int(H * .75):] = False
@@ -125,7 +140,8 @@ for an, sheets in ANIM.items():
             al = a[..., 3] > 100; hx = np.where(al[:int(H * .45)].any(0))[0]
             ax = (hx.min() + hx.max()) / 2 if W < H * 1.2 else W * .55
             if nm in AOFF: ax = _feet(a) + AOFF[nm]
-            ay = H + (g[j // 4] - q['bot']) * pulo
+            if an in CANC: ax = _ref(an, a) + CANC[an] / (k * Q)
+            ay = H + (g[j // 4] - q['bot']) * (0 if an in NOHOP and nm.startswith('bv2_') else pulo)
             m, sz = visor(a, True)  # tela inteira: parte escura + borda de vidro iluminada
             s = None; rot = None; area = 0; so = 0
             if m is not None and sz > 900:

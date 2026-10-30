@@ -9,6 +9,21 @@ def sub1(old, new, text):
 s = sub1("const vuiOn = () => cur === volei && !seq;", "const vuiOn = () => false; // vôlei pintado: menus em HTML por enquanto", s)
 # 30/10/2026: o dono tirou Salto de hélice, Corrida do isopor e Minigolfe (o minigolfe vai para o Arcade do IAmiguinho).
 # O código delas continua no backup em 16 bits (verao/index.html); só saem da lista.
+# 30/10/2026 · vôlei, ajustes pedidos pelo dono depois de jogar com a arte pintada:
+# 1) partida normal até 7 e a final até 10 (torneio e Copa)
+s = sub1("t1: { name: 'Amiguinho Rosa', tier: 'fácil', O: '#e86fa8', o: '#b24f80', lvl: .05, pts: 5 },", "t1: { name: 'Amiguinho Rosa', tier: 'fácil', O: '#e86fa8', o: '#b24f80', lvl: .05, pts: 7 },", s)
+s = sub1("t2: { name: 'Amiguinho Laranja', tier: 'médio', O: '#f08a3c', o: '#b8602a', lvl: .45, pts: 5 },", "t2: { name: 'Amiguinho Laranja', tier: 'médio', O: '#f08a3c', o: '#b8602a', lvl: .45, pts: 7 },", s)
+s = sub1("t3: { name: 'Amiguinho Roxo', tier: 'difícil', O: '#9a7cf0', o: '#6c52b8', lvl: .75, pts: 5 },", "t3: { name: 'Amiguinho Roxo', tier: 'difícil', O: '#9a7cf0', o: '#6c52b8', lvl: .75, pts: 7 },", s)
+s = sub1("lvl: 1.02, pts: 7, crown: true },", "lvl: 1.02, pts: 10, crown: true },", s)
+s = sub1("const COPA_PTS = { g0: 5, g1: 5, g2: 5, oitavas: 5, quartas: 7, semi: 7, final: 7 };", "const COPA_PTS = { g0: 7, g1: 7, g2: 7, oitavas: 7, quartas: 7, semi: 7, final: 10 };", s)
+# 2) cortada carregada até o fim sai mais rápida (até +14% na carga máxima)
+s = sub1("vm = K.vmax * (.8 + .3 * pow) * eff;", "vm = K.vmax * (.8 + .3 * pow + .6 * Math.max(0, pow - .75)) * eff;", s)
+# 3) adversários fortes: a IA se posicionava longe demais da bola quando ia cortar e, se a cortada não saía,
+#    a bola batia de lado na cabeça e ia reta para a rede (quase todos os pontos que o Amiguinho Dourado perdia).
+#    Quanto mais forte, mais perto da bola ele se posiciona (simulação: erros por toque de 5,6% para 2,3%; cortadas por partida 3,8 → 7).
+s = sub1("A.mode = 'hit'; A.tx = clamp(pr.x + behind * (A.spOK ? rand(13, 17) :", "A.mode = 'hit'; A.tx = clamp(pr.x + behind * (A.spOK ? rand(13, 17) - 8.5 * clamp(((cfg.lvl ?? .45) - .3) / .6, 0, 1) :", s)
+# 4) dificuldade que se adapta ao placar: nos adversários fortes vale sempre (antes era sorteada a cada partida)
+s = sub1("this.moody = !this.two && Math.random() < .45 + .45 * this.baseLvl();", "this.moody = !this.two && (this.baseLvl() >= .7 || Math.random() < .45 + .45 * this.baseLvl());", s)
 # Os textos não dizem mais quantas provas são, porque o número vai mudar com as provas novas.
 s = sub1("<p>Dezenove provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", "<p>Provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", s)
 s = sub1("say('Boas-vindas à orla! Dezenove provas e sete por semana valendo pódio. Todas minhas, em teoria.');",
@@ -70,6 +85,24 @@ s = sub1("    const comb = this.combined && deg >= 180 && list.length > 1;\n",
          "        list.unshift({ nome: C.nome, show: `${C.nome} ${deg}`, v: T.v * 1.5 + HP_SPIN[Math.min(HP_SPIN.length - 1, k)] }); comb = true; }\n"
          "    }\n", s)
 s = sub1("trick: null, queued: null, doneTr: [], spin: 0, rot: 0, snapTo: null, tap: null });", "trick: null, queued: null, doneTr: [], spin: 0, rot: 0, snapTo: null, tap: null, cbKey: null, cbRot: 0, gSpin: false });", s)
+# 30/10/2026 · skate, pedido do dono: pousar estava fácil demais e segurar a manobra passa a valer mais.
+# Pouso: cai se o giro estiver mais de 35° fora (antes 45°) ou faltar mais de 20% da manobra (antes 30%);
+# desequilibra acima de 10° (antes 15°) ou faltando mais de 4% (antes 6%).
+s = sub1("    if (err > 45 || trLeft > .3) { this.bail(trLeft > .3 ? 'Caiu no meio da manobra' : 'Pousou torto'); return; }\n    const sketchy = err > 15 || trLeft > .06;",
+         "    if (err > 35 || trLeft > .2) { this.bail(trLeft > .2 ? 'Caiu no meio da manobra' : 'Pousou torto'); return; }\n    const sketchy = err > 10 || trLeft > .04;", s)
+# Bônus por segurar: +60% da manobra por segundo segurado, até dobrar o valor. O nome mostra quanto tempo segurou.
+s = sub1("const hpKey = (x, y) =>",
+         "function hpDone(tk) {\n"
+         "  const h = tk.hold || 0;\n"
+         "  return h > .2 ? { nome: tk.nome, show: `${tk.nome} (${h.toFixed(1).replace('.', ',')} s)`, v: tk.v * (1 + Math.min(1, h * .6)) } : { nome: tk.nome, v: tk.v };\n"
+         "}\n"
+         "const hpKey = (x, y) =>", s)
+s = sub1("if (this.trick.k === 'helice') this.hoverUsed = true; this.doneTr.push({ nome: this.trick.nome, v: this.trick.v });",
+         "if (this.trick.k === 'helice') this.hoverUsed = true; this.doneTr.push(hpDone(this.trick));", s)
+s = sub1("    if (this.trick) this.doneTr.push({ nome: this.trick.nome, v: this.trick.v });\n", "    if (this.trick) this.doneTr.push(hpDone(this.trick));\n", s)
+# na combinada, o tempo segurado também conta
+s = sub1("      if (i >= 0) { list.splice(i, 1); const j", "      if (i >= 0) { const Ti = list.splice(i, 1)[0]; const j", s)
+s = sub1("v: T.v * 1.5 + HP_SPIN[", "v: Ti.v * 1.5 + HP_SPIN[", s)
 js = (ROOT / 'verao_cartoon' / 'cartoon.js').read_text(encoding='utf-8')
 pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8')
 js = sub1("  /* ---------------------------------------------------------- desenho principal do vôlei */", pint + "\n  /* ---------------------------------------------------------- desenho principal do vôlei */", js)

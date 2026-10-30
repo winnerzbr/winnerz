@@ -1,6 +1,6 @@
   /* ============================================================ Amiguinho: pranchas aprovadas (todos os movimentos do vôlei, versão da ficha de modelo). Cor do adversário trocada no desenho. */
   const MB = window.MVB, MBI = {}, MBK = {}, MBT = {};
-  if (MB) for (const [nm, a] of Object.entries(MB.a)) { MBI[nm] = new Image(); MBI[nm].src = a.src; MBK[nm] = new Image(); MBK[nm].src = a.mask; }
+  if (MB) for (const [nm, a] of Object.entries(MB.a)) { MBI[nm] = new Image(); MBI[nm].src = a.src; MBK[nm] = new Image(); MBK[nm].src = a.mask; if (a.msrc) { MBI[nm + '~m'] = new Image(); MBI[nm + '~m'].src = a.msrc; MBK[nm + '~m'] = new Image(); MBK[nm + '~m'].src = a.mmask; } }
   const MVBOK = () => !!MB && Object.keys(MBI).every((n) => MBI[n].complete && MBI[n].naturalWidth > 0 && MBK[n].complete && MBK[n].naturalWidth > 0);
   const SB5 = 34.8 / 152; // mesma altura da bolha antiga na quadra
   function tintImg(nm, col) {
@@ -25,11 +25,19 @@
   let LOOKB = [0, 0]; // para onde o rosto olha dentro do visor (-1 a 1), definido a cada quadro
   let FB = null; // tela temporária para o rosto
   (window.__fr = window.__fr || {})['bl'] = frameB5; // usado só pelos testes de rosto
+  // quadros do meio: quando a animação avança um quadro, mostra primeiro o desenho intermediário (feito na montagem)
+  // durante metade do tempo do quadro. O movimento fica com o dobro de desenhos e para de tremer.
+  function midKB(s, an, k, tt, A) {
+    const m = s.mk || (s.mk = { an: '', k: -1, t: 0, d: .125, from: -1 }), n = A.f.length;
+    if (an !== m.an) { m.an = an; m.k = k; m.t = tt; m.from = -1; }
+    else if (k !== m.k) { const fwd = ((k - m.k) % n + n) % n === 1; if (fwd) { m.d = clamp(tt - m.t, .03, .3); m.from = m.k; } else m.from = -1; m.t = tt; m.k = k; }
+    return m.from >= 0 && A.m && A.m[m.from] && tt - m.t < m.d * .5 ? m.from + .5 : k;
+  }
   function frameB5(an, k, mode, ex, mirror) {
-    const A = MB.a[an], n = A.f.length, f = A.f[clamp(k | 0, 0, n - 1)];
+    const A = MB.a[an], n = A.f.length, half = k % 1 !== 0 && A.m && A.m[k | 0], key = half ? an + '~m' : an, f = half || A.f[clamp(k | 0, 0, n - 1)];
     const ay = mode === 'a' && f.s ? (f.s[1] + f.s[3]) / 2 + MB.scrh : f.ay;
     ctx.save(); ctx.scale(SB5 * (mirror ? -1 : 1), SB5);
-    ctx.drawImage(tintImg(an, BCOL), f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
+    ctx.drawImage(tintImg(key, BCOL), f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     // rosto: desenhado numa tela à parte e recortado pela máscara da tela escura do quadro
     if (f.s && f.sz) {
       if (!FB) { FB = document.createElement('canvas'); }
@@ -41,7 +49,7 @@
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       // o rosto gira junto com a tela (inclinação medida em cada quadro)
       const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, LOOKB[0] * L1 * .12, L2 * .03 + LOOKB[1] * L2 * .13, fk, fkx); g.restore(); } finally { ctx = save; }
-      g.globalCompositeOperation = 'destination-in'; g.drawImage(MBK[an], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(MBK[key], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FB, 0, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     }
     ctx.restore();
@@ -136,7 +144,7 @@
       if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6) * (an === 'readyU' || an === 'readyD' ? .35 : 1); }
       s.lk = s.lk || [0, 0]; const a = Math.min(1, dt * 10); s.lk[0] += (lx - s.lk[0]) * a; s.lk[1] += (ly - s.lk[1]) * a; LOOKB = s.lk;
     }
-    frameB5(an, k, mode, P.ex, mir);
+    frameB5(an, midKB(s, an, k, tt, MB.a[an]), mode, P.ex, mir);
     ctx.restore();
   }
   // bola segura no saque: em cima da palma aberta do desenho

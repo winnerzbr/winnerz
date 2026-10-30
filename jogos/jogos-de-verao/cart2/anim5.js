@@ -3,7 +3,7 @@
      fase do passo, subida e descida do pulo, progresso do golpe (com o quadro de contato marcado),
      tempo do saque, deslize do peixinho. O rosto aceso é desenhado só dentro da tela escura de cada quadro. */
   const M5 = window.MV5, M5I = {}, M5K = {};
-  if (M5) for (const [nm, a] of Object.entries(M5.a)) { M5I[nm] = new Image(); M5I[nm].src = a.src; M5K[nm] = new Image(); M5K[nm].src = a.mask; }
+  if (M5) for (const [nm, a] of Object.entries(M5.a)) { M5I[nm] = new Image(); M5I[nm].src = a.src; M5K[nm] = new Image(); M5K[nm].src = a.mask; if (a.msrc) { M5I[nm + '~m'] = new Image(); M5I[nm + '~m'].src = a.msrc; M5K[nm + '~m'] = new Image(); M5K[nm + '~m'].src = a.mmask; } }
   const MV5OK = () => !!M5 && Object.keys(M5I).every((n) => M5I[n].complete && M5I[n].naturalWidth > 0 && M5K[n].complete && M5K[n].naturalWidth > 0);
   const S5 = 56 / 325 / (M5 ? M5.q : .5); // unidades do mundo por pixel guardado (em pé: ~56 unidades)
   // quadros de contato (índice na sequência) e trechos de cada movimento
@@ -11,11 +11,19 @@
   let LOOK = [0, 0]; // para onde o rosto olha dentro do visor (-1 a 1), definido a cada quadro
   let FT = null; // tela temporária para o rosto
   (window.__fr = window.__fr || {})['ia'] = frame5; // usado só pelos testes de rosto
+  // quadros do meio: quando a animação avança um quadro, mostra primeiro o desenho intermediário (feito na montagem)
+  // durante metade do tempo do quadro. O movimento fica com o dobro de desenhos e para de tremer.
+  function midK(s, an, k, tt, A) {
+    const m = s.mk || (s.mk = { an: '', k: -1, t: 0, d: .125, from: -1 }), n = A.f.length;
+    if (an !== m.an) { m.an = an; m.k = k; m.t = tt; m.from = -1; }
+    else if (k !== m.k) { const fwd = ((k - m.k) % n + n) % n === 1; if (fwd) { m.d = clamp(tt - m.t, .03, .3); m.from = m.k; } else m.from = -1; m.t = tt; m.k = k; }
+    return m.from >= 0 && A.m && A.m[m.from] && tt - m.t < m.d * .5 ? m.from + .5 : k;
+  }
   function frame5(an, k, mode, ex, mirror) {
-    const A = M5.a[an], n = A.f.length, f = A.f[clamp(k | 0, 0, n - 1)];
+    const A = M5.a[an], n = A.f.length, half = k % 1 !== 0 && A.m && A.m[k | 0], key = half ? an + '~m' : an, f = half || A.f[clamp(k | 0, 0, n - 1)];
     const ay = mode === 'a' && f.s ? (f.s[1] + f.s[3]) / 2 + M5.scrh : f.ay;
     ctx.save(); ctx.scale(S5 * (mirror ? -1 : 1), S5);
-    ctx.drawImage(M5I[an], f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
+    ctx.drawImage(M5I[key], f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     // rosto: desenhado numa tela à parte e recortado pela máscara da tela escura do quadro
     if (f.s && f.sz) {
       if (!FT) { FT = document.createElement('canvas'); }
@@ -27,7 +35,7 @@
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14.5, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       // o rosto gira junto com a tela (inclinação medida em cada quadro)
       const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, LOOK[0] * L1 * .12, L2 * .03 + LOOK[1] * L2 * .13, fk, fkx); g.restore(); } finally { ctx = save; }
-      g.globalCompositeOperation = 'destination-in'; g.drawImage(M5K[an], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(M5K[key], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FT, 0, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     }
     ctx.restore();
@@ -126,7 +134,7 @@
       if (live) { const hx = p.x, hy = y - 42 * CHAR_K, dx = b.x - hx, dy = b.y - hy, d = Math.hypot(dx, dy) || 1, k2 = clamp(d / 60, 0, 1); lx = dx / d * k2 * (mir ? -1 : 1); ly = clamp(dy / d * k2, -1, .6) * (an === 'readyU' || an === 'readyD' ? .35 : 1); }
       s.lk = s.lk || [0, 0]; const a = Math.min(1, dt * 10); s.lk[0] += (lx - s.lk[0]) * a; s.lk[1] += (ly - s.lk[1]) * a; LOOK = s.lk;
     }
-    frame5(an, k, mode, P.ex, mir);
+    frame5(an, midK(s, an, k, tt, M5.a[an]), mode, P.ex, mir);
     ctx.restore();
   }
   // bola segura no saque: em cima da palma aberta do desenho

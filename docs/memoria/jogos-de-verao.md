@@ -67,7 +67,12 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
 - **Amiguinho:** completo na versão da ficha de modelo (41 pranchas), com os mesmos movimentos do IAmiguinho: olha para a bola e anda armando a cortada no chão.
   - Régua do Amiguinho: tamanho pela massa (raiz da área da silhueta), igual ao Amiguinho de antes; em cada quadro a massa é igualada (até ±10%), porque a geleia amassa e estica mas não muda de quantidade.
   - Encaixe do Amiguinho: parado no chão, os pés ficam presos; andando ou no ar, segue o centro do corpo. É o mesmo em todas as animações.
-- **Adversários:** quanto mais forte, menos atraso, menos erro, mais cortadas e mais perto da bola ele se posiciona.
+  - Quadros intermediários (`cart2/mids.py`): entre desenhos parecidos, um quadro do meio por fluxo óptico. O jogo mostra o do meio na primeira metade de cada troca. Vale no IAmiguinho e no Amiguinho; no skate, ainda não.
+- **Adversários (cérebro novo, `cart2/aivolei.js`):**
+  - Antes de cada toque, ele simula posições e escolhe a melhor: mandar longe de você ou levantar para cortar.
+  - Calcula o pulo da cortada e, nos níveis altos, saca com cortada.
+  - O peixinho vai para o lado em que a bola vai cair.
+  - Assertividade de 40% (mais fácil) a 90% (mais difícil); no mais difícil, varia de 80% a 95% conforme o placar.
   - Torneio: fácil, médio, difícil e final.
   - A dificuldade se adapta ao placar: se você está na frente, ele se concentra; se ele está na frente, relaxa um pouco. Nos adversários fortes vale sempre.
   - As simulações estão em `jogos/jogos-de-verao/testes`.

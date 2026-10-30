@@ -4,6 +4,36 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, cérebro novo do Amiguinho e animações sem tremer
+O dono jogou de novo e relatou:
+- o Amiguinho jogava a bola muito para trás;
+- no saque, ele tocava a bola para o meio da quadra, facilitando a cortada perto da rede;
+- ele usava pouco a cortada;
+- ele errava o lado do peixinho em todos os níveis;
+- as animações tremiam.
+
+**Pedido do dono:** a assertividade do Amiguinho vai de 40% no nível mais fácil a 90% no mais difícil. No mais difícil, ela pode variar de 80% a 95% com a dificuldade que se adapta ao placar.
+
+**Cérebro novo** (`cart2/aivolei.js`, usado só pelo Amiguinho; o jogador automático dos testes usa o antigo):
+- **Planeja o toque:** antes de cada toque, ele simula (imagina) várias posições, pulando ou não, e escolhe a melhor. Pode mandar a bola para o outro lado, longe de você, ou levantar alto perto da rede para cortar em seguida.
+- **Cortada:** ele calcula quando pular para a cortada dar certo, confirmando com a mesma física do jogo, e corta no ar quando dá.
+- **Saque:** nos níveis altos, joga a bola mais alto e corta (no mais difícil, em cerca de 2 de cada 3 saques). O saque de toque vai rápido e longe de você.
+- **Peixinho:** mergulha para o lado em que a bola vai cair. Antes ia para onde a bola estava naquele instante; esse era o erro.
+- **Assertividade:** é sorteada uma vez por lance. Quando o sorteio sai errado, ele lê mal onde a bola cai, se posiciona torto, não corta ou mergulha tarde.
+- **Simulação contra o jogador automático:**
+
+  | Nível | Vitórias do jogador automático | Erros do Amiguinho por toque | Cortadas por partida |
+  |---|---|---|---|
+  | Fácil | 12 de 12 | 12,7% | 0,8 |
+  | Médio | 10 de 12 | 8,5% | 9,5 |
+  | Difícil | 2 de 12 | 4,9% | 10,8 |
+  | Final | 0 de 12 (só 2 pontos por partida) | 4,9% | 12 |
+
+**Animações sem tremer:** cada animação ganhou quadros intermediários entre desenhos parecidos, feitos por fluxo óptico (`cart2/mids.py`), no IAmiguinho e no Amiguinho do vôlei.
+- O jogo mostra o quadro do meio na primeira metade de cada troca, então o movimento fica com o dobro de desenhos.
+- Onde o quadro do meio sairia borrado (movimentos grandes, mãos que mudam muito de lugar), ele não entra.
+- O skate ainda não tem quadros intermediários.
+
 ## 30/10/2026: Jogos de Verão, ajustes de jogabilidade (vôlei e skate)
 O dono jogou e pediu os ajustes abaixo.
 - **Vôlei, dificuldade:** o Amiguinho Dourado (final do torneio) estava fácil. O motivo, achado em simulação: quando ia cortar, ele se posicionava longe demais da bola; se a cortada não saía, a bola batia de lado na cabeça e ia reta na rede.

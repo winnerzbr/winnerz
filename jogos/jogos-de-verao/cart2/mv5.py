@@ -1,6 +1,7 @@
 """Moveset aprovado do IAmiguinho -> mv5.js (atlas por animação + máscara da tela do rosto + âncoras)."""
 import numpy as np, json, base64, io
 from PIL import Image
+from mids import add_mids
 from scipy import ndimage
 from visor import visor, geom, solid
 I = json.load(open('mv2/info.json')); Q = .5  # pixels guardados por pixel original (já na escala igualada)
@@ -116,7 +117,7 @@ def frame_fix(nm):
         out.append(float(np.clip(r, .88, 1.12)) if abs(r - 1) > .02 else 1.0)
     return out
 ALIGN = {'v2_readyU': 'v2_ready', 'v2_readyD': 'v2_ready'}
-def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=()):
+def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=(), mids=False):
     OUT = {'q': Q, 'scrh': round(SCRH * Q, 1), 'a': {}}
     for an, sheets in ANIM.items():
         tiles, metas = [], []
@@ -185,7 +186,8 @@ def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=()):
         b = io.BytesIO(); atl.save(b, 'WEBP', quality=84, method=5)
         mm = Image.new('RGBA', msk.size, (255, 255, 255, 0)); mm.putalpha(msk); b2 = io.BytesIO(); mm.save(b2, 'WEBP', quality=60, method=5)
         OUT['a'][an] = {'src': 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode(), 'mask': 'data:image/webp;base64,' + base64.b64encode(b2.getvalue()).decode(), 'front': an in FRONT, 'f': metas}
+        if mids: OUT['a'][an].update(add_mids(tiles, metas, an in {'idle', 'ready', 'readyU', 'readyD', 'run', 'back', 'spec', 'party'})); print('   quadros do meio:', OUT['a'][an].get('_n', 0))
         print(an, [round(np.degrees(m['r'])) for m in metas], atl.size, len(b.getvalue()) // 1024, 'KB', len(b2.getvalue()) // 1024, 'KB máscara')
     open(path, 'w').write('window.' + var + ' = ' + json.dumps(OUT) + ';\n'); print(len(open(path).read()) // 1024, 'KB', 'scrh', OUT['scrh'])
     return OUT
-if __name__ == '__main__': build(ANIM, SH, FRONT, ALIGN, 'MV5', 'mv5.js')
+if __name__ == '__main__': build(ANIM, SH, FRONT, ALIGN, 'MV5', 'mv5.js', mids=True)

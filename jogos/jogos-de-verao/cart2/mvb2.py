@@ -4,7 +4,10 @@ from PIL import Image
 from scipy import ndimage
 from visor import visor, geom, solid
 I = json.load(open('mv2/info.json')); Q = .5  # pixels guardados por pixel original (já na escala igualada)
-SH = {  # escala de cada prancha: medida automática para a cabeça (IAmiguinho) / a massa (Amiguinho) ficarem do mesmo tamanho
+SH = {
+ 'bv2_idleA': (0.943, 'linha', 1),
+ 'bv2_idleB': (0.951, 'linha', 1),
+  # escala de cada prancha: medida automática para a cabeça (IAmiguinho) / a massa (Amiguinho) ficarem do mesmo tamanho
  'bl_land': (0.994, 'linha', 1),
  'bl_getup': (1.094, 'linha', 1),
  'bl_gnd2': (1.009, 'linha', 1),
@@ -40,7 +43,7 @@ SH = {  # escala de cada prancha: medida automática para a cabeça (IAmiguinho)
  'b_b': (0.993, 'unica', 0.35),
  'b_e': (1.001, 'unica', 0.35),
 }
-ANIM = {'idle': ['b_h', 'b_g'], 'ready': ['b_f'], 'run': ['b_b', 'b_e'], 'ss': ['bl_ss'], 'back': ['bl_back'], 'turn': ['bl_turn'], 'jump': ['bl_jump1', 'bl_jump2', 'bl_jump3'], 'set': ['bl_set1', 'bl_set2'], 'bump': ['bl_bump1', 'bl_bump2'], 'serve': ['bl_srv1', 'bl_srv2', 'bl_srv3', 'bl_srv4', 'bl_land'], 'spike': ['bl_spk1', 'bl_spkA', 'bl_airA'], 'gnd': ['bl_gnd1', 'bl_gnd2'], 'spec': ['bl_spec'], 'dive': ['bl_dive1', 'bl_dive2', 'bl_dive3', 'bl_getup'], 'party': ['bl_party1', 'bl_party2'], 'sad': ['bl_sad1', 'bl_sad2']}
+ANIM = {'idle': ['bv2_idleA', 'bv2_idleB'], 'ready': ['b_f'], 'run': ['b_b', 'b_e'], 'ss': ['bl_ss'], 'back': ['bl_back'], 'turn': ['bl_turn'], 'jump': ['bl_jump1', 'bl_jump2', 'bl_jump3'], 'set': ['bl_set1', 'bl_set2'], 'bump': ['bl_bump1', 'bl_bump2'], 'serve': ['bl_srv1', 'bl_srv2', 'bl_srv3', 'bl_srv4', 'bl_land'], 'spike': ['bl_spk1', 'bl_spkA', 'bl_airA'], 'gnd': ['bl_gnd1', 'bl_gnd2'], 'spec': ['bl_spec'], 'dive': ['bl_dive1', 'bl_dive2', 'bl_dive3', 'bl_getup'], 'party': ['bl_party1', 'bl_party2'], 'sad': ['bl_sad1', 'bl_sad2']}
 FRONT = {'party', 'sad'}
 
 
@@ -64,6 +67,11 @@ for an, sheets in ANIM.items():
         k, chao, pulo = SH[nm]; fr = I[nm]; g = [max(q['bot'] for q in fr[:4]), max(q['bot'] for q in fr[4:])]
         if chao == 'unica': g = [g[0], g[0]]
         sizes = []
+        # pranchas novas (v2): a geleia amassa e estica, mas a quantidade de massa fica igual em todos os quadros
+        FF = [1.0] * len(fr)
+        if nm.startswith('bv2_'):
+            ms = [np.sqrt(ndimage.binary_fill_holes(np.array(Image.open(f'mv2/{nm}_{j}.png'))[..., 3] > 128).sum()) for j in range(len(fr))]
+            md = float(np.median(ms)); FF = [float(np.clip(md / m_, .9, 1.1)) if abs(md / m_ - 1) > .02 else 1.0 for m_ in ms]
         for j, q in enumerate(fr):
             im = Image.open(f'mv2/{nm}_{j}.png'); a = np.array(im); H, W = a.shape[:2]
             al = a[..., 3] > 100; hx = np.where(al[:int(H * .45)].any(0))[0]
@@ -79,7 +87,7 @@ for an, sheets in ANIM.items():
                 if an not in FRONT and an != 'turn':
                     cy_ = min(1, (Wv / Hv) / R0); sy_ = np.sqrt(max(0, 1 - cy_ * cy_)); x0 += .14 * Wv * sy_ * np.cos(rot); y0 += .14 * Wv * sy_ * np.sin(rot)
                 s += [x0, y0, Wv, Hv]
-            f = k * Q; w2, h2 = max(1, round(W * f)), max(1, round(H * f))
+            f = k * Q * FF[j]; w2, h2 = max(1, round(W * f)), max(1, round(H * f))
             rgb = im.resize((w2, h2), Image.LANCZOS)
             mk = Image.fromarray(((ndimage.binary_dilation(m, iterations=1) if m is not None else np.zeros((H, W), bool)) * 255).astype(np.uint8)).resize((w2, h2), Image.BILINEAR)
             hd = None

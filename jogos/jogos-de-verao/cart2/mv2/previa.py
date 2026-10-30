@@ -6,6 +6,8 @@ I = json.load(open('mv2/info.json')); K = .6
 #   chao='linha': mesma linha do chão de cada fileira · 'unica': a da fileira de cima vale para as duas (pranchas com quadros no ar)
 #   pulo: quanto da subida desenhada fica (1 = tudo)
 ANIM = [
+ dict(p='Amiguinho', m='Parado', t='Parado · versão 2', sh=['bv2_idleA', 'bv2_idleB'], v='ok',
+      n='Primeira prancha do Amiguinho com a ficha de modelo, já no jogo. A geleia respira amassando e esticando; no jogo cada quadro fica com a mesma quantidade de massa (o primeiro quadro da parte 1 tinha vindo 6% menor). Tamanho igual ao Amiguinho de antes; o visor ocupa a mesma parte do corpo (0,52 e 0,55, antes 0,53 e 0,57). Aprovada.'),
  dict(p='IAmiguinho', m='Skate · parado no skate', t='Skate · parado no skate', sh=['sk_idle'], v='ok',
       n='Primeira prancha do half-pipe pintado, já no jogo, com o skate da folha de modelo. Régua: cabeça igual em todos os quadros (varia só 1,2%) e corpo/cabeça 1,00 da ficha. Aprovada.'),
  dict(p='IAmiguinho', m='Skate · impulso', t='Skate · impulso', sh=['sk_imp'], v='ok',

@@ -29,5 +29,6 @@ Depois, acrescente a prancha no `SH`/`ANIM` do montador certo (`mv5.py`, `mvb2.p
 | `verao_cartoon/` | o vôlei em desenho (cena, rede, placar) |
 | `cart2/` | programas, quadros recortados (`mv2/`) e medidas (`mv2/info.json`) |
 | `procreate/` | ficha de modelo, grade-guia e o modelo congelado usado pela régua |
+| `blob_src/` | pranchas originais aprovadas do Amiguinho no vôlei (versão 2) |
 | `skate/` | pranchas originais aprovadas do skate, cenário (`vd/`, `scene/`), sprites antigos e os pedidos |
 | `moveset_volei/`, `skate_moveset/` | páginas de pedidos das pranchas |

@@ -135,5 +135,7 @@
  "sk_cbfoguete": 0.845,
  "sk_cbhelice": 0.878,
  "sk_cbindy_b": 0.856,
- "sk_cbrabeta_b": 0.798
+ "sk_cbrabeta_b": 0.798,
+ "bv2_idleA": 0.943,
+ "bv2_idleB": 0.951
 }

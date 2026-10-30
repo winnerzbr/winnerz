@@ -47,7 +47,8 @@ Minigames de praia inspirados em California Games, com 19 provas. Roda no navega
 - **IAmiguinho:** 38 pranchas, completo.
   - Inclui a espera olhando para a bola: a cabeça sobe e desce conforme a altura da bola.
   - Inclui o saque só jogando a bola para cima.
-- **Amiguinho:** as pranchas ainda não foram refeitas. Os pedidos estão no Moveset do Vôlei.
+- **Amiguinho:** sendo refeito com a ficha de modelo (pedidos no Moveset do Vôlei). Pronto: Parado (2 pranchas). O resto ainda usa as pranchas antigas.
+  - Régua do Amiguinho: tamanho pela massa (raiz da área da silhueta), igual ao Amiguinho de antes; em cada quadro a massa é igualada (até ±10%), porque a geleia amassa e estica mas não muda de quantidade.
 - **Pendente:**
   - placar, menus e HUD pintados;
   - ajustes de jogabilidade.

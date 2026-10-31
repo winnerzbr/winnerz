@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue com batida melhor, caixas, esteiras e o rodopio dos Amiguinhos
+- **Pedidos do dono:** melhorar a batida entre bugues (se sobrepunham), a coleta das caixas (encostava e não pegava), caixa voltar em 2 s, esteiras de turbo mais largas e o prompt da textura da pista. Também mandou a prancha da derrapagem e do rodopio do Amiguinho.
+- **Feito:**
+  - bugues com corpo de dois círculos: não se sobrepõem mais (0,1 no máximo em 3 corridas);
+  - caixa pega quando o bugue encosta, volta em 2 s; itens também acertam pelo corpo;
+  - esteiras com o dobro da largura;
+  - Amiguinhos derrapando e rodopiando pintados, na cor de cada um;
+  - pedido novo "Chão da pista (faixa que repete)" na página de pedidos, com as dunas e a folha de chão para anexar;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bgcolisao.cjs` (novo), `copa.cjs`, `bgrec.cjs`, `bgitens.cjs`, `bgmureta.cjs`, `vacuo.cjs`, `todas.cjs`.
+- **Pendente:** textura do chão da pista; o dono testar.
+
 ## 31/10/2026: Jogos de Verão, corrida de bugue com o cenário pintado
 - **Pedido do dono:** fazer o pedido da derrapagem e do rodopio dos Amiguinhos (feito: novo cartão na página de pedidos, com 3 imagens para anexar; o cartão agora aceita várias imagens).
 - **O dono mandou:** dunas em 3 horários, beira-mar, folha de chão, folha de peças, folha de itens e o farol.

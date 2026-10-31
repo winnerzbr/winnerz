@@ -22,7 +22,7 @@
    Arte provisória: tudo desenhado pelo jogo (bugues de cima, com o IAmiguinho e os Amiguinhos de capacete). */
 // 31/10: velocidade +15% a pedido do dono (era vmax 200, motor 330, freio 560, aderência 760/340, turbo +80)
 // 31/10: pista mais larga a pedido do dono, +20% duas vezes (meia largura de 62 para 74 e depois 89)
-const BG = { voltas: 3, hw: 89, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
+const BG = { padW: 22, kr: 8.5, kf: 4.5, boxR: 7, boxT: 2, voltas: 3, hw: 89, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
 if (typeof Music !== 'undefined' && Music.songs.patins) Music.songs.bugue = Music.songs.patins;
 FALA.intro.bugue = [
   'Corrida de bugue nas Dunas Brancas! Cinco Amiguinhos, três voltas e uma lagoa no meio do caminho.',
@@ -188,11 +188,15 @@ const bugue = {
       const c = k.me && I && !k.fin ? this.ctlOf(I) : this.aiCtl(k, dt);
       this.drive(k, c, dt);
     }
-    // bugues se empurram
-    for (let a = 0; a < 6; a++) for (let b = a + 1; b < 6; b++) {
-      const A = this.K[a], B = this.K[b]; if (A.z > 4 || B.z > 4) continue; const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy);
-      if (d < 16 && d > .01) { const p = (16 - d) / 2, nx = dx / d, ny = dy / d; A.x -= nx * p; A.y -= ny * p; B.x += nx * p; B.y += ny * p;
-        const rv = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny; if (rv < 0) { const j = -1.5 * rv / 2; A.vx -= j * nx; A.vy -= j * ny; B.vx += j * nx; B.vy += j * ny; const tw = j * .012; A.w -= tw * Math.sign(Math.cos(A.h) * ny - Math.sin(A.h) * nx); B.w += tw * Math.sign(Math.cos(B.h) * ny - Math.sin(B.h) * nx); if ((A.me || B.me) && j > 25) beep(220, .05, 'square', .03, -40); } }
+    // bugues se empurram: cada bugue é dois círculos (frente e trás, raio 8,5), então encostam pelo corpo todo e não se sobrepõem
+    for (let it = 0; it < 3; it++) for (let a = 0; a < 6; a++) for (let b = a + 1; b < 6; b++) {
+      const A = this.K[a], B = this.K[b]; if (A.z > 4 || B.z > 4) continue; if (Math.hypot(B.x - A.x, B.y - A.y) > 2 * (BG.kf + BG.kr) + 1) continue;
+      let best = null;
+      for (const sa of [-1, 1]) for (const sb of [-1, 1]) { const ax = A.x + Math.cos(A.h) * BG.kf * sa, ay = A.y + Math.sin(A.h) * BG.kf * sa, bx = B.x + Math.cos(B.h) * BG.kf * sb, by = B.y + Math.sin(B.h) * BG.kf * sb, dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy), pen = 2 * BG.kr - d;
+        if (pen > 0 && (!best || pen > best.pen)) best = { pen, nx: d > .01 ? dx / d : Math.cos(A.h + Math.PI / 2), ny: d > .01 ? dy / d : Math.sin(A.h + Math.PI / 2) }; }
+      if (!best) continue; const { pen, nx, ny } = best, p = pen / 2; A.x -= nx * p; A.y -= ny * p; B.x += nx * p; B.y += ny * p;
+      if (it) continue; const rv = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
+      if (rv < 0) { const j = -1.5 * rv / 2; A.vx -= j * nx; A.vy -= j * ny; B.vx += j * nx; B.vy += j * ny; const tw = j * .012; A.w -= tw * Math.sign(Math.cos(A.h) * ny - Math.sin(A.h) * nx); B.w += tw * Math.sign(Math.cos(B.h) * ny - Math.sin(B.h) * nx); if ((A.me || B.me) && j > 25) beep(220, .05, 'square', .03, -40); }
     }
     this.items(dt);
     if (this.wave > 0) this.wave -= dt;
@@ -294,7 +298,7 @@ const bugue = {
     // rampas nas dunas e esteiras de turbo
     for (const sc of BG_SCS) if (!air && k.s > 95 && sc.ramp) { const R = this.scRamp(sc), dx = k.x - R.x, dy = k.y - R.y, u = dx * Math.cos(R.a) + dy * Math.sin(R.a), v = -dx * Math.sin(R.a) + dy * Math.cos(R.a); if (Math.abs(u) < 9 && Math.abs(v) < BG.sw && Math.cos(k.d - R.a) > .5) { k.vz = (160 + (k.s - 95) * .9) * 1.3; k.z = .01; k.drift = 0; } }
     if (!air && k.s > 95) for (const r of BG_RAMPS) if (Math.abs(seg - r.i) <= 1 && dist < BG.hw - 4) { k.vz = 160 + (k.s - 95) * .9; k.z = .01; k.drift = 0; break; }
-    if (!air && !k.padT) for (const pd of BG_PADS) { const P = this.padPos(pd), dx = k.x - P.x, dy = k.y - P.y, u = dx * Math.cos(P.a) + dy * Math.sin(P.a), v = -dx * Math.sin(P.a) + dy * Math.cos(P.a); if (Math.abs(u) < 17 && Math.abs(v) < 11) { k.boost = Math.max(k.boost, .8); k.padT = .6; if (k.me) beep(520, .12, 'sawtooth', .04, 400); this.fx.push({ k: 'caixa', x: P.x, y: P.y, t: 0, life: .4 }); } }
+    if (!air && !k.padT) for (const pd of BG_PADS) { const P = this.padPos(pd), dx = k.x - P.x, dy = k.y - P.y, u = dx * Math.cos(P.a) + dy * Math.sin(P.a), v = -dx * Math.sin(P.a) + dy * Math.cos(P.a); if (Math.abs(u) < 17 && Math.abs(v) < BG.padW) { k.boost = Math.max(k.boost, .8); k.padT = .6; if (k.me) beep(520, .12, 'sawtooth', .04, 400); this.fx.push({ k: 'caixa', x: P.x, y: P.y, t: 0, life: .4 }); } }
     // poeira, marcas de pneu e faíscas da derrapagem
     if (k.s > (fofa ? 20 : 70) && !air && Math.random() < (k.drift || k.slide || fofa ? .7 : .22)) this.fx.push({ k: water ? 'água' : fofa ? 'fofa' : 'pó', x: k.x - fx * 9, y: k.y - fy * 9, t: 0, life: .5 });
     if (!air && (k.drift || k.slide) && k.s > 60) for (const sd of [-1, 1]) this.skids.push([k.x - fx * 7 + rx * sd * 6, k.y - fy * 7 + ry * sd * 6, this.t]);
@@ -305,6 +309,8 @@ const bugue = {
     for (const it of k.items) if (it.roll > 0) { it.roll -= dt; if (it.roll <= 0 && k.me) beep(990, .06, 'square', .04); }
   },
   scRamp(L) { return { x: L.A[0] + Math.cos(L.ang) * (BG.hw + 22), y: L.A[1] + Math.sin(L.ang) * (BG.hw + 22), a: L.ang }; },
+  // distância de um ponto até o corpo do bugue (os dois círculos da frente e de trás)
+  bodyD(k, x, y) { const c = Math.cos(k.h) * BG.kf, s = Math.sin(k.h) * BG.kf; return Math.min(Math.hypot(x - k.x - c, y - k.y - s), Math.hypot(x - k.x + c, y - k.y + s)); },
   padPos(pd) { const p = BG_LINE[pd.i % BG_LINE.length], q = BG_LINE[(pd.i + 2) % BG_LINE.length], a = Math.atan2(q[1] - p[1], q[0] - p[0]); return { x: p[0] - Math.sin(a) * pd.o, y: p[1] + Math.cos(a) * pd.o, a }; },
   // bordas: a pista (e o corredor da lagoa) tem muretas; bater de lado perde pouco, bater de frente perde muito
   segDist(px, py, A, B) { const vx = B[0] - A[0], vy = B[1] - A[1], t = clamp(((px - A[0]) * vx + (py - A[1]) * vy) / (vx * vx + vy * vy), 0, 1), qx = A[0] + vx * t, qy = A[1] + vy * t; return [Math.hypot(px - qx, py - qy), qx, qy]; },
@@ -402,7 +408,7 @@ const bugue = {
     for (const b of this.boxes) {
       if (b.t > 0) { b.t -= dt; continue; }
       const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), bx = L[0] + nx / nl * b.j * 31, by = L[1] + ny / nl * b.j * 31;
-      for (const k of this.K) if (k.z < 6 && Math.hypot(k.x - bx, k.y - by) < 12) { b.t = 2.5; if (k.items.length < 2) { k.items.push({ k: this.rollItem(k), roll: .8 }); if (k.me) beep(660, .05, 'square', .04, 300); } this.fx.push({ k: 'caixa', x: bx, y: by, t: 0 }); break; }
+      for (const k of this.K) if (k.z < 6 && this.bodyD(k, bx, by) < BG.kr + BG.boxR + 1.5) { b.t = BG.boxT; if (k.items.length < 2) { k.items.push({ k: this.rollItem(k), roll: .8 }); if (k.me) beep(660, .05, 'square', .04, 300); } this.fx.push({ k: 'caixa', x: bx, y: by, t: 0 }); break; }
     }
     for (const p of this.proj) {
       p.t += dt;
@@ -410,7 +416,7 @@ const bugue = {
       p.x += p.vx * dt; p.y += p.vy * dt;
       if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.scNear(p.x, p.y); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
       if (p.k === 'balao' && p.tg && (p.tg.fin || (p.pass && p.pass.has(p.tg)))) p.tg = null;
-      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && Math.hypot(k.x - p.x, k.y - p.y) < 12) {
+      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && this.bodyD(k, p.x, p.y) < BG.kr + 4.5) {
         if (k.inv > 0 || k.rec > 0 || k.spin > 0 || (p.pass && p.pass.has(k))) {
           if (!p.pass) p.pass = new Set(); if (!p.pass.has(k) && p.k === 'balao' && p.tg === k) { p.tg = this.K.find((q) => q.pos === k.pos - 1 && q !== p.by && !q.fin) || null; p.t = Math.min(p.t, 1.5); }
           p.pass.add(k); continue;
@@ -418,7 +424,7 @@ const bugue = {
       if (p.t > (p.k === 'balao' ? 4.5 : 3.5)) p.dead = true;
     }
     this.proj = this.proj.filter((p) => !p.dead);
-    for (const u of this.puds) { u.t += dt; for (const k of this.K) if (k.z < 4 && !u.used && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && Math.hypot(k.x - u.x, k.y - u.y) < 13 && (k !== u.by || u.t > 1)) { u.used = true; this.hit(k, u.by, 'protetor solar'); } }
+    for (const u of this.puds) { u.t += dt; for (const k of this.K) if (k.z < 4 && !u.used && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && this.bodyD(k, u.x, u.y) < BG.kr + 5 && (k !== u.by || u.t > 1)) { u.used = true; this.hit(k, u.by, 'protetor solar'); } }
     this.puds = this.puds.filter((u) => !u.used && u.t < 25);
   },
   rollItem(k) {
@@ -480,8 +486,8 @@ const bugue = {
     // marcas de pneu (somem devagar)
     ctx.fillStyle = 'rgba(110,80,45,.28)'; for (const [x, y, t0] of this.skids) { if (this.t - t0 > 6) continue; R(x - 1.2, y - 1.2, 2.4, 2.4, `rgba(110,80,45,${.3 * (1 - (this.t - t0) / 6)})`); }
     // esteiras de turbo (setas andando)
-    for (const pd of BG_PADS) { const P = this.padPos(pd); ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(P.a); R(-17, -11, 34, 22, '#2d3350'); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1; ctx.strokeRect(-17, -11, 34, 22);
-      for (let i = 0; i < 3; i++) { const x = -13 + ((tt * 40 + i * 11) % 30), a = .4 + .6 * ((tt * 40 + i * 11) % 30) / 30; ctx.strokeStyle = `rgba(255,${180 + i * 20},80,${a})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x - 4, -7); ctx.lineTo(x + 2, 0); ctx.lineTo(x - 4, 7); ctx.stroke(); } ctx.restore(); }
+    for (const pd of BG_PADS) { const P = this.padPos(pd); ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(P.a); const pw = BG.padW; R(-17, -pw, 34, pw * 2, '#2d3350'); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1; ctx.strokeRect(-17, -pw, 34, pw * 2);
+      for (const yo of [-pw / 2, pw / 2]) for (let i = 0; i < 3; i++) { const x = -13 + ((tt * 40 + i * 11) % 30), a = .4 + .6 * ((tt * 40 + i * 11) % 30) / 30; ctx.strokeStyle = `rgba(255,${180 + i * 20},80,${a})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x - 4, yo - 7); ctx.lineTo(x + 2, yo); ctx.lineTo(x - 4, yo + 7); ctx.stroke(); } ctx.restore(); }
     // largada (quadriculado) e rampas
     { const p = BG_LINE[0], q = BG_LINE[1]; this.drawStart(p[0], p[1], Math.atan2(q[1] - p[1], q[0] - p[0])); }
     for (const r of BG_RAMPS) { const p = BG_LINE[r.i], q = BG_LINE[r.i + 1]; this.drawRamp(p[0], p[1], Math.atan2(q[1] - p[1], q[0] - p[0])); }

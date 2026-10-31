@@ -216,6 +216,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (30 de 30 nos dois casos, nas 3 pistas);
   - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado (pistas em dobro): nenhum bugue preso; de 2 a 7 batidas fortes por corrida (quase todas na entrada dos atalhos);
   - `testes/bgvolante.cjs`: quanto o bugue desvia com toques curtos em alta;
+  - `testes/bgcolisao.cjs`: sobreposição entre bugues em 3 corridas, caixa pegando de lado e voltando em 2 s, largura da esteira;
   - `testes/bgcena.cjs`: fotos do cenário pintado (largada nos 3 horários, rampa, caixas e itens, lagoa, farol de dia e de noite, mar, ladeiras, salto, onda);
   - `testes/bgpintado.cjs`: fotos dos bugues pintados (IAmiguinho reto, rodas para os dois lados, nas curvas, derrapando para os dois lados, rodopiando; Amiguinhos nas 5 cores);
   - `testes/bgmureta.cjs`: 67 batidas em ângulos de 15° a 85° nas 3 pistas; em todas o bugue segue andando (a única exceção quica para dentro de um atalho);
@@ -235,7 +236,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Bugue dos Amiguinhos (31/10):**
   - prancha bg_bl (rosa): 1-4 reto, 5-6 rodas para a esquerda, 7-8 para a direita (conferido pelo ângulo dos pneus);
   - cada Amiguinho com a sua cor (amarelo, rosa, azul, verde, laranja), pela mesma troca de cor do vôlei (pneus, gaiola, visor e faróis ficam);
-  - ainda sem derrapagem e rodopio próprios (usam os desenhos reto e virando; o jogo gira o bugue).
+  - derrapagem e rodopio próprios desde 31/10 (prancha bg_bl_rodopio, 2000x1000, células de 500; mesma conta do IAmiguinho: giro desenhado desfeito, espelhado para a esquerda, estrelinhas rodando), também na cor de cada um.
 - Tudo montado em `cart2/mvbg.py` -> `mvbg.js` (window.BGA: conjuntos ia, iad, ias, bl, cada quadro com âncora e giro desenhado) e desenhado por `cart2/bgp.js`.
 - **Cenário, peças e itens pintados (31/10):**
   - o dono mandou: dunas vistas de cima em 3 horários (dia, fim de tarde, noite), a faixa da beira-mar, a folha de chão (areia fofa em 3 tamanhos, faixa comprida, rampa do atalho, setas e marcas de pneu), a folha de peças (caixa de item, rampa de madeira, largada, bandeirinhas, mureta reta e curva), a folha de itens (cada item grande e pequeno) e o farol com o facho separado;
@@ -251,7 +252,12 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - beira-mar (Duna do Farol): a faixa repetida dos lados, a areia de baixo some sobre as dunas, a água vai e volta de leve; acima dela, a água do alto da faixa esticada;
   - ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo;
   - artes em `jogos/jogos-de-verao/bugue/arte`.
-- **Arte provisória:** pedido aberto: derrapagem e rodopio dos Amiguinhos (página de pedidos).
+- **Arte provisória:** pedido aberto: chão da pista (faixa 4:1 que repete dos lados, com marcas de pneu da esquerda para a direita; a ideia é o jogo deitar a faixa ao longo da pista, como as muretas). Ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo.
+- **Ajustes de 31/10 (pedido do dono):**
+  - batida entre bugues: cada bugue é dois círculos (frente e trás, raio 8,5, a 4,5 do centro), conferidos 3 vezes por passo e empurrados pelo contato mais fundo; antes era um círculo só (16 de distância) e eles se sobrepunham de frente e de trás. Medido em 3 corridas inteiras: sobreposição máxima 0,1;
+  - caixa de item: pega quando o corpo do bugue encosta nela (dois círculos + raio 7 da caixa); antes contava só o centro do bugue a 12 da caixa. Passando ao lado, pega até 16 de distância entre os centros. Reaparece em 2 s (era 2,5);
+  - bola, balão e poça do protetor também acertam pelo corpo do bugue;
+  - esteiras de turbo com o dobro da largura (44, era 22), com duas fileiras de setas.
 - **Modos (no menu da prova):**
   - **Corrida:** uma corrida avulsa na pista escolhida no botão "Pista" (Lagoa Azul, Duna do Farol ou Desce-Duna; cada toque troca a pista e o IAmiguinho fala dela);
   - **Copa das Dunas:** as 3 pistas seguidas. Cada chegada vale 10, 8, 6, 4, 2 e 1 pontos (quem não chegou conta pela posição na pista). Entre as corridas aparece a classificação, e ✕/Espaço (ou um toque) leva à próxima pista. A nota e a medalha saem da posição final na Copa, e "Jogar de novo" começa outra Copa. No HUD, a última casa mostra a corrida e os pontos.

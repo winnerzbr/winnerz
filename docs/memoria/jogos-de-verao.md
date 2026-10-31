@@ -41,7 +41,7 @@ O plano tem 19 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e
   |---|---|---|
   | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito; pode ser jogado em duas pessoas |
   | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
-  | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol, onda); 3 voltas e a Copa das Dunas com 3 pistas |
+  | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol); 3 voltas e a Copa das Dunas com 3 pistas |
 
 ### Pingue-pongue (como funciona, 2ª versão)
 O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato). Pediu andar livre, física de bola de pingue-pongue de verdade e mais jogadas.
@@ -197,13 +197,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **Atalhos:** corredores retos com muretas cortando por dentro de curvas, com água ou areia fofa no meio; só compensam com turbo.
   - **Caixas de item:** 6 fileiras de 5 caixas por pista; cada caixa some sozinha e volta em 2,5 s.
   - **Itens:** cada bugue guarda até 2; o item usado é o primeiro, e o HUD mostra os dois.
-- **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
+- **Itens** (quem está atrás ganha itens melhores; a onda saiu em 31/10):
   - bola de praia: quica reto e volta nas bordas; para trás, sai rolando contra quem vem atrás;
   - balão d'água: persegue quem está logo à frente, a 330 px/s (era 250; o dono achou lento) e virando mais rápido (para trás, quem vem logo atrás). Se passar por um bugue invencível (depois de rodar), não acerta, nem depois, e vai atrás de quem estiver na frente desse bugue; o mesmo vale para a bola;
   - protetor solar: deixa uma poça atrás (ou longe na frente, com ↑);
   - água de coco: turbo;
   - guarda-sol: escudo que bloqueia um ataque;
-  - onda: deixa os três primeiros lentos por 2,2 s.
+  - onda: retirada em 31/10 a pedido do dono (deixava os três primeiros lentos por 2,2 s).
   - Quem é acertado rodopia e perde velocidade, mas continua a corrida.
 - **Amiguinhos:** seguem a pista cada um na sua faixa, tiram o pé antes das curvas (calculam a velocidade pelo raio da curva e pela aderência), derrapam nas curvas fortes e usam os itens com critério. Os da frente aliviam um pouco quando abrem muita vantagem, e os de trás apertam.
 - **Pontos:**
@@ -247,7 +247,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - largada: a faixa quadriculada com os postes atravessando a pista; rampas: 2 módulos de madeira atravessando a pista (a areia do desenho do lado de quem chega); rampa do salto do Desce-Duna: a da folha de chão;
   - areia fofa: a mancha pelo tamanho; no corredor de areia fofa do atalho, a faixa comprida;
   - ladeiras: setas na areia nas descidas e marcas de pneu nas subidas (60% de força), 3 por fileira;
-  - caixas: o desenho da caixa girando devagar e pulando de leve; itens: ícones grandes no quadrinho do item; bola e balão pequenos voando; poça do protetor; o guarda-sol aberto em cima do bugue enquanto protege; a onda pintada atravessa a tela;
+  - caixas: o desenho da caixa girando devagar e pulando de leve; itens: ícones grandes no quadrinho do item; bola e balão pequenos voando; poça do protetor; o guarda-sol aberto em cima do bugue enquanto protege; (a onda pintada atravessando a tela saiu junto com a onda);
   - farol: a torre no lugar do desenho antigo; o facho gira por cima de tudo, mais forte à noite;
   - beira-mar (Duna do Farol): a faixa repetida dos lados, a areia de baixo some sobre as dunas, a água vai e volta de leve; acima dela, a água do alto da faixa esticada;
   - ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo;

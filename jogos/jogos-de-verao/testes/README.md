@@ -18,3 +18,5 @@ Rodam com o jogo montado servido em `http://localhost:8765` (`python3 -m http.se
 - `bckeys.cjs`: bocha pelo teclado (mirar, segurar e soltar para rolar e para jogar pelo alto).
 - `bcburaco.cjs`: rola 4 bolas em cada buraco (um com areia fofa) e mostra quanto tempo cada uma leva para parar.
 - `teco3d.cjs [voos]`: teco-teco em 3D. O three.js r160 vem de `vendor/three-r160.min.js` (fora do repositório; é o arquivo `build/three.min.js` do pacote three@0.160.0). Confere curva e subida, tira fotos de cada marco e roda um piloto automático em 3 níveis.
+- `volei3d.cjs [partidas]`: vôlei 3D: partidas de um jogador automático (o mesmo cérebro do Amiguinho) contra o Amiguinho e fotos de uma troca (three.js de `vendor/`).
+- `v3keys.cjs`: vôlei 3D pelo teclado (andar, sacar, pular).

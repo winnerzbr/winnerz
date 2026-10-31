@@ -169,6 +169,35 @@ O dono reprovou a 1ª versão (de lado, com física de estol): ficava muito comp
 - **Testes:** `testes/teco3d.cjs` (curva, subida, fotos de cada marco e piloto automático: de 10 a 13 mil pontos só com argolas).
 - **Arte provisória:** formas 3D simples, com sombreado de desenho animado e contorno escuro. A faixa puxada atrás saiu, porque em 3D ficava entre a câmera e o avião. A página de pedidos troca as pranchas de lado por um céu panorâmico pintado em 4 horários.
 
+### Vôlei 3D (teste, 31/10/2026)
+O dono pediu um teste: o vôlei em 3D. Ele escolheu "quadra 3D de verdade" (andar para a frente e para trás) e "os desenhos pintados" como personagens.
+- **Prova à parte:** `cart2/ev_volei3d.js`, id `volei3d`, no fim da lista. O vôlei 2D não mudou.
+- **Cena:**
+  - três.js r160, como no teco-teco;
+  - câmera de transmissão, de lado e do alto, com o IAmiguinho à esquerda;
+  - pôr do sol com mar, sol, coqueiros, linhas azuis e a rede.
+- **Personagens:**
+  - as pranchas pintadas do vôlei, desenhadas a cada quadro numa tela à parte e coladas num recorte que sempre olha para a câmera, com sombra no chão;
+  - usam as mesmas animações: espera, corrida, recuo, pulo, cortada, peixinho, toque, manchete, saque, festa e tristeza.
+- **Medidas:** quadra 16 × 8 m, rede de 2,43 m, personagens de cerca de 1,85 m, bola de raio 0,28 m (maior que a real, para ler bem).
+- **Controles:**
+  - ◀ ▶ ▲ ▼ andam (▲ vai para o fundo);
+  - ✕/Espaço pula; ○/X dá o peixinho;
+  - □/C corta (no ar, perto da bola) e saca: C saca forte, Espaço saca por baixo;
+  - quem saca fica atrás da linha.
+- **Toque:**
+  - a bola bate na cabeça ou no corpo;
+  - o 1º e o 2º toques levantam a bola perto da rede do próprio lado;
+  - segurando para a rede, ou no 3º toque, ela passa para o outro lado;
+  - ▲ ▼ na hora da batida escolhem o lado; sem escolher, vai para longe do adversário;
+  - o erro da batida depende de onde a bola bateu e da força com que chegou.
+- **Leitura:** um círculo na areia mostra onde a bola vai cair (azul do seu lado, rosa do lado dele).
+- **Regras:** 3 toques por lado; o ponto sai quando a bola cai na quadra ou fora (quem tocou por último perde); a rede devolve a bola; até 7 pontos.
+- **Amiguinho:**
+  - prevê a bola, vai para debaixo dela, levanta perto da rede, pula e corta;
+  - erra leitura, tempo de reação e mira conforme o acerto (0,74 de base, entre 0,5 e 0,92 conforme o placar).
+- **Testes:** `testes/volei3d.cjs` (partidas: o muito bom venceu 3 de 4, o médio 2 de 4, o fraco 1 de 4; fotos) e `testes/v3keys.cjs` (teclado).
+
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |
 |---|---|---|

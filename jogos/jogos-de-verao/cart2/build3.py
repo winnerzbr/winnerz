@@ -34,7 +34,7 @@ s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto
          "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx, obstaculos, frisbee, arco, duelo, canoagem, futebol, natacao, jetski, volei];", s)
 # provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas.
 # O dono reprovou o Salto do penhasco e o Frescobol (as ideias e a jogabilidade): saíram, e o Salto do píer também saiu de vez.
-NOVAS = ['ev_pingue.js', 'ev_bocha.js', 'ev_teco.js']
+NOVAS = ['ev_pingue.js', 'ev_bocha.js', 'ev_teco.js', 'ev_volei3d.js']
 
 # 3D (Voo do teco-teco): three.js r160 do jsDelivr, carregado sem travar a página; nos testes, o Playwright serve uma cópia local
 s = sub1('<meta name="claude:viewport-fit-sides" content="cover">\n', '<meta name="claude:viewport-fit-sides" content="cover">\n<script async src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>\n', s)
@@ -42,6 +42,8 @@ s = sub1("const EVENTS = [surfe,", ''.join((HERE / f).read_text(encoding='utf-8'
 s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx,", "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, pingue, bmx,", s)
 s = sub1("futebol, natacao,", "futebol, bocha, natacao,", s)
 s = sub1("canoagem, futebol,", "canoagem, teco, futebol,", s)
+s = sub1("jetski, volei];", "jetski, volei, volei3d];", s)
+s = sub1("const RANK = {\n", "const RANK = {\n  volei3d: [['@bia', 2100], ['@rafa', 1700], ['@duda', 900], ['@carol', 500]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  teco: [['@rafa', 21000], ['@bia', 16000], ['@duda', 10000], ['@carol', 5500]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  bocha: [['@bia', 2100], ['@rafa', 1700], ['@carol', 900], ['@duda', 500]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  pingue: [['@rafa', 2300], ['@bia', 1800], ['@duda', 1100], ['@carol', 600]],\n", s)

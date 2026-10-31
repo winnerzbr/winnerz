@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Vôlei 3D (teste)
+- **Pedido do dono:** "Vamos fazer um teste: Porte o jogo de vôlei para 3D."
+- **Escolhas dele:** quadra 3D de verdade (andar para a frente e para trás, controles e Amiguinho novos) e os desenhos pintados como personagens.
+- **Feito:**
+  - prova nova "Vôlei 3D (teste)", no fim da lista; o vôlei 2D continua igual;
+  - personagens pintados como recortes de papel dentro da cena 3D;
+  - círculo na areia mostrando onde a bola cai;
+  - detalhes em `jogos-de-verao.md`.
+- **Pendente:** o dono avaliar o teste e decidir se o caminho é esse (e se vale para outras provas).
+
 ## 31/10/2026: Jogos de Verão, Voo do teco-teco refeito em 3D
 - **Avaliação do dono:** "Ficou ruim a jogabilidade, é muito complicado fazer o avião subir. Ideal é que tenha movimentação livre. Faça em 3D."
 - **Feito:**

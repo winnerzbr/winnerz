@@ -73,7 +73,10 @@ const bocha = {
     const nx = dx / d, ny = dy / d, rel = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny, ia = 1 / a.m, ib = 1 / b.m;
     const push = (md - d) / (ia + ib); a.x -= nx * push * ia; a.y -= ny * push * ia; b.x += nx * push * ib; b.y += ny * push * ib;
     if (rel <= 0) return false;
-    const J = (1 + .78) * rel / (ia + ib); a.vx -= J * ia * nx; a.vy -= J * ia * ny; b.vx += J * ib * nx; b.vy += J * ib * ny; a.mv = b.mv = true; return rel;
+    // batida devagar (bolas encostadas, rampa empurrando uma na outra) não quica: as duas se acomodam e param
+    const e = rel < 30 ? 0 : .78, J = (1 + e) * rel / (ia + ib); a.vx -= J * ia * nx; a.vy -= J * ia * ny; b.vx += J * ib * nx; b.vy += J * ib * ny;
+    for (const o of [a, b]) { if (Math.hypot(o.vx, o.vy) > 6) o.mv = true; else if (!o.mv) o.vx = o.vy = 0; }
+    return rel > 12 ? rel : false;
   },
   // um passo de tudo: bolas rolando (atrito, rampa, areia fofa, pegadas, conchas), bola voando, batidas
   world(W0, dt, live) {
@@ -98,7 +101,8 @@ const bocha = {
       const sp = Math.hypot(b.vx, b.vy), [gx, gy] = this.heightGrad(b.x, b.y), soft = this.softAt(b.x, b.y);
       const fr = (BC.fc + BC.fv * sp) * (soft ? 4 : 1) * (b.jack ? 1.15 : 1);
       const ax = -BC.G * gx, ay = -BC.G * gy;
-      if (sp < 5 && Math.hypot(ax, ay) < BC.fc * 1.4) { b.vx = b.vy = 0; b.mv = false; continue; }
+      // parada: devagar e com a rampa fraca, ou devagar e apoiada numa bola parada (encostada não fica empurrando para sempre)
+      if (sp < 5 && (Math.hypot(ax, ay) < BC.fc * (soft ? 4 : 1) * 1.4 || all.some((o) => o !== b && o.alive && !o.mv && !o.fly && Math.hypot(o.x - b.x, o.y - b.y) < b.r + o.r + .8))) { b.vx = b.vy = 0; b.mv = false; continue; }
       const dec = sp > 0 ? Math.min(sp, fr * dt) / sp : 0;
       b.vx = b.vx * (1 - dec) + ax * dt; b.vy = b.vy * (1 - dec) + ay * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.roll = (b.roll || 0) + sp * dt / b.r;
       // pegadas: entortam um pouco, uma vez por pegada

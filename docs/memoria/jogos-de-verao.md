@@ -106,6 +106,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
     - as pegadas entortam o dobro;
     - são 2 montinhos e 2 buracos por partida, maiores;
     - no desenho, o buraco tem o fundo escuro e a borda clara, e o montinho tem o brilho em cima;
+  - parada: bola devagar para quando a rampa é mais fraca que o atrito do lugar ou quando está encostada numa bola parada; batida devagar não quica;
   - as bolas batem umas nas outras, e o bolim é mais leve;
   - a bola pelo alto voa, cai e quase para; se cair em cima de outra, tira ela do lugar;
   - nas tábuas a bola bate e volta fraquinha;

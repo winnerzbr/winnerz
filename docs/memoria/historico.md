@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bocha sem bolas "se tocando" no buraco
+- **Bug que o dono viu (print):** duas bolas paradas no buraco com areia fofa ficavam se tocando por muito tempo, com os efeitos de batida piscando.
+- **Causas:**
+  - a rampa do buraco empurrava uma bola na outra e elas quicavam sem parar;
+  - na areia fofa, a regra de parar usava o atrito da areia batida;
+  - só a regra de segurança de 14 s encerrava a jogada.
+- **Correções:**
+  - batida devagar (menos de 30 px/s) não quica: as bolas se acomodam;
+  - bola devagar encostada numa bola parada para;
+  - a regra de parar usa o atrito do lugar (a areia fofa segura 4 vezes mais);
+  - efeito e som de batida só em batidas de verdade.
+- **Teste:** `testes/bcburaco.cjs` rola 4 bolas em cada buraco. Antes uma delas não parava (o teste corta em 8,3 s); agora todas param em até 3 s.
+
 ## 31/10/2026: Jogos de Verão, Bocha aprovada e areia desviando mais
 - **Avaliação do dono:** achou a Bocha muito legal e desafiante e aprovou como protótipo inicial.
 - **Pedido dele:** a areia desviava pouco; buracos, montinhos e areia fofa deviam pesar mais.

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, pistas do bugue mais 20% largas
+- **Pedido do dono:** aumentar a largura das pistas em mais 20%.
+- **Feito:**
+  - largura de 148 para 178 px; caixas e faixas dos Amiguinhos acompanham;
+  - correção que apareceu nos testes com a pista larga: dentro de um atalho, o quique na mureta mandava o bugue de volta para a entrada (usava o sentido da pista, não o do corredor). Agora segue o corredor;
+  - os Amiguinhos que vão pegar o atalho miram primeiro a boca do corredor. As batidas na entrada da lagoa caíram de ~7 para ~1 por corrida.
+- **Testes:** `copa.cjs` (nenhum bugue preso, Copa inteira), `bgmureta.cjs`, `bgrec.cjs`, `bgitens.cjs`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, pistas do bugue 20% mais largas
 - **Pedido do dono:** aumentar a largura das pistas em 20%.
 - **Feito:** a largura passou de 124 para 148 px nas 3 pistas. Acompanham a nova largura as fileiras de caixas, a areia fofa por dentro dos grampos, a rampa do salto do atalho e as faixas por onde os Amiguinhos andam. Os trechos de pista continuam bem separados e os atalhos continuam com mureta.

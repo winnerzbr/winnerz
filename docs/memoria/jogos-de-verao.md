@@ -135,7 +135,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.
 - **Pista (2ª versão, 31/10):**
-  - largura de 148 px desde 31/10 (era 124; +20% a pedido do dono); as caixas, a areia fofa dos grampos, a rampa do salto e as faixas dos Amiguinhos acompanham a largura; desde 31/10 as pistas também têm o dobro do tamanho (ver "As 3 pistas da Copa");
+  - largura de 178 px desde 31/10 (era 124; o dono pediu +20% duas vezes: 148 e depois 178); as caixas, a areia fofa dos grampos, a rampa do salto e as faixas dos Amiguinhos acompanham a largura; desde 31/10 as pistas também têm o dobro do tamanho (ver "As 3 pistas da Copa");
   - muretas de zebra vermelha e branca em toda a volta: bater de lado perde pouco (6%) e de frente perde muito (até 61%); o bugue escorrega junto da mureta e alinha com ela;
   - não há mais saída para a areia fofa.
 - **Física dos bugues (3ª versão, 31/10):**
@@ -146,6 +146,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - derrapagem: começa com um pulinho, os pneus de trás seguram menos e a carga só conta com o bugue escorregando de lado;
   - pulo com gravidade: pousar alinhado dá turbo; pousar torto perde 28% do embalo; o bugue amassa no pouso;
   - batida na mureta (31/10, o dono achou que travava): o bugue quica para longe dela, perde de 13% (raspão) a 50% (de frente) da velocidade, nunca fica abaixo de 60 px/s e sai alinhado com a pista sem precisar virar; por 0,3 s não quica de novo;
+  - dentro de um atalho, o quique leva o bugue no sentido do corredor (antes usava o sentido da pista e mandava o bugue de volta para a entrada);
+  - os Amiguinhos que vão pegar o atalho miram primeiro a boca do corredor e só depois a saída (direto na saída, raspavam na quina da mureta);
   - batidas entre bugues trocam impulso e torcem o bugue;
   - a carroceria balança para fora nas curvas;
   - na água, os pneus seguram menos e a água freia (o turbo atravessa);

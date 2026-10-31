@@ -23,11 +23,14 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Salto do píer, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
+O plano tem 22 provas, e o jogo publicado tem 17 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Frescobol, Patins, Basquete, Salto do penhasco, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
-- **Troca:** o Salto do píer vira Salto do penhasco, na Falésia do Farol, com as mesmas regras e 5 alturas cada vez maiores.
-- **Novas, ainda não feitas:** as regras propostas aguardam a aprovação do dono. As novas já nascem pintadas, sem passar pelo 16 bits.
+- **Troca feita:** o Salto do píer virou Salto do penhasco (Falésia do Farol): mesmas regras, 5 saltos de 6 a 18 m.
+- **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
+  - Feitas: Salto do penhasco e Frescobol.
+  - Faltam: Pingue-pongue, Bocha, Teco-teco, Paraquedismo e Corrida de bugue.
+  - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
   |---|---|---|
@@ -45,6 +48,7 @@ O plano tem 22 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |
+| Pedidos das provas novas | https://claude.ai/artifact/Y5hetAQfCRf1dykVoA3c6w | pedidos das pranchas e dos cenários das provas novas |
 | Moveset do Skate | https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3 | pedidos das pranchas do skate, das manobras combinadas e do cenário |
 | Plano visual (doc) | https://claude.ai/artifact/N2TAefrFeShKPgXHgzkEgw | Costa WinnerZ, cenários, horários, itens, regras das provas novas e ordem de produção |
 

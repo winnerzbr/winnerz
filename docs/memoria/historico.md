@@ -4,6 +4,26 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, provas novas (1ª entrega: Salto do penhasco e Frescobol)
+O dono pediu para desenvolver e publicar as provas novas.
+- **Decisão do dono:**
+  - fazer jogável já, com arte provisória, publicando junto uma página de pedidos das pranchas; a arte entra conforme ele mandar;
+  - um jogo por vez, testando antes do próximo.
+- **Ordem:** Salto do penhasco, Frescobol, Pingue-pongue, Bocha, Teco-teco, Paraquedismo e Corrida de bugue.
+- **Salto do penhasco** (`cart2/penhasco.py`): o Salto do píer virou o penhasco.
+  - Mesmas regras, 5 saltos de 6, 9, 12, 15 e 18 m (o último com vento); a dificuldade sobe com a altura.
+  - Falésia e farol desenhados pelo jogo (provisórios); medalhas 6.500, 10.000 e 13.500.
+- **Frescobol** (`cart2/ev_frescobol.js`):
+  - Cooperativo contra o recorde, com 60 s e 3 bolinhas.
+  - ✕ rebate: no tempo certo sai a batida certa (50 pontos); fora do tempo, bola alta (20).
+  - ○ (ou ↑ + ✕) é a pancada (100 pontos); o parceiro erra mais com pancada atrás de pancada.
+  - A bolinha acelera a cada troca; a cada 10 trocas, +0,5 no multiplicador.
+  - Uma pessoa: o parceiro é o Amiguinho. Duas pessoas no computador (botão "2 jogadores"): A D + F (W + F pancada) e ◀ ▶ + Enter (↑ + Enter pancada).
+  - Personagens: desenhos pintados do vôlei (espera, corrida e cortada no chão) e raquete desenhada pelo jogo; praia provisória.
+  - Medalhas 900, 1.900 e 3.200, calibradas com jogadores automáticos.
+- **Página nova:** "Pedidos das provas novas" (https://claude.ai/artifact/Y5hetAQfCRf1dykVoA3c6w, gerada por `novas/pedidos.py`), com as pranchas e os cenários de cada prova nova. Hoje tem penhasco e frescobol, 41 pedidos.
+- Provas novas desenhadas em alta resolução: marcar `paint: true` na prova.
+
 ## 30/10/2026: Jogos de Verão, arrancar e frear emendando com a espera
 O dono mandou prints quadro a quadro do Amiguinho: em pé com as mãos para os lados, depois inclinado com a mão na frente, depois agachado, depois em pé de novo.
 - **Causa:** a prancha "Arrancar e frear" começa e termina em pé com as mãos para os lados, e a espera tem a mão na frente do corpo. A cada parada e saída, a pose pulava.

@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Voo do teco-teco
+- **Bocha:** depois da correção das bolas no buraco, o dono manteve como protótipo inicial.
+- **Voo do teco-teco** (`cart2/ev_teco.js`), entre a Canoagem e o Futebol de areia:
+  - segue as regras do plano visual: nariz com ↑ ↓, turbo, 90 s, argolas em sequência, balões, rasantes nos marcos, looping e batida que rodopia sem acabar;
+  - física de avião com estol;
+  - começa decolando da pista do aeroclube;
+  - extra: passar por baixo do viaduto vale 900;
+  - detalhes em `jogos-de-verao.md`.
+- **Correções feitas nos testes:**
+  - a lista do pódio geral exige que toda prova nova tenha no ranking de exemplo as 4 pessoas de `PEOPLE` (@duda, @carol, @rafa, @bia); a bocha foi corrigida também;
+  - a multiplicação das argolas foi limitada a ×8, porque sem limite os pontos explodiam.
+- **Página de pedidos:** o Teco-teco entrou com 18 pedidos (61 no total).
+- **Pendente:** o dono testar o Teco-teco. Depois vêm o Paraquedismo e a Corrida de bugue.
+
 ## 31/10/2026: Jogos de Verão, bocha sem bolas "se tocando" no buraco
 - **Bug que o dono viu (print):** duas bolas paradas no buraco com areia fofa ficavam se tocando por muito tempo, com os efeitos de batida piscando.
 - **Causas:**

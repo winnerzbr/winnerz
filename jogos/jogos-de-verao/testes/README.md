@@ -17,3 +17,5 @@ Rodam com o jogo montado servido em `http://localhost:8765` (`python3 -m http.se
 - `bocha.cjs [partidas]`: bocha, jogador automático (o mesmo cérebro do Amiguinho, com acerto de 0,92 a 0,45) contra o Amiguinho: vitórias, pontos, rodadas, encostos, tiradas e rodadas anuladas. Salva fotos em `amg/`.
 - `bckeys.cjs`: bocha pelo teclado (mirar, segurar e soltar para rolar e para jogar pelo alto).
 - `bcburaco.cjs`: rola 4 bolas em cada buraco (um com areia fofa) e mostra quanto tempo cada uma leva para parar.
+- `teco.cjs [voos]`: teco-teco: decolagem, voo sem comando, looping e estol, e um piloto automático em 3 níveis (pontos, argolas, balões, rasantes, batidas e motivo das batidas).
+- `tcshots.cjs`: fotos do avião passando por cada marco e por uma sequência de argolas.

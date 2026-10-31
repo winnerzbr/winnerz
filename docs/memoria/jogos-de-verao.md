@@ -23,15 +23,16 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 21 provas, e o jogo publicado tem 17 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
+O plano tem 21 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Voo do teco-teco, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
-    - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar.
-  - Faltam, nesta ordem: Teco-teco, Paraquedismo e Corrida de bugue.
+    - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
+    - Voo do teco-teco (`cart2/ev_teco.js`): esperando o teste do dono.
+  - Faltam, nesta ordem: Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
@@ -130,6 +131,30 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - os personagens são os do vôlei, pequenos na linha de lançamento (manchete para lançar, festa e tristeza);
   - bolas, cancha e vila são desenhadas pelo jogo;
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
+
+### Voo do teco-teco (como funciona)
+- **Cena:** vista de lado. Decola da pista de grama do Aeroclube da Restinga (segurar ↑ com uns 65 px/s) e voa 90 s pela costa; a câmera segue o avião.
+- **Controles:** ↑ ↓ (ou o analógico) levantam e abaixam o nariz; ✕/Espaço dá o turbo (1,1 s), que recarrega em 4 s. No celular, botões ▲ ▼ e Turbo.
+- **Física:**
+  - sustentação proporcional à velocidade ao quadrado e ao ângulo entre o nariz e o caminho; estol a 15°;
+  - arrasto (com o arrasto induzido), empuxo e gravidade;
+  - o nariz volta sozinho para o ângulo de voo nivelado (sem comando, voa reto a uns 120 px/s);
+  - devagar e de nariz alto, perde a sustentação e cai de bico;
+  - segurar ↑ a uns 135 px/s faz um looping completo (a 75 px/s, estola);
+  - o ar fica fraco perto do teto, a 560 px de altura.
+- **Pontos:**
+  - argola 100 × sequência (até ×8); raspar na borda perde a sequência, mas não bate;
+  - balão 50, balão dourado 250 (há rodas de 8 balões que pedem um looping);
+  - looping 450, looping invertido 700;
+  - rasante sobre o marco entre 200 e 880 (quanto mais baixo, mais);
+  - passar por baixo do viaduto 900.
+- **Marcos** (a cada 2.200 a 2.600 px): farol na falésia, viaduto do skatepark, laje com a cesta e roda-gigante, em ciclo. Gaivotas voam em bandos. O percurso é sorteado a cada voo.
+- **Bater:**
+  - em marco, gaivota ou água, o avião rodopia 1,1 s, perde embalo e a sequência, sem acabar a prova;
+  - na pista, encostar não é batida.
+- **Medalhas:** bronze 5.000, prata 12.000, ouro 19.000.
+- **Teste:** `testes/teco.cjs` (física e piloto automático em 3 níveis: muito bom de 13 a 21 mil pontos, médio de 11 a 23 mil, fraco de 7 a 10 mil) e `testes/tcshots.cjs` (fotos em cada marco).
+- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos (18 pedidos: o avião com o IAmiguinho, expressões, faixa, os 4 marcos, argola, balões e gaivota, e o céu com o aeroclube em 4 horários).
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

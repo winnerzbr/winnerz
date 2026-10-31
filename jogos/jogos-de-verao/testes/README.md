@@ -19,3 +19,4 @@ Rodam com o jogo montado servido em `http://localhost:8765` (`python3 -m http.se
 - `bcburaco.cjs`: rola 4 bolas em cada buraco (um com areia fofa) e mostra quanto tempo cada uma leva para parar.
 - `bugue.cjs [corridas]`: corrida de bugue com o jogador no piloto automático (o mesmo cérebro dos Amiguinhos): posições, tempos, itens e turbos; fotos da corrida.
 - `bgkeys.cjs`: corrida de bugue pelo teclado (largada com turbo, derrapagem com turbo e item).
+- `bgpresos.cjs`: 12 corridas de bugue no piloto automático; conta quantas não terminam porque algum bugue ficou preso.

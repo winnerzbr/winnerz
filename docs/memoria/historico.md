@@ -4,6 +4,25 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Corrida de bugue com mecânicas melhores
+- **Avaliação do dono:** "Conceitualmente é parecido com o que imagino, mas precisa melhorar bastante nas mecânicas."
+- **Pedidos dele:**
+  - direção melhor;
+  - pista mais larga;
+  - bordas para o bugue não sair;
+  - bater na borda perde velocidade, mas deve dar para evitar bater em alta velocidade nas curvas;
+  - itens no R2 e equivalentes.
+- **Feito:**
+  - pista nova mais larga (124 px), com muretas de zebra e curvas abertas;
+  - batida que perde pouco de lado e muito de frente;
+  - direção suavizada;
+  - derrapagem também no R1/L1;
+  - item no R2/RT/ZR (botão 7) e V no teclado;
+  - corredor da lagoa com muretas;
+  - zoom um pouco mais aberto.
+- **Correção encontrada nos testes:** ao bater na mureta, a direção do bugue dava uma volta inteira, e alguns ficavam rodando parados. Os ângulos agora são sempre comparados pelo caminho mais curto (teste: 0 bugues presos em 12 corridas).
+- **Pendente:** o dono testar a direção nova.
+
 ## 31/10/2026: Jogos de Verão, paraquedismo removido; Corrida de bugue
 - **Decisão do dono:** "Não ficou legal a execução da ideia, pode deletar esse jogo e partir para o próximo."
   - O Paraquedismo saiu do jogo, do `build3.py`, do repositório, da página de pedidos e do plano visual.

@@ -133,18 +133,21 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
 ### Corrida de bugue (como funciona)
-- **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima. 3 voltas contra 5 Amiguinhos, numa pista fechada de cerca de 4.000 px (uma volta leva uns 22 s).
+- **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.
+- **Pista (2ª versão, 31/10):**
+  - redesenhada mais larga: 124 px de largura, cerca de 5.700 px por volta (uns 26 s), curvas abertas e um grampo;
+  - muretas de zebra vermelha e branca em toda a volta: bater de lado perde pouco (6%) e de frente perde muito (até 61%); o bugue escorrega junto da mureta e alinha com ela;
+  - não há mais saída para a areia fofa.
 - **Controles:**
-  - ◀ ▶ viram;
+  - ◀ ▶ viram; a direção é suavizada (no teclado não dá tranco) e responde menos devagar e um pouco menos acima de 170 px/s;
   - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
-  - □/C segurado na curva derrapa: com 0,85 s vem a faísca azul (turbo curto) e com 1,7 s a laranja (turbo longo); o turbo sai ao soltar;
-  - △/V usa o item.
+  - R1, L1 ou □ (C no teclado) segurado na curva derrapa, com um pulinho no começo: com 0,85 s vem a faísca azul (turbo curto) e com 1,7 s a laranja (turbo longo); o turbo sai ao soltar;
+  - **R2 usa o item**, como o dono pediu (é o botão 7 do padrão: RT no Xbox, ZR no Switch; V no teclado). O △ não usa mais o item.
 - **Pista:**
   - **Largada:** contagem 3, 2, 1, Vai!; acelerar de 0,5 s antes do Vai em diante dá turbo, e cedo demais afoga.
   - **Pulos:** duas rampas; pousar alinhado dá turbo curto.
-  - **Fora da pista:** é areia fofa (lenta), e os morros nas bordas seguram e devolvem o bugue.
-  - **Lagoa:** atalho na curva da direita; só compensa com turbo.
-  - **Caixas de item:** 4 fileiras pela pista.
+  - **Lagoa:** um corredor com muretas corta por dentro a curva da direita, com a água no meio; só compensa com turbo.
+  - **Caixas de item:** 4 fileiras de 5 caixas.
 - **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
   - bola de praia: quica reto e volta nas bordas;
   - balão d'água: persegue quem está logo à frente;
@@ -158,7 +161,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - por posição: 1º 3.000, 2º 2.200, 3º 1.600, 4º 1.100, 5º 700, 6º 400;
   - medalhas: bronze em 3º, prata em 2º, ouro em 1º.
 - **Testes:**
-  - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos; as posições variaram de 1º a 6º, em uns 64 a 71 s;
+  - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos (corridas de 79 a 86 s);
+  - numa corrida inteira dos 6 bugues no piloto automático, houve só 4 batidas fortes na mureta: dá para fazer as curvas rápido sem bater;
   - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado.
 - **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista e as dunas de cima em 3 horários.
 - **Ainda não feito:** a Copa das Dunas (3 pistas: Lagoa Azul, Duna do Farol e Desce-Duna). Esta pista é a primeira.

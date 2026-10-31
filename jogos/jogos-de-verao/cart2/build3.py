@@ -56,13 +56,14 @@ s = sub1("  setButtons(['Jogar', start], null);\n}\nfunction startDOM() {",
          "}\nfunction startDOM() {", s)
 # 31/10 · embaixadinha (pedidos do dono): rotação de bolas e física pelo peso de cada uma; sem a bola extra e sem as marcas
 # das alturas de toque em volta do IAmiguinho.
-# Rotação: séries 1 a 4 com a bola de futebol; da 5 em diante, de 4 em 4: praia (5, 9, 13...), bolinha de gude (6, 10, 14...),
-# pingue-pongue (7, 11, 15...) e futebol (8, 12, 16...). A bola extra (duas ao mesmo tempo) saiu da rotação.
+# Rotação (futebol primeiro, pedido do dono): séries 1 a 4 com a bola de futebol; da 5 em diante, de 4 em 4: futebol (5, 9, 13...),
+# praia (6, 10, 14...), bolinha de gude (7, 11, 15...) e pingue-pongue (8, 12, 16...). A bola extra (duas ao mesmo tempo) saiu da rotação.
 # Física: cada bola tem gravidade, resistência do ar (as leves chegam a uma velocidade máxima de queda), quanto o vento leva,
 # quanto sobe e se espalha no toque, quanto a firula curva, quanto quica e rola no chão e se "dança" no ar.
 # A sombra e o tempo do toque são calculados com a mesma física (resistência do ar incluída), então continuam certos.
 s = sub1("const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bola extra!' };",
-         "const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bolinha de gude!', 7: 'Bola de pingue-pongue!', 8: 'Bola de futebol!' };\n"
+         "const EB_NOVO = { 2: 'Mais espalhado!', 3: 'Vento!', 4: 'Gaivota!', 5: 'Pedidos da torcida!', 7: 'Toque mais preciso!', 8: 'Sombra tímida!', 9: 'Areia fofa!', 11: 'Gaivotas mais ousadas!' };\n"
+         "const EB_BOLA_MSG = { futebol: 'Bola de futebol!', praia: 'Bola de praia!', gude: 'Bolinha de gude!', pingue: 'Bola de pingue-pongue!' };\n"
          "// bolas pelo peso: g = gravidade, ar = resistência do ar, vento, sobe e espalha no toque, curva da firula, quica e rola no chão,\n"
          "// giro (desenho), dança (desvio de lado a cada toque), r = raio\n"
          "const EB_BOLAS = {\n"
@@ -73,7 +74,7 @@ s = sub1("const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola 
          "};", s)
 s = sub1("extra, praia: this.praiaNow() }; },", "extra, kind: this.kindNow() }; },", s)
 s = sub1("  praiaNow() { return this.nivel >= 5 && (this.nivel - 5) % 4 === 0; },",
-         "  kindNow() { return this.nivel < 5 ? 'futebol' : ['praia', 'gude', 'pingue', 'futebol'][(this.nivel - 5) % 4]; },\n"
+         "  kindNow() { return this.nivel < 5 ? 'futebol' : ['futebol', 'praia', 'gude', 'pingue'][(this.nivel - 5) % 4]; },\n"
          "  // tempo até a bola descer até a altura yT (com a resistência do ar das bolas leves)\n"
          "  tDown(b, yT) {\n"
          "    const g = this.gOf(b), k = EB_BOLAS[b.kind].ar, v0 = b.vy, y0 = b.y;\n"
@@ -142,6 +143,50 @@ function ebBolinha(b, tt) {
   if (b.firula && Math.floor(tt * 14) % 2) R(Math.round(b.x) + r + 1, Math.round(b.y) - r - 2, 2, 2, '#ffffff');
 }
 const embaixadinha = {""", s)
+# 31/10 · embaixadinha, dificuldade progressiva (pedido do dono). Além do que já subia (gravidade, espalhamento, vento, rajadas):
+#   4  gaivota que atrapalha de verdade: voa na altura das bolas, a sombra dela é igual à de uma bola, e se encostar numa bola,
+#      empurra a bola para o lado (as leves vão mais longe); fica mais frequente e mais rápida a cada série (11: "mais ousadas");
+#   5  pedidos da torcida: às vezes a torcida pede cabeça, coxa ou pé; atender vale +150 (vale por 4 toques);
+#   7  toque mais preciso: a faixa de cada altura de toque vai encolhendo (até 3 a menos);
+#   8  sombra tímida: a sombra só aparece quando a bola já desceu um tanto, e cada vez mais tarde;
+#   9  areia fofa: um trecho de areia fofa (muda de lugar a cada série) onde o IAmiguinho anda na metade da velocidade.
+s = sub1("aperta: Math.min(3, Math.max(0, Math.floor((n - 8) / 3))) };",
+         "aperta: n >= 7 ? Math.min(3, 1 + Math.floor((n - 7) / 2)) : 0, pedido: n >= 5, sombra: n >= 8 ? Math.min(EBY - 70, EBY - 150 + (n - 8) * 14) : null, fofa: n >= 9,\n"
+         "      gullT: Math.max(2.4, 7 - (n - 4) * .45), gullV: 80 + (n - 4) * 6 };", s)
+s = sub1("wind: 0, windTo: 0, windT: 3, sand: [], gull: null, gullT: 6, balls: [], extraUsed: 0,", "wind: 0, windTo: 0, windT: 3, sand: [], gull: null, gullT: 6, balls: [], extraUsed: 0, req: null, fofa: null,", s)
+# gaivota na altura das bolas, que empurra a bola quando encosta
+s = sub1("    if (C.gull) { this.gullT -= dt; if (!this.gull && this.gullT <= 0) { const dir = Math.random() < .5 ? 1 : -1; this.gull = { x: dir > 0 ? -20 : W + 20, dir, v: rand(70, 95), y: rand(30, 58) }; this.gullT = rand(5, 8); } }\n"
+         "    if (this.gull) { const g = this.gull; g.x += g.dir * g.v * dt; if (g.x < -30 || g.x > W + 30) this.gull = null; }",
+         "    if (C.gull) { this.gullT -= dt; if (!this.gull && this.gullT <= 0) { const dir = Math.random() < .5 ? 1 : -1, y0 = rand(EBY - 135, EBY - 75); this.gull = { x: dir > 0 ? -20 : W + 20, dir, v: rand(.85, 1.15) * C.gullV, y: y0, y0, ph: rand(0, 6), vy: 0, hit: false }; this.gullT = rand(.8, 1.25) * C.gullT; } }\n"
+         "    if (this.gull) {\n"
+         "      const g = this.gull; g.x += g.dir * g.v * dt; g.ph += dt * 3;\n"
+         "      if (g.hit) { g.vy -= 160 * dt; g.y += g.vy * dt; } else g.y = g.y0 + Math.sin(g.ph) * 10;\n"
+         "      // encostou numa bola: empurra para o lado e um pouco para cima (as leves vão mais longe, a de gude quase não sai do lugar)\n"
+         "      if (!g.hit) for (const b of this.balls) { if (b.serve > 0) continue; const BP = EB_BOLAS[b.kind]; if (Math.hypot(b.x - g.x, b.y - g.y) < BP.r + 9) {\n"
+         "        const k = clamp(BP.vento, .3, 1.8); b.vx += g.dir * 75 * k; b.vy = Math.min(b.vy, -55 * Math.min(1.3, k)); b.cv *= .3; g.hit = true; g.vy = -40;\n"
+         "        pop('Gaivota!', b.x, b.y - 18, '#ffd04a'); sfx.whiff(); for (let q = 0; q < 6; q++) this.sand.push({ x: g.x + rand(-5, 5), y: g.y + rand(-4, 4), v: rand(-30, 30), t: 1.4 }); break; } }\n"
+         "      if (g.x < -30 || g.x > W + 30 || g.y < -30) this.gull = null;\n"
+         "    }", s)
+# areia fofa: anda na metade da velocidade
+s = sub1("    if (mv) { this.px = clamp(this.px + mv * EB_SPD * dt, 24, W - 24);", "    if (mv) { this.px = clamp(this.px + mv * EB_SPD * (this.fofa && Math.abs(this.px - this.fofa.x) < this.fofa.w / 2 ? .5 : 1) * dt, 24, W - 24);", s)
+# pedidos da torcida
+s = sub1("    this.pts += pts; this.last = z.k; if (perfect) this.perfect++; if (varied) this.variados++;",
+         "    this.pts += pts; this.last = z.k; if (perfect) this.perfect++; if (varied) this.variados++;\n"
+         "    if (this.req) { if (!fir && z.k === this.req.k) { const pb = Math.round(150 * this.mult()); this.pts += pb; this.pedidos = (this.pedidos || 0) + 1; pop(`Pedido atendido +${pb}`, W / 2, 78, '#bfefff', true); this.cheer = Math.max(this.cheer, .6); this.req = null; } else if (--this.req.n <= 0) this.req = null; }\n"
+         "    else if (this.cfg().pedido && Math.random() < .3) { const zz = EB_ZONAS[Math.floor(Math.random() * 3)]; this.req = { k: zz.k, nome: zz.nome, n: 4 }; }", s)
+# série nova: mensagem da novidade e da bola; a areia fofa muda de lugar
+_a = s.index("  levelUp(nv) {"); _b = s.index("  drawBall(b, tt) {", _a)
+s = s[:_a] + """  levelUp(nv) {
+    this.nivel = nv; this.cheer = 1;
+    const kind = this.kindNow(), troca = this.balls.some((b) => b.kind !== kind), dif = EB_NOVO[nv], bm = troca ? EB_BOLA_MSG[kind] : '';
+    pop(dif || bm || `Série ${nv}`, W / 2, 48, '#ffd04a', true); if (dif && bm) pop(bm, W / 2, 64, '#ffd04a', true); sfx.point();
+    // a bola troca de tipo conforme a série (com um puf de areia)
+    for (const b of this.balls) if (b.kind !== kind) { b.kind = kind; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }
+    if (this.cfg().fofa) this.fofa = { x: rand(70, W - 90), w: 56 };
+  },
+""" + s[_b:]
+s = sub1("  stats() { return [`${this.touches} toques`, `Série ${this.nivel}`, `Melhor sequência ${this.best}`, `${this.perfect} perfeitos · ${this.firulas} firulas`]; },",
+         "  stats() { return [`${this.touches} toques`, `Série ${this.nivel}`, `Melhor sequência ${this.best}`, `${this.perfect} perfeitos · ${this.firulas} firulas${this.pedidos ? ` · ${this.pedidos} pedidos atendidos` : ''}`]; },", s)
 # sem as marcas das três alturas em volta do IAmiguinho
 _a = s.index("    // marcas discretas das três alturas, só quando uma bola está chegando\n"); _b = s.index("    // IAmiguinho: 0 parado · 1 chute (pé)", _a)
 s = s[:_a] + s[_b:]

@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Embaixadinha com futebol primeiro, gaivota que atrapalha e dificuldade progressiva
+- **Pedidos do dono:**
+  - bola de futebol em primeiro na ordem;
+  - a gaivota não estava atrapalhando;
+  - maneiras de ter dificuldade progressiva.
+- **Feito:**
+  - rotação a partir da série 5: futebol, praia, gude, pingue-pongue;
+  - gaivota na altura das bolas, com sombra igual à de uma bola, empurrando a bola quando encosta (pelo peso da bola), cada vez mais frequente e rápida;
+  - novidades por série: pedidos da torcida (5), toque mais preciso (7), sombra tímida (8), areia fofa (9), gaivotas mais ousadas (11), além do que já subia;
+  - os pedidos atendidos aparecem no resumo da partida;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `ebdif.cjs` (novo), `ebbolas.cjs`, `ebcena.cjs`, `ebpintado.cjs` e uma partida em tempo real com jogador automático.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Embaixadinha toda pintada, bolas novas na rotação e física pelo peso
 - **O dono mandou:** gaivota, biruta, folha das bolas, os 4 horários do fundo e do meio-plano da Praia do Centro e as luzes da noite (algumas em duas versões).
 - **Pedidos dele:**

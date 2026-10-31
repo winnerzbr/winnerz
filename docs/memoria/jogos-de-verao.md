@@ -232,7 +232,15 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 
 ## Embaixadinha
 - **Como é:** IAmiguinho de lado na areia (hoje no fundo da praia do vôlei), 3 bolas, sem relógio. Toques na cabeça, na coxa ou no pé quando a bola passa na altura; variar vale mais; X/○ faz firula (sobe mais, faz curva, vale o dobro). A sombra na areia mostra onde a bola cai.
-- **Séries (a cada 8 toques):** 2 mais espalhado, 3 vento (biruta), 4 gaivota com sombra que engana. Da 5 em diante a bola troca de 4 em 4: **praia (5, 9, 13…), bolinha de gude (6, 10, 14…), pingue-pongue (7, 11, 15…) e futebol (8, 12, 16…)**. A bola extra (duas bolas ao mesmo tempo) saiu da rotação em 31/10, a pedido do dono.
+- **Séries (a cada 8 toques) e dificuldade progressiva (31/10, pedido do dono):** sempre sobem a gravidade, o espalhamento do toque, o vento e as rajadas. Novidades:
+  - 2 mais espalhado; 3 vento (biruta);
+  - 4 **gaivota que atrapalha**: voa na altura das bolas, a sombra dela é igual à de uma bola e, se encostar numa bola, empurra a bola para o lado e um pouco para cima (praia e pingue-pongue vão longe, a gude quase não sai do lugar); fica mais frequente e mais rápida a cada série (de ~7 s na série 4 a ~2,5 s na 14; 11: "Gaivotas mais ousadas!"). Antes ela voava alto, longe das bolas, e a sombra era menor que a de uma bola, então não atrapalhava;
+  - 5 **pedidos da torcida**: às vezes aparece um balão sobre a torcida pedindo cabeça, coxa ou pé; atender (sem firula) vale +150 × combo, e o pedido some depois de 4 toques;
+  - 7 **toque mais preciso**: a faixa de cada altura de toque encolhe 1 (8: 1, 9: 2, 11 em diante: 3);
+  - 8 **sombra tímida**: a sombra da bola só aparece quando ela já desceu abaixo de uma altura que vai baixando (150 na série 8, 70 na 14); a da gaivota sempre aparece;
+  - 9 **areia fofa**: um trecho de areia fofa (muda de lugar a cada série) onde o IAmiguinho anda na metade da velocidade.
+- **Bolas:** da 5 em diante troca de 4 em 4, com o **futebol primeiro** (pedido do dono): futebol (5, 9, 13…), praia (6, 10, 14…), bolinha de gude (7, 11, 15…), pingue-pongue (8, 12, 16…). A bola extra (duas bolas ao mesmo tempo) saiu da rotação em 31/10. Na série nova aparecem a novidade e, se a bola trocou, o nome da bola.
+- Teste da dificuldade: `testes/ebdif.cjs`.
 - **Física pelo peso (31/10, pedido do dono; tabela `EB_BOLAS` no `build3.py`):** cada bola tem gravidade, resistência do ar (as leves chegam a uma velocidade máxima de queda), quanto o vento leva, quanto sobe e se espalha no toque, quanto a firula curva, quanto quica e rola quando cai e se dança a cada toque. A sombra e o tempo do toque usam a mesma física, com a resistência do ar.
   - Gude: a mais pesada; cai rápido (1,3 s no ar), o vento quase não mexe, sobe menos, quase não quica e rola.
   - Futebol: o meio-termo (1,6 s).

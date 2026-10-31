@@ -113,13 +113,23 @@
       { const k = clamp(this.wind / 60, -1, 1), a = Math.abs(k), i = a < .12 ? 0 : a < .45 ? 1 : 2 + (Math.floor(tt * 4) % 2); ebPart('biruta', i, W - 62, EBY + 1, k < -.05 ? -1 : 1); }
       for (const s of this.sand) R(s.x, s.y, 3, 1, 'rgba(247,230,189,.75)');
       // gaivota e a sombra que engana
-      if (this.gull) { const g = this.gull; ebPart('gaivota', Math.floor(tt * 8), g.x, g.y, g.dir > 0 ? -1 : 1); ellipseFill(Math.round(g.x), EBY - 1, 8, 2, 'rgba(70,45,15,.5)'); }
+      // areia fofa (série 9 em diante): mais escura, com ondinhas
+      if (this.fofa) { const f = this.fofa; ctx.save(); ctx.fillStyle = 'rgba(150,105,55,.32)'; ctx.beginPath(); ctx.ellipse(f.x, EBY + 3, f.w / 2, 7, 0, 0, TAU); ctx.fill();
+        ctx.strokeStyle = 'rgba(255,240,210,.5)'; ctx.lineWidth = .6; for (let j = -1; j <= 1; j++) { ctx.beginPath(); for (let x = -f.w * .38; x <= f.w * .38; x += 3) { const y = EBY + 3 + j * 2.6 + Math.sin(x * .3 + j) * .8; x === -f.w * .38 ? ctx.moveTo(f.x + x, y) : ctx.lineTo(f.x + x, y); } ctx.stroke(); } ctx.restore(); }
+      // sombras: as das bolas e a da gaivota são iguais (é ela que engana); da série 8 em diante a sombra da bola só aparece quando ela já desceu (sombra tímida)
+      const C = this.cfg(), sh = (x, y, r, a = 1) => { const k = clamp(1 - (EBY - y) / 170, .3, 1); ellipseFill(Math.round(x), EBY - 1, Math.round((5 + 5 * k) * r), 2, `rgba(70,45,15,${((.35 + .3 * k) * a).toFixed(2)})`); };
+      if (this.gull) { const g = this.gull; ebPart('gaivota', Math.floor(tt * 8), g.x, g.y, g.dir > 0 ? -1 : 1); if (g.y > 0) sh(g.x, g.y, 1); }
       const live = this.dropT <= 0;
-      for (const b of this.balls) { const sx = this.shadowX(b), k = clamp(1 - (EBY - b.y) / 170, .3, 1), r = EB_BOLAS[b.kind].r / 8.5; ellipseFill(Math.round(sx), EBY - 1, Math.round((5 + 5 * k) * r), 2, `rgba(70,45,15,${(.35 + .3 * k).toFixed(2)})`); }
+      for (const b of this.balls) { const a = C.sombra == null || b.serve > 0 ? 1 : clamp((b.y - C.sombra) / 30, 0, 1); if (a > .02) sh(this.shadowX(b), b.y, EB_BOLAS[b.kind].r / 8.5, a); }
       ellipseFill(Math.round(this.px), EBY, 13, 2, 'rgba(70,45,15,.35)');
       const act = this.poseT > 0, b0 = this.balls[0];
       let ex = 0; if (!live) ex = this.vidas <= 0 ? 4 : 3; else if (act) ex = 2; else if (b0 && b0.serve <= 0 && b0.vy > 0 && Math.abs(b0.x - this.px) < 30) ex = 5;
       const [an, k] = ebPick(this, tt); ctx.save(); ctx.translate(this.px, EBY); frameEb(an, k, ex, this.face < 0); ctx.restore();
       for (const b of this.balls) ebBall(b, tt);
+      // pedido da torcida (série 5 em diante): um balão em cima da torcida
+      if (this.req && live) { const x = 64, y = 92, tx = `${this.req.nome}!`; ctx.save(); ctx.font = 'bold 9px sans-serif'; const w = ctx.measureText(tx).width + 12;
+        ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#1b1f4f'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.roundRect(x - w / 2, y - 9, w, 15, 6); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x - 3, y + 6); ctx.lineTo(x + 1, y + 11); ctx.lineTo(x + 4, y + 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 3, y + 4, 7, 2.5);
+        ctx.fillStyle = '#1b1f4f'; ctx.textAlign = 'center'; ctx.fillText(tx, x, y + 2); ctx.restore(); }
     };
   }

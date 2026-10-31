@@ -23,21 +23,21 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 21 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Voo do teco-teco, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
+O plano tem 20 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Paraquedismo em formação, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
     - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
-    - Voo do teco-teco (`cart2/ev_teco.js`): de volta ao 2D, agora com voo livre; esperando o teste do dono.
-  - Faltam, nesta ordem: Paraquedismo e Corrida de bugue.
+    - Paraquedismo em formação (`cart2/ev_para.js`): esperando o teste do dono.
+  - Falta: Corrida de bugue.
+  - Removido: Voo do teco-teco. O dono testou 3 versões (de lado com física, 3D e 2D com voo livre) e achou que não ficou divertido.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
   |---|---|---|
-  | Voo do teco-teco | Aeroclube da Restinga, sobrevoando a costa | vista de lado: argolas, balões, rasantes nos marcos, looping e turbo |
   | Paraquedismo em formação | Céu da Enseada Cristal | queda livre fechando a roda, abrir o paraquedas baixo e pousar no alvo |
   | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito; pode ser jogado em duas pessoas |
   | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
@@ -132,29 +132,29 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - bolas, cancha e vila são desenhadas pelo jogo;
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
-### Voo do teco-teco (como funciona, 3ª versão: 2D com voo livre)
-- **Histórico:**
-  - 1ª versão: de lado, com física de avião e estol; reprovada porque subir era complicado demais;
-  - 2ª versão: 3D; o dono descartou;
-  - agora: de volta ao 2D (o mesmo percurso, marcos e desenho da 1ª versão), com movimentação livre.
-- **Voo livre:**
-  - a tela anda sozinha para a direita (120 px/s; 195 no turbo) e o avião se move livre dentro dela;
-  - ▲ ▼ sobem e descem (150 px/s) e ◀ ▶ vão para trás e para a frente na tela (115 px/s), com um pouco de embalo;
-  - o nariz acompanha o movimento;
-  - a decolagem da pista é automática; encostar na pista não é batida.
-- **Botões:**
-  - ✕/Espaço: turbo (1,2 s, recarrega em 4 s);
-  - ○/X: looping, um círculo de pé de 34 px em 1,25 s, que vale 450; com ▼ segurado acima de 110 px de altura, sai o looping invertido, que vale 700;
-  - no celular, direcional completo, Turbo e Looping.
-- **Pontos e batidas:** como na 1ª versão:
-  - argola 100 × sequência (até ×8); raspar só perde a sequência;
-  - balão 50, balão dourado 250;
-  - rasante de 200 a 880;
-  - passar por baixo do viaduto 900;
-  - bater em marco, gaivota ou água faz o avião rodopiar 1 s e perder a sequência.
-- **Medalhas:** bronze 8.000, prata 18.000, ouro 28.000. O piloto automático fez de 19 a 32 mil pontos: com voo livre, ficou bem mais fácil.
-- **Testes:** `testes/teco.cjs` (decolagem, resposta de ▲ e ▶, looping, piloto automático em 3 níveis e fotos).
-- **Arte:** os pedidos da página de pedidos voltaram a ser os de lado (avião, faixa, marcos, peças do céu e o céu com o aeroclube).
+### Paraquedismo em formação (como funciona)
+- **Lugar:** Céu da Enseada Cristal. São 3 saltos, cada um em três partes.
+- **1. Queda livre** (vista de cima, de 4.000 a 1.500 m; o chão cresce lá embaixo e há uma camada de nuvens perto dos 2.500 m):
+  - as setas movem o IAmiguinho com embalo;
+  - os 3 Amiguinhos (cores trocadas pelo jogo) passeiam no ar;
+  - encostar devagar dá as mãos (100 cada); rápido demais, eles se esbarram e se afastam;
+  - com os quatro, a roda fecha (500) e vale 100 por segundo fechada;
+  - rajadas de vento (com linhas de vento) empurram o grupo; se o grupo correr rápido demais, alguém solta a mão;
+  - aos 1.500 m, todos se separam.
+- **2. Abertura:**
+  - ✕ abre o paraquedas;
+  - acima de 1.000 m vale 50; entre 1.000 e 200 m, de 100 a 580 (mais baixo, mais pontos);
+  - abaixo de 200 m vale 650, mas o pouso é duro;
+  - aos 120 m o reserva abre sozinho, sem pontos;
+  - abrir baixo também deixa menos tempo para guiar.
+- **3. Pouso** (vista de lado):
+  - ◀ ▶ guiam o paraquedas; o vento muda a cada salto e tem rajadas (a biruta mostra);
+  - uma seta com a distância aponta o alvo quando ele está fora da tela;
+  - ✕ entre 6 m e 0,8 m de altura freia e pousa em pé (300);
+  - pontos do pouso: na mosca (menos de 1,2 m) 800, no alvo 500, perto 300, na areia 120, na água 0.
+- **Medalhas:** bronze 3.000, prata 5.500, ouro 7.500. Um jogador automático que se aproxima sempre devagar fechou a roda nos 3 saltos e fez cerca de 7.500.
+- **Testes:** `testes/para.cjs` (jogador automático em 3 níveis e fotos das 3 partes).
+- **Arte provisória:** na queda, os personagens usam o desenho do peixinho; no pouso, o do pulo. Os pedidos estão na página de pedidos: 7 pranchas, paraquedas, alvo e biruta, e os cenários de cima e de lado.
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

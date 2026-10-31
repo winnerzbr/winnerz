@@ -34,13 +34,13 @@ s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto
          "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx, obstaculos, frisbee, arco, duelo, canoagem, futebol, natacao, jetski, volei];", s)
 # provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas.
 # O dono reprovou o Salto do penhasco e o Frescobol (as ideias e a jogabilidade): saíram, e o Salto do píer também saiu de vez.
-NOVAS = ['ev_pingue.js', 'ev_bocha.js', 'ev_teco.js']
+NOVAS = ['ev_pingue.js', 'ev_bocha.js', 'ev_para.js']
 
 s = sub1("const EVENTS = [surfe,", ''.join((HERE / f).read_text(encoding='utf-8') + '\n' for f in NOVAS) + "const EVENTS = [surfe,", s)
 s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx,", "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, pingue, bmx,", s)
 s = sub1("futebol, natacao,", "futebol, bocha, natacao,", s)
-s = sub1("canoagem, futebol,", "canoagem, teco, futebol,", s)
-s = sub1("const RANK = {\n", "const RANK = {\n  teco: [['@rafa', 32000], ['@bia', 24000], ['@duda', 15000], ['@carol', 8000]],\n", s)
+s = sub1("canoagem, futebol,", "canoagem, paraquedas, futebol,", s)
+s = sub1("const RANK = {\n", "const RANK = {\n  paraquedas: [['@rafa', 8200], ['@bia', 6600], ['@duda', 4700], ['@carol', 2600]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  bocha: [['@bia', 2100], ['@rafa', 1700], ['@carol', 900], ['@duda', 500]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  pingue: [['@rafa', 2300], ['@bia', 1800], ['@duda', 1100], ['@carol', 600]],\n", s)
 

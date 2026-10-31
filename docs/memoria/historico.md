@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, teco-teco removido; Paraquedismo em formação
+- **Decisão do dono:** "Pode deletar esse jogo do teco teco, não ficou divertido."
+  - O teco-teco saiu do jogo, do `build3.py`, do repositório (`cart2/ev_teco.js`, `testes/teco.cjs`) e da página de pedidos.
+  - A ideia está descartada.
+- **Paraquedismo em formação** (`cart2/ev_para.js`), entre a Canoagem e o Futebol de areia:
+  - segue as regras do plano: 3 saltos com queda livre em formação (roda), abertura baixa e pouso guiado com freada;
+  - detalhes em `jogos-de-verao.md`.
+- **Página de pedidos:** o Paraquedismo entrou com 14 pedidos (57 no total).
+- **Pendente:** o dono testar o Paraquedismo. Depois vem a Corrida de bugue.
+
 ## 31/10/2026: Jogos de Verão, 3D descartado; teco-teco em 2D com voo livre
 - **Decisão do dono:** "Pode descartar essa versão 3D. Para o jogo de avião, retorne ao 2D porém com movimentação livre do teco teco."
   - O vôlei 3D saiu do jogo, do `build3.py` e do repositório.

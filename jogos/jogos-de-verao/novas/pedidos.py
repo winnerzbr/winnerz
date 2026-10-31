@@ -92,12 +92,14 @@ GAMES = [
    ]),
   ]),
  dict(id='bugue', n='Corrida de bugue', lugar='Dunas Brancas: dunas altas de areia branca com lagoas azuis entre elas, vista de cima. Capa: fim de tarde, sombras longas nas dunas (branco da areia, azul-lagoa, verde da vegetação).',
-  nota='No jogo agora: os bugues já são os pintados (31/10): o do IAmiguinho (com derrapagem e rodopio) e o dos Amiguinhos, na cor de cada um. O resto ainda é desenhado pelo jogo, visto de cima (pista, lagoa, rampas, caixas e itens). O jogo gira o desenho do bugue conforme ele vira. Agora com a Copa das Dunas: 3 pistas (Lagoa Azul, Duna do Farol e Desce-Duna).',
+  nota='No jogo agora (31/10): quase tudo pintado: bugues (IAmiguinho com derrapagem e rodopio; Amiguinhos na cor de cada um), dunas nos 3 horários, beira-mar, muretas, largada, bandeirinhas, rampas, caixas, areia fofa, ladeiras, itens e farol. Falta: derrapagem e rodopio dos Amiguinhos. Ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo. O jogo gira o desenho do bugue conforme ele vira. Agora com a Copa das Dunas: 3 pistas (Lagoa Azul, Duna do Farol e Desce-Duna).',
   groups=[
    dict(h='Bugues vistos de cima', who='obj', p='Primeiro pedido: o bugue do IAmiguinho. Depois, o dos Amiguinhos (o jogo troca a cor de cada um).', cards=[
     dict(t='Bugue do IAmiguinho', sub='8 quadros', txt='Also attached: the IAmiguinho MODEL SHEET. Sheet: a beach BUGGY (dune buggy) seen from STRAIGHT ABOVE, for a top-down racing game, 8 frames in a 4x2 grid, the buggy pointing to the RIGHT in every cell, the same size and position: a small open buggy with a YELLOW fiberglass body, a black roll cage, four big chunky tires, a spare tire on the back. IAmiguinho at the wheel seen from above: the blue and cream striped cap with the propeller, the blue headphones on the sides, hands on the steering wheel. 1-4: driving straight, the wheels spinning (tread pattern moves), the cap propeller spinning; 5-6: the front wheels turned left; 7-8: the front wheels turned right. Thick dark navy outline, hand-painted cartoon style. Flat pure green background (#00FF00), no text, no shadow.'),
     dict(t='Bugue do Amiguinho', sub='8 quadros', txt='Also attached: the AMIGUINHO MODEL SHEET and the approved IAMIGUINHO BUGGY. Sheet: the same kind of buggy seen from STRAIGHT ABOVE, pointing RIGHT, 8 frames like the IAmiguinho buggy (1-4 straight with the wheels spinning, 5-6 wheels left, 7-8 wheels right), but with a PINK body and a pink jelly Amiguinho at the wheel seen from above (the round top of the blob and the visor, the floating hands on the wheel). Flat pure green background (#00FF00), no text, no shadow.'),
     dict(t='Derrapando e rodopiando', sub='8 quadros', txt='Also attached: the approved IAMIGUINHO BUGGY. Sheet: the same buggy from above, pointing RIGHT, 8 frames: 1-4 DRIFTING: the rear sliding out to the left, sand spraying from the rear tires, IAmiguinho leaning; 5-8 SPINNING after being hit: the buggy rotated 0, 90, 180 and 270 degrees with water drops and stars around IAmiguinho dizzy. Flat pure green background (#00FF00), no text.'),
+    dict(t='Amiguinho derrapando e rodopiando', sub='8 quadros · anexe as 3 imagens abaixo', refs=[['ficha_amiguinho.png', 'Ficha de modelo do Amiguinho', 'as vistas com as linhas de proporção'], ['ref_bugue_amiguinho.jpg', 'Bugue do Amiguinho aprovado', 'a prancha rosa que já está no jogo'], ['ref_bugue_ia_rodopio.jpg', 'Derrapagem e rodopio do IAmiguinho aprovados', 'copiar o jeito e as posições dos quadros']],
+      txt='Also attached: the AMIGUINHO MODEL SHEET, the approved AMIGUINHO BUGGY (pink) and the approved IAMIGUINHO DRIFTING AND SPINNING sheet (copy its layout, angles and timing, frame by frame). Sheet: the same PINK buggy from STRAIGHT ABOVE, pointing RIGHT, 8 frames in a 4x2 grid in the SAME positions as the IAmiguinho sheet, the buggy the same size as the approved pink buggy, its center in the same place in every cell. 1-4 DRIFTING: the rear sliding out to the left, sand spraying from both rear tires, the pink jelly Amiguinho leaning to the side (its round body squashing a little), the floating hands on the wheel. 5-8 SPINNING after being hit: the buggy rotated 0, 90, 180 and 270 degrees clockwise, with small yellow stars and water drops around the dizzy Amiguinho. Thick dark navy outline, hand-painted cartoon style. Flat pure green background (#00FF00), no text, no shadow.'),
    ]),
    dict(h='Itens e peças da pista', who='obj', p='Peças vistas de cima, em fundo verde.', cards=[
     dict(t='Itens de praia', sub='não é 4x2', txt='Sheet: ITEMS for a top-down kart racing game (not a 4x2 grid), each drawn twice: big (as an icon) and small (seen from above on the track). In order: a striped beach ball (red, white, blue, yellow), a light blue water balloon, a sunscreen bottle and its slippery white puddle, a green coconut with a pink straw, a red beach umbrella (open, seen from above), and a small blue wave. Hand-painted cartoon style, thick dark navy outline, flat pure green background (#00FF00), no text.'),
@@ -201,9 +203,9 @@ const WHO_ANX = { ia: ['ficha_ia', 'grade_ia'], bl: ['ficha_bl', 'grade_bl'], ob
 function imgBox(file, title, sub, cls = '') {
   return `<figure class="anx ${cls}"><img src="anexos/${file}" alt="${esc(title)}" loading="lazy"><figcaption><b>${esc(title)}</b><span>${esc(sub)}</span><span class="ib"><button type="button" class="ci" data-f="${file}">Copiar imagem</button><button type="button" class="dl" data-f="${file}" hidden>Baixar</button></span></figcaption></figure>`;
 }
-function card(k, title, sub, text, pose) {
+function card(k, title, sub, text, pose, refs) {
   const isDone = !!done[k];
-  const fig = pose ? imgBox(`pose_${pose}.jpg`, 'Referência de pose (anexe junto)', `os desenhos antigos em cinza · pose_${pose}.jpg`, 'pose') : '';
+  const fig = (pose ? imgBox(`pose_${pose}.jpg`, 'Referência de pose (anexe junto)', `os desenhos antigos em cinza · pose_${pose}.jpg`, 'pose') : '') + (refs || []).map((r) => imgBox(r[0], r[1], r[2], 'pose')).join('');
   return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts"><label class="chk"><input type="checkbox"${isDone ? ' checked' : ''}> Feita</label><button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre>${fig}</div>`;
 }
 function render() {
@@ -215,7 +217,7 @@ function render() {
       h += `<section><h2>${esc(x.h)} <small>${x.cards.length} ${x.cards.length > 1 ? 'pedidos' : 'pedido'}</small></h2><p>${esc(x.p)}</p>`;
       const ax = WHO_ANX[x.who] || []; if (ax.length) h += `<div class="anxg mini"><span class="anxk">Anexos deste grupo</span>${ax.map((a) => imgBox(...ANX[a])).join('')}</div>`;
       if ((x.who === 'ia' || x.who === 'bl') && !g.groups.slice(0, gi).some((y) => y.who === x.who)) h += card(`${g.id}-regras-${x.who}`, `Passo 1 · regras do ${x.who === 'ia' ? 'IAmiguinho' : 'Amiguinho'}`, 'mandar uma vez, com a ficha e a grade', RULES[x.who]);
-      x.cards.forEach((c) => { n++; h += card(`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c.sub, c.txt, c.pose); });
+      x.cards.forEach((c) => { n++; h += card(`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c.sub, c.txt, c.pose, c.refs); });
       h += '</section>';
     });
   });

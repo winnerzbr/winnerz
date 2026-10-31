@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, corrida de bugue com o cenário pintado
+- **Pedido do dono:** fazer o pedido da derrapagem e do rodopio dos Amiguinhos (feito: novo cartão na página de pedidos, com 3 imagens para anexar; o cartão agora aceita várias imagens).
+- **O dono mandou:** dunas em 3 horários, beira-mar, folha de chão, folha de peças, folha de itens e o farol.
+- **Feito:** tudo isso no jogo (detalhes em `jogos-de-verao.md`), com a luz do horário na pista e nas peças; o desenho da corrida foi separado em partes (chão, muretas, rampas, largada, bandeiras, caixas, poças, projéteis, farol) para a versão pintada trocar cada uma.
+- **Testes:** `bgcena.cjs` (novo), `copa.cjs`, `bgrec.cjs`, `bgitens.cjs`, `bgpintado.cjs`, `copafotos.cjs`, `todas.cjs`.
+- **Pendente:** derrapagem e rodopio dos Amiguinhos; o dono testar.
+
 ## 31/10/2026: Jogos de Verão, bugues dos Amiguinhos, derrapagem e rodopio pintados
 - **O dono mandou:** a prancha da derrapagem e do rodopio do IAmiguinho e a do bugue do Amiguinho.
 - **Feito:**

@@ -279,6 +279,7 @@ const bugue = {
       // no ar: sem pneu nem motor; dá para girar um pouco
       k.w += (c.steer * 1.2 - k.w) * Math.min(1, dt * 2);
     }
+    k.cst = c.steer; k.ph = (k.ph || 0) + dt * (5 + Math.abs(k.s || 0) / 18); // para o desenho pintado: rodas da frente e hélice/pneus
     k.h += k.w * dt;
     k.vx = fx * vl + rx * vt; k.vy = fy * vl + ry * vt;
     k.x += k.vx * dt; k.y += k.vy * dt; k.s = Math.hypot(k.vx, k.vy); k.d = k.s > 1 ? Math.atan2(k.vy, k.vx) : k.h; k.roll += vl * dt;
@@ -601,6 +602,10 @@ const bugue = {
     if (k.me) { ctx.fillStyle = '#f4efe6'; ctx.beginPath(); ctx.arc(-1, 0, 3.6, 0, TAU); ctx.fill(); R(-3.5, -3.2, 5, 6.4, '#3b6fd6'); R(-1.5, -.6, 4, 1.2, '#ffffff'); ctx.fillStyle = '#7fdcff'; ctx.beginPath(); ctx.arc(-1, 3.6, .9, 0, TAU); ctx.arc(-1, -3.6, .9, 0, TAU); ctx.fill(); }
     else { ctx.fillStyle = k.col; ctx.beginPath(); ctx.arc(-1, 0, 3.8, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.stroke(); R(1, -2, 1.6, 4, '#1b1f4f'); }
     ctx.restore();
+    this.drawBuggyFx(k, tt, z);
+  },
+  // vento do vácuo, protetor e a setinha de quem é você (também usado pelo bugue pintado, bgp.js)
+  drawBuggyFx(k, tt, z) {
     if ((k.draft > .2 || k.mom > .15) && !(k.z > 0)) { const a = Math.max(Math.min(1, (k.draft - .2) / .6), (k.mom || 0) * .8), c = Math.cos(k.d), sn = Math.sin(k.d); ctx.lineCap = 'round';
       for (let i = 0; i < 6; i++) { const ph = ((tt * 3.2 + i * .19) % 1), side = i % 2 ? 1 : -1, off = side * (10 + (i % 3) * 3), along = 18 - ph * 40, x = k.x + c * along - sn * off, y = k.y - z + sn * along + c * off;
         for (const [st, lw] of [[`rgba(27,31,79,${.35 * a * (1 - ph)})`, 3], [`rgba(235,248,255,${a * (1 - ph * .6)})`, 1.6]]) { ctx.strokeStyle = st; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - c * 15, y - sn * 15); ctx.stroke(); } }

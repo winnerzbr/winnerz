@@ -216,12 +216,18 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (30 de 30 nos dois casos, nas 3 pistas);
   - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado (pistas em dobro): nenhum bugue preso; de 2 a 7 batidas fortes por corrida (quase todas na entrada dos atalhos);
   - `testes/bgvolante.cjs`: quanto o bugue desvia com toques curtos em alta;
+  - `testes/bgpintado.cjs`: fotos do bugue pintado (reto, rodas para os dois lados, nas curvas, ao lado de um Amiguinho);
   - `testes/bgmureta.cjs`: 67 batidas em ângulos de 15° a 85° nas 3 pistas; em todas o bugue segue andando (a única exceção quica para dentro de um atalho);
   - `testes/bgitens.cjs`: balão passa por quem está invencível e vai atrás do da frente; bola e balão para trás acertam quem vem atrás; protetor para a frente;
   - `testes/vacuo.cjs`: sozinho, o bugue chega a 229 px/s; colado atrás de outro, passa de 260 e, com 1,5 s, sai com o turbo do vácuo (até 335);
   - `testes/copafotos.cjs`: fotos do menu, das pistas novas, do salto e da classificação;
   - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.
-- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista, peças das pistas da Copa (farol, beira-mar, areia fofa e ladeiras) e as dunas de cima em 3 horários.
+- **Bugue pintado do IAmiguinho (31/10):**
+  - prancha do dono (4x2, apontando para a direita): 1-4 reto, com a hélice do boné e os pneus girando; 5-6 rodas da frente para a esquerda; 7-8 para a direita (conferido medindo o ângulo dos pneus);
+  - montado em `cart2/mvbg.py` -> `mvbg.js` (window.BGA): cada quadro recortado numa caixa fixa da célula (o bugue não pula de um quadro para o outro); 24 unidades de comprimento (com o estepe);
+  - no jogo (`cart2/bgp.js`): o quadro anda mais rápido com mais velocidade (5 + velocidade/18 quadros por segundo); virando mais que 25% do volante, mostra as rodas viradas para o lado certo; rodopiando, rodas retas; o jogo gira o desenho com o bugue, e o vento do vácuo, o protetor e a setinha continuam por cima;
+  - prancha em `jogos/jogos-de-verao/bugue/pranchas/bg_ia.webp`.
+- **Arte provisória:** o resto ainda é desenhado pelo jogo (bugues dos Amiguinhos, pista, itens etc.). Os pedidos estão na página de pedidos: bugue dos Amiguinhos, derrapagem e rodopio, itens, peças da pista, peças das pistas da Copa (farol, beira-mar, areia fofa e ladeiras) e as dunas de cima em 3 horários.
 - **Modos (no menu da prova):**
   - **Corrida:** uma corrida avulsa na pista escolhida no botão "Pista" (Lagoa Azul, Duna do Farol ou Desce-Duna; cada toque troca a pista e o IAmiguinho fala dela);
   - **Copa das Dunas:** as 3 pistas seguidas. Cada chegada vale 10, 8, 6, 4, 2 e 1 pontos (quem não chegou conta pela posição na pista). Entre as corridas aparece a classificação, e ✕/Espaço (ou um toque) leva à próxima pista. A nota e a medalha saem da posição final na Copa, e "Jogar de novo" começa outra Copa. No HUD, a última casa mostra a corrida e os pontos.

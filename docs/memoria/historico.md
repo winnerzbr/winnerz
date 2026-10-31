@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue pintado do IAmiguinho
+- **O dono mandou:** a prancha do bugue do IAmiguinho visto de cima (reto, rodas para a esquerda e para a direita).
+- **Feito:**
+  - bugue pintado no jogo só para o IAmiguinho, com a hélice e os pneus girando conforme a velocidade e as rodas da frente virando com o volante;
+  - os Amiguinhos seguem com o bugue desenhado pelo jogo até chegar a prancha deles;
+  - página de pedidos atualizada;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bgpintado.cjs` (novo), `copa.cjs`, `bgrec.cjs`, `bgitens.cjs`, `bgmureta.cjs`, `todas.cjs`.
+- **Pendente:** prancha do bugue dos Amiguinhos, derrapagem e rodopio, itens, pista e dunas.
+
 ## 31/10/2026: Jogos de Verão, bocha com os buracos no caminho
 - **Pedido do dono:** os buracos concentravam a partida (as bolas tendiam a ir sempre para um buraco).
 - **Medido:** os buracos ocupavam ~6% da cancha, mas o bolim parava dentro em 21% das rodadas e 26% das bolas acabavam num buraco (quando o bolim cai no buraco, todas as bolas vão atrás).

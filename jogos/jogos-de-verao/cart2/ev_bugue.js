@@ -408,7 +408,7 @@ const bugue = {
     for (const b of this.boxes) {
       if (b.t > 0) { b.t -= dt; continue; }
       const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), bx = L[0] + nx / nl * b.j * 31, by = L[1] + ny / nl * b.j * 31;
-      for (const k of this.K) if (k.z < 6 && this.bodyD(k, bx, by) < BG.kr + BG.boxR + 1.5) { b.t = BG.boxT; if (k.items.length < 2) { k.items.push({ k: this.rollItem(k), roll: .8 }); if (k.me) beep(660, .05, 'square', .04, 300); } this.fx.push({ k: 'caixa', x: bx, y: by, t: 0 }); break; }
+      for (const k of this.K) if (k.z < 6 && this.bodyD(k, bx, by) < BG.kr + BG.boxR + 1.5) { b.t = BG.boxT; if (k.items.length < 2) { k.items.push({ k: this.rollItem(k), roll: .8 }); if (k.me) beep(660, .05, 'square', .04, 300); } this.fx.push({ k: 'caixa', x: bx, y: by, t: 0, burst: true }); break; }
     }
     for (const p of this.proj) {
       p.t += dt;
@@ -471,8 +471,7 @@ const bugue = {
     // atalho da lagoa: corredor de areia com a água no meio e muretas dos dois lados
     for (const LG of BG_SCS) { const A = LG.A, B = LG.B, ang = Math.atan2(B[1] - A[1], B[0] - A[0]), len = Math.hypot(B[0] - A[0], B[1] - A[1]);
       this.drawCorridor(A, ang, len);
-      if (LG.kind === 'agua') { const lg = ctx.createRadialGradient(LG.x, LG.y, 5, LG.x, LG.y, LG.rx); lg.addColorStop(0, '#2f8fd0'); lg.addColorStop(1, '#6fd0e0'); ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(LG.x, LG.y, LG.rx, LG.ry, ang, 0, TAU); ctx.fill();
-        for (let i = 0; i < 6; i++) { ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(LG.x + Math.cos(i * 1.7) * 40, LG.y + Math.sin(i * 2.3) * 28, 4 + ((tt * 6 + i * 3) % 8), 0, TAU); ctx.stroke(); } }
+      if (LG.kind === 'agua') this.drawWater(LG, ang, len, A, tt);
       else this.drawFofa(LG.x, LG.y, LG.rx, LG.ry, ang, tt, true);
       if (LG.ramp) this.drawScRamp(this.scRamp(LG));
       // muretas do corredor só onde ele sai da pista principal
@@ -484,8 +483,7 @@ const bugue = {
     // marcas de pneu (somem devagar)
     ctx.fillStyle = 'rgba(110,80,45,.28)'; for (const [x, y, t0] of this.skids) { if (this.t - t0 > 6) continue; R(x - 1.2, y - 1.2, 2.4, 2.4, `rgba(110,80,45,${.3 * (1 - (this.t - t0) / 6)})`); }
     // esteiras de turbo (setas andando)
-    for (const pd of BG_PADS) { const P = this.padPos(pd); ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(P.a); const pw = BG.padW; R(-17, -pw, 34, pw * 2, '#2d3350'); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1; ctx.strokeRect(-17, -pw, 34, pw * 2);
-      for (const yo of [-pw / 2, pw / 2]) for (let i = 0; i < 3; i++) { const x = -13 + ((tt * 40 + i * 11) % 30), a = .4 + .6 * ((tt * 40 + i * 11) % 30) / 30; ctx.strokeStyle = `rgba(255,${180 + i * 20},80,${a})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x - 4, yo - 7); ctx.lineTo(x + 2, yo); ctx.lineTo(x - 4, yo + 7); ctx.stroke(); } ctx.restore(); }
+    for (const pd of BG_PADS) this.drawPad(this.padPos(pd), tt);
     // largada (quadriculado) e rampas
     { const p = BG_LINE[0], q = BG_LINE[1]; this.drawStart(p[0], p[1], Math.atan2(q[1] - p[1], q[0] - p[0])); }
     for (const r of BG_RAMPS) { const p = BG_LINE[r.i], q = BG_LINE[r.i + 1]; this.drawRamp(p[0], p[1], Math.atan2(q[1] - p[1], q[0] - p[0])); }
@@ -496,15 +494,7 @@ const bugue = {
     for (const u of this.puds) this.drawPud(u);
     for (const p of this.proj) this.drawProj(p);
     // efeitos de chão
-    for (const f of this.fx) { const k = f.t / (f.life || .6); ctx.globalAlpha = 1 - k;
-      if (f.k === 'pó') { ctx.fillStyle = '#fff8ea'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 6, 0, TAU); ctx.fill(); }
-      else if (f.k === 'vento') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.arc(f.x, f.y, 8 + k * 16, f.a + sd * 1.2 - .5, f.a + sd * 1.2 + .5); ctx.stroke(); } }
-      else if (f.k === 'fofa') { ctx.fillStyle = '#c9a46a'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.fill(); }
-      else if (f.k === 'água') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.stroke(); }
-      else if (f.k === 'faísca' || f.k === 'faísca2') R(f.x - 1, f.y - 1, 2, 2, f.k === 'faísca' ? '#6bd8ff' : '#ffa53a');
-      else if (f.k === 'batida') { ctx.fillStyle = '#fff6d6'; for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; R(f.x + Math.cos(a) * (2 + k * 8), f.y + Math.sin(a) * (2 + k * 8), 2, 2, '#fff6d6'); } }
-      else if (f.k === 'caixa' || f.k === 'escudo') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(f.x, f.y, 4 + k * 14, 0, TAU); ctx.stroke(); }
-      ctx.globalAlpha = 1; }
+    for (const f of this.fx) this.drawFx(f);
     // bugues (os que estão no ar por cima)
     for (const k of [...this.K].sort((a, b) => a.z - b.z)) this.drawBuggy(k, tt);
     if (this.drawLights) this.drawLights(tt); // facho do farol por cima de tudo (bgp.js)
@@ -537,6 +527,28 @@ const bugue = {
     path(); ctx.strokeStyle = '#dcc596'; ctx.lineWidth = BG.hw * 2; ctx.stroke();
     for (const d of [-22, 22]) { off(d); ctx.strokeStyle = 'rgba(140,110,70,.16)'; ctx.lineWidth = 3; ctx.stroke(); }
     path(); ctx.strokeStyle = 'rgba(150,120,80,.22)'; ctx.lineWidth = 1.2; ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
+  },
+  // água da lagoa do atalho (a versão pintada troca, em bgp.js)
+  drawWater(LG, ang, len, A, tt) {
+    const lg = ctx.createRadialGradient(LG.x, LG.y, 5, LG.x, LG.y, LG.rx); lg.addColorStop(0, '#2f8fd0'); lg.addColorStop(1, '#6fd0e0'); ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(LG.x, LG.y, LG.rx, LG.ry, ang, 0, TAU); ctx.fill();
+        for (let i = 0; i < 6; i++) { ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(LG.x + Math.cos(i * 1.7) * 40, LG.y + Math.sin(i * 2.3) * 28, 4 + ((tt * 6 + i * 3) % 8), 0, TAU); ctx.stroke(); }
+  },
+  // esteira de turbo
+  drawPad(P, tt) {
+    ctx.save(); ctx.translate(P.x, P.y); ctx.rotate(P.a); const pw = BG.padW; R(-17, -pw, 34, pw * 2, '#2d3350'); ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 1; ctx.strokeRect(-17, -pw, 34, pw * 2);
+      for (const yo of [-pw / 2, pw / 2]) for (let i = 0; i < 3; i++) { const x = -13 + ((tt * 40 + i * 11) % 30), a = .4 + .6 * ((tt * 40 + i * 11) % 30) / 30; ctx.strokeStyle = `rgba(255,${180 + i * 20},80,${a})`; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(x - 4, yo - 7); ctx.lineTo(x + 2, yo); ctx.lineTo(x - 4, yo + 7); ctx.stroke(); } ctx.restore();
+  },
+  // efeitos de chão (poeira, areia, água, faíscas, batida, caixa, escudo, vento)
+  drawFx(f) {
+    const k = f.t / (f.life || .6); ctx.globalAlpha = 1 - k;
+      if (f.k === 'pó') { ctx.fillStyle = '#fff8ea'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 6, 0, TAU); ctx.fill(); }
+      else if (f.k === 'vento') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.arc(f.x, f.y, 8 + k * 16, f.a + sd * 1.2 - .5, f.a + sd * 1.2 + .5); ctx.stroke(); } }
+      else if (f.k === 'fofa') { ctx.fillStyle = '#c9a46a'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.fill(); }
+      else if (f.k === 'água') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.stroke(); }
+      else if (f.k === 'faísca' || f.k === 'faísca2') R(f.x - 1, f.y - 1, 2, 2, f.k === 'faísca' ? '#6bd8ff' : '#ffa53a');
+      else if (f.k === 'batida') { ctx.fillStyle = '#fff6d6'; for (let i = 0; i < 5; i++) { const a = i / 5 * TAU; R(f.x + Math.cos(a) * (2 + k * 8), f.y + Math.sin(a) * (2 + k * 8), 2, 2, '#fff6d6'); } }
+      else if (f.k === 'caixa' || f.k === 'escudo') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(f.x, f.y, 4 + k * 14, 0, TAU); ctx.stroke(); }
+      ctx.globalAlpha = 1;
   },
   drawCorridor(A, ang, len) { ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); R(0, -BG.sw, len, BG.sw * 2, '#dcc596'); ctx.restore(); },
   // muretas de zebra dos dois lados da pista

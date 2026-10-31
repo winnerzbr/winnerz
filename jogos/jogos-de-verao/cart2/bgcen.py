@@ -56,5 +56,23 @@ for nm, t in tiles:
 atl = Image.new('RGBA', (WMAX, y + rowh))
 for nm, t in tiles: atl.paste(t, (meta[nm]['x'], meta[nm]['y']))
 OUT['atl'] = uri(atl, 86); OUT['p'] = meta
+# lagoa (4 quadros da água, 1 coluna), esteira de turbo (4 quadros, 1 fileira) e efeitos (6 fileiras de 4): verde tirado e a
+# franja verde da borda some (só onde o verde passa do vermelho e do azul; a água é mais azul que verde)
+def keyd(path):
+    k = key_green(path); r, g, b = (k[..., i].astype(float) for i in range(3)); ex = np.clip((g - np.maximum(r, b) * .97) / 20, 0, 1)
+    k[..., 3] = (k[..., 3] * (1 - ex)).astype(np.uint8); k[..., 1] = np.minimum(g, np.maximum(r, b)).astype(np.uint8); return k
+L4 = keyd(A + 'lagoa.png'); lag = Image.new('RGBA', (576, 4 * 194))
+for i in range(4): lag.paste(Image.fromarray(L4[i * 384:(i + 1) * 384]).resize((576, 192), Image.LANCZOS), (0, i * 194))
+OUT['lagoa'] = uri(lag, 84)
+E4 = keyd(A + 'esteira.png'); ys, xs = np.where(E4[..., 3] > 30); y0, y1 = ys.min(), ys.max() + 1
+bx = [(np.where(E4[y0:y1, i * 512:(i + 1) * 512, 3].max(0) > 30)[0]) for i in range(4)]; w0 = max(b.max() - b.min() + 1 for b in bx)
+est = Image.new('RGBA', (4 * (w0 // 3 + 2), (y1 - y0) // 3))
+for i, b in enumerate(bx):
+    c = (b.min() + b.max()) // 2 + i * 512; t = Image.fromarray(E4[y0:y1, c - w0 // 2:c - w0 // 2 + w0]).resize((w0 // 3, (y1 - y0) // 3), Image.LANCZOS); est.paste(t, (i * (w0 // 3 + 2), 0))
+OUT['esteira'] = {'src': uri(est, 86), 'w': int(w0 // 3), 'h': int((y1 - y0) // 3)}
+F = keyd(A + 'efeitos.png'); fx = Image.new('RGBA', (4 * 128, 6 * 128))
+for r in range(6):
+    for c in range(4): fx.paste(Image.fromarray(F[r * 512:(r + 1) * 512, c * 512:(c + 1) * 512]).resize((128, 128), Image.LANCZOS), (c * 128, r * 128))
+OUT['fx'] = uri(fx, 86)
 open('bgcen.js', 'w').write('window.BGC = ' + json.dumps(OUT) + ';\n'); print('bgcen.js', len(open('bgcen.js').read()) // 1024, 'KB', atl.size)
 atl.save('/tmp/bgatl.png')

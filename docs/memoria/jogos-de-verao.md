@@ -159,7 +159,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - com a vila pintada, as tábuas são as do desenho (as da folha de peças ficam de reserva) e o chão da cancha não é mais desenhado pelo jogo;
   - montinhos, buracos, areia fofa, pegadas e conchas recebem a luz do horário (camada tingida: manhã alaranjada leve, entardecer laranja, noite azul);
   - artes em `jogos/jogos-de-verao/bocha/arte`.
-- **Bocha toda pintada:** personagens, bolas, peças e vila. Ainda desenhados pelo jogo: montinhos, buracos e areia fofa (pedido "Montinho, buraco e areia fofa" feito em 31/10, no grupo "Relevo da cancha"); na derrota, a tristeza ainda é a do vôlei.
+- **Bocha toda pintada:** personagens, bolas, peças e vila. Montinhos, buracos e areia fofa pintados desde 31/10 (folha do relevo 3x2: redondos em cima, ovais embaixo; montinho e buraco usam o redondo com 2,35 x o raio; a areia fofa usa o oval quando é 25% mais comprida que larga, com 2,2 x os raios), dentro da camada que recebe a luz do horário; montado em `cart2/bccen.py` (BCC.rel) e desenhado por `bocha.drawRelief` em `cart2/bcp.js`. Na derrota, a tristeza ainda é a do vôlei.
 
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.
@@ -254,7 +254,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - artes em `jogos/jogos-de-verao/bugue/arte`.
 - **Chão da pista pintado (31/10):** a faixa 4:1 do dono (areia batida com marcas de pneu da esquerda para a direita, emenda dos lados), deitada ao longo da pista: cada trecho da linha da pista vira dois triângulos que recebem o pedaço certo da faixa (as beiradas usam a normal média em cada ponto, então os trechos vizinhos dividem a mesma beirada e não aparece emenda nas curvas); a faixa repete a cada 4 larguras de pista (712); por baixo, a cor média (#e9c69f); o corredor do atalho usa a faixa do meio na mesma escala. Arte em `jogos/jogos-de-verao/bugue/arte/pista.webp`.
 - **Onda fora dos itens (31/10, pedido do dono):** a caixa não dá mais a onda; a fala do IAmiguinho que citava a onda mudou para o balão d'água; o código do efeito continua guardado.
-- **Arte provisória:** ainda desenhados pelo jogo: a lagoa, as esteiras de turbo e os efeitos (poeira, areia, água, faíscas, caixa estourando). Pedidos feitos em 31/10 na página de pedidos: "Lagoa do atalho" (4 quadros da água), "Esteira de turbo" (4 quadros das setas acendendo) e "Efeitos da corrida" (6 fileiras de 4 quadros).
+- **Lagoa, esteiras e efeitos pintados (31/10, zip "Costa WinnerZ — Pista e Efeitos"; farol, beira-mar e folha de chão vieram iguais às já usadas):**
+  - lagoa: 4 quadros da água trocando devagar (3 por segundo); a água do desenho (x 100 a 485, y 38 a 153 no quadro guardado de 576x192) casa com a água do jogo (rx, ry) e o desenho é cortado no corredor do atalho;
+  - esteira: 4 quadros das setas acendendo (9 por segundo), 34 x 46;
+  - efeitos: folha de 6 fileiras de 4 (cada célula guardada com 128 px); poeira, areia fofa, água, faíscas azuis e laranja, e a caixa estourando (só quando pega a caixa; a esteira continua com o anel); a batida usa a poeira; tamanho da célula inteira no mundo: 40, 40, 42, 26, 32 e 64;
+  - verde da borda tirado só onde o verde passa do vermelho e do azul (a água é mais azul que verde);
+  - nos testes locais, o servidor não manda o charset: palavras com acento no código da página viram outra coisa (o teste `bgcena.cjs` converte antes de comparar); publicado, funciona normal.
+- **Corrida de bugue toda pintada.**
 - **Ajustes de 31/10 (pedido do dono):**
   - batida entre bugues: cada bugue é dois círculos (frente e trás, raio 8,5, a 4,5 do centro), conferidos 3 vezes por passo e empurrados pelo contato mais fundo; antes era um círculo só (16 de distância) e eles se sobrepunham de frente e de trás. Medido em 3 corridas inteiras: sobreposição máxima 0,1;
   - caixa de item: pega quando o corpo do bugue encosta nela (dois círculos + raio 7 da caixa); antes contava só o centro do bugue a 12 da caixa. Passando ao lado, pega até 16 de distância entre os centros. Reaparece em 2 s (era 2,5);

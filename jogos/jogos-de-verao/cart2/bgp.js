@@ -57,7 +57,7 @@
   const BGC = window.BGC, BCI2 = {};
   const cImg = (k, src) => { if (!src) return null; let im = BCI2[k]; if (!im) { im = BCI2[k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
   const CATL = () => BGC && cImg('atl', BGC.atl);
-  window.__BGCOK = () => !!BGC && !!CATL() && ['dia', 'tarde', 'noite'].every((v) => cImg('d_' + v, BGC.d[v])) && !!cImg('mar', BGC.mar) && !!cImg('pista', BGC.pista);
+  window.__BGCOK = () => !!BGC && !!CATL() && !!cImg('lagoa', BGC.lagoa) && !!cImg('fx', BGC.fx) && !!cImg('esteira', BGC.esteira.src) && ['dia', 'tarde', 'noite'].every((v) => cImg('d_' + v, BGC.d[v])) && !!cImg('mar', BGC.mar) && !!cImg('pista', BGC.pista);
   const BG_HORAS = [['noite', 5, 'dia'], ['dia', 16, 'tarde'], ['tarde', 19, 'noite']];
   function bgPesos() {
     const d = new Date(), h = window.__skHora != null ? window.__skHora : d.getHours() + d.getMinutes() / 60;
@@ -83,7 +83,7 @@
   }
   let LAYER = null, LSAVE = null;
   if (typeof bugue !== 'undefined' && BGC) {
-    const P0 = {}; for (const n of ['drawGround', 'drawSea', 'drawWalls', 'drawCWalls', 'drawScRamp', 'drawRamp', 'drawStart', 'drawFlag', 'drawBox', 'drawPud', 'drawProj', 'drawFofa', 'drawSlopes', 'drawFarol', 'drawItemIcon', 'drawBuggyFx', 'drawTrack', 'drawCorridor']) P0[n] = bugue[n];
+    const P0 = {}; for (const n of ['drawGround', 'drawSea', 'drawWalls', 'drawCWalls', 'drawScRamp', 'drawRamp', 'drawStart', 'drawFlag', 'drawBox', 'drawPud', 'drawProj', 'drawFofa', 'drawSlopes', 'drawFarol', 'drawItemIcon', 'drawBuggyFx', 'drawTrack', 'drawCorridor', 'drawWater', 'drawPad', 'drawFx']) P0[n] = bugue[n];
     const on = () => !!CATL();
     bugue.drawGround = function (tt, vw, vh) {
       const P = bgPesos().map(([v, w]) => [w, cImg('d_' + v, BGC.d[v])]).filter((p) => p[0] > .001);
@@ -164,6 +164,29 @@
       const im = cImg('pista', BGC.pista); if (!this.painted || !im) return P0.drawCorridor.call(this, A, ang, len);
       const h = im.naturalHeight * BG.sw / BG.hw; ctx.save(); ctx.imageSmoothingEnabled = true;
       stripImg(im, (im.naturalHeight - h) / 2, h, A[0], A[1], A[0] + Math.cos(ang) * len, A[1] + Math.sin(ang) * len, BG.sw * 2, TLEN(), 0); ctx.restore();
+    };
+    // lagoa do atalho: os 4 quadros da água (devagar), a água do desenho em cima da água do jogo, cortada no corredor
+    bugue.drawWater = function (LG, ang, len, A, tt) {
+      const im = cImg('lagoa', BGC.lagoa); if (!this.painted || !im) return P0.drawWater.call(this, LG, ang, len, A, tt);
+      const f = Math.floor(tt * 3) % 4, sx = 2 * LG.rx / 385, sy = 2 * LG.ry / 115;
+      ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); ctx.beginPath(); ctx.rect(0, -BG.sw, len, BG.sw * 2); ctx.clip(); ctx.rotate(-ang); ctx.translate(-A[0], -A[1]);
+      ctx.translate(LG.x, LG.y); ctx.rotate(ang); ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(im, 0, f * 194, 576, 192, -292.5 * sx, -95.5 * sy, 576 * sx, 192 * sy); ctx.restore();
+    };
+    // esteira de turbo: as setas acendendo da esquerda para a direita
+    bugue.drawPad = function (P, tt) {
+      const E = BGC.esteira, im = E && cImg('esteira', E.src); if (!im) return P0.drawPad.call(this, P, tt);
+      const f = Math.floor(tt * 9) % 4, w = 34, h = BG.padW * 2 + 2;
+      ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(P.x, P.y); ctx.rotate(P.a); ctx.drawImage(im, f * (E.w + 2), 0, E.w, E.h, -w / 2, -h / 2, w, h); ctx.restore();
+    };
+    // efeitos pintados: cada fileira da folha é um efeito, do começo ao fim da vida dele
+    const FXROW = { 'pó': [0, 40], fofa: [1, 40], 'água': [2, 42], 'faísca': [3, 26], 'faísca2': [4, 32] }; // tamanho da célula inteira (o efeito ocupa uma parte dela)
+    bugue.drawFx = function (f) {
+      const im = cImg('fx', BGC.fx), k = f.t / (f.life || .6), row = f.k === 'caixa' && f.burst ? [5, 64] : f.k === 'batida' ? [0, 30] : FXROW[f.k];
+      if (!im || !row) return P0.drawFx.call(this, f);
+      const fr = Math.min(3, Math.floor(k * 4)), sz = row[1];
+      ctx.save(); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = fr < 3 ? 1 : Math.max(0, 1 - (k - .75) * 4); ctx.translate(f.x, f.y); if (f.a) ctx.rotate(f.a);
+      ctx.drawImage(im, fr * 128, row[0] * 128, 128, 128, -sz / 2, -sz / 2, sz, sz); ctx.restore();
     };
     bugue.drawWalls = function (off) {
       if (!this.painted) return P0.drawWalls.call(this, off);

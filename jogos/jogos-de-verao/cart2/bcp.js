@@ -100,7 +100,7 @@
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = tint[1]; g.fillStyle = tint[0]; g.fillRect(0, 0, BCL.width, BCL.height); g.restore();
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.drawImage(BCL, 0, 0); ctx.restore();
   }
-  window.__BCCOK = () => !!BCC && Object.keys(BCC.f).every((v) => bcImg('f_' + v, BCC.f[v])) && !!bcImg('lz', BCC.lz);
+  window.__BCCOK = () => !!BCC && Object.keys(BCC.f).every((v) => bcImg('f_' + v, BCC.f[v])) && !!bcImg('lz', BCC.lz) && (!BCC.rel || !!bcImg('rel', BCC.rel.atl));
   if (typeof bocha !== 'undefined') {
     const scene16 = bocha.drawScene;
     bocha.drawScene = function (tt) { this.paintedCourt = bcScene(tt); if (!this.paintedCourt) scene16.call(this, tt); };
@@ -108,7 +108,17 @@
     const ground16 = bocha.drawGround;
     bocha.drawGround = function () {
       this._gl = false; if (!this.paintedCourt) return ground16.call(this);
-      bcLayer(() => { ground16.call(this); this.drawPrints(); this.drawShells(); }, bcTint()); this._gl = true;
+      bcLayer(() => { if (!this.drawRelief()) ground16.call(this); this.drawPrints(); this.drawShells(); }, bcTint()); this._gl = true;
+    };
+    // montinhos, buracos e areia fofa pintados (folha do relevo): redondos; a areia fofa usa a oval quando é bem comprida
+    const REL = BCC && BCC.rel;
+    bocha.drawRelief = function () {
+      const im = REL && bcImg('rel', REL.atl); if (!im) return false;
+      const put = (nm, x, y, w, h, a) => { const f = REL.p[nm]; ctx.save(); ctx.translate(x, y); if (a) ctx.rotate(a); ctx.drawImage(im, f.x, 0, f.w, f.h, -w / 2, -h / 2, w, h); ctx.restore(); };
+      ctx.save(); ctx.imageSmoothingEnabled = true;
+      for (const s of this.T.soft) { const ov = s.rx > s.ry * 1.25; put(ov ? 'fofa_o' : 'fofa', s.x, s.y, s.rx * 2.2, s.ry * 2.2, s.a); }
+      for (const m of this.T.mounds) { const d = m.r * 2.35; ctx.globalAlpha = Math.min(1, .75 + .25 * Math.abs(m.h)); put(m.h > 0 ? 'monte' : 'buraco', m.x, m.y, d, d * (m.h > 0 ? 195 / 208 : 185 / 196)); }
+      ctx.restore(); return true;
     };
     const ball16 = bocha.drawBall, people16 = bocha.drawPeople, prints16 = bocha.drawPrints, shells16 = bocha.drawShells, border16 = bocha.drawBorder;
     bocha.inHand = function (b) { return b === this.thrown && this.state === 'roll' && this.t - this.throwT < .16 && PAINT(this.throwBy); };

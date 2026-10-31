@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, lagoa, esteiras, efeitos e relevo da bocha pintados
+- **O dono mandou:** o relevo da bocha (montinho, buraco e areia fofa) e o zip com a lagoa, a esteira de turbo e os efeitos da corrida.
+- **Feito:**
+  - corrida de bugue: lagoa com a água mexendo, esteiras com as setas acendendo e os 6 efeitos pintados (detalhes em `jogos-de-verao.md`); a corrida ficou toda pintada;
+  - bocha: montinhos, buracos e areia fofa pintados;
+  - página de pedidos atualizada.
+- **Testes:** `bgcena.cjs` (efeitos e esteira), `bcvila.cjs`, `copa.cjs`, `bgcolisao.cjs`, `bocha.cjs`, `todas.cjs`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Pedidos do que falta (bugue e bocha)
 - **Pedido do dono:** fazer os prompts de tudo o que ainda é desenhado pelo jogo.
 - **Feito (página de pedidos):**

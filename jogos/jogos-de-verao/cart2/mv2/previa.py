@@ -225,6 +225,14 @@ ANIM = [
       n='Já no jogo, igual ao rolando, quando a jogada é pelo alto. Aprovada.'),
  dict(p='IAmiguinho', m='Bocha · medindo e torcendo', t='Bocha · medindo e torcendo', sh=['bc_torce'], v='ok',
       n='Já no jogo: 1 a 6 enquanto a bola anda; 7 e 8 (punho e joinha) quando ganha a rodada ou o jogo. Aprovada.'),
+ dict(p='Amiguinho', m='Bocha · esperando a vez', t='Bocha · esperando a vez', sh=['bv2_bc_espera'], v='ok',
+      n='Já no jogo (31/10), enquanto o IAmiguinho joga. Sem bola, como pedido. Aprovada.'),
+ dict(p='Amiguinho', m='Bocha · lançar rolando', t='Bocha · lançar rolando', sh=['bv2_bc_rolar'], v='ok',
+      n='Já no jogo: na mira, quadros 1 a 4 conforme a força, com a bola na mão desenhada pelo jogo; ao soltar, 5 a 8. Aprovada.'),
+ dict(p='Amiguinho', m='Bocha · lançar pelo alto', t='Bocha · lançar pelo alto', sh=['bv2_bc_alto'], v='ok',
+      n='Já no jogo, igual ao rolando, quando a jogada é pelo alto. A mão em forma de coração no quadro 5 é a mão abrindo na soltura. Aprovada.'),
+ dict(p='Amiguinho', m='Bocha · medindo e torcendo', t='Bocha · medindo e torcendo', sh=['bv2_bc_torce'], v='ok',
+      n='Já no jogo: 1 a 6 enquanto a bola anda; 7 e 8 (mãos para cima e joinha) quando ganha a rodada ou o jogo. Aprovada.'),
 ]
 KA = json.load(open('mv2/k_auto.json')) if __import__('os').path.exists('mv2/k_auto.json') else {}  # escala automática por tamanho da cabeça/massa
 

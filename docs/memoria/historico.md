@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Amiguinho pintado na bocha
+- **O dono mandou:** as 4 pranchas do Amiguinho da bocha (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), já sem bola.
+- **Feito:**
+  - Amiguinho pintado na bocha, com a bola rosa (ou o bolim) na mão na mira e saindo da mão ao soltar, igual ao IAmiguinho;
+  - pranchas na Prévia das pranchas;
+  - na publicação, saíram 177 imagens antigas que o jogo não usa mais (limite de 512 arquivos);
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bcamiguinho.cjs` (novo), `bocha.cjs` e `todas.cjs`, sem erros.
+- **Pendente:** vila vista de cima pintada; o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Bocha com a bola na mão e pedidos sem bola
 - **Dúvida do dono:** pranchas com ou sem bola na mão (o ChatGPT fez com bola, ele pediu sem, e os textos dos pedidos pediam com).
 - **Decidido:** sempre sem bola. O jogo desenha a bola certa (bolim ou bola do time) e controla a hora em que ela sai da mão.

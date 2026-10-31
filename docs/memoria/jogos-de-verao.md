@@ -128,7 +128,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bocha.cjs`: o jogador automático muito bom venceu 3 de 3, o médio 2 de 3 e o fraco 0 de 3;
   - `testes/bckeys.cjs`: teclado;
   - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando);
-  - `testes/bcmao.cjs`: fotos ampliadas da bola na mão (quadros 1 a 4 de rolando e pelo alto, bolim) e saindo da mão.
+  - `testes/bcmao.cjs`: fotos ampliadas da bola na mão (quadros 1 a 4 de rolando e pelo alto, bolim) e saindo da mão;
+  - `testes/bcamiguinho.cjs`: o mesmo para o Amiguinho (espera, mira, soltura, torcida, vitória).
 - **Arte pintada (31/10):**
   - o dono mandou 4 pranchas do IAmiguinho (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), a folha das bolas (4 azuis, 4 rosa e o bolim laranja) e a folha de conchas, pegadas e tábuas;
   - as pranchas do IAmiguinho vieram sem bola na mão, como pedido: a bola do jogo é desenhada à parte;
@@ -142,8 +143,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - bolas giram conforme rolam; conchas, pegadas e as tábuas da borda (com cantos) vêm da folha pintada;
   - escala: régua da cabeça igualada (torce 1,027, alto 0,984, rolar 1,047, espera 1,044);
   - pranchas guardadas em `jogos/jogos-de-verao/bocha/pranchas`; já estão na Prévia das pranchas.
+- **Amiguinho pintado (31/10):**
+  - o dono mandou as 4 pranchas dele (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), sem bola;
+  - montadas em `cart2/mvbcb.py` (mesma montagem do vôlei, `mvb2.py`: massa igualada, pés presos no chão, máscara da tela e rosto) e acrescentadas ao desenho do Amiguinho do vôlei como animações bcEspera, bcRolar, bcAlto, bcTorce; escala pela massa: espera 0,969, rolar 0,974, alto 0,989, torce 0,997;
+  - usa as mesmas regras do IAmiguinho: espera, mira com a bola na mão (quadros 1 a 4 pela força), soltura no 5, torcida 1 a 6, ganhou 7 e 8; perdeu: tristeza do vôlei;
+  - no lançamento pelo alto, a mão em forma de coração do quadro 5 é a mão abrindo na soltura;
+  - pranchas em `jogos/jogos-de-verao/bocha/pranchas` (bl_*) e na Prévia das pranchas.
 - **Ainda provisório:**
-  - o Amiguinho segue com os desenhos do vôlei até chegarem as pranchas dele;
   - a vila e o chão da cancha seguem desenhados pelo jogo; os pedidos estão na página de pedidos (a vila vista de cima em 4 horários; o pedido da noite só muda a luz).
 
 ### Corrida de bugue (como funciona)
@@ -242,7 +248,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
    - Cada quadro recebe um ajuste próprio de até ±12%.
 3. Entre várias tentativas, fica a de cabeça mais constante e pose certa. O motivo vai para a Prévia.
 4. A prancha entra no jogo e na Prévia, os dois são publicados, e o histórico registra.
-5. Ao publicar o jogo, mandar também as imagens novas da pasta `jogos_verao/img` (o build tira as imagens de dentro da página; publicar só a página deixa os desenhos novos sem carregar).
+5. Ao publicar o jogo, mandar também as imagens novas da pasta `jogos_verao/img` (o build tira as imagens de dentro da página; publicar só a página deixa os desenhos novos sem carregar). A página publicada aceita no máximo 512 arquivos: na mesma publicação, remover as imagens antigas que a página nova não usa mais (em 31/10 saíram 177).
 
 ## Embaixadinha
 - **Como é:** IAmiguinho de lado na areia (hoje no fundo da praia do vôlei), 3 bolas, sem relógio. Toques na cabeça, na coxa ou no pé quando a bola passa na altura; variar vale mais; X/○ faz firula (sobe mais, faz curva, vale o dobro). A sombra na areia mostra onde a bola cai.

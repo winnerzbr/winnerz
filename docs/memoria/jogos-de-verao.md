@@ -149,6 +149,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - a carroceria balança para fora nas curvas;
   - na água, os pneus seguram menos e a água freia (o turbo atravessa);
   - item acertado faz o bugue rodopiar com pouca aderência.
+  - depois do rodopio, o bugue nunca fica virado para trás: se alinha com a pista e anda sozinho para a frente por 0,85 s; fica invencível por uns 2,3 s, piscando (nada pega nele, nem caixa de item);
+  - de cara na mureta, parado ou virado para trás: acelerar gira o bugue para dentro da pista (virar escolhe o lado), sem precisar de ré; devagar, a batida quase não torce o bugue.
 - **Esteiras de turbo:** 5 pela pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
 - **Controles:**
   - ◀ ▶ viram; a direção é suavizada (no teclado não dá tranco) e responde menos devagar e um pouco menos acima de 170 px/s;
@@ -177,6 +179,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos (corridas de 79 a 86 s);
   - numa corrida inteira dos 6 bugues no piloto automático, houve só 4 batidas fortes na mureta: dá para fazer as curvas rápido sem bater;
   - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado (com 2 itens guardados);
+  - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (20 de 20 nos dois casos);
   - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.
 - **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista e as dunas de cima em 3 horários.
 - **Ainda não feito:** a Copa das Dunas (3 pistas: Lagoa Azul, Duna do Farol e Desce-Duna). Esta pista é a primeira.

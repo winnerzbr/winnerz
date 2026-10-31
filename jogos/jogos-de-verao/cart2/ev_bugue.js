@@ -138,7 +138,22 @@ const bugue = {
     k.prog = sNow;
     const air = k.z > 0 || k.vz > 0, water = !air && this.inWater(k.x, k.y);
     k.boost = Math.max(0, k.boost - dt); k.slow = Math.max(0, k.slow - dt); k.shield = Math.max(0, k.shield - dt); k.padT = Math.max(0, k.padT - dt);
-    if (k.spin > 0) { k.spin -= dt; c = { steer: 0, acc: false, brake: false, drift: false, use: c.use }; }
+    k.inv = Math.max(0, (k.inv || 0) - dt); k.wallT = Math.max(0, (k.wallT || 0) - dt);
+    // direção certa da pista aqui (para a recuperação e para sair da mureta)
+    const T0 = BG_LINE[seg], T1 = BG_LINE[(seg + 3) % BG_LINE.length], tang = Math.atan2(T1[1] - T0[1], T1[0] - T0[0]);
+    if (k.spin > 0) { k.spin -= dt; c = { steer: 0, acc: false, brake: false, drift: false, use: c.use }; if (k.spin <= 0) k.rec = .85; }
+    // recuperação depois do rodopio: o bugue se endireita sozinho para a frente da pista e acelera (sem poder ser acertado)
+    if (k.rec > 0) {
+      k.rec -= dt; const A = BG_LINE[(seg + 10) % BG_LINE.length], want = Math.atan2(A[1] - k.y, A[0] - k.x);
+      k.h += clamp(bgWrap(want - k.h), -7 * dt, 7 * dt); k.w = 0; c = { steer: 0, acc: true, brake: false, drift: false, use: false };
+      const sp0 = Math.hypot(k.vx, k.vy); k.vx = Math.cos(k.h) * sp0; k.vy = Math.sin(k.h) * sp0;
+    }
+    // encostado na mureta ou de costas para a pista, devagar: acelerar já vira o bugue para a frente da pista (o lado escolhido ajuda)
+    const back = Math.abs(bgWrap(tang - k.h)) > 1.9;
+    if (!(k.rec > 0) && c.acc && Math.hypot(k.vx, k.vy) < 70 && (k.wallT > 0 || back) && !(k.z > 0)) {
+      const P = BG_LINE[(seg + 8) % BG_LINE.length], aim = Math.atan2(P[1] - k.y, P[0] - k.x); k.h += clamp(bgWrap(aim + c.steer * .5 - k.h), -3.2 * dt, 3.2 * dt); k.w *= .5;
+      if (k.wallT > 0 && k.wn) { k.vx -= k.wn[0] * 60 * dt; k.vy -= k.wn[1] * 60 * dt; }
+    }
     // eixos do bugue: para a frente (f) e para o lado (r)
     const fx = Math.cos(k.h), fy = Math.sin(k.h), rx = -fy, ry = fx;
     let vl = k.vx * fx + k.vy * fy, vt = k.vx * rx + k.vy * ry; const sp = Math.hypot(k.vx, k.vy);
@@ -203,13 +218,13 @@ const bugue = {
     if (d <= lim || ds <= lim2) return;
     const useMain = d - lim < ds - lim2, cx = useMain ? L[0] : qx, cy = useMain ? L[1] : qy, lm = useMain ? lim : lim2;
     const dx = k.x - cx, dy = k.y - cy, dd = Math.hypot(dx, dy) || 1, nx = dx / dd, ny = dy / dd;
-    k.x = cx + nx * lm; k.y = cy + ny * lm;
+    k.x = cx + nx * lm; k.y = cy + ny * lm; k.wallT = .2; k.wn = [nx, ny];
     const vn = k.vx * nx + k.vy * ny;
     if (vn > 0) {
       // batida: devolve um pouco (0,3), o atrito na mureta freia de lado e o bugue torce conforme o ângulo
       const J = 1.3 * vn; k.vx -= J * nx; k.vy -= J * ny;
       const tx = -ny, ty = nx, vt = k.vx * tx + k.vy * ty, fr = Math.min(Math.abs(vt), .22 * J) * Math.sign(vt); k.vx -= fr * tx; k.vy -= fr * ty;
-      k.w += (Math.cos(k.h) * ny - Math.sin(k.h) * nx) * J * .02; k.drift = 0;
+      k.w += (Math.cos(k.h) * ny - Math.sin(k.h) * nx) * J * .02 * clamp((k.s - 40) / 80, 0, 1); k.drift = 0;
       k.s = Math.hypot(k.vx, k.vy); k.d = Math.atan2(k.vy, k.vx);
       if (vn > 35) { this.fx.push({ k: 'batida', x: k.x + nx * BG.r, y: k.y + ny * BG.r, t: 0, life: .35 }); if (k.me) { shake = Math.min(.25, vn / 400); beep(150, .06, 'triangle', .04 + Math.min(.04, vn / 4000), -40); } }
     }
@@ -269,11 +284,11 @@ const bugue = {
       if (p.k === 'balao' && p.tg && !p.tg.fin) { const a = Math.atan2(p.tg.y - p.y, p.tg.x - p.x); p.vx += (Math.cos(a) * 250 - p.vx) * dt * 3; p.vy += (Math.sin(a) * 250 - p.vy) * dt * 3; }
       p.x += p.vx * dt; p.y += p.vy * dt;
       if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.segDist(p.x, p.y, BG_LAGOA.A, BG_LAGOA.B); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
-      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && Math.hypot(k.x - p.x, k.y - p.y) < 12) { this.hit(k, p.by, p.k === 'bola' ? 'bola de praia' : 'balão d\'água'); p.dead = true; this.fx.push({ k: p.k === 'balao' ? 'água' : 'pó', x: p.x, y: p.y, t: 0, life: .5 }); break; }
+      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && Math.hypot(k.x - p.x, k.y - p.y) < 12) { this.hit(k, p.by, p.k === 'bola' ? 'bola de praia' : 'balão d\'água'); p.dead = true; this.fx.push({ k: p.k === 'balao' ? 'água' : 'pó', x: p.x, y: p.y, t: 0, life: .5 }); break; }
       if (p.t > (p.k === 'balao' ? 4.5 : 3.5)) p.dead = true;
     }
     this.proj = this.proj.filter((p) => !p.dead);
-    for (const u of this.puds) { u.t += dt; for (const k of this.K) if (k.z < 4 && !u.used && Math.hypot(k.x - u.x, k.y - u.y) < 13 && (k !== u.by || u.t > 1)) { u.used = true; this.hit(k, u.by, 'protetor solar'); } }
+    for (const u of this.puds) { u.t += dt; for (const k of this.K) if (k.z < 4 && !u.used && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && Math.hypot(k.x - u.x, k.y - u.y) < 13 && (k !== u.by || u.t > 1)) { u.used = true; this.hit(k, u.by, 'protetor solar'); } }
     this.puds = this.puds.filter((u) => !u.used && u.t < 25);
   },
   rollItem(k) {
@@ -293,8 +308,9 @@ const bugue = {
     else if (it === 'onda') { this.wave = 2.2; this.waveBy = k; pop('Onda!', W / 2, 70, '#6bcbff', true); beep(150, .5, 'sawtooth', .05, -60); }
   },
   hit(k, by, what) {
+    if (k.inv > 0 || k.rec > 0 || k.spin > 0) return;
     if (k.shield > 0) { k.shield = 0; this.fx.push({ k: 'escudo', x: k.x, y: k.y, t: 0, life: .5 }); return; }
-    k.spin = .9; k.spinDir = Math.random() < .5 ? -1 : 1; k.drift = 0; k.vx *= .45; k.vy *= .45;
+    k.spin = .9; k.spinDir = Math.random() < .5 ? -1 : 1; k.drift = 0; k.vx *= .45; k.vy *= .45; k.inv = .9 + .85 + .6;
     if (k.me) { this.levou++; pop(`Acertado: ${what}!`, W / 2, 90, '#ffb3c8'); sfx.crash(); talk(FALA.bgRuim, .3); }
     else if (by && by.me) { this.acertos++; pop('Acertou!', W / 2, 90, '#bfefff'); sfx.point(); }
   },
@@ -373,7 +389,8 @@ const bugue = {
   drawBuggy(k, tt) {
     const z = k.z * .12;
     ctx.fillStyle = 'rgba(80,60,30,.25)'; ctx.beginPath(); ctx.ellipse(k.x + 2, k.y + 3, 12 - z * .3, 8 - z * .2, k.h, 0, TAU); ctx.fill();
-    ctx.save(); ctx.translate(k.x, k.y - z); ctx.rotate(k.h); const sc = 1 + z / 30; ctx.scale(sc * (1 + (k.sq || 0) * .4), sc * (1 - (k.sq || 0) * .3));
+    const blink = k.inv > 0 && !(k.spin > 0) && Math.floor(tt * 16) % 2 === 0;
+    ctx.save(); if (blink) ctx.globalAlpha = .35; ctx.translate(k.x, k.y - z); ctx.rotate(k.h); const sc = 1 + z / 30; ctx.scale(sc * (1 + (k.sq || 0) * .4), sc * (1 - (k.sq || 0) * .3));
     for (const [wx, wy] of [[6, -6], [6, 6], [-6, -7], [-6, 7]]) R(wx - 3, wy - 2, 6, 4, '#2a2a33');
     ctx.translate(0, clamp(k.lean, -2.2, 2.2));
     ctx.fillStyle = k.col; ctx.beginPath(); ctx.moveTo(10, -4); ctx.lineTo(10, 4); ctx.lineTo(-8, 6); ctx.lineTo(-9, -6); ctx.closePath(); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .9; ctx.stroke();

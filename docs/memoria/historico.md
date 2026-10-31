@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue volta de frente depois de rodar e escapa da mureta
+- **Pedidos do dono:**
+  - depois de ser acertado e rodar, o bugue nunca pode ficar virado para trás: tem que voltar na direção certa, andando sozinho, com um tempinho de invencibilidade;
+  - depois de bater, sair da mureta só acelerando e virando, sem precisar de ré.
+- **Feito:**
+  - depois do rodopio, o bugue se alinha com a pista e anda sozinho para a frente por 0,85 s;
+  - invencível por cerca de 2,3 s (pisca): itens, balões e caixas não pegam nesse tempo;
+  - parado ou devagar na mureta (ou virado para trás), acelerar gira o bugue para dentro da pista, e virar escolhe o lado;
+  - perto de parar, a batida na mureta quase não torce o bugue.
+- **Teste novo:** `testes/bgrec.cjs`. Nas 20 recuperações, o bugue voltou de frente e invencível. Nas 20 saídas da mureta, saiu só acelerando e virando (a mais lenta levou 1,3 s).
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, bugue com física de carro, 2 itens e esteiras
 - **Pedidos do dono:**
   - as caixas de item em fileira contavam como uma só (quando um carro pegava, todas sumiam);

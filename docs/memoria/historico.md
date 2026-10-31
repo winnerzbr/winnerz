@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Embaixadinha com o IAmiguinho pintado
+- **O dono mandou** as 11 pranchas do IAmiguinho da embaixadinha (algumas repetidas e uma segunda tentativa de andar). Faltam bolas, biruta, gaivota e cenários; ele está gerando.
+- **Feito:**
+  - recorte, régua e atlas (`mveb.py` → `mveb.js`) e o desenho no jogo (`ebp.js`), com a escolha de prancha e quadro pelo estado da prova;
+  - prova desenhada em alta (3,2×);
+  - ajustes para a bola encostar no desenho: cabeceio com 35% do pulo desenhado; toque de coxa na altura 22 (era 25);
+  - as 12 pranchas foram para a Prévia com veredito (todas aprovadas; pé e coxa com a nota de que vieram um pouco de frente; a segunda de andar fica guardada);
+  - correção de publicação: as imagens novas do jogo (pasta `img`) precisam ir junto com a página; a regra entrou em `jogos-de-verao.md`.
+- **Pendente:** o dono testar; bolas, biruta, gaivota e cenário pintados.
+
 ## 31/10/2026: Página de pedidos com os anexos para o ChatGPT
 - **Pedido do dono:** pôr na página dos pedidos das provas novas as grades e referências para colar no ChatGPT, como no vôlei.
 - **Feito:**

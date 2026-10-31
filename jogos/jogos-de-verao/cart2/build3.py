@@ -87,6 +87,10 @@ s = sub1("  // ---------- visual com a arte gerada (16:9, desenhado em dobro, a 
 # sem as marcas das três alturas em volta do IAmiguinho
 _a = s.index("    // marcas discretas das três alturas, só quando uma bola está chegando\n"); _b = s.index("    // IAmiguinho: 0 parado · 1 chute (pé)", _a)
 s = s[:_a] + s[_b:]
+# 31/10 · embaixadinha pintada: o IAmiguinho das pranchas novas (mveb.py -> mveb.js, desenho em ebp.js), desenhada em alta (3,2×, liso)
+# no desenho pintado a coxa levantada fica mais baixa que no de 16 bits: a altura do toque de coxa desce de 25 para 22
+s = sub1("  { k: 'coxa', nome: 'Coxa', y: EBY - 25,", "  { k: 'coxa', nome: 'Coxa', y: EBY - 22,", s)
+s = sub1("  id: 'embaixadinha', name: 'Embaixadinha', tag: 'Areia · 3 bolas', wide: true, hi: true, dur: 0,", "  id: 'embaixadinha', name: 'Embaixadinha', tag: 'Areia · 3 bolas', wide: true, hi: true, paint: true, dur: 0,", s)
 # vôlei desenhado em 1280 × 720, liso
 s = sub1("  const hi = mode !== 'podium' && (cur === volei || !!cur.hi); // vôlei e provas com a arte gerada: desenho em dobro\n"
          "  if (cv.width !== (hi ? W * 2 : W) || cv.height !== (hi ? H * 2 : H)) { cv.width = hi ? W * 2 : W; cv.height = hi ? H * 2 : H; ctx.imageSmoothingEnabled = false; requestAnimationFrame(fitFs); }\n"
@@ -161,7 +165,7 @@ s = sub1("    if (this.trick) this.doneTr.push({ nome: this.trick.nome, v: this.
 s = sub1("      if (i >= 0) { list.splice(i, 1); const j", "      if (i >= 0) { const Ti = list.splice(i, 1)[0]; const j", s)
 s = sub1("v: T.v * 1.5 + HP_SPIN[", "v: Ti.v * 1.5 + HP_SPIN[", s)
 js = (ROOT / 'verao_cartoon' / 'cartoon.js').read_text(encoding='utf-8')
-pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8')
+pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8')
 js = sub1("  /* ---------------------------------------------------------- desenho principal do vôlei */", pint + "\n  /* ---------------------------------------------------------- desenho principal do vôlei */", js)
 js = sub1("function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }",
           "function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; if (i === 0 && ART2() && MV5OK()) return held5(p, f); if (i === 1 && ART2() && MVBOK()) return heldB5(p, f); return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }", js)
@@ -187,7 +191,7 @@ js = sub1("b.ang, this.state === 'serve' && this.held ? Math.max(1, (this.ballR 
 # textos e avisos com letra arredondada só no vôlei; as outras provas seguem com os de 16 bits
 js = sub1("  drawPops = function () {", "  const pops16 = drawPops, banner16 = drawBanner;\n  drawPops = function () {\n    if (cur !== volei) return pops16.apply(this, arguments);", js)
 js = sub1("  drawBanner = function () {\n    if (!banner) return;", "  drawBanner = function () {\n    if (cur !== volei) return banner16.apply(this, arguments);\n    if (!banner) return;", js)
-JS = (HERE / 'assets.js').read_text() + '\n' + (HERE / 'mv5.js').read_text() + '\n' + (HERE / 'mvb.js').read_text() + '\n' + (HERE / 'mvsk.js').read_text() + '\n' + (HERE / 'skscene.js').read_text() + '\n' + (HERE / 'skvd.js').read_text() + '\n' + js
+JS = (HERE / 'assets.js').read_text() + '\n' + (HERE / 'mv5.js').read_text() + '\n' + (HERE / 'mvb.js').read_text() + '\n' + (HERE / 'mvsk.js').read_text() + '\n' + (HERE / 'mveb.js').read_text() + '\n' + (HERE / 'skscene.js').read_text() + '\n' + (HERE / 'skvd.js').read_text() + '\n' + js
 # as imagens pintadas vão como arquivos ao lado da página (img/*.webp), não embutidas: a página fica leve
 import re, base64, hashlib, shutil
 IMG = ROOT / 'jogos_verao' / 'img'

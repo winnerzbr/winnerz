@@ -228,6 +228,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
    - Cada quadro recebe um ajuste próprio de até ±12%.
 3. Entre várias tentativas, fica a de cabeça mais constante e pose certa. O motivo vai para a Prévia.
 4. A prancha entra no jogo e na Prévia, os dois são publicados, e o histórico registra.
+5. Ao publicar o jogo, mandar também as imagens novas da pasta `jogos_verao/img` (o build tira as imagens de dentro da página; publicar só a página deixa os desenhos novos sem carregar).
 
 ## Embaixadinha
 - **Como é:** IAmiguinho de lado na areia (hoje no fundo da praia do vôlei), 3 bolas, sem relógio. Toques na cabeça, na coxa ou no pé quando a bola passa na altura; variar vale mais; X/○ faz firula (sobe mais, faz curva, vale o dobro). A sombra na areia mostra onde a bola cai.
@@ -240,7 +241,14 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - folha das bolas (futebol, praia, pingue-pongue, bola de firula e bola extra), biruta e gaivota;
   - cenário da Praia do Centro (prédios da orla, calçadão, quiosques), 2 camadas em 4 horários; a capa é o meio-dia.
 - **Anexos na página de pedidos (31/10, pedido do dono):** a página "Pedidos das provas novas" ganhou a seção "Anexos para o ChatGPT" (ficha e grade do IAmiguinho e do Amiguinho e a referência de estilo), repetida no começo de cada grupo com os anexos daquele grupo. Cada imagem tem "Copiar imagem" (cola direto no ChatGPT) e "Baixar" (a página tem a permissão de downloads; pede confirmação). Os cartões da embaixadinha têm a referência de pose em cinza com os desenhos antigos de 16 bits nos quadros certos (`novas/poses_eb.py` gera; ficam em `novas/anexos`). As fichas e grades vêm de `moveset_volei/ficha` e a referência de estilo de `skate_moveset/ficha`.
-- **Pendente:** o dono testar a bola nova e mandar as pranchas.
+- **IAmiguinho pintado (31/10):** as 11 pranchas chegaram e estão no jogo (`cart2/mveb.py` → `mveb.js`; desenho em `cart2/ebp.js`; pranchas originais em `embaix/pranchas`). A prova passou a ser desenhada em alta (3,2×, liso, `paint: true`).
+  - Escalas pela régua (cabeça igualada à do vôlei): espera 0,896 · olhar 0,911 · andar 0,883 · pé 0,981 · coxa 0,874 · cabeceio 0,985 · firula 1,012 · levanta 0,973 · caiu 0,906 · fim 0,908 · festa 0,915. Cabeça de cada quadro igualada à mediana da prancha (menos em olhar, caiu e fim, onde a cabeça gira ou abaixa de verdade). Altura em pé = 52 unidades, igual ao desenho antigo.
+  - Qual prancha aparece: bola parada no pé no começo → levantando (quadros 1-4) e, no toque, 5-8; bola no ar → cabeça seguindo a bola (quadro pela altura da bola); andando → andando; toque → pé, coxa, cabeceio ou firula, começando no quadro do contato (4; na firula, 5) e indo até o 8; bola caiu → deixou cair (1,5 s); última bola → fim de jogo; série nova ou 10 seguidos → comemoração, só se nenhuma bola chega em 0,7 s. Rosto aceso do vôlei dentro da tela de cada quadro.
+  - Ajustes para a bola encostar no desenho: o cabeceio usa 35% do pulo desenhado; a altura do toque de coxa desceu de 25 para 22.
+  - Pé e coxa vieram um pouco virados para a frente (as outras são de lado); funcionam, dá para refazer de lado se incomodar. A segunda prancha de andar (3/4, maior) ficou guardada.
+  - As 12 pranchas estão na Prévia com o veredito. A Prévia não dá mais para regerar do zero aqui (faltam quadros antigos na pasta de trabalho): as pranchas novas entram somando à página publicada.
+  - Teste: `testes/ebpintado.cjs` (fotos de cada situação).
+- **Pendente:** o dono testar; faltam as bolas, a biruta, a gaivota e o cenário pintados (o dono está gerando).
 
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.

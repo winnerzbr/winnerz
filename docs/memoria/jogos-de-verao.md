@@ -135,7 +135,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.
 - **Pista (2ª versão, 31/10):**
-  - largura de 124 px; desde 31/10 as pistas têm o dobro do tamanho (ver "As 3 pistas da Copa");
+  - largura de 148 px desde 31/10 (era 124; +20% a pedido do dono); as caixas, a areia fofa dos grampos, a rampa do salto e as faixas dos Amiguinhos acompanham a largura; desde 31/10 as pistas também têm o dobro do tamanho (ver "As 3 pistas da Copa");
   - muretas de zebra vermelha e branca em toda a volta: bater de lado perde pouco (6%) e de frente perde muito (até 61%); o bugue escorrega junto da mureta e alinha com ela;
   - não há mais saída para a areia fofa.
 - **Física dos bugues (3ª versão, 31/10):**

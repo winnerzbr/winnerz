@@ -21,7 +21,8 @@
    projéteis que passam por quem está invencível não acertam e o balão segue para quem estiver na frente; batida na mureta quica.
    Arte provisória: tudo desenhado pelo jogo (bugues de cima, com o IAmiguinho e os Amiguinhos de capacete). */
 // 31/10: velocidade +15% a pedido do dono (era vmax 200, motor 330, freio 560, aderência 760/340, turbo +80)
-const BG = { voltas: 3, hw: 62, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
+// 31/10: pista 20% mais larga a pedido do dono (meia largura de 62 para 74)
+const BG = { voltas: 3, hw: 74, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
 if (typeof Music !== 'undefined' && Music.songs.patins) Music.songs.bugue = Music.songs.patins;
 FALA.intro.bugue = [
   'Corrida de bugue nas Dunas Brancas! Cinco Amiguinhos, três voltas e uma lagoa no meio do caminho.',
@@ -71,7 +72,7 @@ function bgLoad(ti) {
   // os atalhos: corredores retos com lagoa (água) ou areia fofa no meio
   BG_SCS = T.sc.map((c) => { const A = BG_LINE[c.a], B = BG_LINE[c.b], len = Math.hypot(B[0] - A[0], B[1] - A[1]); return { ...c, A, B, len, x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, rx: len / 2 - 40, ry: 30, ang: Math.atan2(B[1] - A[1], B[0] - A[0]), walls: c.walls }; });
   // areia fofa por dentro das curvas: o lado de dentro sai do sentido da virada
-  BG_FOFA = T.fofa.map((i) => { const p = BG_LINE[(i - 8 + n) % n], q = BG_LINE[i], r = BG_LINE[(i + 8) % n], cr = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]), a = Math.atan2(r[1] - p[1], r[0] - p[0]), sd = cr > 0 ? 1 : -1; return { x: q[0] - Math.sin(a) * 40 * sd, y: q[1] + Math.cos(a) * 40 * sd, r: 24, i, sd }; });
+  BG_FOFA = T.fofa.map((i) => { const p = BG_LINE[(i - 8 + n) % n], q = BG_LINE[i], r = BG_LINE[(i + 8) % n], cr = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]), a = Math.atan2(r[1] - p[1], r[0] - p[0]), sd = cr > 0 ? 1 : -1; return { x: q[0] - Math.sin(a) * BG.hw * .65 * sd, y: q[1] + Math.cos(a) * BG.hw * .65 * sd, r: 24, i, sd }; });
   BG_SLOPE = new Int8Array(n); for (const z of T.slopes) for (let i = z.a; i <= z.b; i++) BG_SLOPE[i % n] = z.s;
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const q of BG_LINE) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); }
   T.box = { x0, y0, s: Math.min(80 / (x1 - x0), 46 / (y1 - y0)) };
@@ -99,7 +100,7 @@ const bugue = {
     bgLoad(this.cup ? this.cup.i : this.trackSel); this.tag = `Dunas Brancas · ${BG_T.name}`;
     const st = BG_LINE[30], nx = BG_LINE[32][0] - BG_LINE[28][0], ny = BG_LINE[32][1] - BG_LINE[28][1], nl = Math.hypot(nx, ny), h = Math.atan2(ny, nx);
     const cols = ['#ffd84a', '#ff6ba8', '#6bcbff', '#9be37a', '#ffb347', '#3b6fd6'], names = ['Amarelo', 'Rosa', 'Azul', 'Verde', 'Laranja', 'Você'];
-    this.K = [0, 1, 2, 3, 4, 5].map((i) => { const row = Math.floor(i / 2), side = i % 2 ? 1 : -1, back = (5 - i) * 0 + row * 34 + 20; return { i, me: i === 5, x: st[0] - nx / nl * back + -ny / nl * side * 17, y: st[1] - ny / nl * back + nx / nl * side * 17, h, d: h, s: 0, vx: 0, vy: 0, w: 0, z: 0, vz: 0, lean: 0, slip: 0, padT: 0, lap: 0, seg: 26, prog: 0, cp: 0, drift: 0, dsg: 0, chg: 0, boost: 0, air: 0, spin: 0, shield: 0, items: [], roll: 0, slow: 0, fin: 0, col: cols[i] || '#3b6fd6', name: names[i] || 'Você', ai: { skill: .93 + i * .016, lane: (Math.random() - .5) * 46, hold: 0 }, pud: {} }; });
+    this.K = [0, 1, 2, 3, 4, 5].map((i) => { const row = Math.floor(i / 2), side = i % 2 ? 1 : -1, back = (5 - i) * 0 + row * 34 + 20; return { i, me: i === 5, x: st[0] - nx / nl * back + -ny / nl * side * 17, y: st[1] - ny / nl * back + nx / nl * side * 17, h, d: h, s: 0, vx: 0, vy: 0, w: 0, z: 0, vz: 0, lean: 0, slip: 0, padT: 0, lap: 0, seg: 26, prog: 0, cp: 0, drift: 0, dsg: 0, chg: 0, boost: 0, air: 0, spin: 0, shield: 0, items: [], roll: 0, slow: 0, fin: 0, col: cols[i] || '#3b6fd6', name: names[i] || 'Você', ai: { skill: .93 + i * .016, lane: (Math.random() - .5) * 56, hold: 0 }, pud: {} }; });
     // o jogador larga em último (como num kart), os Amiguinhos na frente
     this.me = this.K[5]; this.me.col = '#3b6fd6'; this.me.name = 'Você';
     Object.assign(this, { t: 0, score: 0, race: -3.2, started: false, fx: [], proj: [], puds: [], boxes: BG_BOXES.flatMap((i) => [-2, -1, 0, 1, 2].map((j) => ({ i, j, t: 0 }))), skids: [], wave: 0, done: false, doneT: 0, inter: null, order: [], camX: this.me.x, camY: this.me.y, turbos: 0, laranjas: 0, acertos: 0, levou: 0, vacuos: 0, startOk: null, rank: 6 });
@@ -300,7 +301,7 @@ const bugue = {
     if (c.use && k.items.length && !(k.items[0].roll > 0)) this.useItem(k, c.dir || 0);
     for (const it of k.items) if (it.roll > 0) { it.roll -= dt; if (it.roll <= 0 && k.me) beep(990, .06, 'square', .04); }
   },
-  scRamp(L) { return { x: L.A[0] + Math.cos(L.ang) * 84, y: L.A[1] + Math.sin(L.ang) * 84, a: L.ang }; },
+  scRamp(L) { return { x: L.A[0] + Math.cos(L.ang) * (BG.hw + 22), y: L.A[1] + Math.sin(L.ang) * (BG.hw + 22), a: L.ang }; },
   padPos(pd) { const p = BG_LINE[pd.i % BG_LINE.length], q = BG_LINE[(pd.i + 2) % BG_LINE.length], a = Math.atan2(q[1] - p[1], q[0] - p[0]); return { x: p[0] - Math.sin(a) * pd.o, y: p[1] + Math.cos(a) * pd.o, a }; },
   // bordas: a pista (e o corredor da lagoa) tem muretas; bater de lado perde pouco, bater de frente perde muito
   segDist(px, py, A, B) { const vx = B[0] - A[0], vy = B[1] - A[1], t = clamp(((px - A[0]) * vx + (py - A[1]) * vy) / (vx * vx + vy * vy), 0, 1), qx = A[0] + vx * t, qy = A[1] + vy * t; return [Math.hypot(px - qx, py - qy), qx, qy]; },
@@ -392,7 +393,7 @@ const bugue = {
   items(dt) {
     for (const b of this.boxes) {
       if (b.t > 0) { b.t -= dt; continue; }
-      const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), bx = L[0] + nx / nl * b.j * 22, by = L[1] + ny / nl * b.j * 22;
+      const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), bx = L[0] + nx / nl * b.j * 26, by = L[1] + ny / nl * b.j * 26;
       for (const k of this.K) if (k.z < 6 && Math.hypot(k.x - bx, k.y - by) < 12) { b.t = 2.5; if (k.items.length < 2) { k.items.push({ k: this.rollItem(k), roll: .8 }); if (k.me) beep(660, .05, 'square', .04, 300); } this.fx.push({ k: 'caixa', x: bx, y: by, t: 0 }); break; }
     }
     for (const p of this.proj) {
@@ -486,7 +487,7 @@ const bugue = {
     { const p = BG_LINE[0], q = BG_LINE[1], a = Math.atan2(q[1] - p[1], q[0] - p[0]); ctx.save(); ctx.translate(p[0], p[1]); ctx.rotate(a); for (let j = -5; j < 5; j++) for (let r = 0; r < 2; r++) R(r * 4 - 4, j * BG.hw / 5, 4, BG.hw / 5, (j + r) % 2 ? '#ffffff' : '#1b1f4f'); ctx.restore(); }
     for (const r of BG_RAMPS) { const p = BG_LINE[r.i], q = BG_LINE[r.i + 1], a = Math.atan2(q[1] - p[1], q[0] - p[0]); ctx.save(); ctx.translate(p[0], p[1]); ctx.rotate(a); const g = ctx.createLinearGradient(-10, 0, 10, 0); g.addColorStop(0, '#c9a46a'); g.addColorStop(1, '#fff6e0'); ctx.fillStyle = g; ctx.fillRect(-10, -BG.hw + 4, 20, BG.hw * 2 - 8); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.strokeRect(-10, -BG.hw + 4, 20, BG.hw * 2 - 8); ctx.restore(); }
     // caixas, poças, projéteis
-    for (const b of this.boxes) { if (b.t > 0) continue; const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), x = L[0] + nx / nl * b.j * 22, y = L[1] + ny / nl * b.j * 22;
+    for (const b of this.boxes) { if (b.t > 0) continue; const L = BG_LINE[b.i], L2 = BG_LINE[(b.i + 2) % BG_LINE.length], nx = -(L2[1] - L[1]), ny = L2[0] - L[0], nl = Math.hypot(nx, ny), x = L[0] + nx / nl * b.j * 26, y = L[1] + ny / nl * b.j * 26;
       ctx.save(); ctx.translate(x, y); ctx.rotate(tt * 1.5 + b.j); R(-5, -5, 10, 10, `hsl(${(tt * 120 + b.j * 60) % 360},80%,65%)`); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.strokeRect(-5, -5, 10, 10); ctx.fillStyle = '#ffffff'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('?', 0, 3); ctx.textAlign = 'left'; ctx.restore(); }
     for (const u of this.puds) { ctx.fillStyle = 'rgba(255,250,235,.85)'; ctx.beginPath(); ctx.ellipse(u.x, u.y, 12, 8, .3, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,200,80,.8)'; ctx.lineWidth = 1; ctx.stroke(); R(u.x - 2, u.y - 6, 4, 6, '#ffb347'); }
     for (const p of this.proj) { if (p.k === 'bola') { ctx.save(); ctx.translate(p.x, p.y - Math.abs(Math.sin(p.t * 9)) * 6); ctx.rotate(p.t * 8); for (let i = 0; i < 4; i++) { ctx.fillStyle = ['#ff6b6b', '#ffffff', '#6bcbff', '#ffd166'][i]; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 5, i * Math.PI / 2, (i + 1) * Math.PI / 2); ctx.fill(); } ctx.restore(); ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(p.x, p.y + 3, 5, 2, 0, 0, TAU); ctx.fill(); } else { ctx.fillStyle = '#6bcbff'; ctx.beginPath(); ctx.arc(p.x, p.y - 4, 5, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .7; ctx.stroke(); R(p.x - .5, p.y + 1, 1, 4, '#ffffff'); } }

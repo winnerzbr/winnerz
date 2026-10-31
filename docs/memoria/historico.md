@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugues dos Amiguinhos, derrapagem e rodopio pintados
+- **O dono mandou:** a prancha da derrapagem e do rodopio do IAmiguinho e a do bugue do Amiguinho.
+- **Feito:**
+  - IAmiguinho derrapando (areia saindo dos pneus de trás, espelhado para o outro lado) e rodopiando (estrelinhas rodando);
+  - Amiguinhos com o bugue pintado, cada um na sua cor, com as rodas virando;
+  - página de pedidos atualizada;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bgpintado.cjs`, `copa.cjs`, `bgitens.cjs`, `bgrec.cjs`, `todas.cjs`.
+- **Pendente:** derrapagem e rodopio dos Amiguinhos (se o dono quiser), itens, peças da pista e dunas.
+
 ## 31/10/2026: Jogos de Verão, bugue pintado do IAmiguinho
 - **O dono mandou:** a prancha do bugue do IAmiguinho visto de cima (reto, rodas para a esquerda e para a direita).
 - **Feito:**

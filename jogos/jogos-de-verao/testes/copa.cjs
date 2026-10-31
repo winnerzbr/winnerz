@@ -11,8 +11,8 @@ const N = Number(process.argv[2] || 4);
       let stuck = 0, hard = 0, tm = [], pos = [], sc = 0, fofa = 0, air = 0;
       for (let m = 0; m < N; m++) {
         ev.cup = null; ev.cupNew = false; ev.trackSel = ti; ev.init(); ev.ctlOf = function () { return this.aiCtl(this.me, DT); }; let t = 0;
-        for (; t < 240; t += DT) { const f0 = ev.fx.length; ev.update(DT, { a: ev.race > -.3 }); for (const f of ev.fx.slice(f0)) if (f.k === 'batida') hard++;
-          for (const k of ev.K) { if (k.gnd === 'fofa') fofa += DT; if (k.z > 0) air += DT; if (BG_LAGOA && ev.near(k)[1] > BG.hw + 10) sc += DT; }
+        for (; t < 400; t += DT) { const f0 = ev.fx.length; ev.update(DT, { a: ev.race > -.3 }); for (const f of ev.fx.slice(f0)) if (f.k === 'batida') hard++;
+          for (const k of ev.K) { if (k.gnd === 'fofa') fofa += DT; if (k.z > 0) air += DT; if (ev.near(k)[1] > BG.hw + 10) sc += DT; }
           if (ev.done) break; }
         if (!ev.done) { stuck++; o.push(`  preso: ${JSON.stringify(ev.K.map((k) => [k.x | 0, k.y | 0, k.s | 0, k.seg, k.lap]))}`); }
         tm.push(ev.race.toFixed(0)); pos.push(ev.rank);
@@ -23,7 +23,7 @@ const N = Number(process.argv[2] || 4);
     // uma Copa inteira (jogador no piloto automático, aperta ✕ na classificação)
     ev.trackSel = 0; ev.cupNew = true; ev.init(); ev.ctlOf = function () { return this.aiCtl(this.me, DT); };
     let t = 0, fim = false, inter = 0, prevI = false; const pistas = [];
-    for (; t < 900; t += DT) {
+    for (; t < 1500; t += DT) {
       const I = { a: ev.race > -.3, pa: false };
       if (ev.inter && ev.inter.t > 1.5) { I.pa = true; } if (ev.inter && !prevI) { inter++; pistas.push(`${BG_T.name}: ${ev.rank}º`); } prevI = !!ev.inter;
       if (ev.update(DT, I)) { fim = true; break; }

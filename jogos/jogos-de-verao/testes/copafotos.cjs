@@ -8,15 +8,21 @@ const { chromium } = require('playwright');
   await p.click('#b-alt2'); await p.waitForTimeout(400); await p.screenshot({ path: 'amg/copa_menu.png' });
   console.log('botões:', await p.evaluate(() => ['b-play', 'b-alt', 'b-alt2'].map((i) => document.getElementById(i).hidden ? '-' : document.getElementById(i).textContent).join(' | ')));
   const cv = p.locator('canvas').first();
-  for (const [ti, segs] of [[1, [110, 190, 168, 330]], [2, [20, 150, 300, 370]]]) {
+  for (const [ti, segs] of [[0, [80, 560]], [1, [192, 250, 440]], [2, [100, 300]]]) {
     for (const sg of segs) {
       await p.evaluate(([ti, sg]) => { const ev = bugue; ev.cup = null; ev.trackSel = ti; ev.init(); ev.started = true; ev.race = 3; const me = ev.me, L = BG_LINE[sg], L2 = BG_LINE[sg + 2]; me.x = L[0]; me.y = L[1]; me.seg = sg; me.h = me.d = Math.atan2(L2[1] - L[1], L2[0] - L[0]); ev.camX = me.x; ev.camY = me.y; ev.K.forEach((k, i) => { if (!k.me) { const Q = BG_LINE[(sg + 8 + i * 5) % BG_LINE.length]; k.x = Q[0] + (i % 2 ? 18 : -18); k.y = Q[1]; k.seg = (sg + 8 + i * 5) % BG_LINE.length; } }); mode = 'play'; showOv(false); }, [ti, sg]);
       await p.waitForTimeout(250); await cv.screenshot({ path: `amg/copa_${ti}_${sg}.png` });
     }
   }
   // atalho do Desce-Duna: rampa por cima da duna
-  await p.evaluate(() => { const ev = bugue; ev.trackSel = 2; ev.init(); ev.started = true; ev.race = 3; const me = ev.me, R = ev.scRamp(); me.x = R.x - Math.cos(R.a) * 30; me.y = R.y - Math.sin(R.a) * 30; me.h = me.d = R.a; me.seg = BG_SC.a; ev.camX = me.x + 80; ev.camY = me.y; mode = 'play'; showOv(false); });
+  await p.evaluate(() => { const ev = bugue; ev.trackSel = 2; ev.init(); ev.started = true; ev.race = 3; const me = ev.me, R = ev.scRamp(BG_SCS.find((c) => c.ramp)); me.x = R.x - Math.cos(R.a) * 30; me.y = R.y - Math.sin(R.a) * 30; me.h = me.d = R.a; me.seg = BG_SCS.find((c) => c.ramp).a; ev.camX = me.x + 80; ev.camY = me.y; mode = 'play'; showOv(false); });
   await p.waitForTimeout(200); await cv.screenshot({ path: 'amg/copa_salto.png' });
+  // vácuo: o bugue do jogador colado atrás de um Amiguinho na reta
+  await p.evaluate(() => { const ev = bugue; ev.cup = null; ev.trackSel = 0; ev.init(); ev.started = true; ev.race = 3; const L = BG_LINE, A = L[16], B = L[18], h = Math.atan2(B[1] - A[1], B[0] - A[0]), me = ev.me, ld = ev.K[0];
+    Object.assign(me, { x: A[0], y: A[1], h, d: h, vx: Math.cos(h) * 240, vy: Math.sin(h) * 240, seg: 16, draft: 1.1, s: 240 }); Object.assign(ld, { x: A[0] + Math.cos(h) * 55, y: A[1] + Math.sin(h) * 55, h, d: h, vx: Math.cos(h) * 240, vy: Math.sin(h) * 240, seg: 18, s: 240 });
+    ev.camX = me.x; ev.camY = me.y; ev._up = ev.update; ev.update = () => false; mode = 'play'; showOv(false); });
+  await p.waitForTimeout(250); await cv.screenshot({ path: 'amg/copa_vacuo.png' });
+  await p.evaluate(() => { bugue.update = bugue._up; });
   // classificação depois da 1ª corrida da Copa
   await p.evaluate(() => { const ev = bugue; ev.cupNew = true; ev.init(); ev.started = true; ev.K.forEach((k, i) => { k.fin = 10 + i; }); ev.me.fin = 12.5; ev.rank = 3; ev.done = true; ev.doneT = 3.3; ev.cupScore(); mode = 'play'; showOv(false); });
   await p.waitForTimeout(1300); await cv.screenshot({ path: 'amg/copa_classif.png' });

@@ -135,11 +135,11 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.
 - **Pista (2ª versão, 31/10):**
-  - redesenhada mais larga: 124 px de largura, cerca de 5.700 px por volta (uns 26 s), curvas abertas e um grampo;
+  - largura de 124 px; desde 31/10 as pistas têm o dobro do tamanho (ver "As 3 pistas da Copa");
   - muretas de zebra vermelha e branca em toda a volta: bater de lado perde pouco (6%) e de frente perde muito (até 61%); o bugue escorrega junto da mureta e alinha com ela;
   - não há mais saída para a areia fofa.
 - **Física dos bugues (3ª versão, 31/10):**
-  - motor que perde força perto da velocidade máxima (200 px/s; com turbo, +80), freio, ré curta e arrasto;
+  - motor que perde força perto da velocidade máxima (230 px/s desde 31/10, 15% a mais a pedido do dono; com turbo, +92; motor, freio e aderência subiram junto), freio, ré curta e arrasto;
   - pneus com limite de aderência: o bugue escorrega de lado quando passa do limite e deixa marcas na areia;
   - giro com inércia: o volante vira menos em alta e, entrando rápido demais, o bugue sai de frente;
   - parado de cara na mureta, acelerando ou freando, ele ainda vira;
@@ -151,7 +151,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - item acertado faz o bugue rodopiar com pouca aderência.
   - depois do rodopio, o bugue nunca fica virado para trás: se alinha com a pista e anda sozinho para a frente por 0,85 s; fica invencível por uns 2,3 s, piscando (nada pega nele, nem caixa de item);
   - de cara na mureta, parado ou virado para trás: acelerar gira o bugue para dentro da pista (virar escolhe o lado), sem precisar de ré; devagar, a batida quase não torce o bugue.
-- **Esteiras de turbo:** 5 pela pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
+- **Esteiras de turbo:** 8 por pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
+- **Vácuo (31/10, pedido do dono):** logo atrás de outro bugue (até 140 px, andando na mesma direção, acima de 110 px/s) o bugue pega o vácuo: até +14% de velocidade máxima, motor 30% mais forte e menos perda de embalo; linhas de vento passam em volta dele. Segurando 1,5 s no vácuo, sai com um turbo curto ("Vácuo!"). Vale para todos, Amiguinhos também. O resumo da corrida conta quantos vácuos.
 - **Controles:**
   - ◀ ▶ viram; a direção é suavizada (no teclado não dá tranco) e responde menos devagar e um pouco menos acima de 170 px/s;
   - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
@@ -159,9 +160,9 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **R2 usa o item**, como o dono pediu (é o botão 7 do padrão: RT no Xbox, ZR no Switch; V no teclado). O △ não usa mais o item.
 - **Pista:**
   - **Largada:** contagem 3, 2, 1, Vai!; acelerar de 0,5 s antes do Vai em diante dá turbo, e cedo demais afoga.
-  - **Pulos:** duas rampas; pousar alinhado dá turbo curto.
-  - **Lagoa:** um corredor com muretas corta por dentro a curva da direita, com a água no meio; só compensa com turbo.
-  - **Caixas de item:** 4 fileiras de 5 caixas; cada caixa some sozinha e volta em 2,5 s.
+  - **Pulos:** 3 ou 4 rampas por pista; pousar alinhado dá turbo curto.
+  - **Atalhos:** corredores retos com muretas cortando por dentro de curvas, com água ou areia fofa no meio; só compensam com turbo.
+  - **Caixas de item:** 6 fileiras de 5 caixas por pista; cada caixa some sozinha e volta em 2,5 s.
   - **Itens:** cada bugue guarda até 2; o item usado é o primeiro, e o HUD mostra os dois.
 - **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
   - bola de praia: quica reto e volta nas bordas;
@@ -180,7 +181,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - numa corrida inteira dos 6 bugues no piloto automático, houve só 4 batidas fortes na mureta: dá para fazer as curvas rápido sem bater;
   - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado (com 2 itens guardados);
   - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (30 de 30 nos dois casos, nas 3 pistas);
-  - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado: nenhum bugue preso; de 0 a 1 batida forte por corrida;
+  - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado (pistas em dobro): nenhum bugue preso; de 2 a 7 batidas fortes por corrida (quase todas na entrada dos atalhos);
+  - `testes/vacuo.cjs`: sozinho, o bugue chega a 229 px/s; colado atrás de outro, passa de 260 e, com 1,5 s, sai com o turbo do vácuo (até 335);
   - `testes/copafotos.cjs`: fotos do menu, das pistas novas, do salto e da classificação;
   - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.
 - **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista, peças das pistas da Copa (farol, beira-mar, areia fofa e ladeiras) e as dunas de cima em 3 horários.
@@ -188,10 +190,11 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **Corrida:** uma corrida avulsa na pista escolhida no botão "Pista" (Lagoa Azul, Duna do Farol ou Desce-Duna; cada toque troca a pista e o IAmiguinho fala dela);
   - **Copa das Dunas:** as 3 pistas seguidas. Cada chegada vale 10, 8, 6, 4, 2 e 1 pontos (quem não chegou conta pela posição na pista). Entre as corridas aparece a classificação, e ✕/Espaço (ou um toque) leva à próxima pista. A nota e a medalha saem da posição final na Copa, e "Jogar de novo" começa outra Copa. No HUD, a última casa mostra a corrida e os pontos.
   - No modo das provas da semana, o bugue é uma corrida avulsa.
-- **As 3 pistas da Copa** (todas com muretas, 3 voltas, 2 ou 3 rampas, 4 fileiras de caixas e 5 esteiras de turbo):
-  - **Lagoa Azul:** a pista original, com o atalho pela lagoa. Corridas de uns 80 s.
-  - **Duna do Farol:** 3 grampos em volta do farol (torre listrada com o facho girando), com o mar ao norte. Por dentro de cada grampo há areia fofa: cortar caminho freia muito (sem turbo). O atalho é um corredor de areia fofa por dentro do grampo de cima e só compensa com turbo. Corridas de uns 100 s.
-  - **Desce-Duna:** a mais rápida. Nas descidas (setas claras na areia) o bugue embala (+13% de velocidade máxima, motor mais forte, quase não perde embalo sem acelerar); nas subidas (areia mais escura) ele segura (−14%). As rampas ficam no começo das retas. O atalho é um salto por cima da duna: rampa na entrada do corredor de areia fofa. Corridas de uns 108 s.
+- **As 3 pistas da Copa (2ª versão, 31/10: o dobro do tamanho, a pedido do dono):** todas com muretas, 3 voltas, 3 ou 4 rampas, 6 fileiras de caixas e 8 esteiras de turbo. Desenhadas com a ferramenta que confere o raio das curvas e a distância entre trechos (`/tmp/pistas` na sessão; os pontos ficam no `ev_bugue.js`).
+  - **Lagoa Azul** (~11.600 px por volta, era 5.700): reta de largada, chicane, curvão da direita, laço de cima, o S do meio e a volta pela esquerda. Dois atalhos pela água (por dentro do U do meio e por dentro do laço de cima). Corridas de uns 145 s.
+  - **Duna do Farol** (~13.800 px, era 6.700): cinco grampos (três colunas em zigue-zague e o S da esquerda), o farol entre as colunas e o mar ao norte, logo acima da pista de cima. Areia fofa por dentro dos 5 grampos; um atalho de areia fofa cortando o grampo de baixo entre as colunas. Corridas de uns 175 s.
+  - **Desce-Duna** (~15.400 px, era 7.500): retas longas com 4 descidas que embalam e 3 subidas que seguram; atalho de areia fofa no grampo da esquerda e o salto por cima da duna (rampa na entrada) cortando o laço do meio. Corridas de 3 a 3,5 min.
+  - Com as pistas em dobro, uma Copa inteira leva uns 9 minutos.
 - **Areia fofa:** freia forte e faz levantar poeira; o turbo atravessa sem frear.
 - **Amiguinhos nas pistas novas:** olham à frente pela distância (não pela contagem de pontos), calculam a frenagem antes das curvas, corrigem a volta para a sua faixa quando cortam a curva, abrem por fora dos grampos com areia fofa e, com turbo ou água de coco na mão, às vezes entram no atalho.
 - **Nomes e cores dos Amiguinhos:** Amarelo, Rosa, Azul, Verde e Laranja. O bugue do jogador é azul-escuro. Antes, um dos Amiguinhos aparecia como "Você", da mesma cor do jogador.

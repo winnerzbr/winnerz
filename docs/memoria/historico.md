@@ -4,6 +4,21 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue mais rápido, pistas em dobro e vácuo
+- **Pedidos do dono:**
+  - carrinhos 15% mais rápidos;
+  - pistas maiores e mais elaboradas, com o dobro do tamanho;
+  - ganhar velocidade no vácuo, atrás dos adversários.
+- **Feito:**
+  - velocidade máxima de 200 para 230 (turbo +92), com motor, freio e aderência subindo junto para as curvas continuarem fazíveis;
+  - as 3 pistas redesenhadas com o dobro do tamanho: Lagoa Azul com chicane, laço e S, e 2 atalhos pela água; Duna do Farol com 5 grampos com areia fofa por dentro, farol entre as colunas e mar ao norte; Desce-Duna com 4 descidas, 3 subidas, atalho de areia fofa e o salto por cima da duna. Agora são 3 ou 4 rampas, 6 fileiras de caixas e 8 esteiras por pista;
+  - o jogo agora aceita mais de um atalho por pista;
+  - vácuo: atrás de outro bugue, até +14% de velocidade, linhas de vento em volta e, com 1,5 s, um turbo curto ("Vácuo!"). Vale para os Amiguinhos também;
+  - detalhes em `jogos-de-verao.md`.
+- **Efeito no tempo:** as corridas passaram a durar de 2,5 a 3,5 min (3 voltas), e a Copa uns 9 min. Se ficar longo, dá para baixar para 2 voltas.
+- **Testes:** `copa.cjs` (nenhum bugue preso nas 3 pistas, Copa inteira até o resultado), `vacuo.cjs` (novo), `bgrec.cjs`, `bgkeys.cjs` e `bgpresos.cjs` (12 de 12 sem presos).
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Copa das Dunas (bugue com 3 pistas)
 - **Pedido do dono:** "Pode implementar o próximo jogo". Todas as provas novas do plano já estavam feitas. Entre a Copa das Dunas, uma Regata de veleiros, o Castelo de areia e a Pesca na jangada, ele escolheu a Copa das Dunas, a parte do plano que faltava.
 - **Feito:**

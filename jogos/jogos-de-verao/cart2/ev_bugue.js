@@ -15,8 +15,11 @@
    Copa das Dunas (31/10): 3 pistas (Lagoa Azul; Duna do Farol, com grampos e areia fofa por dentro deles e atalho de areia fofa;
    Desce-Duna, com descidas que embalam, subidas que seguram e atalho com salto por cima da duna). No menu: Corrida (na pista
    escolhida no botão "Pista") ou Copa das Dunas (as 3 seguidas, pontos 10, 8, 6, 4, 2 e 1; classificação entre as corridas).
+   31/10 (ajustes do dono): bugues 15% mais rápidos; as 3 pistas com o dobro do tamanho, mais elaboradas (chicane, grampos, laços,
+   dois atalhos na Lagoa Azul e no Desce-Duna); vácuo atrás dos adversários (mais velocidade e, com 1,5 s, um turbo curto).
    Arte provisória: tudo desenhado pelo jogo (bugues de cima, com o IAmiguinho e os Amiguinhos de capacete). */
-const BG = { voltas: 3, hw: 62, r: 8, vmax: 200, eng: 330, brake: 560, grip: 760, gripD: 340, wb: 22, water: 1.9, boostV: 80, sw: 36, Z: .82, g: 900 };
+// 31/10: velocidade +15% a pedido do dono (era vmax 200, motor 330, freio 560, aderência 760/340, turbo +80)
+const BG = { voltas: 3, hw: 62, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
 if (typeof Music !== 'undefined' && Music.songs.patins) Music.songs.bugue = Music.songs.patins;
 FALA.intro.bugue = [
   'Corrida de bugue nas Dunas Brancas! Cinco Amiguinhos, três voltas e uma lagoa no meio do caminho.',
@@ -38,30 +41,31 @@ const bgLine = (P) => {
   return out;
 };
 const BG_TRACKS = [
-  { id: 'lagoa', name: 'Lagoa Azul', fala: 'Lagoa Azul: o atalho pela água só compensa com turbo.',
-    pts: [[520, 1320], [1050, 1330], [1700, 1300], [2030, 1110], [2070, 760], [1870, 450], [1520, 380], [1260, 520], [1060, 760], [800, 820], [610, 660], [600, 400], [440, 240], [250, 380], [195, 800], [265, 1150]],
-    sc: { a: 52, b: 92, kind: 'agua', rx: 105, ry: 31 }, ramps: [26, 345], boxes: [120, 210, 300, 372],
-    pads: [{ i: 8, o: 0 }, { i: 150, o: -24 }, { i: 236, o: 26 }, { i: 318, o: -20 }, { i: 368, o: 18 }], fofa: [], slopes: [] },
-  // Duna do Farol: curta de reta e cheia de grampos em volta do farol; a areia fofa fica por dentro dos grampos (cortar caminho custa caro)
-  { id: 'farol', name: 'Duna do Farol', fala: 'Duna do Farol: três grampos. Por dentro tem areia fofa, então nada de cortar caminho.',
-    pts: [[520, 1260], [1050, 1270], [1650, 1250], [1980, 1120], [2010, 900], [1800, 820], [1450, 850], [1230, 800], [1160, 620], [1300, 500], [1700, 480], [1960, 400], [1990, 230], [1750, 150], [1100, 160], [550, 170], [300, 270], [240, 560], [250, 900], [300, 1170]],
-    sc: { a: 252, b: 319, kind: 'fofa' }, ramps: [44, 336], boxes: [156, 240, 350, 430],
-    pads: [{ i: 10, o: 0 }, { i: 140, o: 20 }, { i: 228, o: -20 }, { i: 372, o: 22 }, { i: 412, o: 0 }], fofa: [110, 190, 288, 404], slopes: [], farol: [985, 690] },
-  // Desce-Duna: a mais rápida; descidas dão embalo, subidas seguram; o atalho é um salto por cima da duna
+  // Lagoa Azul (2ª versão, o dobro do tamanho): chicane na reta de baixo, curvão da direita, laço de cima, o S do meio e dois atalhos pela água
+  { id: 'lagoa', name: 'Lagoa Azul', fala: 'Lagoa Azul: duas lagoas no caminho. Com turbo, corta por dentro da água.',
+    pts: [[492,  2050],  [1148,  2066],  [1763,  2025],  [2091,  1911],  [2378,  2034],  [2665,  1911],  [2993,  1984],  [3280,  1804],  [3346,  1476],  [3157,  1189],  [3198,  861],  [3321,  533],  [3132,  246],  [2747,  262],  [2583,  533],  [2337,  722],  [1968,  672],  [1763,  426],  [1435,  312],  [1066,  385],  [918,  697],  [1132,  968],  [1517,  1066],  [1927,  1189],  [2009,  1517],  [1722,  1681],  [1271,  1624],  [820,  1476],  [451,  1410],  [213,  1599],  [246,  1911]],
+    sc: [{ a: 540, b: 624, kind: 'agua' }, { a: 250, b: 330, kind: 'agua' }], ramps: [40,  215,  640], boxes: [165,  250,  352,  455,  598,  700],
+    pads: [{ i: 10, o: 0 }, { i: 100, o: -22 }, { i: 190, o: 20 }, { i: 280, o: -18 }, { i: 395, o: 24 }, { i: 520, o: -20 }, { i: 610, o: 18 }, { i: 690, o: 0 }], fofa: [], slopes: [] },
+  // Duna do Farol (2ª versão): cinco grampos, o farol entre as colunas, o mar ao norte; areia fofa por dentro dos grampos e um atalho de areia fofa
+  { id: 'farol', name: 'Duna do Farol', fala: 'Duna do Farol: cinco grampos. Por dentro tem areia fofa, então nada de cortar caminho.',
+    pts: [[800,  2300],  [1700,  2320],  [2700,  2300],  [3450,  2250],  [3800,  1950],  [3750,  1500],  [3750,  900],  [3650,  550],  [3400,  400],  [3150,  550],  [3100,  900],  [3100,  1400],  [2950,  1700],  [2700,  1750],  [2500,  1550],  [2450,  1000],  [2400,  600],  [2150,  350],  [1600,  320],  [1100,  380],  [880,  680],  [1150,  1000],  [1700,  1150],  [1880,  1500],  [1550,  1800],  [1000,  1780],  [650,  1500],  [400,  1700],  [420,  2100]],
+    sc: [{ a: 264, b: 348, kind: 'fofa' }], ramps: [40,  365,  440], boxes: [70,  150,  240,  400,  505,  600],
+    pads: [{ i: 10, o: 0 }, { i: 120, o: -22 }, { i: 175, o: 20 }, { i: 250, o: -18 }, { i: 330, o: 24 }, { i: 420, o: -20 }, { i: 530, o: 18 }, { i: 650, o: 0 }], fofa: [192,  312,  480,  552,  624], slopes: [], farol: [2780, 900] },
+  // Desce-Duna (2ª versão): retas longas com descidas que embalam e subidas que seguram; um atalho de areia fofa e um salto por cima da duna
   { id: 'desce', name: 'Desce-Duna', fala: 'Desce-Duna: na descida o bugue voa, na subida ele sofre. E tem um salto por cima da duna.',
-    pts: [[400, 1450], [1200, 1500], [2000, 1480], [2600, 1350], [2850, 1000], [2750, 600], [2400, 350], [1900, 300], [1500, 450], [1300, 750], [1000, 900], [720, 820], [560, 600], [450, 360], [260, 300], [140, 560], [150, 1100]],
-    sc: { a: 293, b: 355, kind: 'fofa', ramp: true }, ramps: [36, 150, 362], boxes: [60, 190, 248, 330],
-    pads: [{ i: 12, o: 0 }, { i: 104, o: -20 }, { i: 206, o: 18 }, { i: 268, o: -22 }, { i: 362, o: 20 }], fofa: [],
-    slopes: [{ a: 0, b: 54, s: 1 }, { a: 80, b: 136, s: -1 }, { a: 140, b: 182, s: 1 }, { a: 236, b: 280, s: -1 }, { a: 350, b: 392, s: 1 }] },
+    pts: [[600,  2700],  [1800,  2760],  [3100,  2720],  [4000,  2560],  [4450,  2150],  [4350,  1650],  [4550,  1150],  [4400,  650],  [3900,  350],  [3200,  380],  [2700,  650],  [2150,  450],  [1550,  320],  [950,  420],  [650,  850],  [950,  1250],  [1650,  1200],  [2300,  1400],  [2450,  1900],  [2000,  2200],  [1300,  2150],  [700,  1950],  [350,  2150],  [380,  2500]],
+    sc: [{ a: 318, b: 362, kind: 'fofa' }, { a: 390, b: 465, kind: 'fofa', ramp: true }], ramps: [36,  140,  290,  470], boxes: [60,  180,  250,  340,  420,  530],
+    pads: [{ i: 12, o: 0 }, { i: 110, o: -22 }, { i: 160, o: 20 }, { i: 232, o: -18 }, { i: 300, o: 24 }, { i: 380, o: -20 }, { i: 450, o: 18 }, { i: 520, o: 0 }], fofa: [],
+    slopes: [{ a: 0, b: 60, s: 1 }, { a: 75, b: 125, s: -1 }, { a: 145, b: 170, s: -1 }, { a: 192, b: 215, s: 1 }, { a: 265, b: 310, s: 1 }, { a: 385, b: 410, s: -1 }, { a: 455, b: 505, s: 1 }] },
 ];
 const bgWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
-let BG_T, BG_LINE, BG_SC, BG_LAGOA, BG_RAMPS, BG_BOXES, BG_PADS, BG_FOFA, BG_SLOPE;
+let BG_T, BG_LINE, BG_SCS, BG_RAMPS, BG_BOXES, BG_PADS, BG_FOFA, BG_SLOPE;
 function bgLoad(ti) {
   const T = BG_TRACKS[ti]; if (BG_T === T) return; BG_T = T;
-  T.line = T.line || bgLine(T.pts); BG_LINE = T.line; BG_SC = T.sc; BG_RAMPS = T.ramps.map((i) => ({ i })); BG_BOXES = T.boxes; BG_PADS = T.pads;
-  const n = BG_LINE.length, A = BG_LINE[BG_SC.a], B = BG_LINE[BG_SC.b], len = Math.hypot(B[0] - A[0], B[1] - A[1]);
-  // o atalho: lagoa (água) ou areia fofa ocupando o corredor
-  BG_LAGOA = { x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, rx: BG_SC.rx || len / 2 - 40, ry: BG_SC.ry || 30, ang: Math.atan2(B[1] - A[1], B[0] - A[0]), A, B, len, kind: BG_SC.kind };
+  T.line = T.line || bgLine(T.pts); BG_LINE = T.line; BG_RAMPS = T.ramps.map((i) => ({ i })); BG_BOXES = T.boxes; BG_PADS = T.pads;
+  const n = BG_LINE.length;
+  // os atalhos: corredores retos com lagoa (água) ou areia fofa no meio
+  BG_SCS = T.sc.map((c) => { const A = BG_LINE[c.a], B = BG_LINE[c.b], len = Math.hypot(B[0] - A[0], B[1] - A[1]); return { ...c, A, B, len, x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, rx: len / 2 - 40, ry: 30, ang: Math.atan2(B[1] - A[1], B[0] - A[0]), walls: c.walls }; });
   // areia fofa por dentro das curvas: o lado de dentro sai do sentido da virada
   BG_FOFA = T.fofa.map((i) => { const p = BG_LINE[(i - 8 + n) % n], q = BG_LINE[i], r = BG_LINE[(i + 8) % n], cr = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]), a = Math.atan2(r[1] - p[1], r[0] - p[0]), sd = cr > 0 ? 1 : -1; return { x: q[0] - Math.sin(a) * 40 * sd, y: q[1] + Math.cos(a) * 40 * sd, r: 24, i, sd }; });
   BG_SLOPE = new Int8Array(n); for (const z of T.slopes) for (let i = z.a; i <= z.b; i++) BG_SLOPE[i % n] = z.s;
@@ -76,7 +80,7 @@ const bugue = {
   desc: '3 voltas contra 5 Amiguinhos: derrapagem com turbo, pulos nas dunas e itens de praia. Corrida avulsa em 3 pistas ou a Copa das Dunas.',
   steps: () => [
     touch ? 'O bugue acelera sozinho; “Freio” freia. ◀ ▶ viram. Acelere bem no “Vai!” para largar com turbo.' : 'Espaço acelera e X freia; ◀ ▶ viram. Acelere bem no “Vai!” para largar com turbo.',
-    `Na curva, segure ${touch ? '“Derrapa”' : 'C'} para derrapar: a faísca fica azul e depois laranja; soltando, vem o turbo. Pousar alinhado depois de um pulo também dá turbo.`,
+    `Na curva, segure ${touch ? '“Derrapa”' : 'C'} para derrapar: a faísca fica azul e depois laranja; soltando, vem o turbo. Pousar alinhado depois de um pulo também dá turbo. Colado atrás de outro bugue, você pega o vácuo: fica mais rápido e, segurando ali, sai com um turbo.`,
     `Pegue as caixas e use o item com ${touch ? '“Item”' : 'V (R2 no controle)'}. Quem está atrás ganha itens melhores. As muretas seguram o bugue, mas bater de frente perde muito: tire o pé ou derrape nas curvas. Cada pista tem um atalho que só compensa com turbo.`,
     'Copa das Dunas: Lagoa Azul, Duna do Farol e Desce-Duna em seguida. Cada chegada vale pontos (10, 8, 6, 4, 2 e 1), e quem somar mais leva a Copa.',
   ],
@@ -88,13 +92,13 @@ const bugue = {
   init() {
     if (this.cupNew) { this.cupNew = false; this.cup = { i: 0, pts: [0, 0, 0, 0, 0, 0], res: [] }; }
     if (!this.cup || this.cup.i === 0) this.cupRes = null;
-    bgLoad(this.cup ? this.cup.i : this.trackSel); this.scW = null; this.tag = `Dunas Brancas · ${BG_T.name}`;
+    bgLoad(this.cup ? this.cup.i : this.trackSel); this.tag = `Dunas Brancas · ${BG_T.name}`;
     const st = BG_LINE[30], nx = BG_LINE[32][0] - BG_LINE[28][0], ny = BG_LINE[32][1] - BG_LINE[28][1], nl = Math.hypot(nx, ny), h = Math.atan2(ny, nx);
     const cols = ['#ffd84a', '#ff6ba8', '#6bcbff', '#9be37a', '#ffb347', '#3b6fd6'], names = ['Amarelo', 'Rosa', 'Azul', 'Verde', 'Laranja', 'Você'];
     this.K = [0, 1, 2, 3, 4, 5].map((i) => { const row = Math.floor(i / 2), side = i % 2 ? 1 : -1, back = (5 - i) * 0 + row * 34 + 20; return { i, me: i === 5, x: st[0] - nx / nl * back + -ny / nl * side * 17, y: st[1] - ny / nl * back + nx / nl * side * 17, h, d: h, s: 0, vx: 0, vy: 0, w: 0, z: 0, vz: 0, lean: 0, slip: 0, padT: 0, lap: 0, seg: 26, prog: 0, cp: 0, drift: 0, dsg: 0, chg: 0, boost: 0, air: 0, spin: 0, shield: 0, items: [], roll: 0, slow: 0, fin: 0, col: cols[i] || '#3b6fd6', name: names[i] || 'Você', ai: { skill: .93 + i * .016, lane: (Math.random() - .5) * 46, hold: 0 }, pud: {} }; });
     // o jogador larga em último (como num kart), os Amiguinhos na frente
     this.me = this.K[5]; this.me.col = '#3b6fd6'; this.me.name = 'Você';
-    Object.assign(this, { t: 0, score: 0, race: -3.2, started: false, fx: [], proj: [], puds: [], boxes: BG_BOXES.flatMap((i) => [-2, -1, 0, 1, 2].map((j) => ({ i, j, t: 0 }))), skids: [], wave: 0, done: false, doneT: 0, inter: null, order: [], camX: this.me.x, camY: this.me.y, turbos: 0, laranjas: 0, acertos: 0, levou: 0, startOk: null, rank: 6 });
+    Object.assign(this, { t: 0, score: 0, race: -3.2, started: false, fx: [], proj: [], puds: [], boxes: BG_BOXES.flatMap((i) => [-2, -1, 0, 1, 2].map((j) => ({ i, j, t: 0 }))), skids: [], wave: 0, done: false, doneT: 0, inter: null, order: [], camX: this.me.x, camY: this.me.y, turbos: 0, laranjas: 0, acertos: 0, levou: 0, vacuos: 0, startOk: null, rank: 6 });
   },
   hud() {
     const m = this.me; const IT = { bola: 'Bola de praia', balao: 'Balão d\'água', protetor: 'Protetor', coco: 'Água de coco', guarda: 'Guarda-sol', onda: 'Onda' };
@@ -102,7 +106,7 @@ const bugue = {
   },
   stats() {
     if (this.cupRes) { const c = this.cupRes; return [`Copa das Dunas: ${c.pos}º lugar com ${c.pts} pontos`, `Corridas: ${c.res.map((r, i) => `${BG_TRACKS[i].name} ${r}º`).join(' · ')}`, `${this.turbos} turbos de derrapagem (${this.laranjas} laranja) · ${this.acertos} acertos com itens · acertado ${this.levou}×`]; }
-    return [`Chegou em ${this.rank}º lugar em ${Math.floor(this.race / 60)}:${String(Math.floor(this.race % 60)).padStart(2, '0')}`, `${this.turbos} turbos de derrapagem (${this.laranjas} laranja) · ${this.acertos} acertos com itens`, `Foi acertado ${this.levou} vez${this.levou === 1 ? '' : 'es'}`]; },
+    return [`Chegou em ${this.rank}º lugar em ${Math.floor(this.race / 60)}:${String(Math.floor(this.race % 60)).padStart(2, '0')}`, `${this.turbos} turbos de derrapagem (${this.laranjas} laranja) · ${this.vacuos} no vácuo · ${this.acertos} acertos com itens`, `Foi acertado ${this.levou} vez${this.levou === 1 ? '' : 'es'}`]; },
   demo() { if (this.cup) { this.cup = null; this.init(); } this.started = true; this.race = 5; for (const k of this.K) { k.vx = Math.cos(k.h) * 150; k.vy = Math.sin(k.h) * 150; } },
   menuDOM() {
     const ev = this;
@@ -118,8 +122,10 @@ const bugue = {
     if (bd > 120) for (let i = 0; i < n; i += 3) { const d = Math.hypot(L[i][0] - k.x, L[i][1] - k.y); if (d < bd) { bd = d; best = i; } }
     return [best, bd];
   },
-  inWater(x, y) { const L = BG_LAGOA, c = Math.cos(-L.ang), sn = Math.sin(-L.ang), dx = x - L.x, dy = y - L.y, u = (dx * c - dy * sn) / L.rx, v = (dx * sn + dy * c) / L.ry; return u * u + v * v < 1; },
-  ground(x, y) { if (this.inWater(x, y)) return BG_LAGOA.kind; for (const f of BG_FOFA) if (Math.hypot(x - f.x, y - f.y) < f.r) return 'fofa'; return null; },
+  inPool(L, x, y) { const c = Math.cos(-L.ang), sn = Math.sin(-L.ang), dx = x - L.x, dy = y - L.y, u = (dx * c - dy * sn) / L.rx, v = (dx * sn + dy * c) / L.ry; return u * u + v * v < 1; },
+  // corredor de atalho mais perto: [distância até a linha do meio dele, ponto mais perto, o corredor]
+  scNear(x, y) { let best = [Infinity, 0, 0, null]; for (const c of BG_SCS) { const r = this.segDist(x, y, c.A, c.B); if (r[0] < best[0]) best = [r[0], r[1], r[2], c]; } return best; },
+  ground(x, y) { for (const c of BG_SCS) if (this.inPool(c, x, y)) return c.kind; for (const f of BG_FOFA) if (Math.hypot(x - f.x, y - f.y) < f.r) return 'fofa'; return null; },
   ord() { return [...this.K].sort((a, b) => (b.fin ? 1e9 - b.fin : b.lap * BG_LINE.L + b.prog) - (a.fin ? 1e9 - a.fin : a.lap * BG_LINE.L + a.prog)); },
   update(dt, I) {
     this.t += dt;
@@ -164,8 +170,8 @@ const bugue = {
     const go = it.t > 1 && (I.pa || I.pb || I.pc || I.pe || (touch && I.a && !this.interA)); this.interA = !!I.a;
     if (!go) return false;
     if (it.last) { this.cup = null; this.cupNew = true; this.inter = null; return true; } // “Jogar de novo” começa outra Copa
-    const keep = { pts: this.cup.pts, t: [this.turbos, this.laranjas, this.acertos, this.levou] };
-    this.cup.i++; this.init(); [this.turbos, this.laranjas, this.acertos, this.levou] = keep.t; say(BG_T.fala);
+    const keep = { pts: this.cup.pts, t: [this.turbos, this.laranjas, this.acertos, this.levou, this.vacuos] };
+    this.cup.i++; this.init(); [this.turbos, this.laranjas, this.acertos, this.levou, this.vacuos] = keep.t; say(BG_T.fala);
     return false;
   },
   cam(dt) { const m = this.me, la = 34; this.camX += (m.x + Math.cos(m.d) * la * clamp(m.s / 150, 0, 1) - this.camX) * Math.min(1, dt * 6); this.camY += (m.y + Math.sin(m.d) * la * clamp(m.s / 150, 0, 1) - this.camY) * Math.min(1, dt * 6); },
@@ -226,13 +232,20 @@ const bugue = {
     let vl = k.vx * fx + k.vy * fy, vt = k.vx * rx + k.vy * ry; const sp = Math.hypot(k.vx, k.vy);
     let vmax = BG.vmax * (k.me ? 1 : k.ai.skill * (k.ai.rubber || 1)); if (k.boost > 0) vmax += BG.boostV;
     if (k.slow > 0 || (this.wave > 0 && k.pos <= 3 && this.waveBy !== k)) vmax *= .45;
+    // vácuo: logo atrás de outro bugue, andando na mesma direção, o ar fica mais leve. Quanto mais tempo no vácuo, mais rápido;
+    // depois de 1,5 s, o bugue sai com um turbo curto (o estilingue)
+    let lead = null;
+    if (!air && sp > 110) for (const o of this.K) { if (o === k || o.z > 4 || o.s < 80) continue; const dx = o.x - k.x, dy = o.y - k.y, d = Math.hypot(dx, dy); if (d < 20 || d > 140) continue; if (Math.abs(bgWrap(Math.atan2(dy, dx) - k.d)) < .2 + 6 / d && Math.cos(o.d - k.d) > .8) { lead = o; break; } }
+    k.draft = lead ? Math.min(1.5, (k.draft || 0) + dt) : Math.max(0, (k.draft || 0) - dt * 2.5);
+    const dft = clamp((k.draft - .2) / .6, 0, 1); vmax *= 1 + .14 * dft;
+    if (lead && k.draft >= 1.5) { k.boost = Math.max(k.boost, .6); k.draft = .4; this.fx.push({ k: 'vento', x: k.x, y: k.y, a: k.d, t: 0, life: .5 }); if (k.me) { this.vacuos++; pop('Vácuo!', W / 2, 90, '#e8f6ff'); beep(260, .25, 'sawtooth', .03, 500); } }
     // ladeira: na descida o bugue embala, na subida o motor sofre
     if (slope > 0) vmax *= 1.13; else if (slope < 0) vmax *= .86;
     if (!air) {
       // motor e freio (o motor perde força perto da velocidade máxima)
-      if (c.acc) vl += BG.eng * (k.boost > 0 ? 1.8 : 1) * (slope > 0 ? 1.25 : 1) * clamp(1 - vl / vmax, -1.5, 1) * dt;
+      if (c.acc) vl += BG.eng * (k.boost > 0 ? 1.8 : 1) * (slope > 0 ? 1.25 : 1) * (1 + .3 * dft) * clamp(1 - vl / vmax, -1.5, 1) * dt;
       else if (c.brake) vl -= (vl > 0 ? BG.brake : 160) * dt;
-      else vl -= Math.sign(vl) * Math.min(Math.abs(vl), (slope > 0 ? 15 : 70) * dt);
+      else vl -= Math.sign(vl) * Math.min(Math.abs(vl), (slope > 0 ? 15 : 70 - 40 * dft) * dt);
       vl = Math.max(-60, vl);
       if (water && k.boost <= 0) { vl *= 1 - BG.water * dt; vt *= 1 - BG.water * dt; }
       if (fofa && k.boost <= 0) { vl *= 1 - 3.6 * dt; vt *= 1 - 2 * dt; }
@@ -242,14 +255,14 @@ const bugue = {
       // direção: o volante vira menos em alta; o giro desejado é limitado pela aderência (sai de frente se entrar rápido demais)
       const dmax = .62 - .3 * clamp(sp / 200, 0, 1);
       let wt;
-      if (c.drift && !k.drift && Math.abs(c.steer) > .3 && vl > 100) { k.drift = 1; k.dsg = Math.sign(c.steer); k.chg = 0; k.vz = 70; k.z = .01; }
+      if (c.drift && !k.drift && Math.abs(c.steer) > .3 && vl > 115) { k.drift = 1; k.dsg = Math.sign(c.steer); k.chg = 0; k.vz = 70; k.z = .01; }
       if (k.drift && (!c.drift || vl < 70)) {
         if (k.chg >= 1.7) { k.boost = Math.max(k.boost, 1.1); if (k.me) { this.turbos++; this.laranjas++; pop('Turbo laranja!', W / 2, 90, '#ffb347'); talk(FALA.bgBoa, .15); } }
         else if (k.chg >= .85) { k.boost = Math.max(k.boost, .55); if (k.me) { this.turbos++; pop('Turbo!', W / 2, 90, '#8fdcff'); } }
         k.drift = 0; k.chg = 0;
       }
       if (k.spin > 0) wt = k.spinDir * 11;
-      else if (k.drift) { wt = k.dsg * (vl / 92) * (1 + .6 * c.steer * k.dsg); if (Math.abs(k.slip) > .12) k.chg += dt; }
+      else if (k.drift) { wt = k.dsg * (vl / 106) * (1 + .6 * c.steer * k.dsg); if (Math.abs(k.slip) > .12) k.chg += dt; }
       else { const vs = Math.sign(vl || 1) * Math.max(Math.abs(vl), c.acc || c.brake ? 38 : 0); wt = vs * Math.tan(c.steer * dmax) / BG.wb; const lim = grip * 1.1 / Math.max(40, sp); wt = clamp(wt, -lim, lim); }
       k.w += (wt - k.w) * Math.min(1, dt * (k.spin > 0 ? 6 : k.drift ? 4.5 : 10));
     } else {
@@ -268,7 +281,7 @@ const bugue = {
     k.sq = Math.max(0, (k.sq || 0) - dt);
     this.walls(k);
     // rampas nas dunas e esteiras de turbo
-    if (!air && k.s > 95 && BG_SC.ramp) { const R = this.scRamp(), dx = k.x - R.x, dy = k.y - R.y, u = dx * Math.cos(R.a) + dy * Math.sin(R.a), v = -dx * Math.sin(R.a) + dy * Math.cos(R.a); if (Math.abs(u) < 9 && Math.abs(v) < BG.sw && Math.cos(k.d - R.a) > .5) { k.vz = (160 + (k.s - 95) * .9) * 1.3; k.z = .01; k.drift = 0; } }
+    for (const sc of BG_SCS) if (!air && k.s > 95 && sc.ramp) { const R = this.scRamp(sc), dx = k.x - R.x, dy = k.y - R.y, u = dx * Math.cos(R.a) + dy * Math.sin(R.a), v = -dx * Math.sin(R.a) + dy * Math.cos(R.a); if (Math.abs(u) < 9 && Math.abs(v) < BG.sw && Math.cos(k.d - R.a) > .5) { k.vz = (160 + (k.s - 95) * .9) * 1.3; k.z = .01; k.drift = 0; } }
     if (!air && k.s > 95) for (const r of BG_RAMPS) if (Math.abs(seg - r.i) <= 1 && dist < BG.hw - 4) { k.vz = 160 + (k.s - 95) * .9; k.z = .01; k.drift = 0; break; }
     if (!air && !k.padT) for (const pd of BG_PADS) { const P = this.padPos(pd), dx = k.x - P.x, dy = k.y - P.y, u = dx * Math.cos(P.a) + dy * Math.sin(P.a), v = -dx * Math.sin(P.a) + dy * Math.cos(P.a); if (Math.abs(u) < 17 && Math.abs(v) < 11) { k.boost = Math.max(k.boost, .8); k.padT = .6; if (k.me) beep(520, .12, 'sawtooth', .04, 400); this.fx.push({ k: 'caixa', x: P.x, y: P.y, t: 0, life: .4 }); } }
     // poeira, marcas de pneu e faíscas da derrapagem
@@ -280,13 +293,13 @@ const bugue = {
     if (c.use && k.items.length && !(k.items[0].roll > 0)) this.useItem(k);
     for (const it of k.items) if (it.roll > 0) { it.roll -= dt; if (it.roll <= 0 && k.me) beep(990, .06, 'square', .04); }
   },
-  scRamp() { const L = BG_LAGOA; return { x: L.A[0] + Math.cos(L.ang) * 84, y: L.A[1] + Math.sin(L.ang) * 84, a: L.ang }; },
+  scRamp(L) { return { x: L.A[0] + Math.cos(L.ang) * 84, y: L.A[1] + Math.sin(L.ang) * 84, a: L.ang }; },
   padPos(pd) { const p = BG_LINE[pd.i % BG_LINE.length], q = BG_LINE[(pd.i + 2) % BG_LINE.length], a = Math.atan2(q[1] - p[1], q[0] - p[0]); return { x: p[0] - Math.sin(a) * pd.o, y: p[1] + Math.cos(a) * pd.o, a }; },
   // bordas: a pista (e o corredor da lagoa) tem muretas; bater de lado perde pouco, bater de frente perde muito
   segDist(px, py, A, B) { const vx = B[0] - A[0], vy = B[1] - A[1], t = clamp(((px - A[0]) * vx + (py - A[1]) * vy) / (vx * vx + vy * vy), 0, 1), qx = A[0] + vx * t, qy = A[1] + vy * t; return [Math.hypot(px - qx, py - qy), qx, qy]; },
   walls(k) {
     if (k.z > 6) return;
-    const [seg, d] = this.near(k), L = BG_LINE[seg], lim = BG.hw - BG.r, [ds, qx, qy] = this.segDist(k.x, k.y, BG_LAGOA.A, BG_LAGOA.B), lim2 = BG.sw - BG.r;
+    const [seg, d] = this.near(k), L = BG_LINE[seg], lim = BG.hw - BG.r, [ds, qx, qy] = this.scNear(k.x, k.y), lim2 = BG.sw - BG.r;
     if (d <= lim || ds <= lim2) return;
     const useMain = d - lim < ds - lim2, cx = useMain ? L[0] : qx, cy = useMain ? L[1] : qy, lm = useMain ? lim : lim2;
     const dx = k.x - cx, dy = k.y - cy, dd = Math.hypot(dx, dy) || 1, nx = dx / dd, ny = dy / dd;
@@ -318,12 +331,12 @@ const bugue = {
     let tx = t[0] + nx / nl * clamp(lane, -BG.hw + 18, BG.hw - 18), ty = t[1] + ny / nl * clamp(lane, -BG.hw + 18, BG.hw - 18);
     for (const f of BG_FOFA) { const dx = tx - f.x, dy = ty - f.y, d = Math.hypot(dx, dy) || 1; if (d < f.r + 18) { tx += dx / d * (f.r + 18 - d); ty += dy / d * (f.r + 18 - d); } }
     // no corredor da lagoa: segue até a saída dele
-    const [dm] = this.near(k).slice(1), [dsc] = this.segDist(k.x, k.y, BG_LAGOA.A, BG_LAGOA.B), inSc = dm > BG.hw - 4 && dsc < BG.sw;
+    const [dm] = this.near(k).slice(1), [dsc, , , cIn] = this.scNear(k.x, k.y), inSc = dm > BG.hw - 4 && dsc < BG.sw;
     // com turbo (ou água de coco na mão), às vezes entra no atalho
-    const dA = (BG_SC.a - k.seg + n) % n;
-    if (dA > 3 && dA < 16 && A.scLap !== k.lap) { A.scLap = k.lap; A.sc = (k.boost > .3 || k.items.some((q) => q.k === 'coco' && !(q.roll > 0))) && Math.random() < .7; }
-    if (A.sc && ((k.seg - BG_SC.b + n) % n) < 60) A.sc = false;
-    const scGo = A.sc && !inSc && dA < 16, gx = inSc || scGo ? BG_LAGOA.B[0] : tx, gy = inSc || scGo ? BG_LAGOA.B[1] : ty;
+    let dA = 99;
+    for (const c of BG_SCS) { const d = (c.a - k.seg + n) % n; if (d > 3 && d < 16 && A.scAt !== c.a + k.lap * 1e4) { A.scAt = c.a + k.lap * 1e4; A.sc = (k.boost > .3 || k.items.some((q) => q.k === 'coco' && !(q.roll > 0))) && Math.random() < .7 ? c : null; } }
+    if (A.sc) { dA = (A.sc.a - k.seg + n) % n; if (((k.seg - A.sc.b + n) % n) < 60 || dA > 20) A.sc = null; }
+    const scGo = !!A.sc && !inSc && dA < 16, tg = inSc ? cIn : A.sc, gx = (inSc || scGo) && tg ? tg.B[0] : tx, gy = (inSc || scGo) && tg ? tg.B[1] : ty;
     if (scGo && dA < 6 && k.boost <= 0 && k.items[0] && k.items[0].k === 'coco' && !(k.items[0].roll > 0)) A.hold = 99;
     let e = Math.atan2(gy - k.y, gx - k.x) - k.h; e = Math.atan2(Math.sin(e), Math.cos(e));
     // fora da faixa (cortando a curva por dentro ou abrindo demais): corrige de volta para ela
@@ -370,7 +383,7 @@ const bugue = {
       p.t += dt;
       if (p.k === 'balao' && p.tg && !p.tg.fin) { const a = Math.atan2(p.tg.y - p.y, p.tg.x - p.x); p.vx += (Math.cos(a) * 250 - p.vx) * dt * 3; p.vy += (Math.sin(a) * 250 - p.vy) * dt * 3; }
       p.x += p.vx * dt; p.y += p.vy * dt;
-      if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.segDist(p.x, p.y, BG_LAGOA.A, BG_LAGOA.B); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
+      if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.scNear(p.x, p.y); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
       for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && Math.hypot(k.x - p.x, k.y - p.y) < 12) { this.hit(k, p.by, p.k === 'bola' ? 'bola de praia' : 'balão d\'água'); p.dead = true; this.fx.push({ k: p.k === 'balao' ? 'água' : 'pó', x: p.x, y: p.y, t: 0, life: .5 }); break; }
       if (p.t > (p.k === 'balao' ? 4.5 : 3.5)) p.dead = true;
     }
@@ -411,7 +424,7 @@ const bugue = {
     if (BG_T.id === 'farol') this.drawSea(tt, vw, vh);
     for (let gx = Math.floor((this.camX - vw) / 120) * 120; gx < this.camX + vw; gx += 120) for (let gy = Math.floor((this.camY - vh) / 100) * 100; gy < this.camY + vh; gy += 100) {
       const hsh = Math.sin(gx * 12.9898 + gy * 78.233) * 43758.5453, r = hsh - Math.floor(hsh);
-      if (BG_T.id === 'farol' && gy < 70) continue;
+      if (BG_T.id === 'farol' && gy < BG_T.box.y0 - 76) continue;
       const big = BG_T.id === 'desce' ? 1.7 : 1;
       ctx.fillStyle = 'rgba(190,160,120,.22)'; ctx.beginPath(); ctx.ellipse(gx + r * 60 + 14 * big, gy + r * 40 + 8 * big, (34 + r * 20) * big, (12 + r * 8) * big, -.4, 0, TAU); ctx.fill();
       ctx.fillStyle = 'rgba(255,255,250,.6)'; ctx.beginPath(); ctx.ellipse(gx + r * 60, gy + r * 40, (30 + r * 18) * big, (10 + r * 7) * big, -.4, 0, TAU); ctx.fill();
@@ -428,15 +441,15 @@ const bugue = {
     for (const f of BG_FOFA) this.drawFofa(f.x, f.y, f.r, f.r, 0, tt);
     for (const d of [-BG.hw - 3, BG.hw + 3]) { off(d); ctx.strokeStyle = NAVY; ctx.lineWidth = 7; ctx.stroke(); off(d); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5; ctx.stroke(); off(d); ctx.strokeStyle = '#e8484a'; ctx.setLineDash([9, 9]); ctx.stroke(); ctx.setLineDash([]); }
     // atalho da lagoa: corredor de areia com a água no meio e muretas dos dois lados
-    { const LG = BG_LAGOA, A = LG.A, B = LG.B, ang = Math.atan2(B[1] - A[1], B[0] - A[0]), len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    for (const LG of BG_SCS) { const A = LG.A, B = LG.B, ang = Math.atan2(B[1] - A[1], B[0] - A[0]), len = Math.hypot(B[0] - A[0], B[1] - A[1]);
       ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); R(0, -BG.sw, len, BG.sw * 2, '#dcc596'); ctx.restore();
       if (LG.kind === 'agua') { const lg = ctx.createRadialGradient(LG.x, LG.y, 5, LG.x, LG.y, LG.rx); lg.addColorStop(0, '#2f8fd0'); lg.addColorStop(1, '#6fd0e0'); ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(LG.x, LG.y, LG.rx, LG.ry, ang, 0, TAU); ctx.fill();
         for (let i = 0; i < 6; i++) { ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(LG.x + Math.cos(i * 1.7) * 40, LG.y + Math.sin(i * 2.3) * 28, 4 + ((tt * 6 + i * 3) % 8), 0, TAU); ctx.stroke(); } }
       else this.drawFofa(LG.x, LG.y, LG.rx, LG.ry, ang, tt);
-      if (BG_SC.ramp) { const RP = this.scRamp(); ctx.save(); ctx.translate(RP.x, RP.y); ctx.rotate(RP.a); const g = ctx.createLinearGradient(-12, 0, 12, 0); g.addColorStop(0, '#c9a46a'); g.addColorStop(1, '#fff6e0'); ctx.fillStyle = g; ctx.fillRect(-12, -BG.sw + 3, 24, BG.sw * 2 - 6); ctx.strokeStyle = NAVY; ctx.lineWidth = .8; ctx.strokeRect(-12, -BG.sw + 3, 24, BG.sw * 2 - 6); ctx.restore(); }
+      if (LG.ramp) { const RP = this.scRamp(LG); ctx.save(); ctx.translate(RP.x, RP.y); ctx.rotate(RP.a); const g = ctx.createLinearGradient(-12, 0, 12, 0); g.addColorStop(0, '#c9a46a'); g.addColorStop(1, '#fff6e0'); ctx.fillStyle = g; ctx.fillRect(-12, -BG.sw + 3, 24, BG.sw * 2 - 6); ctx.strokeStyle = NAVY; ctx.lineWidth = .8; ctx.strokeRect(-12, -BG.sw + 3, 24, BG.sw * 2 - 6); ctx.restore(); }
       // muretas do corredor só onde ele sai da pista principal
-      if (!this.scW) { this.scW = []; for (const y of [-BG.sw - 3, BG.sw + 3]) for (let x = 0; x < len; x += 9) { const wx = A[0] + Math.cos(ang) * x - Math.sin(ang) * y, wy = A[1] + Math.sin(ang) * x + Math.cos(ang) * y; let md = Infinity; for (const q of BG_LINE) md = Math.min(md, Math.hypot(q[0] - wx, q[1] - wy)); if (md > BG.hw + 4) this.scW.push([x, y]); } }
-      ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); for (const [x, y] of this.scW) { R(x, y - 3.5, 9.5, 7, NAVY); R(x, y - 2.5, 9.5, 5, (x / 9) % 2 < 1 ? '#e8484a' : '#ffffff'); } ctx.restore(); }
+      if (!LG.walls) { LG.walls = []; for (const y of [-BG.sw - 3, BG.sw + 3]) for (let x = 0; x < len; x += 9) { const wx = A[0] + Math.cos(ang) * x - Math.sin(ang) * y, wy = A[1] + Math.sin(ang) * x + Math.cos(ang) * y; let md = Infinity; for (const q of BG_LINE) md = Math.min(md, Math.hypot(q[0] - wx, q[1] - wy)); if (md > BG.hw + 4) LG.walls.push([x, y]); } }
+      ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); for (const [x, y] of LG.walls) { R(x, y - 3.5, 9.5, 7, NAVY); R(x, y - 2.5, 9.5, 5, (x / 9) % 2 < 1 ? '#e8484a' : '#ffffff'); } ctx.restore(); }
     if (BG_T.farol) this.drawFarol(BG_T.farol[0], BG_T.farol[1], tt);
     // estacas com bandeirinhas atrás das muretas (a cada tanto)
     for (let i = 0; i < BG_LINE.length; i += 12) { const p = BG_LINE[i], q = BG_LINE[(i + 1) % BG_LINE.length], nx = -(q[1] - p[1]), ny = q[0] - p[0], nl = Math.hypot(nx, ny) || 1; for (const sd of [-1, 1]) { const x = p[0] + nx / nl * sd * (BG.hw + 14), y = p[1] + ny / nl * sd * (BG.hw + 14); if (Math.abs(x - this.camX) > vw / 2 + 20 || Math.abs(y - this.camY) > vh / 2 + 20) continue; R(x - .8, y - 6, 1.6, 6, '#7a5233'); ctx.fillStyle = (i / 12) % 2 ? '#e8484a' : '#ffffff'; ctx.beginPath(); ctx.moveTo(x + .8, y - 6); ctx.lineTo(x + 6, y - 4.5); ctx.lineTo(x + .8, y - 3); ctx.fill(); } }
@@ -456,6 +469,7 @@ const bugue = {
     // efeitos de chão
     for (const f of this.fx) { const k = f.t / (f.life || .6); ctx.globalAlpha = 1 - k;
       if (f.k === 'pó') { ctx.fillStyle = '#fff8ea'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 6, 0, TAU); ctx.fill(); }
+      else if (f.k === 'vento') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4; for (const sd of [-1, 1]) { ctx.beginPath(); ctx.arc(f.x, f.y, 8 + k * 16, f.a + sd * 1.2 - .5, f.a + sd * 1.2 + .5); ctx.stroke(); } }
       else if (f.k === 'fofa') { ctx.fillStyle = '#c9a46a'; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.fill(); }
       else if (f.k === 'água') { ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(f.x, f.y, 2 + k * 7, 0, TAU); ctx.stroke(); }
       else if (f.k === 'faísca' || f.k === 'faísca2') R(f.x - 1, f.y - 1, 2, 2, f.k === 'faísca' ? '#6bd8ff' : '#ffa53a');
@@ -495,12 +509,15 @@ const bugue = {
   },
   // mar ao norte da Duna do Farol
   drawSea(tt, vw, vh) {
-    if (this.camY - vh / 2 > 60) return;
-    const x0 = this.camX - vw / 2 - 20, x1 = this.camX + vw / 2 + 20, y0 = this.camY - vh / 2 - 20, xs = Math.floor(x0 / 10) * 10;
+    const oy = BG_T.box.y0 - 146; // a beira do mar fica 90 px acima da pista mais alta
+    if (this.camY - oy - vh / 2 > 60) return;
+    ctx.save(); ctx.translate(0, oy);
+    const x0 = this.camX - vw / 2 - 20, x1 = this.camX + vw / 2 + 20, y0 = this.camY - oy - vh / 2 - 20, xs = Math.floor(x0 / 10) * 10;
     R(x0, y0, x1 - x0, 56 - y0, '#4fbad0'); R(x0, 20, x1 - x0, 36, '#8fdde6');
     ctx.fillStyle = '#e9dcc0'; ctx.beginPath(); ctx.moveTo(x0, 70); for (let x = xs; x < x1; x += 10) ctx.lineTo(x, 50 + Math.sin(x * .02 + tt * 1.2) * 3); ctx.lineTo(x1, 70); ctx.closePath(); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 2;
     for (let w = 0; w < 3; w++) { ctx.beginPath(); for (let x = xs; x < x1; x += 10) { const y = 44 - w * 28 + Math.sin(x * .03 + tt * 1.6 + w) * 4 - (tt * 5 + w * 9) % 10; x === xs ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); }
+    ctx.restore();
   },
   // o farol visto de cima: torre listrada e o facho girando
   drawFarol(x, y, tt) {
@@ -552,6 +569,10 @@ const bugue = {
     if (k.me) { ctx.fillStyle = '#f4efe6'; ctx.beginPath(); ctx.arc(-1, 0, 3.6, 0, TAU); ctx.fill(); R(-3.5, -3.2, 5, 6.4, '#3b6fd6'); R(-1.5, -.6, 4, 1.2, '#ffffff'); ctx.fillStyle = '#7fdcff'; ctx.beginPath(); ctx.arc(-1, 3.6, .9, 0, TAU); ctx.arc(-1, -3.6, .9, 0, TAU); ctx.fill(); }
     else { ctx.fillStyle = k.col; ctx.beginPath(); ctx.arc(-1, 0, 3.8, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.stroke(); R(1, -2, 1.6, 4, '#1b1f4f'); }
     ctx.restore();
+    if (k.draft > .2 && !(k.z > 0)) { const a = Math.min(1, (k.draft - .2) / .6), c = Math.cos(k.d), sn = Math.sin(k.d); ctx.lineCap = 'round';
+      for (let i = 0; i < 6; i++) { const ph = ((tt * 3.2 + i * .19) % 1), side = i % 2 ? 1 : -1, off = side * (10 + (i % 3) * 3), along = 18 - ph * 40, x = k.x + c * along - sn * off, y = k.y - z + sn * along + c * off;
+        for (const [st, lw] of [[`rgba(27,31,79,${.35 * a * (1 - ph)})`, 3], [`rgba(235,248,255,${a * (1 - ph * .6)})`, 1.6]]) { ctx.strokeStyle = st; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - c * 15, y - sn * 15); ctx.stroke(); } }
+      ctx.lineCap = 'butt'; }
     if (k.shield > 0) { ctx.strokeStyle = `rgba(255,107,107,${.5 + .3 * Math.sin(tt * 8)})`; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(k.x, k.y - z, 14, 0, TAU); ctx.stroke(); }
     if (k.me) { ctx.fillStyle = '#fff6d6'; ctx.beginPath(); ctx.moveTo(k.x, k.y - z - 15); ctx.lineTo(k.x - 3, k.y - z - 20); ctx.lineTo(k.x + 3, k.y - z - 20); ctx.fill(); }
   },

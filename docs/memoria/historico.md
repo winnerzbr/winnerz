@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Pedidos do que falta (bugue e bocha)
+- **Pedido do dono:** fazer os prompts de tudo o que ainda é desenhado pelo jogo.
+- **Feito (página de pedidos):**
+  - corrida de bugue: "Lagoa do atalho", "Esteira de turbo" e "Efeitos da corrida", com as imagens aprovadas para anexar (folha de chão, dunas, bugue);
+  - bocha: grupo novo "Relevo da cancha" com "Montinho, buraco e areia fofa", anexando a vila aprovada.
+- **Já tinham pedido:** a bolinha de gude da embaixadinha e as pranchas do pingue-pongue.
+- **Pendente:** o dono gerar as artes.
+
 ## 31/10/2026: Jogos de Verão, chão da pista pintado e a onda fora dos itens
 - **O dono mandou:** a textura do chão da pista. **Pediu:** retirar a onda.
 - **Feito:**

@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Editor do jogo, abre sempre e mais coisas arrastando
+- **O dono relatou:** o editor abriu uma vez e não abriu mais. **Pediu:** tudo o que der, editar arrastando.
+- **Feito:** botão e editor acima da tela de pausa; abertura que não trava; configuração guardada como texto no banco; perguntas dentro do editor (o navegador bloqueia as janelas de pergunta na página); rostos e quadros com 4 modos de arrastar, rodinha e o quadro anterior por baixo; aba nova "Cancha da bocha" para arrastar a cancha e o lançamento. Detalhes em `jogos-de-verao.md`.
+- **Testes:** `wzeditor.cjs`, `todas.cjs`.
+- **Pendente:** o dono confirmar que abre sempre no jogo publicado; próximas etapas do editor (artes, velocidade dos movimentos, outras fases).
+
 ## 31/10/2026: Jogos de Verão, editor do jogo
 - **Pedido do dono:** um editor completo para mexer sem depender do Claude (escolheu: tudo, rascunho + aplicar, página separada).
 - **Feito:** editor dentro da página do jogo, só para o dono (botão "Editor"), com Mecânicas, Pistas do bugue (mapa arrastável), Rostos e quadros, Textos e falas e Versões; rascunho salvo sozinho, Testar, Aplicar com versão; a página do jogo ganhou o banco (db, só o dono escreve) e o `user`. Detalhes em `jogos-de-verao.md`.

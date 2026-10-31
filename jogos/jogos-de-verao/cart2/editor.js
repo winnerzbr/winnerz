@@ -118,17 +118,23 @@ const WZDB = (() => {
     })();
     return ready;
   }
-  async function get(k) { await init(); if (db) { try { const s = await db.doc('wz/' + k).get(); return s.exists ? s.data() : null; } catch { return null; } } return LOCAL ? lsGet(k) : null; }
-  async function set(k, v) { await init(); if (db) return db.doc('wz/' + k).set(v); if (LOCAL) return lsSet(k, v); throw new Error('sem banco'); }
+  // o banco não aceita bem nomes com ponto nem listas dentro de listas (as pistas): a configuração vai guardada como texto
+  const pack = (v) => { const o = { at: v.at || Date.now(), nome: v.nome || '' }; if (v.cfg !== undefined) o.json = JSON.stringify(v.cfg); return o; };
+  const unpack = (d) => { if (!d) return null; const o = { ...d }; if (typeof d.json === 'string') { try { o.cfg = JSON.parse(d.json); } catch { o.cfg = null; } delete o.json; } return o; };
+  // nenhuma leitura fica esperando para sempre: depois de 8 s desiste
+  const limite = (pr, ms = 8000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('demorou')), ms))]);
+  const MEM = {};
+  async function get(k) { await init(); if (db) { try { const s = await limite(db.doc('wz/' + k).get()); const v = s.exists ? unpack(s.data()) : null; MEM[k] = v; return v; } catch { return MEM[k] ?? null; } } return LOCAL ? lsGet(k) : null; }
+  async function set(k, v) { await init(); MEM[k] = v; if (db) return limite(db.doc('wz/' + k).set(pack(v)), 15000); if (LOCAL) return lsSet(k, v); throw new Error('sem banco'); }
   async function del(k) { await init(); if (db) return db.doc('wz/' + k).delete(); if (LOCAL) try { localStorage.removeItem('wz_' + k); } catch { /* */ } }
   async function versions() {
     await init();
-    if (db) { try { const q = await db.collection('wz').get(); return q.docs.filter((d) => d.id.startsWith('v')).map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.at - a.at); } catch { return []; } }
+    if (db) { try { const q = await limite(db.collection('wz').get()); return q.docs.filter((d) => d.id.startsWith('v')).map((d) => ({ id: d.id, ...unpack(d.data()) })).sort((a, b) => b.at - a.at); } catch { return []; } }
     return LOCAL ? (lsGet('versoes') || []) : [];
   }
   async function addVersion(v) {
     await init(); const id = 'v' + v.at;
-    if (db) return db.doc('wz/' + id).set(v);
+    if (db) return limite(db.doc('wz/' + id).set(pack(v)), 15000);
     if (LOCAL) { const L = lsGet('versoes') || []; L.unshift({ id, ...v }); lsSet('versoes', L.slice(0, 30)); }
   }
   return { init, get, set, del, versions, addVersion };
@@ -148,8 +154,8 @@ function wzBotao() {
   b.title = 'Editor do jogo (só você vê)'; b.addEventListener('click', () => wzAbrir()); document.body.appendChild(b);
 }
 const WZ_CSS = `
-#wz-abrir{position:fixed;left:10px;bottom:10px;z-index:60;font:600 13px/1 system-ui,sans-serif;padding:8px 12px;border-radius:8px;border:2px solid #1b1f4f;background:#fff6d6;color:#1b1f4f;cursor:pointer}
-#wz{position:fixed;inset:0;z-index:80;background:#f4efe4;color:#1b1f4f;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr;}
+#wz-abrir{position:fixed;left:10px;bottom:10px;z-index:9999;font:600 13px/1 system-ui,sans-serif;padding:8px 12px;border-radius:8px;border:2px solid #1b1f4f;background:#fff6d6;color:#1b1f4f;cursor:pointer}
+#wz{position:fixed;inset:0;z-index:10000;background:#f4efe4;color:#1b1f4f;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr;}
 #wz *{box-sizing:border-box}
 #wz header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;background:#1b1f4f;color:#fff6d6}
 #wz header h1{font-size:15px;margin:0 10px 0 0;font-weight:700;letter-spacing:.02em}
@@ -191,32 +197,37 @@ const WZE = { cfg: { mec: {}, pistas: {}, rostos: {}, textos: {} }, aba: 'mec', 
 let wzTimer = 0;
 function wzMudou() {
   WZE.salvo = false; wzStatus('Salvando rascunho…'); clearTimeout(wzTimer);
-  wzTimer = setTimeout(async () => { try { await WZDB.set('rascunho', { cfg: WZE.cfg, at: Date.now() }); WZE.salvo = true; wzStatus('Rascunho salvo'); } catch { wzStatus('Não deu para salvar o rascunho agora'); } }, 1200);
+  wzTimer = setTimeout(async () => { try { await WZDB.set('rascunho', { cfg: WZE.cfg, at: Date.now() }); WZE.salvo = true; wzStatus('Rascunho salvo'); } catch (e) { wzStatus('Não deu para salvar o rascunho agora (' + (e && (e.code || e.message)) + ')'); } }, 1200);
 }
 function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.textContent = t; }
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
+let wzAbrindo = false;
 async function wzAbrir() {
+  if (document.getElementById('wz')) return; if (wzAbrindo) return; wzAbrindo = true;
+  try {
   if (!document.getElementById('wz-css')) document.head.append(el('style', { id: 'wz-css', textContent: WZ_CSS }));
-  if (mode === 'play' && typeof pause === 'function') pause();
-  const r = await WZDB.get('rascunho'), ap = await WZDB.get('aplicado');
-  WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(r && r.cfg) || WZ.clone(ap && ap.cfg) || {});
-  WZE.aplicadoEm = ap ? ap.at : 0;
-  WZ.apply(WZE.cfg); // o editor mostra o rascunho
+  try { if (mode === 'play' && typeof pause === 'function') pause(); } catch { /* */ }
+  let r = null, ap = null;
+  try { [r, ap] = await Promise.all([WZDB.get('rascunho'), WZDB.get('aplicado')]); } catch { /* abre com o que tiver */ }
+  WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(r && r.cfg) || WZ.clone(ap && ap.cfg) || WZ.clone(WZE.cfg) || {});
+  WZE.aplicadoEm = ap ? ap.at : WZE.aplicadoEm || 0;
+  try { WZ.apply(WZE.cfg); } catch (e) { console.warn('editor: configuração com problema', e); } // o editor mostra o rascunho
   const box = el('div', { id: 'wz' },
     el('header', {}, el('h1', {}, 'Editor dos Jogos de Verão'), el('span', { class: 'st', id: 'wz-st' }, WZE.aplicadoEm ? `Aplicado pela última vez em ${new Date(WZE.aplicadoEm).toLocaleString('pt-BR')}` : 'Nada aplicado ainda'),
       el('button', { type: 'button', on: { click: wzTestar } }, 'Testar'),
       el('button', { type: 'button', class: 'pri', on: { click: wzAplicar } }, 'Aplicar no jogo'),
       el('button', { type: 'button', on: { click: wzFechar } }, 'Fechar')),
     el('div', { class: 'corpo' },
-      el('nav', {}, ...[['mec', 'Mecânicas'], ['pistas', 'Pistas do bugue'], ['rostos', 'Rostos e quadros'], ['textos', 'Textos e falas'], ['versoes', 'Versões e cópia']].map(([k, t]) =>
+      el('nav', {}, ...[['mec', 'Mecânicas'], ['pistas', 'Pistas do bugue'], ['cancha', 'Cancha da bocha'], ['rostos', 'Rostos e quadros'], ['textos', 'Textos e falas'], ['versoes', 'Versões e cópia']].map(([k, t]) =>
         el('button', { type: 'button', class: WZE.aba === k ? 'on' : '', on: { click: () => { WZE.aba = k; wzRender(); } } }, t))),
       el('main', { id: 'wz-main' })));
   // as teclas digitadas no editor não chegam no jogo (Espaço, setas, Enter)
   for (const t of ['keydown', 'keyup']) box.addEventListener(t, (e) => e.stopPropagation());
-  document.body.append(box); wzRender();
+  document.body.append(box); try { wzRender(); } catch (e) { wzStatus('Esta aba teve um problema; escolha outra.'); console.warn(e); }
+  } finally { wzAbrindo = false; }
 }
-function wzFechar() { const b = document.getElementById('wz'); if (b) b.remove(); WZ.apply(WZ_APLICADO); clearInterval(WZE.anim); }
+function wzFechar() { const b = document.getElementById('wz'); if (b) b.remove(); clearInterval(WZE.anim); try { WZ.apply(WZ_APLICADO); } catch (e) { console.warn(e); } }
 function wzTestar() {
   // joga com o rascunho (só aqui; o jogo dos outros continua com o aplicado). Ao voltar ao menu, abre o editor de novo pelo botão.
   const ev = EVENTS.find((e) => e.id === WZE.ev) || EVENTS[0]; const b = document.getElementById('wz'); if (b) b.remove(); clearInterval(WZE.anim);
@@ -224,18 +235,32 @@ function wzTestar() {
   choose(ev); showOv(true); wzAviso('Testando o rascunho. Para voltar a editar, toque em Editor.');
 }
 function wzAviso(t) { if (typeof say === 'function') say(t); }
+// pergunta dentro do editor (a página do jogo não pode abrir as janelas de pergunta do navegador)
+function wzPergunta(texto, campo = false) {
+  return new Promise((res) => {
+    const inp = campo ? el('input', { type: 'text', placeholder: 'Ex.: pista nova da Lagoa' }) : null;
+    const fecha = (v) => { fundo.remove(); res(v); };
+    const fundo = el('div', { style: 'position:fixed;inset:0;z-index:10001;background:rgba(27,31,79,.45);display:grid;place-items:center;padding:16px' },
+      el('div', { style: 'background:#fffaf0;border:2px solid #1b1f4f;border-radius:10px;padding:16px;max-width:420px;width:100%;display:grid;gap:10px' },
+        el('div', {}, texto), inp,
+        el('div', { style: 'display:flex;gap:8px;justify-content:flex-end' },
+          el('button', { type: 'button', on: { click: () => fecha(null) } }, 'Cancelar'),
+          el('button', { type: 'button', class: 'pri', on: { click: () => fecha(inp ? inp.value.trim() : true) } }, 'Confirmar'))));
+    (document.getElementById('wz') || document.body).append(fundo); if (inp) inp.focus();
+  });
+}
 async function wzAplicar() {
-  const at = Date.now(), nome = prompt('Nome desta versão (opcional):', '') ?? null; if (nome === null) return;
+  const nome = await wzPergunta('Aplicar o rascunho no jogo de todo mundo? Dê um nome para esta versão (opcional):', true); if (nome === null) return; const at = Date.now();
   try {
     await WZDB.set('aplicado', { cfg: WZE.cfg, at, nome });
     await WZDB.addVersion({ cfg: WZE.cfg, at, nome: nome || '' });
     WZ_APLICADO = WZ.clone(WZE.cfg); WZE.aplicadoEm = at; wzStatus(`Aplicado em ${new Date(at).toLocaleString('pt-BR')}: já vale para quem abrir o jogo`);
-  } catch { wzStatus('Não deu para aplicar agora. Tente de novo.'); }
+  } catch (e) { wzStatus('Não deu para aplicar agora (' + (e && (e.code || e.message)) + '). Tente de novo.'); }
 }
 function wzRender() {
   const m = document.getElementById('wz-main'); if (!m) return; clearInterval(WZE.anim);
-  document.querySelectorAll('#wz nav button').forEach((b, i) => b.classList.toggle('on', ['mec', 'pistas', 'rostos', 'textos', 'versoes'][i] === WZE.aba));
-  m.replaceChildren(); ({ mec: wzMec, pistas: wzPistas, rostos: wzRostos, textos: wzTextos, versoes: wzVersoes })[WZE.aba](m);
+  document.querySelectorAll('#wz nav button').forEach((b, i) => b.classList.toggle('on', ['mec', 'pistas', 'cancha', 'rostos', 'textos', 'versoes'][i] === WZE.aba));
+  m.replaceChildren(); try { const r = ({ mec: wzMec, pistas: wzPistas, cancha: wzCancha, rostos: wzRostos, textos: wzTextos, versoes: wzVersoes })[WZE.aba](m); if (r && r.catch) r.catch((e) => { m.append(el('p', { class: 'aviso' }, 'Esta parte teve um problema: ' + e.message)); }); } catch (e) { m.append(el('p', { class: 'aviso' }, 'Esta parte teve um problema: ' + e.message)); console.warn(e); }
 }
 
 // ---------- MECÂNICAS
@@ -306,7 +331,7 @@ function wzPistas(m) {
     el('h3', {}, 'Nome e fala'),
     (() => { const i = el('input', { type: 'text', value: D.name }); i.addEventListener('change', () => { marca(); D.name = i.value; salvar(); }); return i; })(),
     (() => { const i = el('textarea', { value: D.fala }); i.addEventListener('change', () => { marca(); D.fala = i.value; salvar(); }); return i; })(),
-    el('button', { type: 'button', class: 'dang', on: { click: () => { if (!confirm('Voltar esta pista ao original?')) return; for (const c of WZ_PISTA_CAMPOS) delete WZE.cfg.pistas[`pista:${ti}.${c}`]; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, 'Voltar a pista ao original'));
+    el('button', { type: 'button', class: 'dang', on: { click: async () => { if (!(await wzPergunta('Voltar esta pista ao original?'))) return; for (const c of WZ_PISTA_CAMPOS) delete WZE.cfg.pistas[`pista:${ti}.${c}`]; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, 'Voltar a pista ao original'));
   m.append(el('div', { class: 'pista' }, cv, lado));
   let zoom = 1, cx = 0, cy = 0;
   const enquadra = () => { let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; for (const q of L) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]); } cx = (x0 + x1) / 2; cy = (y0 + y1) / 2; const r = cv.getBoundingClientRect(); zoom = Math.min(r.width / (x1 - x0 + 400), r.height / (y1 - y0 + 400)) || .2; };
@@ -409,10 +434,41 @@ function wzPistas(m) {
   WZE.redesenha = desenha;
 }
 
+// ---------- CANCHA DA BOCHA (arrastando): os cantos da cancha (a vila pintada acompanha) e o ponto de lançamento
+function wzCancha(m) {
+  m.append(el('h2', {}, 'Cancha da bocha'), el('p', { class: 'ajuda' }, 'Arraste os círculos: os 4 cantos mudam o tamanho da cancha (o desenho da vila acompanha) e o círculo azul é de onde as bolas saem. Os montinhos e buracos são sorteados a cada partida; "Sortear de novo" mostra outro sorteio.'));
+  const cv = el('canvas', { class: 'pc', style: 'height:auto;aspect-ratio:16/9;max-width:980px' }), g = cv.getContext('2d');
+  m.append(cv, el('div', { class: 'chips', style: 'margin-top:8px' },
+    el('button', { type: 'button', on: { click: () => { bocha.init(); desenha(); } } }, 'Sortear de novo'),
+    el('button', { type: 'button', class: 'dang', on: { click: () => { for (const k of ['x0', 'x1', 'y0', 'y1', 'sx', 'sy']) delete WZE.cfg.mec['BC.' + k]; WZ.apply(WZE.cfg); wzMudou(); desenha(); } } }, 'Voltar a cancha ao original')));
+  if (!bocha.T) bocha.init();
+  const VW = () => (typeof W === 'number' ? W : 400), VH = () => (typeof H === 'number' ? H : 225);
+  const pontos = () => [['x0', 'y0', BC.x0, BC.y0], ['x1', 'y0', BC.x1, BC.y0], ['x0', 'y1', BC.x0, BC.y1], ['x1', 'y1', BC.x1, BC.y1], ['sx', 'sy', BC.sx, BC.sy]];
+  let k = 1;
+  function desenha() {
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (!r.width) return; cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+    k = Math.min(r.width / VW(), r.height / VH());
+    const save = ctx; ctx = g; try { g.setTransform(dpr * k, 0, 0, dpr * k, 0, 0); g.clearRect(0, 0, VW(), VH()); const st = bocha.state; bocha.state = 'score'; bocha.res = null; bocha.draw(0); bocha.state = st; } catch (e) { console.warn(e); } finally { ctx = save; }
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.strokeStyle = '#ff2d55'; g.lineWidth = 2; g.setLineDash([6, 5]); g.strokeRect(BC.x0 * k, BC.y0 * k, (BC.x1 - BC.x0) * k, (BC.y1 - BC.y0) * k); g.setLineDash([]);
+    pontos().forEach(([, , x, y], i) => { g.fillStyle = i === 4 ? '#3f7fe0' : '#ffffff'; g.strokeStyle = '#1b1f4f'; g.lineWidth = 2.5; g.beginPath(); g.arc(x * k, y * k, 9, 0, Math.PI * 2); g.fill(); g.stroke(); });
+  }
+  let dr = null;
+  cv.addEventListener('pointerdown', (e) => { const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top; const i = pontos().findIndex(([, , px, py]) => Math.hypot(px * k - x, py * k - y) < 16); if (i < 0) return; cv.setPointerCapture(e.pointerId); dr = i; });
+  cv.addEventListener('pointermove', (e) => {
+    if (dr == null) return; const r = cv.getBoundingClientRect(), x = Math.round((e.clientX - r.left) / k), y = Math.round((e.clientY - r.top) / k), [kx, ky] = pontos()[dr];
+    const lim = { x0: [0, BC.x1 - 80], x1: [BC.x0 + 80, VW()], y0: [20, BC.y1 - 50], y1: [BC.y0 + 50, VH()], sx: [BC.x0 + 2, BC.x0 + 60], sy: [BC.y0 + 10, BC.y1 - 10] };
+    const cl = (kk, v) => Math.max(lim[kk][0], Math.min(lim[kk][1], v));
+    WZE.cfg.mec['BC.' + kx] = cl(kx, x); WZE.cfg.mec['BC.' + ky] = cl(ky, y); WZ.apply(WZE.cfg); desenha();
+  });
+  cv.addEventListener('pointerup', () => { if (dr != null) { dr = null; wzMudou(); } });
+  requestAnimationFrame(desenha);
+}
+
 // ---------- ROSTOS E QUADROS
 function wzRostos(m) {
   WZE.rset = WZE.rset || 'ia'; const S = WZ_SETS.find((s) => s.id === WZE.rset), A0 = S.atl();
-  m.append(el('h2', {}, 'Rostos e quadros'), el('p', { class: 'ajuda' }, 'Escolha o personagem, o movimento e o quadro. Arraste o rosto para mudar a posição dentro do visor; use os controles para o tamanho, o giro e o encaixe do quadro (para o desenho não pular de um quadro para outro). O rosto só aparece dentro do visor (a parte escura do desenho). "Tocar" mostra o movimento andando.'));
+  m.append(el('h2', {}, 'Rostos e quadros'), el('p', { class: 'ajuda' }, 'Escolha o personagem, o movimento e o quadro. Tudo se faz arrastando no desenho: escolha abaixo se o arraste move o rosto, muda o tamanho (para cima aumenta), gira (para os lados) ou move o desenho inteiro (para encaixar um quadro no outro; ligue \"Ver o quadro anterior por baixo\"). A rodinha do mouse também muda o tamanho do rosto. Os números ao lado são para o ajuste fino. O rosto só aparece dentro do visor (a parte escura do desenho). "Tocar" mostra o movimento andando.'));
   m.append(el('div', { class: 'chips' }, ...WZ_SETS.map((s) => el('button', { type: 'button', class: s.id === WZE.rset ? 'on' : '', on: { click: () => { WZE.rset = s.id; WZE.ran = null; WZE.rk = 0; wzRender(); } } }, s.nome))));
   if (!A0 || !window.__fr || !window.__fr[S.id]) { m.append(el('p', { class: 'aviso' }, 'Os desenhos deste personagem ainda estão carregando. Volte nesta aba em alguns segundos.')); return; }
   const anims = Object.keys(A0.a).filter((a) => !/_\d$/.test(a)); WZE.ran = WZE.ran && A0.a[WZE.ran] ? WZE.ran : anims[0]; WZE.rk = Math.min(WZE.rk || 0, A0.a[WZE.ran].f.length - 1);
@@ -441,20 +497,36 @@ function wzRostos(m) {
       (() => { const r = el('input', { type: 'range', min: '2', max: '12', step: '.5', value: String(zoom) }); r.addEventListener('input', () => { zoom = WZE.rzoom = +r.value; desenha(); }); return el('div', { class: 'lin', style: 'grid-template-columns:90px 1fr' }, 'Aproximar', r); })(),
       el('button', { type: 'button', on: { click: () => { toca = !toca; } } }, 'Tocar / parar'));
   }
-  m.append(el('div', { class: 'chips' }, 'Movimento: ', sel), tira, el('div', { class: 'rost' }, cv, ctl));
+  const modos = el('div', { class: 'chips' }, 'Arrastar no desenho: ', ...[['rosto', 'Mover o rosto'], ['tam', 'Tamanho do rosto ↕'], ['giro', 'Girar o rosto ↔'], ['desenho', 'Mover o desenho']].map(([k2, t2]) =>
+    el('button', { type: 'button', class: (WZE.rmodo || 'rosto') === k2 ? 'on' : '', on: { click: (e) => { WZE.rmodo = k2; modos.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b === e.target)); } } }, t2)),
+    (() => { const c = el('input', { type: 'checkbox', checked: !!WZE.ronion }); c.addEventListener('change', () => { WZE.ronion = c.checked; desenha(); }); return el('label', { style: 'display:flex;gap:6px;align-items:center;margin-left:8px' }, c, 'Ver o quadro anterior por baixo'); })());
+  m.append(el('div', { class: 'chips' }, 'Movimento: ', sel), tira, modos, el('div', { class: 'rost' }, cv, ctl));
   function desenha() {
     const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (!r.width) return; cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
     const save = ctx; ctx = g; try {
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.fillStyle = '#cfe8ee'; g.fillRect(0, 0, r.width, r.height);
       g.fillStyle = '#e9d7ad'; g.fillRect(0, r.height * .82, r.width, r.height * .18); g.strokeStyle = 'rgba(27,31,79,.3)'; g.beginPath(); g.moveTo(r.width / 2, 0); g.lineTo(r.width / 2, r.height); g.stroke();
-      g.translate(r.width / 2, r.height * .82); g.scale(zoom, zoom); S.fn(WZE.ran, WZE.rk, ex);
+      g.translate(r.width / 2, r.height * .82); g.scale(zoom, zoom);
+      // quadro anterior clarinho por baixo, para encaixar um no outro
+      const nq = A0.a[WZE.ran].f.length; if (WZE.ronion && nq > 1) { g.save(); g.globalAlpha = .3; S.fn(WZE.ran, (WZE.rk - 1 + nq) % nq, ex); g.restore(); }
+      S.fn(WZE.ran, WZE.rk, ex);
     } catch { /* desenho carregando */ } finally { ctx = save; }
   }
   // arrastar o rosto
   let dr = null;
-  cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); const o = cur(); dr = { x: e.clientX, y: e.clientY, fx: o.fx || 0, fy: o.fy || 0 }; });
-  cv.addEventListener('pointermove', (e) => { if (!dr) return; const k = 1 / (zoom * S.esc()), o = { ...cur(), fx: Math.round(dr.fx + (e.clientX - dr.x) * k), fy: Math.round(dr.fy + (e.clientY - dr.y) * k) }; WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha(); });
-  cv.addEventListener('pointerup', () => { if (dr) { dr = null; wzMudou(); campos(); } });
+  // o que o arraste faz: mover o rosto, mudar o tamanho (arrastar para cima/baixo), girar (para os lados) ou mover o desenho inteiro
+  cv.addEventListener('pointerdown', (e) => { cv.setPointerCapture(e.pointerId); const o = cur(); dr = { x: e.clientX, y: e.clientY, o: { fx: 0, fy: 0, fs: 1, fr: 0, ax: 0, ay: 0, ...o } }; });
+  cv.addEventListener('pointermove', (e) => {
+    if (!dr) return; const k = 1 / (zoom * S.esc()), dx = e.clientX - dr.x, dy = e.clientY - dr.y, o = { ...dr.o }, md = WZE.rmodo || 'rosto';
+    if (md === 'rosto') { o.fx = Math.round(dr.o.fx + dx * k); o.fy = Math.round(dr.o.fy + dy * k); }
+    else if (md === 'tam') o.fs = Math.round(Math.max(.3, Math.min(3, dr.o.fs * Math.exp(-dy / 150))) * 100) / 100;
+    else if (md === 'giro') o.fr = Math.round(dr.o.fr + dx / 3);
+    else { o.ax = Math.round(dr.o.ax + dx * k); o.ay = Math.round(dr.o.ay + dy * k); }
+    WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha();
+  });
+  cv.addEventListener('pointerup', () => { if (dr) { dr = null; const o = cur(); if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; WZ.apply(WZE.cfg); wzMudou(); campos(); } });
+  // rodinha do mouse: tamanho do rosto
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); const o = { fx: 0, fy: 0, fs: 1, fr: 0, ax: 0, ay: 0, ...cur() }; o.fs = Math.round(Math.max(.3, Math.min(3, o.fs * (e.deltaY < 0 ? 1.04 : 1 / 1.04))) * 100) / 100; WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha(); wzMudou(); clearTimeout(WZE.wt); WZE.wt = setTimeout(campos, 300); }, { passive: false });
   campos(); requestAnimationFrame(desenha);
   let t = 0; WZE.anim = setInterval(() => { if (!document.getElementById('wz-main')) return; if (toca) { t++; WZE.rk = t % A0.a[WZE.ran].f.length; desenha(); if (t % 4 === 0) campos(); } }, 125);
 }
@@ -485,12 +557,12 @@ async function wzVersoes(m) {
   m.append(el('h2', {}, 'Versões e cópia de segurança'), el('p', { class: 'ajuda' }, 'Cada vez que você aplica, uma versão fica guardada. "Trazer para o rascunho" coloca aquela versão no rascunho (aí é só testar e aplicar). A cópia de segurança é um texto com tudo o que você mudou: copie e guarde, ou cole uma cópia para trazer de volta.'));
   const lista = el('div', {}, 'Carregando…'); m.append(lista);
   const vs = await WZDB.versions(); lista.replaceChildren(...(vs.length ? vs.map((v) => el('div', { class: 'ver' }, el('div', {}, el('b', {}, v.nome || 'Sem nome'), ' · ', new Date(v.at).toLocaleString('pt-BR')),
-    el('button', { type: 'button', on: { click: () => { if (!confirm('Trocar o rascunho por esta versão?')) return; WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(v.cfg)); WZ.apply(WZE.cfg); wzMudou(); wzStatus('Versão trazida para o rascunho'); } } }, 'Trazer para o rascunho'))) : [el('p', { class: 'ajuda' }, 'Nenhuma versão aplicada ainda.')]));
+    el('button', { type: 'button', on: { click: async () => { if (!(await wzPergunta('Trocar o rascunho por esta versão?'))) return; WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(v.cfg)); WZ.apply(WZE.cfg); wzMudou(); wzStatus('Versão trazida para o rascunho'); } } }, 'Trazer para o rascunho'))) : [el('p', { class: 'ajuda' }, 'Nenhuma versão aplicada ainda.')]));
   const conta = (o) => Object.keys(o || {}).length;
   m.append(el('h3', {}, 'O rascunho agora'), el('p', { class: 'ajuda' }, `${conta(WZE.cfg.mec)} números, ${conta(WZE.cfg.pistas)} partes de pistas, ${conta(WZE.cfg.rostos)} quadros e ${conta(WZE.cfg.textos)} textos mudados.`));
   const ta = el('textarea', { style: 'min-height:140px;max-width:760px', value: JSON.stringify(WZE.cfg) });
   m.append(ta, el('div', { class: 'chips', style: 'margin-top:8px' },
     el('button', { type: 'button', on: { click: async () => { try { await navigator.clipboard.writeText(ta.value); wzStatus('Cópia copiada'); } catch { ta.select(); wzStatus('Selecione e copie o texto'); } } } }, 'Copiar a cópia de segurança'),
     el('button', { type: 'button', on: { click: () => { try { const c = JSON.parse(ta.value); if (!c || typeof c !== 'object') throw 0; WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, c); WZ.apply(WZE.cfg); wzMudou(); wzStatus('Cópia colada no rascunho'); } catch { wzStatus('Esse texto não é uma cópia válida'); } } } }, 'Colar no rascunho'),
-    el('button', { type: 'button', class: 'dang', on: { click: () => { if (!confirm('Apagar todas as mudanças do rascunho? (o que já foi aplicado continua no jogo)')) return; WZE.cfg = { mec: {}, pistas: {}, rostos: {}, textos: {} }; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, 'Limpar o rascunho')));
+    el('button', { type: 'button', class: 'dang', on: { click: async () => { if (!(await wzPergunta('Apagar todas as mudanças do rascunho? (o que já foi aplicado continua no jogo)'))) return; WZE.cfg = { mec: {}, pistas: {}, rostos: {}, textos: {} }; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, 'Limpar o rascunho')));
 }

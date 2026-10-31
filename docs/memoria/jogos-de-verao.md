@@ -419,5 +419,11 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Botões:** Testar (joga a prova escolhida com o rascunho, só para o dono), Aplicar no jogo (vale para todos e guarda versão), Fechar (volta ao aplicado).
 - **Como funciona por dentro:** `WZ.apply(cfg)` volta tudo ao original e aplica a configuração (números e textos por caminho, pistas recalculadas, rostos e encaixes nas medidas de cada quadro e no quadro do meio). `cfg = { mec, pistas, rostos, textos }`.
 - **Próximas etapas (ainda não feitas):** trocar artes subindo pranchas (recortar o verde e os quadros no próprio editor), velocidade dos movimentos, editar as outras fases (cancha da bocha, séries da embaixadinha etc.) no mesmo estilo do mapa das pistas.
-- **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto e fala, aplica, recarrega e confere).
+- **Correções e mudanças de 31/10 (o dono: "abriu uma vez e não abre mais"; "tudo que eu puder editar arrastando, melhor"):**
+  - o editor pausava o jogo e a tela de pausa ficava por cima do botão: o botão e o editor agora ficam acima de tudo; o editor não abre duas vezes, não fica esperando o banco para sempre (desiste em 8 s e abre com o que tiver) e mostra o erro na barra de cima se algo falhar;
+  - a configuração vai guardada no banco como texto (campo `json`), porque o banco pode recusar nomes com ponto e listas dentro de listas (os pontos das pistas);
+  - as perguntas (nome da versão, confirmar) são janelas do próprio editor: a página do jogo não pode abrir as janelas de pergunta do navegador (antes, "Aplicar" podia não fazer nada);
+  - rostos e quadros: tudo arrastando no desenho, com 4 modos (mover o rosto, tamanho ↕, girar ↔, mover o desenho), rodinha do mouse para o tamanho e o quadro anterior clarinho por baixo para encaixar;
+  - aba nova "Cancha da bocha": a cena da bocha com os 4 cantos da cancha e o ponto de lançamento para arrastar (a vila pintada acompanha a cancha), sortear o relevo de novo e voltar ao original.
+- **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere).
 

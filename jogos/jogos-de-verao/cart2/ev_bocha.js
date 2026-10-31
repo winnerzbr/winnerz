@@ -3,12 +3,12 @@
    Quem começa a rodada joga o bolim (a bolinha laranja); depois joga sempre quem está mais longe dele.
    ▲ ▼ miram. Segurar ✕ enche a força e soltar ROLA a bola; segurar ○ e soltar joga PELO ALTO: a bola voa, cai e quase para
    (cair em cima de outra bola tira ela do lugar). A força sobe e desce enquanto segura.
-   Areia: atrito forte (a bola freia mais rápido devagar no fim), montinhos e buracos desviam, areia fofa freia muito,
+   Areia (31/10: efeitos reforçados a pedido do dono): atrito forte, montinhos jogam a bola para o lado e buracos puxam a bola para dentro (ela pode parar no fundo), areia fofa quase para a bola,
    conchas são obstáculos e pegadas entortam um pouco a bola. Bolas batem umas nas outras (o bolim é mais leve).
    Tábuas baixas em volta da cancha: a bola bate e volta fraquinha; só sai a bola que cai fora pelo alto. Se o bolim sair, a rodada é anulada.
    Fim da rodada: cada bola mais perto do bolim que a melhor do outro lado vale 1 ponto. Quem fizer 7 vence.
    Arte provisória: tudo desenhado pelo jogo; os personagens são os desenhos do vôlei. */
-const BC = { x0: 50, x1: 386, y0: 70, y1: 190, sx: 58, sy: 130, rb: 6, rj: 3.5, fc: 62, fv: .5, G: 1150, meter: 1.05 };
+const BC = { x0: 50, x1: 386, y0: 70, y1: 190, sx: 58, sy: 130, rb: 6, rj: 3.5, fc: 62, fv: .5, G: 3000, meter: 1.05 };
 BC.L = BC.x1 - BC.sx;
 if (typeof Music !== 'undefined' && Music.songs.embaixadinha) Music.songs.bocha = Music.songs.embaixadinha;
 FALA.intro.bocha = [
@@ -43,11 +43,11 @@ const bocha = {
   terrain() {
     const R0 = (a, b) => a + Math.random() * (b - a), T = { mounds: [], soft: [], shells: [], prints: [] };
     const free = (x, y, d) => x > BC.sx + 40 && [...T.mounds, ...T.soft, ...T.shells].every((o) => Math.hypot(o.x - x, o.y - y) > d);
-    for (let k = 0, n = 0; k < 3 && n < 60; n++) { const x = R0(BC.sx + 70, BC.x1 - 30), y = R0(BC.y0 + 18, BC.y1 - 18); if (free(x, y, 50)) { T.mounds.push({ x, y, r: R0(17, 28), h: (k === 2 ? -1 : 1) * R0(.75, 1.2) }); k++; } }
-    for (let k = 0, n = 0; k < 2 && n < 60; n++) { const x = R0(BC.sx + 80, BC.x1 - 30), y = R0(BC.y0 + 16, BC.y1 - 16); if (free(x, y, 36)) { T.soft.push({ x, y, rx: R0(20, 32), ry: R0(11, 17), a: R0(-.6, .6) }); k++; } }
+    for (let k = 0, n = 0; k < 4 && n < 80; n++) { const x = R0(BC.sx + 70, BC.x1 - 26), y = R0(BC.y0 + 18, BC.y1 - 18); if (free(x, y, 46)) { T.mounds.push({ x, y, r: R0(20, 32), h: (k % 2 ? -1 : 1) * R0(.8, 1.2) }); k++; } }
+    for (let k = 0, n = 0; k < 2 && n < 60; n++) { const x = R0(BC.sx + 80, BC.x1 - 30), y = R0(BC.y0 + 16, BC.y1 - 16); if (free(x, y, 36)) { T.soft.push({ x, y, rx: R0(24, 38), ry: R0(13, 20), a: R0(-.6, .6) }); k++; } }
     for (let k = 0, n = 0; k < 5 && n < 80; n++) { const x = R0(BC.sx + 60, BC.x1 - 12), y = R0(BC.y0 + 8, BC.y1 - 8); if (free(x, y, 18)) { T.shells.push({ x, y, r: 2.4, a: R0(0, TAU), c: ['#fbe3d2', '#f4c7d8', '#fff2e0'][k % 3] }); k++; } }
     let px = R0(BC.sx + 70, BC.sx + 140), py = Math.random() < .5 ? BC.y0 + 4 : BC.y1 - 4; const dy = py < BC.sy ? 1 : -1, dx = R0(.25, .7);
-    for (let k = 0; k < 14; k++) { const d = Math.hypot(dx, 1); px += dx / d * 9; py += dy / d * 9; if (py < BC.y0 || py > BC.y1) break; T.prints.push({ x: px + (k % 2 ? 2.4 : -2.4) * dy / d, y: py - (k % 2 ? 2.4 : -2.4) * dx / d * dy, a: (k % 2 ? 1 : -1) * R0(.05, .1), ang: Math.atan2(dy, dx) }); }
+    for (let k = 0; k < 14; k++) { const d = Math.hypot(dx, 1); px += dx / d * 9; py += dy / d * 9; if (py < BC.y0 || py > BC.y1) break; T.prints.push({ x: px + (k % 2 ? 2.4 : -2.4) * dy / d, y: py - (k % 2 ? 2.4 : -2.4) * dx / d * dy, a: (k % 2 ? 1 : -1) * R0(.12, .2), ang: Math.atan2(dy, dx) }); }
     this.T = T;
   },
   newRound(by) {
@@ -96,7 +96,7 @@ const bocha = {
       }
       if (!b.mv) continue;
       const sp = Math.hypot(b.vx, b.vy), [gx, gy] = this.heightGrad(b.x, b.y), soft = this.softAt(b.x, b.y);
-      const fr = (BC.fc + BC.fv * sp) * (soft ? 2.6 : 1) * (b.jack ? 1.15 : 1);
+      const fr = (BC.fc + BC.fv * sp) * (soft ? 4 : 1) * (b.jack ? 1.15 : 1);
       const ax = -BC.G * gx, ay = -BC.G * gy;
       if (sp < 5 && Math.hypot(ax, ay) < BC.fc * 1.4) { b.vx = b.vy = 0; b.mv = false; continue; }
       const dec = sp > 0 ? Math.min(sp, fr * dt) / sp : 0;
@@ -275,8 +275,10 @@ const bocha = {
     for (const s of this.T.soft) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = 'rgba(245,225,180,.75)'; ctx.beginPath(); ctx.ellipse(0, 0, s.rx, s.ry, 0, 0, TAU); ctx.fill(); for (let k = 0; k < 18; k++) R(Math.cos(k * 2.4) * s.rx * .8 * ((k % 5) / 5), Math.sin(k * 2.4) * s.ry * .8 * ((k % 7) / 7), 1.4, 1, 'rgba(160,120,70,.3)'); ctx.restore(); }
     for (const m of this.T.mounds) {
       const up = m.h > 0, gr = ctx.createRadialGradient(m.x + (up ? -m.r * .3 : m.r * .3), m.y + (up ? -m.r * .3 : m.r * .3), 1, m.x, m.y, m.r * 1.15);
-      gr.addColorStop(0, up ? 'rgba(255,240,205,.55)' : 'rgba(110,70,30,.35)'); gr.addColorStop(.6, up ? 'rgba(255,240,205,.12)' : 'rgba(110,70,30,.1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 1.15, 0, TAU); ctx.fill();
-      const sh = ctx.createRadialGradient(m.x + (up ? m.r * .35 : -m.r * .35), m.y + (up ? m.r * .35 : -m.r * .35), 1, m.x, m.y, m.r); sh.addColorStop(0, up ? 'rgba(110,70,30,.25)' : 'rgba(255,240,205,.3)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
+      gr.addColorStop(0, up ? 'rgba(255,240,205,.75)' : 'rgba(100,60,25,.5)'); gr.addColorStop(.6, up ? 'rgba(255,240,205,.12)' : 'rgba(110,70,30,.1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 1.15, 0, TAU); ctx.fill();
+      const sh = ctx.createRadialGradient(m.x + (up ? m.r * .35 : -m.r * .35), m.y + (up ? m.r * .35 : -m.r * .35), 1, m.x, m.y, m.r); sh.addColorStop(0, up ? 'rgba(100,60,25,.42)' : 'rgba(255,240,205,.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
+      if (!up) { ctx.fillStyle = 'rgba(90,55,20,.22)'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .5, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,240,205,.5)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .92, -.2, Math.PI * .7); ctx.stroke(); }
+      else { ctx.strokeStyle = 'rgba(255,248,225,.55)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .55, Math.PI * .95, Math.PI * 1.6); ctx.stroke(); }
     }
     for (const p of this.T.prints) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang); ctx.fillStyle = 'rgba(120,80,40,.35)'; ctx.beginPath(); ctx.ellipse(0, 0, 2.6, 1.3, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(2.4, 0, .9, .9, 0, 0, TAU); ctx.fill(); ctx.restore(); }
     for (const s of this.T.shells) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = s.c; ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(0, 2); ctx.arc(0, 2, 3.2, Math.PI * 1.15, Math.PI * 1.85); ctx.closePath(); ctx.fill(); ctx.stroke(); for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(k * 1.8, -.6); ctx.stroke(); } ctx.restore(); }

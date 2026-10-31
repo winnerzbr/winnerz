@@ -30,7 +30,7 @@ O plano tem 21 provas, e o jogo publicado tem 17 delas. Os lugares, as paletas e
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
-    - Bocha na areia (`cart2/ev_bocha.js`): esperando o teste do dono.
+    - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar.
   - Faltam, nesta ordem: Teco-teco, Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
@@ -99,6 +99,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - a areia tem atrito forte;
   - montinhos e buracos desviam a bola, e a areia fofa freia muito;
   - conchas são obstáculos e pegadas entortam um pouco a bola;
+  - reforçado em 31/10, a pedido do dono:
+    - montinhos e buracos desviam cerca de 3 vezes mais: uma bola que passa na beira desvia uns 17 px, contra 6 antes;
+    - a bola rola morro abaixo e pode parar no fundo do buraco;
+    - a areia fofa freia 4 vezes mais que a areia batida;
+    - as pegadas entortam o dobro;
+    - são 2 montinhos e 2 buracos por partida, maiores;
+    - no desenho, o buraco tem o fundo escuro e a borda clara, e o montinho tem o brilho em cima;
   - as bolas batem umas nas outras, e o bolim é mais leve;
   - a bola pelo alto voa, cai e quase para; se cair em cima de outra, tira ela do lugar;
   - nas tábuas a bola bate e volta fraquinha;

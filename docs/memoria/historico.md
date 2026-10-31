@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Bocha aprovada e areia desviando mais
+- **Avaliação do dono:** achou a Bocha muito legal e desafiante e aprovou como protótipo inicial.
+- **Pedido dele:** a areia desviava pouco; buracos, montinhos e areia fofa deviam pesar mais.
+- **Feito:**
+  - rampa 2,6 vezes mais forte;
+  - 4 relevos maiores (2 montinhos e 2 buracos);
+  - areia fofa com 4 vezes o atrito;
+  - pegadas com o dobro do desvio;
+  - buraco e montinho mais fáceis de distinguir no desenho.
+- **Equilíbrio:** com jogadores automáticos, o muito bom venceu 2 de 3 partidas, o médio 1 de 3 e o fraco 1 de 3.
+- **Próximo:** Voo do teco-teco.
+
 ## 30/10/2026: Jogos de Verão, Bocha na areia
 - **Pingue-pongue:** o dono achou bacana e aprovou como protótipo inicial; agora é lapidar. Ele ainda vai testar o salvamento da bola que passa por cima.
 - **Bocha na areia** (`cart2/ev_bocha.js`), entre o Futebol de areia e a Natação:

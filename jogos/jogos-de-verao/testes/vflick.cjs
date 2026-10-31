@@ -19,7 +19,7 @@ const { chromium } = require('playwright');
       const s = seq[i].map((a) => (a || '').replace(/_\d$/, '').replace(/[UD]$/, '')); let runs = [], cur = s[0], n = 0;
       for (const a of s) { if (a === cur) n++; else { runs.push([cur, n]); cur = a; n = 1; } } runs.push([cur, n]);
       const lr = runs.filter(([a]) => loco.test(a));
-      out[nm] = { trocas_por_segundo: +(runs.length / t).toFixed(2), trechos_curtos: lr.filter(([, n]) => n < 6).length, trechos_locomocao: lr.length, exemplo: runs.slice(20, 45).map(([a, n]) => a + n).join(' ') };
+      out[nm] = { trocas_por_segundo: +(runs.length / t).toFixed(2), trechos_curtos: lr.filter(([, n]) => n < 6).length, trechos_locomocao: lr.length, curtos: lr.filter(([, n]) => n < 6).map(([a, n]) => a + n).join(' '), exemplo: runs.slice(20, 45).map(([a, n]) => a + n).join(' ') };
     });
     return out;
   });

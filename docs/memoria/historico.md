@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, arrancar e frear emendando com a espera
+O dono mandou prints quadro a quadro do Amiguinho: em pé com as mãos para os lados, depois inclinado com a mão na frente, depois agachado, depois em pé de novo.
+- **Causa:** a prancha "Arrancar e frear" começa e termina em pé com as mãos para os lados, e a espera tem a mão na frente do corpo. A cada parada e saída, a pose pulava.
+  - Além disso, ao parar, apareciam um ou dois quadros de corrida parado.
+- **Correção (Amiguinho):**
+  - sair do parado sempre passa pelo arrancar, só com os quadros 2 a 4;
+  - parar sempre passa pelo frear, só com os quadros 5 e 6 (agachado, com a mão na frente), que emendam com a espera;
+  - o frear começa assim que ele para de verdade.
+- O teste `testes/repro.cjs` agora desenha na escala do jogo: antes, as imagens que ele salvava eram de uma tela antiga.
+
 ## 30/10/2026: Jogos de Verão, Amiguinho sem vai e volta embaixo da bola
 O dono gravou o Amiguinho esperando uma bola alta: anda, para, anda de novo, com desenhos trocando.
 - **Causa 1:** passinhos de ajuste (de 1 a 5 px) a cada replanejamento.

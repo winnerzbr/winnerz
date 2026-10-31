@@ -15,7 +15,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
       for (let f = 0; f < 110; f++) {
         const A = { t: 0, tx: 70 };
         for (let s2 = 0; s2 < 2; s2++) { volei.update(DT, { l: false, r: false, u: false, ax: 0, auto: true }); t += DT; }
-        withCtx(cv.getContext('2d'), () => volei.draw(t));
+        { const g = cv.getContext('2d'), K0 = cv.width / W; g.setTransform(K0, 0, 0, K0, 0, 0); withCtx(g, () => volei.draw(t)); g.setTransform(1, 0, 0, 1, 0, 0); }
         const st = window.__stOf('bl51'); rec.push(`${st.last}${st.L ? '/' + st.L : ''} x${Math.round(volei.P[1].x)} vx${Math.round(volei.P[1].vx)}`);
         if (volei.state !== 'rally') break;
         if (run === 0 && f % 1 === 0 && f < 60) { const c = document.createElement('canvas'); const K = cv.width / W; const px = volei.P[1].x * K, py = volei.P[1].y * K; c.width = 220; c.height = 200; c.getContext('2d').drawImage(cv, px - 110, py - 170, 220, 200, 0, 0, 220, 200); res.push(c.toDataURL()); }

@@ -60,11 +60,14 @@
     s.fvx = s.fvx ?? p.vx; s.fvx += (p.vx - s.fvx) * Math.min(1, dt * 9);
     const fs = Math.abs(s.fvx), fa = (fs - (s.fsp ?? fs)) / Math.max(dt, .001); s.fsp = fs;
     s.fac = (s.fac ?? 0) + (fa - (s.fac ?? 0)) * Math.min(1, dt * 8);
-    const moving = s.L && s.L !== 'stand' ? fs > 6 : fs > 20;
+    const moving = s.L && s.L !== 'stand' ? fs > 6 && Math.abs(p.vx) > 2 : fs > 20; // parou de verdade: já começa a frear
     let c = 'stand';
     if (moving) c = s.fvx * face < -12 || (s.L === 'back' && s.fvx * face < 0) ? 'back' : s.fac > 260 && fs < 95 ? 'ssA' : s.fac < -260 && fs < 105 && s.L !== 'stand' ? 'ssD' : 'run';
+    // sair do parado para a corrida passa pelo arrancar; da corrida para o parado, pelo frear (desenhos feitos para isso)
+    if (s.L === 'stand' && c === 'run') c = 'ssA';
+    if ((s.L === 'run' || s.L === 'ssA') && c === 'stand') c = 'ssD';
     s.Lt = (s.Lt ?? 9) + dt;
-    const hold = s.L === 'ssA' ? .22 : s.L === 'ssD' ? .26 : s.L === 'stand' ? .05 : .16; // sair do parado é rápido (senão desliza parado)
+    const hold = c === 'ssD' && s.L === 'run' ? 0 : s.L === 'ssA' ? (c === 'ssD' ? .1 : .18) : s.L === 'ssD' ? .14 : s.L === 'stand' ? .05 : .16; // parar é na hora // sair do parado é rápido (senão desliza parado)
     if (!s.L || (c !== s.L && s.Lt >= hold)) { s.L = c; s.Lt = 0; }
     return s.L;
   }
@@ -133,8 +136,10 @@
       // (antes, pequenas correções de posição trocavam de desenho a cada quadro e ele parecia tremer)
       const L = s.L, fs = Math.abs(s.fvx);
       if (L === 'back') { an = 'back'; k = Math.floor((((p.ph || 0) / TAU) % 1 + 1) % 1 * 8) % 8; }
-      else if (L === 'ssA') { an = 'ss'; k = Math.min(3, Math.floor(clamp(s.Lt / .22, 0, .999) * 4)); }
-      else if (L === 'ssD') { an = 'ss'; k = 4 + Math.min(3, Math.floor(clamp(s.Lt / .26, 0, .999) * 4)); }
+      // do arrancar e do frear entram só os desenhos que emendam com a espera (mão na frente): o 1º e os 2 últimos da prancha
+      // ficam em pé com as mãos para os lados e faziam a pose pular de um quadro para o outro
+      else if (L === 'ssA') { an = 'ss'; k = 1 + Math.min(2, Math.floor(clamp(s.Lt / .18, 0, .999) * 3)); }
+      else if (L === 'ssD') { an = 'ss'; k = 4 + Math.min(1, Math.floor(clamp(s.Lt / .14, 0, .999) * 2)); }
       else { an = 'run'; k = Math.floor((((p.ph || 0) / (2 * TAU)) % 1 + 1) % 1 * 16) % 16; }
       void fs;
     } else if (v.state === 'rally') {

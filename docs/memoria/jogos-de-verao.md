@@ -138,6 +138,18 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - redesenhada mais larga: 124 px de largura, cerca de 5.700 px por volta (uns 26 s), curvas abertas e um grampo;
   - muretas de zebra vermelha e branca em toda a volta: bater de lado perde pouco (6%) e de frente perde muito (até 61%); o bugue escorrega junto da mureta e alinha com ela;
   - não há mais saída para a areia fofa.
+- **Física dos bugues (3ª versão, 31/10):**
+  - motor que perde força perto da velocidade máxima (200 px/s; com turbo, +80), freio, ré curta e arrasto;
+  - pneus com limite de aderência: o bugue escorrega de lado quando passa do limite e deixa marcas na areia;
+  - giro com inércia: o volante vira menos em alta e, entrando rápido demais, o bugue sai de frente;
+  - parado de cara na mureta, acelerando ou freando, ele ainda vira;
+  - derrapagem: começa com um pulinho, os pneus de trás seguram menos e a carga só conta com o bugue escorregando de lado;
+  - pulo com gravidade: pousar alinhado dá turbo; pousar torto perde 28% do embalo; o bugue amassa no pouso;
+  - batidas na mureta e entre bugues trocam impulso e torcem o bugue;
+  - a carroceria balança para fora nas curvas;
+  - na água, os pneus seguram menos e a água freia (o turbo atravessa);
+  - item acertado faz o bugue rodopiar com pouca aderência.
+- **Esteiras de turbo:** 5 pela pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
 - **Controles:**
   - ◀ ▶ viram; a direção é suavizada (no teclado não dá tranco) e responde menos devagar e um pouco menos acima de 170 px/s;
   - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
@@ -147,7 +159,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **Largada:** contagem 3, 2, 1, Vai!; acelerar de 0,5 s antes do Vai em diante dá turbo, e cedo demais afoga.
   - **Pulos:** duas rampas; pousar alinhado dá turbo curto.
   - **Lagoa:** um corredor com muretas corta por dentro a curva da direita, com a água no meio; só compensa com turbo.
-  - **Caixas de item:** 4 fileiras de 5 caixas.
+  - **Caixas de item:** 4 fileiras de 5 caixas; cada caixa some sozinha e volta em 2,5 s.
+  - **Itens:** cada bugue guarda até 2; o item usado é o primeiro, e o HUD mostra os dois.
 - **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
   - bola de praia: quica reto e volta nas bordas;
   - balão d'água: persegue quem está logo à frente;
@@ -156,14 +169,15 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - guarda-sol: escudo que bloqueia um ataque;
   - onda: deixa os três primeiros lentos por 2,2 s.
   - Quem é acertado rodopia e perde velocidade, mas continua a corrida.
-- **Amiguinhos:** seguem a pista cada um na sua faixa, derrapam nas curvas fortes e usam os itens com critério. Os da frente aliviam um pouco quando abrem muita vantagem, e os de trás apertam.
+- **Amiguinhos:** seguem a pista cada um na sua faixa, tiram o pé antes das curvas (calculam a velocidade pelo raio da curva e pela aderência), derrapam nas curvas fortes e usam os itens com critério. Os da frente aliviam um pouco quando abrem muita vantagem, e os de trás apertam.
 - **Pontos:**
   - por posição: 1º 3.000, 2º 2.200, 3º 1.600, 4º 1.100, 5º 700, 6º 400;
   - medalhas: bronze em 3º, prata em 2º, ouro em 1º.
 - **Testes:**
   - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos (corridas de 79 a 86 s);
   - numa corrida inteira dos 6 bugues no piloto automático, houve só 4 batidas fortes na mureta: dá para fazer as curvas rápido sem bater;
-  - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado.
+  - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado (com 2 itens guardados);
+  - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.
 - **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista e as dunas de cima em 3 horários.
 - **Ainda não feito:** a Copa das Dunas (3 pistas: Lagoa Azul, Duna do Farol e Desce-Duna). Esta pista é a primeira.
 

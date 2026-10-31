@@ -4,6 +4,21 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue com física de carro, 2 itens e esteiras
+- **Pedidos do dono:**
+  - as caixas de item em fileira contavam como uma só (quando um carro pegava, todas sumiam);
+  - poder guardar até 2 itens;
+  - esteiras de turbo na pista;
+  - física mais avançada nos bugues.
+- **Feito:**
+  - cada caixa some sozinha;
+  - cada bugue guarda até 2 itens;
+  - 5 esteiras de turbo;
+  - física nova: motor, aderência dos pneus com escorregão e marcas, giro com inércia, pulo com gravidade, batidas com impulso e torção, carroceria que balança;
+  - os Amiguinhos tiram o pé antes das curvas, dão ré quando ficam presos e seguem o corredor da lagoa;
+  - detalhes em `jogos-de-verao.md`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Corrida de bugue com mecânicas melhores
 - **Avaliação do dono:** "Conceitualmente é parecido com o que imagino, mas precisa melhorar bastante nas mecânicas."
 - **Pedidos dele:**

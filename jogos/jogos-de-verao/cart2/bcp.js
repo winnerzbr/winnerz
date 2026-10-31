@@ -3,7 +3,8 @@
      Pranchas do IAmiguinho (mvbc.py): esperando a vez, lançar rolando, lançar pelo alto e medindo/torcendo. Na mira, o braço vai para
      trás conforme a força (quadros 1-4); ao soltar, quadros 5-8; com a bola andando, torce (1-6); rodada ou jogo ganho, punho e
      joinha (7-8). Na tristeza continua o desenho do vôlei. O Amiguinho usa as 4 pranchas da bocha dele (mvbcb.py), pelo desenho do Amiguinho do vôlei (cor, rosto e máscara da tela).
-     Bolas, bolim, conchas, pegadas e tábuas da borda: a folha pintada, vista de cima. */
+     Bolas, bolim, conchas, pegadas e tábuas da borda: a folha pintada, vista de cima. A vila (com a cancha e as tábuas) vem pintada nos
+     4 horários (bccen.py); com ela, as tábuas da folha ficam de reserva. */
   const MB = window.MVBC, MBI = {}, MBK = {}, BA = window.BCA, BAI = new Image();
   if (MB) for (const [nm, a] of Object.entries(MB.a)) { MBI[nm] = new Image(); MBI[nm].src = a.src; MBK[nm] = new Image(); MBK[nm].src = a.mask; }
   if (BA) BAI.src = BA.atl;
@@ -60,7 +61,55 @@
     const f = i ? window.MVB.a[BLN[an]].f[k] : MB.a[an].f[k], h = HAND[i][an][k], s = .52 * (i ? SBB : BCS);
     return { x: PX + s * (h[0] * f.w - f.ax), y: PY() + s * (h[1] * f.h - f.ay) };
   }
+  // vila vista de cima pintada (bccen.py): 4 horários pelo relógio, misturados na troca, e as luzes da noite por cima
+  const BCC = window.BCC, BCI = {};
+  const bcImg = (k, src) => { if (!src) return null; let im = BCI[k]; if (!im) { im = BCI[k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
+  const BC_HORAS = [['noite', 5, 'manha'], ['manha', 10, 'dia'], ['dia', 16, 'tarde'], ['tarde', 19, 'noite']];
+  function bcPesos() {
+    const d = new Date(), h = window.__skHora != null ? window.__skHora : d.getHours() + d.getMinutes() / 60;
+    for (const [a, b, c] of BC_HORAS) if (Math.abs(h - b) < .5) { const t = h - b + .5; return [[a, 1 - t], [c, t]]; }
+    return [[h >= 5 && h < 10 ? 'manha' : h >= 10 && h < 16 ? 'dia' : h >= 16 && h < 19 ? 'tarde' : 'noite', 1]];
+  }
+  function bcScene(tt) {
+    if (!BCC) return false;
+    let P = bcPesos().filter(([, w]) => w > .001).map(([v, w]) => [v, w, bcImg('f_' + v, BCC.f[v])]);
+    const ok = P.filter((p) => p[2]); if (!ok.length) return false;
+    if (ok.length < P.length) { P = ok; P[0][1] = 1; }
+    // a cancha pintada fica exatamente em cima da cancha do jogo
+    const c = BCC.c, s = (BC.x1 - BC.x0) / (c[2] - c[0]), ox = BC.x0 - c[0] * s, oy = BC.y0 - c[1] * s, w = BCC.w * s, h = BCC.h * s;
+    ctx.save(); ctx.imageSmoothingEnabled = true; R(0, 0, W, H, '#c99a5c');
+    for (const [, a, im] of P) { ctx.globalAlpha = a; ctx.drawImage(im, ox, oy, w, h); } ctx.globalAlpha = 1;
+    const night = P.reduce((a, [v, wt]) => a + (v === 'noite' ? wt : v === 'tarde' ? wt * .25 : 0), 0), lz = night > .01 && bcImg('lz', BCC.lz);
+    if (lz) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.42 + .08 * Math.sin(tt * 1.9)); ctx.drawImage(lz, ox, oy, w, h); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+    ctx.restore(); return true;
+  }
+  // luz do horário sobre o que o jogo desenha na cancha (montinhos, areia fofa, pegadas, conchas): cor e força pela mistura dos horários
+  const BC_TINT = { dia: ['#fff4dc', 0], manha: ['#ffc98a', .14], tarde: ['#ff7a3c', .24], noite: ['#2a3170', .5] };
+  function bcTint() {
+    let r = 0, g = 0, b = 0, a = 0;
+    for (const [v, w] of bcPesos()) { const [c, k] = BC_TINT[v], n = parseInt(c.slice(1), 16); r += ((n >> 16) & 255) * w; g += ((n >> 8) & 255) * w; b += (n & 255) * w; a += k * w; }
+    return [`rgb(${r | 0},${g | 0},${b | 0})`, a];
+  }
+  let BCL = null;
+  function bcLayer(fn, tint) {
+    if (!tint || tint[1] < .01) return fn();
+    const cv = ctx.canvas; if (!BCL) BCL = document.createElement('canvas');
+    if (BCL.width !== cv.width || BCL.height !== cv.height) { BCL.width = cv.width; BCL.height = cv.height; }
+    const g = BCL.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, BCL.width, BCL.height); g.setTransform(ctx.getTransform()); g.imageSmoothingEnabled = true;
+    const save = ctx; ctx = g; try { fn(); } finally { ctx = save; }
+    g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-atop'; g.globalAlpha = tint[1]; g.fillStyle = tint[0]; g.fillRect(0, 0, BCL.width, BCL.height); g.restore();
+    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.drawImage(BCL, 0, 0); ctx.restore();
+  }
+  window.__BCCOK = () => !!BCC && Object.keys(BCC.f).every((v) => bcImg('f_' + v, BCC.f[v])) && !!bcImg('lz', BCC.lz);
   if (typeof bocha !== 'undefined') {
+    const scene16 = bocha.drawScene;
+    bocha.drawScene = function (tt) { this.paintedCourt = bcScene(tt); if (!this.paintedCourt) scene16.call(this, tt); };
+    // com a vila pintada: montinhos, areia fofa, pegadas e conchas numa camada só, que recebe a luz do horário
+    const ground16 = bocha.drawGround;
+    bocha.drawGround = function () {
+      this._gl = false; if (!this.paintedCourt) return ground16.call(this);
+      bcLayer(() => { ground16.call(this); this.drawPrints(); this.drawShells(); }, bcTint()); this._gl = true;
+    };
     const ball16 = bocha.drawBall, people16 = bocha.drawPeople, prints16 = bocha.drawPrints, shells16 = bocha.drawShells, border16 = bocha.drawBorder;
     bocha.inHand = function (b) { return b === this.thrown && this.state === 'roll' && this.t - this.throwT < .16 && PAINT(this.throwBy); };
     bocha.drawBall = function (b) {
@@ -78,14 +127,17 @@
       ctx.restore();
     };
     bocha.drawPrints = function () {
+      if (this._gl) return; // já foi na camada da cancha
       if (!BAOK()) return prints16.call(this);
       ctx.save(); ctx.globalAlpha = .75; this.T.prints.forEach((p, i) => bcPart('pegada', i % 2 ? 1 : 0, p.x, p.y, p.ang + Math.PI / 2, .62)); ctx.restore();
     };
     bocha.drawShells = function () {
+      if (this._gl) return;
       if (!BAOK()) return shells16.call(this);
       this.T.shells.forEach((s, i) => bcPart('concha', i, s.x, s.y, s.a, .9));
     };
     bocha.drawBorder = function () {
+      if (this.paintedCourt) return; // a vila pintada já traz as tábuas
       if (!BAOK()) return border16.call(this);
       const x0 = BC.x0 - 2, x1 = BC.x1 + 2, y0 = BC.y0 - 2, y1 = BC.y1 + 2;
       bcPlank(x0, y0, x1, y0); bcPlank(x0, y1, x1, y1); bcPlank(x0, y0, x0, y1); bcPlank(x1, y0, x1, y1);

@@ -8,7 +8,7 @@
    Tábuas baixas em volta da cancha: a bola bate e volta fraquinha; só sai a bola que cai fora pelo alto. Se o bolim sair, a rodada é anulada.
    Fim da rodada: cada bola mais perto do bolim que a melhor do outro lado vale 1 ponto. Quem fizer 7 vence.
    Arte provisória: tudo desenhado pelo jogo; os personagens são os desenhos do vôlei. */
-const BC = { x0: 50, x1: 386, y0: 70, y1: 190, sx: 58, sy: 130, rb: 6, rj: 3.5, fc: 62, fv: .5, G: 3000, meter: 1.05 };
+const BC = { x0: 50, x1: 386, y0: 75, y1: 185, sx: 58, sy: 130, rb: 6, rj: 3.5, fc: 62, fv: .5, G: 3000, meter: 1.05 };
 BC.L = BC.x1 - BC.sx;
 if (typeof Music !== 'undefined' && Music.songs.embaixadinha) Music.songs.bocha = Music.songs.embaixadinha;
 FALA.intro.bocha = [
@@ -263,27 +263,8 @@ const bocha = {
   demo() { this.state = 'roll'; this.jack = this.launch(0, true, 'rolar', .7, 2); this.jack.x = BC.sx + .7 * BC.L; this.jack.mv = false; this.jack.vx = this.jack.vy = 0; this.toss = 'ball'; this.balls = [this.launch(0, false, 'rolar', .66, 3)]; this.throwBy = 0; this.before = 0; },
   // ---------- desenho (provisório): vila de pescadores vista de cima, cancha de areia batida, bolas pintadas pelo jogo
   draw(tt) {
-    // casinhas coloridas no alto (telhados vistos de cima), mar embaixo
-    R(0, 0, W, H, '#e7c98f');
-    for (let i = 0; i < 9; i++) { const x = i * 46 - 8, c = ['#e85d5d', '#4fb3c9', '#f2b84b', '#7cc47f', '#d97bb6'][i % 5]; R(x, 0, 40, 30, c); R(x, 14, 40, 2, 'rgba(0,0,0,.2)'); R(x + 3, 3, 34, 9, 'rgba(255,255,255,.18)'); ctx.strokeStyle = NAVY; ctx.lineWidth = 1; ctx.strokeRect(x + .5, .5, 40, 30); }
-    R(0, 30, W, 6, 'rgba(120,80,40,.25)');
-    // redes estendidas e uma jangada
-    ctx.strokeStyle = 'rgba(230,120,60,.85)'; ctx.lineWidth = .7; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(250 + i * 6, 40); ctx.lineTo(262 + i * 6, 62); ctx.stroke(); ctx.beginPath(); ctx.moveTo(250, 40 + i * 4); ctx.lineTo(296, 42 + i * 4); ctx.stroke(); }
-    const sea = ctx.createLinearGradient(0, 200, 0, H); sea.addColorStop(0, '#5fc9d6'); sea.addColorStop(1, '#2f8fb3'); ctx.fillStyle = sea; ctx.fillRect(0, 203, W, H - 203);
-    for (let i = 0; i < 8; i++) R(((i * 61 + tt * 8) % (W + 40)) - 20, 206 + (i % 3) * 5, 14, 1, 'rgba(255,255,255,.55)');
-    R(0, 200, W, 3, '#f3e2b8');
-    ctx.save(); ctx.translate(330, 210); ctx.fillStyle = '#5b8fd9'; ctx.beginPath(); ctx.ellipse(0, 0, 26, 6, 0, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.stroke(); R(-1, -16, 2, 16, '#6b4a2a'); ctx.fillStyle = '#fff4e0'; ctx.beginPath(); ctx.moveTo(1, -16); ctx.lineTo(14, -4); ctx.lineTo(1, -2); ctx.fill(); ctx.restore();
-    // cancha
-    const g = ctx.createLinearGradient(0, BC.y0, 0, BC.y1); g.addColorStop(0, '#dcb879'); g.addColorStop(1, '#cfa86a'); ctx.fillStyle = g; ctx.fillRect(BC.x0, BC.y0, BC.x1 - BC.x0, BC.y1 - BC.y0);
-    for (let i = 0; i < 260; i++) { const x = BC.x0 + ((i * 97.3) % (BC.x1 - BC.x0)), y = BC.y0 + ((i * 53.7) % (BC.y1 - BC.y0)); R(x, y, 1, 1, i % 3 ? 'rgba(120,80,40,.18)' : 'rgba(255,245,220,.3)'); }
-    for (const s of this.T.soft) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = 'rgba(245,225,180,.75)'; ctx.beginPath(); ctx.ellipse(0, 0, s.rx, s.ry, 0, 0, TAU); ctx.fill(); for (let k = 0; k < 18; k++) R(Math.cos(k * 2.4) * s.rx * .8 * ((k % 5) / 5), Math.sin(k * 2.4) * s.ry * .8 * ((k % 7) / 7), 1.4, 1, 'rgba(160,120,70,.3)'); ctx.restore(); }
-    for (const m of this.T.mounds) {
-      const up = m.h > 0, gr = ctx.createRadialGradient(m.x + (up ? -m.r * .3 : m.r * .3), m.y + (up ? -m.r * .3 : m.r * .3), 1, m.x, m.y, m.r * 1.15);
-      gr.addColorStop(0, up ? 'rgba(255,240,205,.75)' : 'rgba(100,60,25,.5)'); gr.addColorStop(.6, up ? 'rgba(255,240,205,.12)' : 'rgba(110,70,30,.1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 1.15, 0, TAU); ctx.fill();
-      const sh = ctx.createRadialGradient(m.x + (up ? m.r * .35 : -m.r * .35), m.y + (up ? m.r * .35 : -m.r * .35), 1, m.x, m.y, m.r); sh.addColorStop(0, up ? 'rgba(100,60,25,.42)' : 'rgba(255,240,205,.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
-      if (!up) { ctx.fillStyle = 'rgba(90,55,20,.22)'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .5, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,240,205,.5)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .92, -.2, Math.PI * .7); ctx.stroke(); }
-      else { ctx.strokeStyle = 'rgba(255,248,225,.55)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .55, Math.PI * .95, Math.PI * 1.6); ctx.stroke(); }
-    }
+    this.drawScene(tt);
+    this.drawGround();
     this.drawPrints();
     this.drawShells();
     // corda da cancha, linha de lançamento e gravetos a cada quarto
@@ -311,11 +292,40 @@ const bocha = {
       if (this.charging) {
         const x = 3, y = BC.y0 + 8, h = 70; R(x - 1, y - 1, 8, h + 2, NAVY); R(x, y, 6, h, '#3b2f4a'); const v = clamp(this.m / 1.08, 0, 1);
         R(x, y + h * (1 - v), 6, h * v, this.kind === 'alto' ? '#ffd166' : col); R(x - 2, y + h * (1 - 1 / 1.08), 10, 1, '#ffffff');
-        ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.kind === 'alto' ? 'ALTO' : 'ROLAR', x + 3, y + h + 9); ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'left'; ctx.fillText(this.kind === 'alto' ? 'ALTO' : 'ROLAR', 1, y + h + 9);
       }
     }
     const s = `${this.sc[0]}  ×  ${this.sc[1]}`; R(W / 2 - 26, 40, 52, 14, 'rgba(60,40,30,.85)'); ctx.strokeStyle = NAVY; ctx.lineWidth = 1; ctx.strokeRect(W / 2 - 26, 40, 52, 14);
     ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(s, W / 2, 51); ctx.textAlign = 'left';
+  },
+  // vila, mar e areia da cancha (a versão pintada da vila entra por cima de drawScene, em bcp.js)
+  drawScene(tt) {
+    // casinhas coloridas no alto (telhados vistos de cima), mar embaixo
+    R(0, 0, W, H, '#e7c98f');
+    for (let i = 0; i < 9; i++) { const x = i * 46 - 8, c = ['#e85d5d', '#4fb3c9', '#f2b84b', '#7cc47f', '#d97bb6'][i % 5]; R(x, 0, 40, 30, c); R(x, 14, 40, 2, 'rgba(0,0,0,.2)'); R(x + 3, 3, 34, 9, 'rgba(255,255,255,.18)'); ctx.strokeStyle = NAVY; ctx.lineWidth = 1; ctx.strokeRect(x + .5, .5, 40, 30); }
+    R(0, 30, W, 6, 'rgba(120,80,40,.25)');
+    // redes estendidas e uma jangada
+    ctx.strokeStyle = 'rgba(230,120,60,.85)'; ctx.lineWidth = .7; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(250 + i * 6, 40); ctx.lineTo(262 + i * 6, 62); ctx.stroke(); ctx.beginPath(); ctx.moveTo(250, 40 + i * 4); ctx.lineTo(296, 42 + i * 4); ctx.stroke(); }
+    const sea = ctx.createLinearGradient(0, 200, 0, H); sea.addColorStop(0, '#5fc9d6'); sea.addColorStop(1, '#2f8fb3'); ctx.fillStyle = sea; ctx.fillRect(0, 203, W, H - 203);
+    for (let i = 0; i < 8; i++) R(((i * 61 + tt * 8) % (W + 40)) - 20, 206 + (i % 3) * 5, 14, 1, 'rgba(255,255,255,.55)');
+    R(0, 200, W, 3, '#f3e2b8');
+    ctx.save(); ctx.translate(330, 210); ctx.fillStyle = '#5b8fd9'; ctx.beginPath(); ctx.ellipse(0, 0, 26, 6, 0, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.stroke(); R(-1, -16, 2, 16, '#6b4a2a'); ctx.fillStyle = '#fff4e0'; ctx.beginPath(); ctx.moveTo(1, -16); ctx.lineTo(14, -4); ctx.lineTo(1, -2); ctx.fill(); ctx.restore();
+  },
+  // areia da cancha, areia fofa e montinhos/buracos
+  drawGround() {
+    // cancha (sem o chão desenhado quando a vila pintada já traz a cancha)
+    if (!this.paintedCourt) {
+    const g = ctx.createLinearGradient(0, BC.y0, 0, BC.y1); g.addColorStop(0, '#dcb879'); g.addColorStop(1, '#cfa86a'); ctx.fillStyle = g; ctx.fillRect(BC.x0, BC.y0, BC.x1 - BC.x0, BC.y1 - BC.y0);
+    for (let i = 0; i < 260; i++) { const x = BC.x0 + ((i * 97.3) % (BC.x1 - BC.x0)), y = BC.y0 + ((i * 53.7) % (BC.y1 - BC.y0)); R(x, y, 1, 1, i % 3 ? 'rgba(120,80,40,.18)' : 'rgba(255,245,220,.3)'); }
+    }
+    for (const s of this.T.soft) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = 'rgba(245,225,180,.75)'; ctx.beginPath(); ctx.ellipse(0, 0, s.rx, s.ry, 0, 0, TAU); ctx.fill(); for (let k = 0; k < 18; k++) R(Math.cos(k * 2.4) * s.rx * .8 * ((k % 5) / 5), Math.sin(k * 2.4) * s.ry * .8 * ((k % 7) / 7), 1.4, 1, 'rgba(160,120,70,.3)'); ctx.restore(); }
+    for (const m of this.T.mounds) {
+      const up = m.h > 0, gr = ctx.createRadialGradient(m.x + (up ? -m.r * .3 : m.r * .3), m.y + (up ? -m.r * .3 : m.r * .3), 1, m.x, m.y, m.r * 1.15);
+      gr.addColorStop(0, up ? 'rgba(255,240,205,.75)' : 'rgba(100,60,25,.5)'); gr.addColorStop(.6, up ? 'rgba(255,240,205,.12)' : 'rgba(110,70,30,.1)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * 1.15, 0, TAU); ctx.fill();
+      const sh = ctx.createRadialGradient(m.x + (up ? m.r * .35 : -m.r * .35), m.y + (up ? m.r * .35 : -m.r * .35), 1, m.x, m.y, m.r); sh.addColorStop(0, up ? 'rgba(100,60,25,.42)' : 'rgba(255,240,205,.45)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = sh; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, TAU); ctx.fill();
+      if (!up) { ctx.fillStyle = 'rgba(90,55,20,.22)'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .5, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,240,205,.5)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .92, -.2, Math.PI * .7); ctx.stroke(); }
+      else { ctx.strokeStyle = 'rgba(255,248,225,.55)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .55, Math.PI * .95, Math.PI * 1.6); ctx.stroke(); }
+    }
   },
   // pegadas, conchas e a borda da cancha (a versão pintada entra por cima destas, em bcp.js)
   drawPrints() {

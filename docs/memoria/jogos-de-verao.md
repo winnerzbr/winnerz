@@ -85,7 +85,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto) e raquete desenhada pelo jogo. A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
 
 ### Bocha na areia (como funciona)
-- **Cena:** vista de cima, na Vila dos Pescadores. A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
+- **Cena:** vista de cima, na Vila dos Pescadores (pintada, ver "Vila pintada"). A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
 - **Ordem:**
   - quem começa a rodada joga o bolim, que tem que parar da metade da cancha para a frente; se não parar, a vez passa ao outro lado e, na 2ª falha, ele vai para o meio;
   - depois, quem jogou o bolim joga a primeira bola;
@@ -129,7 +129,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bckeys.cjs`: teclado;
   - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando);
   - `testes/bcmao.cjs`: fotos ampliadas da bola na mão (quadros 1 a 4 de rolando e pelo alto, bolim) e saindo da mão;
-  - `testes/bcamiguinho.cjs`: o mesmo para o Amiguinho (espera, mira, soltura, torcida, vitória).
+  - `testes/bcamiguinho.cjs`: o mesmo para o Amiguinho (espera, mira, soltura, torcida, vitória);
+  - `testes/bcvila.cjs`: fotos da vila nos 4 horários e na troca, com a cancha do jogo encaixada.
 - **Arte pintada (31/10):**
   - o dono mandou 4 pranchas do IAmiguinho (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), a folha das bolas (4 azuis, 4 rosa e o bolim laranja) e a folha de conchas, pegadas e tábuas;
   - as pranchas do IAmiguinho vieram sem bola na mão, como pedido: a bola do jogo é desenhada à parte;
@@ -149,8 +150,14 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - usa as mesmas regras do IAmiguinho: espera, mira com a bola na mão (quadros 1 a 4 pela força), soltura no 5, torcida 1 a 6, ganhou 7 e 8; perdeu: tristeza do vôlei;
   - no lançamento pelo alto, a mão em forma de coração do quadro 5 é a mão abrindo na soltura;
   - pranchas em `jogos/jogos-de-verao/bocha/pranchas` (bl_*) e na Prévia das pranchas.
-- **Ainda provisório:**
-  - a vila e o chão da cancha seguem desenhados pelo jogo; os pedidos estão na página de pedidos (a vila vista de cima em 4 horários; o pedido da noite só muda a luz).
+- **Vila pintada (31/10):**
+  - o dono mandou a vila vista de cima em 4 horários (manhã cedo, dia, entardecer, noite) e a camada das luzes da noite (janelas e reflexo da lua no mar);
+  - montada em `cart2/bccen.py` -> `bccen.js` (window.BCC); o horário vem do relógio, com a troca misturando dois horários por 1 hora (5h, 10h, 16h, 19h), igual à embaixadinha; à noite as luzes acendem por cima, piscando de leve;
+  - a cancha pintada (lado de dentro das tábuas: x 261 a 1837, y 365 a 880 na imagem de 1920x1080) fica exatamente em cima da cancha do jogo; para casar com o desenho, a cancha do jogo ficou um pouco mais baixa: y de 75 a 185 (era 70 a 190), mesma largura;
+  - com a vila pintada, as tábuas são as do desenho (as da folha de peças ficam de reserva) e o chão da cancha não é mais desenhado pelo jogo;
+  - montinhos, buracos, areia fofa, pegadas e conchas recebem a luz do horário (camada tingida: manhã alaranjada leve, entardecer laranja, noite azul);
+  - artes em `jogos/jogos-de-verao/bocha/arte`.
+- **Bocha toda pintada:** personagens, bolas, peças e vila.
 
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.

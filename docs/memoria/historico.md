@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, vila da bocha pintada
+- **O dono mandou:** a Vila dos Pescadores vista de cima em 4 horários e a camada das luzes da noite.
+- **Feito:**
+  - vila pintada no jogo, com o horário pelo relógio e as luzes acendendo à noite;
+  - a cancha do jogo encaixada na cancha pintada (ficou um pouco mais baixa: 110 em vez de 120 de altura, mesma largura);
+  - montinhos, buracos, areia fofa, pegadas e conchas tingidos pela luz do horário;
+  - a palavra ROLAR/ALTO embaixo da barra de força não fica mais cortada;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bcvila.cjs` (novo), `bocha.cjs`, `bcburaco.cjs`, `bcamiguinho.cjs` e `todas.cjs`, sem erros.
+- **Situação:** a bocha está toda pintada. Pendente: o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Amiguinho pintado na bocha
 - **O dono mandou:** as 4 pranchas do Amiguinho da bocha (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), já sem bola.
 - **Feito:**

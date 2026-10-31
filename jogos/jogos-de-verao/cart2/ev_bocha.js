@@ -43,7 +43,10 @@ const bocha = {
   terrain() {
     const R0 = (a, b) => a + Math.random() * (b - a), T = { mounds: [], soft: [], shells: [], prints: [] };
     const free = (x, y, d) => x > BC.sx + 40 && [...T.mounds, ...T.soft, ...T.shells].every((o) => Math.hypot(o.x - x, o.y - y) > d);
-    for (let k = 0, n = 0; k < 4 && n < 80; n++) { const x = R0(BC.sx + 70, BC.x1 - 26), y = R0(BC.y0 + 18, BC.y1 - 18); if (free(x, y, 46)) { T.mounds.push({ x, y, r: R0(20, 32), h: (k % 2 ? -1 : 1) * R0(.8, 1.2) }); k++; } }
+    // buracos na primeira metade (no caminho: desviam e seguram bola fraca), longe de onde o bolim para; montinhos em qualquer lugar.
+    // (com os buracos espalhados, o bolim e as bolas paravam dentro deles em 1 de cada 4 rodadas: os buracos ocupam ~6% da cancha)
+    for (let k = 0, n = 0; k < 2 && n < 80; n++) { const x = R0(BC.sx + 62, BC.sx + .4 * BC.L), y = R0(BC.y0 + 20, BC.y1 - 20); if (free(x, y, 46)) { T.mounds.push({ x, y, r: R0(20, 28), h: -R0(.8, 1.2) }); k++; } }
+    for (let k = 0, n = 0; k < 2 && n < 80; n++) { const x = R0(BC.sx + 70, BC.x1 - 26), y = R0(BC.y0 + 18, BC.y1 - 18); if (free(x, y, 46)) { T.mounds.push({ x, y, r: R0(20, 32), h: R0(.8, 1.2) }); k++; } }
     for (let k = 0, n = 0; k < 2 && n < 60; n++) { const x = R0(BC.sx + 80, BC.x1 - 30), y = R0(BC.y0 + 16, BC.y1 - 16); if (free(x, y, 36)) { T.soft.push({ x, y, rx: R0(24, 38), ry: R0(13, 20), a: R0(-.6, .6) }); k++; } }
     for (let k = 0, n = 0; k < 5 && n < 80; n++) { const x = R0(BC.sx + 60, BC.x1 - 12), y = R0(BC.y0 + 8, BC.y1 - 8); if (free(x, y, 18)) { T.shells.push({ x, y, r: 2.4, a: R0(0, TAU), c: ['#fbe3d2', '#f4c7d8', '#fff2e0'][k % 3] }); k++; } }
     let px = R0(BC.sx + 70, BC.sx + 140), py = Math.random() < .5 ? BC.y0 + 4 : BC.y1 - 4; const dy = py < BC.sy ? 1 : -1, dx = R0(.25, .7);

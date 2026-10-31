@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bocha com os buracos no caminho
+- **Pedido do dono:** os buracos concentravam a partida (as bolas tendiam a ir sempre para um buraco).
+- **Medido:** os buracos ocupavam ~6% da cancha, mas o bolim parava dentro em 21% das rodadas e 26% das bolas acabavam num buraco (quando o bolim cai no buraco, todas as bolas vão atrás).
+- **Testado e descartado:** buraco com areia fofa (piorou, 33%), buraco menor (25%), mais raso (20%), formato com borda mais curta (23%).
+- **Feito:** os buracos ficam só na primeira metade da cancha, no caminho, longe de onde o bolim para; os montinhos continuam em qualquer lugar. Resultado: bolim no buraco 0%, bolas no buraco 4%; o equilíbrio contra o Amiguinho continua parecido.
+- **Testes:** `bcburacos.cjs` (novo), `bocha.cjs`, `bcburaco.cjs`, `todas.cjs`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, vila da bocha pintada
 - **O dono mandou:** a Vila dos Pescadores vista de cima em 4 horários e a camada das luzes da noite.
 - **Feito:**

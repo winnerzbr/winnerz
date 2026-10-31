@@ -106,6 +106,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
     - a areia fofa freia 4 vezes mais que a areia batida;
     - as pegadas entortam o dobro;
     - são 2 montinhos e 2 buracos por partida, maiores;
+    - buracos só na primeira metade da cancha (31/10, a pedido do dono): espalhados, eles puxavam a partida (ocupavam ~6% da cancha, mas o bolim parava dentro em ~1 de cada 4 rodadas e ~1 de cada 4 bolas terminava num buraco). Agora ficam no caminho (centro entre 62 px depois da linha e 40% da cancha, raio 20 a 28): desviam a bola que passa e seguram a fraca; os montinhos continuam em qualquer lugar. Medido em 24 partidas automáticas: bolim no buraco 0%, bolas no buraco 4%;
     - no desenho, o buraco tem o fundo escuro e a borda clara, e o montinho tem o brilho em cima;
   - parada: bola devagar para quando a rampa é mais fraca que o atrito do lugar ou quando está encostada numa bola parada; batida devagar não quica;
   - as bolas batem umas nas outras, e o bolim é mais leve;
@@ -130,7 +131,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando);
   - `testes/bcmao.cjs`: fotos ampliadas da bola na mão (quadros 1 a 4 de rolando e pelo alto, bolim) e saindo da mão;
   - `testes/bcamiguinho.cjs`: o mesmo para o Amiguinho (espera, mira, soltura, torcida, vitória);
-  - `testes/bcvila.cjs`: fotos da vila nos 4 horários e na troca, com a cancha do jogo encaixada.
+  - `testes/bcvila.cjs`: fotos da vila nos 4 horários e na troca, com a cancha do jogo encaixada;
+  - `testes/bcburacos.cjs`: quanto os buracos puxam a partida (bolim e bolas dentro de buraco no fim das rodadas; aceita variações de teste: menor, fofo, rasa, compacto).
 - **Arte pintada (31/10):**
   - o dono mandou 4 pranchas do IAmiguinho (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), a folha das bolas (4 azuis, 4 rosa e o bolim laranja) e a folha de conchas, pegadas e tábuas;
   - as pranchas do IAmiguinho vieram sem bola na mão, como pedido: a bola do jogo é desenhada à parte;

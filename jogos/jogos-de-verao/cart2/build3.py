@@ -50,6 +50,7 @@ s = sub1("h = cur.two ? [['Modo', '2 jogadores'], ['Placar', 'até 7'], ['Toques
 # 2 jogadores no computador nas provas novas que têm (o mesmo botão do vôlei)
 s = sub1("  if (seq || touch) volei.two = false;\n", "  if (seq || touch) { volei.two = false; for (const e of EVENTS) if (e.two2) e.two = false; }\n", s)
 s = sub1("  setButtons(['Jogar', start], null);\n}\nfunction startDOM() {",
+         "  if (!seq && cur.menuDOM && cur.menuDOM()) return; // provas novas com modos próprios (bugue: Corrida, Copa das Dunas e a pista)\n"
          "  setButtons(['Jogar', start], null);\n"
          "  if (cur.two2 && !seq && !touch) { const ev = cur, b2 = $('b-alt2'); b2.hidden = false; b2.textContent = `2 jogadores: ${ev.two ? 'ligado' : 'desligado'}`; b2.setAttribute('aria-pressed', String(ev.two)); actAlt2 = () => { ev.two = !ev.two; showTitle(); renderHud(); setTimeout(() => $('b-alt2').focus({ preventScroll: true }), 0); }; }\n"
          "}\nfunction startDOM() {", s)

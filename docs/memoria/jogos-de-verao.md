@@ -31,7 +31,7 @@ O plano tem 19 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
     - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
-    - Corrida de bugue (`cart2/ev_bugue.js`): esperando o teste do dono.
+    - Corrida de bugue (`cart2/ev_bugue.js`): em ajustes com o dono; a Copa das Dunas (3 pistas) foi feita em 31/10 e espera o teste dele.
   - Todas as provas novas do plano foram feitas.
   - Removido também: Paraquedismo em formação ("não ficou legal a execução da ideia").
   - Removido: Voo do teco-teco. O dono testou 3 versões (de lado com física, 3D e 2D com voo livre) e achou que não ficou divertido.
@@ -179,10 +179,22 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos (corridas de 79 a 86 s);
   - numa corrida inteira dos 6 bugues no piloto automático, houve só 4 batidas fortes na mureta: dá para fazer as curvas rápido sem bater;
   - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado (com 2 itens guardados);
-  - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (20 de 20 nos dois casos);
+  - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (30 de 30 nos dois casos, nas 3 pistas);
+  - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado: nenhum bugue preso; de 0 a 1 batida forte por corrida;
+  - `testes/copafotos.cjs`: fotos do menu, das pistas novas, do salto e da classificação;
   - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.
-- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista e as dunas de cima em 3 horários.
-- **Ainda não feito:** a Copa das Dunas (3 pistas: Lagoa Azul, Duna do Farol e Desce-Duna). Esta pista é a primeira.
+- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista, peças das pistas da Copa (farol, beira-mar, areia fofa e ladeiras) e as dunas de cima em 3 horários.
+- **Modos (no menu da prova):**
+  - **Corrida:** uma corrida avulsa na pista escolhida no botão "Pista" (Lagoa Azul, Duna do Farol ou Desce-Duna; cada toque troca a pista e o IAmiguinho fala dela);
+  - **Copa das Dunas:** as 3 pistas seguidas. Cada chegada vale 10, 8, 6, 4, 2 e 1 pontos (quem não chegou conta pela posição na pista). Entre as corridas aparece a classificação, e ✕/Espaço (ou um toque) leva à próxima pista. A nota e a medalha saem da posição final na Copa, e "Jogar de novo" começa outra Copa. No HUD, a última casa mostra a corrida e os pontos.
+  - No modo das provas da semana, o bugue é uma corrida avulsa.
+- **As 3 pistas da Copa** (todas com muretas, 3 voltas, 2 ou 3 rampas, 4 fileiras de caixas e 5 esteiras de turbo):
+  - **Lagoa Azul:** a pista original, com o atalho pela lagoa. Corridas de uns 80 s.
+  - **Duna do Farol:** 3 grampos em volta do farol (torre listrada com o facho girando), com o mar ao norte. Por dentro de cada grampo há areia fofa: cortar caminho freia muito (sem turbo). O atalho é um corredor de areia fofa por dentro do grampo de cima e só compensa com turbo. Corridas de uns 100 s.
+  - **Desce-Duna:** a mais rápida. Nas descidas (setas claras na areia) o bugue embala (+13% de velocidade máxima, motor mais forte, quase não perde embalo sem acelerar); nas subidas (areia mais escura) ele segura (−14%). As rampas ficam no começo das retas. O atalho é um salto por cima da duna: rampa na entrada do corredor de areia fofa. Corridas de uns 108 s.
+- **Areia fofa:** freia forte e faz levantar poeira; o turbo atravessa sem frear.
+- **Amiguinhos nas pistas novas:** olham à frente pela distância (não pela contagem de pontos), calculam a frenagem antes das curvas, corrigem a volta para a sua faixa quando cortam a curva, abrem por fora dos grampos com areia fofa e, com turbo ou água de coco na mão, às vezes entram no atalho.
+- **Nomes e cores dos Amiguinhos:** Amarelo, Rosa, Azul, Verde e Laranja. O bugue do jogador é azul-escuro. Antes, um dos Amiguinhos aparecia como "Você", da mesma cor do jogador.
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

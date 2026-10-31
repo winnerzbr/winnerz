@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Copa das Dunas (bugue com 3 pistas)
+- **Pedido do dono:** "Pode implementar o próximo jogo". Todas as provas novas do plano já estavam feitas. Entre a Copa das Dunas, uma Regata de veleiros, o Castelo de areia e a Pesca na jangada, ele escolheu a Copa das Dunas, a parte do plano que faltava.
+- **Feito:**
+  - menu do bugue com **Corrida** (pista escolhida no botão "Pista") e **Copa das Dunas** (as 3 seguidas, pontos 10, 8, 6, 4, 2 e 1, classificação entre as corridas, nota pela posição final);
+  - **Duna do Farol:** 3 grampos, farol no meio, mar ao norte, areia fofa por dentro dos grampos e atalho de areia fofa;
+  - **Desce-Duna:** descidas que embalam, subidas que seguram e atalho com salto por cima da duna;
+  - Amiguinhos melhores em todas as pistas: frenagem antes das curvas, correção de faixa (as batidas fortes na mureta caíram de ~6 para 0 a 1 por corrida), desvio da areia fofa e uso ocasional do atalho com turbo;
+  - um Amiguinho aparecia com o nome "Você" e a cor do jogador: virou o Amiguinho Amarelo;
+  - página de pedidos: +3 pedidos (farol de cima, beira-mar, areia fofa e ladeiras), total de 54;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `testes/copa.cjs` (nenhum bugue preso nas 3 pistas, Copa inteira até o resultado), `testes/copafotos.cjs` e `testes/bgrec.cjs` nas 3 pistas.
+- **Pendente:** o dono testar a Copa das Dunas.
+
 ## 31/10/2026: Jogos de Verão, bugue volta de frente depois de rodar e escapa da mureta
 - **Pedidos do dono:**
   - depois de ser acertado e rodar, o bugue nunca pode ficar virado para trás: tem que voltar na direção certa, andando sozinho, com um tempinho de invencibilidade;

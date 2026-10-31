@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Embaixadinha (pingue-pongue, sem marcas e pedidos do estilo pintado)
+- **Pedidos do dono:**
+  - pôr uma bola de pingue-pongue na rotação;
+  - tirar os marcadores dos pontos de contato no IAmiguinho;
+  - fazer os prompts do visual pintado.
+- **Feito:**
+  - bola de pingue-pongue nas séries 7, 11, 15… (a de praia segue nas 5, 9, 13…): cai mais devagar, o vento leva mais e ela dança a cada toque. Desenho provisório feito pelo jogo;
+  - saíram as marquinhas das três alturas dos lados do IAmiguinho;
+  - página de pedidos: nova seção "Embaixadinha (estilo pintado)" com 24 pedidos (11 pranchas do IAmiguinho, bolas, biruta, gaivota e o cenário da Praia do Centro em 2 camadas e 4 horários). A página passou a ter 78 pedidos;
+  - detalhes em `jogos-de-verao.md`, seção Embaixadinha (nova).
+- **Pendente:** o dono testar e mandar as pranchas.
+
 ## 31/10/2026: Jogos de Verão, embalo do vácuo, balão mais rápido e dois ajustes no vôlei
 - **Pedidos do dono:**
   - bugue: ao sair do vácuo, a velocidade voltava na hora e não dava para ultrapassar;

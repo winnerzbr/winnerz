@@ -229,6 +229,18 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 3. Entre várias tentativas, fica a de cabeça mais constante e pose certa. O motivo vai para a Prévia.
 4. A prancha entra no jogo e na Prévia, os dois são publicados, e o histórico registra.
 
+## Embaixadinha
+- **Como é:** IAmiguinho de lado na areia (hoje no fundo da praia do vôlei), 3 bolas, sem relógio. Toques na cabeça, na coxa ou no pé quando a bola passa na altura; variar vale mais; X/○ faz firula (sobe mais, faz curva, vale o dobro). A sombra na areia mostra onde a bola cai.
+- **Séries (a cada 8 toques):** 2 mais espalhado, 3 vento (biruta), 4 gaivota com sombra que engana, 5/9/13… bola de praia (leve, o vento leva mais), 6/10/14… bola extra, **7/11/15… bola de pingue-pongue** (31/10, pedido do dono).
+- **Bola de pingue-pongue:** cai mais devagar (74% da gravidade), o vento leva o dobro e a cada toque ela "dança" um pouco para o lado; a sombra mostra onde ela cai. Por enquanto é desenhada pelo jogo (branca, contorno azul-marinho, costura laranja). Teste: `testes/ebpingue.cjs`.
+- **Sem marcas de contato (31/10, pedido do dono):** saíram as marquinhas das três alturas que apareciam dos lados do IAmiguinho quando a bola chegava.
+- As mudanças ficam no `cart2/build3.py` (a prova vem do jogo de 16 bits).
+- **Estilo pintado:** os pedidos estão na página "Pedidos das provas novas", seção "Embaixadinha (estilo pintado)", com 24 pedidos:
+  - 11 pranchas do IAmiguinho: espera olhando a bola, cabeça seguindo a bola, andando embaixo da bola, toque de pé, de coxa, cabeceio, firula de calcanhar, levantando a bola do chão, deixou cair, fim de jogo e comemoração. Sem a bola: o jogo desenha;
+  - folha das bolas (futebol, praia, pingue-pongue, bola de firula e bola extra), biruta e gaivota;
+  - cenário da Praia do Centro (prédios da orla, calçadão, quiosques), 2 camadas em 4 horários; a capa é o meio-dia.
+- **Pendente:** o dono testar a bola nova e mandar as pranchas.
+
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.
   - Inclui a espera olhando para a bola: a cabeça sobe e desce conforme a altura da bola.

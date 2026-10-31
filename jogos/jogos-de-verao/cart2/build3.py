@@ -54,6 +54,39 @@ s = sub1("  setButtons(['Jogar', start], null);\n}\nfunction startDOM() {",
          "  setButtons(['Jogar', start], null);\n"
          "  if (cur.two2 && !seq && !touch) { const ev = cur, b2 = $('b-alt2'); b2.hidden = false; b2.textContent = `2 jogadores: ${ev.two ? 'ligado' : 'desligado'}`; b2.setAttribute('aria-pressed', String(ev.two)); actAlt2 = () => { ev.two = !ev.two; showTitle(); renderHud(); setTimeout(() => $('b-alt2').focus({ preventScroll: true }), 0); }; }\n"
          "}\nfunction startDOM() {", s)
+# 31/10 · embaixadinha (pedidos do dono): bola de pingue-pongue na rotação e sem as marcas das alturas de toque em volta do IAmiguinho.
+# A bola de pingue-pongue entra nas séries 7, 11, 15... (a de praia segue nas 5, 9, 13...): leve, cai mais devagar, o vento leva
+# mais e a cada toque ela "dança" um pouco para o lado (a sombra mostra onde ela cai, então continua justo).
+s = sub1("const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bola extra!' };",
+         "const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bola extra!', 7: 'Bola de pingue-pongue!' };", s)
+s = sub1("extra, praia: this.praiaNow() }; },", "extra, praia: this.praiaNow(), pingue: this.pingueNow() }; },", s)
+s = sub1("  praiaNow() { return this.nivel >= 5 && (this.nivel - 5) % 4 === 0; },",
+         "  praiaNow() { return this.nivel >= 5 && (this.nivel - 5) % 4 === 0; },\n  pingueNow() { return this.nivel >= 7 && (this.nivel - 7) % 4 === 0; },", s)
+s = sub1("  gOf(b) { return this.cfg().g * (b.praia ? .58 : 1); },", "  gOf(b) { return this.cfg().g * (b.praia ? .58 : b.pingue ? .74 : 1); },", s)
+s = sub1("  axOf(b) { return this.wind * (b.praia ? 2.3 : 1) + b.cv; },", "  axOf(b) { return this.wind * (b.praia ? 2.3 : b.pingue ? 2 : 1) + b.cv; },", s)
+s = sub1("    b.serve = 0; b.cv = fir ? (Math.random() < .5 ? -1 : 1) * rand(40, 70) * (b.praia ? .7 : 1) : 0;\n",
+         "    b.serve = 0; b.cv = fir ? (Math.random() < .5 ? -1 : 1) * rand(40, 70) * (b.praia ? .7 : 1) : 0;\n    if (b.pingue) b.cv += rand(-24, 24);\n", s)
+s = sub1("    for (const b of this.balls) if (b.praia !== praia) { b.praia = praia; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n",
+         "    for (const b of this.balls) if (b.praia !== praia) { b.praia = praia; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n"
+         "    const pingue = this.pingueNow();\n"
+         "    for (const b of this.balls) if (b.pingue !== pingue) { b.pingue = pingue; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n", s)
+s = sub1("  drawBall(b, tt) {\n    const O = SPR.eb_obj, x = b.x, y = b.y;\n",
+         "  drawBall(b, tt) {\n    if (b.pingue) { this.drawPingue(b, tt); return; }\n    const O = SPR.eb_obj, x = b.x, y = b.y;\n", s)
+s = sub1("  // ---------- visual com a arte gerada (16:9, desenhado em dobro, a mesma praia do vôlei)\n  draw(tt) {",
+         "  // bola de pingue-pongue (provisória, desenhada pelo jogo): branca, contorno azul-marinho, a costura girando\n"
+         "  drawPingue(b, tt) {\n"
+         "    const r = 4.6; ctx.save(); ctx.translate(b.x, b.y);\n"
+         "    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();\n"
+         "    ctx.fillStyle = 'rgba(160,170,200,.45)'; ctx.beginPath(); ctx.arc(1, 1.2, r * .78, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(-.6, -.7, r * .72, 0, TAU); ctx.fill();\n"
+         "    ctx.strokeStyle = 'rgba(255,150,60,.85)'; ctx.lineWidth = .7; ctx.beginPath(); ctx.ellipse(0, 0, r * .85, r * .3, b.spin * .5, 0, TAU); ctx.stroke();\n"
+         "    ctx.strokeStyle = '#1b1f4f'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); ctx.restore();\n"
+         "    if (b.extra) R(Math.round(b.x) - 1, Math.round(b.y) - 10, 3, 2, '#ffd04a');\n"
+         "    if (b.firula && Math.floor(tt * 14) % 2) R(Math.round(b.x) + 5, Math.round(b.y) - 7, 2, 2, '#ffffff');\n"
+         "  },\n"
+         "  // ---------- visual com a arte gerada (16:9, desenhado em dobro, a mesma praia do vôlei)\n  draw(tt) {", s)
+# sem as marcas das três alturas em volta do IAmiguinho
+_a = s.index("    // marcas discretas das três alturas, só quando uma bola está chegando\n"); _b = s.index("    // IAmiguinho: 0 parado · 1 chute (pé)", _a)
+s = s[:_a] + s[_b:]
 # vôlei desenhado em 1280 × 720, liso
 s = sub1("  const hi = mode !== 'podium' && (cur === volei || !!cur.hi); // vôlei e provas com a arte gerada: desenho em dobro\n"
          "  if (cv.width !== (hi ? W * 2 : W) || cv.height !== (hi ? H * 2 : H)) { cv.width = hi ? W * 2 : W; cv.height = hi ? H * 2 : H; ctx.imageSmoothingEnabled = false; requestAnimationFrame(fitFs); }\n"

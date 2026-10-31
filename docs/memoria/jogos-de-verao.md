@@ -239,6 +239,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - 11 pranchas do IAmiguinho: espera olhando a bola, cabeça seguindo a bola, andando embaixo da bola, toque de pé, de coxa, cabeceio, firula de calcanhar, levantando a bola do chão, deixou cair, fim de jogo e comemoração. Sem a bola: o jogo desenha;
   - folha das bolas (futebol, praia, pingue-pongue, bola de firula e bola extra), biruta e gaivota;
   - cenário da Praia do Centro (prédios da orla, calçadão, quiosques), 2 camadas em 4 horários; a capa é o meio-dia.
+- **Anexos na página de pedidos (31/10, pedido do dono):** a página "Pedidos das provas novas" ganhou a seção "Anexos para o ChatGPT" (ficha e grade do IAmiguinho e do Amiguinho e a referência de estilo), repetida no começo de cada grupo com os anexos daquele grupo. Cada imagem tem "Copiar imagem" (cola direto no ChatGPT) e "Baixar" (a página tem a permissão de downloads; pede confirmação). Os cartões da embaixadinha têm a referência de pose em cinza com os desenhos antigos de 16 bits nos quadros certos (`novas/poses_eb.py` gera; ficam em `novas/anexos`). As fichas e grades vêm de `moveset_volei/ficha` e a referência de estilo de `skate_moveset/ficha`.
 - **Pendente:** o dono testar a bola nova e mandar as pranchas.
 
 ## Vôlei

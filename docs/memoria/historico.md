@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Página de pedidos com os anexos para o ChatGPT
+- **Pedido do dono:** pôr na página dos pedidos das provas novas as grades e referências para colar no ChatGPT, como no vôlei.
+- **Feito:**
+  - seção "Anexos para o ChatGPT" no topo: fichas de modelo e grades-guia do IAmiguinho e do Amiguinho e a referência de estilo dos cenários;
+  - cada grupo de pedidos mostra os anexos que usa (personagem: ficha e grade; objetos: ficha do IAmiguinho e estilo; cenários: estilo);
+  - 8 referências de pose em cinza nos cartões da embaixadinha (desenhos antigos de 16 bits nos quadros certos da grade), e o texto desses pedidos explica para o ChatGPT como usá-las;
+  - botões "Copiar imagem" (cola no ChatGPT com Ctrl+V) e "Baixar" (a página ganhou a permissão de downloads; o navegador pede confirmação).
+- **Pendente:** o dono usar e dizer se o copiar imagem funciona no navegador dele.
+
 ## 31/10/2026: Jogos de Verão, Embaixadinha (pingue-pongue, sem marcas e pedidos do estilo pintado)
 - **Pedidos do dono:**
   - pôr uma bola de pingue-pongue na rotação;

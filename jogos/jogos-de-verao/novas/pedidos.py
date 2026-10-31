@@ -118,16 +118,16 @@ GAMES = [
   nota='No jogo agora: em 16 bits (IAmiguinho, bolas e biruta), no fundo da praia do vôlei. A bola de pingue-pongue (séries 7, 11, 15...) é provisória, desenhada pelo jogo. O IAmiguinho fica de lado, olhando para a direita (o jogo espelha quando ele anda para a esquerda). As bolas o jogo desenha por cima: nas pranchas do IAmiguinho, NÃO desenhe a bola.',
   groups=[
    dict(h='IAmiguinho na embaixadinha', who='ia', p='De lado, olhando para a direita. Sem bola nas pranchas: o jogo desenha a bola e encosta ela no pé, na coxa ou na cabeça no quadro de contato. Comece pela espera e pela cabeça seguindo a bola.', cards=[
-    dict(t='Espera olhando a bola', sub='8 quadros · repete', txt=PIA + 'Sheet: KEEPY-UPPY READY STANCE, loop of 8 frames, side view facing RIGHT. Standing relaxed on the sand, knees soft, weight on the balls of the feet, arms loose and a little open for balance, the head tilted up looking at a ball high above in front of him (do NOT draw the ball). A small bounce: 1 neutral, 2-4 going down a little, 5-7 coming up, 8 flowing into frame 1. Focused, happy face.'),
+    dict(t='Espera olhando a bola', sub='8 quadros · repete', pose='eb_espera', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: KEEPY-UPPY READY STANCE, loop of 8 frames, side view facing RIGHT. Standing relaxed on the sand, knees soft, weight on the balls of the feet, arms loose and a little open for balance, the head tilted up looking at a ball high above in front of him (do NOT draw the ball). A small bounce: 1 neutral, 2-4 going down a little, 5-7 coming up, 8 flowing into frame 1. Focused, happy face.'),
     dict(t='Cabeça seguindo a bola', sub='8 quadros · não é animação', txt=PIA + 'Sheet: the SAME standing pose in all 8 frames (copy frame 1 of the approved ready stance), only the HEAD and the eyes change, looking at a ball (do NOT draw it): 1 looking straight ahead, 2 a little up, 3 up, 4 high up, 5 straight up (chin raised), 6 looking down at the feet, 7 looking down in front, 8 looking ahead and a little down. The body, arms and legs do not move at all between frames.'),
     dict(t='Andando embaixo da bola', sub='8 quadros · repete', txt=PIA + 'Sheet: QUICK SMALL STEPS under the ball, loop of 8 frames, side view facing RIGHT, the head tilted up the whole time watching the ball (do NOT draw it). Knees bent, short fast steps, arms open for balance: 1 right foot forward, 2 weight on it, 3 passing, 4 left foot forward, 5-8 the same with feet swapped, frame 8 flowing into frame 1.'),
-    dict(t='Toque de pé', sub='8 quadros · contato no 4', txt=PIA + 'Sheet: KEEPY-UPPY FOOT TOUCH, 8 frames, side view facing RIGHT. 1: ready, looking down at the falling ball (not drawn). 2: front foot lifting, knee bending. 3: foot swinging up. 4: CONTACT: the top of the front foot flat and horizontal at ANKLE-TO-SHIN height, just in front of the body, toes pointed, knee bent, arms out for balance, eyes on the foot. 5: foot following up a little, eyes going up. 6-7: foot back down to the sand. 8: ready stance, looking up.'),
-    dict(t='Toque de coxa', sub='8 quadros · contato no 4', txt=PIA + 'Sheet: KEEPY-UPPY THIGH TOUCH, 8 frames, side view facing RIGHT. 1: ready, looking down. 2: front knee starting to rise. 3: knee rising fast. 4: CONTACT: the front thigh HORIZONTAL at hip height, knee bent at 90 degrees, the lower leg hanging down, standing on the other leg, arms out, eyes on the thigh. 5: thigh going a little higher, eyes going up. 6-7: leg coming down. 8: ready stance, looking up.'),
-    dict(t='Cabeceio', sub='8 quadros · contato no 4', txt=PIA + 'Sheet: KEEPY-UPPY HEADER, 8 frames, side view facing RIGHT. 1: ready, looking up. 2: knees bending, crouching. 3: pushing up, small jump. 4: CONTACT: in the air (both feet slightly off the GROUND line), body stretched, head tilted back, the FOREHEAD and the cap brim facing straight up, arms open wide. 5: still up, eyes following the ball upward. 6: coming down. 7: landing, knees bent. 8: ready stance, looking up.'),
-    dict(t='Firula de calcanhar', sub='8 quadros · contato no 5', txt=PIA + 'Sheet: HEEL FLICK TRICK (rainbow kick), 8 frames, side view facing RIGHT. 1: ready, looking down. 2: stepping forward with the back foot. 3: the other leg swinging BEHIND the body. 4: heel coming up behind, body leaning forward. 5: CONTACT: the heel high behind the body at hip height, the sole facing up, body leaning forward, arms out, a playful proud face. 6: leg coming down, looking up over the shoulder. 7: turning the head forward. 8: ready stance, looking up. Extra flair: a small sparkle near the heel in frame 5.'),
-    dict(t='Levantando a bola do chão', sub='8 quadros · contato no 5', txt=PIA + 'Sheet: FLICKING THE BALL UP FROM THE SAND to start, 8 frames, side view facing RIGHT. 1: standing, looking down at a ball on the sand in front of the front foot (do NOT draw it). 2: front foot on top of the ball area, sole down. 3: rolling it back, foot sliding back. 4: toes under the ball area, knee bent. 5: CONTACT: flick, the front foot lifting fast from the sand to shin height. 6: foot coming down, head going up. 7: looking up. 8: ready stance, looking up.'),
-    dict(t='Deixou cair', sub='8 quadros · não repete', txt=PIA + 'Sheet: DROPPED THE BALL, 8 frames, side view facing RIGHT. 1: ready stance, eyes going down, surprised. 2: reaching a foot out too late. 3: watching the ball hit the sand in front (do NOT draw it), mouth open. 4: both hands on the cap. 5: shoulders dropping, a big sigh. 6: one hand on the face, peeking through the fingers. 7: shaking the head, small smile. 8: ready stance again, determined.'),
-    dict(t='Fim de jogo', sub='8 quadros · não repete', txt=PIA + 'Sheet: GAME OVER (the last ball fell), 8 frames, side view facing RIGHT. 1: standing, sad. 2: knees giving way. 3: kneeling on the sand. 4: sitting on the sand, legs out in front. 5: leaning back on both hands, looking at the sky. 6: a long dramatic sigh, eyes closed. 7: opening one eye, a small embarrassed laugh. 8: sitting, waving at the camera with a grin. Comic, not sad.'),
+    dict(t='Toque de pé', sub='8 quadros · contato no 4', pose='eb_pe', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: KEEPY-UPPY FOOT TOUCH, 8 frames, side view facing RIGHT. 1: ready, looking down at the falling ball (not drawn). 2: front foot lifting, knee bending. 3: foot swinging up. 4: CONTACT: the top of the front foot flat and horizontal at ANKLE-TO-SHIN height, just in front of the body, toes pointed, knee bent, arms out for balance, eyes on the foot. 5: foot following up a little, eyes going up. 6-7: foot back down to the sand. 8: ready stance, looking up.'),
+    dict(t='Toque de coxa', sub='8 quadros · contato no 4', pose='eb_coxa', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: KEEPY-UPPY THIGH TOUCH, 8 frames, side view facing RIGHT. 1: ready, looking down. 2: front knee starting to rise. 3: knee rising fast. 4: CONTACT: the front thigh HORIZONTAL at hip height, knee bent at 90 degrees, the lower leg hanging down, standing on the other leg, arms out, eyes on the thigh. 5: thigh going a little higher, eyes going up. 6-7: leg coming down. 8: ready stance, looking up.'),
+    dict(t='Cabeceio', sub='8 quadros · contato no 4', pose='eb_cabeca', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: KEEPY-UPPY HEADER, 8 frames, side view facing RIGHT. 1: ready, looking up. 2: knees bending, crouching. 3: pushing up, small jump. 4: CONTACT: in the air (both feet slightly off the GROUND line), body stretched, head tilted back, the FOREHEAD and the cap brim facing straight up, arms open wide. 5: still up, eyes following the ball upward. 6: coming down. 7: landing, knees bent. 8: ready stance, looking up.'),
+    dict(t='Firula de calcanhar', sub='8 quadros · contato no 5', pose='eb_firula', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: HEEL FLICK TRICK (rainbow kick), 8 frames, side view facing RIGHT. 1: ready, looking down. 2: stepping forward with the back foot. 3: the other leg swinging BEHIND the body. 4: heel coming up behind, body leaning forward. 5: CONTACT: the heel high behind the body at hip height, the sole facing up, body leaning forward, arms out, a playful proud face. 6: leg coming down, looking up over the shoulder. 7: turning the head forward. 8: ready stance, looking up. Extra flair: a small sparkle near the heel in frame 5.'),
+    dict(t='Levantando a bola do chão', sub='8 quadros · contato no 5', pose='eb_levanta', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: FLICKING THE BALL UP FROM THE SAND to start, 8 frames, side view facing RIGHT. 1: standing, looking down at a ball on the sand in front of the front foot (do NOT draw it). 2: front foot on top of the ball area, sole down. 3: rolling it back, foot sliding back. 4: toes under the ball area, knee bent. 5: CONTACT: flick, the front foot lifting fast from the sand to shin height. 6: foot coming down, head going up. 7: looking up. 8: ready stance, looking up.'),
+    dict(t='Deixou cair', sub='8 quadros · não repete', pose='eb_caiu', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: DROPPED THE BALL, 8 frames, side view facing RIGHT. 1: ready stance, eyes going down, surprised. 2: reaching a foot out too late. 3: watching the ball hit the sand in front (do NOT draw it), mouth open. 4: both hands on the cap. 5: shoulders dropping, a big sigh. 6: one hand on the face, peeking through the fingers. 7: shaking the head, small smile. 8: ready stance again, determined.'),
+    dict(t='Fim de jogo', sub='8 quadros · não repete', pose='eb_fim', txt=PIA + 'Also attached: a GRAY POSE REFERENCE with the old 16-bit drawings of this move in some frames. Copy the pose and the timing from it, but the proportions, the sizes and the style come only from the MODEL SHEET and the GUIDE GRID. Frames that are empty in the reference are free. Sheet: GAME OVER (the last ball fell), 8 frames, side view facing RIGHT. 1: standing, sad. 2: knees giving way. 3: kneeling on the sand. 4: sitting on the sand, legs out in front. 5: leaning back on both hands, looking at the sky. 6: a long dramatic sigh, eyes closed. 7: opening one eye, a small embarrassed laugh. 8: sitting, waving at the camera with a grin. Comic, not sad.'),
     dict(t='Comemoração', sub='8 quadros · não repete', txt=PIA + 'Sheet: CELEBRATION (new series or 10 touches in a row), 8 frames, side view facing RIGHT, then turning a little toward the camera. 1: ready. 2: crouching, fists closed. 3: jumping up, one fist up. 4: top of the jump, both arms up, big smile, eyes closed happily. 5: coming down. 6: landing, a fist pump at the chest. 7: pointing up at the ball in the sky (not drawn). 8: ready stance, looking up, smiling.'),
    ]),
    dict(h='Bolas, biruta e gaivota', who='obj', p='Peças em fundo verde. A folha das bolas vem primeiro: ela vira anexo das outras.', cards=[
@@ -150,6 +150,21 @@ html = '''<title>Pedidos das provas novas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ''' + css + '''
 
+<style>
+.anxg { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 14px }
+.anxg.mini { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); align-items: start }
+.anxk { grid-column: 1 / -1; font: 600 12px var(--f-mono); color: var(--mut); text-transform: uppercase; letter-spacing: .06em }
+figure.anx { margin: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card, #fff); display: grid }
+figure.anx img { width: 100%; height: 130px; object-fit: contain; background: #f4f4f4; display: block }
+figure.anx figcaption { padding: 8px 10px 10px; display: grid; gap: 3px; font-size: 13px }
+figure.anx figcaption span { color: var(--mut); font-size: 12px }
+figure.anx .ib { display: flex; gap: 8px; align-items: center; margin-top: 4px }
+figure.anx .ib button, figure.anx .ib a { font-family: inherit; font-weight: 600; font-size: 12px; line-height: 1.2; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; text-decoration: none }
+body.pode-baixar figure.anx .ib button.dl[hidden] { display: inline-block }
+figure.anx .ib button.ok { background: #2f8a4f; color: #fff; border-color: #2f8a4f }
+.card figure.anx.pose { border: 0; border-top: 1px dashed var(--line); border-radius: 0 }
+.card figure.anx.pose img { height: auto; max-height: 260px }
+</style>
 <div class="wrap">
   <header>
     <span class="k">WinnerZ · IAmiguinho Jogos de Verão · estilo pintado</span>
@@ -158,7 +173,7 @@ html = '''<title>Pedidos das provas novas</title>
   </header>
   <div class="bar"><span class="k">Provas novas</span><div class="prog"><span id="pg"></span><span class="meter"><i id="pm"></i></span></div></div>
   <div class="tips"><b>Como pedir</b><ol>
-    <li>Personagens: use a mesma conversa (ou uma nova) com as regras do vôlei. As regras estão no passo 1 de cada personagem logo abaixo.</li>
+    <li>Personagens: use a mesma conversa (ou uma nova) com as regras do vôlei. As regras estão no passo 1 de cada personagem logo abaixo. Em cada pedido, anexe a ficha de modelo e a grade-guia (os anexos ficam no topo da página e no começo de cada grupo) e, quando o cartão tiver, a referência de pose em cinza.</li>
     <li>Objetos que aparecem em várias pranchas (como a raquete) vêm primeiro: aprovados, viram anexo fixo dos pedidos seguintes.</li>
     <li>Cenários: primeiro a versão do dia; os outros horários saem dela, anexando a imagem aprovada.</li>
     <li>Me mande as imagens como forem saindo.</li>
@@ -174,25 +189,56 @@ let done = {};
 try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { done = {}; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
 function esc(s) { return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-function card(k, title, sub, text) {
+const ANX = {
+  ficha_ia: ['ficha_iamiguinho.png', 'Ficha de modelo do IAmiguinho', 'as quatro vistas com as linhas de proporção'],
+  grade_ia: ['grade_iamiguinho.png', 'Grade-guia do IAmiguinho', '4 × 2 quadros com o chão e as linhas da cabeça'],
+  ficha_bl: ['ficha_amiguinho.png', 'Ficha de modelo do Amiguinho', 'as vistas com as linhas de proporção'],
+  grade_bl: ['grade_amiguinho.png', 'Grade-guia do Amiguinho', '4 × 2 quadros com o chão e as linhas do corpo'],
+  estilo: ['estilo_cenario.jpg', 'Referência de estilo', 'a praia pintada do vôlei: o jeito de pintar os cenários e as peças'],
+};
+const WHO_ANX = { ia: ['ficha_ia', 'grade_ia'], bl: ['ficha_bl', 'grade_bl'], obj: ['ficha_ia', 'estilo'], cen: ['estilo'] };
+function imgBox(file, title, sub, cls = '') {
+  return `<figure class="anx ${cls}"><img src="anexos/${file}" alt="${esc(title)}" loading="lazy"><figcaption><b>${esc(title)}</b><span>${esc(sub)}</span><span class="ib"><button type="button" class="ci" data-f="${file}">Copiar imagem</button><button type="button" class="dl" data-f="${file}" hidden>Baixar</button></span></figcaption></figure>`;
+}
+function card(k, title, sub, text, pose) {
   const isDone = !!done[k];
-  return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts"><label class="chk"><input type="checkbox"${isDone ? ' checked' : ''}> Feita</label><button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre></div>`;
+  const fig = pose ? imgBox(`pose_${pose}.jpg`, 'Referência de pose (anexe junto)', `os desenhos antigos em cinza · pose_${pose}.jpg`, 'pose') : '';
+  return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts"><label class="chk"><input type="checkbox"${isDone ? ' checked' : ''}> Feita</label><button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre>${fig}</div>`;
 }
 function render() {
-  let h = '';
+  let h = `<section><h2>Anexos para o ChatGPT <small>copie ou baixe</small></h2><p>As imagens que os pedidos mandam anexar. “Copiar imagem” coloca a imagem na área de transferência: no ChatGPT, é só colar (Ctrl+V) na caixa de mensagem junto com o texto. Se o navegador não deixar copiar, use “Baixar” (pede confirmação) e anexe o arquivo. Cada grupo de pedidos abaixo repete os anexos que ele usa.</p><div class="anxg">${Object.values(ANX).map(([f, t, s2]) => imgBox(f, t, s2)).join('')}</div></section>`;
   GAMES.forEach((g) => {
     h += `<section><h2>${esc(g.n)}</h2><p>${esc(g.lugar)}</p><p>${esc(g.nota)}</p></section>`;
     let n = 0;
     g.groups.forEach((x, gi) => {
       h += `<section><h2>${esc(x.h)} <small>${x.cards.length} ${x.cards.length > 1 ? 'pedidos' : 'pedido'}</small></h2><p>${esc(x.p)}</p>`;
+      const ax = WHO_ANX[x.who] || []; if (ax.length) h += `<div class="anxg mini"><span class="anxk">Anexos deste grupo</span>${ax.map((a) => imgBox(...ANX[a])).join('')}</div>`;
       if ((x.who === 'ia' || x.who === 'bl') && !g.groups.slice(0, gi).some((y) => y.who === x.who)) h += card(`${g.id}-regras-${x.who}`, `Passo 1 · regras do ${x.who === 'ia' ? 'IAmiguinho' : 'Amiguinho'}`, 'mandar uma vez, com a ficha e a grade', RULES[x.who]);
-      x.cards.forEach((c) => { n++; h += card(`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c.sub, c.txt); });
+      x.cards.forEach((c) => { n++; h += card(`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c.sub, c.txt, c.pose); });
       h += '</section>';
     });
   });
   document.getElementById('main').innerHTML = h; prog();
 }
 function prog() { const c = Object.keys(done).filter((k) => !k.includes('-regras-')).length; document.getElementById('pg').textContent = `${c} de ${TOTAL} feitos`; document.getElementById('pm').style.width = (c / TOTAL * 100) + '%'; }
+// baixar: o artefato só entrega arquivos pela permissão de downloads (o botão aparece quando ela está disponível)
+let DL = null;
+(async () => { try { DL = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { DL = null; } if (DL) { document.body.classList.add('pode-baixar'); } })();
+document.getElementById('main').addEventListener('click', async (e) => {
+  const b = e.target.closest('button.dl'); if (!b || !DL) return;
+  const fim = (t) => { b.textContent = t; setTimeout(() => { b.textContent = 'Baixar'; }, 1800); };
+  try { const r = await fetch('anexos/' + b.dataset.f); const bl = await r.blob(); await DL.save({ filename: b.dataset.f, data: bl }); fim('Baixado'); }
+  catch (err) { fim(err && err.code === 'declined' ? 'Cancelado' : 'Não deu'); }
+});
+// copiar imagem: o ChatGPT aceita colar PNG; o JPG passa por um canvas e vira PNG
+document.getElementById('main').addEventListener('click', async (e) => {
+  const b = e.target.closest('button.ci'); if (!b) return;
+  const done2 = (t) => { b.textContent = t; setTimeout(() => { b.textContent = 'Copiar imagem'; b.classList.remove('ok'); }, 1800); };
+  try {
+    const png = new Promise((res, rej) => { const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext('2d').drawImage(im, 0, 0); c.toBlob((bl) => (bl ? res(bl) : rej(new Error('png'))), 'image/png'); }; im.onerror = rej; im.src = 'anexos/' + b.dataset.f; });
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]); b.classList.add('ok'); done2('Copiada');
+  } catch (err) { done2('Use Baixar'); }
+});
 document.getElementById('main').addEventListener('click', async (e) => {
   const b = e.target.closest('button.cp'); if (!b) return;
   const pre = b.closest('.card').querySelector('pre');
@@ -211,4 +257,9 @@ render();
 '''
 out = ROOT / 'novas_pedidos'; out.mkdir(exist_ok=True)
 (out / 'index.html').write_text(html, encoding='utf-8')
+# anexos (ficha, grade, referência de estilo e as referências de pose) ficam ao lado da página
+# (as fichas e grades vêm do moveset do vôlei, a referência de estilo do moveset do skate; as referências de pose ficam em novas/anexos)
+import shutil; shutil.rmtree(out / 'anexos', ignore_errors=True); shutil.copytree(ROOT / 'novas' / 'anexos', out / 'anexos')
+for f in ['ficha_iamiguinho.png', 'grade_iamiguinho.png', 'ficha_amiguinho.png', 'grade_amiguinho.png']: shutil.copy(ROOT / 'moveset_volei' / 'ficha' / f, out / 'anexos' / f)
+shutil.copy(ROOT / 'skate_moveset' / 'ficha' / 'estilo_cenario.jpg', out / 'anexos' / 'estilo_cenario.jpg')
 print(TOTAL, 'pedidos', len(html) // 1024, 'KB')

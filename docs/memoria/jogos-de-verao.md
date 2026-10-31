@@ -31,7 +31,7 @@ O plano tem 21 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
     - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
-    - Voo do teco-teco (`cart2/ev_teco.js`): refeito em 3D, esperando o teste do dono.
+    - Voo do teco-teco (`cart2/ev_teco.js`): de volta ao 2D, agora com voo livre; esperando o teste do dono.
   - Faltam, nesta ordem: Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
@@ -132,71 +132,29 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - bolas, cancha e vila são desenhadas pelo jogo;
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
-### Voo do teco-teco (como funciona, 2ª versão em 3D)
-O dono reprovou a 1ª versão (de lado, com física de estol): ficava muito complicado subir. Ele pediu movimentação livre, em 3D.
-- **3D:**
-  - usa o three.js r160, carregado do jsDelivr (`<script async>` no começo da página, posto pelo `build3.py`);
-  - a cena é desenhada numa tela à parte e copiada para a tela do jogo, com os avisos 2D por cima;
-  - sem 3D no aparelho, aparece um aviso;
-  - nos testes, o Playwright serve uma cópia local do r160 (`testes/vendor/three-r160.min.js`, que fica fora do repositório).
-- **Controles (voo livre de jogo):**
-  - ◀ ▶ fazem a curva (o avião inclina);
-  - ▲ sobe e ▼ desce; soltando, ele volta a voar reto e nivelado;
-  - ✕/Espaço dá o turbo (1,2 s, recarrega em 4 s);
-  - ○/X faz um giro de 360° (150 pontos);
-  - segurar ▲ subindo por 0,8 s faz o looping (450); segurar ▼ acima de 70 m faz o looping invertido (700);
-  - no celular, direcional completo, Turbo e Giro.
-- **Voo:**
-  - a velocidade é constante (30 m/s; 48 m/s no turbo);
-  - decolagem automática na pista nos primeiros 2 s;
-  - teto de 220 m;
-  - longe demais da costa, ele faz a curva de volta sozinho.
-- **Percurso fixo em circuito de 28 argolas** passando pelos marcos:
-  - a próxima argola brilha e tem uma setinha em cima; uma seta na borda da tela aponta para ela quando está fora da vista;
-  - em sequência, cada argola vale 100 × sequência, até ×8; a sequência zera se passar 12 s sem argola;
-  - a volta completa vale 1.000 (em 90 s, dá cerca de 18 argolas);
-  - raspar na argola só zera a sequência.
-- **Outros pontos e perigos:**
-  - balões: 50 cada, o dourado 250;
-  - gaivotas voando em roda (bater faz o avião rodopiar);
-  - rasante a até 12 m acima do topo de um marco: de 200 a 800;
-  - passar por baixo do viaduto: 900.
-- **Mundo:**
-  - costa ondulada, praia, morros, ilhotas e mar;
-  - marcos: farol na falésia, viaduto do skatepark, laje com a cesta, roda-gigante girando e o hangar do aeroclube.
-- **Bater:** no chão, na água, em marco ou em gaivota, o avião rodopia 1,1 s, perde embalo e a sequência; a prova continua.
-- **Medalhas:** bronze 5.000, prata 11.000, ouro 17.000.
-- **Testes:** `testes/teco3d.cjs` (curva, subida, fotos de cada marco e piloto automático: de 10 a 13 mil pontos só com argolas).
-- **Arte provisória:** formas 3D simples, com sombreado de desenho animado e contorno escuro. A faixa puxada atrás saiu, porque em 3D ficava entre a câmera e o avião. A página de pedidos troca as pranchas de lado por um céu panorâmico pintado em 4 horários.
-
-### Vôlei 3D (teste, 31/10/2026)
-O dono pediu um teste: o vôlei em 3D. Ele escolheu "quadra 3D de verdade" (andar para a frente e para trás) e "os desenhos pintados" como personagens.
-- **Prova à parte:** `cart2/ev_volei3d.js`, id `volei3d`, no fim da lista. O vôlei 2D não mudou.
-- **Cena:**
-  - três.js r160, como no teco-teco;
-  - câmera de transmissão, de lado e do alto, com o IAmiguinho à esquerda;
-  - pôr do sol com mar, sol, coqueiros, linhas azuis e a rede.
-- **Personagens:**
-  - as pranchas pintadas do vôlei, desenhadas a cada quadro numa tela à parte e coladas num recorte que sempre olha para a câmera, com sombra no chão;
-  - usam as mesmas animações: espera, corrida, recuo, pulo, cortada, peixinho, toque, manchete, saque, festa e tristeza.
-- **Medidas:** quadra 16 × 8 m, rede de 2,43 m, personagens de cerca de 1,85 m, bola de raio 0,28 m (maior que a real, para ler bem).
-- **Controles:**
-  - ◀ ▶ ▲ ▼ andam (▲ vai para o fundo);
-  - ✕/Espaço pula; ○/X dá o peixinho;
-  - □/C corta (no ar, perto da bola) e saca: C saca forte, Espaço saca por baixo;
-  - quem saca fica atrás da linha.
-- **Toque:**
-  - a bola bate na cabeça ou no corpo;
-  - o 1º e o 2º toques levantam a bola perto da rede do próprio lado;
-  - segurando para a rede, ou no 3º toque, ela passa para o outro lado;
-  - ▲ ▼ na hora da batida escolhem o lado; sem escolher, vai para longe do adversário;
-  - o erro da batida depende de onde a bola bateu e da força com que chegou.
-- **Leitura:** um círculo na areia mostra onde a bola vai cair (azul do seu lado, rosa do lado dele).
-- **Regras:** 3 toques por lado; o ponto sai quando a bola cai na quadra ou fora (quem tocou por último perde); a rede devolve a bola; até 7 pontos.
-- **Amiguinho:**
-  - prevê a bola, vai para debaixo dela, levanta perto da rede, pula e corta;
-  - erra leitura, tempo de reação e mira conforme o acerto (0,74 de base, entre 0,5 e 0,92 conforme o placar).
-- **Testes:** `testes/volei3d.cjs` (partidas: o muito bom venceu 3 de 4, o médio 2 de 4, o fraco 1 de 4; fotos) e `testes/v3keys.cjs` (teclado).
+### Voo do teco-teco (como funciona, 3ª versão: 2D com voo livre)
+- **Histórico:**
+  - 1ª versão: de lado, com física de avião e estol; reprovada porque subir era complicado demais;
+  - 2ª versão: 3D; o dono descartou;
+  - agora: de volta ao 2D (o mesmo percurso, marcos e desenho da 1ª versão), com movimentação livre.
+- **Voo livre:**
+  - a tela anda sozinha para a direita (120 px/s; 195 no turbo) e o avião se move livre dentro dela;
+  - ▲ ▼ sobem e descem (150 px/s) e ◀ ▶ vão para trás e para a frente na tela (115 px/s), com um pouco de embalo;
+  - o nariz acompanha o movimento;
+  - a decolagem da pista é automática; encostar na pista não é batida.
+- **Botões:**
+  - ✕/Espaço: turbo (1,2 s, recarrega em 4 s);
+  - ○/X: looping, um círculo de pé de 34 px em 1,25 s, que vale 450; com ▼ segurado acima de 110 px de altura, sai o looping invertido, que vale 700;
+  - no celular, direcional completo, Turbo e Looping.
+- **Pontos e batidas:** como na 1ª versão:
+  - argola 100 × sequência (até ×8); raspar só perde a sequência;
+  - balão 50, balão dourado 250;
+  - rasante de 200 a 880;
+  - passar por baixo do viaduto 900;
+  - bater em marco, gaivota ou água faz o avião rodopiar 1 s e perder a sequência.
+- **Medalhas:** bronze 8.000, prata 18.000, ouro 28.000. O piloto automático fez de 19 a 32 mil pontos: com voo livre, ficou bem mais fácil.
+- **Testes:** `testes/teco.cjs` (decolagem, resposta de ▲ e ▶, looping, piloto automático em 3 níveis e fotos).
+- **Arte:** os pedidos da página de pedidos voltaram a ser os de lado (avião, faixa, marcos, peças do céu e o céu com o aeroclube).
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

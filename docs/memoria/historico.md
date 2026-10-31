@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, 3D descartado; teco-teco em 2D com voo livre
+- **Decisão do dono:** "Pode descartar essa versão 3D. Para o jogo de avião, retorne ao 2D porém com movimentação livre do teco teco."
+  - O vôlei 3D saiu do jogo, do `build3.py` e do repositório.
+  - O teco-teco 3D também saiu.
+  - O three.js não é mais carregado.
+  - Não usar 3D nas provas, a não ser que o dono peça de novo.
+- **Teco-teco:**
+  - volta o 2D de lado (percurso, marcos e desenho da 1ª versão), mas sem física de estol;
+  - a tela anda sozinha, e o avião se move livre com ▲ ▼ ◀ ▶;
+  - turbo no ✕ e looping no ○;
+  - detalhes em `jogos-de-verao.md`.
+- **Página de pedidos:** os pedidos de lado do teco-teco voltaram.
+- **Pendente:** o dono testar o teco-teco com voo livre. Depois vêm o Paraquedismo e a Corrida de bugue.
+
 ## 31/10/2026: Jogos de Verão, Vôlei 3D (teste)
 - **Pedido do dono:** "Vamos fazer um teste: Porte o jogo de vôlei para 3D."
 - **Escolhas dele:** quadra 3D de verdade (andar para a frente e para trás, controles e Amiguinho novos) e os desenhos pintados como personagens.

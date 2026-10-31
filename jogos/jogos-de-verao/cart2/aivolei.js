@@ -88,12 +88,16 @@ volei.spikeFrom = function (i, p0, b0, pow, g) {
 volei.aiSpikePlan = function (i, spd, pow) {
   const toNet = i ? -1 : 1, behind = -toNet, mine = (x) => (i ? x > VNX : x < VNX); let best = null;
   const P0 = this.P[i];
-  for (const off of [24, 30, 36]) for (let tj = 0; tj <= 1.3; tj += .05) {
+  // caminho da bola (sem ninguém tocar): no chão ele vai para onde a bola vai estar logo depois do pulo, e não atrás de onde ela está agora
+  const TR = []; { const c = { ...this.b }; for (let t = 0; t < 2.2; t += DT) { TR.push(c.x); ballStep(c, DT * this.mom); if (c.y + VRB >= VGY) break; } }
+  const trX = (t) => TR[clamp(Math.round(t / DT), 0, TR.length - 1)];
+  // pula o mais tarde possível: fica embaixo da bola e sobe na hora certa (antes pulava cedo e ia flutuando atrás da bola)
+  for (const off of [24, 30, 36]) for (let tj = 1.3; tj >= -1e-6; tj -= .05) {
     const b = { ...this.b }, p = { x: P0.x, y: P0.y, vx: P0.vx, vy: P0.vy, g: P0.g };
-    if (!p.g && tj > 0) break;
+    if (!p.g && tj > 1e-6) continue;
     let ok = null;
     for (let t = 0; t < tj + .75; t += DT) {
-      const tx = b.x + behind * off, target = Math.abs(tx - p.x) > 2 ? clamp((tx - p.x) / 10, -1, 1) * 128 * spd : 0;
+      const tx = p.g ? trX(tj + .28) + behind * off : b.x + behind * off, target = Math.abs(tx - p.x) > 2 ? clamp((tx - p.x) / 10, -1, 1) * 128 * spd : 0;
       if (p.g && t >= tj) { p.vy = -PJUMP; p.g = false; }
       aiMove(p, i, target, DT); ballStep(b, DT * this.mom);
       if (b.y + VRB >= VGY || !mine(b.x + toNet * 6)) break;
@@ -101,10 +105,10 @@ volei.aiSpikePlan = function (i, spd, pow) {
       if (!tossing && Math.hypot(b.x - p.x, b.y - (p.y + SHAPES[0].dy)) < VRB + SHAPES[0].r + 2) break; // bateria a cabeça antes
       if (!p.g) {
         const e = Math.hypot(b.x - (p.x + toNet * SPK_F.x), b.y - (p.y + SPK_F.y));
-        if (e < 24) { const r = this.spikeFrom(i, p, b, pow, this.mom); if (r && r.good && r.v > 250) { ok = { tj, off, tHit: t, v: r.v, land: r.land }; break; } }
+        if (e < 24) { const r = this.spikeFrom(i, p, b, pow, this.mom); if (r && r.good && r.v > 250) { ok = { tj, off, tHit: t, v: r.v, land: r.land, jx: trX(tj + .28) + behind * off }; break; } }
       }
     }
-    if (ok && (!best || ok.tj < best.tj - 1e-6)) best = ok;
+    if (ok && (!best || ok.tj > best.tj + 1e-6)) best = ok;
     if (ok) break;
   }
   return best;
@@ -121,7 +125,7 @@ volei.brain = function (i, dt, A, cfg) {
     A.bias = rand(-1, 1) * lerp(26, 10); A.spUse = Math.random() < Math.pow(acc, 2.5); A.diveOK = Math.random() < acc; A.plan = null; A.t = 0;
   }
   const out = { l: false, r: false, u: false, ax: 0, d: false, dir: 0, sp: false, pow: .5 + .45 * clamp(acc, 0, 1) };
-  const steer = (tx, k = 14) => { const dx = tx - p.x; if (Math.abs(dx) > 5) { out.ax = clamp(dx / k, -1, 1); out.l = dx < 0; out.r = dx > 0; } };
+  const steer = (tx, k = 14) => { const dx = tx - p.x; if (Math.abs(dx) > (A.dz ?? 5)) { out.ax = clamp(dx / k, -1, 1); out.l = dx < 0; out.r = dx > 0; } };
   // ---------- saque dele
   if (this.server === i && this.hits === 0 && (this.state === 'serve' || (this.state === 'rally' && (this.tossT ?? 9) < 2.5))) {
     if (A.srvFor !== this.rallies) {
@@ -131,9 +135,9 @@ volei.brain = function (i, dt, A, cfg) {
     if (this.held) return out;
     if (A.srvSpike) {
       A.t -= dt;
-      if (!A.plan || A.t <= 0) { A.t = .08; const sp = p.g ? this.aiSpikePlan(i, spd, out.pow) : null; if (sp) A.plan = { k: 'sp', jt: sp.tj, off: sp.off, t0: this.t }; else if (!A.plan || p.g) A.plan = { k: 'srv' }; }
+      if (!A.plan || A.t <= 0) { A.t = .08; const sp = p.g ? this.aiSpikePlan(i, spd, out.pow) : null; if (sp) A.plan = { k: 'sp', jt: sp.tj, off: sp.off, jx: sp.jx, t0: this.t }; else if (!A.plan || p.g) A.plan = { k: 'srv' }; }
       if (A.plan.k === 'sp') {
-        steer(b.x + behind * A.plan.off, 10);
+        steer(p.g ? A.plan.jx : b.x + behind * A.plan.off, 10);
         if (p.g && this.t - A.plan.t0 >= A.plan.jt - 1e-6) out.u = true;
         if (!p.g && !p.sw && !p.swUsed) { const r = this.spikeSim(i, out.pow); if (r && r.good && r.v > 250) out.sp = true; }
         if (!p.g || A.plan.jt < .6) return out;
@@ -147,6 +151,8 @@ volei.brain = function (i, dt, A, cfg) {
   if (this.state === 'serve') { steer(home); return out; }
   // ---------- rali
   const pr = this.predict(VGY - 46), x0 = pr.x + A.read, mine = side(x0);
+  // sem pressa (bola ainda longe de chegar), só anda se a diferença for grande: nada de passinhos de ajuste
+  A.dz = pr.t < .45 ? 4 : 11;
   // peixinho: a bola vai cair longe demais para chegar andando → mergulha para o lado em que ela VAI cair
   if (p.g && !p.dv && b.vy > 30 && side(b.x) && mine) {
     const land = this.predict(VGY - VRB - 2), lx = land.x + A.read * .5, dist = lx - p.x;
@@ -179,7 +185,7 @@ volei.brain = function (i, dt, A, cfg) {
     }
     cands.sort((a, c) => c.s - a.s);
     let pick = cands[0];
-    if (sp && cands[0].s < 34) pick = { k: 'sp', jt: sp.tj, off: sp.off, t0: this.t, s: 30 };
+    if (sp && cands[0].s < 34) pick = { k: 'sp', jt: sp.tj, off: sp.off, jx: sp.jx, t0: this.t, s: 30 };
     if (!A.good) {
       // jogada errada: posição torta e escolha pior (às vezes nem pula)
       const bad = cands[Math.min(cands.length - 1, 5 + Math.floor(Math.random() * 16))];
@@ -193,7 +199,7 @@ volei.brain = function (i, dt, A, cfg) {
   }
   const P = A.plan;
   if (P.k === 'sp') {
-    steer(b.x + behind * (P.off || 30), 10);
+    steer(p.g && P.jx !== undefined ? P.jx : b.x + behind * (P.off || 30), 10);
     if (p.g && this.t - P.t0 >= P.jt - 1e-6) out.u = true;
   } else {
     A.stx = A.stx === undefined || Math.abs(A.stx - P.tx) > 60 ? P.tx : A.stx + (P.tx - A.stx) * Math.min(1, dt * 8); steer(A.stx);

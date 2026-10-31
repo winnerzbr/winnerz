@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Amiguinho sem vai e volta embaixo da bola
+O dono gravou o Amiguinho esperando uma bola alta: anda, para, anda de novo, com desenhos trocando.
+- **Causa 1:** passinhos de ajuste (de 1 a 5 px) a cada replanejamento.
+  - **Correção:** sem pressa (bola a mais de 0,45 s de chegar), ele só anda se a diferença passar de 11 px.
+- **Causa 2:** na cortada, ele corria atrás de onde a bola estava naquele instante e pulava cedo. Ia para um lado e depois voltava flutuando atrás da bola.
+  - **Correção:** no chão, vai para onde a bola vai estar logo depois do pulo e pula o mais tarde possível.
+- **Causa 3:** ao começar a andar, a folga de 0,16 s deixava o desenho de parado deslizando.
+  - **Correção:** sair do parado agora leva 0,05 s.
+- **Resultado:** a força continua parecida. No mais difícil, o saque com cortada sai em 13 de 20 saques.
+
 ## 30/10/2026: Jogos de Verão, Amiguinho sem tremer ao se mexer
 O dono mandou dois vídeos do Amiguinho tremendo.
 - **Causa vista nos vídeos:** em poucos quadros, ele passava por espera, corrida, arrancada, recuo e espera de novo. Pequenas correções de posição do cérebro novo trocavam o desenho a cada quadro.

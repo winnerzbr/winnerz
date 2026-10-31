@@ -56,7 +56,7 @@
     let c = 'stand';
     if (moving) c = s.fvx * face < -12 || (s.L === 'back' && s.fvx * face < 0) ? 'back' : s.fac > 260 && fs < 95 ? 'ssA' : s.fac < -260 && fs < 105 && s.L !== 'stand' ? 'ssD' : 'run';
     s.Lt = (s.Lt ?? 9) + dt;
-    const hold = s.L === 'ssA' ? .22 : s.L === 'ssD' ? .26 : .16;
+    const hold = s.L === 'ssA' ? .22 : s.L === 'ssD' ? .26 : s.L === 'stand' ? .05 : .16; // sair do parado é rápido (senão desliza parado)
     if (!s.L || (c !== s.L && s.Lt >= hold)) { s.L = c; s.Lt = 0; }
     return s.L;
   }

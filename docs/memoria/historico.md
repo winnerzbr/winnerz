@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, bugue com volante suave, itens para trás e mureta que quica
+- **Pedidos do dono:**
+  - a curva estava muito acentuada: tentando uma curva leve, o bugue ia muito para o lado e batia;
+  - o balão que persegue passou por ele enquanto estava invencível, continuou perseguindo e acertou quando a invencibilidade acabou;
+  - poder jogar itens para trás;
+  - a batida na mureta travava o bugue; ele deve quicar, perder velocidade e seguir andando.
+- **Feito:**
+  - volante mais suave: vira aos poucos, volta rápido e vira bem menos em alta. Um toque de 0,15 s desvia 14 px (antes, 97 px);
+  - projéteis que passam por um bugue invencível não o acertam mais (nem depois), e o balão vai atrás de quem estiver na frente;
+  - ↓ + item (no celular, "Atrás") joga bola e balão para trás; ↑ + item joga o protetor para a frente. Os Amiguinhos também jogam para trás;
+  - mureta quica: perde de 13% a 50% da velocidade, nunca para, e o bugue sai alinhado com a pista;
+  - os Amiguinhos tiram o pé conforme o novo limite do volante;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bgvolante.cjs`, `bgmureta.cjs` e `bgitens.cjs` (novos), `copa.cjs` (nenhum bugue preso), `bgrec.cjs`, `bgkeys.cjs`, `bgpresos.cjs`, `vacuo.cjs`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, bugue mais rápido, pistas em dobro e vácuo
 - **Pedidos do dono:**
   - carrinhos 15% mais rápidos;

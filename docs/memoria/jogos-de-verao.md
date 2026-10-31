@@ -145,7 +145,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - parado de cara na mureta, acelerando ou freando, ele ainda vira;
   - derrapagem: começa com um pulinho, os pneus de trás seguram menos e a carga só conta com o bugue escorregando de lado;
   - pulo com gravidade: pousar alinhado dá turbo; pousar torto perde 28% do embalo; o bugue amassa no pouso;
-  - batidas na mureta e entre bugues trocam impulso e torcem o bugue;
+  - batida na mureta (31/10, o dono achou que travava): o bugue quica para longe dela, perde de 13% (raspão) a 50% (de frente) da velocidade, nunca fica abaixo de 60 px/s e sai alinhado com a pista sem precisar virar; por 0,3 s não quica de novo;
+  - batidas entre bugues trocam impulso e torcem o bugue;
   - a carroceria balança para fora nas curvas;
   - na água, os pneus seguram menos e a água freia (o turbo atravessa);
   - item acertado faz o bugue rodopiar com pouca aderência.
@@ -154,10 +155,11 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Esteiras de turbo:** 8 por pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
 - **Vácuo (31/10, pedido do dono):** logo atrás de outro bugue (até 140 px, andando na mesma direção, acima de 110 px/s) o bugue pega o vácuo: até +14% de velocidade máxima, motor 30% mais forte e menos perda de embalo; linhas de vento passam em volta dele. Segurando 1,5 s no vácuo, sai com um turbo curto ("Vácuo!"). Vale para todos, Amiguinhos também. O resumo da corrida conta quantos vácuos.
 - **Controles:**
-  - ◀ ▶ viram; a direção é suavizada (no teclado não dá tranco) e responde menos devagar e um pouco menos acima de 170 px/s;
+  - ◀ ▶ viram. Volante mais suave desde 31/10 (o dono achou que curvas leves viravam demais): segurando, o volante vai virando aos poucos (0,3 s até o fim) e volta rápido ao soltar; a resposta é suave no começo (bom para o analógico); em alta as rodas viram bem menos (ângulo máximo 0,56 parado e 0,22 a 230 px/s). Um toque de 0,15 s a 230 px/s desvia 14 px (antes, 97 px); segurando, faz uma curva de raio ~130;
   - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
   - R1, L1 ou □ (C no teclado) segurado na curva derrapa, com um pulinho no começo: com 0,85 s vem a faísca azul (turbo curto) e com 1,7 s a laranja (turbo longo); o turbo sai ao soltar;
   - **R2 usa o item**, como o dono pediu (é o botão 7 do padrão: RT no Xbox, ZR no Switch; V no teclado). O △ não usa mais o item.
+  - **Item para trás (31/10):** ↓ (ou o analógico para baixo) + o botão do item joga para trás; no celular, o botão "Atrás". ↑ + item joga o protetor longe para a frente.
 - **Pista:**
   - **Largada:** contagem 3, 2, 1, Vai!; acelerar de 0,5 s antes do Vai em diante dá turbo, e cedo demais afoga.
   - **Pulos:** 3 ou 4 rampas por pista; pousar alinhado dá turbo curto.
@@ -165,9 +167,9 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **Caixas de item:** 6 fileiras de 5 caixas por pista; cada caixa some sozinha e volta em 2,5 s.
   - **Itens:** cada bugue guarda até 2; o item usado é o primeiro, e o HUD mostra os dois.
 - **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
-  - bola de praia: quica reto e volta nas bordas;
-  - balão d'água: persegue quem está logo à frente;
-  - protetor solar: deixa uma poça atrás;
+  - bola de praia: quica reto e volta nas bordas; para trás, sai rolando contra quem vem atrás;
+  - balão d'água: persegue quem está logo à frente (para trás, quem vem logo atrás). Se passar por um bugue invencível (depois de rodar), não acerta, nem depois, e vai atrás de quem estiver na frente desse bugue; o mesmo vale para a bola;
+  - protetor solar: deixa uma poça atrás (ou longe na frente, com ↑);
   - água de coco: turbo;
   - guarda-sol: escudo que bloqueia um ataque;
   - onda: deixa os três primeiros lentos por 2,2 s.
@@ -182,6 +184,9 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado (com 2 itens guardados);
   - `testes/bgrec.cjs`: depois de ser acertado, o bugue volta de frente e invencível; de cara na mureta, sai só acelerando e virando (30 de 30 nos dois casos, nas 3 pistas);
   - `testes/copa.cjs`: as 3 pistas no piloto automático (tempos, presos, batidas fortes, atalho, areia fofa) e uma Copa inteira. Último resultado (pistas em dobro): nenhum bugue preso; de 2 a 7 batidas fortes por corrida (quase todas na entrada dos atalhos);
+  - `testes/bgvolante.cjs`: quanto o bugue desvia com toques curtos em alta;
+  - `testes/bgmureta.cjs`: 67 batidas em ângulos de 15° a 85° nas 3 pistas; em todas o bugue segue andando (a única exceção quica para dentro de um atalho);
+  - `testes/bgitens.cjs`: balão passa por quem está invencível e vai atrás do da frente; bola e balão para trás acertam quem vem atrás; protetor para a frente;
   - `testes/vacuo.cjs`: sozinho, o bugue chega a 229 px/s; colado atrás de outro, passa de 260 e, com 1,5 s, sai com o turbo do vácuo (até 335);
   - `testes/copafotos.cjs`: fotos do menu, das pistas novas, do salto e da classificação;
   - `testes/bgpresos.cjs`: 12 corridas, nenhum bugue preso. Os Amiguinhos dão ré quando ficam parados de cara na mureta e seguem o corredor da lagoa até a saída.

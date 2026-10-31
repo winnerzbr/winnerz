@@ -17,6 +17,8 @@
    escolhida no botão "Pista") ou Copa das Dunas (as 3 seguidas, pontos 10, 8, 6, 4, 2 e 1; classificação entre as corridas).
    31/10 (ajustes do dono): bugues 15% mais rápidos; as 3 pistas com o dobro do tamanho, mais elaboradas (chicane, grampos, laços,
    dois atalhos na Lagoa Azul e no Desce-Duna); vácuo atrás dos adversários (mais velocidade e, com 1,5 s, um turbo curto).
+   31/10 (ajustes do dono, 2ª rodada): volante mais suave (vira aos poucos, menos em alta); itens para trás (↓ + item; no celular, "Atrás");
+   projéteis que passam por quem está invencível não acertam e o balão segue para quem estiver na frente; batida na mureta quica.
    Arte provisória: tudo desenhado pelo jogo (bugues de cima, com o IAmiguinho e os Amiguinhos de capacete). */
 // 31/10: velocidade +15% a pedido do dono (era vmax 200, motor 330, freio 560, aderência 760/340, turbo +80)
 const BG = { voltas: 3, hw: 62, r: 8, vmax: 230, eng: 380, brake: 640, grip: 900, gripD: 400, wb: 22, water: 1.9, boostV: 92, sw: 36, Z: .82, g: 900 };
@@ -58,6 +60,8 @@ const BG_TRACKS = [
     pads: [{ i: 12, o: 0 }, { i: 110, o: -22 }, { i: 160, o: 20 }, { i: 232, o: -18 }, { i: 300, o: 24 }, { i: 380, o: -20 }, { i: 450, o: 18 }, { i: 520, o: 0 }], fofa: [],
     slopes: [{ a: 0, b: 60, s: 1 }, { a: 75, b: 125, s: -1 }, { a: 145, b: 170, s: -1 }, { a: 192, b: 215, s: 1 }, { a: 265, b: 310, s: 1 }, { a: 385, b: 410, s: -1 }, { a: 455, b: 505, s: 1 }] },
 ];
+// ângulo máximo das rodas: em alta o volante vira bem menos (era .62 parado e .32 em alta)
+const bgDmax = (sp) => .56 - .34 * clamp(sp / 230, 0, 1);
 const bgWrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 let BG_T, BG_LINE, BG_SCS, BG_RAMPS, BG_BOXES, BG_PADS, BG_FOFA, BG_SLOPE;
 function bgLoad(ti) {
@@ -81,13 +85,13 @@ const bugue = {
   steps: () => [
     touch ? 'O bugue acelera sozinho; “Freio” freia. ◀ ▶ viram. Acelere bem no “Vai!” para largar com turbo.' : 'Espaço acelera e X freia; ◀ ▶ viram. Acelere bem no “Vai!” para largar com turbo.',
     `Na curva, segure ${touch ? '“Derrapa”' : 'C'} para derrapar: a faísca fica azul e depois laranja; soltando, vem o turbo. Pousar alinhado depois de um pulo também dá turbo. Colado atrás de outro bugue, você pega o vácuo: fica mais rápido e, segurando ali, sai com um turbo.`,
-    `Pegue as caixas e use o item com ${touch ? '“Item”' : 'V (R2 no controle)'}. Quem está atrás ganha itens melhores. As muretas seguram o bugue, mas bater de frente perde muito: tire o pé ou derrape nas curvas. Cada pista tem um atalho que só compensa com turbo.`,
+    `Pegue as caixas e use o item com ${touch ? '“Item” (ou “Atrás”, para jogar para trás)' : 'V (R2 no controle); com ↓ apertado, o item vai para trás'}. Quem está atrás ganha itens melhores. As muretas seguram o bugue, mas bater de frente perde muito: tire o pé ou derrape nas curvas. Cada pista tem um atalho que só compensa com turbo.`,
     'Copa das Dunas: Lagoa Azul, Duna do Farol e Desce-Duna em seguida. Cada chegada vale pontos (10, 8, 6, 4, 2 e 1), e quem somar mais leva a Copa.',
   ],
   hint: () => '',
-  gp: 'Controle: analógico vira · ✕ acelera · ○ freia · R1 (ou L1, □) derrapa · R2 usa o item · Start pausa',
-  ctl: [['◀ ▶', 'virar'], ['Espaço', 'acelerar', 'kb'], ['X', 'frear', 'kb'], ['C', 'derrapar (segure)', 'kb'], ['V', 'usar item', 'kb'], ['Freio', 'frear', 'touch'], ['Derrapa', 'derrapar (segure)', 'touch'], ['Item', 'usar item', 'touch'], ['Esc', 'pausa', 'kb']],
-  pad: { dirs: 'lr', a: 'Freio', b: 'Derrapa', c: 'Item' }, bannerY: 40,
+  gp: 'Controle: analógico vira · ✕ acelera · ○ freia · R1 (ou L1, □) derrapa · R2 usa o item (analógico para baixo + R2 joga para trás) · Start pausa',
+  ctl: [['◀ ▶', 'virar'], ['Espaço', 'acelerar', 'kb'], ['X', 'frear', 'kb'], ['C', 'derrapar (segure)', 'kb'], ['V', 'usar item', 'kb'], ['↓ + V', 'item para trás', 'kb'], ['Freio', 'frear', 'touch'], ['Derrapa', 'derrapar (segure)', 'touch'], ['Item', 'usar item', 'touch'], ['Atrás', 'item para trás', 'touch'], ['Esc', 'pausa', 'kb']],
+  pad: { dirs: 'lr', a: 'Freio', b: 'Derrapa', c: 'Item', e: 'Atrás' }, bannerY: 40,
   trackSel: 0, cup: null, cupNew: false,
   init() {
     if (this.cupNew) { this.cupNew = false; this.cup = { i: 0, pts: [0, 0, 0, 0, 0, 0], res: [] }; }
@@ -195,10 +199,13 @@ const bugue = {
   // controle: ✕ acelera, ○ freia, R1/L1 (ou □) derrapa, R2 usa o item (RT no Xbox, ZR no Switch: o mesmo botão 7 do padrão)
   gamepad() { const ps = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [], g = ps[0]; if (!g) return {}; const bt = (i) => !!g.buttons[i]?.pressed || (g.buttons[i]?.value || 0) > .4; return { r2: bt(7), sh: bt(5) || bt(4) || bt(2) }; },
   ctlOf(I) {
-    const g = this.gamepad(), r2 = !!g.r2, item = (r2 && !this.r2was) || !!codeHeld.KeyV && !this.vwas || (touch && I.pc); this.r2was = r2; this.vwas = !!codeHeld.KeyV;
-    // a direção vem suavizada: tocar ◀ ▶ no teclado não dá tranco
-    const raw = I.ax || 0; this.st = (this.st || 0) + clamp(raw - (this.st || 0), -6 * DT, 6 * DT);
-    return { steer: Math.abs(raw) < .05 && Math.abs(this.st) < .2 ? 0 : this.st, acc: touch ? !I.a : I.a, brake: touch ? I.a : I.b, drift: touch ? I.b : (!!codeHeld.KeyC || !!g.sh), use: item };
+    const g = this.gamepad(), r2 = !!g.r2, item = (r2 && !this.r2was) || !!codeHeld.KeyV && !this.vwas || (touch && (I.pc || I.pe)); this.r2was = r2; this.vwas = !!codeHeld.KeyV;
+    // volante (31/10, pedido do dono: curvas leves viravam demais): o volante vai virando aos poucos enquanto ◀ ▶ estão apertados
+    // (um toque curto mexe pouco) e volta rápido ao soltar; a resposta é suave no começo (curva |x|^1,6), boa para o analógico
+    const raw = I.ax || 0, st0 = this.st || 0, grow = Math.sign(raw) === Math.sign(st0 || raw) && Math.abs(raw) > Math.abs(st0);
+    this.st = st0 + clamp(raw - st0, -(grow ? 3.2 : 7) * DT, (grow ? 3.2 : 7) * DT);
+    const sv = Math.sign(this.st) * Math.pow(Math.abs(this.st), 1.6);
+    return { steer: Math.abs(raw) < .05 && Math.abs(this.st) < .1 ? 0 : sv, acc: touch ? !I.a : I.a, brake: touch ? I.a : I.b, drift: touch ? I.b : (!!codeHeld.KeyC || !!g.sh), use: item, dir: (touch ? I.pe : I.d || (I.ay || 0) > .5) ? -1 : (!touch && (I.u || (I.ay || 0) < -.5)) ? 1 : 0 };
   },
   // ---------- dirigir: física de carro (motor, arrasto, aderência lateral dos pneus, giro com inércia, pulo com gravidade)
   drive(k, c, dt) {
@@ -211,7 +218,7 @@ const bugue = {
     const air = k.z > 0 || k.vz > 0, gnd = air ? null : this.ground(k.x, k.y), water = gnd === 'agua', fofa = gnd === 'fofa', slope = BG_SLOPE[seg];
     k.gnd = gnd;
     k.boost = Math.max(0, k.boost - dt); k.slow = Math.max(0, k.slow - dt); k.shield = Math.max(0, k.shield - dt); k.padT = Math.max(0, k.padT - dt);
-    k.inv = Math.max(0, (k.inv || 0) - dt); k.wallT = Math.max(0, (k.wallT || 0) - dt);
+    k.inv = Math.max(0, (k.inv || 0) - dt); k.wallT = Math.max(0, (k.wallT || 0) - dt); k.bnc = Math.max(0, (k.bnc || 0) - dt);
     // direção certa da pista aqui (para a recuperação e para sair da mureta)
     const T0 = BG_LINE[seg], T1 = BG_LINE[(seg + 3) % BG_LINE.length], tang = Math.atan2(T1[1] - T0[1], T1[0] - T0[0]);
     if (k.spin > 0) { k.spin -= dt; c = { steer: 0, acc: false, brake: false, drift: false, use: c.use }; if (k.spin <= 0) k.rec = .85; }
@@ -253,7 +260,7 @@ const bugue = {
       const grip = (k.spin > 0 ? 200 : k.drift ? BG.gripD : BG.grip) * (water ? .4 : 1), cut = clamp(vt, -grip * dt, grip * dt);
       k.slide = Math.abs(vt) > grip * dt * 1.6; vt -= cut; k.lean += (cut / dt / BG.grip * -2.2 - k.lean) * Math.min(1, dt * 8);
       // direção: o volante vira menos em alta; o giro desejado é limitado pela aderência (sai de frente se entrar rápido demais)
-      const dmax = .62 - .3 * clamp(sp / 200, 0, 1);
+      const dmax = bgDmax(sp);
       let wt;
       if (c.drift && !k.drift && Math.abs(c.steer) > .3 && vl > 115) { k.drift = 1; k.dsg = Math.sign(c.steer); k.chg = 0; k.vz = 70; k.z = .01; }
       if (k.drift && (!c.drift || vl < 70)) {
@@ -290,7 +297,7 @@ const bugue = {
     if (this.skids.length > 900) this.skids.splice(0, this.skids.length - 900);
     if (k.drift && k.chg >= .85 && Math.random() < .6) this.fx.push({ k: k.chg >= 1.7 ? 'faísca2' : 'faísca', x: k.x - fx * 8 + (Math.random() - .5) * 8, y: k.y - fy * 8 + (Math.random() - .5) * 8, t: 0, life: .25 });
     // itens: até dois; usa o primeiro
-    if (c.use && k.items.length && !(k.items[0].roll > 0)) this.useItem(k);
+    if (c.use && k.items.length && !(k.items[0].roll > 0)) this.useItem(k, c.dir || 0);
     for (const it of k.items) if (it.roll > 0) { it.roll -= dt; if (it.roll <= 0 && k.me) beep(990, .06, 'square', .04); }
   },
   scRamp(L) { return { x: L.A[0] + Math.cos(L.ang) * 84, y: L.A[1] + Math.sin(L.ang) * 84, a: L.ang }; },
@@ -306,10 +313,16 @@ const bugue = {
     k.x = cx + nx * lm; k.y = cy + ny * lm; k.wallT = .2; k.wn = [nx, ny];
     const vn = k.vx * nx + k.vy * ny;
     if (vn > 0) {
-      // batida: devolve um pouco (0,3), o atrito na mureta freia de lado e o bugue torce conforme o ângulo
-      const J = 1.3 * vn; k.vx -= J * nx; k.vy -= J * ny;
-      const tx = -ny, ty = nx, vt = k.vx * tx + k.vy * ty, fr = Math.min(Math.abs(vt), .22 * J) * Math.sign(vt); k.vx -= fr * tx; k.vy -= fr * ty;
-      k.w += (Math.cos(k.h) * ny - Math.sin(k.h) * nx) * J * .02 * clamp((k.s - 40) / 80, 0, 1); k.drift = 0;
+      // batida (31/10, pedido do dono: o bugue travava na mureta): o bugue quica para longe da mureta, perde velocidade conforme
+      // o ângulo (de raspão perde pouco, de frente até metade) e sai alinhado com a pista, sem precisar virar
+      const sp0 = Math.hypot(k.vx, k.vy), sn = clamp(vn / Math.max(1, sp0), 0, 1), tx = -ny, ty = nx;
+      const T0 = BG_LINE[seg], T1 = BG_LINE[(seg + 3) % BG_LINE.length], trk = [T1[0] - T0[0], T1[1] - T0[1]], hd = [Math.cos(k.h), Math.sin(k.h)];
+      const dh = hd[0] * tx + hd[1] * ty, sg = Math.abs(dh) > .5 && useMain ? Math.sign(dh) : Math.sign(trk[0] * tx + trk[1] * ty || 1);
+      const beta = .22 + .3 * sn, dx2 = tx * sg * Math.cos(beta) - nx * Math.sin(beta), dy2 = ty * sg * Math.cos(beta) - ny * Math.sin(beta);
+      const sp1 = k.bnc > 0 ? Math.max(Math.abs(k.vx * tx + k.vy * ty), 40) : Math.max(60, sp0 * (1 - .5 * sn));
+      k.vx = dx2 * sp1; k.vy = dy2 * sp1;
+      if (!(k.bnc > 0)) { const want = Math.atan2(dy2, dx2); k.h += bgWrap(want - k.h) * .75; k.w = bgWrap(want - k.h) * 3; k.sq = .18; k.bnc = .3; }
+      k.x -= nx * 1.5; k.y -= ny * 1.5; k.drift = 0; k.slip = 0;
       k.s = Math.hypot(k.vx, k.vy); k.d = Math.atan2(k.vy, k.vx);
       if (vn > 35) { this.fx.push({ k: 'batida', x: k.x + nx * BG.r, y: k.y + ny * BG.r, t: 0, life: .35 }); if (k.me) { shake = Math.min(.25, vn / 400); beep(150, .06, 'triangle', .04 + Math.min(.04, vn / 4000), -40); } }
     }
@@ -354,12 +367,15 @@ const bugue = {
     const me = this.me, gap = (k.lap * BG_LINE.L + k.prog) - (me.lap * BG_LINE.L + me.prog);
     A.rubber = gap > 500 ? .93 : gap < -500 ? 1.06 : 1;
     // item: segura um pouco e usa quando faz sentido
-    let use = false;
+    let use = false, dir = 0;
     if (k.items.length && !(k.items[0].roll > 0)) {
       A.hold += dt; const it = k.items[0].k, front = this.K.find((q) => q.pos === k.pos - 1), back = this.K.find((q) => q.pos === k.pos + 1);
       if (it === 'guarda' || it === 'onda' || it === 'coco' && Math.abs(turn) < .2) use = A.hold > .5;
       else if (it === 'bola') use = front && Math.hypot(front.x - k.x, front.y - k.y) < 220 && Math.abs(Math.atan2(Math.sin(Math.atan2(front.y - k.y, front.x - k.x) - k.h), Math.cos(Math.atan2(front.y - k.y, front.x - k.x) - k.h))) < .35;
-      else if (it === 'balao') use = A.hold > 1 && !!front;
+      else if (it === 'balao') use = A.hold > 1 && !!(front || back);
+      // para trás: bola em quem vem colado logo atrás; balão no de trás quando não há ninguém na frente
+      if (!use && it === 'bola' && back && Math.hypot(back.x - k.x, back.y - k.y) < 170 && Math.abs(bgWrap(Math.atan2(back.y - k.y, back.x - k.x) - k.h - Math.PI)) < .35) { use = true; dir = -1; }
+      if (use && it === 'balao' && !front) dir = -1;
       else if (it === 'protetor') use = back && Math.hypot(back.x - k.x, back.y - k.y) < 120;
       if (A.hold > 8) use = true;
       if (A.hold >= 99) use = it === 'coco';
@@ -369,8 +385,8 @@ const bugue = {
     let vt = BG.vmax + 40;
     for (let j = 6; j <= 60; j += 6) { const o = Math.round(j * 14.7 / sl), b1 = L[(k.seg + o) % n], b2 = L[(k.seg + o + 12) % n], b3 = L[(k.seg + o + 24) % n];
       const tw = Math.abs(bgWrap(Math.atan2(b3[1] - b2[1], b3[0] - b2[0]) - Math.atan2(b2[1] - b1[1], b2[0] - b1[0]))), R = Math.hypot(b3[0] - b1[0], b3[1] - b1[1]) / 2 / Math.max(.02, tw);
-      const vc = Math.sqrt(BG.grip * .9 * R) * (A.dr ? 1.12 : 1), d = Math.max(0, j * 14.7 - 30); vt = Math.min(vt, Math.sqrt(vc * vc + 2 * 380 * d)); }
-    return { steer: clamp(e * 2.4 - k.w * .12, -1, 1), acc: k.s < vt + 6, brake: k.s > vt + 45, drift: A.dr > 0 && Math.abs(e) > .05, use };
+      const need = Math.atan(BG.wb / R), vs = need >= .56 ? 60 : clamp((.56 - need) / .34, 0, 1.4) * 230, vc = Math.min(Math.sqrt(BG.grip * .9 * R), vs * 1.05 + (A.dr ? 40 : 0)) * (A.dr ? 1.12 : 1), d = Math.max(0, j * 14.7 - 30); vt = Math.min(vt, Math.sqrt(vc * vc + 2 * 380 * d)); }
+    return { steer: clamp(e * 2.4 - k.w * .12, -1, 1), acc: k.s < vt + 6, brake: k.s > vt + 45, drift: A.dr > 0 && Math.abs(e) > .05, use, dir };
   },
   // ---------- itens
   items(dt) {
@@ -384,7 +400,12 @@ const bugue = {
       if (p.k === 'balao' && p.tg && !p.tg.fin) { const a = Math.atan2(p.tg.y - p.y, p.tg.x - p.x); p.vx += (Math.cos(a) * 250 - p.vx) * dt * 3; p.vy += (Math.sin(a) * 250 - p.vy) * dt * 3; }
       p.x += p.vx * dt; p.y += p.vy * dt;
       if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.scNear(p.x, p.y); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
-      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && !(k.inv > 0 || k.rec > 0 || k.spin > 0) && Math.hypot(k.x - p.x, k.y - p.y) < 12) { this.hit(k, p.by, p.k === 'bola' ? 'bola de praia' : 'balão d\'água'); p.dead = true; this.fx.push({ k: p.k === 'balao' ? 'água' : 'pó', x: p.x, y: p.y, t: 0, life: .5 }); break; }
+      if (p.k === 'balao' && p.tg && (p.tg.fin || (p.pass && p.pass.has(p.tg)))) p.tg = null;
+      for (const k of this.K) if (k !== p.by || p.t > .35) if (!k.fin && Math.hypot(k.x - p.x, k.y - p.y) < 12) {
+        if (k.inv > 0 || k.rec > 0 || k.spin > 0 || (p.pass && p.pass.has(k))) {
+          if (!p.pass) p.pass = new Set(); if (!p.pass.has(k) && p.k === 'balao' && p.tg === k) { p.tg = this.K.find((q) => q.pos === k.pos - 1 && q !== p.by && !q.fin) || null; p.t = Math.min(p.t, 1.5); }
+          p.pass.add(k); continue;
+        } this.hit(k, p.by, p.k === 'bola' ? 'bola de praia' : 'balão d\'água'); p.dead = true; this.fx.push({ k: p.k === 'balao' ? 'água' : 'pó', x: p.x, y: p.y, t: 0, life: .5 }); break; }
       if (p.t > (p.k === 'balao' ? 4.5 : 3.5)) p.dead = true;
     }
     this.proj = this.proj.filter((p) => !p.dead);
@@ -398,13 +419,16 @@ const bugue = {
     if (pos >= 5 && r < .1) return 'onda';
     return r < .4 ? 'coco' : r < .7 ? 'balao' : r < .85 ? 'bola' : 'guarda';
   },
-  useItem(k) {
-    const it = k.items.shift().k;
+  useItem(k, dir = 0) {
+    const it = k.items.shift().k, c = Math.cos(k.h), sn = Math.sin(k.h);
     if (it === 'coco') { k.boost = Math.max(k.boost, 1.3); if (k.me) pop('Água de coco!', W / 2, 90, '#9be37a'); beep(300, .2, 'sawtooth', .04, 300); }
     else if (it === 'guarda') { k.shield = 9; beep(700, .1, 'triangle', .04, 200); }
-    else if (it === 'protetor') { this.puds.push({ x: k.x - Math.cos(k.h) * 16, y: k.y - Math.sin(k.h) * 16, t: 0, by: k }); beep(200, .1, 'triangle', .04, -100); }
-    else if (it === 'bola') { const v = Math.max(k.s, 0) + 210; this.proj.push({ k: 'bola', x: k.x + Math.cos(k.h) * 12, y: k.y + Math.sin(k.h) * 12, vx: Math.cos(k.h) * v, vy: Math.sin(k.h) * v, t: 0, by: k, seg: k.seg }); beep(500, .08, 'square', .04, -100); }
-    else if (it === 'balao') { const tg = this.K.find((q) => q.pos === k.pos - 1) || null; this.proj.push({ k: 'balao', x: k.x, y: k.y, vx: Math.cos(k.h) * (k.s + 80), vy: Math.sin(k.h) * (k.s + 80), t: 0, by: k, tg, seg: k.seg }); beep(800, .12, 'triangle', .04, -200); }
+    // protetor: cai atrás; com ↑, é jogado longe para a frente
+    else if (it === 'protetor') { const f = dir > 0 ? 110 : -16; this.puds.push({ x: k.x + c * f, y: k.y + sn * f, t: 0, by: k }); beep(200, .1, 'triangle', .04, -100); }
+    // bola: para a frente quica reto; para trás sai rolando contra quem vem atrás
+    else if (it === 'bola') { const v = dir < 0 ? -170 : Math.max(k.s, 0) + 210; this.proj.push({ k: 'bola', x: k.x + c * 12 * (dir < 0 ? -1 : 1), y: k.y + sn * 12 * (dir < 0 ? -1 : 1), vx: c * v, vy: sn * v, t: 0, by: k, seg: k.seg }); beep(500, .08, 'square', .04, -100); }
+    // balão: persegue quem está logo à frente; para trás, persegue quem vem logo atrás
+    else if (it === 'balao') { const tg = this.K.find((q) => q.pos === k.pos + (dir < 0 ? 1 : -1)) || null, v = dir < 0 ? -90 : k.s + 80; this.proj.push({ k: 'balao', x: k.x - (dir < 0 ? c * 12 : 0), y: k.y - (dir < 0 ? sn * 12 : 0), vx: c * v, vy: sn * v, t: 0, by: k, tg, seg: k.seg }); beep(800, .12, 'triangle', .04, -200); }
     else if (it === 'onda') { this.wave = 2.2; this.waveBy = k; pop('Onda!', W / 2, 70, '#6bcbff', true); beep(150, .5, 'sawtooth', .05, -60); }
   },
   hit(k, by, what) {

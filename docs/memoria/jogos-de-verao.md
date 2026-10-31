@@ -23,13 +23,15 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 21 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
+O plano tem 21 provas, e o jogo publicado tem 17 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
-  - Feita: Pingue-pongue (`cart2/ev_pingue.js`), esperando o teste do dono.
-  - Faltam, nesta ordem: Bocha, Teco-teco, Paraquedismo e Corrida de bugue.
+  - Feitas:
+    - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
+    - Bocha na areia (`cart2/ev_bocha.js`): esperando o teste do dono.
+  - Faltam, nesta ordem: Teco-teco, Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
@@ -80,6 +82,46 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/ppkeys.cjs`: teclado, saque e 2 jogadores;
   - `testes/todas.cjs`.
 - **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto) e raquete desenhada pelo jogo. A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
+
+### Bocha na areia (como funciona)
+- **Cena:** vista de cima, na Vila dos Pescadores. A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
+- **Ordem:**
+  - quem começa a rodada joga o bolim, que tem que parar da metade da cancha para a frente; se não parar, a vez passa ao outro lado e, na 2ª falha, ele vai para o meio;
+  - depois, quem jogou o bolim joga a primeira bola;
+  - em seguida joga sempre quem está mais longe dele;
+  - quem ganha a rodada joga o próximo bolim.
+- **Controles:**
+  - ▲ ▼ miram;
+  - segurar ✕/Espaço rola, e segurar ○/X joga pelo alto;
+  - a força sobe e desce enquanto segura, e soltar lança;
+  - mira e barra de força aparecem só na vez de quem joga.
+- **Física:**
+  - a areia tem atrito forte;
+  - montinhos e buracos desviam a bola, e a areia fofa freia muito;
+  - conchas são obstáculos e pegadas entortam um pouco a bola;
+  - as bolas batem umas nas outras, e o bolim é mais leve;
+  - a bola pelo alto voa, cai e quase para; se cair em cima de outra, tira ela do lugar;
+  - nas tábuas a bola bate e volta fraquinha;
+  - só sai do jogo a bola que cai fora pelo alto;
+  - se o bolim sair, a rodada é anulada.
+  - O terreno é sorteado a cada partida.
+- **Pontos:**
+  - no fim da rodada, cada bola mais perto do bolim que a melhor do outro lado vale 1 ponto;
+  - linhas tracejadas mostram a medida;
+  - quem faz 7 vence.
+  - Avisos: "Encostou!" (bola colada no bolim) e "Tirou!" (a melhor bola do outro lado ficou bem mais longe).
+- **Amiguinho:** testa centenas de jogadas com a mesma física (divididas em vários quadros), escolhe a melhor (ficar mais perto, tirar a bola do outro, evitar tirar o bolim) e erra força e mira conforme o acerto (0,72 de base, entre 0,5 e 0,9 conforme o placar).
+- **2 jogadores:** um de cada vez, nos mesmos botões.
+- **Medalhas:**
+  - bronze 400 (fazer 4 pontos), prata 1.500 (vencer), ouro 1.900 (vencer por 4);
+  - vitória vale 1.500 + 100 por ponto de diferença.
+- **Testes:**
+  - `testes/bocha.cjs`: o jogador automático muito bom venceu 3 de 3, o médio 2 de 3 e o fraco 0 de 3;
+  - `testes/bckeys.cjs`: teclado.
+- **Arte provisória:**
+  - os personagens são os do vôlei, pequenos na linha de lançamento (manchete para lançar, festa e tristeza);
+  - bolas, cancha e vila são desenhadas pelo jogo;
+  - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

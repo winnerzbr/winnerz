@@ -14,3 +14,5 @@ Rodam com o jogo montado servido em `http://localhost:8765` (`python3 -m http.se
 - `pingue.cjs [partidas]`: partidas de pingue-pongue de jogadores automáticos (o mesmo cérebro do Amiguinho, com acerto de 0,92 a 0,45) contra o Amiguinho: vitórias, pontos, maior troca, troca média, qualidade das batidas, como os pontos acabam e quais golpes saíram. Salva fotos em `amg/`.
 - `ppkeys.cjs`: pingue-pongue pelo teclado (andar, sacar, preparar) e as teclas do jogador 2.
 - `todas.cjs`: abre cada prova por 2 s procurando erros, confere o botão de 2 jogadores do pingue-pongue e abre a prova no celular.
+- `bocha.cjs [partidas]`: bocha, jogador automático (o mesmo cérebro do Amiguinho, com acerto de 0,92 a 0,45) contra o Amiguinho: vitórias, pontos, rodadas, encostos, tiradas e rodadas anuladas. Salva fotos em `amg/`.
+- `bckeys.cjs`: bocha pelo teclado (mirar, segurar e soltar para rolar e para jogar pelo alto).

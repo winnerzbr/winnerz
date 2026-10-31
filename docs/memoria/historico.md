@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Bocha na areia
+- **Pingue-pongue:** o dono achou bacana e aprovou como protótipo inicial; agora é lapidar. Ele ainda vai testar o salvamento da bola que passa por cima.
+- **Bocha na areia** (`cart2/ev_bocha.js`), entre o Futebol de areia e a Natação:
+  - segue as regras do plano visual (bolim, joga quem está mais longe, rolar ou pelo alto, montinhos, conchas e pegadas, até 7);
+  - com a cancha deitada na tela, a mira ficou em ▲ ▼ e o tipo de lance virou dois botões: ✕ rola e ○ joga pelo alto;
+  - entraram tábuas baixas em volta da cancha: sem elas, o bolim saía em quase toda rodada e anulava o jogo;
+  - Amiguinho que simula as jogadas;
+  - detalhes em `jogos-de-verao.md`.
+- **Página de pedidos:** a Bocha entrou com 15 pedidos (43 no total).
+- **Pendente:** o dono testar a Bocha. Depois vêm o Teco-teco, o Paraquedismo e a Corrida de bugue.
+
 ## 30/10/2026: Jogos de Verão, Pingue-pongue refeito (andar livre e física de verdade)
 O dono testou: o momento de bater ficou difícil e a física da bola estava fraca.
 - **Pedido dele, nesta ordem:** andar livre (a principal mudança), física de bola de pingue-pongue de verdade e mais jogadas. Exemplos dados por ele:

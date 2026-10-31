@@ -34,9 +34,11 @@ s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto
          "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx, obstaculos, frisbee, arco, duelo, canoagem, futebol, natacao, jetski, volei];", s)
 # provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas.
 # O dono reprovou o Salto do penhasco e o Frescobol (as ideias e a jogabilidade): saíram, e o Salto do píer também saiu de vez.
-NOVAS = ['ev_pingue.js']
+NOVAS = ['ev_pingue.js', 'ev_bocha.js']
 s = sub1("const EVENTS = [surfe,", ''.join((HERE / f).read_text(encoding='utf-8') + '\n' for f in NOVAS) + "const EVENTS = [surfe,", s)
 s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx,", "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, pingue, bmx,", s)
+s = sub1("futebol, natacao,", "futebol, bocha, natacao,", s)
+s = sub1("const RANK = {\n", "const RANK = {\n  bocha: [['@vovo', 2100], ['@lu', 1700], ['@nina', 900], ['@caio', 500]],\n", s)
 s = sub1("const RANK = {\n", "const RANK = {\n  pingue: [['@rafa', 2300], ['@bia', 1800], ['@duda', 1100], ['@carol', 600]],\n", s)
 
 # cabeçalho do menu das provas de placar: o do vôlei era fixo; as provas novas usam medShort e menu2

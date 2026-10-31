@@ -202,7 +202,7 @@ const bocha = {
   release(power) {
     const who = this.who, isJack = this.toss === 'jack', b = this.launch(who, isJack, this.kind, power, this.ang);
     if (isJack) this.jack = b; else { this.balls.push(b); this.left[who]--; }
-    this.lastThrow = who; this.state = 'roll'; this.st = 0; this.rollT = 0; this.charging = false; this.throwT = this.t; this.throwBy = who;
+    this.thrown = b; this.lastThrow = who; this.state = 'roll'; this.st = 0; this.rollT = 0; this.charging = false; this.throwT = this.t; this.throwBy = who;
     this.before = this.jack ? this.bestOf(1 - who) : Infinity;
     beep(this.kind === 'alto' ? 520 : 330, .05, 'triangle', .04, 60);
   },
@@ -292,7 +292,7 @@ const bocha = {
     for (let q = 1; q <= 3; q++) { const x = BC.sx + BC.L * q / 4; for (const y of [BC.y0 - 3, BC.y1]) R(x, y, 1.4, 3, '#7a5233'); }
     // bolas (sombras primeiro)
     const all = [...this.balls, ...(this.jack ? [this.jack] : [])];
-    for (const b of all) if (b.alive || (b.out && this.state === 'roll')) { ctx.fillStyle = 'rgba(60,35,15,.3)'; ctx.beginPath(); ctx.ellipse(b.x + 1.5, b.y + 2, b.r * (1 - Math.min(.4, b.z / 60)), b.r * .75, 0, 0, TAU); ctx.fill(); }
+    for (const b of all) if ((b.alive || (b.out && this.state === 'roll')) && !(this.inHand && this.inHand(b))) { ctx.fillStyle = 'rgba(60,35,15,.3)'; ctx.beginPath(); ctx.ellipse(b.x + 1.5, b.y + 2, b.r * (1 - Math.min(.4, b.z / 60)), b.r * .75, 0, 0, TAU); ctx.fill(); }
     // medida no fim da rodada
     if (this.state === 'score' && this.res && this.res.list.length && this.jack) for (const b of this.res.list) { ctx.strokeStyle = this.res.w ? '#ff7fb0' : '#7fd6ff'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]); ctx.beginPath(); ctx.moveTo(this.jack.x, this.jack.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.setLineDash([]); }
     for (const b of all.filter((b) => !b.fly).concat(all.filter((b) => b.fly))) if (b.alive || (b.out && this.state === 'roll' && this.t - this.throwT < 3)) this.drawBall(b);
@@ -307,9 +307,9 @@ const bocha = {
     if (this.state === 'aim') {
       const a = this.ang * Math.PI / 180, me = this.who, col = me ? '#ff8fbf' : '#8fdcff';
       ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(BC.sx + Math.cos(a) * 9, BC.sy + Math.sin(a) * 9); ctx.lineTo(BC.sx + Math.cos(a) * 40, BC.sy + Math.sin(a) * 40); ctx.stroke(); ctx.setLineDash([]);
-      const nb = this.toss === 'jack' ? { jack: true, r: BC.rj, side: -1, x: BC.sx, y: BC.sy, z: 0, roll: 0 } : { side: me, r: BC.rb, x: BC.sx, y: BC.sy, z: 0, roll: 0 }; this.drawBall(nb);
+      const nb = this.toss === 'jack' ? { jack: true, r: BC.rj, side: -1, x: BC.sx, y: BC.sy, z: 0, roll: 0 } : { side: me, r: BC.rb, x: BC.sx, y: BC.sy, z: 0, roll: 0 }; if (!this._held) this.drawBall(nb);
       if (this.charging) {
-        const x = 10, y = BC.y0 + 8, h = 70; R(x - 1, y - 1, 8, h + 2, NAVY); R(x, y, 6, h, '#3b2f4a'); const v = clamp(this.m / 1.08, 0, 1);
+        const x = 3, y = BC.y0 + 8, h = 70; R(x - 1, y - 1, 8, h + 2, NAVY); R(x, y, 6, h, '#3b2f4a'); const v = clamp(this.m / 1.08, 0, 1);
         R(x, y + h * (1 - v), 6, h * v, this.kind === 'alto' ? '#ffd166' : col); R(x - 2, y + h * (1 - 1 / 1.08), 10, 1, '#ffffff');
         ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 7px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(this.kind === 'alto' ? 'ALTO' : 'ROLAR', x + 3, y + h + 9); ctx.textAlign = 'left';
       }

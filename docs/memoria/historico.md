@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Bocha com a bola na mão e pedidos sem bola
+- **Dúvida do dono:** pranchas com ou sem bola na mão (o ChatGPT fez com bola, ele pediu sem, e os textos dos pedidos pediam com).
+- **Decidido:** sempre sem bola. O jogo desenha a bola certa (bolim ou bola do time) e controla a hora em que ela sai da mão.
+- **Feito:**
+  - na mira, o IAmiguinho segura a bola na mão, acompanhando o braço; ao soltar, ela sai da mão até a linha;
+  - textos dos pedidos da bocha (IAmiguinho e Amiguinho) ajustados para "sem bola", página de pedidos republicada;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bcmao.cjs` (novo) e `bocha.cjs`, sem erros.
+- **Pendente:** quando chegarem as pranchas do Amiguinho, marcar a mão dele do mesmo jeito.
+
 ## 31/10/2026: Jogos de Verão, Bocha com o IAmiguinho, as bolas e as peças pintadas
 - **O dono mandou:** 4 pranchas do IAmiguinho da bocha (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo, sem bola na mão), a folha das bolas e a folha de conchas, pegadas e tábuas.
 - **Feito:**

@@ -127,7 +127,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Testes:**
   - `testes/bocha.cjs`: o jogador automático muito bom venceu 3 de 3, o médio 2 de 3 e o fraco 0 de 3;
   - `testes/bckeys.cjs`: teclado;
-  - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando).
+  - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando);
+  - `testes/bcmao.cjs`: fotos ampliadas da bola na mão (quadros 1 a 4 de rolando e pelo alto, bolim) e saindo da mão.
 - **Arte pintada (31/10):**
   - o dono mandou 4 pranchas do IAmiguinho (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), a folha das bolas (4 azuis, 4 rosa e o bolim laranja) e a folha de conchas, pegadas e tábuas;
   - as pranchas do IAmiguinho vieram sem bola na mão, como pedido: a bola do jogo é desenhada à parte;
@@ -136,6 +137,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
     - na mira: quadros 1 a 4 de "rolando" ou "pelo alto" conforme a força (o braço vai para trás); ao soltar, quadros 5 a 8;
     - com a bola andando: torcendo, quadros 1 a 6; rodada ou jogo ganho: quadros 7 e 8 (punho e joinha);
     - perdeu: continua a tristeza do vôlei;
+  - bola na mão (31/10, pedido do dono): na mira, o IAmiguinho segura a bola azul (ou o bolim, na vez do bolim) na mão do quadro atual; a bola vai para trás e para a frente com o braço e, ao soltar (quadro 5), voa da mão até a linha em 0,16 s, crescendo até o tamanho da cancha; a bolinha da fila ao lado dele some enquanto ela está na mão; a barra de força foi um pouco mais para a esquerda para não cobrir a mão de trás;
+  - decidido em 31/10: pranchas da bocha sempre SEM bola (o jogo desenha a bola na mão, porque ela muda entre bolim e bola do time e precisa sair da mão na hora certa); os textos dos pedidos (IAmiguinho e Amiguinho) foram ajustados para "sem bola" e a folha das bolas não precisa mais ir de anexo;
   - bolas giram conforme rolam; conchas, pegadas e as tábuas da borda (com cantos) vêm da folha pintada;
   - escala: régua da cabeça igualada (torce 1,027, alto 0,984, rolar 1,047, espera 1,044);
   - pranchas guardadas em `jogos/jogos-de-verao/bocha/pranchas`; já estão na Prévia das pranchas.

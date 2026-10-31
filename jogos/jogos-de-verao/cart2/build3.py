@@ -54,36 +54,94 @@ s = sub1("  setButtons(['Jogar', start], null);\n}\nfunction startDOM() {",
          "  setButtons(['Jogar', start], null);\n"
          "  if (cur.two2 && !seq && !touch) { const ev = cur, b2 = $('b-alt2'); b2.hidden = false; b2.textContent = `2 jogadores: ${ev.two ? 'ligado' : 'desligado'}`; b2.setAttribute('aria-pressed', String(ev.two)); actAlt2 = () => { ev.two = !ev.two; showTitle(); renderHud(); setTimeout(() => $('b-alt2').focus({ preventScroll: true }), 0); }; }\n"
          "}\nfunction startDOM() {", s)
-# 31/10 · embaixadinha (pedidos do dono): bola de pingue-pongue na rotação e sem as marcas das alturas de toque em volta do IAmiguinho.
-# A bola de pingue-pongue entra nas séries 7, 11, 15... (a de praia segue nas 5, 9, 13...): leve, cai mais devagar, o vento leva
-# mais e a cada toque ela "dança" um pouco para o lado (a sombra mostra onde ela cai, então continua justo).
+# 31/10 · embaixadinha (pedidos do dono): rotação de bolas e física pelo peso de cada uma; sem a bola extra e sem as marcas
+# das alturas de toque em volta do IAmiguinho.
+# Rotação: séries 1 a 4 com a bola de futebol; da 5 em diante, de 4 em 4: praia (5, 9, 13...), bolinha de gude (6, 10, 14...),
+# pingue-pongue (7, 11, 15...) e futebol (8, 12, 16...). A bola extra (duas ao mesmo tempo) saiu da rotação.
+# Física: cada bola tem gravidade, resistência do ar (as leves chegam a uma velocidade máxima de queda), quanto o vento leva,
+# quanto sobe e se espalha no toque, quanto a firula curva, quanto quica e rola no chão e se "dança" no ar.
+# A sombra e o tempo do toque são calculados com a mesma física (resistência do ar incluída), então continuam certos.
 s = sub1("const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bola extra!' };",
-         "const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bola extra!', 7: 'Bola de pingue-pongue!' };", s)
-s = sub1("extra, praia: this.praiaNow() }; },", "extra, praia: this.praiaNow(), pingue: this.pingueNow() }; },", s)
+         "const EB_NOVO = { 2: 'Série 2', 3: 'Vento!', 4: 'Gaivota!', 5: 'Bola de praia!', 6: 'Bolinha de gude!', 7: 'Bola de pingue-pongue!', 8: 'Bola de futebol!' };\n"
+         "// bolas pelo peso: g = gravidade, ar = resistência do ar, vento, sobe e espalha no toque, curva da firula, quica e rola no chão,\n"
+         "// giro (desenho), dança (desvio de lado a cada toque), r = raio\n"
+         "const EB_BOLAS = {\n"
+         "  futebol: { nome: 'futebol', g: 1, ar: 0, vento: 1, sobe: 1, espalha: 1, curva: 1, quica: .35, rola: .6, giro: 1, danca: 0, r: 8.5 },\n"
+         "  praia: { nome: 'praia', g: .62, ar: 1.1, vento: 2.3, sobe: 1.05, espalha: 1.1, curva: .7, quica: .55, rola: .5, giro: .6, danca: 10, r: 12 },\n"
+         "  pingue: { nome: 'pingue-pongue', g: .8, ar: .7, vento: 1.9, sobe: 1.05, espalha: 1, curva: 1.2, quica: .8, rola: .7, giro: 1.6, danca: 24, r: 4.6 },\n"
+         "  gude: { nome: 'bolinha de gude', g: 1.3, ar: 0, vento: .2, sobe: .85, espalha: .75, curva: .4, quica: .15, rola: .85, giro: 2.2, danca: 0, r: 4.2 },\n"
+         "};", s)
+s = sub1("extra, praia: this.praiaNow() }; },", "extra, kind: this.kindNow() }; },", s)
 s = sub1("  praiaNow() { return this.nivel >= 5 && (this.nivel - 5) % 4 === 0; },",
-         "  praiaNow() { return this.nivel >= 5 && (this.nivel - 5) % 4 === 0; },\n  pingueNow() { return this.nivel >= 7 && (this.nivel - 7) % 4 === 0; },", s)
-s = sub1("  gOf(b) { return this.cfg().g * (b.praia ? .58 : 1); },", "  gOf(b) { return this.cfg().g * (b.praia ? .58 : b.pingue ? .74 : 1); },", s)
-s = sub1("  axOf(b) { return this.wind * (b.praia ? 2.3 : 1) + b.cv; },", "  axOf(b) { return this.wind * (b.praia ? 2.3 : b.pingue ? 2 : 1) + b.cv; },", s)
-s = sub1("    b.serve = 0; b.cv = fir ? (Math.random() < .5 ? -1 : 1) * rand(40, 70) * (b.praia ? .7 : 1) : 0;\n",
-         "    b.serve = 0; b.cv = fir ? (Math.random() < .5 ? -1 : 1) * rand(40, 70) * (b.praia ? .7 : 1) : 0;\n    if (b.pingue) b.cv += rand(-24, 24);\n", s)
-s = sub1("    for (const b of this.balls) if (b.praia !== praia) { b.praia = praia; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n",
-         "    for (const b of this.balls) if (b.praia !== praia) { b.praia = praia; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n"
-         "    const pingue = this.pingueNow();\n"
-         "    for (const b of this.balls) if (b.pingue !== pingue) { b.pingue = pingue; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }\n", s)
-s = sub1("  drawBall(b, tt) {\n    const O = SPR.eb_obj, x = b.x, y = b.y;\n",
-         "  drawBall(b, tt) {\n    if (b.pingue) { this.drawPingue(b, tt); return; }\n    const O = SPR.eb_obj, x = b.x, y = b.y;\n", s)
-s = sub1("  // ---------- visual com a arte gerada (16:9, desenhado em dobro, a mesma praia do vôlei)\n  draw(tt) {",
-         "  // bola de pingue-pongue (provisória, desenhada pelo jogo): branca, contorno azul-marinho, a costura girando\n"
-         "  drawPingue(b, tt) {\n"
-         "    const r = 4.6; ctx.save(); ctx.translate(b.x, b.y);\n"
-         "    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();\n"
-         "    ctx.fillStyle = 'rgba(160,170,200,.45)'; ctx.beginPath(); ctx.arc(1, 1.2, r * .78, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(-.6, -.7, r * .72, 0, TAU); ctx.fill();\n"
-         "    ctx.strokeStyle = 'rgba(255,150,60,.85)'; ctx.lineWidth = .7; ctx.beginPath(); ctx.ellipse(0, 0, r * .85, r * .3, b.spin * .5, 0, TAU); ctx.stroke();\n"
-         "    ctx.strokeStyle = '#1b1f4f'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); ctx.restore();\n"
-         "    if (b.extra) R(Math.round(b.x) - 1, Math.round(b.y) - 10, 3, 2, '#ffd04a');\n"
-         "    if (b.firula && Math.floor(tt * 14) % 2) R(Math.round(b.x) + 5, Math.round(b.y) - 7, 2, 2, '#ffffff');\n"
-         "  },\n"
-         "  // ---------- visual com a arte gerada (16:9, desenhado em dobro, a mesma praia do vôlei)\n  draw(tt) {", s)
+         "  kindNow() { return this.nivel < 5 ? 'futebol' : ['praia', 'gude', 'pingue', 'futebol'][(this.nivel - 5) % 4]; },\n"
+         "  // tempo até a bola descer até a altura yT (com a resistência do ar das bolas leves)\n"
+         "  tDown(b, yT) {\n"
+         "    const g = this.gOf(b), k = EB_BOLAS[b.kind].ar, v0 = b.vy, y0 = b.y;\n"
+         "    if (!k) return Math.max(0, (-v0 + Math.sqrt(Math.max(0, v0 * v0 + 2 * g * (yT - y0)))) / g);\n"
+         "    const vt = g / k, Y = (t) => y0 + vt * t + (v0 - vt) * (1 - Math.exp(-k * t)) / k, ta = v0 < 0 ? Math.log((vt - v0) / vt) / k : 0;\n"
+         "    if (Y(ta) >= yT) return ta;\n"
+         "    let lo = ta, hi = ta + 1; while (Y(hi) < yT && hi < 30) hi *= 2;\n"
+         "    for (let i = 0; i < 32; i++) { const m = (lo + hi) / 2; if (Y(m) < yT) lo = m; else hi = m; }\n"
+         "    return (lo + hi) / 2;\n"
+         "  },", s)
+s = sub1("  gOf(b) { return this.cfg().g * (b.praia ? .58 : 1); },", "  gOf(b) { return this.cfg().g * EB_BOLAS[b.kind].g; },", s)
+s = sub1("  axOf(b) { return this.wind * (b.praia ? 2.3 : 1) + b.cv; },", "  axOf(b) { return this.wind * EB_BOLAS[b.kind].vento + b.cv; },", s)
+s = sub1("    const t = (-b.vy + Math.sqrt(Math.max(0, b.vy * b.vy + 2 * g * (yT - b.y)))) / g;\n    return clamp(b.x + b.vx * t + .5 * this.axOf(b) * t * t, 8, W - 8);",
+         "    const t = this.tDown(b, yT);\n    return clamp(b.x + b.vx * t + .5 * this.axOf(b) * t * t, 8, W - 8);", s)
+s = sub1("const dy = Math.max(0, top - b.y), t = dy ? (-b.vy + Math.sqrt(Math.max(0, b.vy * b.vy + 2 * g * dy))) / g : 0;",
+         "const dy = Math.max(0, top - b.y), t = dy ? this.tDown(b, top) : 0;", s)
+s = sub1("const tc = (-b.vy + Math.sqrt(Math.max(0, b.vy * b.vy + 2 * g * Math.max(0, z.y - b.y)))) / g;",
+         "const tc = z.y > b.y ? this.tDown(b, z.y) : 0;", s)
+s = sub1("      b.vy += g * dt; b.vx += this.axOf(b) * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.spin += dt * (Math.abs(b.vx) / 12 + 5);",
+         "      const BP = EB_BOLAS[b.kind]; b.vy += (g - BP.ar * b.vy) * dt; b.vx += this.axOf(b) * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.spin += dt * (Math.abs(b.vx) / 12 + 5) * BP.giro;", s)
+# caiu: cada bola quica e rola do seu jeito
+s = sub1("      for (const b of this.balls) { b.vy += 500 * dt; b.y += b.vy * dt; b.x += b.vx * dt; if (b.y > EBY - 4) { b.y = EBY - 4; b.vy = -b.vy * .3; b.vx *= .6; } }",
+         "      for (const b of this.balls) { const BP = EB_BOLAS[b.kind]; b.vy += (500 * BP.g - BP.ar * b.vy) * dt; b.y += b.vy * dt; b.x += b.vx * dt; b.spin += dt * b.vx / 6; if (b.y > EBY - 4) { b.y = EBY - 4; b.vy = -b.vy * BP.quica; b.vx *= BP.rola; } }", s)
+# toque: subida pelo peso (com resistência do ar, a velocidade de saída é achada para chegar na altura certa), espalha, curva e dança
+_a = s.index("  launch(b, z, fir, saque = false) {"); _b = s.index("  miss() {", _a)
+s = s[:_a] + """  launch(b, z, fir, saque = false) {
+    const C = this.cfg(), BP = EB_BOLAS[b.kind], g = this.gOf(b), k = BP.ar;
+    const h = saque ? 70 : (z.sobe + (fir ? 38 : 0) + rand(-6, 6)) * BP.sobe;
+    let U = Math.sqrt(2 * g * h);
+    if (k > 0) { let lo = U, hi = U * 4; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2, hm = m / k - g / (k * k) * Math.log(1 + k * m / g); if (hm < h) lo = m; else hi = m; } U = (lo + hi) / 2; }
+    const spread = saque ? 0 : (C.spread * (this.lastPerfect ? .6 : 1) + (fir ? 30 : 0)) * BP.espalha;
+    let tx = this.px + (Math.random() < .5 ? -1 : 1) * rand(spread * .35, spread);
+    if (tx < 40 || tx > W - 40) tx = this.px - (tx - this.px);
+    tx = clamp(tx, 40, W - 40);
+    b.serve = 0; b.cv = fir ? (Math.random() < .5 ? -1 : 1) * rand(40, 70) * BP.curva : 0;
+    if (BP.danca && !saque) b.cv += rand(-BP.danca, BP.danca);
+    b.vy = -U; const t = Math.max(.2, this.tDown(b, EB_ZONAS[1].y)), ax = this.axOf(b);
+    b.vx = (tx - b.x - .5 * ax * t * t) / t;
+    b.firula = !!fir;
+  },
+""" + s[_b:]
+# série nova: a bola troca de tipo (com um puf de areia); a bola extra saiu
+_a = s.index("    // bola de praia nas séries 5, 9, 13...; bola extra nas séries 6, 10, 14...\n"); _b = s.index("      this.balls.push(e);\n    }\n", _a) + len("      this.balls.push(e);\n    }\n")
+s = s[:_a] + """    // a bola troca de tipo conforme a série (com um puf de areia)
+    const kind = this.kindNow();
+    for (const b of this.balls) if (b.kind !== kind) { b.kind = kind; for (let k = 0; k < 8; k++) this.sand.push({ x: b.x + rand(-6, 6), y: b.y + rand(-6, 6), v: rand(-40, 40), t: 1.5 }); }
+""" + s[_b:]
+# desenho de 16 bits (reserva): praia pelo tipo; pingue-pongue e gude desenhados pelo jogo
+s = sub1("    if (b.praia) nm = 'p' + (((Math.floor(b.spin * .6) % 3) + 3) % 3);", "    if (b.kind === 'pingue' || b.kind === 'gude') { ebBolinha(b, tt); return; }\n    if (b.kind === 'praia') nm = 'p' + (((Math.floor(b.spin * .6) % 3) + 3) % 3);", s)
+s = sub1("const embaixadinha = {", """// bolinhas desenhadas pelo jogo: pingue-pongue (sem a folha pintada) e gude (vidro com um redemoinho de cor; provisória)
+function ebBolinha(b, tt) {
+  const r = EB_BOLAS[b.kind].r; ctx.save(); ctx.translate(b.x, b.y);
+  if (b.kind === 'gude') {
+    const g = ctx.createRadialGradient(-r * .35, -r * .4, r * .1, 0, 0, r); g.addColorStop(0, '#f4fdff'); g.addColorStop(.45, '#8fd8f2'); g.addColorStop(1, '#2f7fb4');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+    ctx.save(); ctx.beginPath(); ctx.arc(0, 0, r * .92, 0, TAU); ctx.clip(); ctx.rotate(b.spin * .8);
+    ctx.strokeStyle = 'rgba(255,120,40,.9)'; ctx.lineWidth = r * .32; ctx.beginPath(); ctx.moveTo(-r, r * .2); ctx.bezierCurveTo(-r * .3, -r * .8, r * .3, r * .8, r, -r * .2); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,220,80,.85)'; ctx.lineWidth = r * .14; ctx.beginPath(); ctx.moveTo(-r, r * .45); ctx.bezierCurveTo(-r * .2, -r * .4, r * .4, r, r, r * .05); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.beginPath(); ctx.ellipse(-r * .38, -r * .42, r * .26, r * .16, -.6, 0, TAU); ctx.fill();
+  } else {
+    ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(160,170,200,.45)'; ctx.beginPath(); ctx.arc(1, 1.2, r * .78, 0, TAU); ctx.fill(); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(-.6, -.7, r * .72, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,150,60,.85)'; ctx.lineWidth = .7; ctx.beginPath(); ctx.ellipse(0, 0, r * .85, r * .3, b.spin * .5, 0, TAU); ctx.stroke();
+  }
+  ctx.strokeStyle = '#1b1f4f'; ctx.lineWidth = .9; ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.stroke(); ctx.restore();
+  if (b.firula && Math.floor(tt * 14) % 2) R(Math.round(b.x) + r + 1, Math.round(b.y) - r - 2, 2, 2, '#ffffff');
+}
+const embaixadinha = {""", s)
 # sem as marcas das três alturas em volta do IAmiguinho
 _a = s.index("    // marcas discretas das três alturas, só quando uma bola está chegando\n"); _b = s.index("    // IAmiguinho: 0 parado · 1 chute (pé)", _a)
 s = s[:_a] + s[_b:]
@@ -191,7 +249,7 @@ js = sub1("b.ang, this.state === 'serve' && this.held ? Math.max(1, (this.ballR 
 # textos e avisos com letra arredondada só no vôlei; as outras provas seguem com os de 16 bits
 js = sub1("  drawPops = function () {", "  const pops16 = drawPops, banner16 = drawBanner;\n  drawPops = function () {\n    if (cur !== volei) return pops16.apply(this, arguments);", js)
 js = sub1("  drawBanner = function () {\n    if (!banner) return;", "  drawBanner = function () {\n    if (cur !== volei) return banner16.apply(this, arguments);\n    if (!banner) return;", js)
-JS = (HERE / 'assets.js').read_text() + '\n' + (HERE / 'mv5.js').read_text() + '\n' + (HERE / 'mvb.js').read_text() + '\n' + (HERE / 'mvsk.js').read_text() + '\n' + (HERE / 'mveb.js').read_text() + '\n' + (HERE / 'skscene.js').read_text() + '\n' + (HERE / 'skvd.js').read_text() + '\n' + js
+JS = (HERE / 'assets.js').read_text() + '\n' + (HERE / 'mv5.js').read_text() + '\n' + (HERE / 'mvb.js').read_text() + '\n' + (HERE / 'mvsk.js').read_text() + '\n' + (HERE / 'mveb.js').read_text() + '\n' + (HERE / 'ebcen.js').read_text() + '\n' + (HERE / 'skscene.js').read_text() + '\n' + (HERE / 'skvd.js').read_text() + '\n' + js
 # as imagens pintadas vão como arquivos ao lado da página (img/*.webp), não embutidas: a página fica leve
 import re, base64, hashlib, shutil
 IMG = ROOT / 'jogos_verao' / 'img'

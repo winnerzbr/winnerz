@@ -232,8 +232,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 
 ## Embaixadinha
 - **Como é:** IAmiguinho de lado na areia (hoje no fundo da praia do vôlei), 3 bolas, sem relógio. Toques na cabeça, na coxa ou no pé quando a bola passa na altura; variar vale mais; X/○ faz firula (sobe mais, faz curva, vale o dobro). A sombra na areia mostra onde a bola cai.
-- **Séries (a cada 8 toques):** 2 mais espalhado, 3 vento (biruta), 4 gaivota com sombra que engana, 5/9/13… bola de praia (leve, o vento leva mais), 6/10/14… bola extra, **7/11/15… bola de pingue-pongue** (31/10, pedido do dono).
-- **Bola de pingue-pongue:** cai mais devagar (74% da gravidade), o vento leva o dobro e a cada toque ela "dança" um pouco para o lado; a sombra mostra onde ela cai. Por enquanto é desenhada pelo jogo (branca, contorno azul-marinho, costura laranja). Teste: `testes/ebpingue.cjs`.
+- **Séries (a cada 8 toques):** 2 mais espalhado, 3 vento (biruta), 4 gaivota com sombra que engana. Da 5 em diante a bola troca de 4 em 4: **praia (5, 9, 13…), bolinha de gude (6, 10, 14…), pingue-pongue (7, 11, 15…) e futebol (8, 12, 16…)**. A bola extra (duas bolas ao mesmo tempo) saiu da rotação em 31/10, a pedido do dono.
+- **Física pelo peso (31/10, pedido do dono; tabela `EB_BOLAS` no `build3.py`):** cada bola tem gravidade, resistência do ar (as leves chegam a uma velocidade máxima de queda), quanto o vento leva, quanto sobe e se espalha no toque, quanto a firula curva, quanto quica e rola quando cai e se dança a cada toque. A sombra e o tempo do toque usam a mesma física, com a resistência do ar.
+  - Gude: a mais pesada; cai rápido (1,3 s no ar), o vento quase não mexe, sobe menos, quase não quica e rola.
+  - Futebol: o meio-termo (1,6 s).
+  - Pingue-pongue: leve, dança a cada toque, o vento leva bastante, quica alto (1,9 s).
+  - Praia: a mais leve; desce devagar (velocidade máxima de queda ~110), o vento leva muito (2,2 s).
+  - Teste: `testes/ebbolas.cjs` (rotação, tempo no ar e erro da sombra: no máximo 5 px na de praia).
 - **Sem marcas de contato (31/10, pedido do dono):** saíram as marquinhas das três alturas que apareciam dos lados do IAmiguinho quando a bola chegava.
 - As mudanças ficam no `cart2/build3.py` (a prova vem do jogo de 16 bits).
 - **Estilo pintado:** os pedidos estão na página "Pedidos das provas novas", seção "Embaixadinha (estilo pintado)", com 24 pedidos:
@@ -248,7 +253,14 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Pé e coxa vieram um pouco virados para a frente (as outras são de lado); funcionam, dá para refazer de lado se incomodar. A segunda prancha de andar (3/4, maior) ficou guardada.
   - As 12 pranchas estão na Prévia com o veredito. A Prévia não dá mais para regerar do zero aqui (faltam quadros antigos na pasta de trabalho): as pranchas novas entram somando à página publicada.
   - Teste: `testes/ebpintado.cjs` (fotos de cada situação).
-- **Pendente:** o dono testar; faltam as bolas, a biruta, a gaivota e o cenário pintados (o dono está gerando).
+- **Cenário, bolas, biruta e gaivota pintados (31/10):** `cart2/ebcen.py` → `ebcen.js` (imagens do dono em `embaix/arte`); desenho em `cart2/ebp.js`.
+  - Praia do Centro em duas camadas nos 4 horários, pelo relógio (perto da troca mistura os dois, como no skate); de noite, as luzes das janelas, dos postes e dos quiosques acendem por cima, piscando de leve. A faixa de areia do meio-plano termina aos poucos sobre a areia do fundo.
+  - Foram usados: fundo dia/manhã/entardecer/noite; meio-plano dia (a versão com o guarda-sol rosa, a mesma base dos outros horários), manhã, entardecer e noite; luzes do fundo (a versão só com as luzes) e do meio-plano. Ficaram guardadas: a outra versão do meio-plano do dia e a outra das luzes do fundo.
+  - Bolas: futebol (4 quadros girando), a de firula com o rastro, praia (3) e pingue-pongue (2); a bola dourada não é usada (a bola extra saiu). A bolinha de gude ainda é desenhada pelo jogo (vidro azul com redemoinho laranja); o pedido dela entrou na página de pedidos.
+  - Biruta: murcha sem vento, meio aberta com pouco, esticada balançando com vento forte; aponta para onde o vento sopra.
+  - Gaivota: 4 quadros batendo as asas.
+- **Correção (31/10):** a comemoração ficava em looping durante a partida. O relógio da partida recomeça a cada partida e uma marca antiga, maior que o relógio, deixava a comemoração ligada; agora ela zera e só acontece uma vez por comemoração. Teste em `testes/ebcena.cjs`.
+- **Pendente:** o dono testar; a bolinha de gude pintada.
 
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.

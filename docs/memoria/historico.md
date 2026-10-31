@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Embaixadinha toda pintada, bolas novas na rotação e física pelo peso
+- **O dono mandou:** gaivota, biruta, folha das bolas, os 4 horários do fundo e do meio-plano da Praia do Centro e as luzes da noite (algumas em duas versões).
+- **Pedidos dele:**
+  - corrigir a comemoração que ficava em looping durante a partida;
+  - tirar da rotação as duas bolas (confirmado: a bola extra, duas ao mesmo tempo);
+  - pôr a bolinha de gude;
+  - melhorar a física das bolas conforme o peso de cada uma.
+- **Feito:**
+  - cenário, bolas, biruta e gaivota pintados no jogo, com o horário pelo relógio e as luzes acendendo à noite;
+  - comemoração corrigida;
+  - rotação nova: praia, gude, pingue-pongue e futebol a partir da série 5; sem bola extra;
+  - física pelo peso (gravidade, resistência do ar, vento, subida, espalhamento, curva, quique, rolagem e dança), com a sombra calculada pela mesma física;
+  - bolinha de gude provisória desenhada pelo jogo, e o pedido dela na página de pedidos (79 pedidos).
+- **Testes:** `ebbolas.cjs`, `ebcena.cjs` (4 horários e a comemoração), `ebpintado.cjs`, `todas.cjs`, e uma partida em tempo real com jogador automático (39 toques, sem erros).
+- **Pendente:** o dono testar; a bolinha de gude pintada.
+
 ## 31/10/2026: Jogos de Verão, Embaixadinha com o IAmiguinho pintado
 - **O dono mandou** as 11 pranchas do IAmiguinho da embaixadinha (algumas repetidas e uma segunda tentativa de andar). Faltam bolas, biruta, gaivota e cenários; ele está gerando.
 - **Feito:**

@@ -18,6 +18,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - 6 pranchas de cada personagem;
   - mesa;
   - cenário em 2 camadas e 4 horários; a capa é a noite.
+- **Plano visual (doc):** saíram as linhas e as seções do Salto do penhasco e do Frescobol; agora são 21 provas.
 - **Pendente:** o dono testar o Pingue-pongue (dificuldade e tempo da batida).
 
 ## 30/10/2026: Jogos de Verão, provas novas (1ª entrega: Salto do penhasco e Frescobol)

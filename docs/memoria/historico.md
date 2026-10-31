@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Bocha com o IAmiguinho, as bolas e as peças pintadas
+- **O dono mandou:** 4 pranchas do IAmiguinho da bocha (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo, sem bola na mão), a folha das bolas e a folha de conchas, pegadas e tábuas.
+- **Feito:**
+  - IAmiguinho pintado na bocha: espera, mira com o braço indo para trás conforme a força, lançamento, torcida e comemoração (punho e joinha) quando ganha;
+  - bolas azuis, rosa e bolim pintados, girando enquanto rolam;
+  - conchas, pegadas e tábuas da borda (com cantos) da folha pintada;
+  - as 4 pranchas novas entraram na Prévia das pranchas;
+  - detalhes em `jogos-de-verao.md`.
+- **Testes:** `bcpintado.cjs` (novo), `bocha.cjs`, `bckeys.cjs`, `bcburaco.cjs` e `todas.cjs`, sem erros.
+- **Pendente:**
+  - pranchas do Amiguinho da bocha (por enquanto, desenhos do vôlei);
+  - vila vista de cima pintada;
+  - o dono testar.
+
 ## 31/10/2026: Jogos de Verão, Embaixadinha com futebol primeiro, gaivota que atrapalha e dificuldade progressiva
 - **Pedidos do dono:**
   - bola de futebol em primeiro na ordem;

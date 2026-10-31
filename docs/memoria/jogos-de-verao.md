@@ -126,11 +126,22 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - vitória vale 1.500 + 100 por ponto de diferença.
 - **Testes:**
   - `testes/bocha.cjs`: o jogador automático muito bom venceu 3 de 3, o médio 2 de 3 e o fraco 0 de 3;
-  - `testes/bckeys.cjs`: teclado.
-- **Arte provisória:**
-  - os personagens são os do vôlei, pequenos na linha de lançamento (manchete para lançar, festa e tristeza);
-  - bolas, cancha e vila são desenhadas pelo jogo;
-  - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
+  - `testes/bckeys.cjs`: teclado;
+  - `testes/bcpintado.cjs`: fotos do IAmiguinho pintado (mirando, soltando, pelo alto, torcendo, esperando).
+- **Arte pintada (31/10):**
+  - o dono mandou 4 pranchas do IAmiguinho (esperando a vez, lançar rolando, lançar pelo alto, medindo/torcendo), a folha das bolas (4 azuis, 4 rosa e o bolim laranja) e a folha de conchas, pegadas e tábuas;
+  - as pranchas do IAmiguinho vieram sem bola na mão, como pedido: a bola do jogo é desenhada à parte;
+  - uso no jogo (`cart2/bcp.js` e `cart2/mvbc.py`):
+    - esperando a vez: enquanto o Amiguinho joga;
+    - na mira: quadros 1 a 4 de "rolando" ou "pelo alto" conforme a força (o braço vai para trás); ao soltar, quadros 5 a 8;
+    - com a bola andando: torcendo, quadros 1 a 6; rodada ou jogo ganho: quadros 7 e 8 (punho e joinha);
+    - perdeu: continua a tristeza do vôlei;
+  - bolas giram conforme rolam; conchas, pegadas e as tábuas da borda (com cantos) vêm da folha pintada;
+  - escala: régua da cabeça igualada (torce 1,027, alto 0,984, rolar 1,047, espera 1,044);
+  - pranchas guardadas em `jogos/jogos-de-verao/bocha/pranchas`; já estão na Prévia das pranchas.
+- **Ainda provisório:**
+  - o Amiguinho segue com os desenhos do vôlei até chegarem as pranchas dele;
+  - a vila e o chão da cancha seguem desenhados pelo jogo; os pedidos estão na página de pedidos (a vila vista de cima em 4 horários; o pedido da noite só muda a luz).
 
 ### Corrida de bugue (como funciona)
 - **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima (82% de zoom, para ver mais à frente). 3 voltas contra 5 Amiguinhos.

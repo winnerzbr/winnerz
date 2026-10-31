@@ -284,10 +284,10 @@ const bocha = {
       if (!up) { ctx.fillStyle = 'rgba(90,55,20,.22)'; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .5, 0, TAU); ctx.fill(); ctx.strokeStyle = 'rgba(255,240,205,.5)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .92, -.2, Math.PI * .7); ctx.stroke(); }
       else { ctx.strokeStyle = 'rgba(255,248,225,.55)'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .55, Math.PI * .95, Math.PI * 1.6); ctx.stroke(); }
     }
-    for (const p of this.T.prints) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang); ctx.fillStyle = 'rgba(120,80,40,.35)'; ctx.beginPath(); ctx.ellipse(0, 0, 2.6, 1.3, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(2.4, 0, .9, .9, 0, 0, TAU); ctx.fill(); ctx.restore(); }
-    for (const s of this.T.shells) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = s.c; ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(0, 2); ctx.arc(0, 2, 3.2, Math.PI * 1.15, Math.PI * 1.85); ctx.closePath(); ctx.fill(); ctx.stroke(); for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(k * 1.8, -.6); ctx.stroke(); } ctx.restore(); }
+    this.drawPrints();
+    this.drawShells();
     // corda da cancha, linha de lançamento e gravetos a cada quarto
-    for (const [x, y, w, h] of [[BC.x0 - 4, BC.y0 - 4, BC.x1 - BC.x0 + 8, 4], [BC.x0 - 4, BC.y1, BC.x1 - BC.x0 + 8, 4], [BC.x0 - 4, BC.y0, 4, BC.y1 - BC.y0], [BC.x1, BC.y0, 4, BC.y1 - BC.y0]]) { R(x, y, w, h, '#a8784a'); R(x, y, w, 1, '#d9a873'); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.strokeRect(x, y, w, h); }
+    this.drawBorder();
     R(BC.sx + 6, BC.y0, 1, BC.y1 - BC.y0, 'rgba(255,250,235,.7)');
     for (let q = 1; q <= 3; q++) { const x = BC.sx + BC.L * q / 4; for (const y of [BC.y0 - 3, BC.y1]) R(x, y, 1.4, 3, '#7a5233'); }
     // bolas (sombras primeiro)
@@ -316,6 +316,16 @@ const bocha = {
     }
     const s = `${this.sc[0]}  ×  ${this.sc[1]}`; R(W / 2 - 26, 40, 52, 14, 'rgba(60,40,30,.85)'); ctx.strokeStyle = NAVY; ctx.lineWidth = 1; ctx.strokeRect(W / 2 - 26, 40, 52, 14);
     ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(s, W / 2, 51); ctx.textAlign = 'left';
+  },
+  // pegadas, conchas e a borda da cancha (a versão pintada entra por cima destas, em bcp.js)
+  drawPrints() {
+    for (const p of this.T.prints) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.ang); ctx.fillStyle = 'rgba(120,80,40,.35)'; ctx.beginPath(); ctx.ellipse(0, 0, 2.6, 1.3, 0, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(2.4, 0, .9, .9, 0, 0, TAU); ctx.fill(); ctx.restore(); }
+  },
+  drawShells() {
+    for (const s of this.T.shells) { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.a); ctx.fillStyle = s.c; ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(0, 2); ctx.arc(0, 2, 3.2, Math.PI * 1.15, Math.PI * 1.85); ctx.closePath(); ctx.fill(); ctx.stroke(); for (let k = -1; k <= 1; k++) { ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(k * 1.8, -.6); ctx.stroke(); } ctx.restore(); }
+  },
+  drawBorder() {
+    for (const [x, y, w, h] of [[BC.x0 - 4, BC.y0 - 4, BC.x1 - BC.x0 + 8, 4], [BC.x0 - 4, BC.y1, BC.x1 - BC.x0 + 8, 4], [BC.x0 - 4, BC.y0, 4, BC.y1 - BC.y0], [BC.x1, BC.y0, 4, BC.y1 - BC.y0]]) { R(x, y, w, h, '#a8784a'); R(x, y, w, 1, '#d9a873'); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.strokeRect(x, y, w, h); }
   },
   drawBall(b) {
     const k = 1 + Math.min(.5, (b.z || 0) / 40), r = b.r * k, x = b.x, y = b.y - (b.z || 0) * .6;

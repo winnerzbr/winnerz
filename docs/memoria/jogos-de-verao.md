@@ -405,3 +405,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - As fontes estão em `jogos/jogos-de-verao/`: o jogo base, os programas, os quadros das pranchas aprovadas, a ficha, o cenário e as páginas de pedidos. O `README.md` dessa pasta explica como montar o jogo e como incluir uma prancha nova.
 - Os montados grandes (`mv5.js`, `mvsk.js`…) não ficam no repositório. Eles saem de novo dos quadros.
 - **Toda prancha aprovada nova** precisa ir para essa pasta, com o recorte em `cart2/mv2/` e a prancha original quando for do skate, no mesmo commit em que entra no jogo.
+
+## Editor do jogo (31/10)
+- **Pedido do dono:** um editor completo para mudar visual, fases, mecânicas e textos sem depender do Claude. Escolhas dele: editar tudo (mecânicas, fases e pistas, visual e artes, textos e falas; e ainda a posição dos rostos no visor e os movimentos), "Rascunho + Aplicar" e página separada.
+- **Onde fica:** dentro da página do jogo, num botão "Editor" no canto de baixo à esquerda que só aparece para o dono (quem só joga não vê). Abre uma tela inteira por cima do jogo. Não ficou numa página com link próprio porque outra página teria um banco de dados próprio e as mudanças não chegariam ao jogo.
+- **Como guarda:** no banco da página do jogo (capacidade `db`, regra: todos leem, só o dono escreve), em `wz/rascunho` (salvo sozinho 1,2 s depois de cada mudança), `wz/aplicado` (o que vale para todo mundo) e `wz/v<data>` (uma versão por "Aplicar", com nome). O jogo lê `wz/aplicado` ao abrir. Nos testes locais (`?wzlocal=1` ou localhost) guarda no navegador.
+- **Abas:**
+  - Mecânicas: por prova, duração e medalhas + as constantes de cada prova (lista `WZ_REG` em `cart2/editor.js`), com controle deslizante, número e ↺; nomes em português em `WZ_NOMES`/`WZ_DESC` (os que faltam aparecem com o nome técnico);
+  - Pistas do bugue: mapa de cada pista; mexe nos pontos da pista (arrastar, duplo clique põe, Shift+clique tira; as peças acompanham), caixas, rampas, esteiras (arrastar de lado muda a faixa), areia fofa, atalhos (água ou areia, com ou sem rampa), ladeiras (descida ou subida), farol, nome e fala da pista; desfazer;
+  - Rostos e quadros: para cada personagem pintado (IAmiguinho do vôlei, Amiguinho, skate, embaixadinha, bocha), cada movimento e quadro: posição, tamanho e giro do rosto no visor (dá para arrastar) e o encaixe do quadro; copiar para todos os quadros; tocar o movimento; trocar a expressão;
+  - Textos e falas: nome e subtítulo das provas e todas as falas do IAmiguinho (uma por linha);
+  - Versões e cópia: voltar a uma versão aplicada, copiar/colar tudo como texto, limpar o rascunho.
+- **Botões:** Testar (joga a prova escolhida com o rascunho, só para o dono), Aplicar no jogo (vale para todos e guarda versão), Fechar (volta ao aplicado).
+- **Como funciona por dentro:** `WZ.apply(cfg)` volta tudo ao original e aplica a configuração (números e textos por caminho, pistas recalculadas, rostos e encaixes nas medidas de cada quadro e no quadro do meio). `cfg = { mec, pistas, rostos, textos }`.
+- **Próximas etapas (ainda não feitas):** trocar artes subindo pranchas (recortar o verde e os quadros no próprio editor), velocidade dos movimentos, editar as outras fases (cancha da bocha, séries da embaixadinha etc.) no mesmo estilo do mapa das pistas.
+- **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto e fala, aplica, recarrega e confere).
+

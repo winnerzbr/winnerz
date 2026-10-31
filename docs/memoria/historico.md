@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, editor do jogo
+- **Pedido do dono:** um editor completo para mexer sem depender do Claude (escolheu: tudo, rascunho + aplicar, página separada).
+- **Feito:** editor dentro da página do jogo, só para o dono (botão "Editor"), com Mecânicas, Pistas do bugue (mapa arrastável), Rostos e quadros, Textos e falas e Versões; rascunho salvo sozinho, Testar, Aplicar com versão; a página do jogo ganhou o banco (db, só o dono escreve) e o `user`. Detalhes em `jogos-de-verao.md`.
+- **Decidido:** ficou dentro do jogo e não numa página separada, porque outra página teria outro banco e as mudanças não chegariam ao jogo (explicado ao dono).
+- **Testes:** `wzeditor.cjs` (novo), `todas.cjs`, `copa.cjs`.
+- **Pendente:** trocar artes pelo editor, velocidade dos movimentos e as outras fases (próximas etapas).
+
 ## 31/10/2026: Jogos de Verão, lagoa, esteiras, efeitos e relevo da bocha pintados
 - **O dono mandou:** o relevo da bocha (montinho, buraco e areia fofa) e o zip com a lagoa, a esteira de turbo e os efeitos da corrida.
 - **Feito:**

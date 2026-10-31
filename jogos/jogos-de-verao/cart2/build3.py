@@ -304,6 +304,8 @@ def _out(m):
     (IMG / name).write_bytes(data); return 'img/' + name
 JS = re.sub(r'data:image/(webp|png);base64,([A-Za-z0-9+/=]+)', _out, JS)
 print('imagens', len(list(IMG.iterdir())), sum(f.stat().st_size for f in IMG.iterdir()) // 1024, 'KB')
+# editor do jogo (só para o dono): no fim do script principal, depois de tudo definido
+s = sub1("\nwindow.__verao = {", "\n" + (HERE / 'editor.js').read_text(encoding='utf-8') + "\nwindow.__verao = {", s)
 idx = s.rfind('</script>')
 s = s[:idx + 9] + "\n<script>\n" + JS + "\n</script>" + s[idx + 9:]
 (ROOT / 'jogos_verao' / 'index.html').write_text(s, encoding='utf-8')

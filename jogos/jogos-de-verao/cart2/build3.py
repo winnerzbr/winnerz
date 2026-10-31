@@ -7,9 +7,6 @@ def sub1(old, new, text):
     assert text.count(old) == 1, (old[:80], text.count(old)); return text.replace(old, new)
 # vôlei: menus em HTML como as outras provas (a interface pintada vem depois)
 s = sub1("const vuiOn = () => cur === volei && !seq;", "const vuiOn = () => false; // vôlei pintado: menus em HTML por enquanto", s)
-# 30/10/2026: o Salto do píer vira Salto do penhasco (Falésia do Farol)
-import penhasco
-s = penhasco.apply(s, sub1)
 # 30/10/2026: o dono tirou Salto de hélice, Corrida do isopor e Minigolfe (o minigolfe vai para o Arcade do IAmiguinho).
 # O código delas continua no backup em 16 bits (verao/index.html); só saem da lista.
 # 30/10/2026 · vôlei, ajustes pedidos pelo dono depois de jogar com a arte pintada:
@@ -35,15 +32,21 @@ s = sub1("say('Boas-vindas à orla! Dezenove provas e sete por semana valendo p�
          "say('Boas-vindas à orla! Toda semana, sete provas valendo pódio. Todas minhas, em teoria.');", s)
 s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, planador, isopor, bmx, obstaculos, frisbee, arco, minigolfe, duelo, canoagem, futebol, natacao, jetski, volei];",
          "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx, obstaculos, frisbee, arco, duelo, canoagem, futebol, natacao, jetski, volei];", s)
-# provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas
-s = sub1("const EVENTS = [surfe,", (HERE / 'ev_frescobol.js').read_text(encoding='utf-8') + "\nconst EVENTS = [surfe,", s)
-s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins,", "const EVENTS = [surfe, halfpipe, embaixadinha, frescobol, patins,", s)
-# frescobol: 2 jogadores no computador (o mesmo botão do vôlei)
-s = sub1("const RANK = {\n", "const RANK = {\n  frescobol: [['@bia', 3600], ['@duda', 2500], ['@carol', 1600], ['@rafa', 800]],\n", s)
-s = sub1("  if (seq || touch) volei.two = false;\n", "  if (seq || touch) { volei.two = false; frescobol.two = false; }\n", s)
+# provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas.
+# O dono reprovou o Salto do penhasco e o Frescobol (as ideias e a jogabilidade): saíram, e o Salto do píer também saiu de vez.
+NOVAS = ['ev_pingue.js']
+s = sub1("const EVENTS = [surfe,", ''.join((HERE / f).read_text(encoding='utf-8') + '\n' for f in NOVAS) + "const EVENTS = [surfe,", s)
+s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx,", "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, pingue, bmx,", s)
+s = sub1("const RANK = {\n", "const RANK = {\n  pingue: [['@rafa', 2300], ['@bia', 1800], ['@duda', 1100], ['@carol', 600]],\n", s)
+
+# cabeçalho do menu das provas de placar: o do vôlei era fixo; as provas novas usam medShort e menu2
+s = sub1("h = cur.two ? [['Modo', '2 jogadores'], ['Placar', 'até 7'], ['Toques', '3 por lado'], ['Pódio', 'não conta']] : [['Seu recorde', best[cur.id] ? nf(best[cur.id]) : '—'], ['Bronze', 'Perder por ≤2'], ['Prata', 'Vencer'], ['Ouro', 'Vencer por 4+']];",
+         "h = cur.two ? (cur.menu2 || [['Modo', '2 jogadores'], ['Placar', 'até 7'], ['Toques', '3 por lado'], ['Pódio', 'não conta']]) : [['Seu recorde', best[cur.id] ? nf(best[cur.id]) : '—'], ...(cur.medShort || ['Perder por ≤2', 'Vencer', 'Vencer por 4+']).map((x, i) => [['Bronze', 'Prata', 'Ouro'][i], x])];", s)
+# 2 jogadores no computador nas provas novas que têm (o mesmo botão do vôlei)
+s = sub1("  if (seq || touch) volei.two = false;\n", "  if (seq || touch) { volei.two = false; for (const e of EVENTS) if (e.two2) e.two = false; }\n", s)
 s = sub1("  setButtons(['Jogar', start], null);\n}\nfunction startDOM() {",
          "  setButtons(['Jogar', start], null);\n"
-         "  if (cur === frescobol && !seq && !touch) { const b2 = $('b-alt2'); b2.hidden = false; b2.textContent = `2 jogadores: ${frescobol.two ? 'ligado' : 'desligado'}`; b2.setAttribute('aria-pressed', String(frescobol.two)); actAlt2 = () => { frescobol.two = !frescobol.two; showTitle(); renderHud(); setTimeout(() => $('b-alt2').focus({ preventScroll: true }), 0); }; }\n"
+         "  if (cur.two2 && !seq && !touch) { const ev = cur, b2 = $('b-alt2'); b2.hidden = false; b2.textContent = `2 jogadores: ${ev.two ? 'ligado' : 'desligado'}`; b2.setAttribute('aria-pressed', String(ev.two)); actAlt2 = () => { ev.two = !ev.two; showTitle(); renderHud(); setTimeout(() => $('b-alt2').focus({ preventScroll: true }), 0); }; }\n"
          "}\nfunction startDOM() {", s)
 # vôlei desenhado em 1280 × 720, liso
 s = sub1("  const hi = mode !== 'podium' && (cur === volei || !!cur.hi); // vôlei e provas com a arte gerada: desenho em dobro\n"

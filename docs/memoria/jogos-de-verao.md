@@ -23,28 +23,46 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 22 provas, e o jogo publicado tem 17 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Frescobol, Patins, Basquete, Salto do penhasco, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
+O plano tem 21 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
-- **Troca feita:** o Salto do píer virou Salto do penhasco (Falésia do Farol): mesmas regras, 5 saltos de 6 a 18 m.
+- **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
-  - Feitas: Salto do penhasco e Frescobol.
-  - Faltam: Pingue-pongue, Bocha, Teco-teco, Paraquedismo e Corrida de bugue.
+  - Feita: Pingue-pongue (`cart2/ev_pingue.js`), esperando o teste do dono.
+  - Faltam, nesta ordem: Bocha, Teco-teco, Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
   |---|---|---|
   | Voo do teco-teco | Aeroclube da Restinga, sobrevoando a costa | vista de lado: argolas, balões, rasantes nos marcos, looping e turbo |
-  | Frescobol | Praia Lotada | cooperativo contra o recorde; sozinho, um Amiguinho é o parceiro; pode ser jogado em duas pessoas |
   | Paraquedismo em formação | Céu da Enseada Cristal | queda livre fechando a roda, abrir o paraquedas baixo e pousar no alvo |
-  | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito |
+  | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito; pode ser jogado em duas pessoas |
   | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
   | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol, onda); 3 voltas e a Copa das Dunas com 3 pistas |
+
+### Pingue-pongue (como funciona)
+- Vista de lado, à noite no Quiosque do Coqueiral: IAmiguinho à esquerda, Amiguinho à direita.
+- **O personagem anda sozinho até a bola** (como no Wii) e vai para o ponto mais alto do quique do seu lado. Quem joga decide só a hora e a bola.
+- **Botões:**
+  - ✕/Espaço rebate. Na hora certa (±0,03 s), sai rápida e aparece "Na hora!". Cedo, sai alta e longa. Tarde, sai baixa (risco de rede). Fora de ±0,1 s, não pega.
+  - ○/X (ou ↑ + ✕) dá cortada; só presta com a bola quicando alto, e com bola baixa vai na rede.
+  - □/C (ou ↓ + ✕) manda uma curtinha com efeito, que quica baixo.
+  - Segurar ▶ manda funda; segurar ◀ manda curta.
+- **Regras:** a bola tem que quicar uma vez do outro lado. A partida vai até 11, com 2 de vantagem, e o saque troca a cada 2 pontos (a cada ponto no 10 a 10). O saque vai direto para o outro lado.
+- **Amiguinho:** acerta o tempo em cerca de 78% das bolas, adaptando de 55% a 92% conforme o placar. Usa cortada nas bolas altas e a curtinha quando o jogador está longe da mesa.
+- **2 jogadores no computador:**
+  - esquerda: F rebate, R ou W + F corta, V ou S + F dá efeito, A/D miram;
+  - direita: Enter rebate, ↑ + Enter corta, ↓ + Enter dá efeito, ◀ ▶ miram.
+- **Pontos e medalhas:**
+  - vitória vale 1.500 + 100 por ponto de diferença; derrota vale 100 por ponto feito;
+  - bronze 800 (fazer 8 pontos), prata 1.500 (vencer), ouro 2.000 (vencer por 5 ou mais).
+- **Teste:** `testes/pingue.cjs` (jogadores automáticos: quem acerta sempre venceu 6 de 6, um bom 4 de 6, um médio 1 de 6) e `testes/todas.cjs` (abre todas as provas, o 2 jogadores e o celular).
+- **Arte provisória:** desenhos pintados do vôlei (espera, corrida, golpe no chão), raquete, mesa e quiosque desenhados pelo jogo. As pranchas e os cenários pedidos estão na página de pedidos.
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |
 |---|---|---|
-| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (16 provas; vôlei e skate pintados) |
+| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (16 provas; vôlei e skate pintados; pingue-pongue com arte provisória) |
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |

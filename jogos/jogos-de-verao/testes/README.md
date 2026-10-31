@@ -11,5 +11,5 @@ Rodam com o jogo montado servido em `http://localhost:8765` (`python3 -m http.se
 - `vflick.cjs`: joga uma partida desenhando e conta quantas vezes cada personagem troca de desenho e quantos trechos duram menos de 0,1 s (o que parece tremida).
 - `repro.cjs`: bola alta caindo do lado do Amiguinho; lista, quadro a quadro, o desenho escolhido, a posição e a velocidade dele.
 - `vsrv2.cjs`: força 20 saques do Amiguinho por nível e conta quantos foram com cortada.
-- `fresco.cjs`: frescobol com três jogadores automáticos (bom, médio, ruim): pontos médios e maior sequência, para calibrar as medalhas.
-- `penh.cjs`: dois saltos do penhasco (o mais baixo e o mais alto) com fotos da tela.
+- `pingue.cjs`: partidas de pingue-pongue de jogadores automáticos (muito bom, bom, médio, fraco) contra o Amiguinho: vitórias, pontos, maior troca e como os pontos acabam. Salva fotos em `amg/`.
+- `todas.cjs`: abre cada prova por 2 s procurando erros, confere o botão de 2 jogadores do pingue-pongue e abre a prova no celular.

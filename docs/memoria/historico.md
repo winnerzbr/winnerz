@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Pingue-pongue (penhasco e frescobol reprovados)
+- **Decisão do dono:** Salto do penhasco e Frescobol reprovados (as ideias e a jogabilidade). Saíram do jogo, do `build3.py` e da página de pedidos, e não voltam. O Salto do píer saiu de vez.
+  - Apagados `cart2/penhasco.py` e `cart2/ev_frescobol.js`.
+  - Segue a ordem: Pingue-pongue (feito agora), Bocha, Teco-teco, Paraquedismo e Corrida de bugue, um por vez, com teste do dono antes do próximo.
+- **Pingue-pongue** (`cart2/ev_pingue.js`), no lugar do Salto na lista:
+  - o personagem anda sozinho até a bola, e quem joga escolhe a hora e a bola (rebatida, cortada ou curtinha com efeito, funda ou curta);
+  - até 11, com 2 de vantagem; tem modo de 2 jogadores;
+  - detalhes em `jogos-de-verao.md`.
+- **Menu das provas de placar:** o cabeçalho de medalhas era fixo do vôlei; agora cada prova pode trazer o seu (`medShort` e `menu2`).
+- **Página de pedidos:** agora tem só o Pingue-pongue, com 24 pedidos:
+  - raquete;
+  - 6 pranchas de cada personagem;
+  - mesa;
+  - cenário em 2 camadas e 4 horários; a capa é a noite.
+- **Pendente:** o dono testar o Pingue-pongue (dificuldade e tempo da batida).
+
 ## 30/10/2026: Jogos de Verão, provas novas (1ª entrega: Salto do penhasco e Frescobol)
 O dono pediu para desenvolver e publicar as provas novas.
 - **Decisão do dono:**

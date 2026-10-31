@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, chão da pista pintado e a onda fora dos itens
+- **O dono mandou:** a textura do chão da pista. **Pediu:** retirar a onda.
+- **Feito:**
+  - a faixa do chão deitada ao longo da pista, acompanhando as curvas sem emenda (detalhes em `jogos-de-verao.md`);
+  - a onda não sai mais na caixa de item;
+  - página de pedidos atualizada.
+- **Testes:** `bgcena.cjs` (curvas de dia e de noite), `copa.cjs`, `bgitens.cjs`, `bgcolisao.cjs`, `todas.cjs`.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, bugue com batida melhor, caixas, esteiras e o rodopio dos Amiguinhos
 - **Pedidos do dono:** melhorar a batida entre bugues (se sobrepunham), a coleta das caixas (encostava e não pegava), caixa voltar em 2 s, esteiras de turbo mais largas e o prompt da textura da pista. Também mandou a prancha da derrapagem e do rodopio do Amiguinho.
 - **Feito:**

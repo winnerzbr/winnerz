@@ -24,6 +24,7 @@ const { chromium } = require('playwright');
   await cena('ladeira', 2, () => { const ev = bugue, z = BG_T.slopes[0], A = BG_LINE[(z.a + 12) % BG_LINE.length]; ev.camX = A[0]; ev.camY = A[1]; }, 13);
   await cena('ladeira2', 2, () => { const ev = bugue, z = BG_T.slopes.find((q) => q.s < 0) || BG_T.slopes[1], A = BG_LINE[(z.a + 12) % BG_LINE.length]; ev.camX = A[0]; ev.camY = A[1]; }, 13);
   await cena('salto', 2, () => { const ev = bugue, c = BG_SCS.find((q) => q.ramp), R = ev.scRamp(c); ev.camX = R.x; ev.camY = R.y; }, 13);
-  await cena('onda', 0, () => { const ev = bugue; ev.update = ev._up; ev.wave = 1.2; ev.update = () => false; }, 13);
+  await cena('curva', 0, eval(em(120)), 13);
+  await cena('curva_noite', 0, eval(em(120)), 22);
   console.log('pintado:', await p.evaluate(() => [window.__BGCOK && window.__BGCOK(), bugue.painted]), 'fotos', shots.length, errs.join(' | ') || 'sem erros'); await b.close();
 })();

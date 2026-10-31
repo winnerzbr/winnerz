@@ -57,7 +57,7 @@
   const BGC = window.BGC, BCI2 = {};
   const cImg = (k, src) => { if (!src) return null; let im = BCI2[k]; if (!im) { im = BCI2[k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
   const CATL = () => BGC && cImg('atl', BGC.atl);
-  window.__BGCOK = () => !!BGC && !!CATL() && ['dia', 'tarde', 'noite'].every((v) => cImg('d_' + v, BGC.d[v])) && !!cImg('mar', BGC.mar);
+  window.__BGCOK = () => !!BGC && !!CATL() && ['dia', 'tarde', 'noite'].every((v) => cImg('d_' + v, BGC.d[v])) && !!cImg('mar', BGC.mar) && !!cImg('pista', BGC.pista);
   const BG_HORAS = [['noite', 5, 'dia'], ['dia', 16, 'tarde'], ['tarde', 19, 'noite']];
   function bgPesos() {
     const d = new Date(), h = window.__skHora != null ? window.__skHora : d.getHours() + d.getMinutes() / 60;
@@ -83,7 +83,7 @@
   }
   let LAYER = null, LSAVE = null;
   if (typeof bugue !== 'undefined' && BGC) {
-    const P0 = {}; for (const n of ['drawGround', 'drawSea', 'drawWalls', 'drawCWalls', 'drawScRamp', 'drawRamp', 'drawStart', 'drawFlag', 'drawBox', 'drawPud', 'drawProj', 'drawFofa', 'drawSlopes', 'drawFarol', 'drawItemIcon', 'drawBuggyFx', 'draw']) P0[n] = bugue[n];
+    const P0 = {}; for (const n of ['drawGround', 'drawSea', 'drawWalls', 'drawCWalls', 'drawScRamp', 'drawRamp', 'drawStart', 'drawFlag', 'drawBox', 'drawPud', 'drawProj', 'drawFofa', 'drawSlopes', 'drawFarol', 'drawItemIcon', 'drawBuggyFx', 'drawTrack', 'drawCorridor']) P0[n] = bugue[n];
     const on = () => !!CATL();
     bugue.drawGround = function (tt, vw, vh) {
       const P = bgPesos().map(([v, w]) => [w, cImg('d_' + v, BGC.d[v])]).filter((p) => p[0] > .001);
@@ -115,6 +115,55 @@
       if (yv < top + sw) for (let x = x0; x < this.camX + vw / 2; x += TW) ctx.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight * .12, x - .3, yv, TW + .6, top + sw - yv + 1);
       for (let x = x0; x < this.camX + vw / 2; x += TW) ctx.drawImage(im, x - .3, top + sw, TW + .6, TH);
       ctx.restore();
+    };
+    // chão da pista: a faixa pintada deitada ao longo da linha da pista, pedaço por pedaço (as marcas de pneu seguem as curvas);
+    // por baixo, a cor média da faixa cobre as frestinhas do lado de fora das curvas
+    function stripImg(im, sy, sh, x0, y0, x1, y1, th, tl, s0) {
+      const L = Math.hypot(x1 - x0, y1 - y0), a = Math.atan2(y1 - y0, x1 - x0), iw = im.naturalWidth;
+      ctx.save(); ctx.translate(x0, y0); ctx.rotate(a); let d = -.8, s = ((s0 % tl) + tl) % tl;
+      while (d < L + .8) { const take = Math.min(tl - s, L + .8 - d); ctx.drawImage(im, s / tl * iw, sy, Math.max(1, take / tl * iw), sh, d, -th / 2, take, th); d += take; s = 0; }
+      ctx.restore();
+    }
+    const TLEN = () => BG.hw * 2 * 4;
+    // a faixa dobrada (duas cópias lado a lado), para cada pedaço da pista caber sem dar a volta no meio
+    let DBL = null;
+    function dblImg(im) { if (DBL && DBL.src === im) return DBL.c; const c = document.createElement('canvas'); c.width = im.naturalWidth * 2; c.height = im.naturalHeight; const g = c.getContext('2d'); g.drawImage(im, 0, 0); g.drawImage(im, im.naturalWidth, 0); DBL = { src: im, c }; return c; }
+    // triângulo da imagem (s) desenhado no triângulo do mundo (d): sem emendas, o desenho acompanha a curva
+    function tri(img, s0, s1, s2, d0, d1, d2) {
+      const den = s0[0] * (s1[1] - s2[1]) + s1[0] * (s2[1] - s0[1]) + s2[0] * (s0[1] - s1[1]); if (Math.abs(den) < 1e-6) return;
+      const a = (d0[0] * (s1[1] - s2[1]) + d1[0] * (s2[1] - s0[1]) + d2[0] * (s0[1] - s1[1])) / den, c = (d0[0] * (s2[0] - s1[0]) + d1[0] * (s0[0] - s2[0]) + d2[0] * (s1[0] - s0[0])) / den;
+      const e = (d0[0] * (s1[0] * s2[1] - s2[0] * s1[1]) + d1[0] * (s2[0] * s0[1] - s0[0] * s2[1]) + d2[0] * (s0[0] * s1[1] - s1[0] * s0[1])) / den;
+      const b = (d0[1] * (s1[1] - s2[1]) + d1[1] * (s2[1] - s0[1]) + d2[1] * (s0[1] - s1[1])) / den, dd = (d0[1] * (s2[0] - s1[0]) + d1[1] * (s0[0] - s2[0]) + d2[1] * (s1[0] - s0[0])) / den;
+      const f = (d0[1] * (s1[0] * s2[1] - s2[0] * s1[1]) + d1[1] * (s2[0] * s0[1] - s0[0] * s2[1]) + d2[1] * (s0[0] * s1[1] - s1[0] * s0[1])) / den;
+      const cx = (d0[0] + d1[0] + d2[0]) / 3, cy = (d0[1] + d1[1] + d2[1]) / 3, g = (p) => [cx + (p[0] - cx) * 1.03 + Math.sign(p[0] - cx) * .25, cy + (p[1] - cy) * 1.03 + Math.sign(p[1] - cy) * .25];
+      const q0 = g(d0), q1 = g(d1), q2 = g(d2);
+      ctx.save(); ctx.beginPath(); ctx.moveTo(q0[0], q0[1]); ctx.lineTo(q1[0], q1[1]); ctx.lineTo(q2[0], q2[1]); ctx.closePath(); ctx.clip();
+      ctx.transform(a, b, c, dd, e, f); ctx.drawImage(img, 0, 0); ctx.restore();
+    }
+    // pista inteira: as duas beiradas com a normal média em cada ponto (os pedaços vizinhos dividem a mesma beirada)
+    let EDGE = null;
+    function edges() {
+      if (EDGE && EDGE.line === BG_LINE && EDGE.hw === BG.hw) return EDGE;
+      const n = BG_LINE.length, P = [], S = [0];
+      for (let i = 0; i < n; i++) { const a = BG_LINE[(i - 1 + n) % n], p = BG_LINE[i], b = BG_LINE[(i + 1) % n]; let tx = b[0] - a[0], ty = b[1] - a[1]; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        P.push([[p[0] + ty * BG.hw, p[1] - tx * BG.hw], [p[0] - ty * BG.hw, p[1] + tx * BG.hw]]); if (i) S.push(S[i - 1] + Math.hypot(p[0] - BG_LINE[i - 1][0], p[1] - BG_LINE[i - 1][1])); }
+      return (EDGE = { line: BG_LINE, hw: BG.hw, P, S, tot: S[n - 1] + Math.hypot(BG_LINE[0][0] - BG_LINE[n - 1][0], BG_LINE[0][1] - BG_LINE[n - 1][1]) });
+    }
+    bugue.drawTrack = function (path, off) {
+      const im = cImg('pista', BGC.pista); if (!this.painted || !im) return P0.drawTrack.call(this, path, off);
+      path(); ctx.strokeStyle = '#e9c69f'; ctx.lineWidth = BG.hw * 2; ctx.stroke();
+      const E = edges(), n = BG_LINE.length, vw = W / BG.Z, vh = H / BG.Z, mg = BG.hw + 20, img = dblImg(im), iw = im.naturalWidth, ih = im.naturalHeight, k = iw / TLEN();
+      ctx.save(); ctx.imageSmoothingEnabled = true;
+      for (let i = 0; i < n; i += 2) { const A = BG_LINE[i]; if (Math.abs(A[0] - this.camX) > vw / 2 + mg || Math.abs(A[1] - this.camY) > vh / 2 + mg) continue;
+        const j = Math.min(i + 2, n) % n, s0 = E.S[i], s1 = j ? E.S[j] : E.tot, u0 = (s0 * k) % iw, u1 = u0 + (s1 - s0) * k;
+        const [a0, b0] = E.P[i], [a1, b1] = E.P[j];
+        tri(img, [u0, 0], [u1, 0], [u0, ih], a0, a1, b0); tri(img, [u1, 0], [u1, ih], [u0, ih], a1, b1, b0); }
+      ctx.restore();
+    };
+    bugue.drawCorridor = function (A, ang, len) {
+      const im = cImg('pista', BGC.pista); if (!this.painted || !im) return P0.drawCorridor.call(this, A, ang, len);
+      const h = im.naturalHeight * BG.sw / BG.hw; ctx.save(); ctx.imageSmoothingEnabled = true;
+      stripImg(im, (im.naturalHeight - h) / 2, h, A[0], A[1], A[0] + Math.cos(ang) * len, A[1] + Math.sin(ang) * len, BG.sw * 2, TLEN(), 0); ctx.restore();
     };
     bugue.drawWalls = function (off) {
       if (!this.painted) return P0.drawWalls.call(this, off);
@@ -201,12 +250,6 @@
       const nm = { bola: 'bola_g', balao: 'balao_g', coco: 'coco_g', guarda: 'guarda_g', protetor: 'frasco_g', onda: 'onda_g' }[k];
       if (!on() || !nm) return P0.drawItemIcon.call(this, k, x, y);
       const f = BGC.p[nm], s = 19 / Math.max(f.w, f.h); ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(x, y); part(nm, f.w * s, f.h * s); ctx.restore();
-    };
-    // onda: além da água na tela, a onda pintada passa de um lado para o outro
-    bugue.draw = function (tt) {
-      P0.draw.call(this, tt);
-      if (this.wave > 0 && on()) { const k = 1 - this.wave / 2.2, f = BGC.p.onda_g, w = 120, h = w * f.h / f.w;
-        ctx.save(); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = Math.min(1, this.wave * 2); ctx.translate(-w / 2 + k * (W + w), H * .42); part('onda_g', w, h); ctx.restore(); }
     };
   }
 }

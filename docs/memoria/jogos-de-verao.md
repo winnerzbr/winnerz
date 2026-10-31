@@ -252,7 +252,9 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - beira-mar (Duna do Farol): a faixa repetida dos lados, a areia de baixo some sobre as dunas, a água vai e volta de leve; acima dela, a água do alto da faixa esticada;
   - ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo;
   - artes em `jogos/jogos-de-verao/bugue/arte`.
-- **Arte provisória:** pedido aberto: chão da pista (faixa 4:1 que repete dos lados, com marcas de pneu da esquerda para a direita; a ideia é o jogo deitar a faixa ao longo da pista, como as muretas). Ainda desenhados pelo jogo: o chão da pista, a lagoa e as esteiras de turbo.
+- **Chão da pista pintado (31/10):** a faixa 4:1 do dono (areia batida com marcas de pneu da esquerda para a direita, emenda dos lados), deitada ao longo da pista: cada trecho da linha da pista vira dois triângulos que recebem o pedaço certo da faixa (as beiradas usam a normal média em cada ponto, então os trechos vizinhos dividem a mesma beirada e não aparece emenda nas curvas); a faixa repete a cada 4 larguras de pista (712); por baixo, a cor média (#e9c69f); o corredor do atalho usa a faixa do meio na mesma escala. Arte em `jogos/jogos-de-verao/bugue/arte/pista.webp`.
+- **Onda fora dos itens (31/10, pedido do dono):** a caixa não dá mais a onda; a fala do IAmiguinho que citava a onda mudou para o balão d'água; o código do efeito continua guardado.
+- **Arte provisória:** ainda desenhados pelo jogo: a lagoa e as esteiras de turbo.
 - **Ajustes de 31/10 (pedido do dono):**
   - batida entre bugues: cada bugue é dois círculos (frente e trás, raio 8,5, a 4,5 do centro), conferidos 3 vezes por passo e empurrados pelo contato mais fundo; antes era um círculo só (16 de distância) e eles se sobrepunham de frente e de trás. Medido em 3 corridas inteiras: sobreposição máxima 0,1;
   - caixa de item: pega quando o corpo do bugue encosta nela (dois círculos + raio 7 da caixa); antes contava só o centro do bugue a 12 da caixa. Passando ao lado, pega até 16 de distância entre os centros. Reaparece em 2 s (era 2,5);

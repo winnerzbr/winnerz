@@ -10,7 +10,7 @@
    A lagoa é um atalho por um corredor de água (lento sem turbo).
    Caixas de item: quem está mais atrás ganha itens melhores. Itens: bola de praia (quica reto e acerta quem está na frente),
    balão d'água teleguiado (persegue quem está logo à frente), protetor solar (poça escorregadia atrás), água de coco (turbo),
-   guarda-sol (escudo contra um ataque) e onda (rara, só para os últimos: deixa os três primeiros lentos).
+   e guarda-sol (escudo contra um ataque). A onda (deixava os três primeiros lentos) saiu dos itens em 31/10, a pedido do dono.
    Quem é acertado rodopia e perde velocidade, mas continua na corrida.
    Copa das Dunas (31/10): 3 pistas (Lagoa Azul; Duna do Farol, com grampos e areia fofa por dentro deles e atalho de areia fofa;
    Desce-Duna, com descidas que embalam, subidas que seguram e atalho com salto por cima da duna). No menu: Corrida (na pista
@@ -27,7 +27,7 @@ if (typeof Music !== 'undefined' && Music.songs.patins) Music.songs.bugue = Musi
 FALA.intro.bugue = [
   'Corrida de bugue nas Dunas Brancas! Cinco Amiguinhos, três voltas e uma lagoa no meio do caminho.',
   'Derrapa na curva, segura até a faísca ficar laranja e solta. É o segredo dos campeões. E agora é seu também.',
-  'Ficou para trás? Os itens melhoram. A onda é minha favorita.',
+  'Ficou para trás? Os itens melhoram. O balão d\'água é meu favorito.',
 ];
 FALA.bgBoa = ['Turbo laranja! Senti o vento no boné.', 'Acertei a bola de praia! Desculpa, Amiguinho.', 'Primeiro lugar! A duna é minha casa.'];
 FALA.bgRuim = ['Balão d\'água na nuca. Refrescante, pelo menos.', 'Escorreguei no protetor solar. Pelo menos não vou me queimar.', 'Caí na areia fofa. Ela abraçou o bugue.'];
@@ -431,7 +431,7 @@ const bugue = {
     const r = Math.random(), pos = k.pos || 6;
     if (pos <= 1) return r < .4 ? 'bola' : r < .8 ? 'protetor' : 'guarda';
     if (pos <= 3) return r < .3 ? 'bola' : r < .5 ? 'protetor' : r < .7 ? 'guarda' : r < .85 ? 'coco' : 'balao';
-    if (pos >= 5 && r < .1) return 'onda';
+    // a onda saiu dos itens em 31/10 (pedido do dono); o efeito dela continua no código, sem sair na caixa
     return r < .4 ? 'coco' : r < .7 ? 'balao' : r < .85 ? 'bola' : 'guarda';
   },
   useItem(k, dir = 0) {
@@ -464,15 +464,13 @@ const bugue = {
     const off = (d) => { ctx.beginPath(); BG_LINE.forEach((p, i) => { const q = BG_LINE[(i + 1) % BG_LINE.length], nx = -(q[1] - p[1]), ny = q[0] - p[0], nl = Math.hypot(nx, ny) || 1, x = p[0] + nx / nl * d, y = p[1] + ny / nl * d; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); };
     const path = () => off(0);
     ctx.lineJoin = 'round'; path(); ctx.strokeStyle = 'rgba(120,90,50,.25)'; ctx.lineWidth = BG.hw * 2 + 22; ctx.stroke();
-    path(); ctx.strokeStyle = '#dcc596'; ctx.lineWidth = BG.hw * 2; ctx.stroke();
-    for (const d of [-22, 22]) { off(d); ctx.strokeStyle = 'rgba(140,110,70,.16)'; ctx.lineWidth = 3; ctx.stroke(); }
-    path(); ctx.strokeStyle = 'rgba(150,120,80,.22)'; ctx.lineWidth = 1.2; ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
+    this.drawTrack(path, off);
     this.drawSlopes(tt);
     for (const f of BG_FOFA) this.drawFofa(f.x, f.y, f.r, f.r, 0, tt);
     this.drawWalls(off);
     // atalho da lagoa: corredor de areia com a água no meio e muretas dos dois lados
     for (const LG of BG_SCS) { const A = LG.A, B = LG.B, ang = Math.atan2(B[1] - A[1], B[0] - A[0]), len = Math.hypot(B[0] - A[0], B[1] - A[1]);
-      ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); R(0, -BG.sw, len, BG.sw * 2, '#dcc596'); ctx.restore();
+      this.drawCorridor(A, ang, len);
       if (LG.kind === 'agua') { const lg = ctx.createRadialGradient(LG.x, LG.y, 5, LG.x, LG.y, LG.rx); lg.addColorStop(0, '#2f8fd0'); lg.addColorStop(1, '#6fd0e0'); ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(LG.x, LG.y, LG.rx, LG.ry, ang, 0, TAU); ctx.fill();
         for (let i = 0; i < 6; i++) { ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = .8; ctx.beginPath(); ctx.arc(LG.x + Math.cos(i * 1.7) * 40, LG.y + Math.sin(i * 2.3) * 28, 4 + ((tt * 6 + i * 3) % 8), 0, TAU); ctx.stroke(); } }
       else this.drawFofa(LG.x, LG.y, LG.rx, LG.ry, ang, tt, true);
@@ -534,6 +532,13 @@ const bugue = {
       if (r > .55) { ctx.fillStyle = '#7fb069'; for (let j = 0; j < 5; j++) R(gx + 70 + j * 3 - r * 10, gy + 60 + Math.sin(j) * 3, 2, 3 + (j % 2), '#7fb069'); }
     }
   },
+  // chão da pista (areia batida com faixas de pneu) e do corredor do atalho; a versão pintada troca (bgp.js)
+  drawTrack(path, off) {
+    path(); ctx.strokeStyle = '#dcc596'; ctx.lineWidth = BG.hw * 2; ctx.stroke();
+    for (const d of [-22, 22]) { off(d); ctx.strokeStyle = 'rgba(140,110,70,.16)'; ctx.lineWidth = 3; ctx.stroke(); }
+    path(); ctx.strokeStyle = 'rgba(150,120,80,.22)'; ctx.lineWidth = 1.2; ctx.setLineDash([10, 8]); ctx.stroke(); ctx.setLineDash([]);
+  },
+  drawCorridor(A, ang, len) { ctx.save(); ctx.translate(A[0], A[1]); ctx.rotate(ang); R(0, -BG.sw, len, BG.sw * 2, '#dcc596'); ctx.restore(); },
   // muretas de zebra dos dois lados da pista
   drawWalls(off) {
     for (const d of [-BG.hw - 3, BG.hw + 3]) { off(d); ctx.strokeStyle = NAVY; ctx.lineWidth = 7; ctx.stroke(); off(d); ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5; ctx.stroke(); off(d); ctx.strokeStyle = '#e8484a'; ctx.setLineDash([9, 9]); ctx.stroke(); ctx.setLineDash([]); }

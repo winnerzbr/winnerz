@@ -15,6 +15,8 @@ for h in ('dia', 'tarde', 'noite'):
 m = np.array(Image.open(A + 'beiramar.png').convert('RGBA').resize((1600, 400), Image.LANCZOS)).astype(float)
 Hm = m.shape[0]; ramp = np.clip((Hm - np.arange(Hm)) / (Hm * .3), 0, 1)[:, None]; m[..., 3] = 255 * ramp
 OUT['mar'] = uri(Image.fromarray(m.clip(0, 255).astype(np.uint8)), 80)
+# chão da pista: faixa 4:1 que repete dos lados (marcas de pneu da esquerda para a direita); o jogo deita ao longo da pista
+OUT['pista'] = uri(Image.open(A + 'pista.png').convert('RGB').resize((1600, 400), Image.LANCZOS), 82)
 # peças em fundo verde: (nome, arquivo, caixa x0 y0 x1 y1, encolher)
 P = [('bola_g', 'itens', (251, 23, 503, 264)), ('bola_p', 'itens', (638, 77, 799, 237)),
      ('balao_g', 'itens', (248, 288, 517, 510)), ('balao_p', 'itens', (648, 327, 785, 488)),

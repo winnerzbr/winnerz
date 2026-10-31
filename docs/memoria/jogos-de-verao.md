@@ -40,24 +40,46 @@ O plano tem 21 provas, e o jogo publicado tem 16 delas. Os lugares, as paletas e
   | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
   | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol, onda); 3 voltas e a Copa das Dunas com 3 pistas |
 
-### Pingue-pongue (como funciona)
-- Vista de lado, à noite no Quiosque do Coqueiral: IAmiguinho à esquerda, Amiguinho à direita.
-- **O personagem anda sozinho até a bola** (como no Wii) e vai para o ponto mais alto do quique do seu lado. Quem joga decide só a hora e a bola.
-- **Botões:**
-  - ✕/Espaço rebate. Na hora certa (±0,03 s), sai rápida e aparece "Na hora!". Cedo, sai alta e longa. Tarde, sai baixa (risco de rede). Fora de ±0,1 s, não pega.
-  - ○/X (ou ↑ + ✕) dá cortada; só presta com a bola quicando alto, e com bola baixa vai na rede.
-  - □/C (ou ↓ + ✕) manda uma curtinha com efeito, que quica baixo.
-  - Segurar ▶ manda funda; segurar ◀ manda curta.
-- **Regras:** a bola tem que quicar uma vez do outro lado. A partida vai até 11, com 2 de vantagem, e o saque troca a cada 2 pontos (a cada ponto no 10 a 10). O saque vai direto para o outro lado.
-- **Amiguinho:** acerta o tempo em cerca de 78% das bolas, adaptando de 55% a 92% conforme o placar. Usa cortada nas bolas altas e a curtinha quando o jogador está longe da mesa.
-- **2 jogadores no computador:**
-  - esquerda: F rebate, R ou W + F corta, V ou S + F dá efeito, A/D miram;
-  - direita: Enter rebate, ↑ + Enter corta, ↓ + Enter dá efeito, ◀ ▶ miram.
-- **Pontos e medalhas:**
-  - vitória vale 1.500 + 100 por ponto de diferença; derrota vale 100 por ponto feito;
-  - bronze 800 (fazer 8 pontos), prata 1.500 (vencer), ouro 2.000 (vencer por 5 ou mais).
-- **Teste:** `testes/pingue.cjs` (jogadores automáticos: quem acerta sempre venceu 6 de 6, um bom 4 de 6, um médio 1 de 6) e `testes/todas.cjs` (abre todas as provas, o 2 jogadores e o celular).
-- **Arte provisória:** desenhos pintados do vôlei (espera, corrida, golpe no chão), raquete, mesa e quiosque desenhados pelo jogo. As pranchas e os cenários pedidos estão na página de pedidos.
+### Pingue-pongue (como funciona, 2ª versão)
+O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato). Pediu andar livre, física de bola de pingue-pongue de verdade e mais jogadas.
+- **Andar livre:** ◀ ▶ andam do fundo até a rede. Quem saca fica atrás da mesa.
+- **Bater:**
+  - aperta o golpe antes da bola chegar: a raquete fica preparada (até 1,15 s) e a batida sai sozinha quando a bola passa pelo ponto bom (na frente do corpo, na altura do peito);
+  - apertar com a raquete preparada troca o golpe;
+  - o aperto feito durante o fim da batida anterior vale para a próxima.
+- **Qualidade da batida:** depende do lugar onde a bola passa (perto do ponto bom), do tempo de preparo (mais de 0,2 s é cheio; até 0,55 s a bola sai mais forte), da força da bola que chegou e de estar correndo na hora.
+  - Preparado, anda mais devagar.
+  - Batida perfeita mostra "Perfeita!".
+- **Golpes:**
+  - ✕/Espaço: rebater (topspin);
+  - ○/X: cortada (forte; com a bola baixa erra muito);
+  - □/C: efeito (cortada por baixo, bola baixa e lenta);
+  - △/V: toque curto (cai perto da rede; de longe da mesa sai ruim).
+  - ▲ segurado manda funda; lá de trás da mesa, ▲ + rebater vira balão. ▼ segurado manda curta.
+- **Física:**
+  - gravidade, resistência do ar e efeito: topspin mergulha e acelera no quique; efeito por baixo flutua e freia (o toque curto quica duas vezes na mesa);
+  - devolver bola com efeito usando rebatida tende a mandar na rede; devolver topspin com efeito tende a subir;
+  - bola na fita às vezes passa;
+  - o tempo da bola corre a 85% para dar tempo de reagir;
+  - a mira calcula o ângulo pela física (evita quinas e passa a rede com folga), e o erro vem da qualidade;
+  - rastro da bola: laranja com topspin, azul com efeito por baixo.
+- **Regras:**
+  - saque: aperta o golpe para jogar a bola para cima, e a batida sai sozinha; ▲ ▼ mudam a profundidade;
+  - o saque quica primeiro do seu lado; se tocar na rede e cair certo, repete;
+  - até 11, com 2 de vantagem; o saque troca a cada 2 pontos (a cada ponto no 10 a 10).
+- **Amiguinho** (mesmo cérebro dos testes):
+  - prevê a bola pela física, escolhe onde bater e vai até lá;
+  - erra por tempo de reação, posição e preparo, conforme o acerto: 0,74 de base, entre 0,55 e 0,9 conforme o placar;
+  - escolhe cortada na bola alta, toque curto com o jogador longe, efeito contra bola baixa com efeito por baixo, balão quando está muito atrás, e funda ou curta conforme a posição do jogador.
+- **2 jogadores:**
+  - Jogador 1: setas ou A D W S, com Espaço, X/E, C/Q, V/R, ou o 1º controle.
+  - Jogador 2: J L I K, com Enter, O, U, P, ou o 2º controle.
+- **Pontos e medalhas:** iguais (vitória 1.500 + 100 por ponto de diferença; bronze 8 pontos, prata vencer, ouro vencer por 5).
+- **Testes:**
+  - `testes/pingue.cjs`: jogadores automáticos contra o Amiguinho; troca média de 6 a 11 batidas;
+  - `testes/ppkeys.cjs`: teclado, saque e 2 jogadores;
+  - `testes/todas.cjs`.
+- **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto) e raquete desenhada pelo jogo. A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

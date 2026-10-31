@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 30/10/2026: Jogos de Verão, Pingue-pongue refeito (andar livre e física de verdade)
+O dono testou: o momento de bater ficou difícil e a física da bola estava fraca.
+- **Pedido dele, nesta ordem:** andar livre (a principal mudança), física de bola de pingue-pongue de verdade e mais jogadas. Exemplos dados por ele:
+  - toque perto da rede para cair perto da rede do outro lado;
+  - bola forte que quica e passa por cima, para salvar lá atrás.
+- **Feito:**
+  - anda livre;
+  - a raquete é preparada antes da bola chegar, e a batida sai quando a bola passa pelo ponto bom (sem janela de tempo apertada);
+  - física com ar e efeito;
+  - 4 golpes e mais o balão;
+  - saque quicando do próprio lado, com rede no saque repetindo;
+  - Amiguinho novo, que prevê a bola e anda até ela.
+  - Detalhes em `jogos-de-verao.md`.
+- **Página de pedidos:** +4 pranchas (andando com a raquete preparada e balão, para os dois personagens).
+- **Pendente:** o dono testar de novo.
+
 ## 30/10/2026: Jogos de Verão, Pingue-pongue (penhasco e frescobol reprovados)
 - **Decisão do dono:** Salto do penhasco e Frescobol reprovados (as ideias e a jogabilidade). Saíram do jogo, do `build3.py` e da página de pedidos, e não voltam. O Salto do píer saiu de vez.
   - Apagados `cart2/penhasco.py` e `cart2/ev_frescobol.js`.

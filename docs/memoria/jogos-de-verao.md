@@ -23,22 +23,22 @@ Minigames de praia inspirados em California Games. Roda no navegador e é public
 - **Itens conquistáveis:** só visuais (cenários, bolas, skates…), ganhos usando o site. Nunca mudam pontos nem física.
 
 ## Provas
-O plano tem 20 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Paraquedismo em formação, Futebol de areia, Bocha na areia, Natação, Jet ski e Vôlei.
+O plano tem 19 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Bocha na areia, Natação, Jet ski, Corrida de bugue e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
     - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
-    - Paraquedismo em formação (`cart2/ev_para.js`): esperando o teste do dono.
-  - Falta: Corrida de bugue.
+    - Corrida de bugue (`cart2/ev_bugue.js`): esperando o teste do dono.
+  - Todas as provas novas do plano foram feitas.
+  - Removido também: Paraquedismo em formação ("não ficou legal a execução da ideia").
   - Removido: Voo do teco-teco. O dono testou 3 versões (de lado com física, 3D e 2D com voo livre) e achou que não ficou divertido.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
   |---|---|---|
-  | Paraquedismo em formação | Céu da Enseada Cristal | queda livre fechando a roda, abrir o paraquedas baixo e pousar no alvo |
   | Pingue-pongue no quiosque | Quiosque do Coqueiral | 1 contra 1, partida até 11, cortada e bola com efeito; pode ser jogado em duas pessoas |
   | Bocha na areia | Vila dos Pescadores | vista de cima, mira e força, rolar ou bater, até 7 pontos |
   | Corrida de bugue | Dunas Brancas | vista de cima, corrida de kart: derrapagem com turbo, largada com turbo e itens de praia (bola, balão d'água teleguiado, protetor solar, água de coco, guarda-sol, onda); 3 voltas e a Copa das Dunas com 3 pistas |
@@ -132,29 +132,36 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - bolas, cancha e vila são desenhadas pelo jogo;
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
-### Paraquedismo em formação (como funciona)
-- **Lugar:** Céu da Enseada Cristal. São 3 saltos, cada um em três partes.
-- **1. Queda livre** (vista de cima, de 4.000 a 1.500 m; o chão cresce lá embaixo e há uma camada de nuvens perto dos 2.500 m):
-  - as setas movem o IAmiguinho com embalo;
-  - os 3 Amiguinhos (cores trocadas pelo jogo) passeiam no ar;
-  - encostar devagar dá as mãos (100 cada); rápido demais, eles se esbarram e se afastam;
-  - com os quatro, a roda fecha (500) e vale 100 por segundo fechada;
-  - rajadas de vento (com linhas de vento) empurram o grupo; se o grupo correr rápido demais, alguém solta a mão;
-  - aos 1.500 m, todos se separam.
-- **2. Abertura:**
-  - ✕ abre o paraquedas;
-  - acima de 1.000 m vale 50; entre 1.000 e 200 m, de 100 a 580 (mais baixo, mais pontos);
-  - abaixo de 200 m vale 650, mas o pouso é duro;
-  - aos 120 m o reserva abre sozinho, sem pontos;
-  - abrir baixo também deixa menos tempo para guiar.
-- **3. Pouso** (vista de lado):
-  - ◀ ▶ guiam o paraquedas; o vento muda a cada salto e tem rajadas (a biruta mostra);
-  - uma seta com a distância aponta o alvo quando ele está fora da tela;
-  - ✕ entre 6 m e 0,8 m de altura freia e pousa em pé (300);
-  - pontos do pouso: na mosca (menos de 1,2 m) 800, no alvo 500, perto 300, na areia 120, na água 0.
-- **Medalhas:** bronze 3.000, prata 5.500, ouro 7.500. Um jogador automático que se aproxima sempre devagar fechou a roda nos 3 saltos e fez cerca de 7.500.
-- **Testes:** `testes/para.cjs` (jogador automático em 3 níveis e fotos das 3 partes).
-- **Arte provisória:** na queda, os personagens usam o desenho do peixinho; no pouso, o do pulo. Os pedidos estão na página de pedidos: 7 pranchas, paraquedas, alvo e biruta, e os cenários de cima e de lado.
+### Corrida de bugue (como funciona)
+- **Cena:** Dunas Brancas, vista de cima, câmera seguindo o bugue com o norte para cima. 3 voltas contra 5 Amiguinhos, numa pista fechada de cerca de 4.000 px (uma volta leva uns 22 s).
+- **Controles:**
+  - ◀ ▶ viram;
+  - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
+  - □/C segurado na curva derrapa: com 0,85 s vem a faísca azul (turbo curto) e com 1,7 s a laranja (turbo longo); o turbo sai ao soltar;
+  - △/V usa o item.
+- **Pista:**
+  - **Largada:** contagem 3, 2, 1, Vai!; acelerar de 0,5 s antes do Vai em diante dá turbo, e cedo demais afoga.
+  - **Pulos:** duas rampas; pousar alinhado dá turbo curto.
+  - **Fora da pista:** é areia fofa (lenta), e os morros nas bordas seguram e devolvem o bugue.
+  - **Lagoa:** atalho na curva da direita; só compensa com turbo.
+  - **Caixas de item:** 4 fileiras pela pista.
+- **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
+  - bola de praia: quica reto e volta nas bordas;
+  - balão d'água: persegue quem está logo à frente;
+  - protetor solar: deixa uma poça atrás;
+  - água de coco: turbo;
+  - guarda-sol: escudo que bloqueia um ataque;
+  - onda: deixa os três primeiros lentos por 2,2 s.
+  - Quem é acertado rodopia e perde velocidade, mas continua a corrida.
+- **Amiguinhos:** seguem a pista cada um na sua faixa, derrapam nas curvas fortes e usam os itens com critério. Os da frente aliviam um pouco quando abrem muita vantagem, e os de trás apertam.
+- **Pontos:**
+  - por posição: 1º 3.000, 2º 2.200, 3º 1.600, 4º 1.100, 5º 700, 6º 400;
+  - medalhas: bronze em 3º, prata em 2º, ouro em 1º.
+- **Testes:**
+  - `testes/bugue.cjs`: corridas com o jogador no piloto automático e fotos; as posições variaram de 1º a 6º, em uns 64 a 71 s;
+  - `testes/bgkeys.cjs`: largada com turbo, derrapagem e item pelo teclado.
+- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos: bugues de cima, derrapagem e rodopio, itens, peças da pista e as dunas de cima em 3 horários.
+- **Ainda não feito:** a Copa das Dunas (3 pistas: Lagoa Azul, Duna do Farol e Desce-Duna). Esta pista é a primeira.
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

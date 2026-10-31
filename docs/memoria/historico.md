@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, embalo do vácuo, balão mais rápido e dois ajustes no vôlei
+- **Pedidos do dono:**
+  - bugue: ao sair do vácuo, a velocidade voltava na hora e não dava para ultrapassar;
+  - bugue: o balão d'água era lento e errava muito;
+  - vôlei: o placar escondia a bola quando ela chegava na altura dele;
+  - vôlei: a bola ficava levemente menor no saque do Amiguinho, ao ser jogada para cima.
+- **Feito:**
+  - embalo do vácuo: a velocidade ganha continua por uns 3 s depois de sair de trás (até +20%), caindo aos poucos. Nos testes, dá para ultrapassar quem anda no máximo trocando de faixa;
+  - balão d'água a 330 px/s (era 250) e virando mais rápido;
+  - vôlei: a bola agora é desenhada depois do placar, então passa na frente dele;
+  - vôlei: a bola na mão do Amiguinho era desenhada 17% maior (resto do desenho de 16 bits); agora fica sempre do mesmo tamanho.
+- **Testes:** `vacuo.cjs` (embalo e ultrapassagem), `bgitens.cjs`, `bgvolante.cjs`, `copa.cjs`; fotos do vôlei com a bola na altura do placar e do saque.
+- **Pendente:** o dono testar.
+
 ## 31/10/2026: Jogos de Verão, pistas do bugue mais 20% largas
 - **Pedido do dono:** aumentar a largura das pistas em mais 20%.
 - **Feito:**

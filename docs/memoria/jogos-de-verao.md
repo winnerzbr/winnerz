@@ -155,7 +155,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - depois do rodopio, o bugue nunca fica virado para trás: se alinha com a pista e anda sozinho para a frente por 0,85 s; fica invencível por uns 2,3 s, piscando (nada pega nele, nem caixa de item);
   - de cara na mureta, parado ou virado para trás: acelerar gira o bugue para dentro da pista (virar escolhe o lado), sem precisar de ré; devagar, a batida quase não torce o bugue.
 - **Esteiras de turbo:** 8 por pista (setas amarelas andando); passar por cima dá 0,8 s de turbo.
-- **Vácuo (31/10, pedido do dono):** logo atrás de outro bugue (até 140 px, andando na mesma direção, acima de 110 px/s) o bugue pega o vácuo: até +14% de velocidade máxima, motor 30% mais forte e menos perda de embalo; linhas de vento passam em volta dele. Segurando 1,5 s no vácuo, sai com um turbo curto ("Vácuo!"). Vale para todos, Amiguinhos também. O resumo da corrida conta quantos vácuos.
+- **Vácuo (31/10, pedido do dono):** logo atrás de outro bugue (até 140 px, andando na mesma direção, acima de 110 px/s) o bugue pega o vácuo: até +14% de velocidade máxima, motor 30% mais forte e menos perda de embalo; linhas de vento passam em volta dele. Segurando 1,5 s no vácuo, sai com um turbo curto ("Vácuo!"). **Embalo (31/10, o dono não conseguia ultrapassar):** a velocidade ganha no vácuo continua depois de sair de trás do adversário e vai caindo em uns 3 s (até +20% de velocidade máxima); as linhas de vento continuam enquanto dura o embalo. Teste: saindo do vácuo a 262 px/s, 1 s depois ainda está a 267 e 2 s depois a 261 (o normal é 230); colado atrás de quem anda no máximo e trocando de faixa, passa em 2,7 s. Vale para todos, Amiguinhos também. O resumo da corrida conta quantos vácuos.
 - **Controles:**
   - ◀ ▶ viram. Volante mais suave desde 31/10 (o dono achou que curvas leves viravam demais): segurando, o volante vai virando aos poucos (0,3 s até o fim) e volta rápido ao soltar; a resposta é suave no começo (bom para o analógico); em alta as rodas viram bem menos (ângulo máximo 0,56 parado e 0,22 a 230 px/s). Um toque de 0,15 s a 230 px/s desvia 14 px (antes, 97 px); segurando, faz uma curva de raio ~130;
   - ✕/Espaço acelera e ○/X freia (no celular acelera sozinho, e os botões são Freio, Derrapa e Item);
@@ -170,7 +170,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - **Itens:** cada bugue guarda até 2; o item usado é o primeiro, e o HUD mostra os dois.
 - **Itens** (quem está atrás ganha itens melhores; a onda só sai para o 5º e o 6º):
   - bola de praia: quica reto e volta nas bordas; para trás, sai rolando contra quem vem atrás;
-  - balão d'água: persegue quem está logo à frente (para trás, quem vem logo atrás). Se passar por um bugue invencível (depois de rodar), não acerta, nem depois, e vai atrás de quem estiver na frente desse bugue; o mesmo vale para a bola;
+  - balão d'água: persegue quem está logo à frente, a 330 px/s (era 250; o dono achou lento) e virando mais rápido (para trás, quem vem logo atrás). Se passar por um bugue invencível (depois de rodar), não acerta, nem depois, e vai atrás de quem estiver na frente desse bugue; o mesmo vale para a bola;
   - protetor solar: deixa uma poça atrás (ou longe na frente, com ↑);
   - água de coco: turbo;
   - guarda-sol: escudo que bloqueia um ataque;
@@ -250,6 +250,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - As simulações estão em `jogos/jogos-de-verao/testes`.
 - **Pontos:** partida normal até 7; a final do torneio e da Copa vai até 10.
 - **Cortada:** a carregada até o fim sai mais rápida.
+- **Bola e placar (31/10, pedidos do dono):** a bola passa na frente do placar (antes, o placar era desenhado por cima dela). No saque do Amiguinho, a bola na mão era desenhada 17% maior (tamanho da bola do desenho antigo de 16 bits) e parecia encolher ao ser jogada para cima; no estilo pintado ela fica sempre do mesmo tamanho. As duas mudanças estão no `cart2/build3.py`.
 - **Pendente:**
   - placar, menus e HUD pintados;
   - o dono testar os botões no celular.

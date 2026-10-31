@@ -245,7 +245,9 @@ const bugue = {
     let lead = null;
     if (!air && sp > 110) for (const o of this.K) { if (o === k || o.z > 4 || o.s < 80) continue; const dx = o.x - k.x, dy = o.y - k.y, d = Math.hypot(dx, dy); if (d < 20 || d > 140) continue; if (Math.abs(bgWrap(Math.atan2(dy, dx) - k.d)) < .2 + 6 / d && Math.cos(o.d - k.d) > .8) { lead = o; break; } }
     k.draft = lead ? Math.min(1.5, (k.draft || 0) + dt) : Math.max(0, (k.draft || 0) - dt * 2.5);
-    const dft = clamp((k.draft - .2) / .6, 0, 1); vmax *= 1 + .14 * dft;
+    // embalo do vácuo (31/10, pedido do dono: ao sair do vácuo a velocidade voltava na hora e não dava para ultrapassar):
+    // a velocidade ganha no vácuo continua por uns 3 s depois de sair de trás do adversário, caindo aos poucos
+    const dIn = clamp((k.draft - .2) / .6, 0, 1); k.mom = Math.max(dIn, (k.mom || 0) - dt * .33); const dft = k.mom; vmax *= 1 + .2 * dft;
     if (lead && k.draft >= 1.5) { k.boost = Math.max(k.boost, .6); k.draft = .4; this.fx.push({ k: 'vento', x: k.x, y: k.y, a: k.d, t: 0, life: .5 }); if (k.me) { this.vacuos++; pop('Vácuo!', W / 2, 90, '#e8f6ff'); beep(260, .25, 'sawtooth', .03, 500); } }
     // ladeira: na descida o bugue embala, na subida o motor sofre
     if (slope > 0) vmax *= 1.13; else if (slope < 0) vmax *= .86;
@@ -403,7 +405,7 @@ const bugue = {
     }
     for (const p of this.proj) {
       p.t += dt;
-      if (p.k === 'balao' && p.tg && !p.tg.fin) { const a = Math.atan2(p.tg.y - p.y, p.tg.x - p.x); p.vx += (Math.cos(a) * 250 - p.vx) * dt * 3; p.vy += (Math.sin(a) * 250 - p.vy) * dt * 3; }
+      if (p.k === 'balao' && p.tg && !p.tg.fin) { const a = Math.atan2(p.tg.y - p.y, p.tg.x - p.x); p.vx += (Math.cos(a) * 330 - p.vx) * dt * 3.6; p.vy += (Math.sin(a) * 330 - p.vy) * dt * 3.6; /* 31/10: mais rápido (era 250), a pedido do dono */ }
       p.x += p.vx * dt; p.y += p.vy * dt;
       if (p.k === 'bola') { const [sg, d] = this.near(p); p.seg = sg; const [ds] = this.scNear(p.x, p.y); if (d > BG.hw - 5 && ds > BG.sw - 5) { const L = BG_LINE[sg], nx = p.x - L[0], ny = p.y - L[1], nl = Math.hypot(nx, ny) || 1, vn = (p.vx * nx + p.vy * ny) / nl; if (vn > 0) { p.vx -= 2 * vn * nx / nl; p.vy -= 2 * vn * ny / nl; } p.x = L[0] + nx / nl * (BG.hw - 5); p.y = L[1] + ny / nl * (BG.hw - 5); } }
       if (p.k === 'balao' && p.tg && (p.tg.fin || (p.pass && p.pass.has(p.tg)))) p.tg = null;
@@ -599,7 +601,7 @@ const bugue = {
     if (k.me) { ctx.fillStyle = '#f4efe6'; ctx.beginPath(); ctx.arc(-1, 0, 3.6, 0, TAU); ctx.fill(); R(-3.5, -3.2, 5, 6.4, '#3b6fd6'); R(-1.5, -.6, 4, 1.2, '#ffffff'); ctx.fillStyle = '#7fdcff'; ctx.beginPath(); ctx.arc(-1, 3.6, .9, 0, TAU); ctx.arc(-1, -3.6, .9, 0, TAU); ctx.fill(); }
     else { ctx.fillStyle = k.col; ctx.beginPath(); ctx.arc(-1, 0, 3.8, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .6; ctx.stroke(); R(1, -2, 1.6, 4, '#1b1f4f'); }
     ctx.restore();
-    if (k.draft > .2 && !(k.z > 0)) { const a = Math.min(1, (k.draft - .2) / .6), c = Math.cos(k.d), sn = Math.sin(k.d); ctx.lineCap = 'round';
+    if ((k.draft > .2 || k.mom > .15) && !(k.z > 0)) { const a = Math.max(Math.min(1, (k.draft - .2) / .6), (k.mom || 0) * .8), c = Math.cos(k.d), sn = Math.sin(k.d); ctx.lineCap = 'round';
       for (let i = 0; i < 6; i++) { const ph = ((tt * 3.2 + i * .19) % 1), side = i % 2 ? 1 : -1, off = side * (10 + (i % 3) * 3), along = 18 - ph * 40, x = k.x + c * along - sn * off, y = k.y - z + sn * along + c * off;
         for (const [st, lw] of [[`rgba(27,31,79,${.35 * a * (1 - ph)})`, 3], [`rgba(235,248,255,${a * (1 - ph * .6)})`, 1.6]]) { ctx.strokeStyle = st; ctx.lineWidth = lw; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - c * 15, y - sn * 15); ctx.stroke(); } }
       ctx.lineCap = 'butt'; }

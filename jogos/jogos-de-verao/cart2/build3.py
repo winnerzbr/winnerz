@@ -145,6 +145,12 @@ js = sub1("    this.P.forEach((p, i) => { if (i === 0) drawIA(this, p, i, tt, ba
 js = sub1("    drawBall(bv.x, bv.y, VRB, b.ang, ", "    (A2 ? drawBall2 : drawBall)(bv.x, bv.y, VRB, b.ang, ", js)
 js = sub1("      drawBall(b.x, b.y, VRB, b.ang);\n", "      (A2 ? drawBall2 : drawBall)(b.x, b.y, VRB, b.ang);\n", js)
 js = sub1("    scoreboard(this);\n", "    (A2 ? scoreboard2 : scoreboard)(this);\n", js)
+# 31/10 (pedido do dono): o placar escondia a bola quando ela passava na altura dele; agora o placar vem antes e a bola fica na frente
+js = sub1("    (A2 ? scoreboard2 : scoreboard)(this);\n", "", js)
+js = sub1("    ctx.setTransform(base);\n    (A2 ? drawBall2 : drawBall)(bv.x, bv.y, VRB, b.ang, ", "    ctx.setTransform(base);\n    (A2 ? scoreboard2 : scoreboard)(this);\n    (A2 ? drawBall2 : drawBall)(bv.x, bv.y, VRB, b.ang, ", js)
+# 31/10 (pedido do dono): a bola do saque do Amiguinho encolhia ao ser jogada para cima. Na mão, ela era desenhada do tamanho da bola
+# do desenho antigo de 16 bits (17% maior); no estilo pintado ela fica sempre do mesmo tamanho
+js = sub1("b.ang, this.state === 'serve' && this.held ? Math.max(1, (this.ballR + 1.2) / VRB) : 1);", "b.ang, this.state === 'serve' && this.held && !A2 ? Math.max(1, (this.ballR + 1.2) / VRB) : 1);", js)
 # textos e avisos com letra arredondada só no vôlei; as outras provas seguem com os de 16 bits
 js = sub1("  drawPops = function () {", "  const pops16 = drawPops, banner16 = drawBanner;\n  drawPops = function () {\n    if (cur !== volei) return pops16.apply(this, arguments);", js)
 js = sub1("  drawBanner = function () {\n    if (!banner) return;", "  drawBanner = function () {\n    if (cur !== volei) return banner16.apply(this, arguments);\n    if (!banner) return;", js)

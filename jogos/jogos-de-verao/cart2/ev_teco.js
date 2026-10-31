@@ -1,261 +1,302 @@
-/* ============================================================ prova nova: Voo do teco-teco (31/10/2026)
-   Vista de lado, com a costa passando embaixo. O IAmiguinho decola da pista de grama do Aeroclube da Restinga e voa 90 s.
-   ↑ ↓ levantam e abaixam o nariz; ✕ dá um turbo curto que recarrega sozinho.
-   Física de avião: sustentação (cresce com a velocidade ao quadrado e com o ângulo entre o nariz e o caminho do avião),
-   arrasto, empuxo da hélice e gravidade. Devagar ou com o nariz alto demais, a asa perde a sustentação (estol) e o avião
-   cai de bico até ganhar embalo. Segurar ↑ com velocidade faz um looping (vale pontos se sair sem bater).
-   Pontos: argolas (em sequência, multiplicam até ×8), balões (o dourado vale mais), rasantes por cima dos marcos (farol, viaduto,
-   cesta da laje, roda-gigante), e passar por baixo do viaduto. Bater faz o avião rodopiar e perder
-   embalo, sem acabar a prova. Arte provisória: tudo desenhado pelo jogo. */
-const AV = { g: 260, kL: .041, aS: .27, kD0: .0028, kDi: .0035, T0: 64, Tt: 175, rate: 2.7, wv: 3.2, trim: .07, ga: 10, turbo: 1.1, recarga: 4, dur: 90, XL: 14000, top: 560 };
+/* ============================================================ prova nova: Voo do teco-teco, em 3D (31/10/2026, 2ª versão)
+   O dono achou a 1ª versão (de lado, com física de estol) difícil de subir e pediu movimentação livre, em 3D.
+   Voo livre sobre a Costa WinnerZ, com câmera atrás do avião (three.js r160, carregado do jsDelivr; o jogo desenha a cena 3D
+   numa tela à parte e copia para a tela do jogo, e os avisos 2D vão por cima).
+   ◀ ▶ fazem a curva (o avião inclina), ▲ sobe e ▼ desce; soltando, ele volta a voar reto e nivelado. ✕ turbo (recarrega),
+   ○ giro de 360°. Segurar ▲ subindo por quase 1 s faz um looping (▼ lá no alto faz o looping invertido).
+   Sem a faixa puxada atrás: em 3D ela ficava entre a câmera e o avião.
+   Percurso: argolas em circuito (a próxima brilha e uma seta na borda aponta para ela; em sequência multiplicam até ×8,
+   e uma volta completa vale bônus), balões, gaivotas, e os marcos: farol na falésia, viaduto do skatepark (dá para passar por
+   baixo), laje com a cesta e roda-gigante. Rasante perto do topo de um marco vale bônus. Bater rodopia o avião sem acabar.
+   Arte provisória: tudo feito pelo jogo em formas simples com contorno escuro. */
+const TC = { dur: 90, v: 30, vt: 48, turbo: 1.2, recarga: 4, yaw: 1.25, pitch: .6, ceil: 220, R: 1150 };
 if (typeof Music !== 'undefined' && Music.songs.surfe) Music.songs.teco = Music.songs.surfe;
 FALA.intro.teco = [
-  'Teco-teco abastecido, hélice girando e eu de piloto. O que pode dar errado? Não responde.',
-  'Nariz alto demais e devagar, a asa desiste. Aí é descer de bico e pegar embalo de novo.',
-  'Passa raspando no farol que vale ponto. Raspando por cima, tá? Por cima.',
+  'Teco-teco abastecido, hélice girando e eu de piloto. Agora em 3D, que é para eu me perder em todas as direções.',
+  'A argola que brilha é a próxima. A seta na borda mostra onde ela está. Fácil. Eu acho.',
+  'Dá para passar por baixo do viaduto. Eu não recomendo. Eu recomendo muito.',
 ];
 FALA.tcBoa = ['Looping! Meu estômago ficou lá atrás.', 'Por baixo do viaduto! Os skatistas aplaudiram.', 'Argola atrás de argola. Eu sou um piloto de verdade.'];
-FALA.tcRuim = ['Bati. O avião tá bem, eu tô tonto.', 'Estolei. Palavra bonita para "caí".', 'A gaivota tinha preferência, eu acho.'];
+FALA.tcRuim = ['Bati. O avião tá bem, eu tô tonto.', 'A gaivota tinha preferência, eu acho.', 'O chão apareceu do nada. Ele sempre faz isso.'];
+const tcCoast = (x) => -40 + 35 * Math.sin(x / 170) + 18 * Math.sin(x / 61 + 1);
+const TC_RUN = { x0: -110, x1: 110, z: -160 };
+const TC_ISL = [[620, 260, 55], [230, 330, 38], [-420, 280, 46], [-860, 210, 30]];
+// altura do chão (o mesmo para o desenho e para as batidas): mar abaixo de 0, praia, morros para dentro e ilhotas
+function tcGround(x, z) {
+  if (z > TC_RUN.z - 14 && z < TC_RUN.z + 14 && x > TC_RUN.x0 - 20 && x < TC_RUN.x1 + 20) return 2;
+  const d = tcCoast(x) - z;
+  if (d < 0) { let h = -4; for (const [cx, cz, r] of TC_ISL) { const q = Math.hypot(x - cx, z - cz); if (q < r) h = Math.max(h, (1 - q / r) * 14 - 1.5); } return h; }
+  if (d < 25) return d / 25 * 1.6;
+  const k = clamp((d - 60) / 160, 0, 1), n = Math.sin(x / 47) * Math.cos(z / 39) + .6 * Math.sin((x + z) / 23) + .4 * Math.cos(x / 13 - z / 29);
+  return 1.6 + (d - 25) * .05 + k * (18 + 14 * n);
+}
 const teco = {
-  id: 'teco', name: 'Voo do teco-teco', tag: 'Aeroclube da Restinga · 90 s', wide: true, hi: true, paint: true, two: false, dur: AV.dur,
-  med: [5000, 12000, 19000], ia: 14000, nota: 'deu um looping em cima da roda-gigante',
-  desc: 'Voe pela costa: argolas, balões, rasantes nos marcos e loopings.',
+  id: 'teco', name: 'Voo do teco-teco', tag: 'Aeroclube da Restinga · 90 s · 3D', wide: true, hi: true, paint: true, two: false, dur: TC.dur,
+  med: [5000, 11000, 17000], ia: 13000, nota: 'deu um looping em cima da roda-gigante',
+  desc: 'Voo livre em 3D pela costa: argolas, balões, rasantes nos marcos e loopings.',
   steps: () => [
-    `Na pista, segure ↑ quando o avião ganhar velocidade para decolar. No ar, ↑ e ↓ levantam e abaixam o nariz. Devagar e de nariz alto, a asa perde a força e o avião cai de bico.`,
-    `Passe por dentro das argolas: em sequência, elas multiplicam os pontos. Estoure os balões. ${actName()} dá um turbo curto, que recarrega sozinho.`,
-    'Passe raspando por cima do farol, do viaduto, da cesta da laje e da roda-gigante. Segurar ↑ com velocidade faz um looping. Bater faz o avião rodopiar.',
+    `Voo livre: ◀ ▶ fazem a curva, ▲ sobe e ▼ desce. Soltando, o avião volta a voar reto. ${actName()} dá um turbo curto, que recarrega sozinho.`,
+    'Siga as argolas: a próxima brilha, e a seta na borda da tela aponta para ela. Em sequência, elas multiplicam os pontos. Estoure os balões.',
+    `Passe raspando pelo farol, pelo viaduto (dá para passar por baixo!), pela laje e pela roda-gigante. Segure ▲ para fazer um looping. ${touch ? 'Giro' : 'X'} dá um giro. Bater faz o avião rodopiar.`,
   ],
   hint: () => '',
-  gp: 'Controle: ▲ ▼ (ou analógico) levantam e abaixam o nariz · ✕ turbo · Start pausa',
-  ctl: [['▲ ▼', 'nariz para cima / para baixo'], ['Espaço', 'turbo', 'kb'], ['Turbo', 'turbo', 'touch'], ['Esc', 'pausa', 'kb']],
-  pad: { dirs: 'ud', a: 'Turbo', b: null }, bannerY: 40,
+  gp: 'Controle: analógico ou direcional pilota · ✕ turbo · ○ giro · Start pausa',
+  ctl: [['◀ ▶', 'curva'], ['▲ ▼', 'subir / descer'], ['Espaço', 'turbo', 'kb'], ['X', 'giro', 'kb'], ['Turbo', 'turbo', 'touch'], ['Giro', 'giro', 'touch'], ['Esc', 'pausa', 'kb']],
+  pad: { dirs: 'lrud', a: 'Turbo', b: 'Giro' }, bannerY: 40,
   init() {
     Object.assign(this, {
-      t: 0, left: AV.dur, score: 0, x: 40, a: AV.ga, vx: 0, va: 0, th: 0, thU: 0, loopBase: 0, ground: true, spin: 0, spinA: 0, turboT: 0, tank: 1,
-      combo: 0, best: 0, rings: 0, ringsAll: 0, balloons: 0, loops: 0, rasantes: 0, crashes: 0, fx: [], trail: [], banner: [], camX: 0, camA: 0, lmIn: null, over: false, overT: 0, stall: 0,
+      t: 0, left: TC.dur, score: 0, p: { x: TC_RUN.x0 + 10, y: 2.6, z: TC_RUN.z }, yaw: 0, th: 0, bank: 0, roll: 0, rollT: 0, spd: 16, takeoff: 2.2,
+      upT: 0, dnT: 0, loop: 0, loopDir: 1, loopA: 0, spin: 0, spinA: 0, turboT: 0, tank: 1, combo: 0, best: 0, next: 0, lastRing: 0, laps: 0,
+      rings: 0, balloons: 0, loops: 0, giros: 0, rasantes: 0, crashes: 0, fx: [], trail: [], lmT: {}, over: false, overT: 0, warnT: 0,
     });
     this.course();
+    this.no3d = !window.THREE; if (!this.no3d) { try { this.build3d(); this.reset3d(); } catch (e) { this.no3d = true; } }
   },
-  // ---------- percurso: marcos a cada ~2.400 px e, entre eles, argolas, balões e gaivotas
+  // ---------- percurso: argolas em circuito, balões, gaivotas, marcos e as partes sólidas
   course() {
-    const R0 = (a, b) => a + Math.random() * (b - a), C = { lm: [], rings: [], balloons: [], birds: [], clouds: [] };
-    const kinds = ['farol', 'viaduto', 'laje', 'roda'];
-    for (let k = 0, x = 1700; x < AV.XL - 600; k++, x += R0(2200, 2600)) C.lm.push(this.landmark(kinds[k % 4], x));
-    const near = (x, d) => C.lm.some((l) => x > l.x0 - d && x < l.x1 + d);
-    let x = 650, chain = 0;
-    while (x < AV.XL - 300) {
-      if (near(x, 160)) { x += 140; continue; }
-      const r = Math.random();
-      if (r < .55) {
-        const n = 4 + Math.floor(Math.random() * 3), sp = R0(78, 96), A = R0(90, 300), type = Math.floor(Math.random() * 4), id = ++chain;
-        for (let i = 0; i < n; i++) { const xx = x + i * sp; if (near(xx, 120)) break; const a = clamp(type === 0 ? A : type === 1 ? A + i * 20 : type === 2 ? A - i * 20 : A + 38 * Math.sin(i * .9), 60, 380); C.rings.push({ x: xx, a, r: 15, id, done: 0 }); }
-        x += n * sp + R0(140, 260);
-      } else if (r < .8) {
-        const A = R0(110, 330), loop = Math.random() < .45 && A > 170;
-        if (loop) { for (let i = 0; i < 8; i++) { const ang = i / 8 * TAU; C.balloons.push({ x: x + 50 + Math.cos(ang) * 44, a: A + 44 + Math.sin(ang) * 44, r: 6, c: i % 4, gold: i === 2, ph: Math.random() * TAU, pop: 0 }); } x += 220; }
-        else { const n = 5 + Math.floor(Math.random() * 4); for (let i = 0; i < n; i++) C.balloons.push({ x: x + i * R0(30, 46), a: clamp(A + R0(-40, 40), 50, 400), r: 6, c: i % 4, gold: Math.random() < .12, ph: Math.random() * TAU, pop: 0 }); x += n * 40 + 160; }
-      } else { const A = R0(130, 320), n = 3 + Math.floor(Math.random() * 3); for (let i = 0; i < n; i++) C.birds.push({ x: x + 120 + i * 14, a: A + (i % 2 ? 9 : -3) * (i + 1) * .5, ph: Math.random() * TAU, hit: false }); x += 260; }
+    if (this.C) { for (const r of this.C.rings) r.done = false; for (const b of this.C.balloons) b.pop = false; for (const g of this.C.gulls) g.hit = false; return; }
+    const c = tcCoast, zr = TC_RUN.z;
+    const WP = [[230, 24, zr + 4], [260, 30, c(260) - 30], [350, 42, c(350) - 8], [470, 64, c(470) + 6], [570, 44, c(570) - 22], [690, 40, c(690) - 50], [800, 46, c(800) - 66],
+      [900, 32, c(900) - 20], [960, 24, c(960) + 70], [880, 16, 210], [740, 13, 300], [580, 28, 330], [420, 58, 300], [250, 88, 250], [90, 100, 190], [-60, 78, 140],
+      [-210, 48, 90], [-300, 28, c(-300) + 10], [-390, 9, c(-390) - 45], [-480, 22, c(-480) - 30], [-610, 34, c(-610) - 4], [-700, 30, c(-760) + 14], [-830, 50, c(-830) + 40],
+      [-760, 70, 90], [-560, 60, 60], [-380, 44, 30], [-230, 34, c(-230) - 60], [-80, 26, zr + 6]];
+    const rings = WP.map(([x, y, z], i) => ({ x, y: i === 18 ? y : Math.max(y, tcGround(x, z) + 10), z, i }));
+    for (let i = 0; i < rings.length; i++) { const a = rings[(i - 1 + rings.length) % rings.length], b = rings[(i + 1) % rings.length], dx = b.x - a.x, dy = b.y - a.y, dz = b.z - a.z, L = Math.hypot(dx, dy, dz); Object.assign(rings[i], { nx: dx / L, ny: dy / L * .6, nz: dz / L, r: 7, done: false }); const n = Math.hypot(rings[i].nx, rings[i].ny, rings[i].nz); rings[i].nx /= n; rings[i].ny /= n; rings[i].nz /= n; }
+    const balloons = [], R0 = (a, b) => a + Math.random() * (b - a);
+    for (let k = 0; k < 11; k++) {
+      const a = rings[(k * 5 + 2) % rings.length], b = rings[(k * 5 + 3) % rings.length], cx = (a.x + b.x) / 2 + R0(-40, 40), cz = (a.z + b.z) / 2 + R0(-40, 40), cy = Math.max((a.y + b.y) / 2 + R0(-10, 20), tcGround(cx, cz) + 12);
+      const n = 4 + Math.floor(Math.random() * 3); for (let j = 0; j < n; j++) balloons.push({ x: cx + R0(-12, 12), y: cy + R0(-6, 8), z: cz + R0(-12, 12), c: j % 4, gold: Math.random() < .12, ph: Math.random() * TAU, pop: false });
     }
-    for (let i = 0; i < 60; i++) C.clouds.push({ x: Math.random() * AV.XL * .5, a: R0(160, 520), w: R0(30, 80), k: R0(.35, .6) });
-    this.C = C; this.ringsAll = C.rings.length;
-  },
-  // marcos: partes sólidas (retângulos e círculos, altura para cima) e a faixa do rasante
-  landmark(kind, x) {
-    if (kind === 'farol') return { kind, x, x0: x, x1: x + 230, solid: [{ r: [x, 0, 230, 46] }, { r: [x + 150, 46, 18, 70] }, { r: [x + 146, 116, 26, 12] }], top: (q) => (q >= x + 146 && q <= x + 172 ? 128 : q >= x && q <= x + 230 ? 46 : 0), mark: [x + 140, x + 180] };
-    if (kind === 'viaduto') return { kind, x, x0: x, x1: x + 240, solid: [{ r: [x + 20, 0, 16, 64] }, { r: [x + 204, 0, 16, 64] }, { r: [x, 64, 240, 12] }, { r: [x + 100, 0, 40, 14] }], top: (q) => (q >= x && q <= x + 240 ? 76 : 0), mark: [x, x + 240], uz: [x + 40, x + 200, 16, 60] };
-    if (kind === 'laje') return { kind, x, x0: x, x1: x + 110, solid: [{ r: [x, 0, 110, 78] }, { r: [x + 78, 78, 4, 34] }, { r: [x + 70, 104, 3, 22] }], top: (q) => (q >= x + 68 && q <= x + 82 ? 126 : q >= x && q <= x + 110 ? 78 : 0), mark: [x + 50, x + 100] };
-    return { kind, x, x0: x, x1: x + 150, solid: [{ c: [x + 75, 80, 58] }, { r: [x + 40, 0, 8, 40] }, { r: [x + 102, 0, 8, 40] }], top: (q) => { const d = q - (x + 75); return Math.abs(d) < 58 ? 80 + Math.sqrt(58 * 58 - d * d) : 0; }, mark: [x + 35, x + 115], cx: x + 75, ca: 80, cr: 58 };
+    const gulls = []; for (const [gx, gy, gz] of [[330, 50, 120], [-150, 60, 200], [820, 40, 120], [-650, 45, 140], [100, 70, 40]]) for (let j = 0; j < 5; j++) gulls.push({ cx: gx, cy: gy + j * 1.5, cz: gz, r: 18 + j * 3, ph: j * 1.3, w: .5 + Math.random() * .2, hit: false });
+    // marcos (com as partes sólidas e o lugar do rasante)
+    const fx = 420, fz = c(420) + 4, vx = -390, vz = c(-390) - 45, lx = 790, lz = c(790) - 62, rx = -760, rz = c(-760) - 12;
+    const lm = [
+      { kind: 'farol', x: fx, z: fz, top: 56, rad: 16, solid: [{ cyl: [fx, fz, 18, -5, 22] }, { cyl: [fx, fz, 3.8, 22, 56] }] },
+      { kind: 'viaduto', x: vx, z: vz, top: 21, rad: 60, solid: [{ box: [vx - 58, 17.5, vz - 5, vx + 58, 21, vz + 5] }, { box: [vx - 50, -2, vz - 3, vx - 44, 17.5, vz + 3] }, { box: [vx + 44, -2, vz - 3, vx + 50, 17.5, vz + 3] }, { box: [vx - 10, -2, vz - 6, vx + 10, 3, vz + 6] }], under: [vx - 42, 4, vz - 6, vx + 42, 17, vz + 6] },
+      { kind: 'laje', x: lx, z: lz, top: 32, rad: 18, solid: [{ box: [lx - 11, -2, lz - 11, lx + 11, 26, lz + 11] }, { box: [lx - .6, 26, lz + 6, lx + .6, 32, lz + 7.5] }] },
+      { kind: 'roda', x: rx, z: rz, top: 56, rad: 26, solid: [{ wheel: [rx, 30, rz, 25, 2.5] }, { box: [rx - 12, -2, rz - 4, rx + 12, 6, rz + 4] }] },
+      { kind: 'hangar', x: -40, z: zr - 30, top: 12, rad: 0, solid: [{ box: [-56, 0, zr - 40, -24, 11, zr - 20] }] },
+    ];
+    this.C = { rings, balloons, gulls, lm };
   },
   hud() { return [['Pontos', nf(this.score)], ['Tempo', `${Math.ceil(this.left)}s`, this.left <= 10], ['Sequência', this.combo ? `×${Math.min(this.combo, 8)}` : '—', this.combo >= 3], ['Turbo', this.turboT > 0 ? 'ligado' : this.tank >= 1 ? 'pronto' : `${Math.floor(this.tank * 100)}%`, this.tank >= 1]]; },
-  stats() { return [`${this.rings} de ${this.ringsAll} argolas · melhor sequência ×${this.best}`, `${this.balloons} balões · ${this.loops} loopings · ${this.rasantes} rasantes`, `${this.crashes} batidas`]; },
-  demo() { this.x = 900; this.a = 180; this.vx = 130; this.va = 0; this.ground = false; this.camX = this.x - 120; this.camA = this.a - 100; },
-  add(p, txt, x, a, col = '#fff6d6') { this.score += p; pop(`${txt} +${nf(p)}`, x - this.camX, this.sy(a) - 14, col); },
-  sy(a) { return H - 16 - (a - this.camA); },
+  stats() { return [`${this.rings} argolas · melhor sequência ×${Math.min(this.best, 8)}${this.laps ? ` · ${this.laps} volta${this.laps > 1 ? 's' : ''}` : ''}`, `${this.balloons} balões · ${this.loops} loopings · ${this.giros} giros · ${this.rasantes} rasantes`, `${this.crashes} batidas`]; },
+  demo() { Object.assign(this, { takeoff: 0, spd: TC.v }); const r = this.C.rings[2]; Object.assign(this.p, { x: r.x - r.nx * 60, y: r.y - r.ny * 60, z: r.z - r.nz * 60 }); this.yaw = Math.atan2(r.nz, r.nx); },
+  fwd() { const c = Math.cos(this.th); return [Math.cos(this.yaw) * c, Math.sin(this.th), Math.sin(this.yaw) * c]; },
+  add(p, txt, pos, col = '#fff6d6') { this.score += p; const s = this.toScreen(pos); pop(`${txt} +${nf(p)}`, s ? s[0] : W / 2, s ? s[1] - 12 : 60, col); },
   // ---------- quadro a quadro
   update(dt, I) {
-    this.t += dt; this.left = Math.max(0, AV.dur - this.t);
-    for (const f of this.fx) f.t += dt; this.fx = this.fx.filter((f) => f.t < (f.life || .8));
-    if (this.over) { this.overT += dt; this.fly(dt, 0, false); return this.overT > 1.5; }
+    this.t += dt; this.left = Math.max(0, TC.dur - this.t);
+    for (const f of this.fx) f.t += dt; this.fx = this.fx.filter((f) => f.t < .8);
+    if (this.over) { this.overT += dt; this.move(dt, 0, 0); if (!this.no3d) this.camStep(Math.min(1, dt * 5)); return this.overT > 1.6; }
     if (this.left <= 0) { this.over = true; this.overT = 0; talk(this.loops ? FALA.tcBoa : FALA.tcRuim, .8); return false; }
-    const inp = (I.u ? 1 : 0) - (I.d ? 1 : 0) || (Math.abs(I.ay || 0) > .2 ? -I.ay : 0);
-    if (I.pa && this.tank >= 1 && !this.spin) { this.turboT = AV.turbo; this.tank = 0; beep(180, .25, 'sawtooth', .04, 260); }
-    if (this.turboT > 0) this.turboT -= dt; else this.tank = Math.min(1, this.tank + dt / AV.recarga);
-    for (let k = 0; k < 2; k++) this.fly(dt / 2, inp, true);
-    this.camX += (this.x - 125 - this.camX) * Math.min(1, dt * 6); this.camA += (clamp(this.a - 100, -4, AV.top - 150) - this.camA) * Math.min(1, dt * 3);
-    this.trail.push([this.x, this.a]); if (this.trail.length > 60) this.trail.shift();
+    let ix = I.ax || 0, iy = (I.u ? 1 : 0) - (I.d ? 1 : 0) || (Math.abs(I.ay || 0) > .2 ? -I.ay : 0);
+    if (I.pa && this.tank >= 1 && !this.spin) { this.turboT = TC.turbo; this.tank = 0; beep(180, .25, 'sawtooth', .04, 260); }
+    if (I.pb && !this.rollT && !this.spin && !this.loop && this.takeoff <= 0) { this.rollT = .65; this.rollDir = ix >= 0 ? 1 : -1; this.giros++; this.add(150, 'Giro', this.p, '#bfefff'); beep(700, .12, 'triangle', .03, 400); }
+    if (this.turboT > 0) this.turboT -= dt; else this.tank = Math.min(1, this.tank + dt / TC.recarga);
+    if (this.takeoff > 0) { this.takeoff -= dt; ix = 0; iy = this.takeoff < 1.6 ? .7 : 0; }
+    this.move(dt, ix, iy);
+    this.checks(dt);
+    this.trail.push([this.p.x, this.p.y, this.p.z]); if (this.trail.length > 40) this.trail.shift();
+    if (!this.no3d) this.camStep(Math.min(1, dt * 5));
     return false;
   },
-  fly(dt, inp, live) {
+  move(dt, ix, iy) {
+    const want = (this.turboT > 0 ? TC.vt : TC.v) - 6 * Math.sin(this.th);
+    this.spd += (want - this.spd) * Math.min(1, dt * (this.takeoff > 0 ? 1.4 : 1.8));
     if (this.spin > 0) {
-      // rodopio depois da batida: sem controle, o avião gira e perde embalo, mas não cai no mar
-      this.spin -= dt; this.spinA += dt * 13; this.vx = Math.max(this.vx * (1 - .6 * dt), 55); this.va += (Math.max(this.va, this.a < 60 ? 40 : -25) - this.va) * dt * 3;
-      this.x += this.vx * dt; this.a += this.va * dt; if (this.a < 8) { this.a = 8; this.va = 40; }
-      if (this.spin <= 0) { this.th = Math.atan2(this.va, this.vx); this.thU = this.th; this.loopBase = this.thU; this.spinA = 0; }
-      return;
+      // rodopio depois da batida: gira, perde embalo e sobe um pouco para sair do chão
+      this.spin -= dt; this.spinA += dt * 14; this.spd = Math.max(16, this.spd * (1 - dt)); this.th += (.25 - this.th) * dt * 3; ix = iy = 0;
+      if (this.spin <= 0) this.spinA = 0;
+    } else if (this.loop) {
+      // looping: o nariz dá a volta inteira num círculo de pé
+      const w = 2.7 * this.loopDir; this.th += w * dt; this.loopA += Math.abs(w) * dt;
+      if (this.loopA >= TAU - .05) { this.th = 0; this.loop = 0; this.loops++; const inv = this.loopDir < 0; this.add(inv ? 700 : 450, inv ? 'Looping invertido!' : 'Looping!', this.p, '#ffd166'); sfx.big(); if (this.loops === 1) talk(FALA.tcBoa, .5); }
+    } else {
+      this.yaw += ix * TC.yaw * dt;
+      this.th += (clamp(iy, -1, 1) * TC.pitch - this.th) * Math.min(1, dt * 2.6);
+      if (this.p.y > TC.ceil) this.th = Math.min(this.th, -.15);
+      // looping: segurar ▲ já subindo; invertido: segurar ▼ lá no alto
+      this.upT = iy > .6 && this.th > .5 ? this.upT + dt : 0; this.dnT = iy < -.6 && this.th < -.5 && this.p.y > 70 ? this.dnT + dt : 0;
+      if (this.upT > .8 && this.takeoff <= 0) { this.loop = 1; this.loopDir = 1; this.loopA = this.th; this.upT = 0; }
+      if (this.dnT > .8) { this.loop = 1; this.loopDir = -1; this.loopA = -this.th; this.dnT = 0; }
+      // longe demais: o avião faz a curva de volta sozinho
+      const d = Math.hypot(this.p.x, this.p.z - 60);
+      if (d > TC.R) { const back = Math.atan2(60 - this.p.z, -this.p.x); let e = back - this.yaw; e = Math.atan2(Math.sin(e), Math.cos(e)); this.yaw += clamp(e, -1, 1) * dt * 1.4; ix = Math.sign(e); if (this.warnT <= 0) { pop('Volte para a costa', W / 2, 60, '#fff6d6', true); this.warnT = 3; } }
     }
-    const V = Math.hypot(this.vx, this.va), gam = V > 1 ? Math.atan2(this.va, this.vx) : this.th;
-    let al = this.th - gam; al = Math.atan2(Math.sin(al), Math.cos(al));
-    // nariz: o comando vale mais com velocidade; sem comando, o nariz volta para o caminho do avião (cata-vento)
-    const eff = clamp(V / 90, .25, 1.3), sf = clamp(V / 120, .2, 1.5);
-    const om = inp * AV.rate * eff - AV.wv * (al - AV.trim) * sf * (inp ? .35 : 1);
-    this.th += om * dt; this.thU += om * dt;
-    if (this.ground) { this.th = clamp(this.th, 0, .26); this.thU = this.th; }   // no chão: a cauda encosta na grama
-    // asa: sustentação até o ângulo de estol; passou dele, a sustentação despenca
-    const aa = Math.abs(al), CL = V < 1 ? 0 : aa < AV.aS ? 2 * Math.PI * al : Math.sign(al) * 2 * Math.PI * AV.aS * Math.max(.22, 1 - (aa - AV.aS) * 2.4);
-    this.stall = aa > AV.aS && !this.ground ? Math.min(1, this.stall + dt * 4) : Math.max(0, this.stall - dt * 3);
-    const L = AV.kL * V * V * CL, D = (AV.kD0 + AV.kDi * CL * CL) * V * V, thin = clamp((AV.top + 40 - this.a) / 120, 0, 1);
-    const T = (this.turboT > 0 ? AV.Tt : AV.T0) * thin * (this.over ? .6 : 1);
-    let ax = (V > 1 ? (-this.va / V) * L - (this.vx / V) * D : 0) + T * Math.cos(this.th);
-    let aa2 = (V > 1 ? (this.vx / V) * L - (this.va / V) * D : 0) + T * Math.sin(this.th) - AV.g;
-    if (this.ground) { aa2 = Math.max(0, aa2); ax -= 8; }
-    this.vx += ax * dt; this.va += aa2 * dt; this.x += this.vx * dt; this.a += this.va * dt;
-    if (this.ground) { if (this.va > 2) this.ground = false; else { this.a = AV.ga; this.va = Math.max(0, this.va); } }
-    if (!live) return;
-    // looping: o nariz deu uma volta inteira desde a última vez que estava nivelado
-    if (Math.abs(Math.sin(this.th)) < .25 && Math.cos(this.th) > 0 && Math.abs(this.thU - this.loopBase) < 1) this.loopBase = this.thU;
-    if (Math.abs(this.thU - this.loopBase) >= TAU - .35) {
-      const inv = this.thU < this.loopBase; this.loopBase = this.thU; this.loops++;
-      this.add(inv ? 700 : 450, inv ? 'Looping invertido!' : 'Looping!', this.x, this.a + 20, '#ffd166'); sfx.big(); if (this.loops === 1) talk(FALA.tcBoa, .5);
-    }
-    this.checks();
+    this.warnT -= dt;
+    this.bank += (-ix * .75 - this.bank) * Math.min(1, dt * 4);
+    if (this.rollT > 0) { this.rollT -= dt; this.roll = this.rollDir * (1 - Math.max(0, this.rollT) / .65) * TAU; if (this.rollT <= 0) { this.rollT = 0; this.roll = 0; } }
+    const f = this.fwd(); this.p.x += f[0] * this.spd * dt; this.p.y += f[1] * this.spd * dt; this.p.z += f[2] * this.spd * dt;
+    if (this.takeoff > 0 && this.th <= 0) this.p.y = Math.max(this.p.y, 2.6);
   },
   // ---------- batidas e pontos
   crash(why) {
-    if (this.spin > 0) return;
-    this.spin = 1.1; this.spinA = 0; this.crashes++; this.combo = 0; this.vx = Math.max(60, Math.hypot(this.vx, this.va) * .55); this.va = this.a < 60 ? 70 : 10;
-    this.loopBase = this.thU; shake = .3; sfx.crash(); this.fx.push({ k: 'boom', x: this.x, a: this.a, t: 0 }); if (this.lmIn) this.lmIn.hit = true;
+    if (this.spin > 0 || this.takeoff > 0) return;
+    this.spin = 1.1; this.spinA = 0; this.crashes++; this.combo = 0; this.loop = 0; this.rollT = 0; this.roll = 0;
+    const g = tcGround(this.p.x, this.p.z); if (this.p.y < g + 6) this.p.y = Math.max(g, 0) + 6; this.th = .3;
+    shake = .3; sfx.crash(); this.fx.push({ k: 'boom', p: { ...this.p }, t: 0 });
     pop(why, W / 2, 50, '#ffb3c8', true); if (Math.random() < .5) talk(FALA.tcRuim, .5);
   },
-  pts() { const c = Math.cos(this.th), s = Math.sin(this.th); return [[11, 0], [-12, 2], [0, -5], [-4, 6], [6, -3]].map(([u, v]) => [this.x + 1.3 * (u * c - v * s), this.a + 1.3 * (u * s + v * c)]); },
-  inSolid(px, pa) {
-    for (const l of this.C.lm) { if (px < l.x0 - 70 || px > l.x1 + 70) continue; for (const s of l.solid) { if (s.r) { const [x, y, w, h] = s.r; if (px > x && px < x + w && pa > y && pa < y + h) return l; } else { const [cx, ca, r] = s.c; if (Math.hypot(px - cx, pa - ca) < r) return l; } } }
+  solidHit(x, y, z, pad) {
+    for (const l of this.C.lm) for (const s of l.solid) {
+      if (s.box) { const [a, b, c, d, e, f] = s.box; if (x > a - pad && x < d + pad && y > b - pad && y < e + pad && z > c - pad && z < f + pad) return l; }
+      else if (s.cyl) { const [cx, cz, r, y0, y1] = s.cyl; if (y > y0 - pad && y < y1 + pad && Math.hypot(x - cx, z - cz) < r + pad) return l; }
+      else if (s.wheel) { const [cx, cy, cz, r, th] = s.wheel; if (Math.abs(z - cz) < th + pad && Math.hypot(x - cx, y - cy) < r + pad) return l; }
+    }
     return null;
   },
-  checks() {
-    const P = this.pts();
-    if (!this.ground) {
-      if (P.some(([, pa]) => pa < 0)) { if (this.x < 520 && this.va > -70) { this.ground = true; this.a = AV.ga; this.va = 0; this.th = clamp(this.th, 0, .26); this.thU = this.th; } else return this.crash(this.x < 520 ? 'Pouso torto!' : 'Caiu na água!'); }
-    } else if (this.x > 520) { this.ground = false; return this.crash('A pista acabou!'); }
-    for (const [px, pa] of P) if (this.inSolid(px, pa)) return this.crash('Bateu!');
-    // argolas
-    const px = this.trail.length ? this.trail[this.trail.length - 1][0] : this.x;
-    for (const r of this.C.rings) {
-      if (r.done || r.x > this.x + 2 || r.x < this.x - 60) continue;
-      if (px < r.x && this.x >= r.x) {
-        const d = Math.abs(this.a - r.a);
-        if (d < r.r - 1.5) { r.done = 1; this.combo++; this.best = Math.max(this.best, this.combo); this.rings++; const m = Math.min(this.combo, 8); this.add(100 * m, m > 1 ? `×${m}` : 'Argola', r.x, r.a, '#bfefff'); beep(660 + Math.min(this.combo, 10) * 60, .07, 'square', .04, 120); this.fx.push({ k: 'ring', x: r.x, a: r.a, t: 0 }); }
-        else if (d < r.r + 3) { r.done = 2; if (this.combo) pop('Raspou! Sequência perdida', W / 2, 50, '#fff6d6'); else pop('Raspou!', r.x - this.camX, this.sy(r.a) - 20, '#fff6d6'); this.combo = 0; beep(200, .05, 'triangle', .04, -60); }
-        else { r.done = 2; if (this.combo) pop('Sequência perdida', W / 2, 50, '#fff6d6'); this.combo = 0; }
-      }
+  checks(dt) {
+    if (this.spin > 0 || this.takeoff > 0) return;
+    const P = this.p, g = tcGround(P.x, P.z);
+    if (P.y < Math.max(g, 0) + 1.2) return this.crash(g < 0 ? 'Caiu na água!' : 'Bateu no chão!');
+    if (this.solidHit(P.x, P.y, P.z, 1.4)) return this.crash('Bateu!');
+    // argolas: atravessar o plano da argola por dentro
+    const prev = this.trail.length ? this.trail[this.trail.length - 1] : [P.x, P.y, P.z], rings = this.C.rings;
+    for (const r of rings) {
+      if (r.done) continue;
+      const s0 = (prev[0] - r.x) * r.nx + (prev[1] - r.y) * r.ny + (prev[2] - r.z) * r.nz, s1 = (P.x - r.x) * r.nx + (P.y - r.y) * r.ny + (P.z - r.z) * r.nz;
+      if (s0 * s1 > 0 || Math.abs(s1) > 6) continue;
+      const k = s0 / (s0 - s1 || 1), q = [prev[0] + (P.x - prev[0]) * k - r.x, prev[1] + (P.y - prev[1]) * k - r.y, prev[2] + (P.z - prev[2]) * k - r.z], d = Math.hypot(...q);
+      if (d < r.r - .6) {
+        r.done = true; const inSeq = r.i === this.next && this.t - this.lastRing < 12; this.combo = inSeq || !this.rings ? this.combo + 1 : 1; this.best = Math.max(this.best, this.combo); this.rings++; this.lastRing = this.t;
+        const m = Math.min(this.combo, 8); this.add(100 * m, m > 1 ? `×${m}` : 'Argola', r, '#bfefff'); beep(660 + Math.min(this.combo, 10) * 60, .07, 'square', .04, 120); this.fx.push({ k: 'ring', p: { x: r.x, y: r.y, z: r.z }, t: 0 });
+        this.next = (r.i + 1) % rings.length;
+        if (rings.every((q) => q.done)) { this.laps++; this.add(1000, 'Volta completa!', P, '#ffd166'); sfx.big(); for (const q of rings) q.done = false; }
+      } else if (d < r.r + 1.6) { pop('Raspou!', W / 2, 60, '#fff6d6'); this.combo = 0; beep(200, .05, 'triangle', .04, -60); }
     }
-    for (const b of this.C.balloons) {
-      if (b.pop || Math.abs(b.x - this.x) > 20) continue;
-      const ba = b.a + Math.sin(this.t * 2 + b.ph) * 3;
-      if (P.some(([qx, qa]) => Math.hypot(qx - b.x, qa - ba) < b.r + 2)) { b.pop = this.t; this.balloons++; this.add(b.gold ? 250 : 50, b.gold ? 'Dourado' : 'Balão', b.x, ba, b.gold ? '#ffd166' : '#fff6d6'); beep(b.gold ? 1300 : 900, .05, 'square', .04, -300); this.fx.push({ k: 'pop', x: b.x, a: ba, t: 0, c: b.c, gold: b.gold }); }
-    }
-    for (const b of this.C.birds) {
-      if (b.hit) continue; const bx = b.x - this.t * 18, ba = b.a + Math.sin(this.t * 3 + b.ph) * 4;
-      if (Math.abs(bx - this.x) < 16 && P.some(([qx, qa]) => Math.hypot(qx - bx, qa - ba) < 6)) { b.hit = true; this.crash('Gaivota!'); }
-    }
-    // marcos: rasante (passar perto por cima), por baixo do viaduto, por dentro do aro da cesta
-    const L = this.C.lm.find((l) => this.x >= l.x0 && this.x <= l.x1);
-    if (L && this.lmIn !== L) { this.lmIn = L; L.min = Infinity; L.hit = false; L.wentUnder = false; }
-    if (L) {
-      if (this.x >= L.mark[0] && this.x <= L.mark[1]) L.min = Math.min(L.min, this.a - 5 - L.top(this.x));
-      if (L.uz && this.x > L.uz[0] + 40 && this.x < L.uz[1] - 40 && this.a > L.uz[2] && this.a < L.uz[3]) L.wentUnder = true;
-    }
-    if (this.lmIn && this.x > this.lmIn.x1) {
-      const l = this.lmIn; this.lmIn = null;
-      if (!l.hit) {
-        if (l.wentUnder) { this.add(900, 'Por baixo do viaduto!', this.x, this.a + 10, '#ffd166'); this.rasantes++; sfx.big(); talk(FALA.tcBoa, .4); }
-        else if (l.min < 34) { const p = Math.round((200 + (34 - Math.max(0, l.min)) * 20) / 10) * 10; this.add(p, 'Rasante!', this.x, this.a + 10, '#bfefff'); this.rasantes++; sfx.point(); }
-      }
+    if (this.t - this.lastRing > 12 && this.combo) { this.combo = 0; pop('Sequência perdida', W / 2, 60, '#fff6d6'); }
+    for (const b of this.C.balloons) { if (b.pop) continue; const by = b.y + Math.sin(this.t * 2 + b.ph) * .8; if (Math.hypot(b.x - P.x, by - P.y, b.z - P.z) < 3.2) { b.pop = true; this.balloons++; this.add(b.gold ? 250 : 50, b.gold ? 'Dourado' : 'Balão', b, b.gold ? '#ffd166' : '#fff6d6'); beep(b.gold ? 1300 : 900, .05, 'square', .04, -300); this.fx.push({ k: 'pop', p: { x: b.x, y: by, z: b.z }, t: 0, c: b.c, gold: b.gold }); } }
+    for (const q of this.C.gulls) { if (q.hit) continue; const a = this.t * q.w + q.ph, gx = q.cx + Math.cos(a) * q.r, gz = q.cz + Math.sin(a) * q.r; if (Math.hypot(gx - P.x, q.cy - P.y, gz - P.z) < 2.4) { q.hit = true; return this.crash('Gaivota!'); } }
+    // marcos: rasante perto do topo e por baixo do viaduto (uma vez a cada 8 s por marco)
+    for (const l of this.C.lm) {
+      if (!l.rad || (this.lmT[l.kind] || 0) > this.t) continue;
+      if (l.under) { const [a, b, c, d, e, f] = l.under; if (P.x > a && P.x < d && P.y > b && P.y < e && P.z > c && P.z < f) { this.lmT[l.kind] = this.t + 8; this.rasantes++; this.add(900, 'Por baixo do viaduto!', P, '#ffd166'); sfx.big(); talk(FALA.tcBoa, .4); continue; } }
+      const hd = Math.hypot(P.x - l.x, P.z - l.z), cl = P.y - l.top;
+      if (hd < l.rad + 6 && cl > 0 && cl < 12) { this.lmT[l.kind] = this.t + 8; this.rasantes++; const p = Math.round((200 + (12 - cl) * 50) / 10) * 10; this.add(p, 'Rasante!', P, '#bfefff'); sfx.point(); }
     }
   },
-  // ---------- desenho (provisório)
-  draw(tt) {
-    const cx = this.camX, sy = (a) => this.sy(a);
-    const sky = ctx.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, '#5fa8e8'); sky.addColorStop(1, '#bfe4fb'); ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
-    // nuvens altas e a costa ao longe (paralaxe)
-    for (const c of this.C.clouds) { const x = ((c.x - cx * c.k * .4) % (W + 160) + W + 160) % (W + 160) - 80, y = sy(c.a) * .6 + 20; ctx.fillStyle = 'rgba(255,255,255,.75)'; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.ellipse(x + i * c.w * .25, y + (i % 2) * 3, c.w * .3, 6 + (i % 2) * 3, 0, 0, TAU); ctx.fill(); } }
-    const hz = sy(0) - 34 + this.camA * .25;
-    ctx.fillStyle = '#8fbf8a'; ctx.beginPath(); ctx.moveTo(0, hz + 6); for (let x = 0; x <= W; x += 10) ctx.lineTo(x, hz - 6 - 8 * Math.sin((x + cx * .2) * .02) - 5 * Math.sin((x + cx * .2) * .057)); ctx.lineTo(W, hz + 6); ctx.fill();
-    ctx.fillStyle = '#4fa3c7'; ctx.fillRect(0, hz + 4, W, Math.max(0, sy(0) - hz));
-    // chão: pista, praia e mar
-    const g0 = sy(0);
-    if (g0 < H + 20) {
-      R(0, g0, W, H - g0 + 2, '#3d8fc0');
-      for (let i = 0; i < 14; i++) { const x = ((i * 53 - cx) % (W + 60) + W + 60) % (W + 60) - 30; R(x, g0 + 3 + (i % 3) * 4, 12, 1, 'rgba(255,255,255,.55)'); }
-      if (cx < 560) { R(-cx - 40, g0, 560 + 40, H, '#76b65a'); R(-cx + 10, g0, 500, 4, '#9a9a8a'); for (let x = 30; x < 500; x += 26) R(x - cx, g0 + 1.5, 10, 1, '#ffffff'); R(60 - cx, g0 - 24, 40, 24, '#e8e2d2'); R(56 - cx, g0 - 28, 48, 5, '#c94a3a'); ctx.strokeStyle = NAVY; ctx.lineWidth = .8; ctx.strokeRect(60 - cx, g0 - 24, 40, 24); R(120 - cx, g0 - 40, 1.4, 40, '#666'); ctx.fillStyle = '#f08a2a'; ctx.beginPath(); ctx.moveTo(121 - cx, g0 - 40); ctx.lineTo(132 - cx, g0 - 37 + Math.sin(tt * 4)); ctx.lineTo(121 - cx, g0 - 34); ctx.fill(); }
-      for (const l of this.C.lm) if (l.x1 > cx - 80 && l.x0 < cx + W + 80) { R(l.x0 - 60 - cx, g0, l.x1 - l.x0 + 120, H, '#f0d9a0'); R(l.x0 - 60 - cx, g0, l.x1 - l.x0 + 120, 2, '#fff2c8'); }
+  // ---------- 3D
+  build3d() {
+    if (teco.G) return;
+    const T = THREE, G = {}, cv = document.createElement('canvas');
+    G.r = new T.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' }); G.r.setPixelRatio(1); G.r.setSize(960, 540, false); G.cv = cv;
+    G.s = new T.Scene(); G.s.background = new T.Color(0x8fd0f5); G.s.fog = new T.Fog(0xc4e8fb, 320, 1500);
+    G.cam = new T.PerspectiveCamera(66, 16 / 9, .5, 2600);
+    G.s.add(new T.HemisphereLight(0xdff3ff, 0x8a7a55, 1.6)); const sun = new T.DirectionalLight(0xfff1d6, 2.4); sun.position.set(300, 500, 250); G.s.add(sun);
+    const grad = new T.DataTexture(new Uint8Array([110, 185, 255]), 3, 1, T.RedFormat); grad.minFilter = grad.magFilter = T.NearestFilter; grad.needsUpdate = true;
+    const toon = (c, o = {}) => new T.MeshToonMaterial({ color: c, gradientMap: grad, ...o }), ink = new T.MeshBasicMaterial({ color: 0x1b1f4f, side: T.BackSide });
+    const mk = (geo, c, line = .06, o) => { const g = new T.Group(), m = new T.Mesh(geo, typeof c === 'number' ? toon(c, o) : c); g.add(m); if (line) { const e = new T.Mesh(geo, ink); e.scale.setScalar(1 + line); g.add(e); } return g; };
+    G.toon = toon; G.mk = mk;
+    // mar e chão
+    const sea = new T.Mesh(new T.PlaneGeometry(7000, 7000), new T.MeshLambertMaterial({ color: 0x3fb7d2 })); sea.rotation.x = -Math.PI / 2; sea.position.y = -.2; G.s.add(sea);
+    const N = 170, S = 2600, geo = new T.PlaneGeometry(S, S, N, N); geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position, col = new Float32Array(pos.count * 3), cc = new T.Color();
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i), z = pos.getZ(i), h = tcGround(x, z); pos.setY(i, h);
+      if (h < .3) cc.set(0x6fd3d8); else if (h < 1.8) cc.set(0xf0d9a0); else if (h < 8) cc.set(0x8fcf63); else if (h < 26) cc.set(0x6cb355); else cc.set(0x4f9a4a);
+      if (Math.abs(z - TC_RUN.z) < 9 && x > TC_RUN.x0 && x < TC_RUN.x1) cc.set(0xa7a49a);
+      col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b;
     }
-    for (const l of this.C.lm) if (l.x1 > cx - 80 && l.x0 < cx + W + 80) this.drawLandmark(l, tt);
-    // argolas: metade de trás antes do avião, metade da frente depois
-    const rings = this.C.rings.filter((r) => r.x > cx - 20 && r.x < cx + W + 20);
-    for (const r of rings) this.drawRing(r, true);
-    for (const b of this.C.balloons) if (!b.pop && b.x > cx - 20 && b.x < cx + W + 20) this.drawBalloon(b, tt);
-    for (const b of this.C.birds) { if (b.hit) continue; const bx = b.x - this.t * 18; if (bx < cx - 20 || bx > cx + W + 20) continue; const y = sy(b.a + Math.sin(this.t * 3 + b.ph) * 4), w = Math.sin(tt * 12 + b.ph) * 3; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(bx - cx - 5, y - w); ctx.quadraticCurveTo(bx - cx - 2, y - 2, bx - cx, y); ctx.quadraticCurveTo(bx - cx + 2, y - 2, bx - cx + 5, y - w); ctx.stroke(); ctx.strokeStyle = NAVY; ctx.lineWidth = .5; ctx.stroke(); }
-    // faixa puxada atrás
-    const tr = this.trail; if (tr.length > 20) { const pts = []; for (let i = tr.length - 8; i >= tr.length - 40 && i >= 0; i -= 4) pts.push([tr[i][0] - cx, sy(tr[i][1])]); ctx.strokeStyle = 'rgba(40,40,60,.6)'; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(this.x - 12 - cx, sy(this.a)); ctx.lineTo(pts[0][0], pts[0][1]); ctx.stroke(); ctx.lineWidth = 6; ctx.lineJoin = 'round'; ctx.strokeStyle = '#fff6d6'; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (const p of pts.slice(1, 6)) ctx.lineTo(p[0], p[1]); ctx.stroke(); ctx.lineWidth = 2; ctx.strokeStyle = '#e8484a'; ctx.stroke(); ctx.lineJoin = 'miter'; }
-    for (const f of this.fx) {
-      const k = f.t / (f.life || .8), x = f.x - cx, y = sy(f.a); ctx.globalAlpha = 1 - k;
-      if (f.k === 'ring') { ctx.strokeStyle = '#bfefff'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(x, y, 3 + k * 6, 16 + k * 10, 0, 0, TAU); ctx.stroke(); }
-      else if (f.k === 'pop') { ctx.fillStyle = f.gold ? '#ffd166' : ['#ff6b6b', '#ffd166', '#6bcBff', '#9be37a'][f.c]; for (let i = 0; i < 7; i++) { const a = i / 7 * TAU; R(x + Math.cos(a) * (3 + k * 12), y + Math.sin(a) * (3 + k * 12), 2, 2, ctx.fillStyle); } }
-      else if (f.k === 'boom') { ctx.fillStyle = '#fff1c4'; ctx.beginPath(); ctx.arc(x, y, 4 + k * 14, 0, TAU); ctx.fill(); }
-      else if (f.k === 'smoke') { ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(x, y, 2 + k * 5, 0, TAU); ctx.fill(); }
+    geo.setAttribute('color', new T.BufferAttribute(col, 3)); geo.computeVertexNormals();
+    G.s.add(new T.Mesh(geo, new T.MeshLambertMaterial({ vertexColors: true, flatShading: true })));
+    for (let x = TC_RUN.x0 + 10; x < TC_RUN.x1; x += 16) { const m = new T.Mesh(new T.PlaneGeometry(7, .7), new T.MeshBasicMaterial({ color: 0xffffff })); m.rotation.x = -Math.PI / 2; m.position.set(x, 2.08, TC_RUN.z); G.s.add(m); }
+    // marcos
+    const at = (o, x, y, z) => { o.position.set(x, y, z); G.s.add(o); return o; };
+    for (const l of this.C.lm) {
+      if (l.kind === 'farol') {
+        at(mk(new T.CylinderGeometry(17, 19, 27, 10), 0xc59a62, .03), l.x, 8.5, l.z); at(mk(new T.CylinderGeometry(17.2, 17.2, 1.2, 10), 0x7cc35a, .02), l.x, 22.4, l.z);
+        for (let i = 0; i < 6; i++) at(mk(new T.CylinderGeometry(3.5 - i * .15, 3.8 - i * .15, 5.6, 14), i % 2 ? 0xffffff : 0xe0453c, .04), l.x, 25.3 + i * 5.6, l.z);
+        at(mk(new T.CylinderGeometry(3.4, 3.4, 4, 12), 0x2d3350, .05), l.x, 59.5 - 1, l.z); l.lamp = at(new T.Mesh(new T.SphereGeometry(2.2, 12, 8), new T.MeshBasicMaterial({ color: 0xfff1a0 })), l.x, 58.5, l.z); at(mk(new T.ConeGeometry(4.2, 3.4, 12), 0xe0453c, .05), l.x, 62.2, l.z);
+      } else if (l.kind === 'viaduto') {
+        at(mk(new T.BoxGeometry(116, 3.5, 10), 0xb9bfcc, .02), l.x, 19.25, l.z); for (const dx of [-47, 47]) at(mk(new T.BoxGeometry(6, 19.5, 6), 0x9aa0b0, .03), l.x + dx, 7.75, l.z);
+        at(mk(new T.BoxGeometry(20, 5, 12), 0xd07ad6, .04), l.x, 0.5, l.z); for (let i = -5; i <= 5; i++) at(new T.Mesh(new T.BoxGeometry(4, .1, .5), new T.MeshBasicMaterial({ color: 0xffffff })), l.x + i * 10, 21.05, l.z);
+      } else if (l.kind === 'laje') {
+        at(mk(new T.BoxGeometry(22, 28, 22), 0xf2c14e, .02), l.x, 12, l.z); for (let r = 0; r < 3; r++) for (let c = -1; c <= 1; c++) for (const s of [-1, 1]) { const w = at(new T.Mesh(new T.PlaneGeometry(4, 4), toon(0x6fb7d9)), l.x + c * 6.5, 6 + r * 7.5, l.z + s * 11.05); if (s < 0) w.rotation.y = Math.PI; }
+        at(mk(new T.BoxGeometry(1.2, 7, 1.2), 0x555a6a, .06), l.x, 29.5, l.z + 6.8); at(mk(new T.BoxGeometry(6, 4, .5), 0xffffff, .06), l.x, 33, l.z + 6.8); const hoop = at(mk(new T.TorusGeometry(1.3, .18, 8, 18), 0xff6a2a, 0), l.x, 31.6, l.z + 5); hoop.rotation.x = Math.PI / 2;
+        at(mk(new T.CylinderGeometry(2.4, 2.4, 3, 10), 0x3b6fd6, .05), l.x - 6, 27.5, l.z - 5);
+      } else if (l.kind === 'roda') {
+        const w = new T.Group(); w.position.set(l.x, 30, l.z); G.s.add(w); l.wheel = w;
+        w.add(mk(new T.TorusGeometry(25, .9, 8, 40), 0xe04a8a, .08)); for (let i = 0; i < 8; i++) { const sp = new T.Mesh(new T.BoxGeometry(50, .35, .35), toon(0x9aa0b0)); sp.rotation.z = i / 8 * Math.PI; w.add(sp); }
+        l.gond = []; for (let i = 0; i < 8; i++) { const g = mk(new T.BoxGeometry(3.2, 3, 3), [0x6bcbff, 0xffd166, 0x9be37a, 0xff6b6b][i % 4], .06); G.s.add(g); l.gond.push(g); }
+        for (const s of [-1, 1]) { const leg = at(mk(new T.BoxGeometry(1.4, 34, 1.4), 0xf4efe6, .05), l.x + s * 9, 14, l.z + 2.4); leg.rotation.z = s * .3; const leg2 = at(mk(new T.BoxGeometry(1.4, 34, 1.4), 0xf4efe6, .05), l.x + s * 9, 14, l.z - 2.4); leg2.rotation.z = s * .3; }
+        at(mk(new T.BoxGeometry(24, 6, 8), 0x8a6b4a, .03), l.x, 3, l.z);
+      } else if (l.kind === 'hangar') { at(mk(new T.BoxGeometry(32, 11, 20), 0xe8e2d2, .02), -40, 5.5, l.z); at(mk(new T.BoxGeometry(34, 1.6, 22), 0xc94a3a, .03), -40, 11.6, l.z); }
+    }
+    // argolas, balões, gaivotas e nuvens
+    G.rings = this.C.rings.map((r) => { const g = new T.Group(), m = new T.Mesh(new T.TorusGeometry(r.r, .7, 10, 36), toon(0xffd166, { emissive: 0x000000 })); g.add(m); const e = new T.Mesh(m.geometry, ink); e.scale.setScalar(1.05); g.add(e); g.position.set(r.x, r.y, r.z); g.lookAt(r.x + r.nx, r.y + r.ny, r.z + r.nz); G.s.add(g); g.userData.m = m; return g; });
+    const bcol = [0xff6b6b, 0xffb347, 0x6bcbff, 0x9be37a];
+    G.balloons = this.C.balloons.map((b) => { const g = mk(new T.SphereGeometry(1.5, 12, 10), b.gold ? 0xffd166 : bcol[b.c], .07); g.scale.set(1, 1.15, 1); g.position.set(b.x, b.y, b.z); G.s.add(g); return g; });
+    G.gulls = this.C.gulls.map(() => { const g = new T.Group(); const body = new T.Mesh(new T.SphereGeometry(.45, 8, 6), toon(0xffffff)); body.scale.set(2, .8, .8); g.add(body); for (const s of [-1, 1]) { const w = new T.Mesh(new T.BoxGeometry(.8, .08, 2.2), toon(0xf4f4f4)); w.position.z = s * 1.1; g.add(w); g.userData[s < 0 ? 'l' : 'r'] = w; } G.s.add(g); return g; });
+    const cloudM = new T.MeshLambertMaterial({ color: 0xffffff, emissive: 0xc9d6e6, flatShading: true });
+    for (let i = 0; i < 46; i++) { const g = new T.Group(); for (let j = 0; j < 5; j++) { const s = new T.Mesh(new T.IcosahedronGeometry(6 + Math.random() * 6, 1), cloudM); s.position.set(j * 7 - 14, Math.random() * 3, Math.random() * 6 - 3); g.add(s); } g.position.set(Math.random() * 2400 - 1200, 110 + Math.random() * 90, Math.random() * 2000 - 1100); G.s.add(g); }
+    // avião (teco-teco vermelho de asa alta) com o IAmiguinho na cabine
+    const P = new T.Group(), body = new T.Group(); P.add(body);
+    const fus = mk(new T.CylinderGeometry(.55, .95, 6.4, 10), 0xd8333a, .05); fus.rotation.z = Math.PI / 2; body.add(fus);
+    const nose = mk(new T.CylinderGeometry(.95, .9, 1, 10), 0xf4efe6, .05); nose.rotation.z = Math.PI / 2; nose.position.x = 3.6; body.add(nose);
+    const stripe = new T.Mesh(new T.BoxGeometry(6, .18, 1.95), toon(0xffffff)); stripe.position.set(-.2, .05, 0); body.add(stripe);
+    const wing = mk(new T.BoxGeometry(1.7, .2, 10.5), 0xb52a30, .06); wing.position.set(.6, 1.15, 0); body.add(wing);
+    for (const s of [-1, 1]) { const st = new T.Mesh(new T.BoxGeometry(.12, 1.6, .12), toon(0x555a6a)); st.position.set(.4, .4, s * 2.6); st.rotation.x = s * .9; body.add(st); }
+    const fin = mk(new T.BoxGeometry(1.3, 1.5, .15), 0xd8333a, .07); fin.position.set(-3.1, .85, 0); body.add(fin);
+    const stab = mk(new T.BoxGeometry(1.1, .12, 3.6), 0xb52a30, .07); stab.position.set(-3.1, .1, 0); body.add(stab);
+    const win = new T.Mesh(new T.BoxGeometry(1.6, .7, 1.75), toon(0x9fd6f0)); win.position.set(1.1, .55, 0); body.add(win);
+    for (const s of [-1, 1]) { const wh = mk(new T.CylinderGeometry(.38, .38, .25, 10), 0x222222, .05); wh.rotation.x = Math.PI / 2; wh.position.set(1.4, -1.25, s * 1.1); body.add(wh); const lg = new T.Mesh(new T.BoxGeometry(.1, 1, .1), toon(0x555a6a)); lg.position.set(1.4, -.75, s * .8); lg.rotation.x = s * -.5; body.add(lg); }
+    const head = new T.Group(); head.position.set(.6, 1.0, 0); body.add(head);
+    head.add(mk(new T.SphereGeometry(.55, 14, 10), 0xf4efe6, .07)); const face = new T.Mesh(new T.SphereGeometry(.42, 12, 8, -.9, 1.8, .7, 1.6), new T.MeshBasicMaterial({ color: 0x141a3a })); face.position.x = .12; head.add(face);
+    const eye = new T.MeshBasicMaterial({ color: 0x7fe8ff }); for (const s of [-1, 1]) { const e = new T.Mesh(new T.SphereGeometry(.07, 6, 4), eye); e.position.set(.52, .08, s * .14); head.add(e); }
+    const cap = mk(new T.SphereGeometry(.58, 14, 8, 0, TAU, 0, 1.2), 0x3b6fd6, .07); cap.position.y = .05; head.add(cap); const bill = new T.Mesh(new T.BoxGeometry(.5, .06, .6), toon(0x3b6fd6)); bill.position.set(.55, .28, 0); head.add(bill);
+    const prop = new T.Group(); prop.position.set(4.15, 0, 0); body.add(prop); const blade = new T.Mesh(new T.BoxGeometry(.12, 3.4, .3), toon(0x333333)); prop.add(blade); const disc = new T.Mesh(new T.CircleGeometry(1.75, 20), new T.MeshBasicMaterial({ color: 0xe6e6ee, transparent: true, opacity: .25, side: T.DoubleSide })); disc.rotation.y = Math.PI / 2; prop.add(disc);
+    const cprop = new T.Group(); cprop.position.set(0, .7, 0); head.add(cprop); cprop.add(new T.Mesh(new T.BoxGeometry(.6, .05, .12), toon(0xffd166)));
+    G.s.add(P); G.plane = P; G.body = body; G.prop = prop; G.cprop = cprop;
+    teco.G = G;
+  },
+  // câmera atrás e acima do avião, suavizada a cada passo do jogo
+  camStep(k) {
+    const G = this.G; if (!G) return; const P = this.p, f = this.fwd(), hb = [Math.cos(this.yaw), Math.sin(this.yaw)], loopK = this.loop ? .5 : 1;
+    const want = new THREE.Vector3(P.x - hb[0] * 15 * loopK - f[0] * 2, P.y + 5 - f[1] * 6, P.z - hb[1] * 15 * loopK - f[2] * 2);
+    if (!G.camP) G.camP = want.clone(); else G.camP.lerp(want, k);
+    const gC = tcGround(G.camP.x, G.camP.z); if (G.camP.y < Math.max(gC, 0) + 2) G.camP.y = Math.max(gC, 0) + 2;
+  },
+  reset3d() { const G = this.G; for (const g of G.balloons) g.visible = true; for (const g of G.gulls) g.visible = true; G.camP = null; },
+  toScreen(p) {
+    if (!this.G) return null; const v = new THREE.Vector3(p.x, p.y, p.z).project(this.G.cam);
+    if (v.z > 1) return null; return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H];
+  },
+  draw(tt) {
+    if (this.no3d || !this.G) {
+      R(0, 0, W, H, '#8fd0f5'); ctx.fillStyle = NAVY; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('Este aparelho não conseguiu abrir o 3D.', W / 2, H / 2 - 6); ctx.font = '10px sans-serif'; ctx.fillText('Tente atualizar a página ou usar outro navegador.', W / 2, H / 2 + 10); ctx.textAlign = 'left'; return;
+    }
+    const T = THREE, G = this.G, P = this.p, f = this.fwd();
+    // avião
+    G.plane.position.set(P.x, P.y, P.z); G.plane.rotation.set(0, 0, 0, 'YXZ');
+    const q = new T.Quaternion().setFromEuler(new T.Euler(0, -this.yaw, 0, 'YXZ')), qp = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), this.th), qr = new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), this.bank + this.roll + (this.spin > 0 ? this.spinA : 0));
+    G.plane.quaternion.copy(q).multiply(qp).multiply(qr);
+    G.prop.rotation.x = tt * 50; G.cprop.rotation.y = tt * 30;
+    if (!G.camP) this.camStep(1);
+    G.cam.position.copy(G.camP); G.cam.lookAt(P.x + f[0] * 12, P.y + f[1] * 12 + 1.5, P.z + f[2] * 12);
+    G.cam.fov = 66 + (this.turboT > 0 ? 8 : 0); G.cam.updateProjectionMatrix();
+    // argolas: a próxima brilha
+    this.C.rings.forEach((r, i) => { const g = G.rings[i], m = g.userData.m; g.visible = !r.done; const nx = i === this.next; m.material.emissive.setHex(nx ? 0xffb020 : 0x000000); m.material.emissiveIntensity = nx ? .45 + .35 * Math.sin(tt * 6) : 0; m.material.color.setHex(nx ? 0xffe27a : 0xe0b84a); });
+    this.C.balloons.forEach((b, i) => { const g = G.balloons[i]; g.visible = !b.pop; g.position.y = b.y + Math.sin(this.t * 2 + b.ph) * .8; });
+    this.C.gulls.forEach((q, i) => { const g = G.gulls[i]; g.visible = !q.hit; const a = this.t * q.w + q.ph; g.position.set(q.cx + Math.cos(a) * q.r, q.cy, q.cz + Math.sin(a) * q.r); g.rotation.y = -a - Math.PI; const fl = Math.sin(tt * 10 + i) * .5; g.userData.l.rotation.x = fl; g.userData.r.rotation.x = -fl; });
+    for (const l of this.C.lm) { if (l.wheel) { l.wheel.rotation.z = tt * .25; l.gond.forEach((g, i) => { const a = tt * .25 + i / 8 * TAU; g.position.set(l.x + Math.cos(a) * 25, 30 + Math.sin(a) * 25 - 2.2, l.z); }); } if (l.lamp) l.lamp.material.color.setHSL(.14, 1, .7 + .2 * Math.sin(tt * 3)); }
+    G.r.render(G.s, G.cam);
+    ctx.drawImage(G.cv, 0, 0, W, H);
+    // efeitos e a seta para a próxima argola (2D por cima)
+    for (const fx of this.fx) {
+      const s = this.toScreen(fx.p); if (!s) continue; const k = fx.t / .8; ctx.globalAlpha = 1 - k;
+      if (fx.k === 'ring') { ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(s[0], s[1], 8 + k * 30, 0, TAU); ctx.stroke(); }
+      else if (fx.k === 'pop') { const c = fx.gold ? '#ffd166' : ['#ff6b6b', '#ffb347', '#6bcbff', '#9be37a'][fx.c]; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; R(s[0] + Math.cos(a) * (3 + k * 16), s[1] + Math.sin(a) * (3 + k * 16), 2, 2, c); } }
+      else if (fx.k === 'boom') { ctx.fillStyle = '#fff1c4'; ctx.beginPath(); ctx.arc(s[0], s[1], 6 + k * 20, 0, TAU); ctx.fill(); }
       ctx.globalAlpha = 1;
     }
-    this.drawPlane(tt);
-    for (const r of rings) this.drawRing(r, false);
-    if (this.turboT > 0 && Math.random() < .6) this.fx.push({ k: 'smoke', x: this.x - 13 * Math.cos(this.th), a: this.a - 13 * Math.sin(this.th), t: 0, life: .6 });
-  },
-  drawRing(r, back) {
-    const x = r.x - this.camX, y = this.sy(r.a), col = r.done === 1 ? 'rgba(191,239,255,.35)' : r.done === 2 ? 'rgba(255,255,255,.3)' : '#ffd166';
-    ctx.strokeStyle = col; ctx.lineWidth = 3.6; ctx.beginPath(); ctx.ellipse(x, y, 5, r.r, 0, back ? Math.PI * .5 : -Math.PI * .5, back ? Math.PI * 1.5 : Math.PI * .5); ctx.stroke();
-    ctx.strokeStyle = 'rgba(27,31,79,.6)'; ctx.lineWidth = .6; ctx.stroke();
-  },
-  drawBalloon(b, tt) {
-    const x = b.x - this.camX, y = this.sy(b.a + Math.sin(this.t * 2 + b.ph) * 3), c = b.gold ? '#ffd166' : ['#ff6b6b', '#ffb347', '#6bcbff', '#9be37a'][b.c];
-    ctx.strokeStyle = 'rgba(40,40,60,.5)'; ctx.lineWidth = .5; ctx.beginPath(); ctx.moveTo(x, y + b.r); ctx.quadraticCurveTo(x + 2, y + b.r + 5, x, y + b.r + 10); ctx.stroke();
-    const gr = ctx.createRadialGradient(x - 2, y - 2, 1, x, y, b.r); gr.addColorStop(0, '#ffffff'); gr.addColorStop(.3, c); gr.addColorStop(1, c); ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(x, y, b.r * .9, b.r, 0, 0, TAU); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .7; ctx.stroke();
-  },
-  drawLandmark(l, tt) {
-    const cx = this.camX, sy = (a) => this.sy(a), rect = (x, a, w, h, c) => { R(x - cx, sy(a + h), w, h, c); ctx.strokeStyle = NAVY; ctx.lineWidth = .8; ctx.strokeRect(x - cx, sy(a + h), w, h); };
-    const x = l.x;
-    if (l.kind === 'farol') {
-      ctx.fillStyle = '#b98a5a'; ctx.beginPath(); ctx.moveTo(x - cx, sy(0)); ctx.lineTo(x + 8 - cx, sy(46)); ctx.lineTo(x + 222 - cx, sy(46)); ctx.lineTo(x + 230 - cx, sy(0)); ctx.fill(); ctx.strokeStyle = NAVY; ctx.stroke(); R(x + 8 - cx, sy(46), 214, 3, '#79b65a');
-      for (let i = 0; i < 5; i++) rect(x + 150, 46 + i * 14, 18, 14, i % 2 ? '#ffffff' : '#e0453c');
-      rect(x + 146, 116, 26, 12, '#2d3350'); ctx.fillStyle = `rgba(255,230,120,${.6 + .4 * Math.sin(tt * 3)})`; ctx.fillRect(x + 150 - cx, sy(126), 18, 7); rect(x + 144, 128, 30, 4, '#e0453c');
-    } else if (l.kind === 'viaduto') {
-      rect(x + 20, 0, 16, 64, '#9aa0b0'); rect(x + 204, 0, 16, 64, '#9aa0b0'); rect(x, 64, 240, 12, '#b9bfcc'); for (let i = 0; i < 12; i++) R(x + 6 + i * 20 - cx, sy(70), 8, 1, '#e8e8f0');
-      ctx.fillStyle = '#d07ad6'; ctx.beginPath(); ctx.moveTo(x + 100 - cx, sy(0)); ctx.quadraticCurveTo(x + 104 - cx, sy(14), x + 100 - cx, sy(14)); ctx.lineTo(x + 140 - cx, sy(14)); ctx.quadraticCurveTo(x + 136 - cx, sy(14), x + 140 - cx, sy(0)); ctx.fill(); ctx.strokeStyle = NAVY; ctx.stroke();
-      ctx.fillStyle = '#ff7ab8'; ctx.font = 'bold 7px sans-serif'; ctx.fillText('SK8', x + 110 - cx, sy(40));
-    } else if (l.kind === 'laje') {
-      rect(x, 0, 110, 78, '#f2c14e'); for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) rect(x + 10 + c * 24, 12 + r * 22, 12, 12, '#6fb7d9');
-      rect(x + 78, 78, 4, 34, '#555a6a'); rect(x + 72, 104, 14, 22, '#ffffff'); ctx.strokeStyle = '#ff6a2a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(x + 64 - cx, sy(108), 2, 9, 0, 0, TAU); ctx.stroke();
-    } else {
-      const c = [x + 75 - cx, sy(80)];
-      ctx.strokeStyle = '#7a7f95'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + 44 - cx, sy(0)); ctx.lineTo(c[0], c[1]); ctx.lineTo(x + 106 - cx, sy(0)); ctx.stroke();
-      ctx.strokeStyle = '#e04a8a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(c[0], c[1], 58, 0, TAU); ctx.stroke(); ctx.strokeStyle = NAVY; ctx.lineWidth = .7; ctx.beginPath(); ctx.arc(c[0], c[1], 59.5, 0, TAU); ctx.stroke();
-      ctx.strokeStyle = 'rgba(120,120,150,.8)'; ctx.lineWidth = .8; for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + tt * .3; ctx.beginPath(); ctx.moveTo(c[0], c[1]); ctx.lineTo(c[0] + Math.cos(a) * 58, c[1] + Math.sin(a) * 58); ctx.stroke(); }
-      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + tt * .3, gx = c[0] + Math.cos(a) * 58, gy = c[1] + Math.sin(a) * 58; R(gx - 4, gy, 8, 6, ['#6bcbff', '#ffd166', '#9be37a', '#ff6b6b'][i % 4]); ctx.strokeStyle = NAVY; ctx.strokeRect(gx - 4, gy, 8, 6); }
-    }
-  },
-  drawPlane(tt) {
-    const x = this.x - this.camX, y = this.sy(this.a), ang = this.spin > 0 ? this.th + this.spinA : this.th;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(-ang); ctx.scale(1.35, 1.35);
-    // fuselagem, asa alta, cauda, rodas, hélice e o IAmiguinho na janela
-    R(-12, 4, 2, 4, '#555'); ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(2, 8.5, 2, 0, TAU); ctx.arc(-11, 6, 1.2, 0, TAU); ctx.fill(); ctx.strokeStyle = '#555'; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(0, 2); ctx.stroke();
-    ctx.fillStyle = '#d8333a'; ctx.beginPath(); ctx.moveTo(11, -1); ctx.quadraticCurveTo(12, 4, 6, 5); ctx.lineTo(-13, 3); ctx.lineTo(-15, -1); ctx.lineTo(-13, -2); ctx.lineTo(4, -4); ctx.closePath(); ctx.fill(); ctx.strokeStyle = NAVY; ctx.lineWidth = .8; ctx.stroke();
-    R(-13, 0, 22, 1.4, '#ffffff');
-    ctx.fillStyle = '#d8333a'; ctx.beginPath(); ctx.moveTo(-11, -2); ctx.lineTo(-15, -9); ctx.lineTo(-12, -9); ctx.lineTo(-7, -2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#a92a30'; ctx.fillRect(-16, -1.5, 7, 1.6);
-    ctx.fillStyle = '#9fd6f0'; ctx.beginPath(); ctx.moveTo(4, -4); ctx.lineTo(-3, -4); ctx.lineTo(-3, -1); ctx.lineTo(6, -1); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f4efe6'; ctx.beginPath(); ctx.arc(0, -3.6, 2.4, 0, TAU); ctx.fill(); R(-2.2, -6.4, 4.4, 1.6, '#3b6fd6'); R(-.4, -7.6, .8, 1.3, '#555'); R(-2, -8, 4, .6, '#7fdcff');
-    ctx.fillStyle = '#b52a30'; ctx.fillRect(-6, -6, 16, 2.2); ctx.strokeRect(-6, -6, 16, 2.2); ctx.strokeStyle = '#555'; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(2, -4); ctx.lineTo(-2, 2); ctx.stroke();
-    ctx.fillStyle = '#444'; ctx.beginPath(); ctx.arc(11.5, 1, 1.3, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(230,230,240,.55)'; ctx.beginPath(); ctx.ellipse(12.4, 1, 1, 7 * Math.abs(Math.sin(tt * 40)) + 2, 0, 0, TAU); ctx.fill();
-    ctx.restore();
-    if (this.stall > .4 && this.spin <= 0) { ctx.globalAlpha = this.stall; ctx.strokeStyle = '#fff6d6'; ctx.lineWidth = 1; for (let i = 0; i < 3; i++) { const yy = y - 12 - i * 3; ctx.beginPath(); ctx.moveTo(x - 6 + i * 2, yy); ctx.lineTo(x + 2 + i * 2, yy - 2); ctx.stroke(); } ctx.globalAlpha = 1; }
+    const nr = this.C.rings[this.next], v = new T.Vector3(nr.x, nr.y, nr.z).project(G.cam), behind = v.z > 1;
+    let sx = (v.x + 1) / 2 * W, sy = (1 - v.y) / 2 * H; if (behind) { sx = W - sx; sy = H - sy; }
+    const on = !behind && sx > 14 && sx < W - 14 && sy > 14 && sy < H - 14;
+    if (on) { const b = Math.sin(tt * 6) * 2; ctx.fillStyle = '#ffe27a'; ctx.strokeStyle = NAVY; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(sx, sy - 16 + b); ctx.lineTo(sx - 5, sy - 24 + b); ctx.lineTo(sx + 5, sy - 24 + b); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    else { const cx = W / 2, cy = H / 2, a = Math.atan2(sy - cy, sx - cx), k = Math.min((W / 2 - 18) / Math.abs(Math.cos(a) || 1e-3), (H / 2 - 18) / Math.abs(Math.sin(a) || 1e-3)), ex = cx + Math.cos(a) * k, ey = cy + Math.sin(a) * k;
+      ctx.save(); ctx.translate(ex, ey); ctx.rotate(a); ctx.fillStyle = '#ffe27a'; ctx.strokeStyle = NAVY; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(-6, -8); ctx.lineTo(-2, 0); ctx.lineTo(-6, 8); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); }
+    // altímetro discreto e turbo
+    const alt = Math.round(P.y); ctx.fillStyle = 'rgba(27,31,79,.55)'; ctx.fillRect(6, H - 20, 54, 14); ctx.fillStyle = '#fff6d6'; ctx.font = 'bold 9px sans-serif'; ctx.fillText(`${alt} m`, 12, H - 10);
   },
 };

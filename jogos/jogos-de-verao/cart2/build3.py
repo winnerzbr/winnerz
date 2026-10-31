@@ -35,6 +35,9 @@ s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto
 # provas novas (30/10/2026): cada uma num arquivo ev_*.js, entra antes da lista de provas.
 # O dono reprovou o Salto do penhasco e o Frescobol (as ideias e a jogabilidade): saíram, e o Salto do píer também saiu de vez.
 NOVAS = ['ev_pingue.js', 'ev_bocha.js', 'ev_teco.js']
+
+# 3D (Voo do teco-teco): three.js r160 do jsDelivr, carregado sem travar a página; nos testes, o Playwright serve uma cópia local
+s = sub1('<meta name="claude:viewport-fit-sides" content="cover">\n', '<meta name="claude:viewport-fit-sides" content="cover">\n<script async src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>\n', s)
 s = sub1("const EVENTS = [surfe,", ''.join((HERE / f).read_text(encoding='utf-8') + '\n' for f in NOVAS) + "const EVENTS = [surfe,", s)
 s = sub1("const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, salto, bmx,", "const EVENTS = [surfe, halfpipe, embaixadinha, patins, basquete, pingue, bmx,", s)
 s = sub1("futebol, natacao,", "futebol, bocha, natacao,", s)

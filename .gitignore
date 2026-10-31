@@ -9,3 +9,4 @@ dist
 playnite/**/bin/
 playnite/**/obj/
 art/figurinhas/out/
+jogos/jogos-de-verao/testes/vendor/

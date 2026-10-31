@@ -31,7 +31,7 @@ O plano tem 21 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
     - Bocha na areia (`cart2/ev_bocha.js`): aprovada como protótipo ("muito legal e desafiante"), agora é lapidar;
-    - Voo do teco-teco (`cart2/ev_teco.js`): esperando o teste do dono.
+    - Voo do teco-teco (`cart2/ev_teco.js`): refeito em 3D, esperando o teste do dono.
   - Faltam, nesta ordem: Paraquedismo e Corrida de bugue.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
@@ -132,29 +132,42 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - bolas, cancha e vila são desenhadas pelo jogo;
   - os pedidos estão na página de pedidos: bolas, peças, 4 pranchas de cada personagem e a vila vista de cima em 4 horários (o pedido da noite só muda a luz).
 
-### Voo do teco-teco (como funciona)
-- **Cena:** vista de lado. Decola da pista de grama do Aeroclube da Restinga (segurar ↑ com uns 65 px/s) e voa 90 s pela costa; a câmera segue o avião.
-- **Controles:** ↑ ↓ (ou o analógico) levantam e abaixam o nariz; ✕/Espaço dá o turbo (1,1 s), que recarrega em 4 s. No celular, botões ▲ ▼ e Turbo.
-- **Física:**
-  - sustentação proporcional à velocidade ao quadrado e ao ângulo entre o nariz e o caminho; estol a 15°;
-  - arrasto (com o arrasto induzido), empuxo e gravidade;
-  - o nariz volta sozinho para o ângulo de voo nivelado (sem comando, voa reto a uns 120 px/s);
-  - devagar e de nariz alto, perde a sustentação e cai de bico;
-  - segurar ↑ a uns 135 px/s faz um looping completo (a 75 px/s, estola);
-  - o ar fica fraco perto do teto, a 560 px de altura.
-- **Pontos:**
-  - argola 100 × sequência (até ×8); raspar na borda perde a sequência, mas não bate;
-  - balão 50, balão dourado 250 (há rodas de 8 balões que pedem um looping);
-  - looping 450, looping invertido 700;
-  - rasante sobre o marco entre 200 e 880 (quanto mais baixo, mais);
-  - passar por baixo do viaduto 900.
-- **Marcos** (a cada 2.200 a 2.600 px): farol na falésia, viaduto do skatepark, laje com a cesta e roda-gigante, em ciclo. Gaivotas voam em bandos. O percurso é sorteado a cada voo.
-- **Bater:**
-  - em marco, gaivota ou água, o avião rodopia 1,1 s, perde embalo e a sequência, sem acabar a prova;
-  - na pista, encostar não é batida.
-- **Medalhas:** bronze 5.000, prata 12.000, ouro 19.000.
-- **Teste:** `testes/teco.cjs` (física e piloto automático em 3 níveis: muito bom de 13 a 21 mil pontos, médio de 11 a 23 mil, fraco de 7 a 10 mil) e `testes/tcshots.cjs` (fotos em cada marco).
-- **Arte provisória:** tudo desenhado pelo jogo. Os pedidos estão na página de pedidos (18 pedidos: o avião com o IAmiguinho, expressões, faixa, os 4 marcos, argola, balões e gaivota, e o céu com o aeroclube em 4 horários).
+### Voo do teco-teco (como funciona, 2ª versão em 3D)
+O dono reprovou a 1ª versão (de lado, com física de estol): ficava muito complicado subir. Ele pediu movimentação livre, em 3D.
+- **3D:**
+  - usa o three.js r160, carregado do jsDelivr (`<script async>` no começo da página, posto pelo `build3.py`);
+  - a cena é desenhada numa tela à parte e copiada para a tela do jogo, com os avisos 2D por cima;
+  - sem 3D no aparelho, aparece um aviso;
+  - nos testes, o Playwright serve uma cópia local do r160 (`testes/vendor/three-r160.min.js`, que fica fora do repositório).
+- **Controles (voo livre de jogo):**
+  - ◀ ▶ fazem a curva (o avião inclina);
+  - ▲ sobe e ▼ desce; soltando, ele volta a voar reto e nivelado;
+  - ✕/Espaço dá o turbo (1,2 s, recarrega em 4 s);
+  - ○/X faz um giro de 360° (150 pontos);
+  - segurar ▲ subindo por 0,8 s faz o looping (450); segurar ▼ acima de 70 m faz o looping invertido (700);
+  - no celular, direcional completo, Turbo e Giro.
+- **Voo:**
+  - a velocidade é constante (30 m/s; 48 m/s no turbo);
+  - decolagem automática na pista nos primeiros 2 s;
+  - teto de 220 m;
+  - longe demais da costa, ele faz a curva de volta sozinho.
+- **Percurso fixo em circuito de 28 argolas** passando pelos marcos:
+  - a próxima argola brilha e tem uma setinha em cima; uma seta na borda da tela aponta para ela quando está fora da vista;
+  - em sequência, cada argola vale 100 × sequência, até ×8; a sequência zera se passar 12 s sem argola;
+  - a volta completa vale 1.000 (em 90 s, dá cerca de 18 argolas);
+  - raspar na argola só zera a sequência.
+- **Outros pontos e perigos:**
+  - balões: 50 cada, o dourado 250;
+  - gaivotas voando em roda (bater faz o avião rodopiar);
+  - rasante a até 12 m acima do topo de um marco: de 200 a 800;
+  - passar por baixo do viaduto: 900.
+- **Mundo:**
+  - costa ondulada, praia, morros, ilhotas e mar;
+  - marcos: farol na falésia, viaduto do skatepark, laje com a cesta, roda-gigante girando e o hangar do aeroclube.
+- **Bater:** no chão, na água, em marco ou em gaivota, o avião rodopia 1,1 s, perde embalo e a sequência; a prova continua.
+- **Medalhas:** bronze 5.000, prata 11.000, ouro 17.000.
+- **Testes:** `testes/teco3d.cjs` (curva, subida, fotos de cada marco e piloto automático: de 10 a 13 mil pontos só com argolas).
+- **Arte provisória:** formas 3D simples, com sombreado de desenho animado e contorno escuro. A faixa puxada atrás saiu, porque em 3D ficava entre a câmera e o avião. A página de pedidos troca as pranchas de lado por um céu panorâmico pintado em 4 horários.
 
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |

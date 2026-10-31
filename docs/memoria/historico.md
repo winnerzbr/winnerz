@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, Voo do teco-teco refeito em 3D
+- **Avaliação do dono:** "Ficou ruim a jogabilidade, é muito complicado fazer o avião subir. Ideal é que tenha movimentação livre. Faça em 3D."
+- **Feito:**
+  - voo livre em 3D com three.js r160 (do jsDelivr), câmera atrás do avião;
+  - ◀ ▶ fazem a curva e ▲ ▼ sobem e descem; soltando, o avião se nivela sozinho, sem estol;
+  - circuito de 28 argolas pela costa, com a próxima brilhando e uma seta na borda;
+  - balões, gaivotas, rasante nos marcos, passagem por baixo do viaduto, looping, looping invertido e giro;
+  - detalhes em `jogos-de-verao.md`.
+- **Decisão técnica:** a cena 3D é desenhada numa tela à parte e copiada para a tela do jogo, então o resto do jogo não mudou.
+- **Página de pedidos:** o Teco-teco agora pede só o céu panorâmico pintado (4 horários); as pranchas de lado saíram.
+- **Pendente:** o dono testar o 3D, inclusive no celular.
+
 ## 31/10/2026: Jogos de Verão, Voo do teco-teco
 - **Bocha:** depois da correção das bolas no buraco, o dono manteve como protótipo inicial.
 - **Voo do teco-teco** (`cart2/ev_teco.js`), entre a Canoagem e o Futebol de areia:

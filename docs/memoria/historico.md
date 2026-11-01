@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pedidos do pingue-pongue, comemorar e lamentar
+- **O dono:** faltava o pedido (prompt) de comemorar e lamentar do pingue-pongue.
+- **Feito:** a página "Pedidos das provas novas" ganhou, no fim do Pingue-pongue, os grupos "IAmiguinho: comemorar e lamentar" e "Amiguinho: comemorar e lamentar" (4 pedidos, 8 quadros cada, com a raquete aprovada junto, visor em branco, sem bola). Ficaram no fim da prova para não mudar a numeração dos pedidos já marcados como feitos. A nota da prova diz que as 8 pranchas do IAmiguinho já estão no jogo.
+
 ## 01/11/2026: Pingue-pongue, IAmiguinho pintado (8 pranchas)
 - **O dono mandou** as 8 pranchas do IAmiguinho no tênis de mesa (pronto, passos de lado, topspin, cortada, efeito por baixo, saque, andando com a raquete atrás e balão).
 - **Feito:** recortadas, medidas pela régua (todas dentro do modelo) e no jogo, com a raquete desenhada na mão e o rosto aceso no visor; a bolinha desenhada no saque saiu (o jogo usa a dele, posta na mão desenhada). Entraram também no editor (Rostos e quadros) e na Prévia das pranchas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

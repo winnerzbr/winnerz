@@ -87,7 +87,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Escalas pela régua (cabeça igualada à do vôlei): pronto 1,064 · passos de lado 1,009 · topspin 1,040 · cortada 1,017 · efeito 1,015 · saque 1,043 · andando com a raquete atrás 1,059 · balão 1,099. Cabeça de cada quadro igualada à mediana da prancha (±12%). O meio da cabeça (âncora) não conta a raquete vermelha.
   - Qual prancha aparece: parado → pronto (laço); andando → passos de lado (para trás, ao contrário); preparado andando → andando com a raquete atrás; preparado parado → os quadros antes do toque do golpe (o braço vai para trás com o tempo de preparo); depois da batida → do toque até o fim. Rebater = topspin, cortada = cortada, efeito e toque curto = efeito, balão = balão. Toque no quadro 4 (no balão e no saque, 5).
   - Saque: bolinha na mão (1), jogando para cima (2 e 3), raquete atrás (4), batida (5 a 8). A bolinha desenhada saiu dos quadros 1 a 3 (o jogo desenha a dele); na mão, a bolinha do jogo aparece no lugar da mão desenhada e, ao subir, volta ao caminho de sempre em 0,15 s (só o desenho; a física é a mesma).
-  - Comemorar e lamentar seguem com o desenho do vôlei e a raquete separada. O Amiguinho continua com o desenho do vôlei (sem pranchas do pingue-pongue dele ainda).
+  - Comemorar e lamentar seguem com o desenho do vôlei e a raquete separada. Os pedidos delas (IAmiguinho e Amiguinho) estão no fim do Pingue-pongue na página de pedidos. O Amiguinho continua com o desenho do vôlei (sem pranchas do pingue-pongue dele ainda).
   - No editor (Rostos e quadros): "IAmiguinho no pingue-pongue".
   - Prévia: as 8 entraram somando à página publicada (`previa_pp.py`).
   - Teste: `testes/ppintado.cjs` (folha com os 8 movimentos e fotos do jogo).

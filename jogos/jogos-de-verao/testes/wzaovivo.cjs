@@ -1,0 +1,20 @@
+// editor: rosto muda ao vivo enquanto se digita o número (sem sair do campo) e os números acompanham o arraste; dica das mecânicas
+const { chromium } = require('playwright');
+(async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1400, height: 900 } }); await p.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+  const errs = []; p.on('pageerror', (e) => errs.push(e.message));
+  await p.goto('http://localhost:8765/index.html?wzlocal=1'); await p.waitForTimeout(1200); await p.evaluate(() => localStorage.clear()); await p.reload(); await p.waitForTimeout(1500);
+  await p.click('#wz-abrir'); await p.waitForTimeout(500);
+  const lin = p.locator('#wz .lin', { hasText: 'vmax' }).first();
+  console.log('dica da velocidade máxima:', JSON.stringify(await lin.getAttribute('title')));
+  const semDica = await p.evaluate(() => { const out = []; for (const e of EVENTS) for (const nm of WZ_REG[e.id] || []) for (const f of wzFolhas(WZ_OBJS[nm], nm)) if (!wzExpl(f.path)) out.push(f.path); return out; });
+  console.log('números sem explicação:', semDica.length, semDica.slice(0, 20).join(', '));
+  await p.click('#wz nav button >> nth=3'); await p.waitForTimeout(800);
+  const cv = p.locator('#wz canvas.rc'); const a = await cv.screenshot();
+  const inp = p.locator('#wz input[data-k=fx]'); await inp.click(); await inp.fill(''); await p.keyboard.type('6'); await p.waitForTimeout(250);
+  const b2 = await cv.screenshot();
+  console.log('mudou o desenho enquanto digita (sem sair do campo):', !a.equals(b2), '· campo ainda com o cursor:', await p.evaluate(() => document.activeElement && document.activeElement.dataset.k), '· valor', await p.evaluate(() => JSON.stringify(WZE.cfg.rostos['ia.idle.0'])));
+  await p.keyboard.press('ArrowUp'); await p.waitForTimeout(150); console.log('setinha do campo:', await p.evaluate(() => WZE.cfg.rostos['ia.idle.0'].fx));
+  await p.click('#wz .chips button:has-text("Mover o rosto")'); const bb = await cv.boundingBox();
+  await p.mouse.move(bb.x + 280, bb.y + 280); await p.mouse.down(); await p.mouse.move(bb.x + 280, bb.y + 300, { steps: 3 });
+  console.log('número acompanha o arraste (antes de soltar):', await p.locator('#wz input[data-k=fy]').inputValue()); await p.mouse.up();
+  console.log(errs.join(' | ') || 'sem erros'); await b.close(); })();

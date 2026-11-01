@@ -35,6 +35,69 @@ const WZ_DESC = {
   BC: { x0: 'Cancha: esquerda (casada com o desenho da vila)', x1: 'Cancha: direita', y0: 'Cancha: em cima', y1: 'Cancha: embaixo', sx: 'Linha de lançamento (x)', sy: 'Linha de lançamento (y)', rb: 'Raio da bola',
     rj: 'Raio do bolim', fc: 'Atrito da areia', fv: 'Atrito que cresce com a velocidade', G: 'Força dos montinhos e buracos', meter: 'Escala da medida', fofa: 'Freio da areia fofa' },
 };
+// explicação de cada número (aparece ao parar o mouse em cima da linha). Chave: "OBJ.campo" ou "OBJ.*.campo" (vale para todos os itens).
+const WZ_EXPL = {
+  'ev.dur': 'Quanto tempo dura a partida, em segundos. 0 quer dizer que a prova acaba por tentativas ou pontos, não pelo relógio.',
+  'ev.med.0': 'Pontos que a pessoa precisa fazer para ganhar a medalha de bronze.', 'ev.med.1': 'Pontos para ganhar a medalha de prata.', 'ev.med.2': 'Pontos para ganhar a medalha de ouro.',
+  'SF_MAN.*.v': 'Pontos que a manobra vale quando o pouso dá certo.', 'SF_MAN.*.d': 'Quanto tempo a manobra leva no ar (segundos). Maior = precisa de um voo mais longo; pousar antes de acabar é queda.',
+  'SOBJ.*.r': 'Tamanho do objeto na colisão (raio). Maior = mais fácil de pegar ou de bater.', 'SOBJ.*.v': 'Pontos que o objeto dá ao ser pego.',
+  'HP_AIR.*.v': 'Pontos da manobra no ar.', 'HP_AIR.*.d': 'Tempo que a manobra leva (segundos). Maior = precisa de mais altura.',
+  'HP_BTN.*.v': 'Pontos da manobra.', 'HP_BTN.*.d': 'Tempo que a manobra leva (segundos).', 'HP_BTN.*.f': 'Qual desenho a manobra usa (número do quadro).', 'HP_BTN.*.tmp': 'Ordem da manobra no tutorial/lista.',
+  'HP_LIP.*.v': 'Pontos da manobra na borda.', 'HP_LIP.*.T': 'Quanto tempo dá para ficar na borda antes de cair (segundos).',
+  'EB_BOLAS.*.g': 'Peso da bola (gravidade). Maior = cai mais rápido; menor = flutua.', 'EB_BOLAS.*.ar': 'Resistência do ar. Maior = a bola freia mais no ar (bola de praia).',
+  'EB_BOLAS.*.vento': 'Quanto o vento empurra a bola. Maior = mais difícil com vento.', 'EB_BOLAS.*.sobe': 'Força do toque para cima. Maior = a bola sobe mais a cada toque.',
+  'EB_BOLAS.*.espalha': 'Quanto o toque joga a bola para os lados.', 'EB_BOLAS.*.curva': 'Quanto a bola faz curva depois da firula.',
+  'EB_BOLAS.*.quica': 'Quanto a bola quica no chão (0 = não quica, 1 = quica igual).', 'EB_BOLAS.*.rola': 'Quanto a bola continua rolando no chão.',
+  'EB_BOLAS.*.giro': 'Velocidade do giro do desenho da bola (só visual).', 'EB_BOLAS.*.danca': 'Desvio de lado a cada toque (a bola "dança"). Maior = mais imprevisível.', 'EB_BOLAS.*.r': 'Tamanho da bola (raio). Maior = mais fácil de acertar.',
+  'PT_MAN.*.v': 'Pontos da manobra no ar.', 'PT_MAN.*.d': 'Tempo que a manobra leva (segundos).', 'PT_GRIND.*.f': 'Qual desenho o estilo usa no corrimão.', 'PT_GRIND.*.x': 'Multiplicador de pontos do estilo no corrimão.',
+  'BQ.G': 'Gravidade da bola. Maior = arremesso mais "reto" e rápido.', 'BQ.VMIN': 'Força do arremesso mais fraco.', 'BQ.VMAX': 'Força do arremesso mais forte.',
+  'BQ.CHG': 'Tempo segurando o botão até a força máxima (segundos).', 'BQ.R': 'Tamanho da bola.', 'BQ.RR': 'Tamanho do aro. Maior = mais fácil de acertar.', 'BQ.PR': 'Folga na beira do aro: quanto a bola pode raspar e ainda entrar.',
+  'BQ.TRES': 'Distância da linha de 3 pontos.', 'BQ.CD': 'Espera entre um arremesso e outro (segundos).', 'BQ.SPD': 'Velocidade de andar.', 'BQ.NEAR': 'O mais perto da cesta que dá para chegar.',
+  'PP.g': 'Gravidade da bolinha.', 'PP.k': 'Resistência do ar na bolinha.', 'PP.cm': 'Força do efeito (quanto o efeito curva a bola).', 'PP.r': 'Tamanho da bolinha.',
+  'PP.tx0': 'Começo da mesa (esquerda).', 'PP.tx1': 'Fim da mesa (direita).', 'PP.nx': 'Posição da rede.', 'PP.netH': 'Altura da rede. Maior = mais bolas na rede.', 'PP.half': 'Metade do comprimento da mesa.',
+  'PP.sweet': 'Tamanho do ponto bom da raquete. Maior = mais fácil acertar em cheio.', 'PP.reachF': 'Alcance da raquete para a frente.', 'PP.reachB': 'Alcance da raquete para trás.',
+  'PP.hMin': 'Altura mais baixa que dá para rebater.', 'PP.hMax': 'Altura mais alta que dá para rebater.', 'PP.spd': 'Velocidade de andar.', 'PP.armSpd': 'Velocidade andando com a raquete preparada.',
+  'PP.accel': 'Aceleração ao andar.', 'PP.ts': 'Multiplicador da velocidade da batida.', 'PP.home.0': 'Posição de espera do lado esquerdo.', 'PP.home.1': 'Posição de espera do lado direito.', 'PP.arm': 'Força extra ao preparar o golpe com antecedência.', 'PP.sw': 'Duração do movimento da raquete (segundos).',
+  'BX.G': 'Gravidade. Maior = voos mais curtos.', 'BX.GY': 'Altura do chão na tela.', 'BX.PED': 'Força da pedalada.', 'BX.VPED': 'Velocidade máxima só pedalando.', 'BX.PUMP': 'Força do bombeado nas rampas.',
+  'BX.DRAG': 'Resistência (freio natural).', 'BX.VMAX': 'Velocidade máxima.', 'BX.VMIN': 'Velocidade mínima.', 'BX.ROT': 'Velocidade do giro no ar.', 'BX.SX': 'Posição da bicicleta na tela.', 'BX.CLEAN': 'Margem do pouso limpo: quanto a bike pode estar torta e ainda contar como pouso limpo.', 'BX.WOB': 'Margem do pouso "ufa" (torto, mas sem cair).',
+  'BX_MAN.*.v': 'Pontos da manobra.', 'BX_MAN.*.d': 'Tempo que a manobra leva (segundos).',
+  'OB.PXM': 'Pixels por metro (escala da pista).', 'OB.SPR': 'Velocidade correndo no máximo (metros por segundo).', 'OB.JOG': 'Velocidade trotando.', 'OB.WALK': 'Velocidade poupando.', 'OB.ACC': 'Aceleração.',
+  'OB.DRAIN': 'Quanto o fôlego cai correndo. Maior = cansa mais rápido.', 'OB.REC': 'Quanto o fôlego volta trotando.', 'OB.RECW': 'Quanto o fôlego volta poupando.', 'OB.JT': 'Duração do pulo (segundos).', 'OB.JH': 'Altura do pulo.', 'OB.SX': 'Posição da pessoa na tela.',
+  'OB_TIPO.*.h': 'Altura do obstáculo (precisa pular mais alto que isso).', 'OB_TIPO.*.w': 'Largura do obstáculo.',
+  'FR.G': 'Gravidade do frisbee.', 'FR.KL': 'Sustentação: quanto o frisbee plana. Maior = voa mais longe.', 'FR.KD': 'Arrasto: quanto o ar freia o frisbee.', 'FR.VMIN': 'Força do lançamento mais fraco.', 'FR.VMAX': 'Força do lançamento mais forte.',
+  'FR.CHG': 'Tempo segurando até a força máxima (segundos).', 'FR.X0': 'De onde o frisbee sai.', 'FR.AMIN': 'Ângulo mais baixo de mira.', 'FR.AMAX': 'Ângulo mais alto de mira.', 'FR.AV': 'Velocidade da mira subindo e descendo.', 'FR.CATCH': 'Distância para o alvo/pessoa pegar o frisbee.',
+  'AR.G': 'Gravidade da flecha.', 'AR.VMIN': 'Força da flecha mais fraca.', 'AR.VMAX': 'Força da flecha mais forte.', 'AR.DRAW': 'Tempo puxando o arco até a força máxima.', 'AR.X0': 'De onde a flecha sai.', 'AR.AMIN': 'Ângulo mais baixo de mira.', 'AR.AMAX': 'Ângulo mais alto de mira.',
+  'DU.G': 'Gravidade.', 'DU.JV': 'Força do pulo.', 'DU.SPD': 'Velocidade de andar.', 'DU.DSPD': 'Velocidade do pique.', 'DU.DT': 'Duração do pique (segundos).', 'DU.DCD': 'Espera para dar outro pique.',
+  'DU.RATE': 'Intervalo entre tiros de água (segundos). Menor = atira mais rápido.', 'DU.GOTA': 'Tamanho da gota.', 'DU.WETG': 'Quanto molhado alguém aguenta.', 'DU.STUN': 'Tempo atordoado depois de encharcar.', 'DU.REF': 'Água no reservatório (quantos tiros cabem).', 'DU.DRY': 'Velocidade que seca.',
+  'CN.YT': 'Margem de cima do rio.', 'CN.YB': 'Margem de baixo do rio.', 'CN.FLOW': 'Força da correnteza.', 'CN.DRAG': 'Freio da água na canoa.', 'CN.VMAX': 'Velocidade máxima da canoa.', 'CN.CAMX': 'Posição da canoa na tela.', 'CN.PXM': 'Pixels por metro.',
+  'FU.G': 'Gravidade das pessoas.', 'FU.BG': 'Gravidade da bola.', 'FU.JV': 'Força do pulo.', 'FU.SPD': 'Velocidade de correr.', 'FU.R': 'Tamanho da bola.', 'FU.GH': 'Altura do gol.', 'FU.GW': 'Largura (fundo) do gol.',
+  'FU.KICK': 'Força do chute normal.', 'FU.KMAX': 'Força do chute carregado.', 'FU.REACH': 'Alcance do pé (distância para chutar).', 'FU.BOUNCE': 'Quanto a bola quica (0 a 1).',
+  'NT.PXM': 'Pixels por metro.', 'NT.LEN': 'Comprimento da piscina/raia (metros).', 'NT.VMAX': 'Velocidade máxima nadando.', 'NT.GLIDE': 'Quanto a pessoa desliza entre as braçadas.',
+  'NT.PERF': 'Janela da braçada perfeita (segundos). Maior = mais fácil.', 'NT.GOOD': 'Janela da braçada boa (segundos).', 'NT.AIR': 'Tempo no ar no mergulho da saída.', 'NT.BREATH': 'Braçadas entre uma respiração e outra.',
+  'JS.WW': 'Largura do mar (mundo).', 'JS.WH': 'Altura do mar (mundo).', 'JS.CX': 'Centro da ilha (x).', 'JS.CY': 'Centro da ilha (y).', 'JS.ISL': 'Tamanho da ilha.', 'JS.VMAX': 'Velocidade máxima do jet ski.',
+  'JS.VBOOST': 'Velocidade no turbo.', 'JS.ACC': 'Aceleração.', 'JS.LAPS': 'Voltas da corrida.', 'JS.CP': 'Distância da boia que conta como contornar.', 'JS_MAN.*.v': 'Pontos da manobra.', 'JS_MAN.*.d': 'Tempo que a manobra leva no ar (segundos).',
+  'DIVE.vx': 'Velocidade do peixinho (mergulho).', 'DIVE.vy': 'Pulinho do peixinho (negativo = para cima).', 'DIVE.fric': 'Atrito da areia no mergulho. Maior = para mais rápido.', 'DIVE.rest': 'Tempo deitado antes de levantar.',
+  'SERVE.v0': 'Força do saque mais fraco.', 'SERVE.v1': 'Força do saque mais forte.', 'SERVE.max': 'Tempo segurando até a força máxima.', 'SERVE.back': 'Quanto o personagem recua para sacar.',
+  'SPEC.v': 'Força do golpe especial.', 'SPEC.min': 'Ângulo mais alto do especial.', 'SPEC.max': 'Ângulo mais baixo do especial.', 'SPEC.maxT': 'Tempo máximo mirando o especial.', 'SPEC.reach': 'Alcance da mão no especial.',
+  'SPK.T': 'Duração do giro do braço na cortada.', 'SPK.L': 'Comprimento do braço.', 'SPK.sx': 'Posição do ombro (x).', 'SPK.sy': 'Posição do ombro (y).', 'SPK.e': 'Quanto da força do braço passa para a bola.', 'SPK.grip': 'Quanto a mão "segura" e direciona a bola.',
+  'SPK.vmax': 'Força máxima da cortada.', 'SPK.ph0': 'Ângulo em que o braço começa o giro.', 'SPK.hand': 'Tamanho da mão (área que acerta).', 'SPK.chMax': 'Tempo segurando o botão para a cortada mais forte.', 'SPK.Lmin': 'Braço mais curto.', 'SPK.Lmax': 'Braço mais esticado.',
+  'SPK_F.x': 'Ponto ideal da bola para a cortada perfeita (à frente).', 'SPK_F.y': 'Ponto ideal da bola para a cortada perfeita (altura).',
+  'SPKG.T': 'Duração do golpe de baixo para cima.', 'SPKG.L': 'Comprimento do braço.', 'SPKG.sx': 'Posição do ombro (x).', 'SPKG.sy': 'Posição do ombro (y).', 'SPKG.ph0': 'Ângulo em que o braço começa.', 'SPKG.vmax': 'Força máxima.', 'SPKG.hand': 'Tamanho da mão.', 'SPKG.Lmin': 'Braço mais curto.', 'SPKG.Lmax': 'Braço mais esticado.',
+  'OPP.*.lvl': 'Nível do adversário: 0 = bem fácil, 1 = muito bom. Maior = erra menos e reage mais rápido.', 'OPP.*.pts': 'Pontos para vencer a partida contra este adversário.',
+  'BG.padW': 'Metade da largura da esteira de turbo. Maior = esteira mais larga.', 'BG.kr': 'Tamanho do corpo do bugue nas batidas entre bugues.', 'BG.kf': 'Distância do centro do bugue até a frente e a traseira nas batidas.',
+  'BG.boxR': 'Tamanho da caixa de item para pegar. Maior = mais fácil pegar.', 'BG.boxT': 'Segundos até a caixa reaparecer depois de pega.', 'BG.voltas': 'Quantas voltas tem cada corrida.',
+  'BG.hw': 'Metade da largura da pista. Maior = pista mais larga (muda o desenho também).', 'BG.r': 'Tamanho do bugue na batida com a mureta.', 'BG.vmax': 'Velocidade máxima dos bugues.', 'BG.eng': 'Força do motor (aceleração).',
+  'BG.brake': 'Força do freio.', 'BG.grip': 'Aderência nas curvas. Maior = escorrega menos.', 'BG.gripD': 'Aderência derrapando. Menor = derrapa mais.', 'BG.wb': 'Distância entre os eixos. Maior = curva mais aberta.',
+  'BG.water': 'Quanto a água freia o bugue (atalho da lagoa).', 'BG.boostV': 'Velocidade a mais no turbo.', 'BG.sw': 'Metade da largura dos atalhos.', 'BG.Z': 'Zoom da câmera. Menor = vê mais longe.', 'BG.g': 'Gravidade nos saltos. Maior = voos mais curtos.',
+  'BC.x0': 'Lado esquerdo da cancha (o desenho da vila acompanha).', 'BC.x1': 'Lado direito da cancha.', 'BC.y0': 'Lado de cima da cancha.', 'BC.y1': 'Lado de baixo da cancha.', 'BC.sx': 'De onde as bolas saem (x).', 'BC.sy': 'De onde as bolas saem (y).',
+  'BC.rb': 'Tamanho das bolas.', 'BC.rj': 'Tamanho do bolim.', 'BC.fc': 'Atrito da areia. Maior = as bolas param antes.', 'BC.fv': 'Atrito que aumenta com a velocidade (bola rápida freia mais).',
+  'BC.G': 'Força dos montinhos e buracos sobre a bola. Maior = desviam mais.', 'BC.meter': 'Escala usada na medida da distância.', 'BC.L': 'Comprimento útil da cancha (calculado sozinho).',
+};
+function wzExpl(path) {
+  if (path.startsWith('ev:')) { const k = path.split('.').slice(1).join('.'); return WZ_EXPL['ev.' + k] || ''; }
+  const p = path.split('.'), o = p[0];
+  return WZ_EXPL[path] || WZ_EXPL[`${o}.*.${p[p.length - 1]}`] || WZ_EXPL[`${o}.*.${p.slice(2).join('.')}`] || '';
+}
 const WZ_EVF = { dur: 'Duração (segundos; 0 = por tentativas)', 'med.0': 'Pontos para o bronze', 'med.1': 'Pontos para a prata', 'med.2': 'Pontos para o ouro', ia: 'Pontos do IAmiguinho (rival)' };
 // conjuntos de desenhos pintados com rosto (o mesmo desenho do jogo, chamado pela função do próprio jogo)
 const WZ_SETS = [
@@ -175,6 +238,7 @@ const WZ_CSS = `
 #wz .ajuda{font-size:12.5px;color:#4a4f72;margin:0 0 10px;max-width:760px}
 #wz .lin{display:grid;grid-template-columns:minmax(150px,280px) 1fr 92px 28px;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid #e3d9c3}
 #wz .lin.mud{background:#fff3c4}
+#wz .lin .q{display:inline-grid;place-items:center;width:16px;height:16px;margin-left:6px;border-radius:50%;background:#1b1f4f;color:#fff6d6;font-size:11px;font-weight:700;cursor:help;vertical-align:1px}
 #wz .lin small{display:block;color:#6b6f8f;font-size:11px}
 #wz input[type=number],#wz input[type=text],#wz select,#wz textarea{font:inherit;padding:5px 7px;border:1.5px solid #b9ad94;border-radius:6px;background:#fff;color:#1b1f4f;width:100%}
 #wz textarea{min-height:64px;resize:vertical}
@@ -281,7 +345,8 @@ function wzLinha(path, rotulo, sub, sec = 'mec') {
   const inp = el('input', { type: 'number', step: 'any', value: String(atual ?? orig) });
   const rng = el('input', { type: 'range' }); const span = Math.max(Math.abs(origVal) * 2, 1);
   rng.min = String(Math.min(0, origVal * 3, -span * (origVal < 0 ? 1 : 0))); rng.max = String(Math.max(origVal * 3, span)); rng.step = String(Math.abs(origVal) < 2 ? .01 : Math.abs(origVal) < 50 ? .1 : 1); rng.value = String(atual ?? orig);
-  const linha = el('div', { class: 'lin' + (atual !== undefined ? ' mud' : '') }, el('div', {}, rotulo, sub ? el('small', {}, sub) : null), rng, inp,
+  const ex = sec === 'mec' ? wzExpl(path) : '';
+  const linha = el('div', { class: 'lin' + (atual !== undefined ? ' mud' : ''), title: ex ? `${ex}\nOriginal: ${origVal}` : `Original: ${origVal}` }, el('div', {}, rotulo, ex ? el('span', { class: 'q', 'aria-hidden': 'true' }, '?') : null, sub ? el('small', {}, sub) : null), rng, inp,
     el('button', { type: 'button', title: `Voltar ao original (${origVal})`, on: { click: () => { delete WZE.cfg[sec][path]; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, '↺'));
   const set = (v) => { if (!isFinite(v)) return; if (Math.abs(v - origVal) < 1e-12) delete WZE.cfg[sec][path]; else WZE.cfg[sec][path] = v; linha.classList.toggle('mud', WZE.cfg[sec][path] !== undefined); WZ.apply(WZE.cfg); wzMudou(); };
   rng.addEventListener('input', () => { inp.value = rng.value; set(+rng.value); });
@@ -291,7 +356,7 @@ function wzLinha(path, rotulo, sub, sec = 'mec') {
 // o valor original de um caminho (antes de qualquer mudança)
 function wzOrig(path) { const save = WZ.clone(WZE.cfg); const c = WZ.clone(WZE.cfg); for (const s of ['mec', 'textos', 'pistas']) delete c[s][path]; WZ.apply(c); const v = WZ.get(path); WZ.apply(save); return v; }
 function wzMec(m) {
-  m.append(el('h2', {}, 'Mecânicas'), el('p', { class: 'ajuda' }, 'Escolha a prova e mude os números. A linha fica amarela quando está diferente do original; o ↺ volta ao original. Use "Testar" lá em cima para jogar a prova com as mudanças. Os nomes técnicos aparecem quando o número ainda não tem nome em português.'));
+  m.append(el('h2', {}, 'Mecânicas'), el('p', { class: 'ajuda' }, 'Escolha a prova e mude os números. A linha fica amarela quando está diferente do original; o ↺ volta ao original. Pare o mouse em cima de uma linha (ou do ?) para ver o que aquele número faz. Use "Testar" lá em cima para jogar a prova com as mudanças. Os nomes técnicos aparecem quando o número ainda não tem nome em português.'));
   m.append(el('div', { class: 'chips' }, ...EVENTS.map((e) => el('button', { type: 'button', class: WZE.ev === e.id ? 'on' : '', on: { click: () => { WZE.ev = e.id; wzRender(); } } }, e.name))));
   const ev = EVENTS.find((e) => e.id === WZE.ev) || EVENTS[0];
   m.append(el('h3', {}, 'Partida e medalhas'));
@@ -475,7 +540,11 @@ function wzRostos(m) {
   const sel = el('select', {}, ...anims.map((a) => el('option', { value: a, selected: a === WZE.ran }, a))); sel.addEventListener('change', () => { WZE.ran = sel.value; WZE.rk = 0; wzRender(); });
   const cv = el('canvas', { class: 'rc' }), g = cv.getContext('2d'), key = () => `${S.id}.${WZE.ran}.${WZE.rk}`;
   const cur = () => WZE.cfg.rostos[key()] || {};
-  const setv = (k, v) => { const o = { ...cur(), [k]: v }; if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; else WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); wzMudou(); desenha(); campos(); };
+  const setv = (k, v) => { const o = { ...cur(), [k]: v }; if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; else WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); wzMudou(); desenha(); marcaTira(); };
+  // só atualiza as marquinhas dos quadros mudados (sem refazer os campos, para não perder o que está sendo digitado)
+  // os números acompanham o arraste ao vivo
+  const syncCampos = () => { const o = cur(); ctl.querySelectorAll('input[data-k]').forEach((i) => { if (document.activeElement !== i) i.value = String(o[i.dataset.k] ?? i.dataset.def); }); marcaTira(); };
+  const marcaTira = () => tira.querySelectorAll('button').forEach((b, k) => { b.textContent = `${k + 1}${mud(k)}`; });
   let ex = WZE.rex || 0, toca = false, zoom = WZE.rzoom || 5;
   const tira = el('div', { class: 'tira' });
   const ctl = el('div', {});
@@ -483,7 +552,7 @@ function wzRostos(m) {
   function campos() {
     tira.replaceChildren(...A0.a[WZE.ran].f.map((_, k) => el('button', { type: 'button', class: k === WZE.rk ? 'on' : '', on: { click: () => { WZE.rk = k; toca = false; desenha(); campos(); } } }, `${k + 1}${mud(k)}`)));
     const o = cur(), f = A0.a[WZE.ran].f[WZE.rk];
-    const num = (rot, k, step, def, conv = (v) => v) => { const i = el('input', { type: 'number', step: String(step), value: String(o[k] ?? def) }); i.addEventListener('change', () => setv(k, conv(+i.value))); return el('div', { class: 'lin', style: 'grid-template-columns:1fr 110px' }, rot, i); };
+    const num = (rot, k, step, def, conv = (v) => v) => { const i = el('input', { type: 'number', step: String(step), value: String(o[k] ?? def) }); i.dataset.k = k; i.dataset.def = def; const go = () => { if (i.value === '' || i.value === '-' || !isFinite(+i.value)) return; setv(k, conv(+i.value)); }; i.addEventListener('input', go); i.addEventListener('change', go); return el('div', { class: 'lin', style: 'grid-template-columns:1fr 110px' }, rot, i); };
     ctl.replaceChildren(
       f.s ? el('div', {}, el('h3', {}, 'Rosto neste quadro'),
         num('Para a direita (pixels do desenho)', 'fx', 1, 0), num('Para baixo (pixels do desenho)', 'fy', 1, 0), num('Tamanho (1 = original)', 'fs', .02, 1), num('Giro (graus)', 'fr', 1, 0)) : el('p', { class: 'ajuda' }, 'Este quadro não tem visor (sem rosto).'),
@@ -522,11 +591,11 @@ function wzRostos(m) {
     else if (md === 'tam') o.fs = Math.round(Math.max(.3, Math.min(3, dr.o.fs * Math.exp(-dy / 150))) * 100) / 100;
     else if (md === 'giro') o.fr = Math.round(dr.o.fr + dx / 3);
     else { o.ax = Math.round(dr.o.ax + dx * k); o.ay = Math.round(dr.o.ay + dy * k); }
-    WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha();
+    WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha(); syncCampos();
   });
   cv.addEventListener('pointerup', () => { if (dr) { dr = null; const o = cur(); if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; WZ.apply(WZE.cfg); wzMudou(); campos(); } });
   // rodinha do mouse: tamanho do rosto
-  cv.addEventListener('wheel', (e) => { e.preventDefault(); const o = { fx: 0, fy: 0, fs: 1, fr: 0, ax: 0, ay: 0, ...cur() }; o.fs = Math.round(Math.max(.3, Math.min(3, o.fs * (e.deltaY < 0 ? 1.04 : 1 / 1.04))) * 100) / 100; WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha(); wzMudou(); clearTimeout(WZE.wt); WZE.wt = setTimeout(campos, 300); }, { passive: false });
+  cv.addEventListener('wheel', (e) => { e.preventDefault(); const o = { fx: 0, fy: 0, fs: 1, fr: 0, ax: 0, ay: 0, ...cur() }; o.fs = Math.round(Math.max(.3, Math.min(3, o.fs * (e.deltaY < 0 ? 1.04 : 1 / 1.04))) * 100) / 100; WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); desenha(); wzMudou(); syncCampos(); }, { passive: false });
   campos(); requestAnimationFrame(desenha);
   let t = 0; WZE.anim = setInterval(() => { if (!document.getElementById('wz-main')) return; if (toca) { t++; WZE.rk = t % A0.a[WZE.ran].f.length; desenha(); if (t % 4 === 0) campos(); } }, 125);
 }

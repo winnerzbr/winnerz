@@ -425,5 +425,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - as perguntas (nome da versão, confirmar) são janelas do próprio editor: a página do jogo não pode abrir as janelas de pergunta do navegador (antes, "Aplicar" podia não fazer nada);
   - rostos e quadros: tudo arrastando no desenho, com 4 modos (mover o rosto, tamanho ↕, girar ↔, mover o desenho), rodinha do mouse para o tamanho e o quadro anterior clarinho por baixo para encaixar;
   - aba nova "Cancha da bocha": a cena da bocha com os 4 cantos da cancha e o ponto de lançamento para arrastar (a vila pintada acompanha a cancha), sortear o relevo de novo e voltar ao original.
-- **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere).
+- **Ajustes de 31/10 (pedido do dono):**
+  - mecânicas: cada linha tem um "?" e mostra, com o mouse em cima, o que aquele número faz (e o valor original); as explicações ficam em `WZ_EXPL` (`cart2/editor.js`), por "OBJ.campo" ou "OBJ.*.campo"; todos os números listados têm explicação (conferido no teste);
+  - rostos e quadros: mudar o número já muda o desenho na hora, enquanto digita (e com as setinhas do campo), sem precisar clicar no quadro de novo; os números acompanham o arraste ao vivo.
+- **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere); `testes/wzaovivo.cjs` (explicações, rosto ao vivo digitando, números acompanhando o arraste).
 

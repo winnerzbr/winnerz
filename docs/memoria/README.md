@@ -8,7 +8,7 @@ Esta pasta guarda o que foi feito, decidido e mudado no site, nas lives e nos jo
 | `site.md` | O site: partes, decisões de visual e de funcionamento, o que está no ar e o que vem depois. |
 | `jogos-de-verao.md` | O jogo IAmiguinho: Jogos de Verão: provas, estilo pintado, como as pranchas viram jogo, páginas publicadas e pendências. |
 | `lives.md` | As lives e o IAmiguinho na live: personalidade, voz, overlay. |
-| `ideias.md` | Ideias do dono guardadas para fazer depois (ex.: o teaser de apresentação do IAmiguinho). |
+| `ideias.md` | Ideias do dono guardadas para fazer depois, e as que viraram trabalho (ex.: o teaser de apresentação do IAmiguinho, em produção; programas em `videos/teaser-iamiguinho/`). |
 
 ## Como manter
 - **No começo de cada trabalho**, o Claude lê:

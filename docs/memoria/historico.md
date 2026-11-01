@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Teaser do IAmiguinho, 1ª versão
+- **O dono mandou:** as 7 peças do teaser.
+- **Feito:** o vídeo montado em 16:9 e 9:16 (33,5 s, com som de ambiente e efeitos, sem música); programas em `videos/teaser-iamiguinho/`; plano e detalhes em `ideias.md`.
+- **Pendente:** o dono ver; a risada do cientista (áudio gravado).
+
 ## 31/10/2026: Teaser do IAmiguinho, pedidos das peças
 - **Pedido do dono:** produzir o vídeo do teaser. **Escolhas:** peças pintadas por ele + animação do Claude; 16:9 e 9:16; ambiente e efeitos, sem música.
 - **Feito:** os prompts das 7 peças na página de pedidos (seção "Teaser do IAmiguinho (vídeo)") e o plano de montagem em `ideias.md`.

@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Teaser do IAmiguinho, pedidos das peças
+- **Pedido do dono:** produzir o vídeo do teaser. **Escolhas:** peças pintadas por ele + animação do Claude; 16:9 e 9:16; ambiente e efeitos, sem música.
+- **Feito:** os prompts das 7 peças na página de pedidos (seção "Teaser do IAmiguinho (vídeo)") e o plano de montagem em `ideias.md`.
+- **Pendente:** o dono gerar as peças; a risada do cientista (gravar).
+
 ## 31/10/2026: Ideia registrada, teaser do IAmiguinho
 - **Pedido do dono:** registrar a ideia de um teaser de apresentação do IAmiguinho (galpão escuro, linha de produção de robôs sem boné, o cientista põe o boné em um deles e ele acende o visor).
 - **Feito:** a ideia completa ficou em `ideias.md` (arquivo novo, já no índice).

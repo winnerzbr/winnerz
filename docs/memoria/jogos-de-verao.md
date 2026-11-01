@@ -452,21 +452,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere); `testes/wzaovivo.cjs` (explicações, rosto ao vivo digitando, números acompanhando o arraste); `testes/wzrostos_vivo.cjs` (os 6 números em cada um dos 5 personagens mudam o desenho na hora); `testes/wzpista_estragada.cjs` (rascunho com atalho fora da pista não trava o rosto nem o jogo).
 
 ## Trilha sonora gravada (01/11)
-- **O dono mandou:** 7 músicas; "Carnaval na Areia" é a música tema.
+- **O dono mandou:** 22 músicas (7 primeiro e mais 15 no mesmo dia); "Carnaval na Areia" é a música tema. Cada prova tem a sua.
 - **Onde cada uma toca:**
-  - Carnaval na Areia (tema): a abertura, até a 1ª prova começar; e as provas Corrida na areia e Tiro com arco;
+  - Carnaval na Areia (tema): a abertura, até a 1ª prova começar;
   - Disco do Caranguejo: os menus e as telas de resultado depois da 1ª prova (volta do ponto onde parou);
-  - Forró do Coqueiro: vôlei, pingue-pongue e basquete;
-  - Onda Gigante: surfe, canoagem, natação, jet ski e duelo de água;
-  - Skate no Calçadão: half-pipe, patins, BMX e bugue;
-  - Soca do Coco: embaixadinha, futebol, bocha e frisbee;
-  - Mambo do Pódio: o pódio do fim da semana (sem a vinheta de código por cima).
-- **Como funciona:** as faixas ficam em `jogos_verao/musica/` (publicadas junto com a página). `cart2/musica.py` prepara as originais do dono (`cart2/musica_src/`): tira o silêncio do fim (para emendar sem buraco), iguala o volume entre elas e reduz para 128 kbps (~1,3 a 2 MB cada). `cart2/musica.js` (entra no `build3.py` logo depois do sistema de música) troca a música de código pelas faixas: troca suave entre faixas, a pausa abaixa, o botão de música liga e desliga, e a música para quando a aba fica escondida. As vinhetas de medalha continuam as de código, por cima. Se uma faixa não carregar, volta a música de código.
-- **A tabela prova -> faixa** fica no começo de `cart2/musica.js` (`PROVA`). Ao trocar o arquivo de uma faixa, mudar `V` para o navegador baixar de novo.
-- **iPhone e iPad:** lá o volume não muda pelo código; a troca de faixa é seca e a pausa não abaixa a música.
+  - Mambo do Pódio: o pódio do fim da semana (sem a vinheta de código por cima);
+  - provas: vôlei Forró do Coqueiro; surfe Onda Gigante; half-pipe Skate no Calçadão; embaixadinha Samba da Embaixadinha; patins Rinque Neon; basquete Cesta de Três; pingue-pongue Tic-Tac Swing; BMX Manobra Radical; corrida na areia Kuduro na Areia; frisbee Disco Voador; tiro com arco Na Mosca; duelo de água Guerra de Água; canoagem Remada Polinésia; futebol Gol de Bicicleta; bocha Tarantela da Bocha; natação Braçada Turbo; jet ski Turbo Jet; bugue Bugue Turbo;
+  - Soca do Coco (`festa.mp3`): ficou sem lugar depois que cada prova ganhou a sua faixa; o arquivo continua na pasta.
+- **Volume (pedido do dono: a música não pode cobrir os sons e efeitos):** todas as faixas igualadas em -18 LUFS (`musica.py`); no jogo tocam a 25% no volume padrão (cerca de -30 LUFS), e os efeitos sonoros ficaram 2x mais altos (`SFX_GANHO` em `musica.js`). Antes a música ficava uns 12 dB acima dos efeitos. O volume de música das opções (0 a 10) agora vale também para as faixas gravadas (5 = padrão, 10 = o dobro).
+- **Como funciona:** as faixas ficam em `jogos_verao/musica/` (publicadas junto com a página). `cart2/musica.py` prepara as originais do dono (`cart2/musica_src/<prova>.mp3`): tira o silêncio do fim (para emendar sem buraco), iguala o volume e reduz para 128 kbps (~1 a 2 MB cada). `cart2/musica.js` (entra no `build3.py` logo depois do sistema de música) troca a música de código pelas faixas: troca suave entre faixas, a pausa abaixa, o botão de música liga e desliga, e a música para quando a aba fica escondida. As vinhetas de medalha continuam as de código, por cima. Se uma faixa não carregar, volta a música de código.
+- **A tabela prova -> faixa** fica no começo de `cart2/musica.js` (`PROVA`). Ao trocar o arquivo de uma faixa, mudar `V` para o navegador baixar de novo (está em '2').
+- **iPhone e iPad:** lá o volume de uma faixa não muda pelo código: a troca de faixa é seca, a pausa não abaixa a música e a faixa toca no volume do aparelho (a música fica mais alta em relação aos efeitos do que no computador).
 - Cópia das faixas prontas no repositório: `jogos/jogos-de-verao/musica/` (as originais em 320 kbps ficam com o dono).
-- **Teste:** `testes/trilha.cjs` (abertura com o tema, as 18 provas com faixa, pausa, resultado, botão desligado e ligado, pódio, os 7 arquivos carregando).
-
+- **Teste:** `testes/trilha.cjs` (abertura com o tema, as 18 provas com a sua faixa, pausa, resultado, botão desligado e ligado, pódio, os 22 arquivos carregando).
 ## No site do WinnerZ (01/11, pedido do dono)
 - **Endereços:** `/jogos-de-verao` (o jogo em tela inteira, para quem tem acesso ao site) e `/studio/jogos-de-verao` (o mesmo jogo com o editor já aberto; só a administração; cartão "Jogos de Verão" no Studio). O link discreto "WinnerZ" no canto de baixo volta para o site.
 - **Como funciona:** a página pronta do jogo fica em `public/demo/jogos-verao/` (cópia da pasta `jogos_verao` que o `build3.py` monta: `index.html`, `img/`, `musica/`). A página do site (`src/pages/JogosVerao.tsx`) mostra o jogo numa moldura e liga nele a ponte `src/lib/jogosPonte.ts`, que faz o papel do banco da página do Claude: o editor não muda nada e funciona nos dois lugares.

@@ -1,19 +1,27 @@
 /* ============================================================ trilha gravada (músicas do dono, 01/11/2026)
    Cada tela e cada prova toca uma das faixas da pasta musica/. Se uma faixa não carregar, volta a música feita em código.
-   As vinhetas de medalha continuam as de código, por cima. */
+   As vinhetas de medalha continuam as de código, por cima.
+   Volume (01/11, pedido do dono: a música não pode cobrir os efeitos): as faixas são igualadas em -18 LUFS (musica.py),
+   tocam a 25% no volume padrão (cerca de -30 LUFS) e os efeitos sonoros ficaram 2x mais altos (SFX_GANHO). */
+const SFX_GANHO = 2;
+beep = ((b) => (f, d, type, v, slide) => b(f, d, type, (v === undefined ? .05 : v) * SFX_GANHO, slide))(beep);
 const TRILHA = (() => {
-  const V = '1';                    // trocar quando uma faixa for substituída (o navegador baixa de novo)
-  const BASE = 0.6;                 // volume das faixas (o botão de música e o "abaixar" da pausa multiplicam por cima)
+  const V = '2';                    // trocar quando uma faixa for substituída (o navegador baixa de novo)
+  const BASE = 0.25;                // volume das faixas no padrão (o volume da música nas opções, o botão e o "abaixar" da pausa multiplicam por cima)
+  const VPAD = 0.4;                 // o volume de música padrão das opções (5 de 10)
   const PROVA = {                   // prova -> faixa
-    volei: 'volei', pingue: 'volei', basquete: 'volei',
-    surfe: 'surfe', canoagem: 'surfe', natacao: 'surfe', jetski: 'surfe', duelo: 'surfe',
-    halfpipe: 'skate', patins: 'skate', bmx: 'skate', bugue: 'skate',
-    embaixadinha: 'festa', futebol: 'festa', bocha: 'festa', frisbee: 'festa',
-    obstaculos: 'tema', arco: 'tema',
+    volei: 'volei', pingue: 'pingue', basquete: 'basquete',
+    surfe: 'surfe', canoagem: 'canoagem', natacao: 'natacao', jetski: 'jetski', duelo: 'duelo',
+    halfpipe: 'skate', patins: 'patins', bmx: 'bmx', bugue: 'bugue',
+    embaixadinha: 'embaixadinha', futebol: 'futebol', bocha: 'bocha', frisbee: 'frisbee',
+    obstaculos: 'corrida', arco: 'arco',
   };
-  const NOMES = { tema: 'Carnaval na Areia', menu: 'Disco do Caranguejo', volei: 'Forró do Coqueiro', surfe: 'Onda Gigante', skate: 'Skate no Calçadão', festa: 'Soca do Coco', podio: 'Mambo do Pódio' };
+  const NOMES = { tema: 'Carnaval na Areia', menu: 'Disco do Caranguejo', volei: 'Forró do Coqueiro', surfe: 'Onda Gigante', skate: 'Skate no Calçadão', festa: 'Soca do Coco', podio: 'Mambo do Pódio',
+    embaixadinha: 'Samba da Embaixadinha', patins: 'Rinque Neon', basquete: 'Cesta de Três', pingue: 'Tic-Tac Swing', bmx: 'Manobra Radical',
+    corrida: 'Kuduro na Areia', frisbee: 'Disco Voador', arco: 'Na Mosca', duelo: 'Guerra de Água', canoagem: 'Remada Polinésia',
+    futebol: 'Gol de Bicicleta', bocha: 'Tarantela da Bocha', natacao: 'Braçada Turbo', jetski: 'Turbo Jet', bugue: 'Bugue Turbo' };
   const els = {}, bad = {};
-  let faixa = '', nome = '', duck = 1, abriu = false, timer = null;
+  let faixa = '', nome = '', duck = 1, vol = VPAD, abriu = false, timer = null;
   const orig = { play: Music.play, stop: Music.stop, duck: Music.duck, setOn: Music.setOn, setVol: Music.setVol };
   Music.define('__mudo', { bpm: 120 });
   // no iPhone e no iPad o volume de uma faixa não muda pelo código: lá a troca é seca e a pausa não abaixa a música
@@ -29,7 +37,7 @@ const TRILHA = (() => {
     a.addEventListener('error', () => { bad[f] = true; if (faixa === f) { faixa = ''; if (nome) Music.play(nome); } });
     a.src = `musica/${f}.mp3?v=${V}`; els[f] = a; return a;
   }
-  function alvo() { return Music.on && !document.hidden ? BASE * duck : 0; }
+  function alvo() { return Music.on && !document.hidden ? Math.min(1, BASE * duck * vol / VPAD) : 0; }
   function rampa() {   // volume vai até o alvo aos poucos; faixas que saíram vão a zero e param
     if (!VOLOK) { for (const [f, a] of Object.entries(els)) if (f !== faixa || !alvo()) a.pause(); else a.volume = 1; return; }
     if (timer) return;
@@ -62,7 +70,7 @@ const TRILHA = (() => {
   };
   Music.stop = () => { orig.stop(); faixa = ''; nome = ''; rampa(); };
   Music.duck = (d) => { duck = d; orig.duck(d); rampa(); };
-  Music.setVol = (v) => { orig.setVol(v); rampa(); };
+  Music.setVol = (v) => { vol = v; orig.setVol(v); rampa(); };
   Music.setOn = (v) => {
     const n = nome; orig.setOn(v); nome = n;
     if (!v) { for (const a of Object.values(els)) { if (VOLOK) a.volume = 0; a.pause(); } } else if (n) { faixa = ''; Music.play(n); }

@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Jogos de Verão, 15 músicas novas e volume da trilha
+- **O dono mandou** 15 músicas (uma por prova) e pediu para igualar o volume de todas, inclusive as já aplicadas, sem a música cobrir os sons e efeitos das partidas.
+- **Feito:** cada prova toca a sua faixa; todas as 22 igualadas em -18 LUFS; no jogo a música toca bem mais baixa (cerca de -30 LUFS) e os efeitos ficaram 2x mais altos; o volume de música das opções passou a valer para as faixas gravadas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.
+- **Pendente:** a Soca do Coco ficou sem lugar (o dono decide se entra em algum lugar). No iPhone e no iPad o volume da faixa não muda pelo código, então lá a música fica relativamente mais alta.
+- **Testes:** `trilha.cjs`.
+
 ## 01/11/2026: Modo TV desligado no site
 - **O dono:** ao usar o controle nos Jogos de Verão, no site, o jogo fechava e abria o modo de controle do site (Modo TV). Pediu para tirar esse modo por enquanto.
 - **Feito:** o Modo TV está desligado por uma chave (`MODO_TV` em `src/tv/mode.ts`): o controle não abre mais nada no site, os endereços /tv não abrem e quem estava no Modo TV volta ao site normal. O código fica guardado para religar depois. Detalhes em `site.md`.

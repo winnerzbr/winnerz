@@ -14,7 +14,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - correção: o que foi aplicado podia chegar antes dos desenhos carregarem e os rostos não entravam; agora espera a página montar.
 - **Testes:** `wzpintura.cjs`, `wzsite.cjs` (novos), `wzbanco.cjs`, `wzdono.cjs`, `todas.cjs`, `trilha.cjs`. Teste da ponte do site: `src/lib/jogosPonte.test.ts`. Página do Claude também publicada.
 - **Pendente:** o dono rodar a `0097_jogos_de_verao.sql` no Supabase; conferir no site com a caneta; próximas etapas da pintura (seleção, transformar, borrar, modos de mistura, ajustes finos dos pincéis importados, refazer a máscara do visor).
-- **Não deu para conferir aqui:** a instalação das dependências do site falhou (sem acesso ao registro de pacotes nesta sessão), então os tipos e o build do site ficam para a verificação automática do GitHub e para o Vercel.
+- **Conferido:** a verificação do GitHub (tipos, testes e build) passou e o Vercel publicou. Aqui a instalação das dependências do site falhou (sem acesso ao registro de pacotes nesta sessão).
 
 ## 01/11/2026: Vôlei, dificuldade até "impossível" no editor
 - **Pedido do dono:** no editor, um limite de dificuldade do Amiguinho no vôlei em que o valor mais alto é "impossível" (não erra, não dá para ganhar), para ajustar a dificuldade dos campeonatos.

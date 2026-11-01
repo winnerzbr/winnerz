@@ -195,3 +195,10 @@ FRISBEE = dict(id='frisbee', n='Frisbee', lugar='Parque do Gramado: grama à bei
   ] + horas([('Fundo distante', False, 'The town lights far away, a few kites with small lanterns.', 'the town lights, the kite lanterns, the moon and the stars'), ('Meio-plano', True, 'Park lamps lit warm yellow, the ice cream cart with a small lamp.', 'the park lamps and the cart lamp')])),
  ])
 ANTIGAS1 = [SURFE, PATINS, BASQUETE, BMX, CORRIDA, FRISBEE]
+# prancha aprovada pelo dono (01/11): vira anexo de todas as pranchas do IAmiguinho no surfe
+_REF_SF = ['ref_prancha_surfe.jpg', 'Prancha aprovada', 'anexe esta nas pranchas do surfe']
+SURFE['groups'][0]['p'] = 'A prancha já foi aprovada (01/11): a imagem está no cartão. Anexe ela em todas as pranchas do IAmiguinho no surfe.'
+SURFE['groups'][0]['cards'][0]['sub'] = 'não é 4x2 · aprovada, anexo das pranchas'
+for _g in SURFE['groups']:
+    for _c in _g['cards']:
+        if 'SURFBOARD MODEL' in _c['txt'] or _c is SURFE['groups'][0]['cards'][0]: _c['refs'] = [_REF_SF]

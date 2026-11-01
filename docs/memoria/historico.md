@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: prancha do surfe aprovada
+- **O dono mandou** a folha de modelo da prancha do surfe (5 vistas, azul-clara com faixa creme).
+- **Feito:** aprovada; a imagem virou anexo do cartão da prancha e de todos os pedidos do IAmiguinho no surfe na página de pedidos.
+
+---
+
 ## 01/11/2026: pedidos de arte de todas as provas, com guias
 - **O dono pediu:** "Monte os pedidos para todos os jogos. No artefato, para não ficar tudo misturado, crie guias para cada modalidade" (perguntou antes pelos prompts do surfe, que não existiam).
 - **Feito:** a página "Pedidos das provas novas" virou "Pedidos de arte dos Jogos de Verão" (mesmo endereço), com uma guia por modalidade e a contagem de feitos em cada uma; pedidos novos para as 12 provas antigas (Surfe, Patins, Basquete, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação e Jet ski). Vôlei e Half-pipe têm guia com o link das páginas próprias.

@@ -27,6 +27,11 @@ O plano tem 19 provas, e o jogo publicado tem 19 (com o Teco-teco d'Água, de 01
 - **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Teco-teco d'Água, Futebol de areia, Bocha na areia, Natação, Jet ski, Corrida de bugue e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
+- **Pedidos de arte de todas as provas (01/11, pedido do dono):** a página de pedidos agora cobre as 19 provas, com uma guia para cada modalidade (o dono pediu para não ficar tudo misturado).
+  - As 12 provas antigas que ainda não tinham pedido ganharam os seus (`novas/antigas1.py`: Surfe, Patins, Basquete, BMX, Corrida na areia, Frisbee; `novas/antigas2.py`: Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Natação, Jet ski), montados a partir do que cada prova desenha hoje (poses, objetos, visão de lado ou de cima, panoramas que repetem) e dos lugares e capas do plano visual.
+  - Em cada uma: primeiro o equipamento (prancha, patins, bike, disco, arco, pistola, caiaque, jet ski), que vira anexo; depois as pranchas do IAmiguinho (4 × 2, 8 quadros), as do Amiguinho quando a prova tem rival, os objetos em fundo verde e o cenário (dia como base, manhã, entardecer, noite e as luzes da noite).
+  - Onde o Amiguinho do vôlei já serve (parado, correndo, comemorar, triste), a prova usa o do vôlei e só pede o que falta. A bola do futebol e a biruta vêm da Embaixadinha.
+  - São 381 pedidos na página (168 de cenário em "Todos os cenários"). Os cartões de cenário são os mesmos nas duas guias: marcar "Feita" numa marca na outra.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
@@ -302,7 +307,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |
-| Pedidos das provas novas | https://claude.ai/artifact/Y5hetAQfCRf1dykVoA3c6w | pedidos das pranchas e dos cenários das provas novas; no começo, "Todos os cenários" (todas as provas e o skate) e os pedidos do brushset (pontas e grãos) |
+| Pedidos de arte (antes "Pedidos das provas novas") | https://claude.ai/artifact/Y5hetAQfCRf1dykVoA3c6w | os prompts de arte de todas as provas, uma guia por modalidade (01/11): Comece aqui (como pedir e anexos), Todos os cenários, uma guia por prova na ordem do jogo (Vôlei e Half-pipe com o link das páginas próprias; o Half-pipe repete os cenários do skate), Teaser e Brushset |
 | Moveset do Skate | https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3 | pedidos das pranchas do skate, das manobras combinadas e do cenário |
 | Plano visual (doc) | https://claude.ai/artifact/N2TAefrFeShKPgXHgzkEgw | Costa WinnerZ, cenários, horários, itens, regras das provas novas e ordem de produção |
 

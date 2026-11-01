@@ -1,4 +1,4 @@
-"""Pedidos das provas novas (30/10/2026): prompts das pranchas (personagens e objetos) e dos cenários de cada prova nova.
+"""Pedidos de arte dos Jogos de Verão (antes "Pedidos das provas novas", 30/10/2026; desde 01/11 com todas as provas, uma guia por modalidade): prompts das pranchas (personagens e objetos) e dos cenários de cada prova nova.
 Cada prova entra quando o jogo dela é feito. A página segue o formato do Moveset do Skate (cartões com Copiar e Feita)."""
 import json, re, sys, pathlib
 sys.path.insert(0, 'skate'); from moves import STYLE as STYLE0, KEEP, KEEPG, SCENE as SK_SCENE, SCENE_PISTA as SK_PISTA
@@ -205,6 +205,10 @@ GAMES = [
   ]),
 ]
 
+# provas antigas no estilo pintado (01/11, pedido do dono: pedidos para todos os jogos)
+exec(open('novas/antigas1.py', encoding='utf-8').read()); exec(open('novas/antigas2.py', encoding='utf-8').read())
+GAMES += ANTIGAS1 + ANTIGAS2
+
 data = []
 for g in GAMES:
     data.append(dict(id=g['id'], n=g['n'], lugar=g['lugar'], nota=g['nota'], groups=[dict(h=x['h'], who=x['who'], p=x['p'], cards=x['cards']) for x in g['groups']]))
@@ -222,11 +226,23 @@ BRUSH = [
   'Match the texture you can see in the attached paintings. The 6 grains: 1 canvas and paper tooth of the painted backgrounds; 2 fine sand; 3 coarse beach sand with tiny pebbles; 4 soft painterly noise for skies and gradients; 5 wood grain for planks, kiosks and ramps; 6 water ripple.'),
 ]
 TOTAL += len(SK_SCENE) + len(SK_PISTA) + len(BRUSH)
-html = '''<title>Pedidos das provas novas</title>
+html = '''<title>Pedidos de arte</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ''' + css + '''
 
 <style>
+.abas { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; overflow-x: auto; padding: 10px 0; margin: 4px 0 18px; background: var(--bg); border-bottom: 1px solid var(--line); scrollbar-width: thin; -webkit-overflow-scrolling: touch }
+.abas button { flex: 0 0 auto; display: grid; gap: 2px; text-align: left; font: inherit; font-size: 13px; padding: 7px 12px 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel, transparent); color: var(--ink); cursor: pointer }
+.abas button b { font-weight: 650; white-space: nowrap }
+.abas button .cnt { font: 500 11px var(--f-mono); color: var(--mut); white-space: nowrap }
+.abas button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.abas button[aria-selected="true"] .cnt { color: inherit; opacity: .75 }
+.abas button.fim .cnt::before { content: "✓ "; color: var(--ok, #2f8a4f) }
+.painel { display: grid; gap: 26px }
+.painel[hidden] { display: none }
+section.cab h2 { font-size: 1.6em }
+a.ir { display: inline-block; font-weight: 650; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line); text-decoration: none; color: var(--ink) }
+ol.como { margin: 0; padding-left: 1.2em; display: grid; gap: 6px }
 .anxg { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin: 10px 0 14px }
 .anxg.mini { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); align-items: start }
 .anxk { grid-column: 1 / -1; font: 600 12px var(--f-mono); color: var(--mut); text-transform: uppercase; letter-spacing: .06em }
@@ -244,17 +260,16 @@ figure.anx .ib button.ok { background: #2f8a4f; color: #fff; border-color: #2f8a
 <div class="wrap">
   <header>
     <span class="k">WinnerZ · IAmiguinho Jogos de Verão · estilo pintado</span>
-    <h1>Pedidos das provas novas</h1>
-    <p>As provas novas já estão jogáveis com arte provisória, e as provas antigas que passam para o estilo pintado também entram aqui (a primeira é a Embaixadinha). Aqui ficam os pedidos das pranchas e dos cenários de cada uma, do mesmo jeito do vôlei e do skate: ficha de modelo e grade-guia em cada pedido de personagem. A página cresce a cada prova nova.</p>
+    <h1>Pedidos de arte dos Jogos de Verão</h1>
+    <p>Os prompts para o ChatGPT de todas as provas: as pranchas dos personagens, os objetos e os cenários nos 4 horários. Uma guia para cada modalidade; “Todos os cenários” junta os cenários de todas as provas para gerar tudo de uma vez. Marque “Feita” em cada pedido que sair: o progresso fica guardado neste navegador.</p>
   </header>
-  <div class="bar"><span class="k">Provas novas</span><div class="prog"><span id="pg"></span><span class="meter"><i id="pm"></i></span></div></div>
-  <div class="tips"><b>Como pedir</b><ol>
-    <li>Personagens: use a mesma conversa (ou uma nova) com as regras do vôlei. As regras estão no passo 1 de cada personagem logo abaixo. Em cada pedido, anexe a ficha de modelo e a grade-guia (os anexos ficam no topo da página e no começo de cada grupo) e, quando o cartão tiver, a referência de pose em cinza.</li>
-    <li>Objetos que aparecem em várias pranchas (como a raquete) vêm primeiro: aprovados, viram anexo fixo dos pedidos seguintes.</li>
-    <li>Cenários: primeiro a versão do dia; os outros horários saem dela, anexando a imagem aprovada. Todos os cenários juntos (e os pedidos do brushset) estão logo depois dos anexos, em <a href="#cenarios">Todos os cenários</a>.</li>
-    <li>Me mande as imagens como forem saindo.</li>
-  </ol></div>
-  <main id="main" style="display:grid;gap:26px"></main>
+  <div class="bar"><span class="k">Todas as provas</span><div class="prog"><span id="pg"></span><span class="meter"><i id="pm"></i></span></div></div>
+  <template id="tipsT"><li>Personagens: use a mesma conversa (ou uma nova) com as regras do vôlei. As regras estão no passo 1 de cada personagem, dentro da guia da prova. Em cada pedido, anexe a ficha de modelo e a grade-guia (os anexos ficam no começo de cada grupo).</li>
+    <li>Objetos que aparecem em várias pranchas (como a raquete, a prancha de surfe ou a bike) vêm primeiro: aprovados, viram anexo fixo dos pedidos seguintes.</li>
+    <li>Cenários: primeiro a versão do dia; os outros horários saem dela, anexando a imagem aprovada. A guia “Todos os cenários” junta todos.</li>
+    <li>Toda prancha nova passa pela Prévia das pranchas antes de entrar no jogo. Me mande as imagens como forem saindo.</li></template>
+  <nav id="abas" class="abas" role="tablist" aria-label="Modalidades"></nav>
+  <main id="main"></main>
 </div>
 <script>
 const GAMES = ''' + json.dumps(data, ensure_ascii=False) + ''';
@@ -283,34 +298,65 @@ function card(k, title, sub, text, pose, refs) {
   const fig = (pose ? imgBox(`pose_${pose}.jpg`, 'Referência de pose (anexe junto)', `os desenhos antigos em cinza · pose_${pose}.jpg`, 'pose') : '') + (refs || []).map((r) => imgBox(r[0], r[1], r[2], 'pose')).join('');
   return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts"><label class="chk"><input type="checkbox"${isDone ? ' checked' : ''}> Feita</label><button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre>${fig}</div>`;
 }
-function render() {
-  let h = `<section><h2>Anexos para o ChatGPT <small>copie ou baixe</small></h2><p>As imagens que os pedidos mandam anexar. “Copiar imagem” coloca a imagem na área de transferência: no ChatGPT, é só colar (Ctrl+V) na caixa de mensagem junto com o texto. Se o navegador não deixar copiar, use “Baixar” (pede confirmação) e anexe o arquivo. Cada grupo de pedidos abaixo repete os anexos que ele usa.</p><div class="anxg">${Object.values(ANX).map(([f, t, s2]) => imgBox(f, t, s2)).join('')}</div></section>`;
-  // ---- todos os cenários juntos (01/11, pedido do dono): para gerar tudo de uma vez e montar o brushset com a mesma estética.
-  // Os cartões das provas são os mesmos das seções de cada prova (marcar "Feita" num marca no outro ao recarregar).
-  const CEN = [];
-  GAMES.forEach((g) => { let n = 0; g.groups.forEach((x, gi) => { const cs = x.cards.map((c) => { n++; return [`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c]; }); if (x.who === 'cen' && g.id !== 'teaser') CEN.push({ h: `${x.h.replace(/^Cenário · /, '')} · ${g.n}`, p: x.p, cs }); }); });
-  CEN.push({ h: 'Skatepark do Viaduto · Half-pipe', p: 'Fundo distante quadrado (1:1) e meio-plano 16:9 em fundo verde; peça o dia primeiro. A capa é a noite. (Da página do Moveset do Skate.)', cs: SK.cena.map((c, j) => [`sk-vd-${j}`, `V${j + 1}. ${c.t}`, c]) });
-  CEN.push({ h: 'Peças da pista · Half-pipe', p: 'Rampa, chão e céu alto do skate, em fundo verde. (Da página do Moveset do Skate.)', cs: SK.pista.map((c, j) => [`sk-pista-${j}`, `P${j + 1}. ${c.t}`, c]) });
-  const nCen = CEN.reduce((a, x) => a + x.cs.length, 0);
-  h += `<section id="cenarios"><h2>Todos os cenários <small>${nCen} pedidos</small></h2><p>Os pedidos de cenário de todas as provas num lugar só, para gerar tudo de uma vez e montar um brushset com a mesma estética do jogo. Em cada lugar, peça primeiro a versão base (o dia); os outros horários saem dela, anexando a imagem aprovada. Os mesmos cartões continuam na seção de cada prova. O galpão do teaser (vídeo) ficou de fora.</p><div class="anxg mini"><span class="anxk">Anexo de todos os cenários</span>${imgBox(...ANX.estilo)}</div></section>`;
-  CEN.forEach((x) => { h += `<section><h2>${esc(x.h)} <small>${x.cs.length} pedidos</small></h2><p>${esc(x.p)}</p>`; x.cs.forEach(([k, t, c]) => { h += card(k, t, c.sub || 'anexe: referência de estilo', c.txt, c.pose, c.refs); }); h += '</section>'; });
-  h += `<section><h2>Depois: o brushset <small>${BRUSH.length} pedidos</small></h2><p>Com os cenários aprovados, peça as pontas e os grãos dos pincéis. No Procreate: Estúdio do pincel → Forma (importe a ponta, uma de cada vez) e Grão (importe a textura). O pintor do editor do jogo também aceita imagem como ponta de pincel.</p>`;
-  BRUSH.forEach((c, j) => { h += card(`br-${j}`, `B${j + 1}. ${c.t}`, c.sub, c.txt); });
-  h += '</section><section><h2>Pedidos por prova</h2><p>Personagens, objetos e cenários de cada prova, na ordem de sempre.</p></section>';
-  GAMES.forEach((g) => {
-    h += `<section><h2>${esc(g.n)}</h2><p>${esc(g.lugar)}</p><p>${esc(g.nota)}</p></section>`;
-    let n = 0;
-    g.groups.forEach((x, gi) => {
-      h += `<section><h2>${esc(x.h)} <small>${x.cards.length} ${x.cards.length > 1 ? 'pedidos' : 'pedido'}</small></h2><p>${esc(x.p)}</p>`;
-      const ax = WHO_ANX[x.who] || []; if (ax.length) h += `<div class="anxg mini"><span class="anxk">Anexos deste grupo</span>${ax.map((a) => imgBox(...ANX[a])).join('')}</div>`;
-      if ((x.who === 'ia' || x.who === 'bl') && !g.groups.slice(0, gi).some((y) => y.who === x.who)) h += card(`${g.id}-regras-${x.who}`, `Passo 1 · regras do ${x.who === 'ia' ? 'IAmiguinho' : 'Amiguinho'}`, 'mandar uma vez, com a ficha e a grade', RULES[x.who]);
-      x.cards.forEach((c) => { n++; h += card(`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c.sub, c.txt, c.pose, c.refs); });
-      h += '</section>';
-    });
-  });
-  document.getElementById('main').innerHTML = h; prog();
+// ---- guias (01/11, pedido do dono): uma guia para cada modalidade, para não ficar tudo misturado
+const ORDEM = ['surfe', 'halfpipe', 'embaixadinha', 'patins', 'basquete', 'pingue', 'bmx', 'obstaculos', 'frisbee', 'arco', 'duelo', 'canoagem', 'teco', 'futebol', 'bocha', 'natacao', 'jetski', 'bugue', 'volei', 'teaser'];
+const LINKS = {
+  halfpipe: { n: 'Half-pipe', lugar: 'Skatepark do Viaduto: concreto sob um viaduto, grafites e postes. Capa: noite (azul-noite, ciano, magenta).', url: 'https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3', pagina: 'Moveset do Skate', nota: 'As pranchas do IAmiguinho no skate, as manobras combinadas e o cenário ficam na página própria do skate. Os pedidos do cenário e das peças da pista estão repetidos aqui embaixo.' },
+  volei: { n: 'Vôlei', lugar: 'Praia do Pôr do Sol (o cenário atual, mantido). Capa: pôr do sol (rosa, laranja, roxo).', url: 'https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf', pagina: 'Moveset do Vôlei', nota: 'O vôlei foi a primeira prova pintada: as pranchas do IAmiguinho e do Amiguinho ficam na página própria do vôlei. A praia pintada do vôlei é a referência de estilo de todos os cenários.' },
+};
+let TABS = [], aba = 'inicio';
+try { aba = (location.hash || '').slice(1) || localStorage.getItem(KEY + '-aba') || 'inicio'; } catch (e) {}
+function grupoHtml(g, x, gi, nRef) {
+  let h = `<section><h2>${esc(x.h)} <small>${x.cards.length} ${x.cards.length > 1 ? 'pedidos' : 'pedido'}</small></h2><p>${esc(x.p)}</p>`; const ks = [];
+  const ax = WHO_ANX[x.who] || []; if (ax.length) h += `<div class="anxg mini"><span class="anxk">Anexos deste grupo</span>${ax.map((a) => imgBox(...ANX[a])).join('')}</div>`;
+  if ((x.who === 'ia' || x.who === 'bl') && !g.groups.slice(0, gi).some((y) => y.who === x.who)) h += card(`${g.id}-regras-${x.who}`, `Passo 1 · regras do ${x.who === 'ia' ? 'IAmiguinho' : 'Amiguinho'}`, 'mandar uma vez, com a ficha e a grade', RULES[x.who]);
+  x.cards.forEach((c) => { nRef.n++; const k = `${g.id}-${gi}-${nRef.n}`; ks.push(k); h += card(k, `${nRef.n}. ${c.t}`, c.sub, c.txt, c.pose, c.refs); });
+  return [h + '</section>', ks];
 }
-function prog() { const c = Object.keys(done).filter((k) => !k.includes('-regras-')).length; document.getElementById('pg').textContent = `${c} de ${TOTAL} feitos`; document.getElementById('pm').style.width = (c / TOTAL * 100) + '%'; }
+function render() {
+  TABS = [];
+  // início: como pedir e os anexos
+  TABS.push({ id: 'inicio', n: 'Comece aqui', ks: [], h: `<section><h2>Como pedir</h2><ol class="como">${document.getElementById('tipsT').innerHTML}</ol></section><section><h2>Anexos para o ChatGPT <small>copie ou baixe</small></h2><p>As imagens que os pedidos mandam anexar. “Copiar imagem” coloca a imagem na área de transferência: no ChatGPT, é só colar (Ctrl+V) na caixa de mensagem junto com o texto. Se o navegador não deixar copiar, use “Baixar” (pede confirmação) e anexe o arquivo. Cada grupo de pedidos repete os anexos que ele usa.</p><div class="anxg">${Object.values(ANX).map(([f, t, s2]) => imgBox(f, t, s2)).join('')}</div></section>` });
+  // todos os cenários juntos (01/11): para gerar tudo de uma vez e montar o brushset com a mesma estética.
+  // São os mesmos cartões das guias das provas (marcar "Feita" num marca no outro).
+  const CEN = [];
+  GAMES.forEach((g) => { let n = 0; g.groups.forEach((x, gi) => { const cs = x.cards.map((c) => { n++; return [`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c]; }); if (x.who === 'cen' && g.id !== 'teaser') CEN.push({ id: g.id, h: `${x.h.replace(/^Cenário · /, '')} · ${g.n}`, p: x.p, cs }); }); });
+  CEN.sort((a, b) => ORDEM.indexOf(a.id) - ORDEM.indexOf(b.id));
+  const skC = SK.cena.map((c, j) => [`sk-vd-${j}`, `V${j + 1}. ${c.t}`, c]), skP = SK.pista.map((c, j) => [`sk-pista-${j}`, `P${j + 1}. ${c.t}`, c]);
+  CEN.splice(1, 0, { h: 'Skatepark do Viaduto · Half-pipe', p: 'Fundo distante quadrado (1:1) e meio-plano 16:9 em fundo verde; peça o dia primeiro. A capa é a noite. (Da página do Moveset do Skate.)', cs: skC }, { h: 'Peças da pista · Half-pipe', p: 'Rampa, chão e céu alto do skate, em fundo verde. (Da página do Moveset do Skate.)', cs: skP });
+  const nCen = CEN.reduce((a, x) => a + x.cs.length, 0);
+  let h = `<section><h2>Todos os cenários <small>${nCen} pedidos</small></h2><p>Os pedidos de cenário de todas as provas num lugar só, para gerar tudo de uma vez e montar um brushset com a mesma estética do jogo. Em cada lugar, peça primeiro a versão base (o dia); os outros horários saem dela, anexando a imagem aprovada. Os mesmos cartões continuam na guia de cada prova. O galpão do teaser (vídeo) ficou de fora.</p><div class="anxg mini"><span class="anxk">Anexo de todos os cenários</span>${imgBox(...ANX.estilo)}</div></section>`;
+  CEN.forEach((x) => { h += `<section><h2>${esc(x.h)} <small>${x.cs.length} pedidos</small></h2><p>${esc(x.p)}</p>`; x.cs.forEach(([k, t, c]) => { h += card(k, t, c.sub || 'anexe: referência de estilo', c.txt, c.pose, c.refs); }); h += '</section>'; });
+  TABS.push({ id: 'cenarios', n: 'Todos os cenários', ks: CEN.flatMap((x) => x.cs.map((c) => c[0])), h });
+  // uma guia por prova, na ordem do jogo
+  ORDEM.forEach((id) => {
+    const L = LINKS[id];
+    if (L) {
+      let h2 = `<section class="cab"><h2>${esc(L.n)}</h2><p>${esc(L.lugar)}</p><p>${esc(L.nota)}</p><p><a class="ir" href="${L.url}" target="_blank" rel="noopener">Abrir a página ${esc(L.pagina)} ↗</a></p></section>`; const ks = [];
+      if (id === 'halfpipe') { [['Cenário · Skatepark do Viaduto', 'Fundo distante quadrado (1:1) e meio-plano 16:9 em fundo verde; peça o dia primeiro. A capa é a noite.', skC], ['Peças da pista', 'Rampa, chão e céu alto do skate, em fundo verde.', skP]].forEach(([t, p2, cs]) => { h2 += `<section><h2>${t} <small>${cs.length} pedidos</small></h2><p>${p2}</p><div class="anxg mini"><span class="anxk">Anexo deste grupo</span>${imgBox(...ANX.estilo)}</div>`; cs.forEach(([k, tt, c]) => { ks.push(k); h2 += card(k, tt, c.sub || 'anexe: referência de estilo', c.txt); }); h2 += '</section>'; }); }
+      TABS.push({ id, n: L.n, ks, h: h2, link: true }); return;
+    }
+    const g = GAMES.find((x) => x.id === id); if (!g) return;
+    let h2 = `<section class="cab"><h2>${esc(g.n)}</h2><p>${esc(g.lugar)}</p><p>${esc(g.nota)}</p></section>`; const ks = [], nRef = { n: 0 };
+    g.groups.forEach((x, gi) => { const [hh, kk] = grupoHtml(g, x, gi, nRef); h2 += hh; ks.push(...kk); });
+    TABS.push({ id, n: g.n.replace(' (estilo pintado)', '').replace(' (vídeo)', ''), ks, h: h2 });
+  });
+  TABS.push({ id: 'brushset', n: 'Brushset', ks: BRUSH.map((c, j) => `br-${j}`), h: `<section><h2>Brushset <small>${BRUSH.length} pedidos</small></h2><p>Com os cenários aprovados, peça as pontas e os grãos dos pincéis. No Procreate: Estúdio do pincel → Forma (importe a ponta, uma de cada vez) e Grão (importe a textura). O pintor do editor do jogo também aceita imagem como ponta de pincel.</p>${BRUSH.map((c, j) => card(`br-${j}`, `B${j + 1}. ${c.t}`, c.sub, c.txt)).join('')}</section>` });
+  if (!TABS.some((t) => t.id === aba)) aba = 'inicio';
+  document.getElementById('abas').innerHTML = TABS.map((t) => `<button type="button" role="tab" data-aba="${t.id}" aria-selected="${t.id === aba}"><b>${esc(t.n)}</b><span class="cnt"></span></button>`).join('');
+  document.getElementById('main').innerHTML = TABS.map((t) => `<div class="painel" role="tabpanel" data-aba="${t.id}"${t.id === aba ? '' : ' hidden'}>${t.h}</div>`).join('');
+  prog();
+}
+function mostra(id) {
+  aba = id; try { localStorage.setItem(KEY + '-aba', id); history.replaceState(null, '', '#' + id); } catch (e) {}
+  document.querySelectorAll('#abas button').forEach((b) => b.setAttribute('aria-selected', b.dataset.aba === id));
+  document.querySelectorAll('#main .painel').forEach((p) => { p.hidden = p.dataset.aba !== id; });
+  const b = document.querySelector(`#abas button[data-aba="${id}"]`); if (b) b.scrollIntoView({ block: 'nearest', inline: 'center' });
+  window.scrollTo({ top: document.getElementById('abas').offsetTop - 8 });
+}
+document.getElementById('abas').addEventListener('click', (e) => { const b = e.target.closest('button[data-aba]'); if (b) mostra(b.dataset.aba); });
+function prog() { const c = Object.keys(done).filter((k) => !k.includes('-regras-')).length; document.getElementById('pg').textContent = `${c} de ${TOTAL} feitos`; document.getElementById('pm').style.width = (c / TOTAL * 100) + '%';
+  TABS.forEach((t) => { const b = document.querySelector(`#abas button[data-aba="${t.id}"] .cnt`); if (!b) return; const f = t.ks.filter((k) => done[k]).length; b.textContent = t.ks.length ? `${f}/${t.ks.length}` : (t.link ? 'página própria' : ''); b.parentElement.classList.toggle('fim', !!t.ks.length && f === t.ks.length); }); }
 // baixar: o artefato só entrega arquivos pela permissão de downloads (o botão aparece quando ela está disponível)
 let DL = null;
 (async () => { try { DL = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { DL = null; } if (DL) { document.body.classList.add('pode-baixar'); } })();
@@ -340,7 +386,7 @@ document.getElementById('main').addEventListener('change', (e) => {
   if (!e.target.matches('label.chk input')) return;
   const c = e.target.closest('.card'), k = c.dataset.k;
   if (e.target.checked) done[k] = 1; else delete done[k];
-  c.classList.toggle('done', e.target.checked); save(); prog();
+  document.querySelectorAll(`.card[data-k="${k}"]`).forEach((x) => { x.classList.toggle('done', e.target.checked); const i = x.querySelector('label.chk input'); if (i) i.checked = e.target.checked; }); save(); prog();
 });
 render();
 </script>

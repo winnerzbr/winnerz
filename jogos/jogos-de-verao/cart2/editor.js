@@ -10,7 +10,7 @@
    Onde fica guardado: no banco da própria página (db), em wz/rascunho, wz/aplicado e wz/v<data> (versões). */
 // o rosto acompanhar a bola com o olhar (vôlei): 0 = fica exatamente onde o dono colocou nos Rostos e quadros
 const ROSTO = window.ROSTO = { olhar: 0 };
-const WZ_OBJS = { ROSTO, SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG };
+const WZ_OBJS = { ROSTO, COPA_LVL, SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG };
 const WZ_REG = {
   surfe: ['SF_MAN', 'SOBJ'], halfpipe: ['HP_AIR', 'HP_BTN', 'HP_LIP'], embaixadinha: ['EB_BOLAS'], patins: ['PT_MAN', 'PT_GRIND'], basquete: ['BQ'],
   pingue: ['PP'], bmx: ['BX', 'BX_MAN'], obstaculos: ['OB', 'OB_TIPO'], frisbee: ['FR'], arco: ['AR'], duelo: ['DU'], canoagem: ['CN'], futebol: ['FU'],
@@ -40,6 +40,7 @@ const WZ_DESC = {
 };
 // explicação de cada número (aparece ao parar o mouse em cima da linha). Chave: "OBJ.campo" ou "OBJ.*.campo" (vale para todos os itens).
 const WZ_EXPL = {
+  'COPA_LVL.*': 'Dificuldade do Amiguinho nesta fase da Copa. 0 = bem fácil; o máximo é impossível (ele não erra).',
   'ROSTO.olhar': 'Quanto o rosto anda dentro do visor para olhar a bola durante o vôlei. 0 = o rosto fica parado exatamente onde você colocou em Rostos e quadros. 1 = anda um pouco, olhando para a bola (era assim antes de 01/11). Vale para o IAmiguinho e o Amiguinho.',
   'ev.dur': 'Quanto tempo dura a partida, em segundos. 0 quer dizer que a prova acaba por tentativas ou pontos, não pelo relógio.',
   'ev.med.0': 'Pontos que a pessoa precisa fazer para ganhar a medalha de bronze.', 'ev.med.1': 'Pontos para ganhar a medalha de prata.', 'ev.med.2': 'Pontos para ganhar a medalha de ouro.',
@@ -87,7 +88,7 @@ const WZ_EXPL = {
   'SPK.vmax': 'Força máxima da cortada.', 'SPK.ph0': 'Ângulo em que o braço começa o giro.', 'SPK.hand': 'Tamanho da mão (área que acerta).', 'SPK.chMax': 'Tempo segurando o botão para a cortada mais forte.', 'SPK.Lmin': 'Braço mais curto.', 'SPK.Lmax': 'Braço mais esticado.',
   'SPK_F.x': 'Ponto ideal da bola para a cortada perfeita (à frente).', 'SPK_F.y': 'Ponto ideal da bola para a cortada perfeita (altura).',
   'SPKG.T': 'Duração do golpe de baixo para cima.', 'SPKG.L': 'Comprimento do braço.', 'SPKG.sx': 'Posição do ombro (x).', 'SPKG.sy': 'Posição do ombro (y).', 'SPKG.ph0': 'Ângulo em que o braço começa.', 'SPKG.vmax': 'Força máxima.', 'SPKG.hand': 'Tamanho da mão.', 'SPKG.Lmin': 'Braço mais curto.', 'SPKG.Lmax': 'Braço mais esticado.',
-  'OPP.*.lvl': 'Nível do adversário: 0 = bem fácil, 1 = muito bom. Maior = erra menos e reage mais rápido.', 'OPP.*.pts': 'Pontos para vencer a partida contra este adversário.',
+  'OPP.*.lvl': 'Dificuldade deste adversário: 0 = bem fácil; quanto maior, menos ele erra e mais rápido reage. O máximo é impossível: ele não erra nenhuma bola.', 'OPP.*.pts': 'Pontos para vencer a partida contra este adversário.',
   'BG.padW': 'Metade da largura da esteira de turbo. Maior = esteira mais larga.', 'BG.kr': 'Tamanho do corpo do bugue nas batidas entre bugues.', 'BG.kf': 'Distância do centro do bugue até a frente e a traseira nas batidas.',
   'BG.boxR': 'Tamanho da caixa de item para pegar. Maior = mais fácil pegar.', 'BG.boxT': 'Segundos até a caixa reaparecer depois de pega.', 'BG.voltas': 'Quantas voltas tem cada corrida.',
   'BG.hw': 'Metade da largura da pista. Maior = pista mais larga (muda o desenho também).', 'BG.r': 'Tamanho do bugue na batida com a mureta.', 'BG.vmax': 'Velocidade máxima dos bugues.', 'BG.eng': 'Força do motor (aceleração).',
@@ -100,7 +101,7 @@ const WZ_EXPL = {
 function wzExpl(path) {
   if (path.startsWith('ev:')) { const k = path.split('.').slice(1).join('.'); return WZ_EXPL['ev.' + k] || ''; }
   const p = path.split('.'), o = p[0];
-  return WZ_EXPL[path] || WZ_EXPL[`${o}.*.${p[p.length - 1]}`] || WZ_EXPL[`${o}.*.${p.slice(2).join('.')}`] || '';
+  return WZ_EXPL[path] || (p.length === 2 && WZ_EXPL[`${o}.*`]) || WZ_EXPL[`${o}.*.${p[p.length - 1]}`] || WZ_EXPL[`${o}.*.${p.slice(2).join('.')}`] || '';
 }
 const WZ_EVF = { dur: 'Duração (segundos; 0 = por tentativas)', 'med.0': 'Pontos para o bronze', 'med.1': 'Pontos para a prata', 'med.2': 'Pontos para o ouro', ia: 'Pontos do IAmiguinho (rival)' };
 // conjuntos de desenhos pintados com rosto (o mesmo desenho do jogo, chamado pela função do próprio jogo)
@@ -298,6 +299,7 @@ const WZ_CSS = `
 #wz header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;background:#1b1f4f;color:#fff6d6}
 #wz header h1{font-size:15px;margin:0 10px 0 0;font-weight:700;letter-spacing:.02em}
 #wz #wz-diag{font-size:11px;padding:3px 12px;background:#e9e0c8;color:#3a3a52;border-bottom:1px solid #cfc3a5}
+#wz .lin .rot{display:inline-block;margin-left:6px;font-size:11px;padding:1px 6px;border-radius:9px;background:#1b1f4f;color:#fff6d6}
 #wz header .st{font-size:12px;opacity:.85;margin-right:auto}
 #wz button{font:inherit;font-weight:600;font-size:13px;padding:6px 11px;border-radius:7px;border:1.5px solid #1b1f4f;background:#fffaf0;color:#1b1f4f;cursor:pointer}
 #wz button.pri{background:#ffd166}
@@ -438,7 +440,7 @@ function wzFolhas(o, base, out = [], depth = 0) {
   }
   return out;
 }
-function wzLinha(path, rotulo, sub, sec = 'mec') {
+function wzLinha(path, rotulo, sub, sec = 'mec', lim = null) {
   const atual = WZE.cfg[sec][path], orig = WZ.get(path), v0 = WZ.clone(orig);
   // valor original: o que o jogo tem sem a mudança
   const base = atual !== undefined ? (() => { const save = WZE.cfg[sec][path]; return save; })() : orig;
@@ -446,24 +448,42 @@ function wzLinha(path, rotulo, sub, sec = 'mec') {
   const inp = el('input', { type: 'number', step: 'any', value: String(atual ?? orig) });
   const rng = el('input', { type: 'range' }); const span = Math.max(Math.abs(origVal) * 2, 1);
   rng.min = String(Math.min(0, origVal * 3, -span * (origVal < 0 ? 1 : 0))); rng.max = String(Math.max(origVal * 3, span)); rng.step = String(Math.abs(origVal) < 2 ? .01 : Math.abs(origVal) < 50 ? .1 : 1); rng.value = String(atual ?? orig);
+  // limite próprio (ex.: dificuldade de 0 até "impossível"), com o nome do valor ao lado
+  const nomeV = lim && lim.rot ? el('b', { class: 'rot' }, lim.rot(atual ?? orig)) : null;
+  if (lim) { rng.min = String(lim.min); rng.max = String(lim.max); rng.step = String(lim.step); inp.min = String(lim.min); inp.max = String(lim.max); inp.step = String(lim.step); rng.value = String(atual ?? orig); }
+  const corta = (v) => (lim ? Math.min(lim.max, Math.max(lim.min, v)) : v);
   const ex = sec === 'mec' ? wzExpl(path) : '';
   const linha = el('div', { class: 'lin' + (atual !== undefined ? ' mud' : ''), title: ex ? `${ex}\nOriginal: ${origVal}` : `Original: ${origVal}` }, el('div', {}, rotulo, ex ? el('span', { class: 'q', 'aria-hidden': 'true' }, '?') : null, sub ? el('small', {}, sub) : null), rng, inp,
     el('button', { type: 'button', title: `Voltar ao original (${origVal})`, on: { click: () => { delete WZE.cfg[sec][path]; WZ.apply(WZE.cfg); wzMudou(); wzRender(); } } }, '↺'));
-  const set = (v) => { if (!isFinite(v)) return; if (Math.abs(v - origVal) < 1e-12) delete WZE.cfg[sec][path]; else WZE.cfg[sec][path] = v; linha.classList.toggle('mud', WZE.cfg[sec][path] !== undefined); WZ.apply(WZE.cfg); wzMudou(); };
+  const set = (v) => { if (!isFinite(v)) return; v = corta(v); if (nomeV) nomeV.textContent = lim.rot(v); if (Math.abs(v - origVal) < 1e-12) delete WZE.cfg[sec][path]; else WZE.cfg[sec][path] = v; linha.classList.toggle('mud', WZE.cfg[sec][path] !== undefined); WZ.apply(WZE.cfg); wzMudou(); };
   rng.addEventListener('input', () => { inp.value = rng.value; set(+rng.value); });
-  inp.addEventListener('change', () => { rng.value = inp.value; set(+inp.value); });
+  inp.addEventListener('change', () => { if (lim && isFinite(+inp.value)) inp.value = String(corta(+inp.value)); rng.value = inp.value; set(+inp.value); });
+  if (nomeV) linha.firstChild.append(nomeV);
   void base; void v0; return linha;
 }
 // o valor original de um caminho (antes de qualquer mudança)
 function wzOrig(path) { const save = WZ.clone(WZE.cfg); const c = WZ.clone(WZE.cfg); for (const s of ['mec', 'textos', 'pistas']) delete c[s][path]; WZ.apply(c); const v = WZ.get(path); WZ.apply(save); return v; }
+// dificuldade dos adversários do vôlei: de 0 (bem fácil) até o máximo, que é "impossível" (o Amiguinho não erra)
+const WZ_DIF = { min: 0, max: VOLEI_IMP, step: .01, rot: (v) => (v >= VOLEI_IMP - 1e-9 ? 'IMPOSSÍVEL' : v < .2 ? 'fácil' : v < .5 ? 'médio' : v < .8 ? 'difícil' : v < 1 ? 'muito difícil' : 'extremo') };
+function wzDificuldade(m) {
+  m.append(el('h3', {}, 'Dificuldade dos adversários'),
+    el('p', { class: 'ajuda' }, `De 0 (bem fácil) até ${String(VOLEI_IMP).replace('.', ',')} (impossível). No máximo o Amiguinho não erra nenhuma bola e não dá para ganhar dele. Os nomes ao lado: fácil, médio, difícil, muito difícil, extremo, impossível. Na Copa, cada seleção ainda varia um pouquinho em volta do número da fase (menos no impossível).`));
+  m.append(el('h3', {}, 'Torneio e partida rápida'));
+  m.append(wzLinha('OPP.rapida.lvl', 'Partida rápida', OPP.rapida.name, 'mec', WZ_DIF));
+  TOUR.forEach((k, i) => m.append(wzLinha(`OPP.${k}.lvl`, `Torneio, fase ${i + 1}`, OPP[k].name, 'mec', WZ_DIF)));
+  m.append(el('h3', {}, 'Copa do Mundo'));
+  const FASE = { g0: 'Grupo, 1º jogo', g1: 'Grupo, 2º jogo', g2: 'Grupo, 3º jogo', oitavas: 'Oitavas de final', quartas: 'Quartas de final', semi: 'Semifinal', final: 'Final' };
+  for (const k of Object.keys(COPA_LVL)) m.append(wzLinha(`COPA_LVL.${k}`, FASE[k] || k, '', 'mec', WZ_DIF));
+}
 function wzMec(m) {
   m.append(el('h2', {}, 'Mecânicas'), el('p', { class: 'ajuda' }, 'Escolha a prova e mude os números. A linha fica amarela quando está diferente do original; o ↺ volta ao original. Pare o mouse em cima de uma linha (ou do ?) para ver o que aquele número faz. Use "Testar" lá em cima para jogar a prova com as mudanças. Os nomes técnicos aparecem quando o número ainda não tem nome em português.'));
   m.append(el('div', { class: 'chips' }, ...EVENTS.map((e) => el('button', { type: 'button', class: WZE.ev === e.id ? 'on' : '', on: { click: () => { WZE.ev = e.id; wzRender(); } } }, e.name))));
   const ev = EVENTS.find((e) => e.id === WZE.ev) || EVENTS[0];
   m.append(el('h3', {}, 'Partida e medalhas'));
   for (const k of ['dur', 'med.0', 'med.1', 'med.2']) if (WZ.get(`ev:${ev.id}.${k}`) !== undefined && typeof WZ.get(`ev:${ev.id}.${k}`) === 'number') m.append(wzLinha(`ev:${ev.id}.${k}`, WZ_EVF[k]));
+  if (ev.id === 'volei') wzDificuldade(m);
   for (const nm of WZ_REG[ev.id] || []) {
-    const o = WZ_OBJS[nm]; if (!o) continue; const folhas = wzFolhas(o, nm); if (!folhas.length) continue;
+    const o = WZ_OBJS[nm]; if (!o) continue; const folhas = wzFolhas(o, nm).filter((f) => !(nm === 'OPP' && /\.lvl$/.test(f.path))); if (!folhas.length) continue;
     m.append(el('h3', {}, nm === 'BG' ? 'Corrida' : nm === 'BC' ? 'Cancha e física' : `Ajustes (${nm})`));
     for (const f of folhas) { const k0 = f.path.split('.').pop(), desc = (WZ_DESC[nm] || {})[k0]; m.append(wzLinha(f.path, desc || WZ_NOMES[k0] || f.key, desc ? f.path.replace(nm + '.', '') : WZ_NOMES[k0] ? f.path : 'nome técnico: ' + f.path)); }
   }

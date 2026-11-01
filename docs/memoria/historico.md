@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Vôlei, dificuldade até "impossível" no editor
+- **Pedido do dono:** no editor, um limite de dificuldade do Amiguinho no vôlei em que o valor mais alto é "impossível" (não erra, não dá para ganhar), para ajustar a dificuldade dos campeonatos.
+- **Feito:** seção "Dificuldade dos adversários" em Mecânicas > Vôlei (partida rápida, Torneio e Copa), barras de 0 a 1,2 com o nome do nível; no 1,2 o Amiguinho não perde ponto (detalhes em `jogos-de-verao.md`). Nenhum valor do jogo mudou; o dono escolhe. Jogo publicado.
+- **Testes:** `vimpossivel.cjs` e `wzdificuldade.cjs` (novos), `todas.cjs`, `wzaovivo.cjs`.
+
 ## 01/11/2026: Editor do jogo, causa do rosto fora do lugar
 - **O dono mostrou (fotos):** o rosto do run ajustado e salvo; no jogo o rosto estava em outro lugar; ao reabrir o editor, os números iguais mas o desenho como antes.
 - **Causa:** o "olhar para a bola" do vôlei mexia o rosto dentro do visor e ficava guardado depois de jogar, mexendo também o desenho do editor. Salvar e carregar estavam certos.

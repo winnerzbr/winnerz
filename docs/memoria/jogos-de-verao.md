@@ -445,6 +445,10 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - o editor desenha sempre com o rosto parado (sem olhar);
   - novo número em Mecânicas > Vôlei: "Rosto olhando para a bola" (`ROSTO.olhar`), 0 por padrão = o rosto fica exatamente onde o dono pôs; 1 = olha para a bola como antes. Vale para o IAmiguinho e o Amiguinho (`anim5.js` e `animb2.js`).
   - Teste: `testes/wzolhar.cjs` (editor igual antes e depois de jogar; no jogo o rosto igual ao do editor; com 1 o rosto se mexe).
+- **Dificuldade dos adversários do vôlei (01/11, pedido do dono):** em Mecânicas > Vôlei, seção "Dificuldade dos adversários": partida rápida, as 4 fases do Torneio (`OPP.*.lvl`) e as 7 fases da Copa (`COPA_LVL`), cada uma com uma barra de 0 até 1,2 e o nome ao lado (fácil < 0,2, médio < 0,5, difícil < 0,8, muito difícil < 1, extremo, e IMPOSSÍVEL no máximo). Não dá para passar do máximo.
+  - **Impossível (`cart2/impossivel.js`, `VOLEI_IMP = 1.2`):** decide sempre certo, reage na hora, anda mais rápido (1,7x), sem humor; todo toque dele que não iria cair do seu lado vira uma bola certa do seu lado e longe de você; se a bola for cair do lado dele (ou no 4º toque), ele pega no último instante e devolve. Na Copa, a fase no máximo deixa todas as seleções no impossível; abaixo disso nenhuma passa de 1,19.
+  - Medido (`testes/vimpossivel.cjs`, jogador = cérebro antigo no melhor nível): no 1,02 (extremo) o jogador fez 15 pontos em 12 partidas; no impossível, 0 pontos em 12 partidas (2 defesas no último instante).
+  - Teste do editor: `testes/wzdificuldade.cjs`.
 - **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere); `testes/wzaovivo.cjs` (explicações, rosto ao vivo digitando, números acompanhando o arraste); `testes/wzrostos_vivo.cjs` (os 6 números em cada um dos 5 personagens mudam o desenho na hora); `testes/wzpista_estragada.cjs` (rascunho com atalho fora da pista não trava o rosto nem o jogo).
 
 ## Trilha sonora gravada (01/11)

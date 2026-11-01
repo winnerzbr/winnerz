@@ -26,6 +26,10 @@ s = sub1("A.mode = 'hit'; A.tx = clamp(pr.x + behind * (A.spOK ? rand(13, 17) :"
 s = sub1("this.moody = !this.two && Math.random() < .45 + .45 * this.baseLvl();", "this.moody = !this.two && (this.baseLvl() >= .7 || Math.random() < .45 + .45 * this.baseLvl());", s)
 # 30/10/2026 · vôlei: cérebro novo do Amiguinho (simula o toque antes, cortadas, saque com cortada, peixinho para o lado certo)
 s = sub1("const EVENTS = [surfe,", (HERE / 'aivolei.js').read_text(encoding='utf-8') + "\nconst EVENTS = [surfe,", s)
+# dificuldade "impossível" do vôlei (01/11): o valor máximo do editor faz o Amiguinho não errar
+s = sub1("const EVENTS = [surfe,", (HERE / 'impossivel.js').read_text(encoding='utf-8') + "\nconst EVENTS = [surfe,", s)
+s = sub1("let L = COPA_LVL[mm.key] + (t.r - .5) * .1; if (mm.key === 'final') L = Math.max(1, L); if (t.id === 'Dourado') L += .05;",
+         "let L = COPA_LVL[mm.key] + (t.r - .5) * .1; if (mm.key === 'final') L = Math.max(1, L); if (t.id === 'Dourado') L += .05; if (COPA_LVL[mm.key] >= VOLEI_IMP - 1e-9) L = VOLEI_IMP; else L = Math.min(L, VOLEI_IMP - .01);", s)
 # Os textos não dizem mais quantas provas são, porque o número vai mudar com as provas novas.
 s = sub1("<p>Dezenove provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", "<p>Provas na orla com o IAmiguinho, do surfe ao vôlei de praia.", s)
 s = sub1("say('Boas-vindas à orla! Dezenove provas e sete por semana valendo pódio. Todas minhas, em teoria.');",

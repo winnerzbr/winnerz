@@ -1,0 +1,17 @@
+Use case: illustration-story. Create one production animation sprite sheet of the PINK JELLY AMIGUINHO doing TABLE TENNIS SMASH, eight sequential frames, exactly 4 columns × 2 rows of equal square cells. Output 1774 × 887 (2:1). Pure opaque chroma green #00FF00. Use input 1 ONLY as character model and painting style, input 2 ONLY as exact layout/ground scale, input 3 ONLY as paddle design, at small game scale. Do NOT reproduce reference labels or guide lines.
+
+CHARACTER: precisely the pink egg-shaped jelly blob of model image1, 3/4 side facing RIGHT, WIDE horizontal dark navy glass visor in its upper half, visor completely EMPTY. No robot cap, no headphones, no human limbs. EXACTLY TWO small ROUND pink floating ball hands and TWO dome-shaped pink floating feet. NO ARMS, NO LEGS, NO connective stalks, NO gloves, NO fingers. Hands and feet remain same size in all8. Same volume of jelly everyframe: a taller body becomes narrower and a squashed body wider. The round near/front floating hand holds the little wooden paddle HANDLE, far round hand floats for balance. All hand-body gaps remain green. Body shaded hot pink, top-left white highlights and warm rim, hand-painted brush texture, thick dark navy outline.
+
+CANONICAL SCALE: upright body top at localy85, feet sole ground localy406. Overall neutral height321. Neutral body roughly245 wide by275 tall, floating hand diameter80, feet105wide by65high. Visor77high, broad horizontal shape matching model 3/4 view. Keep body horizontally centered in each cell. Ground y406 in firstrow,y849 in secondrow. Nothing crosses cell borders. Paddle total96px, round blade66px, shortlightwoodhandle, red rubber front andblack reverse, thin woodedge. Paddle much smaller than blobbody, same size all8frames.
+
+Action choreography, readingorder:
+1 TOPLEFT: ready, slightly compressedbody, paddle in floating front hand infront atwaistheight, far hand balances, twofeet grounded.
+2 TOPSECOND: windup, body stretches taller and narrower like a bow, SAME jelly volume. The near floating hand lifts paddle HIGH ABOVE bodytop, its redblade at upperleft-above-body, far hand low forbalance. Feet remain grounded. Give raised paddle clear topmargin.
+3 TOPTHIRD: early downswing. Nearhand/paddle whipping down and forward, paddle now HIGH at upperRIGHT ofbody, still ABOVE visor and HIGHER than frame4 contact. Body beginning toleanRIGHT. Do not dip paddle towaist! No motionlines.
+4 TOPRIGHT CONTACT: nearhand+paddle infront onRIGHT ABOVE VISOR, redface turnedRIGHT andslightlyDOWN. Body leans intohit with smallhop, bothfeet visibly12px aboveground. Free roundhand behindbodyforbalance. All drawn withincell.
+5 BOTTOMLEFT: followthrough DOWN, front paddle now low acrossbody, landing bodywide andSQUASHED, samejellyvolume, twofeetgrounded.
+6 BOTTOMSECOND: recovery wobble, bodytilts slightly, frontfloatinghand brings paddlebackup, farhandbalances.
+7 BOTTOMTHIRD: smaller wobble settling, paddlecomingtowaisthighreadypose.
+8 BOTTOMRIGHT: ready matchingframe1 proportionsandpaddleplacement, relaxedslightbodycompression.
+
+Maintain smooth progressive paddlepath highbehind -> highforward -> abovevisorcontact -> lowfollowthrough ->ready. Exactly8 distinctframes. Same design/paddle/scale/light, constantvolume. No ball anywhere, no eyes, no mouth, no table, no scenery, no floor, no shadows, no motion trails, no dust, no grid, no text, no numbers.

@@ -8,13 +8,14 @@
     const key = nm + col; if (MBT[key]) return MBT[key];
     const im = MBI[nm], c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
     const g = c.getContext('2d'); g.drawImage(im, 0, 0);
-    const T = hsv(...hexRGB(col));
+    const T = hsv(...hexRGB(col)), rq = nm.startsWith('pp');
     if (Math.abs(T[0] - PINK[0]) > 2 || Math.abs(T[1] - PINK[1]) > .03) {
       const d = g.getImageData(0, 0, c.width, c.height), px = d.data, ks = T[1] / PINK[1], kv = T[2] / PINK[2];
       for (let q = 0; q < px.length; q += 4) {
         if (!px[q + 3]) continue;
         const [h, s, v] = hsv(px[q], px[q + 1], px[q + 2]);
         if (s < .18 || (h > 40 && h < 270)) continue;
+        if (rq && (h < 14 || h > 350) && s > .88 && v > .82) continue; // pingue-pongue: a raquete vermelha fica vermelha
         const nh = ((T[0] + (h - PINK[0]) * .6) % 360 + 360) % 360, [r, gg, b] = rgbOf(nh, clamp(s * ks, 0, 1), clamp(v * (.55 + .45 * kv), 0, 1));
         px[q] = r; px[q + 1] = gg; px[q + 2] = b;
       }

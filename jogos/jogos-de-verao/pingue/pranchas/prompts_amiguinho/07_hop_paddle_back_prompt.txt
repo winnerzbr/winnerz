@@ -1,0 +1,19 @@
+Create ONE animation sprite sheet, 1774 by 887 pixels (2:1), EXACTLY four columns and two rows of equal invisible cells, eight frames in reading order. Use attached pink AMIGUINHO MODEL SHEET for identity, attached GUIDE GRID for exact layout and scale, attached PADDLE MODEL only for the small paddle design. Do not draw any reference text or guide lines.
+
+Animation: HOPPING WITH PADDLE PULLED BACK, a seamless loop, facing RIGHT in every frame in a slight 3/4 right view. This is the PINK JELLY BLOB, NOT a robot, with one pink egg-shaped body, a wide horizontal EMPTY navy glass visor in the upper half, exactly TWO small ROUND PINK FLOATING BALL HANDS and exactly TWO PINK DOME-SHAPED FLOATING FEET. NO arms, NO legs, NO connecting stalks, NO gloves, NO fingers, NO hat, NO propeller. Hands and feet keep identical size throughout. Maintain the same amount of jelly: squash becomes wider and shorter, stretch becomes narrower and taller, with no volume loss. Same hand-painted glossy cartoon brush texture and thick dark navy outline as the model. Upper-left highlights. Visor ALWAYS EMPTY, no eyes or mouth.
+
+Critical pose: the near/front round floating hand and its paddle are pulled BACK, on the LEFT side beside the blob's lower body, wound up and staying there in ALL EIGHT FRAMES. The paddle NEVER swings forward. Far floating round hand is held out on the RIGHT side in front for balance. Both hands are plainly visible and remain detached with green gaps from the torso. The back hand holds the little wood handle. Paddle red rubber front, black reverse, thin wooden rim, short pale wooden handle. Paddle rigid fixed size: 96px total at this canvas scale, round blade66px, much smaller than the blob body. Do not copy the giant display scale from paddle reference. Draw no balls.
+
+Guide: canonical standing height321px from BODY TOP localy85 to GROUND localy406. Neutral jelly body approximately245pxwide by275pxtall, floating hands approximately80px diameter, feet105pxwide by65pxtall; keep exact reference ratios. Body center horizontal localx221.5. Feet ground at globaly406 in first row, globaly849 in second row. Keep every sprite and paddle safely within its own cell with green margins.
+
+Eight subtly changing phases of small quick forward hops played in place, body horizontally anchored:
+1. Low ready squash, both dome feet on ground, paddle held back beside LEFT side, far hand in front RIGHT. Squash width roughly263, bodyheight256.
+2. Push off: slightly taller/narrower jelly, feet pressing on ground, paddle stays back.
+3. Small airborne hop: entire blob, both detached feet and hands raised, soles18px above ground; gentle upward stretch with same jelly volume. Paddle stays back.
+4. Land and squash, both feet on same ground, round body slightly wider and lower. Paddle stays back.
+5. Low squash gathering next hop, a tiny change from frame4.
+6. Push off and modest stretch, feet still at ground, same body volume.
+7. Second small airborne hop, both soles18px above ground, matching the rhythm of frame3 with only small pose variations.
+8. Soft landing squash nearly identical to frame1, flowing seamlessly into frame1.
+
+Use small increments, not unrelated poses. Maintain same canonical scale and fixed hand/foot sizes in every frame. Airborne gap only frames3 and7. No locomotion by long legs, because this blob has NO ARMS OR LEGS. Wide visor in all frames must stay blank. Opaque flat EXACT pure green #00FF00 background everywhere outside sprites. NO ground shadows, motion lines, dust, sand, table, net, ball, scenery, text, letters, numbers, labels, borders or grid.

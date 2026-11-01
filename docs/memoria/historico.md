@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Editor do jogo, rosto ao vivo e botão
+- **O dono relatou:** o botão só apareceu digitando "editor"; os rostos e quadros ainda não atualizavam ao vivo.
+- **Feito:** a aplicação das mudanças não para mais no meio por causa de uma peça de pista fora do lugar (causa provável); o desenho é sempre refeito; o botão confere de novo quem é o dono algumas vezes. Detalhes em `jogos-de-verao.md`.
+- **Testes:** `wzrostos_vivo.cjs` e `wzpista_estragada.cjs` (novos), `wzeditor.cjs`.
+- **Pendente:** o dono confirmar.
+
 ## 31/10/2026: Editor do jogo, botão que não aparecia
 - **O dono relatou:** o botão do editor não aparece.
 - **Feito:** o editor espera a ponte da página chegar (até 12 s) antes de decidir se é o dono; aceita também quem pode editar; atalho de reserva digitando "editor" no teclado; aviso na barra de cima quando não reconhece o dono.

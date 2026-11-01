@@ -109,6 +109,12 @@ const WZ_SETS = [
 ];
 const WZ_PISTA_CAMPOS = ['name', 'fala', 'pts', 'sc', 'ramps', 'boxes', 'pads', 'fofa', 'slopes', 'farol'];
 
+// as peças da pista apontam para pedacinhos da linha (24 por ponto): ficam sempre dentro da pista
+function wzPistaOk(T) {
+  const n = T.pts.length * 24, w = (i) => ((Math.round(i) % n) + n) % n;
+  T.boxes = T.boxes.map(w); T.ramps = T.ramps.map(w); T.fofa = T.fofa.map(w); T.pads.forEach((p) => { p.i = w(p.i); });
+  for (const c of [...T.sc, ...T.slopes]) { c.a = w(c.a); c.b = Math.min(n - 1, Math.max(c.a + 2, Math.round(c.b))); }
+}
 const WZ = (() => {
   const clone = (o) => (o === undefined ? undefined : JSON.parse(JSON.stringify(o)));
   // ---------- caminhos ("BG.vmax", "ev:bugue.med.1", "fala:intro.bugue", "pista:0.pts", "rosto:ia.idle.3")
@@ -155,14 +161,15 @@ const WZ = (() => {
   }
   // aplica uma configuração inteira (sempre a partir do original)
   function apply(cfg) {
-    restoreAll(); cfg = cfg || {};
-    for (const [p, v] of Object.entries(cfg.mec || {})) getSet(p, v, true);
-    for (const [p, v] of Object.entries(cfg.textos || {})) getSet(p, v, true);
-    for (const [p, v] of Object.entries(cfg.pistas || {})) getSet(p, v, true);
-    for (const [p, o] of Object.entries(cfg.rostos || {})) { const [set, an, k] = p.split('.'); applyRosto(set, an, +k, o); }
+    // cada mudança é aplicada sozinha: uma que der problema não impede as outras (antes, um atalho de pista fora do lugar
+    // travava tudo e o rosto só aparecia ao clicar de novo no quadro)
+    const tenta = (fn, onde) => { try { fn(); } catch (e) { console.warn('editor: não deu para aplicar', onde, e); } };
+    tenta(restoreAll, 'volta ao original'); cfg = cfg || {};
+    for (const sec of ['mec', 'textos', 'pistas']) for (const [p, v] of Object.entries(cfg[sec] || {})) tenta(() => getSet(p, v, true), p);
+    for (const [p, o] of Object.entries(cfg.rostos || {})) tenta(() => { const [set, an, k] = p.split('.'); applyRosto(set, an, +k, o); }, p);
     // contas que dependem dos números
-    BC.L = BC.x1 - BC.sx;
-    for (const T of BG_TRACKS) T.line = null; if (typeof BG_T !== 'undefined') { const i = BG_TRACKS.indexOf(BG_T); BG_T = null; bgLoad(Math.max(0, i)); }
+    tenta(() => { BC.L = BC.x1 - BC.sx; }, 'cancha');
+    tenta(() => { for (const T of BG_TRACKS) { T.line = null; wzPistaOk(T); } if (typeof BG_T !== 'undefined') { const i = BG_TRACKS.indexOf(BG_T); BG_T = null; bgLoad(Math.max(0, i)); } }, 'pistas');
   }
   return { get, apply, clone };
 })();
@@ -180,7 +187,7 @@ const WZDB = (() => {
       for (let i = 0; i < 120 && !(window.claude && window.claude.use); i++) await new Promise((r) => setTimeout(r, 100));
       try { if (window.claude && window.claude.use) { [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } } catch { db = null; }
       let owner = LOCAL;
-      if (user) { try { owner = !!(await user.isOwner()); } catch { owner = false; } if (!owner) { try { owner = !!(await user.canEdit()); } catch { /* */ } } }
+      if (user) { for (const f of ['isOwner', 'canEdit']) { if (owner) break; try { owner = !!(await user[f]()); } catch { /* */ } } if (!owner) { try { owner = (await user.can('data.write')) === true; } catch { /* */ } } }
       WZDB.info = { ponte: !!(window.claude && window.claude.use), db: !!db, user: !!user, owner };
       return { db: !!db, owner, local: LOCAL };
     })();
@@ -212,7 +219,10 @@ const WZDB = (() => {
 let WZ_APLICADO = null;
 WZDB.init().then(async (st) => {
   const ap = await WZDB.get('aplicado'); if (ap && ap.cfg) { WZ_APLICADO = ap.cfg; if (!(mode === 'play' || mode === 'pause')) WZ.apply(ap.cfg); }
-  if (st.owner) wzBotao();
+  if (st.owner) { wzBotao(); return; }
+  // a resposta de quem é o dono pode chegar atrasada: confere de novo algumas vezes
+  const u = window.claude && window.claude.use ? await window.claude.use('user').catch(() => null) : null; if (!u) return;
+  for (const ms of [2000, 5000, 10000, 20000]) { await new Promise((r) => setTimeout(r, ms)); let ok = false; for (const f of ['isOwner', 'canEdit']) { try { ok = ok || !!(await u[f]()); } catch { /* */ } } if (ok) { wzBotao(); return; } }
 });
 
 // atalho de reserva: digitar e-d-i-t-o-r no teclado (fora de um campo) abre o editor mesmo sem o botão.
@@ -549,7 +559,7 @@ function wzRostos(m) {
   const sel = el('select', {}, ...anims.map((a) => el('option', { value: a, selected: a === WZE.ran }, a))); sel.addEventListener('change', () => { WZE.ran = sel.value; WZE.rk = 0; wzRender(); });
   const cv = el('canvas', { class: 'rc' }), g = cv.getContext('2d'), key = () => `${S.id}.${WZE.ran}.${WZE.rk}`;
   const cur = () => WZE.cfg.rostos[key()] || {};
-  const setv = (k, v) => { const o = { ...cur(), [k]: v }; if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; else WZE.cfg.rostos[key()] = o; WZ.apply(WZE.cfg); wzMudou(); desenha(); marcaTira(); };
+  const setv = (k, v) => { const o = { ...cur(), [k]: v }; if (!o.fx && !o.fy && (o.fs ?? 1) === 1 && !o.fr && !o.ax && !o.ay) delete WZE.cfg.rostos[key()]; else WZE.cfg.rostos[key()] = o; try { WZ.apply(WZE.cfg); } finally { desenha(); marcaTira(); wzMudou(); } };
   // só atualiza as marquinhas dos quadros mudados (sem refazer os campos, para não perder o que está sendo digitado)
   // os números acompanham o arraste ao vivo
   const syncCampos = () => { const o = cur(); ctl.querySelectorAll('input[data-k]').forEach((i) => { if (document.activeElement !== i) i.value = String(o[i.dataset.k] ?? i.dataset.def); }); marcaTira(); };

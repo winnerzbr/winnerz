@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Teco-teco d'Água mais difícil (segunda rodada)
+- **O dono disse:** continua bem fácil (fez 19.310 contra 9.160).
+- **Causa:** os Amiguinhos não contavam a queda da gota e quase não atiravam de longe; e as argolas davam muitos pontos para quem ficava na frente.
+- **Feito:** mira com a queda; tiro em qualquer alvo na linha; tanque enchendo de vez; argolas 120 / +40; acerto 0,86 a 0,96; aperto a partir de 600 pontos de vantagem (mais rápidos, fora da altura preferida, caçando com bexigas).
+- **Testes:** novo `teco_humano.cjs` (jogador bom simulado): ganhou 3 de 8, por pouco (antes ganhava todas com o dobro dos pontos). Publicado no site e na página do Claude.
+
+---
+
 ## 01/11/2026: Teco-teco d'Água mais difícil, Amiguinhos espalhados
 - **O dono pediu:** o jogo estava fácil (26 mil pontos contra 5 a 7 mil); os Amiguinhos ficavam colados brigando pelas mesmas coisas; a cadência dos tiros estava alta e dava para ficar na frente de todo mundo atirando.
 - **Feito:** cadência à metade e mais gasto de água; gotas com alcance menor; ninguém passa de 60% da tela; cada Amiguinho com um jeito e uma altura (Rosa alto e atrás, Amarelo no meio e nas argolas, Verde baixo, na frente e ladrão de último acerto); alvos e fileiras de argolas já escolhidos por um valem menos para os outros; desvio entre eles; quando você dispara no placar, eles apertam e caçam você com bexigas; tonto 2,8 s.

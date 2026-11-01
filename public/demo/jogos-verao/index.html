@@ -9340,7 +9340,7 @@ const bugue = {
    Arte provisória: tudo desenhado pelo jogo. Os pedidos de arte estão na página de pedidos. */
 const TA = {
   dur: 120, sc: 45, spd: 135, acc: 900, rate: 4.5, shotV: 300, alcance: .8, frente: .6, gasto: .02, refil: .5, refil0: .02, bexIni: 3, bexMax: 5, bexG: 380,
-  tonto: 2.8, inv: 1.3, ringPts: 150, ringSeq: 60, combo: 1.2, ai: [.74, .8, .86], esc: .85, perto: 900, volta: .25,
+  tonto: 2.8, inv: 1.3, ringPts: 120, ringSeq: 40, combo: 1.2, ai: [.86, .91, .96], esc: .85, perto: 600, volta: .25,
 };
 if (typeof Music !== 'undefined' && Music.songs.jetski) Music.songs.teco = Music.songs.jetski;
 FALA.intro.teco = [
@@ -9355,9 +9355,9 @@ const TA_COLS = [['#3b6fd6', 'Você'], ['#ff6ba8', 'Rosa'], ['#ffd84a', 'Amarelo
 // Rosa: caçadora de drones, patinho e dirigível, voa no alto e atira de longe. Amarelo: argolas, balões e cestas, no meio.
 // Verde: o malandro: rouba o último acerto dos alvos que os outros quase estouraram, voa baixo e joga muita bexiga (no líder).
 const TA_JEITO = [{ faixa: [.15, .9], gosto: {}, argola: 1, bomba: 1, dist: [70, 130], linha: .2, cedo: 0 }, // (o jogador, quando um teste joga por ele)
-  { faixa: [.08, .42], gosto: { drone: 1.7, pato: 1.6, alvo: 1.7, pipa: 1.1, balao: .7, cesta: .8 }, argola: .7, bomba: 1, dist: [110, 170], linha: .3, cedo: .4 },
-  { faixa: [.36, .68], gosto: { balao: 1.4, cesta: 1.3, pipa: 1.1, drone: .8, pato: .9, alvo: 1 }, argola: 2.2, bomba: .7, dist: [50, 90], linha: .45, cedo: 1.2 },
-  { faixa: [.62, .95], gosto: { pipa: 1.4, balao: 1.1, drone: 1, pato: 1, alvo: 1.1, cesta: 1.4 }, argola: .9, bomba: 1.8, rouba: 2.4, dist: [40, 80], linha: .55, cedo: 1.6 },
+  { faixa: [.08, .42], gosto: { drone: 1.7, pato: 1.6, alvo: 1.7, pipa: 1.1, balao: .7, cesta: .8 }, argola: 1.1, bomba: 1, dist: [110, 170], linha: .3, cedo: .4 },
+  { faixa: [.36, .68], gosto: { balao: 1.4, cesta: 1.3, pipa: 1.1, drone: .8, pato: .9, alvo: 1 }, argola: 2.8, bomba: .7, dist: [50, 90], linha: .45, cedo: 1.2 },
+  { faixa: [.62, .95], gosto: { pipa: 1.4, balao: 1.1, drone: 1, pato: 1, alvo: 1.1, cesta: 1.4 }, argola: 1.5, bomba: 1.8, rouba: 2.4, dist: [40, 80], linha: .55, cedo: 1.6 },
 ];
 const TA_TIPOS = {
   balao: { r: 7, hp: 1, pts: 100 }, drone: { r: 9, hp: 3, pts: 250 }, pipa: { r: 9, hp: 2, pts: 150 }, pato: { r: 11, hp: 4, pts: 350 },
@@ -9522,7 +9522,7 @@ const teco = {
     p.px = p.x; p.inv = Math.max(0, p.inv - dt); p.cd -= dt; p.bcd -= dt; p.comboT -= dt; if (p.comboT <= 0) p.combo = 0; p.ringT += dt; p.ph += dt;
     if (p.tonto > 0) { p.tonto -= dt; p.vx += (-25 - p.vx) * Math.min(1, dt * 3); p.vy += (18 - p.vy) * Math.min(1, dt * 3); if (p.tonto <= 0) p.inv = TA.inv; }
     else {
-      const sp = TA.spd * (p.me ? 1 : .94 + .06 * p.ai.sk), tx = c.mx * sp, ty = c.my * sp, k = Math.min(1, TA.acc / sp * dt * .12);
+      const sp = TA.spd * (p.me ? 1 : .94 + .06 * p.ai.sk + .08 * this.aperto()), tx = c.mx * sp, ty = c.my * sp, k = Math.min(1, TA.acc / sp * dt * .12);
       p.vx += (tx - p.vx) * k * 1.6; p.vy += (ty - p.vy) * k * 1.6;
     }
     p.x = clamp(p.x + p.vx * dt, 14, W * TA.frente); p.y = clamp(p.y + p.vy * dt, 22, this.SEA - 7);
@@ -9612,17 +9612,17 @@ const teco = {
     const A = p.ai, F = TA_JEITO[p.i], sk = this.forca(p); A.t -= dt; A.dodge -= dt;
     if (A.t <= 0 || !A.plan || A.plan.q && (A.plan.q.dead || A.plan.q.fall)) { A.t = rand(.18, .38) * (1.5 - sk); A.plan = this.plano(p); }
     const pl = A.plan; let tx = pl.x, ty = pl.y;
-    if (pl.q) { const q = pl.q; ty = q.y + (q.kind === 'balao' ? q.vy * .3 : 0) + A.err; tx = q.kind === 'cesta' ? q.x : clamp(q.x - pl.d, W * F.linha, W * TA.frente); }
+    if (pl.q) { const q = pl.q, ax = Math.max(0, q.x - p.x), tq = ax / TA.shotV; ty = q.y + (q.kind === 'balao' ? q.vy * .3 : 0) - (q.kind === 'cesta' ? 0 : 4 + 70 * tq * tq) + A.err; tx = q.kind === 'cesta' ? q.x : clamp(q.x - pl.d, W * F.linha, W * TA.frente); }
     if (pl.hunt) { const h = pl.hunt; if (h.tonto > 0 || p.bex <= 0) A.t = 0; tx = clamp(h.x - 80, 16, W * TA.frente); ty = clamp(h.y - 42, 24, this.SEA - 20); }
     // desvio de bexiga que vem para cima dele
-    if (A.dodge <= 0) for (const b of this.bombs) if (b.o !== p.i && b.x < p.x + 10 && b.x > p.x - 120 && Math.abs(b.y - p.y) < 40 && Math.random() < sk * .6) { A.dodge = .6; A.dy = b.y < p.y ? 1 : -1; break; }
+    if (A.dodge <= 0) for (const b of this.bombs) if (b.o !== p.i && b.x < p.x + 10 && b.x > p.x - 120 && Math.abs(b.y - p.y) < 40 && Math.random() < sk * .9) { A.dodge = .6; A.dy = b.y < p.y ? 1 : -1; break; }
     if (A.dodge > 0) ty = p.y + A.dy * 40;
     // não grudar nos outros: afasta na altura de quem está muito perto
     for (const o of this.P) { if (o === p) continue; const dx = o.x - p.x, dy = o.y - p.y; if (Math.abs(dx) < 60 && Math.abs(dy) < 40) { ty -= Math.sign(dy || (p.i - o.i)) * (40 - Math.abs(dy)) * 1.6; if (!o.me && p.i < o.i && !pl.ring) tx -= (60 - Math.abs(dx)) * .8; } }
     const dx = tx - p.x, dy = ty - p.y;
     const c = { mx: clamp(dx / 30, -1, 1), my: clamp(dy / 16, -1, 1), fire: false, bomb: false };
     // atira quando o alvo está alinhado e no alcance da gota (que cai um pouco no caminho)
-    if (pl.q && pl.q.kind !== 'cesta' && !p.seco && p.water > .02) { const q = pl.q, ax = q.x - p.x; if (ax > 10 && ax < 215) { const tq = ax / TA.shotV, cai = 70 * tq * tq; if (Math.abs(q.y - (p.y + 4 + cai)) < q.r + 2 + (1 - sk) * 5) c.fire = true; } }
+    if (!p.seco && p.water > .02) for (const q of this.tg) { if (q.dead || q.fall || q.kind === 'cesta') continue; const ax = q.x - p.x; if (ax > 10 && ax < 215) { const tq = ax / TA.shotV, cai = 70 * tq * tq; if (Math.abs(q.y - (p.y + 4 + cai)) < q.r + 2 - (1 - sk) * 4 + 3 * this.aperto()) { c.fire = true; break; } } }
     // bexiga: alvo à frente e abaixo, no alcance da curva; o Verde caça o líder, e todos caçam o jogador quando ele dispara no placar
     if (p.bex > 0 && p.bcd <= 0) {
       const lider = this.ord()[0], fuga = this.me.pts - Math.max(...this.P.filter((o) => !o.me).map((o) => o.pts));
@@ -9634,10 +9634,13 @@ const teco = {
     return c;
   },
   // quanto o Amiguinho joga bem agora: o jogo aperta quando você dispara no placar
+  // 0 a 1: quanto você está disparando no placar (acima de TA.perto de vantagem sobre o melhor Amiguinho)
+  aperto() { const fuga = this.me.pts - Math.max(...this.P.filter((o) => !o.me).map((o) => o.pts)); return clamp((fuga - TA.perto) / (TA.perto * 2), 0, 1) + (fuga > TA.perto ? .001 : 0); },
   forca(p) { const fuga = this.me.pts - Math.max(...this.P.filter((o) => !o.me).map((o) => o.pts)); return clamp(p.ai.sk + (fuga > TA.perto ? .1 : 0) + (fuga > TA.perto * 2 ? .06 : 0), 0, 1); },
   plano(p) {
     const F = TA_JEITO[p.i], sk = this.forca(p), err = rand(-1, 1) * (1 - sk) * 9, [y0, y1] = F.faixa.map((v) => v * this.SEA);
-    if (p.seco || p.water < .15 + .1 * (1 - sk)) return { x: clamp(p.x, 40, 200), y: this.SEA - 9, q: null, err };
+    if (p.seco || p.water < .06 + .08 * (1 - sk)) p.ai.enche = true; if (p.water > .5) p.ai.enche = false;
+    if (p.ai.enche) return { x: clamp(p.x, W * F.linha, W * TA.frente), y: this.SEA - 9, q: null, err };
     // caça com bexiga: fica atrás e acima de quem está ganhando para jogar a bexiga (o Verde sempre que alguém dispara; os outros
     // quando você dispara no placar). Assim, ficar parado na frente atirando deixa de ser seguro.
     const lider = this.ord()[0], fuga = this.me.pts - Math.max(...this.P.filter((o) => !o.me).map((o) => o.pts));
@@ -9652,14 +9655,14 @@ const teco = {
       let val = (q.kind === 'cesta' ? 260 * (TA.bexMax - p.bex) / TA.bexMax : (q.kind === 'alvo' ? 300 : q.pts) / Math.max(1, q.hp)) / (40 + d);
       val *= F.gosto[q.kind] || 1;
       val *= 1 + F.cedo * clamp((q.x - W * .5) / (W * .5), 0, 1);      // quem fica na frente vai nos que acabaram de entrar
-      if (q.y < y0 || q.y > y1) val *= .35;                          // fora da altura preferida dele
+      if (q.y < y0 || q.y > y1) val *= this.aperto() > 0 ? .75 : .35;                          // fora da altura preferida dele
       if (outros.includes(q)) val *= .2;                                // outro já está indo
       if (q.last === p.i) val *= 1.3;                                   // termina o que começou
       if (F.rouba && q.last >= 0 && q.last !== p.i && q.hp <= 1) val *= F.rouba; // o Verde rouba o último acerto
       if (val > bv) { bv = val; best = q; }
     }
-    for (const g of this.rings) { if (g.by >= 0 || g.x < p.x + 15 || g.x > W) continue; const d = Math.hypot(g.x - p.x, g.y - p.y); let val = (TA.ringPts * 1.3) / (40 + d) * F.argola; if (outros.some((o) => o && o.gr === g.gr)) val *= .12; /* uma fileira de argolas é de quem chegou primeiro */ if (val > bv) { bv = val; best = { ring: g }; } }
-    if (best && best.ring) return { x: clamp(best.ring.x - 30, 20, W * TA.frente), y: best.ring.y, q: null, ring: best.ring, err: err * .4 };
+    for (const g of this.rings) { if (g.by >= 0 || g.x < p.x + 15 || g.x > W) continue; const d = Math.hypot(g.x - p.x, g.y - p.y); let val = (TA.ringPts * 1.3) / (40 + d) * F.argola; if (this.P.some((o) => o !== p && !o.me && o.ai.plan && o.ai.plan.ring && o.ai.plan.ring.gr === g.gr && Math.hypot(o.x - g.x, o.y - g.y) < d)) val *= .12; /* uma fileira de argolas é de quem chegou primeiro */ if (val > bv) { bv = val; best = { ring: g }; } }
+    if (best && best.ring) return { x: clamp(best.ring.x - 30, W * F.linha, W * TA.frente), y: best.ring.y, q: null, ring: best.ring, err: err * .4 };
     if (best) { p.ai.err = err; return { q: best, d: rand(F.dist[0], F.dist[1]), x: 0, y: 0, err }; }
     return { x: W * F.linha + 20, y: (y0 + y1) / 2, q: null, err };
   },
@@ -11340,7 +11343,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '01/11 17:00';
+const WZ_BUILD = '01/11 17:09';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);

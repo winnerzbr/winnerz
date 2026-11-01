@@ -473,10 +473,10 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - água: segurar ✕ / Espaço / "Água" atira gotas da pistola; o tanque esvazia e enche num rasante no mar (bem baixo, espirrando água); no alto enche bem devagar; o nível aparece na bolha em cima do nariz e no canto da tela;
   - bexiga: ○ / X / "Bexiga" joga uma bexiga que cai em curva; acertou um teco-teco, o piloto fica tonto 2,8 s (rodopia, não atira, não pontua) e quem jogou ganha 100; depois fica 1,3 s sem poder levar outra; acertou alvos, estoura tudo em volta; começa com 3, máximo 5; cestas de bexigas descem de paraquedas (+3);
   - alvos (quem dá o último acerto leva): balão de festa 100 (sobem da praia, cachos de 5), pipa presa num barco 150 (2 acertos), drone 250 (3), patinho inflável preso em balões 350 (4) e o dirigível da Costa WinnerZ (aos 52 s e aos 100 s) com 4 alvos de 200 (3 acertos cada) e bônus de 600 para quem fizer o último;
-  - argolas douradas em arco de 5: a primeira passagem leva 150, argolas seguidas (até 4 s entre uma e outra) +60 cada;
+  - argolas douradas em arco de 5: a primeira passagem leva 120, argolas seguidas (até 4 s entre uma e outra) +40 cada (antes 150 e +60);
   - estouros seguidos rápidos (1,2 s) fazem sequência: ×1,25, ×1,5… até ×2;
   - 2 minutos, com 3, 2, 1 e "Vai!"; no fim, a colocação dos quatro pelo placar decide a medalha (1º ouro, 2º prata, 3º bronze). A pontuação da prova é 3.000 / 2.200 / 1.600 / 400 pela colocação mais os pontos ÷ 10 (até 599);
-  - os Amiguinhos escolhem o melhor alvo à frente (pontos, distância, quantos acertos faltam), alinham a altura e atiram; pegam argolas e cestas; enchem o tanque no mar; jogam bexiga em quem está à frente e mais abaixo, de preferência em quem está ganhando; às vezes desviam de bexigas. Acerto 0,74, 0,8 e 0,86 (veja "Mais difícil").
+  - os Amiguinhos escolhem o melhor alvo à frente (pontos, distância, quantos acertos faltam), alinham a altura e atiram; pegam argolas e cestas; enchem o tanque no mar; jogam bexiga em quem está à frente e mais abaixo, de preferência em quem está ganhando; às vezes desviam de bexigas. Acerto 0,86, 0,91 e 0,96 (veja "Mais difícil").
 - **Na tela:** o tempo no alto, o placar dos quatro no canto direito, o tanque e as bexigas no canto esquerdo; no fim, a colocação. Céu nos 4 horários pelo relógio, morro, cidade e farol (com luz girando à noite), gaivotas ao longe e o mar com ondas.
 - **Celular:** setas e os botões "Água" e "Bexiga". **Controle:** analógico, ✕ água, ○ bexiga.
 - **Editor:** Mecânicas > Teco-teco d'Água > "Voo, água e bexigas" (duração, velocidades, gasto e enchimento do tanque, bexigas, tempo tonto, pontos das argolas, acerto dos Amiguinhos, tamanho dos teco-tecos).
@@ -491,7 +491,14 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - quando você abre mais de 900 pontos sobre o melhor Amiguinho, eles apertam: jogam melhor e saem para te caçar com bexigas (ficam atrás e acima de você);
   - acerto dos Amiguinhos 0,74, 0,8 e 0,86.
   - No teste, o jogador que fica na frente segurando a água ganhou 2 de 6 partidas (antes ganhava todas, longe), levando 4 a 7 bexigas por partida.
-- **Teste:** `testes/teco.cjs` (partidas simuladas, o jogador "na frente segurando a água", quanto tempo os Amiguinhos ficam colados, tanque vazio sem atirar, rasante enchendo e fotos de uma partida com o teclado).
+- **Mais difícil, segunda rodada (01/11, o dono fez 19.310 contra 9.160 e achou fácil):**
+  - descoberto: os Amiguinhos miravam na altura do alvo sem contar que a gota cai no caminho, e por isso quase não atiravam de longe; agora compensam a queda;
+  - atiram em qualquer alvo que estiver na linha, não só no que escolheram; descem para encher o tanque só quando está quase vazio e só voltam com ele pela metade;
+  - argolas valiam demais para quem ficava na frente (um jogador bom fazia 6 a 8 mil só nelas, os Amiguinhos 1 mil): agora 120 a primeira e +40 cada seguida (antes 150 e +60), e os três vão mais atrás delas (Amarelo principalmente);
+  - acerto dos Amiguinhos 0,86, 0,91 e 0,96; desviam mais das bexigas;
+  - quando você abre mais de 600 pontos (antes 900), eles apertam: voam um pouco mais rápido, saem da altura preferida para disputar tudo, atiram com mais folga e te caçam com bexigas;
+  - no teste `teco_humano.cjs`, um "jogador bom" simulado (que antes fazia uns 20 mil contra 7 a 12 mil) ganhou 3 de 8 partidas, por pouco; o jogador "na frente atirando" não ganhou nenhuma de 4.
+- **Teste:** `testes/teco_humano.cjs` (um jogador bom simulado contra os Amiguinhos, com os pontos de cada um por origem) e `testes/teco.cjs` (partidas simuladas, o jogador "na frente segurando a água", quanto tempo os Amiguinhos ficam colados, tanque vazio sem atirar, rasante enchendo e fotos de uma partida com o teclado).
 
 ## Atalhos das pistas do bugue (01/11)
 - Atalho (lagoa ou areia fofa) precisa ter pelo menos uns 160 px de comprimento. Mais curto que isso, a corrida ignora e o editor não deixa criar (nem guarda). Antes, um atalho curto quebrava o desenho da corrida inteira.

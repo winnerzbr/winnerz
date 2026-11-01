@@ -15,6 +15,7 @@ const TRILHA = (() => {
     halfpipe: 'skate', patins: 'patins', bmx: 'bmx', bugue: 'bugue',
     embaixadinha: 'embaixadinha', futebol: 'futebol', bocha: 'bocha', frisbee: 'frisbee',
     obstaculos: 'corrida', arco: 'arco',
+    teco: 'jetski',                 // Teco-teco d'Água: usa o Turbo Jet até chegar uma faixa própria
   };
   const NOMES = { tema: 'Carnaval na Areia', menu: 'Disco do Caranguejo', volei: 'Forró do Coqueiro', surfe: 'Onda Gigante', skate: 'Skate no Calçadão', festa: 'Soca do Coco', podio: 'Mambo do Pódio',
     embaixadinha: 'Samba da Embaixadinha', patins: 'Rinque Neon', basquete: 'Cesta de Três', pingue: 'Tic-Tac Swing', bmx: 'Manobra Radical',

@@ -24,7 +24,7 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
 
 ## Provas
 O plano tem 19 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e as regras propostas de cada prova estão no doc do plano visual.
-- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Futebol de areia, Bocha na areia, Natação, Jet ski, Corrida de bugue e Vôlei.
+- **No jogo:** Surfe, Half-pipe, Embaixadinha, Patins, Basquete, Pingue-pongue, BMX, Corrida na areia, Frisbee, Tiro com arco, Duelo de água, Canoagem, Teco-teco d'Água, Futebol de areia, Bocha na areia, Natação, Jet ski, Corrida de bugue e Vôlei.
 - **Retiradas em 30/10/2026:** Salto de hélice, Corrida do isopor e Minigolfe. O código delas fica no backup em 16 bits (`verao/index.html`). O `build3.py` só as tira da lista. O Minigolfe vai para o Arcade do IAmiguinho.
 - **Reprovadas pelo dono em 30/10/2026 (as ideias e a jogabilidade):** Salto do penhasco e Frescobol. Saíram do jogo e não voltam. O Salto do píer também saiu de vez.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
@@ -35,6 +35,7 @@ O plano tem 19 provas, e o jogo publicado tem 18 delas. Os lugares, as paletas e
   - Todas as provas novas do plano foram feitas.
   - Removido também: Paraquedismo em formação ("não ficou legal a execução da ideia").
   - Removido: Voo do teco-teco. O dono testou 3 versões (de lado com física, 3D e 2D com voo livre) e achou que não ficou divertido.
+    - Voltou em 01/11 com outra ideia do dono: **Teco-teco d'Água** (`cart2/ev_teco.js`), uma navinha com pistola d'água e bexigas, contra 3 Amiguinhos. Detalhes na seção própria.
   - Cada prova nova fica num arquivo `cart2/ev_<prova>.js`, com `paint: true` para ser desenhada em alta resolução.
 
   | Prova | Lugar | Pontos principais |
@@ -464,6 +465,24 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Medido (`testes/vimpossivel.cjs`, jogador = cérebro antigo no melhor nível): no 1,02 (extremo) o jogador fez 15 pontos em 12 partidas; no impossível, 0 pontos em 12 partidas (2 defesas no último instante).
   - Teste do editor: `testes/wzdificuldade.cjs`.
 - **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere); `testes/wzaovivo.cjs` (explicações, rosto ao vivo digitando, números acompanhando o arraste); `testes/wzrostos_vivo.cjs` (os 6 números em cada um dos 5 personagens mudam o desenho na hora); `testes/wzpista_estragada.cjs` (rascunho com atalho fora da pista não trava o rosto nem o jogo).
+
+## Teco-teco d'Água (01/11, ideia do dono)
+- **Pedido do dono:** um jogo de avião no estilo navinha, atirando água com uma pistola presa no teco-teco e jogando bexigas d'água; alvos como balões e drones; os Amiguinhos na tela atirando nos mesmos alvos (quem estoura primeiro leva); argolas e outras formas de pontuar; bexigas nos adversários deixam eles tontos sem pontuar.
+- **Como é** (`cart2/ev_teco.js`, entre a Canoagem e o Futebol):
+  - de lado, o cenário passa sozinho; quatro teco-tecos voam livres (◀ ▶ ▲ ▼ ou analógico): o IAmiguinho (azul) e os Amiguinhos Rosa, Amarelo e Verde;
+  - água: segurar ✕ / Espaço / "Água" atira gotas da pistola; o tanque esvazia e enche num rasante no mar (bem baixo, espirrando água); no alto enche bem devagar; o nível aparece na bolha em cima do nariz e no canto da tela;
+  - bexiga: ○ / X / "Bexiga" joga uma bexiga que cai em curva; acertou um teco-teco, o piloto fica tonto 2,4 s (rodopia, não atira, não pontua) e quem jogou ganha 100; depois fica 1,3 s sem poder levar outra; acertou alvos, estoura tudo em volta; começa com 3, máximo 5; cestas de bexigas descem de paraquedas (+3);
+  - alvos (quem dá o último acerto leva): balão de festa 100 (sobem da praia, cachos de 5), pipa presa num barco 150 (2 acertos), drone 250 (3), patinho inflável preso em balões 350 (4) e o dirigível da Costa WinnerZ (aos 52 s e aos 100 s) com 4 alvos de 200 (3 acertos cada) e bônus de 600 para quem fizer o último;
+  - argolas douradas em arco de 5: a primeira passagem leva 150, argolas seguidas (até 4 s entre uma e outra) +60 cada;
+  - estouros seguidos rápidos (1,2 s) fazem sequência: ×1,25, ×1,5… até ×2;
+  - 2 minutos, com 3, 2, 1 e "Vai!"; no fim, a colocação dos quatro pelo placar decide a medalha (1º ouro, 2º prata, 3º bronze). A pontuação da prova é 3.000 / 2.200 / 1.600 / 400 pela colocação mais os pontos ÷ 10 (até 599);
+  - os Amiguinhos escolhem o melhor alvo à frente (pontos, distância, quantos acertos faltam), alinham a altura e atiram; pegam argolas e cestas; enchem o tanque no mar; jogam bexiga em quem está à frente e mais abaixo, de preferência em quem está ganhando; às vezes desviam de bexigas. Acerto 0,55, 0,66 e 0,78.
+- **Na tela:** o tempo no alto, o placar dos quatro no canto direito, o tanque e as bexigas no canto esquerdo; no fim, a colocação. Céu nos 4 horários pelo relógio, morro, cidade e farol (com luz girando à noite), gaivotas ao longe e o mar com ondas.
+- **Celular:** setas e os botões "Água" e "Bexiga". **Controle:** analógico, ✕ água, ○ bexiga.
+- **Editor:** Mecânicas > Teco-teco d'Água > "Voo, água e bexigas" (duração, velocidades, gasto e enchimento do tanque, bexigas, tempo tonto, pontos das argolas, acerto dos Amiguinhos, tamanho dos teco-tecos).
+- **Música:** usa o Turbo Jet até chegar uma faixa própria.
+- **Arte:** provisória, toda desenhada pelo jogo. Os pedidos estão na página de pedidos (Teco-teco d'Água: teco-tecos do IAmiguinho e do Amiguinho, atirando e jogando bexiga, tonto, folha dos alvos, dirigível, argola e água, e o céu com o mar nos 4 horários, que também aparece em "Todos os cenários").
+- **Teste:** `testes/teco.cjs` (partidas simuladas e fotos de uma partida com o teclado).
 
 ## Atalhos das pistas do bugue (01/11)
 - Atalho (lagoa ou areia fofa) precisa ter pelo menos uns 160 px de comprimento. Mais curto que isso, a corrida ignora e o editor não deixa criar (nem guarda). Antes, um atalho curto quebrava o desenho da corrida inteira.

@@ -28,11 +28,11 @@ const { chromium } = require('playwright');
   await p.screenshot({ path: 'amg/wz_rostos.png' });
   console.log('rosto mudado:', await p.evaluate(() => JSON.stringify(Object.entries(WZE.cfg.rostos)[0])));
   // textos
-  await p.click('#wz nav button:has-text("Textos")'); await p.waitForTimeout(300); await p.screenshot({ path: 'amg/wz_textos.png' });
+  await p.click('#wz nav button >> nth=5'); await p.waitForTimeout(300); await p.screenshot({ path: 'amg/wz_textos.png' });
   const ta = p.locator('#wz .lin', { hasText: 'intro.bugue' }).locator('textarea'); await ta.fill('Fala de teste do editor.'); await ta.dispatchEvent('change');
   // aplicar
   await p.click('#wz header button >> nth=1'); await p.waitForTimeout(300); await p.fill('#wz input[placeholder]', 'versão de teste'); await p.click('#wz button.pri >> nth=-1'); await p.waitForTimeout(500);
-  await p.click('#wz nav button:has-text("Versões")'); await p.waitForTimeout(400); await p.screenshot({ path: 'amg/wz_versoes.png' });
+  await p.click('#wz nav button >> nth=6'); await p.waitForTimeout(400); await p.screenshot({ path: 'amg/wz_versoes.png' });
   await p.click('#wz header button >> nth=2'); await p.waitForTimeout(300);
   console.log('depois de aplicar e fechar:', await p.evaluate(() => [BG.vmax, FALA.intro.bugue[0]]));
   // abre de novo depois de jogar e pausar (o problema relatado: abria só uma vez)

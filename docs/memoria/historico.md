@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Jogos de Verão, prova nova Teco-teco d'Água
+- **Ideia do dono:** jogo de avião estilo navinha, com pistola d'água no teco-teco e bexigas d'água; alvos (balões, drones e outros); os Amiguinhos competindo pelos mesmos alvos; argolas e outras formas de pontuar; bexigas deixam os adversários tontos sem pontuar.
+- **Feito:** a prova (`cart2/ev_teco.js`), jogável no computador, no controle e no celular, com o placar dos quatro, tanque que enche no rasante, cestas de bexigas de paraquedas, pipas, drones, patinho inflável, dirigível com alvos e argolas em sequência. Entrou no editor (Mecânicas), na trilha (Turbo Jet por enquanto) e na página de pedidos (11 pedidos de arte, incluindo o céu nos 4 horários). Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.
+- **Testes:** `teco.cjs` (novo), `todas.cjs`, `trilha.cjs`, `wzeditor.cjs` (ajustado: as abas por posição).
+- **Pendente:** o dono testar e dizer o que mudar (dificuldade dos Amiguinhos, quantidade de alvos, duração); a arte pintada.
+
 ## 01/11/2026: Pedidos, todos os cenários juntos e pedidos do brushset
 - **O dono pediu:** separar todos os pedidos (prompts) de cenário na página de pedidos, para pedir todos ao ChatGPT; ele está montando um brushset com a arte do jogo (o ChatGPT gera as artes e depois os pincéis, e ele pinta artes próprias com a mesma estética).
 - **Feito:** a página "Pedidos das provas novas" ganhou, logo depois dos anexos, a seção "Todos os cenários" (44 pedidos): Quiosque do Coqueiral (pingue-pongue), Vila dos Pescadores (bocha), Dunas Brancas (bugue), Praia do Centro (embaixadinha) e, trazidos da página do skate, o Skatepark do Viaduto e as peças da pista do half-pipe. Os cartões das provas são os mesmos (mesma marca de "Feita"); os do skate são novos nesta página. O galpão do teaser (vídeo) ficou de fora. No fim, "Depois: o brushset", com 2 pedidos novos: pontas de pincel (folha 4 x 3 com 12 pontas em branco sobre preto) e grãos que repetem (6 texturas em cinza, uma por resposta). Os cartões de cada prova continuam no lugar.

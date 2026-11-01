@@ -10,11 +10,11 @@
    Onde fica guardado: no banco da própria página (db), em wz/rascunho, wz/aplicado e wz/v<data> (versões). */
 // o rosto acompanhar a bola com o olhar (vôlei): 0 = fica exatamente onde o dono colocou nos Rostos e quadros
 const ROSTO = window.ROSTO = { olhar: 0 };
-const WZ_OBJS = { ROSTO, COPA_LVL, SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG };
+const WZ_OBJS = { ROSTO, COPA_LVL, SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG, TA };
 const WZ_REG = {
   surfe: ['SF_MAN', 'SOBJ'], halfpipe: ['HP_AIR', 'HP_BTN', 'HP_LIP'], embaixadinha: ['EB_BOLAS'], patins: ['PT_MAN', 'PT_GRIND'], basquete: ['BQ'],
   pingue: ['PP'], bmx: ['BX', 'BX_MAN'], obstaculos: ['OB', 'OB_TIPO'], frisbee: ['FR'], arco: ['AR'], duelo: ['DU'], canoagem: ['CN'], futebol: ['FU'],
-  bocha: ['BC'], natacao: ['NT'], jetski: ['JS', 'JS_MAN'], bugue: ['BG'], volei: ['ROSTO', 'DIVE', 'SERVE', 'SPEC', 'SPK', 'SPK_F', 'SPKG', 'OPP'],
+  bocha: ['BC'], natacao: ['NT'], jetski: ['JS', 'JS_MAN'], bugue: ['BG'], teco: ['TA'], volei: ['ROSTO', 'DIVE', 'SERVE', 'SPEC', 'SPK', 'SPK_F', 'SPKG', 'OPP'],
 };
 // nomes em português dos números (os que não estão aqui aparecem com o nome técnico)
 const WZ_NOMES = {
@@ -32,6 +32,10 @@ const WZ_NOMES = {
 };
 const WZ_DESC = {
   ROSTO: { olhar: 'Rosto olhando para a bola' },
+  TA: { dur: 'Duração da partida (segundos)', sc: 'Velocidade com que o cenário passa', spd: 'Velocidade do teco-teco', acc: 'Resposta do teco-teco (aceleração)', rate: 'Gotas por segundo', shotV: 'Velocidade das gotas',
+    gasto: 'Água gasta por gota (tanque cheio = 1)', refil: 'Água que entra por segundo no rasante', refil0: 'Água que entra por segundo no alto', bexIni: 'Bexigas no começo', bexMax: 'Máximo de bexigas',
+    bexG: 'Gravidade da bexiga', tonto: 'Segundos tonto depois de levar uma bexiga', inv: 'Segundos sem poder levar outra bexiga', ringPts: 'Pontos da argola', ringSeq: 'Pontos a mais por argola seguida', combo: 'Segundos para emendar estouros em sequência',
+    ai: 'Acerto dos 3 Amiguinhos (0 a 1)', esc: 'Tamanho dos teco-tecos' },
   BG: { padW: 'Meia largura da esteira de turbo', kr: 'Tamanho do corpo do bugue na batida (raio)', kf: 'Distância do centro até a frente e a traseira na batida', boxR: 'Raio da caixa de item', boxT: 'Segundos para a caixa voltar',
     voltas: 'Voltas por corrida', hw: 'Meia largura da pista', r: 'Raio do bugue na mureta', vmax: 'Velocidade máxima', eng: 'Força do motor', brake: 'Força do freio', grip: 'Aderência', gripD: 'Aderência derrapando',
     wb: 'Distância entre os eixos (curva)', water: 'Freio na água', boostV: 'Ganho do turbo', sw: 'Meia largura do atalho', Z: 'Zoom da câmera', g: 'Gravidade dos saltos' },
@@ -546,7 +550,7 @@ function wzMec(m) {
   if (ev.id === 'volei') wzDificuldade(m);
   for (const nm of WZ_REG[ev.id] || []) {
     const o = WZ_OBJS[nm]; if (!o) continue; const folhas = wzFolhas(o, nm).filter((f) => !(nm === 'OPP' && /\.lvl$/.test(f.path))); if (!folhas.length) continue;
-    m.append(el('h3', {}, nm === 'BG' ? 'Corrida' : nm === 'BC' ? 'Cancha e física' : `Ajustes (${nm})`));
+    m.append(el('h3', {}, nm === 'BG' ? 'Corrida' : nm === 'BC' ? 'Cancha e física' : nm === 'TA' ? 'Voo, água e bexigas' : `Ajustes (${nm})`));
     for (const f of folhas) { const k0 = f.path.split('.').pop(), desc = (WZ_DESC[nm] || {})[k0]; m.append(wzLinha(f.path, desc || WZ_NOMES[k0] || f.key, desc ? f.path.replace(nm + '.', '') : WZ_NOMES[k0] ? f.path : 'nome técnico: ' + f.path)); }
   }
   if (!(WZ_REG[ev.id] || []).length) m.append(el('p', { class: 'ajuda' }, 'Esta prova ainda não tem números separados para editar aqui (só a partida e as medalhas).'));

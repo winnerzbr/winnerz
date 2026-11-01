@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Teco-teco d'Água, aviões menores e tanque vazio
+- **O dono pediu:** aviões menores, para ter mais área livre na tela; com o tanque vazio ainda dava para atirar.
+- **Causa do tiro com o tanque vazio:** no alto o tanque enche bem devagar, e cada pinguinho de água já liberava uma gota.
+- **Feito:** aviões 30% menores; tanque vazio trava a pistola até voltar a 25% (rasante enche em meio segundo). Jogo publicado no site e na página do Claude.
+- **Testes:** `teco.cjs` (agora confere que nenhuma gota sai com o tanque vazio).
+
 ## 01/11/2026: Jogos de Verão, prova nova Teco-teco d'Água
 - **Ideia do dono:** jogo de avião estilo navinha, com pistola d'água no teco-teco e bexigas d'água; alvos (balões, drones e outros); os Amiguinhos competindo pelos mesmos alvos; argolas e outras formas de pontuar; bexigas deixam os adversários tontos sem pontuar.
 - **Feito:** a prova (`cart2/ev_teco.js`), jogável no computador, no controle e no celular, com o placar dos quatro, tanque que enche no rasante, cestas de bexigas de paraquedas, pipas, drones, patinho inflável, dirigível com alvos e argolas em sequência. Entrou no editor (Mecânicas), na trilha (Turbo Jet por enquanto) e na página de pedidos (11 pedidos de arte, incluindo o céu nos 4 horários). Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

@@ -30,6 +30,10 @@ const N = Number(process.argv[2] || 4);
   await p.keyboard.down('Space'); await k('ArrowRight', 500); await k('ArrowUp', 400); await p.waitForTimeout(1500); await p.screenshot({ path: 'amg/teco_1.png' });
   await k('KeyX', 80); await p.waitForTimeout(250); await p.screenshot({ path: 'amg/teco_2.png' });
   await p.keyboard.up('Space');
+  // tanque vazio: segurando a água no alto, nenhuma gota sai até o tanque encher de novo
+  const seco = await p.evaluate(async () => { const m = teco.me; m.y = 60; m.water = 0; return m.shots; });
+  await p.keyboard.down('Space'); await p.waitForTimeout(2000); await p.keyboard.up('Space');
+  console.log('tanque vazio no alto, gotas em 2 s:', (await p.evaluate(() => teco.me.shots)) - seco, '| água agora', (await p.evaluate(() => teco.me.water)).toFixed(3));
   const agua0 = await p.evaluate(() => teco.me.water);
   await k('ArrowDown', 1600); await p.waitForTimeout(900); await p.screenshot({ path: 'amg/teco_3.png' });
   const agua1 = await p.evaluate(() => teco.me.water);

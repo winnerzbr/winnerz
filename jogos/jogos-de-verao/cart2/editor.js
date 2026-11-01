@@ -35,7 +35,7 @@ const WZ_DESC = {
   TA: { dur: 'Duração da partida (segundos)', sc: 'Velocidade com que o cenário passa', spd: 'Velocidade do teco-teco', acc: 'Resposta do teco-teco (aceleração)', rate: 'Gotas por segundo', shotV: 'Velocidade das gotas',
     gasto: 'Água gasta por gota (tanque cheio = 1)', refil: 'Água que entra por segundo no rasante', refil0: 'Água que entra por segundo no alto', bexIni: 'Bexigas no começo', bexMax: 'Máximo de bexigas',
     bexG: 'Gravidade da bexiga', tonto: 'Segundos tonto depois de levar uma bexiga', inv: 'Segundos sem poder levar outra bexiga', ringPts: 'Pontos da argola', ringSeq: 'Pontos a mais por argola seguida', combo: 'Segundos para emendar estouros em sequência',
-    ai: 'Acerto dos 3 Amiguinhos (0 a 1)', esc: 'Tamanho dos teco-tecos' },
+    ai: 'Acerto dos 3 Amiguinhos (0 a 1)', esc: 'Tamanho dos teco-tecos', volta: 'Água no tanque para a pistola voltar a atirar depois de esvaziar' },
   BG: { padW: 'Meia largura da esteira de turbo', kr: 'Tamanho do corpo do bugue na batida (raio)', kf: 'Distância do centro até a frente e a traseira na batida', boxR: 'Raio da caixa de item', boxT: 'Segundos para a caixa voltar',
     voltas: 'Voltas por corrida', hw: 'Meia largura da pista', r: 'Raio do bugue na mureta', vmax: 'Velocidade máxima', eng: 'Força do motor', brake: 'Força do freio', grip: 'Aderência', gripD: 'Aderência derrapando',
     wb: 'Distância entre os eixos (curva)', water: 'Freio na água', boostV: 'Ganho do turbo', sw: 'Meia largura do atalho', Z: 'Zoom da câmera', g: 'Gravidade dos saltos' },

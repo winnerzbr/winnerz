@@ -12,7 +12,7 @@
    Arte provisória: tudo desenhado pelo jogo. Os pedidos de arte estão na página de pedidos. */
 const TA = {
   dur: 120, sc: 45, spd: 135, acc: 900, rate: 9, shotV: 300, gasto: .011, refil: .5, refil0: .02, bexIni: 3, bexMax: 5, bexG: 380,
-  tonto: 2.4, inv: 1.3, ringPts: 150, ringSeq: 60, combo: 1.2, ai: [.55, .66, .78], esc: 1.2,
+  tonto: 2.4, inv: 1.3, ringPts: 150, ringSeq: 60, combo: 1.2, ai: [.55, .66, .78], esc: .85, volta: .25,
 };
 if (typeof Music !== 'undefined' && Music.songs.jetski) Music.songs.teco = Music.songs.jetski;
 FALA.intro.teco = [
@@ -141,7 +141,7 @@ const teco = {
       this.fly(p, c, dt, live);
     }
     // aviões se afastam um pouco quando encostam
-    for (let a = 0; a < 4; a++) for (let b = a + 1; b < 4; b++) { const A = this.P[a], B = this.P[b], dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx * .6, dy); if (d < 14 && d > .01) { const k = (14 - d) / d * .5; A.x -= dx * k * .3; A.y -= dy * k; B.x += dx * k * .3; B.y += dy * k; } }
+    for (let a = 0; a < 4; a++) for (let b = a + 1; b < 4; b++) { const A = this.P[a], B = this.P[b], dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx * .6, dy), dm = 12 * TA.esc; if (d < dm && d > .01) { const k = (dm - d) / d * .5; A.x -= dx * k * .3; A.y -= dy * k; B.x += dx * k * .3; B.y += dy * k; } }
     // alvos
     for (const q of this.tg) {
       q.t += dt; q.hit = Math.max(0, q.hit - dt);
@@ -182,6 +182,7 @@ const teco = {
   },
   // ---------- avião: voo livre com um pouco de inércia; tonto, rodopia e cai um pouco
   fly(p, c, dt, live) {
+    if (p.water <= 0) p.seco = true;
     p.px = p.x; p.inv = Math.max(0, p.inv - dt); p.cd -= dt; p.bcd -= dt; p.comboT -= dt; if (p.comboT <= 0) p.combo = 0; p.ringT += dt; p.ph += dt;
     if (p.tonto > 0) { p.tonto -= dt; p.vx += (-25 - p.vx) * Math.min(1, dt * 3); p.vy += (18 - p.vy) * Math.min(1, dt * 3); if (p.tonto <= 0) p.inv = TA.inv; }
     else {
@@ -198,12 +199,14 @@ const teco = {
     if (p.skim > 0 && Math.random() < dt * 30) this.fx.push({ k: 'spray', x: p.x - 8 + rand(-4, 4), y: this.SEA - 1, vx: rand(-60, -20), vy: rand(-50, -20), t: 0, life: .45 });
     if (p.me && p.skim > 0 && Math.floor((p.skim - dt) * 4) !== Math.floor(p.skim * 4) && p.water < 1) beep(300 + p.water * 500, .05, 'sine', .03);
     if (!live || p.tonto > 0) { p.fire = false; return; }
-    p.fire = !!c.fire && p.water > 0;
+    // tanque vazio: a pistola só volta a atirar quando o tanque tiver um pouco de água de novo (01/11, pedido do dono)
+    if (p.water <= 0) p.seco = true; else if (p.water >= TA.volta) p.seco = false;
+    p.fire = !!c.fire && !p.seco && p.water > 0;
     if (p.fire && p.cd <= 0) {
-      p.cd = 1 / TA.rate; p.water = Math.max(0, p.water - TA.gasto); p.shots++;
+      p.cd = 1 / TA.rate; p.water = Math.max(0, p.water - TA.gasto); p.shots++; if (p.water <= 0) p.seco = true;
       this.shots.push({ x: p.x + 19 * TA.esc, y: p.y + 5 * TA.esc, vx: TA.shotV + p.vx * .4, vy: p.vy * .25 - 8 + rand(-6, 6), o: p.i, life: 1.6 });
       if (p.me && p.shots % 3 === 0) beep(rand(1300, 1500), .025, 'triangle', .02);
-      if (p.me && p.water <= 0) { pop('Tanque vazio!', p.x, p.y - 16, '#bfefff'); talk(FALA.taRuim, .3); }
+      if (p.me && p.seco) { pop('Tanque vazio!', p.x, p.y - 16, '#bfefff'); talk(FALA.taRuim, .3); }
     }
     if (c.bomb && p.bex > 0 && p.bcd <= 0) {
       p.bex--; p.bcd = .45; const col = pick(['#ff5a5a', '#ffd84a', '#6bcbff', '#ff9ad5', '#9be37a']);
@@ -279,7 +282,7 @@ const teco = {
     if (A.dodge > 0) ty = p.y + A.dy * 40;
     const dx = tx - p.x, dy = ty - p.y;
     const c = { mx: clamp(dx / 30, -1, 1), my: clamp(dy / 18, -1, 1), fire: false, bomb: false };
-    if (pl.q && pl.q.kind !== 'cesta' && p.water > .02) { const q = pl.q; if (q.x > p.x + 10 && q.x < p.x + 240 && Math.abs(q.y - p.y - 3) < q.r + 3 + (1 - sk) * 4) c.fire = true; }
+    if (pl.q && pl.q.kind !== 'cesta' && !p.seco && p.water > .02) { const q = pl.q; if (q.x > p.x + 10 && q.x < p.x + 240 && Math.abs(q.y - p.y - 3) < q.r + 3 + (1 - sk) * 4) c.fire = true; }
     // bexiga: alvo à frente e abaixo, no alcance da curva (mira no líder quando dá)
     if (p.bex > 0 && p.bcd <= 0) {
       const lider = this.ord()[0];
@@ -291,7 +294,7 @@ const teco = {
   },
   plano(p) {
     const sk = p.ai.sk, err = rand(-1, 1) * (1 - sk) * 10;
-    if (p.water < .18 + .1 * (1 - sk)) return { x: clamp(p.x, 40, 200), y: this.SEA - 9, q: null, err };
+    if (p.seco || p.water < .18 + .1 * (1 - sk)) return { x: clamp(p.x, 40, 200), y: this.SEA - 9, q: null, err };
     let best = null, bv = 0;
     for (const q of this.tg) {
       if (q.dead || q.fall || q.x < p.x + (q.kind === 'cesta' ? -20 : 25) || q.x > W + 10 || q.y < 20) continue;
@@ -474,7 +477,7 @@ const teco = {
       ctx.fillStyle = p.tonto > 0 ? '#9fb0d0' : '#fff6d6'; ctx.fillText(`${r + 1}º ${p.name}`, x + 10, y + 7); ctx.textAlign = 'right'; ctx.fillText(nf(p.pts), x + 67, y + 7); ctx.textAlign = 'left'; });
     // tanque e bexigas
     ctx.fillStyle = 'rgba(20,24,60,.8)'; ctx.beginPath(); ctx.roundRect(4, 4, 62, 14, 4); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(8, 8, 30, 6); ctx.fillStyle = m.water < .2 && Math.floor(tt * 4) % 2 ? '#ff8a8a' : '#4cc3ff'; ctx.fillRect(8, 8, 30 * m.water, 6); ctx.strokeStyle = '#fff6d6'; ctx.lineWidth = .7; ctx.strokeRect(8, 8, 30, 6);
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.fillRect(8, 8, 30, 6); ctx.fillStyle = (m.seco || m.water < .2) && Math.floor(tt * 4) % 2 ? '#ff8a8a' : '#4cc3ff'; ctx.fillRect(8, 8, 30 * m.water, 6); ctx.strokeStyle = '#fff6d6'; ctx.lineWidth = .7; ctx.strokeRect(8, 8, 30, 6);
     for (let k = 0; k < TA.bexMax; k++) { if (k < m.bex) this.bexiga(44 + k * 4.4, 11.5, ['#ff5a5a', '#ffd84a', '#6bcbff', '#ff9ad5', '#9be37a'][k], 0, .5); else { ctx.strokeStyle = 'rgba(255,246,214,.4)'; ctx.beginPath(); ctx.arc(44 + k * 4.4, 11.5, 1.8, 0, TAU); ctx.stroke(); } }
     // fim: a colocação final
     if (this.done) { ctx.fillStyle = 'rgba(20,24,60,.75)'; ctx.beginPath(); ctx.roundRect(W / 2 - 70, 86, 140, 52, 6); ctx.fill(); ctx.font = 'bold 8px sans-serif';

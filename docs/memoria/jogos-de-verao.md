@@ -482,7 +482,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Editor:** Mecânicas > Teco-teco d'Água > "Voo, água e bexigas" (duração, velocidades, gasto e enchimento do tanque, bexigas, tempo tonto, pontos das argolas, acerto dos Amiguinhos, tamanho dos teco-tecos).
 - **Música:** usa o Turbo Jet até chegar uma faixa própria.
 - **Arte:** provisória, toda desenhada pelo jogo. Os pedidos estão na página de pedidos (Teco-teco d'Água: teco-tecos do IAmiguinho e do Amiguinho, atirando e jogando bexiga, tonto, folha dos alvos, dirigível, argola e água, e o céu com o mar nos 4 horários, que também aparece em "Todos os cenários").
-- **Teste:** `testes/teco.cjs` (partidas simuladas e fotos de uma partida com o teclado).
+- **Ajustes do dono (01/11):** aviões menores (tamanho 0,85, antes 1,2), para sobrar mais céu livre; com o tanque vazio a pistola não atira mais: só volta quando o tanque chega a 25% (no rasante isso leva meio segundo; no alto, uns 12 s). O "Tanque vazio!" aparece uma vez e a barra do tanque pisca. Os dois números estão no editor ("Tamanho dos teco-tecos" e "Água no tanque para a pistola voltar a atirar").
+- **Teste:** `testes/teco.cjs` (partidas simuladas, tanque vazio sem atirar, rasante enchendo e fotos de uma partida com o teclado).
 
 ## Atalhos das pistas do bugue (01/11)
 - Atalho (lagoa ou areia fofa) precisa ter pelo menos uns 160 px de comprimento. Mais curto que isso, a corrida ignora e o editor não deixa criar (nem guarda). Antes, um atalho curto quebrava o desenho da corrida inteira.

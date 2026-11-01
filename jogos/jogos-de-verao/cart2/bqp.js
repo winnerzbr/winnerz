@@ -59,3 +59,107 @@
       try { ctx.save(); ctx.translate(p.x, p.y - lift); window.__fr.bl(an, k, 'g', ex, face < 0); ctx.restore(); } catch (e) { ctx.restore(); return vSprite16b.apply(this, arguments); }
     };
   }
+
+  /* ---------- Quadra da Laje pintada (bqcen.py -> window.BQC): cenário nos 4 horários, cesta em peças, redes, bola, carrinho e torcida.
+     O desenho da prova é o mesmo de antes, com o cenário, a cesta e a bola trocados (a física e as medidas da cesta não mudam). */
+  const BQC = window.BQC, BQX = {};
+  const bqImg = (k, src) => { if (!src) return null; let im = BQX[k]; if (!im) { im = BQX[k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
+  const BQCOK = () => !!BQC && !!bqImg('atl', BQC.atl);
+  window.__BQCOK = BQCOK;
+  const BQ_HORAS = [['noite', 5, 'manha'], ['manha', 10, 'dia'], ['dia', 16, 'tarde'], ['tarde', 19, 'noite']];
+  function bqPesos() {
+    const d = new Date(), h = window.__skHora != null ? window.__skHora : d.getHours() + d.getMinutes() / 60;
+    for (const [a, b, c] of BQ_HORAS) if (Math.abs(h - b) < .5) { const t = h - b + .5; return [[a, 1 - t], [c, t]]; }
+    return [[h >= 5 && h < 10 ? 'manha' : h >= 10 && h < 16 ? 'dia' : h >= 16 && h < 19 ? 'tarde' : 'noite', 1]];
+  }
+  // peça do atlas com a âncora dela em (x, y); uw/uh em unidades (opcionais: esticam); sx espelha
+  function bqPart(name, x, y, uw, uh, sx = 1, rot = 0) {
+    const f = BQC.p[name]; if (!f) return; const im = bqImg('atl', BQC.atl), w = uw ?? f.uw, h = uh ?? f.uh;
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(x, y); if (rot) ctx.rotate(rot); ctx.scale(sx, 1);
+    ctx.drawImage(im, f.x, 0, f.w, f.h, -f.ax * w / f.uw, -f.ay * h / f.uh, w, h); ctx.restore();
+  }
+  function bqScene(v, tt) {
+    const P = bqPesos().filter(([, w]) => w > .001), night = P.reduce((a, [h, w]) => a + (h === 'noite' ? w : h === 'tarde' ? w * .25 : 0), 0);
+    ctx.save(); ctx.imageSmoothingEnabled = true;
+    for (const [h, w] of P) { const im = bqImg('f_' + h, BQC.f[h]); if (im) { ctx.globalAlpha = w; ctx.drawImage(im, 0, 0, W, H); } } ctx.globalAlpha = 1;
+    const lf = night > .01 && bqImg('lf', BQC.lf); if (lf) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.32 + .08 * Math.sin(tt * 1.7)); ctx.drawImage(lf, 0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+    for (const [h, w] of P) { const im = bqImg('m_' + h, BQC.m[h]); if (im) { ctx.globalAlpha = w; ctx.drawImage(im, 0, 0, W, H); } } ctx.globalAlpha = 1;
+    const lm = night > .01 && bqImg('lm', BQC.lm); if (lm) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.45 + .1 * Math.sin(tt * 2.3 + 1)); ctx.drawImage(lm, 0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+    ctx.restore();
+    // torcida pequena encostada no alambrado (os mesmos 8 lugares de antes); comemora quando a bola cai
+    const cheer = v.cheer > 0;
+    [44, 66, 88, 110, 206, 228, 250, 272].map((x) => x * W / 320).forEach((x, k) => {
+      const c = k % 6, m2 = (n) => ((Math.floor(n) % 2) + 2) % 2, f = cheer ? 2 + m2(tt * 8 + k) : m2(tt * 1.5 + k * .7);
+      const hop = cheer ? Math.max(0, Math.sin(tt * 12 + k)) * 3 : 0;
+      bqPart(`t${c}_${f}`, x, VGY - 26 - hop, undefined, undefined, k >= 4 ? -1 : 1);
+    });
+  }
+  // cesta: base no chão, poste (repete) até o topo, braço (repete) até a tabela, tabela (bordas e o meio que repete) do tamanho da física,
+  // rede e aro por cima na altura do aro da física; a biruta (vento) no alto do poste
+  function bqHoop(v, tt, BX, rx, ry) {
+    const p = BQC.p, pc = BX + 26, top = ry - 19, bTop = VGY + 1;
+    bqPart('carro', 2, VGY + 1);
+    bqPart('base', pc, bTop);
+    const ph = p.poste.uh, pTop = top + p.topo.uh * .4, pBot = bTop - p.base.uh * .6;
+    for (let y = pBot; y > pTop - ph; y -= ph - .3) { const hh = Math.min(ph, y - pTop); if (hh > .3) bqPart('poste', pc, y - hh / 2, p.poste.uw, hh); }
+    bqPart('topo', pc, top + p.topo.uh * .3);
+    for (let x = BX + 6; x < pc - 2; x += p.braco.uw - .3) { const ww = Math.min(p.braco.uw, pc - 2 - x); bqPart('braco', x + ww / 2, ry - 15, ww, p.braco.uh); }
+    // tabela: de ry − 36 a ry + 8 (44), começando na frente da física (BX)
+    const y0 = ry - 36, th = 44, wE = p.tabE.uw, wD = p.tabD.uw; bqPart('tabE', BX - .5, y0, wE, th); bqPart('tabD', BX - .5 + wE, y0, wD, th);
+    if (sReady('eb_obj')) {
+      const E = SPR.eb_obj, k = clamp(v.wind / 40, -1, 1), f = E.fr[Math.abs(k) > .4 ? 'biruta1' : 'biruta2'], dir = k < -.05 ? -1 : 1;
+      ctx.save(); ctx.translate(pc, top - 10); ctx.scale(dir, 1); ctx.drawImage(sImg('eb_obj'), f.x, f.y, f.w, f.h, -4.5, -f.h / 2, f.w / 2, f.h / 2); ctx.restore();
+    }
+    // rede: parada · chuá (esticada, logo que a bola passa) · balançando depois; o aro por cima
+    const nt = v.net;
+    if (nt > .3) bqPart('swish' + Math.min(3, Math.floor((1 - (nt - .3) / .5) * 4)), rx, ry);
+    else if (nt > 0) bqPart('bal' + (Math.floor(tt * 14) % 4), rx, ry);
+    else bqPart('rede', rx, ry + 1.4);
+    bqPart('aro', rx, ry);
+  }
+  if (typeof basquete !== 'undefined') {
+    const draw16q = basquete.draw, ball16q = basquete.ball;
+    basquete.ball = function (x, y, spin, fire = false, vx = 1) {
+      if (!BQCOK()) return ball16q.apply(this, arguments);
+      const k = ((Math.floor(spin * 1.3) % 4) + 4) % 4;
+      if (fire) bqPart('fogo' + k, x, y, undefined, undefined, vx < 0 ? -1 : 1); else bqPart('bola' + k, x, y);
+    };
+    basquete.draw = function (tt) { if (!BQCOK()) return draw16q.call(this, tt); bqDraw.call(this, tt); };
+  }
+function bqDraw(tt) {
+      bqScene(this, tt);
+      const rx = this.rx, ry = this.ry, BX = this.bx(), art = sReady('bq_obj');
+      // linha de três pintada na areia (inclinada a 22°, como uma linha de quadra vista de lado)
+      { const lx = Math.round(this.rx - BQ.TRES); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.moveTo(lx - 2, VGY - 4); ctx.lineTo(lx + 1, VGY - 4); ctx.lineTo(lx + 1 + (H - VGY + 4) * .4, H); ctx.lineTo(lx - 2 + (H - VGY + 4) * .4, H); ctx.fill(); }
+      bqHoop(this, tt, BX, rx, ry);
+      // marcação (Amiguinho rosa)
+      const D = this.def;
+      if (D.on && sReady('am_rosa')) {
+        const a = D.ph === 'pulo' ? ['pulo', 1] : D.ph === 'agacha' ? ['aterrissagem', 1] : ['parado', Math.floor(tt * 4) % 4];
+        vSprite('am_rosa', a[0], a[1], { x: D.x, y: VGY + 1 }, -1, D.ph === 'pulo' ? 5 : 0, { lx: -1, ly: 0 }, false, tt, 0, D.lift);
+      }
+      // IAmiguinho: 0 parado com a bola no peito · 1 quicando (andando) · 2 carregando · 3 soltando (no ar) · 4 comemora · 5 errou
+      if (sReady('ia_bq', 'rostos')) {
+        let f = 0, ex = 0, lift = 0, face = 1, hand = BQ_MAO.parado, by = 0, ball = this.cd <= 0;
+        if (this.shootT > 0) { const k = 1 - this.shootT / .45; f = 3; ex = 5; lift = k < .5 ? 6 + 4 * k : 16 * (1 - k); ball = false; } // já sai do chão com a bola na mão no alto
+        else if (this.charging) { f = 2; ex = 5; hand = BQ_MAO.carrega; by = -(1 - this.p) * 2; }
+        else if (this.cheer > .6) { f = 4; ex = 2; ball = false; }
+        else if (this.missT > 0) { f = 5; ex = 4; ball = false; }
+        else if (this.walk > 0) { f = 1; face = this.face; hand = BQ_MAO.quica; by = 0; }
+        else by = Math.round(Math.sin(tt * 3)) * .5;
+        this.ia(f, this.px, face, ex, { lx: 1, ly: this.charging ? -1 : 0 }, tt, lift);
+        if (ball && this.shootT <= 0 && this.cheer <= .6) {
+          if (f === 1) { const q = Math.abs(Math.sin(tt * 8)); this.ball(this.px + face * hand[0], VGY - 5 - q * 7, tt * 4); }
+          else this.ball(this.px + face * hand[0], VGY - hand[1] + by, tt * .5);
+        }
+      }
+      // bolas no ar e fogo
+      for (const f of this.fx) R(f.x, f.y, 2, 2, f.fire ? (f.t < .12 ? '#fff3b0' : f.t < .24 ? '#ffb020' : '#e8443a') : '#ffffff');
+      for (const b of this.balls) this.ball(b.x, b.y, b.spin, b.fire && !b.done, b.vx);
+      // medidor de força: só mostra quanta força você está colocando (enche e esvazia); o ponto certo é com você
+      if (this.charging || this.shootT > 0) {
+        const p = this.charging ? this.p : this.lastP, bh = 40, bw = 4, x0 = Math.round(this.px - 23), y0 = VGY - 62, Y = (q) => y0 + bh - Math.round(q * bh);
+        R(x0 - 1, y0 - 1, bw + 2, bh + 2, NAVY); R(x0, y0, bw, bh, '#2b3442');
+        R(x0, Y(p), bw, y0 + bh - Y(p), 'rgba(255,255,255,.55)'); R(x0 - 1, Y(p) - 1, bw + 2, 2, '#ffffff');
+      }
+    }

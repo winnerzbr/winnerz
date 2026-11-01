@@ -1,0 +1,29 @@
+IAmiguinho — Basquete: peças e animações
+
+pranchas/01_cesta_modular.png: 16 peças em4×4,2048×1152px.
+pranchas/02_bolas_carrinho.png:4 bolas girando,4 bolas em chamas e1 carrinho,1440×850px.
+cesta/:16 peças individuais solicitadas e2 arquivos auxiliares (aro sem rede e rede parada).
+bolas/:8 frames individuais de bola e1 carrinho.
+previews/:4 WebPs a12fps somente para inspeção.
+
+O fundo é RGB(0,255,0). Os PNGs não têm canal alfa.
+As faces dos módulos repetíveis foram retificadas para encaixe e suas bordas foram casadas.
+Poste:50×147px, repetir verticalmente.
+Braço:200×46px, repetir horizontalmente.
+Meio da tabela:89×240px, repetir horizontalmente entre as duas bordas.
+As bordas opostas dos três módulos e as duas junções da tabela têm diferença RGB máxima0.
+
+Bola normal:diâmetro120px, centro(80,80) em canvas160×160px.
+Bola em chamas:diâmetro aproximado120px, centro(252,95) em canvas332×190px.
+Essa escala corresponde à metade da largura da cabeça creme do model sheet, sem contar os fones.
+Para usar com os frames de personagem de444×444px, aplicar escala0,625; a bola fica com75px.
+O diâmetro da bola em chamas foi estimado visualmente porque parte da borda está coberta pelo fogo.
+
+Redes swish/balanço:canvas320×250px, âncora de suspensão(160,18), abertura260px.
+Aro sem rede auxiliar:canvas331×229px, ponto de encaixe da rede(139,62).
+Rede parada auxiliar:canvas320×250px, âncora(160,32).
+Alinhar a âncora de cada rede ao ponto do aro. Desenhar a rede primeiro e o aro por cima.
+O aro com rede parada solicitado continua disponível como peça única.
+
+atlas_assets.json contém os tamanhos e pontos de encaixe.
+assets_validation.json registra as verificações de dimensão e borda; a integração física e o tempo de animação dependem do motor do jogo.

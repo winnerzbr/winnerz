@@ -6,7 +6,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.route(/index\.html/, async (r) => { const res = await r.fetch(); r.fulfill({ response: res, headers: { ...res.headers(), 'content-type': 'text/html; charset=utf-8' } }); });
   await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(1500);
   await p.evaluate(() => { choose(basquete); start(); }); await p.waitForTimeout(4500);
-  console.log('pintado carregado:', await p.evaluate(() => window.__BQOK && window.__BQOK()));
+  console.log('pintado carregado:', await p.evaluate(() => window.__BQOK && window.__BQOK()), 'cenário:', await p.evaluate(() => window.__BQCOK && window.__BQCOK()));
   const clip = { x: 0, y: 300, width: 900, height: 470 };
   await p.screenshot({ path: 'amg/bq_parado.png', clip });
   await p.keyboard.down('ArrowRight'); await p.waitForTimeout(500); await p.screenshot({ path: 'amg/bq_andando.png', clip }); await p.keyboard.up('ArrowRight');
@@ -21,6 +21,8 @@ const { chromium } = require('playwright'); const fs = require('fs');
     await p.evaluate((js) => { basquete.missT = 0; Object.assign(basquete.def, { on: true, x: 300 }, eval('(' + js + ')')); }, js); await p.waitForTimeout(150); await p.screenshot({ path: `amg/bq_${nm}.png`, clip: { x: 0, y: 300, width: 900, height: 470 } }); }
   await p.evaluate(() => { basquete.missT = 0; basquete.def.on = false; basquete.update = window.__bu; });
   for (let i = 0; i < 4; i++) { await p.keyboard.down('Space'); await p.waitForTimeout(500 + i * 120); await p.keyboard.up('Space'); await p.waitForTimeout(1400); }
+  for (const h of [7, 12, 17.5, 22]) { await p.evaluate((h) => { window.__skHora = h; basquete.update = function (dt) { this.t += dt; return false; }; basquete.def.on = true; basquete.def.ph = 'idle'; basquete.net = h === 12 ? .6 : h === 17.5 ? .2 : 0; basquete.cheer = h === 22 ? 1 : 0; basquete.balls = [{ x: 200, y: 80, spin: 1, fire: h === 7, vx: 100 }]; }, h); await p.waitForTimeout(250); await p.screenshot({ path: `amg/bq_hora_${h}.png`, clip: { x: 0, y: 300, width: 900, height: 470 } }); }
+  await p.evaluate(() => { basquete.update = window.__bu; window.__skHora = null; });
   console.log('estado:', await p.evaluate(() => [mode, basquete.score, basquete.shots, basquete.made].join(' · ')));
   console.log(errs.join(' | ') || 'sem erros'); await b.close();
 })();

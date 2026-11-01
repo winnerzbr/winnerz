@@ -1,0 +1,355 @@
+{
+  "native_ball_diameter_px": 120,
+  "scale_relative_to_cream_head_width": 0.5,
+  "earphones_excluded_from_head_width": true,
+  "optional_scale_for_444px_character_cells": 0.625,
+  "optional_ball_diameter_px": 75,
+  "background_rgb": [
+    0,
+    255,
+    0
+  ],
+  "assets": [
+    {
+      "name": "01_base",
+      "file": "cesta/01_base.png",
+      "size_px": [
+        402,
+        212
+      ]
+    },
+    {
+      "name": "02_poste_repetivel",
+      "file": "cesta/02_poste_repetivel.png",
+      "size_px": [
+        50,
+        147
+      ]
+    },
+    {
+      "name": "03_topo_poste",
+      "file": "cesta/03_topo_poste.png",
+      "size_px": [
+        156,
+        136
+      ]
+    },
+    {
+      "name": "04_braco_repetivel",
+      "file": "cesta/04_braco_repetivel.png",
+      "size_px": [
+        200,
+        46
+      ]
+    },
+    {
+      "name": "05_tabela_esquerda",
+      "file": "cesta/05_tabela_esquerda.png",
+      "size_px": [
+        140,
+        240
+      ]
+    },
+    {
+      "name": "06_tabela_meio_repetivel",
+      "file": "cesta/06_tabela_meio_repetivel.png",
+      "size_px": [
+        89,
+        240
+      ]
+    },
+    {
+      "name": "07_tabela_direita",
+      "file": "cesta/07_tabela_direita.png",
+      "size_px": [
+        130,
+        240
+      ]
+    },
+    {
+      "name": "08_aro_rede_parada",
+      "file": "cesta/08_aro_rede_parada.png",
+      "size_px": [
+        331,
+        229
+      ]
+    },
+    {
+      "name": "aro_sem_rede_auxiliar",
+      "file": "cesta/aro_sem_rede_auxiliar.png",
+      "size_px": [
+        331,
+        229
+      ],
+      "net_attachment_anchor_px": [
+        139,
+        62
+      ],
+      "auxiliary": true
+    },
+    {
+      "name": "rede_parada_auxiliar",
+      "file": "cesta/rede_parada_auxiliar.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        32
+      ],
+      "auxiliary": true
+    },
+    {
+      "name": "rede_swish_01",
+      "file": "cesta/rede_swish_01.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_swish_02",
+      "file": "cesta/rede_swish_02.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_swish_03",
+      "file": "cesta/rede_swish_03.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_swish_04",
+      "file": "cesta/rede_swish_04.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_balanco_01",
+      "file": "cesta/rede_balanco_01.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_balanco_02",
+      "file": "cesta/rede_balanco_02.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_balanco_03",
+      "file": "cesta/rede_balanco_03.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "rede_balanco_04",
+      "file": "cesta/rede_balanco_04.png",
+      "size_px": [
+        320,
+        250
+      ],
+      "anchor_px": [
+        160,
+        18
+      ],
+      "opening_width_px": 260
+    },
+    {
+      "name": "bola_01",
+      "file": "bolas/bola_01.png",
+      "size_px": [
+        160,
+        160
+      ],
+      "ball_center_px": [
+        80,
+        80
+      ],
+      "ball_diameter_px": 120
+    },
+    {
+      "name": "bola_02",
+      "file": "bolas/bola_02.png",
+      "size_px": [
+        160,
+        160
+      ],
+      "ball_center_px": [
+        80,
+        80
+      ],
+      "ball_diameter_px": 120
+    },
+    {
+      "name": "bola_03",
+      "file": "bolas/bola_03.png",
+      "size_px": [
+        160,
+        160
+      ],
+      "ball_center_px": [
+        80,
+        80
+      ],
+      "ball_diameter_px": 120
+    },
+    {
+      "name": "bola_04",
+      "file": "bolas/bola_04.png",
+      "size_px": [
+        160,
+        160
+      ],
+      "ball_center_px": [
+        80,
+        80
+      ],
+      "ball_diameter_px": 120
+    },
+    {
+      "name": "bola_fogo_01",
+      "file": "bolas/bola_fogo_01.png",
+      "size_px": [
+        332,
+        190
+      ],
+      "ball_center_px": [
+        252,
+        95
+      ],
+      "ball_diameter_px": 120,
+      "source_diameter_estimate_px": 170
+    },
+    {
+      "name": "bola_fogo_02",
+      "file": "bolas/bola_fogo_02.png",
+      "size_px": [
+        332,
+        190
+      ],
+      "ball_center_px": [
+        252,
+        95
+      ],
+      "ball_diameter_px": 120,
+      "source_diameter_estimate_px": 170
+    },
+    {
+      "name": "bola_fogo_03",
+      "file": "bolas/bola_fogo_03.png",
+      "size_px": [
+        332,
+        190
+      ],
+      "ball_center_px": [
+        252,
+        95
+      ],
+      "ball_diameter_px": 120,
+      "source_diameter_estimate_px": 170
+    },
+    {
+      "name": "bola_fogo_04",
+      "file": "bolas/bola_fogo_04.png",
+      "size_px": [
+        332,
+        190
+      ],
+      "ball_center_px": [
+        252,
+        95
+      ],
+      "ball_diameter_px": 120,
+      "source_diameter_estimate_px": 170
+    },
+    {
+      "name": "carrinho",
+      "file": "bolas/carrinho.png",
+      "size_px": [
+        436,
+        314
+      ]
+    }
+  ],
+  "repeat_checks": {
+    "poste": {
+      "axis": "y",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        50,
+        147
+      ]
+    },
+    "braco": {
+      "axis": "x",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        200,
+        46
+      ]
+    },
+    "tabela_meio": {
+      "axis": "x",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        89,
+        240
+      ]
+    }
+  },
+  "notes_pt": [
+    "Peças estruturais extraídas e faces de encaixe retificadas; bordas de repetição casadas.",
+    "Redes animadas usam abertura260px e âncora(160,18); encaixar essa âncora em(139,62) do aro sem rede auxiliar.",
+    "Diâmetro de bola em chamas estimado visualmente porque parte da circunferência está coberta pelas chamas."
+  ]
+}

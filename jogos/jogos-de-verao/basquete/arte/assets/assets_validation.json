@@ -1,0 +1,38 @@
+{
+  "parts_requested": 25,
+  "auxiliary_parts": 2,
+  "sheet_count": 2,
+  "preview_count": 4,
+  "repeat_checks": {
+    "poste": {
+      "axis": "y",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        50,
+        147
+      ]
+    },
+    "braco": {
+      "axis": "x",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        200,
+        46
+      ]
+    },
+    "tabela_meio": {
+      "axis": "x",
+      "edge_max_channel_difference": 0,
+      "size_px": [
+        89,
+        240
+      ]
+    }
+  },
+  "checks_pass": true,
+  "errors": [],
+  "backboard_joint_max_difference": {
+    "left_middle": 0,
+    "middle_right": 0
+  }
+}

@@ -1,0 +1,47 @@
+IAmiguinho: Jogos de Verão — Basquete na cobertura de Costa WinnerZ
+
+13 IMAGENS PRINCIPAIS
+assets/pranchas/01_cesta_modular.png — base, poste, topo, braço, tabela em três partes, aro/rede parada e duas animações de rede.
+assets/pranchas/02_bolas_carrinho.png — quatro frames de bola, quatro com fogo e carrinho.
+pranchas/03_torcida.png — seis cores de Amiguinho, cada uma com quatro frames em coluna.
+backgrounds/04_fundo_dia.png + 05_meio_dia.png.
+backgrounds/06_fundo_amanhecer.png + 07_meio_amanhecer.png.
+backgrounds/08_fundo_por_do_sol.png + 09_meio_por_do_sol.png.
+backgrounds/10_fundo_noite.png + 11_meio_noite.png.
+backgrounds/12_luzes_fundo_noite.png — lua, estrelas e luzes das janelas/casas sobre preto.
+backgrounds/13_luzes_meio_noite.png — cordão de lâmpadas e dois refletores sobre preto.
+
+PEÇAS INDIVIDUAIS
+assets/cesta/ — 16 peças solicitadas, mais aro sem rede e rede parada auxiliares.
+assets/bolas/ — quatro bolas, quatro bolas em chamas e carrinho.
+torcida/ — 24 sprites de 256×256px, organizados por cor.
+Os atlas JSON registram tamanhos, âncoras e ordem. Os WebPs são prévias lentas para inspeção.
+
+CAMADAS DO CENÁRIO
+Os fundos, meios e mapas de luz têm 1920×1080px, proporção 16:9.
+Desenhar o fundo e sobrepor o meio do mesmo horário, removendo o verde RGB(0,255,0).
+O verde de recorte é o mesmo nas quatro versões do meio, inclusive nos vãos do alambrado. A vegetação, o piso e o Amiguinho verde usam outros tons.
+O topo do alambrado está em aproximadamente 45% da altura, a base em 75% e o piso começa em 78%. O centro permanece livre.
+As prévias compostas mostram o encaixe das duas camadas; não substituem os arquivos separados.
+
+LUZES
+Os mapas sobre preto mantêm as coordenadas das imagens noturnas. Usar como emissão/brilho com uma composição que ignore o preto, regulando intensidade no jogo.
+A arte noturna já contém iluminação; adicionar o mapa serve para reforço/controlar brilho, sem precisar deslocar nenhuma luz.
+O mapa do fundo não inclui reflexo do mar ou nuvens. O mapa do meio não inclui o piso nem os postes.
+
+ESCALA E ANIMAÇÃO
+A bola tem 120 px de diâmetro, metade da largura aproximada da cabeça creme do model sheet, excluindo fones. O diâmetro da bola com fogo é aproximado devido às chamas.
+Para os sprites anteriores de personagem em células 444×444 px, a escala 0,625 produz bola de 75 px.
+Cada coluna da torcida tem frames 1–2 observando e 3–4 comemorando, com pés em y=230. O verde da torcida é jade para preservar o recorte.
+Detalhes de montagem da cesta estão em assets/LEIA_ASSETS.txt. Usar o aro sem rede auxiliar para alternar as redes animadas; desenhar a rede primeiro e o aro por cima.
+
+VERIFICAÇÃO
+Foram conferidos contagens, enquadramento, dimensões, separação das peças, recorte verde e encaixes de repetição.
+As três peças repetíveis (poste, braço e miolo da tabela) tiveram suas bordas casadas; os relatórios JSON guardam as medidas.
+As variações de horário usam edição de iluminação e foram comparadas visualmente para manter o cenário. Pequenas diferenças de pincelada podem existir entre as edições.
+As imagens ainda não foram testadas no motor do jogo.
+
+PRODUÇÃO
+Artes criadas com o gerador de imagens integrado; acabamento técnico por código autorizado para alinhamento, recortes, emendas e extração das luzes.
+prompts_geracao.json reúne os prompts finais usados.
+

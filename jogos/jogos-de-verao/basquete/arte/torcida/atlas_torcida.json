@@ -1,0 +1,967 @@
+{
+  "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-82e22c37-5d3f-401f-947a-22be42ebe5b7.png",
+  "source_sha256": "0cc00524946954ff680dcb31685c3e72d3da33896d03170a5b126047fff20e1f",
+  "source_size": [
+    1536,
+    1024
+  ],
+  "sheet_size": [
+    1536,
+    1024
+  ],
+  "cell_size": [
+    256,
+    256
+  ],
+  "layout": "six columns (spectators) by four rows (animation frames)",
+  "background_rgb": [
+    0,
+    255,
+    0
+  ],
+  "has_alpha": false,
+  "scale_operation": "none; translations only",
+  "drawing_pixels_preserved": true,
+  "exact_pixel_center_tolerance_px": 0.5,
+  "identity_reference_library_file_id": "libfile_7680bbe96f2081919170b0fd3f51b651",
+  "green_body_color": "dark jade, excluded from chroma-key mask",
+  "preview_frame_duration_ms": 300,
+  "frames": [
+    {
+      "color": "rosa",
+      "column": 0,
+      "frame": 1,
+      "file": "torcida/rosa/01.png",
+      "sheet_rect_xywh": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        0,
+        0,
+        268,
+        270
+      ],
+      "source_art_bbox_global": [
+        33,
+        56,
+        251,
+        247
+      ],
+      "translation_xy": [
+        -14,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        39,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "rosa",
+      "column": 0,
+      "frame": 2,
+      "file": "torcida/rosa/02.png",
+      "sheet_rect_xywh": [
+        0,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        0,
+        270,
+        268,
+        505
+      ],
+      "source_art_bbox_global": [
+        30,
+        295,
+        255,
+        477
+      ],
+      "translation_xy": [
+        -14,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        16,
+        48,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.5,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "rosa",
+      "column": 0,
+      "frame": 3,
+      "file": "torcida/rosa/03.png",
+      "sheet_rect_xywh": [
+        0,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        0,
+        505,
+        268,
+        738
+      ],
+      "source_art_bbox_global": [
+        33,
+        528,
+        251,
+        722
+      ],
+      "translation_xy": [
+        -14,
+        -492
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        36,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "rosa",
+      "column": 0,
+      "frame": 4,
+      "file": "torcida/rosa/04.png",
+      "sheet_rect_xywh": [
+        0,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        0,
+        738,
+        268,
+        1024
+      ],
+      "source_art_bbox_global": [
+        33,
+        755,
+        251,
+        969
+      ],
+      "translation_xy": [
+        -14,
+        -739
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        16,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 16
+    },
+    {
+      "color": "laranja",
+      "column": 1,
+      "frame": 1,
+      "file": "torcida/laranja/01.png",
+      "sheet_rect_xywh": [
+        256,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        268,
+        0,
+        518,
+        270
+      ],
+      "source_art_bbox_global": [
+        284,
+        56,
+        503,
+        247
+      ],
+      "translation_xy": [
+        -266,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        39,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "laranja",
+      "column": 1,
+      "frame": 2,
+      "file": "torcida/laranja/02.png",
+      "sheet_rect_xywh": [
+        256,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        268,
+        270,
+        518,
+        505
+      ],
+      "source_art_bbox_global": [
+        281,
+        297,
+        508,
+        477
+      ],
+      "translation_xy": [
+        -267,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        14,
+        50,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "laranja",
+      "column": 1,
+      "frame": 3,
+      "file": "torcida/laranja/03.png",
+      "sheet_rect_xywh": [
+        256,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        268,
+        505,
+        518,
+        738
+      ],
+      "source_art_bbox_global": [
+        285,
+        526,
+        504,
+        723
+      ],
+      "translation_xy": [
+        -267,
+        -493
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        33,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "laranja",
+      "column": 1,
+      "frame": 4,
+      "file": "torcida/laranja/04.png",
+      "sheet_rect_xywh": [
+        256,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        268,
+        738,
+        518,
+        1024
+      ],
+      "source_art_bbox_global": [
+        284,
+        752,
+        504,
+        970
+      ],
+      "translation_xy": [
+        -266,
+        -740
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        12,
+        238,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 12
+    },
+    {
+      "color": "roxo",
+      "column": 2,
+      "frame": 1,
+      "file": "torcida/roxo/01.png",
+      "sheet_rect_xywh": [
+        512,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        518,
+        0,
+        768,
+        270
+      ],
+      "source_art_bbox_global": [
+        534,
+        56,
+        753,
+        247
+      ],
+      "translation_xy": [
+        -516,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        39,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "roxo",
+      "column": 2,
+      "frame": 2,
+      "file": "torcida/roxo/02.png",
+      "sheet_rect_xywh": [
+        512,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        518,
+        270,
+        768,
+        505
+      ],
+      "source_art_bbox_global": [
+        531,
+        295,
+        756,
+        477
+      ],
+      "translation_xy": [
+        -515,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        16,
+        48,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.5,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "roxo",
+      "column": 2,
+      "frame": 3,
+      "file": "torcida/roxo/03.png",
+      "sheet_rect_xywh": [
+        512,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        518,
+        505,
+        768,
+        738
+      ],
+      "source_art_bbox_global": [
+        535,
+        525,
+        753,
+        723
+      ],
+      "translation_xy": [
+        -516,
+        -493
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        32,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "roxo",
+      "column": 2,
+      "frame": 4,
+      "file": "torcida/roxo/04.png",
+      "sheet_rect_xywh": [
+        512,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        518,
+        738,
+        768,
+        1024
+      ],
+      "source_art_bbox_global": [
+        534,
+        751,
+        753,
+        969
+      ],
+      "translation_xy": [
+        -516,
+        -739
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        12,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 12
+    },
+    {
+      "color": "amarelo",
+      "column": 3,
+      "frame": 1,
+      "file": "torcida/amarelo/01.png",
+      "sheet_rect_xywh": [
+        768,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        768,
+        0,
+        1018,
+        270
+      ],
+      "source_art_bbox_global": [
+        783,
+        56,
+        1002,
+        247
+      ],
+      "translation_xy": [
+        -765,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        39,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "amarelo",
+      "column": 3,
+      "frame": 2,
+      "file": "torcida/amarelo/02.png",
+      "sheet_rect_xywh": [
+        768,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        768,
+        270,
+        1018,
+        505
+      ],
+      "source_art_bbox_global": [
+        780,
+        297,
+        1005,
+        477
+      ],
+      "translation_xy": [
+        -764,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        16,
+        50,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.5,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "amarelo",
+      "column": 3,
+      "frame": 3,
+      "file": "torcida/amarelo/03.png",
+      "sheet_rect_xywh": [
+        768,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        768,
+        505,
+        1018,
+        738
+      ],
+      "source_art_bbox_global": [
+        783,
+        525,
+        1001,
+        722
+      ],
+      "translation_xy": [
+        -764,
+        -492
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        33,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "amarelo",
+      "column": 3,
+      "frame": 4,
+      "file": "torcida/amarelo/04.png",
+      "sheet_rect_xywh": [
+        768,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        768,
+        738,
+        1018,
+        1024
+      ],
+      "source_art_bbox_global": [
+        782,
+        752,
+        1000,
+        968
+      ],
+      "translation_xy": [
+        -763,
+        -738
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        14,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "azul_claro",
+      "column": 4,
+      "frame": 1,
+      "file": "torcida/azul_claro/01.png",
+      "sheet_rect_xywh": [
+        1024,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1018,
+        0,
+        1268,
+        270
+      ],
+      "source_art_bbox_global": [
+        1033,
+        55,
+        1251,
+        247
+      ],
+      "translation_xy": [
+        -1014,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        38,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "azul_claro",
+      "column": 4,
+      "frame": 2,
+      "file": "torcida/azul_claro/02.png",
+      "sheet_rect_xywh": [
+        1024,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1018,
+        270,
+        1268,
+        505
+      ],
+      "source_art_bbox_global": [
+        1030,
+        296,
+        1256,
+        477
+      ],
+      "translation_xy": [
+        -1015,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        15,
+        49,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "azul_claro",
+      "column": 4,
+      "frame": 3,
+      "file": "torcida/azul_claro/03.png",
+      "sheet_rect_xywh": [
+        1024,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1018,
+        505,
+        1268,
+        738
+      ],
+      "source_art_bbox_global": [
+        1033,
+        525,
+        1251,
+        722
+      ],
+      "translation_xy": [
+        -1014,
+        -492
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        33,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "azul_claro",
+      "column": 4,
+      "frame": 4,
+      "file": "torcida/azul_claro/04.png",
+      "sheet_rect_xywh": [
+        1024,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1018,
+        738,
+        1268,
+        1024
+      ],
+      "source_art_bbox_global": [
+        1033,
+        751,
+        1251,
+        968
+      ],
+      "translation_xy": [
+        -1014,
+        -738
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        19,
+        13,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.0,
+      "minimum_border_margin_px": 13
+    },
+    {
+      "color": "verde_jade",
+      "column": 5,
+      "frame": 1,
+      "file": "torcida/verde_jade/01.png",
+      "sheet_rect_xywh": [
+        1280,
+        0,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1268,
+        0,
+        1536,
+        270
+      ],
+      "source_art_bbox_global": [
+        1284,
+        56,
+        1503,
+        247
+      ],
+      "translation_xy": [
+        -1266,
+        -17
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        39,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "verde_jade",
+      "column": 5,
+      "frame": 2,
+      "file": "torcida/verde_jade/02.png",
+      "sheet_rect_xywh": [
+        1280,
+        256,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1268,
+        270,
+        1536,
+        505
+      ],
+      "source_art_bbox_global": [
+        1281,
+        296,
+        1506,
+        477
+      ],
+      "translation_xy": [
+        -1265,
+        -247
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        16,
+        49,
+        241,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 128.5,
+      "minimum_border_margin_px": 14
+    },
+    {
+      "color": "verde_jade",
+      "column": 5,
+      "frame": 3,
+      "file": "torcida/verde_jade/03.png",
+      "sheet_rect_xywh": [
+        1280,
+        512,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1268,
+        505,
+        1536,
+        738
+      ],
+      "source_art_bbox_global": [
+        1283,
+        525,
+        1502,
+        722
+      ],
+      "translation_xy": [
+        -1265,
+        -492
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        33,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 18
+    },
+    {
+      "color": "verde_jade",
+      "column": 5,
+      "frame": 4,
+      "file": "torcida/verde_jade/04.png",
+      "sheet_rect_xywh": [
+        1280,
+        768,
+        256,
+        256
+      ],
+      "source_extraction_xyxy": [
+        1268,
+        738,
+        1536,
+        1024
+      ],
+      "source_art_bbox_global": [
+        1283,
+        751,
+        1502,
+        968
+      ],
+      "translation_xy": [
+        -1265,
+        -738
+      ],
+      "uniform_scale": 1.0,
+      "output_art_bbox": [
+        18,
+        13,
+        237,
+        230
+      ],
+      "head_or_body_center_anchor_x": 128,
+      "feet_baseline_y": 230,
+      "sprite_bbox_center_x": 127.5,
+      "minimum_border_margin_px": 13
+    }
+  ]
+}

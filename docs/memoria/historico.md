@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Quadra da Laje (basquete) pintada
+- **O dono mandou** o pacote do basquete: cenário nos 4 horários com as luzes, cesta modular, redes (parada, chuá, balanço), bolas (girando e em chamas), carrinho e a torcida em 6 cores.
+- **Feito:** tudo no jogo; o basquete ficou todo pintado (IAmiguinho, Amiguinho defensor, cenário, cesta, bola e torcida). Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: Amiguinho defensor do basquete pintado
 - **O dono mandou** 6 pranchas do Amiguinho no basquete (marcação e pulo do toco, com tentativas repetidas).
 - **Feito:** escolhidas as de 3/4 (como o Amiguinho do vôlei): marcando e pulo do toco, no jogo e na Prévia. Publicado na página do Claude e no site.

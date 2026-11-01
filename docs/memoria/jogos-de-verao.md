@@ -388,7 +388,12 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - O cenário, a cesta, a bola, o defensor e a torcida continuam os de antes (o cenário pintado da Quadra da Laje ainda não chegou).
   - As 6 pranchas estão na Prévia (`previa_bq.py`). Teste: `testes/bqpintado.cjs`.
 - **Amiguinho defensor pintado (01/11):** 6 pranchas do dono (4 de marcação, 2 de pulo; em `basquete/pranchas_amiguinho`). Ficaram as de 3/4, iguais ao Amiguinho do vôlei: `bv2_bq_defesa_c` (marcando) e `bv2_bq_toco_a` (pulo do toco). A defesa_d veio com a 2ª linha espelhada; a defesa_a com as mãos para baixo; defesa_b e toco_b de perfil. `cart2/mvbbq.py` → `mvbbq.js` (animações bqDefesa e bqToco no Amiguinho do vôlei, com a cor dele); desenho em `bqp.js`. Marcando = laço; agachando = toco 1-2; no pulo = toco 3-8 (a altura vem da física). Escala pela massa: 1,045 e 1,127. Na Prévia (`previa_bbq.py`).
-- **Pendente:** o dono testar; o cenário, a cesta, a bola e a torcida pintados.
+- **Quadra da Laje pintada (01/11, pacote do dono em `basquete/arte`):** `cart2/bqcen.py` → `bqcen.js`; desenho em `bqp.js` (o desenho da prova é o mesmo de antes com cenário, cesta e bola trocados; a física e as medidas da cesta não mudaram).
+  - Fundo e meio-plano (alambrado, caixa d'água, plantas e o chão da quadra) nos 4 horários pelo relógio, misturando perto da troca; de noite as luzes dos dois (refletores, varal de lâmpadas, janelas) por cima.
+  - Cesta em peças: base no chão, poste que repete até o topo, braço que repete até a tabela, tabela (bordas esquerda e direita, achatadas na largura para parecer vista de lado) de ry − 36 a ry + 8; rede atrás e aro por cima, no ponto de encaixe do pacote (a abertura de 260 px = o aro da física). Rede parada, chuá (4 quadros, logo que a bola passa) e balanço (4 quadros). A biruta continua a da Embaixadinha no alto do poste.
+  - Bola: 4 quadros girando e 4 em chamas (o fogo fica para trás do movimento); 120 px de diâmetro = 11 da física. Carrinho de bolas no canto. Torcida: 6 cores × 4 quadros (2 olhando, 2 comemorando), nos mesmos 8 lugares de antes, encostada no alambrado.
+  - Teste: `testes/bqpintado.cjs` (agora com os 4 horários, a rede e a bola de fogo).
+- **Pendente:** o dono testar.
 
 ## Patins pintado: cenário, obstáculos e corrimão (01/11/2026)
 - **Chegou do dono:** o pacote do Calçadão das Ondas: orla em panorama 32:9 que repete e a faixa do calçadão 6:1 nos 4 horários, a camada de luzes da noite (com as posições dos postes, quiosques e lua), a folha de obstáculos e prêmios (com as regiões de cada peça) e o corrimão em 3 peças. Originais em `patins/arte`, com os prompts.

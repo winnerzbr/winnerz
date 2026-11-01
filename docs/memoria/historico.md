@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Jogos de Verão, trilha sonora gravada
+- **O dono mandou:** 7 músicas para a trilha ("Carnaval na Areia" é o tema).
+- **Feito:** as músicas entraram no jogo no lugar das de código: tema na abertura, Disco do Caranguejo nos menus e resultados, Mambo do Pódio no pódio e cada prova com a faixa do seu tipo (tabela em `jogos-de-verao.md`, seção "Trilha sonora gravada"). Jogo publicado.
+- **Testes:** `trilha.cjs` (novo).
+- **Pendente:** o dono ouvir e dizer se quer mudar alguma prova de faixa.
+
 ## 31/10/2026: Teaser do IAmiguinho, 1ª versão
 - **O dono mandou:** as 7 peças do teaser.
 - **Feito:** o vídeo montado em 16:9 e 9:16 (33,5 s, com som de ambiente e efeitos, sem música); programas em `videos/teaser-iamiguinho/`; plano e detalhes em `ideias.md`.

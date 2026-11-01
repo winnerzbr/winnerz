@@ -304,6 +304,9 @@ def _out(m):
     (IMG / name).write_bytes(data); return 'img/' + name
 JS = re.sub(r'data:image/(webp|png);base64,([A-Za-z0-9+/=]+)', _out, JS)
 print('imagens', len(list(IMG.iterdir())), sum(f.stat().st_size for f in IMG.iterdir()) // 1024, 'KB')
+# trilha gravada (músicas do dono): faixas em jogos_verao/musica (feitas por musica.py), ligadas logo depois do sistema de música
+s = sub1("const syncMusic = () =>", (HERE / 'musica.js').read_text(encoding='utf-8') + "\nconst syncMusic = () =>", s)
+s = sub1("Music.play('orla'); Music.duck(1); setTimeout(() => Music.jingle(JINGLE.ouro[0], JINGLE.ouro[1]), 120);", "Music.play('podio'); Music.duck(1);", s)
 # editor do jogo (só para o dono): no fim do script principal, depois de tudo definido
 s = sub1("\nwindow.__verao = {", "\n" + (HERE / 'editor.js').read_text(encoding='utf-8') + "\nwindow.__verao = {", s)
 idx = s.rfind('</script>')

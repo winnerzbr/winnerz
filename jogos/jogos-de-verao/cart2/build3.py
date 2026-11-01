@@ -313,7 +313,7 @@ s = sub1("const syncMusic = () =>", (HERE / 'musica.js').read_text(encoding='utf
 s = sub1("Music.play('orla'); Music.duck(1); setTimeout(() => Music.jingle(JINGLE.ouro[0], JINGLE.ouro[1]), 120);", "Music.play('podio'); Music.duck(1);", s)
 # editor do jogo (só para o dono): no fim do script principal, depois de tudo definido
 import datetime as _dt
-_ed = ((HERE / 'editor.js').read_text(encoding='utf-8') + '\n' + (HERE / 'pintura.js').read_text(encoding='utf-8')).replace('__BUILD__', (_dt.datetime.utcnow() - _dt.timedelta(hours=3)).strftime('%d/%m %H:%M'))
+_ed = ((HERE / 'editor.js').read_text(encoding='utf-8') + '\n' + (HERE / 'pintura.js').read_text(encoding='utf-8') + '\n' + (HERE / 'pintura2.js').read_text(encoding='utf-8')).replace('__BUILD__', (_dt.datetime.utcnow() - _dt.timedelta(hours=3)).strftime('%d/%m %H:%M'))
 # semente do site: o que o dono já tinha feito no editor da página do Claude (rascunho e aplicado), para o site começar igual
 _sem = (HERE / 'semente.json').read_text(encoding='utf-8') if (HERE / 'semente.json').exists() else 'null'
 _ed = 'window.WZ_SEMENTE = ' + _sem + ';\n' + _ed

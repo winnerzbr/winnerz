@@ -39,7 +39,7 @@ const { chromium } = require('playwright'); const path = require('path');
   if (pt) { await p.evaluate(([x, y]) => { const cv = document.querySelector('#wz canvas.pin-cv'), r = cv.getBoundingClientRect(); const s = 0; void s; }, pt); }
   console.log('ponto vermelho achado:', !!pt);
   // camadas
-  await p.keyboard.press('b'); await p.click('#wz button:has-text("+ Camada")'); await p.evaluate(() => { WZP.cor = '#2a9df4'; });
+  await p.keyboard.press('b'); await p.click('#wz .pin-abas button[data-a=camadas]'); await p.click('#wz button:has-text("+ Camada")'); await p.evaluate(() => { WZP.cor = '#2a9df4'; });
   await caneta(linha(bb.width * .2, bb.height * .2, bb.width * .25, bb.height * .8)); await p.waitForTimeout(150);
   console.log('camadas:', await p.evaluate(() => WZP.doc.camadas.map((L) => L.nome).join(', ')));
   // pincéis importados
@@ -48,7 +48,7 @@ const { chromium } = require('playwright'); const path = require('path');
   console.log('pincéis na lista:', await p.$$eval('#wz .pin-pinceis button span', (l) => l.map((x) => x.textContent).join(', ')));
   await p.evaluate(() => { WZP.pincel = WZP_PINCEIS.find((b) => b.importado === 'Procreate').id; }); await p.evaluate(() => { WZP.cor = '#3a9d3a'; WZP.tam = 40; });
   await caneta(linha(bb.width * .35, bb.height * .75, bb.width * .65, bb.height * .4)); await p.waitForTimeout(200);
-  await p.locator('#wz .pin-lado').screenshot({ path: 'amg/wz_pintura_lado.png' }); await cv.screenshot({ path: 'amg/wz_pintura_traco2.png' });
+  await p.click('#wz .pin-abas button[data-a=pincel]'); await p.locator('#wz .pin-lado').screenshot({ path: 'amg/wz_pintura_lado.png' }); await cv.screenshot({ path: 'amg/wz_pintura_traco2.png' });
   // salvar no jogo
   await p.click('#wz button:has-text("Salvar no jogo")'); await p.waitForTimeout(1500);
   const r = await p.evaluate(() => { const k = WZP.doc.F.k, u = (WZE.cfg.imgs || {})[k], im = [...window.__WZIMG.by.get(k)][0]; return { chave: k, salvo: !!u, jogoUsa: !!(im && im.src === u), mudou: WZP.doc.mudou }; });

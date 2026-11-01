@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pintura do editor, 2ª etapa (recursos do Procreate)
+- **O dono:** a 1ª etapa funcionou; pediu a próxima, com recursos mais robustos como os do Procreate.
+- **Feito:** borrar, seleção (laço e retângulo), transformar, ajustes (matiz, saturação, brilho, desfoque), linha reta segurando a caneta, gestos (2 e 3 dedos, dedo parado), tela que gira e espelha, tela cheia, cor em quadrado + matiz com paleta, camadas com modos de mistura, travar transparência e máscara de recorte, duplicar/subir/descer/limpar, ajustes por pincel, leitura das configurações do pincel do Procreate, pintura do visor (onde o rosto aparece), lado em abas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.
+- **Testes:** `wzpintura2.cjs` (novo), `wzpintura.cjs`, `wzsite.cjs`, `wzaovivo.cjs`.
+- **Pendente:** o dono testar com a caneta; próximas ideias: seleção mágica, liquefazer, régua de simetria, dinâmica fina dos pincéis do Procreate.
+
 ## 01/11/2026: Jogos de Verão no site, desenho inteiro e pintura no editor
 - **Pedido do dono:** editar a imagem do personagem (não só o rosto): tamanho, posição etc.; uma ferramenta de desenho/pintura com a caneta no estilo do Procreate, integrada ao editor, para personagens e cenários, com pincéis do Procreate e do Photoshop; e publicar o jogo e o editor no site.
 - **Decidido (pergunta ao dono):** pintura própria, sem anúncios (Photopea descartado). Ela sai em etapas.

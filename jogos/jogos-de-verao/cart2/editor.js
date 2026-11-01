@@ -327,7 +327,28 @@ const WZ_CSS = `
 #wz .pin-pinceis button.on{background:#1b1f4f;color:#fff6d6}
 #wz .pin-pinceis i{position:absolute;top:0;right:4px;font-style:normal;font-weight:700}
 #wz .pin-marca{display:flex;gap:6px;align-items:center;font-size:13px;margin:3px 0}
-#wz .pin-cam{display:grid;grid-template-columns:22px 1fr 80px;gap:6px;align-items:center;padding:4px 6px;border:1.5px solid transparent;border-radius:6px;cursor:pointer}
+#wz .pin-cam{display:grid;grid-template-columns:22px 40px 1fr;gap:6px;align-items:center;padding:4px 6px;border:1.5px solid transparent;border-radius:6px;cursor:pointer}
+#wz .pin-cam canvas{width:40px;height:40px;background:#efe9dc;border-radius:3px}
+#wz .pin-cam span{display:flex;flex-direction:column;font-size:13px}
+#wz .pin-cam small{font-size:10px;opacity:.75}
+#wz .pin-cam.rec{margin-left:18px;border-left:3px solid #9a7cf0}
+#wz .pin-camop{display:grid;gap:2px;margin:6px 0;padding:6px;border:1.5px dashed #cfc3a5;border-radius:6px}
+#wz .pin-ctx{min-height:30px;align-items:center;font-size:13px}
+#wz .pin-ctx button.on{background:#1b1f4f;color:#fff6d6}
+#wz .pin-faixa{display:inline-grid;grid-template-columns:auto 120px 46px;gap:6px;align-items:center}
+#wz .pin-ferr .sep{width:1px;background:#cfc3a5;margin:0 4px}
+#wz canvas.pin-sv{width:220px;height:150px;border-radius:6px;cursor:crosshair;touch-action:none;display:block}
+#wz canvas.pin-hue{width:220px;height:16px;border-radius:4px;margin:6px 0;cursor:ew-resize;touch-action:none;display:block}
+#wz .pin-amostra{display:inline-block;width:34px;height:28px;border-radius:6px;border:1.5px solid #1b1f4f}
+#wz .pin.cheia{position:fixed;inset:0;z-index:10002;background:#f4efe4;padding:8px 12px;display:flex;flex-direction:column;gap:4px}
+#wz .pin.cheia .pin-corpo{flex:1;height:auto;min-height:0}
+#wz .pin-ferr button[data-cheia].on{background:#1b1f4f;color:#fff6d6}
+#wz .pin-ajuda summary{cursor:pointer;font-size:13px;margin:-4px 0 6px}
+#wz .pin-abas{display:flex;gap:4px;align-items:center;margin-bottom:8px;position:sticky;top:0;background:#f4efe4;padding:2px 0;z-index:1}
+#wz .pin-abas button.on{background:#1b1f4f;color:#fff6d6}
+#wz .pin-amostra-topo{margin-left:auto;width:28px;height:28px;border-radius:50%}
+#wz .pin-estudio{margin:6px 0;padding:4px 6px;border:1.5px solid #cfc3a5;border-radius:6px}
+#wz .pin-estudio summary{cursor:pointer;font-size:13px;font-weight:600}
 #wz .pin-cam.on{border-color:#1b1f4f;background:#fff6d6}
 #wz .gal{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto;padding:4px;border:1.5px solid #cfc3a5;border-radius:8px;margin-bottom:6px}
 #wz .gal .mini{width:120px;height:80px;padding:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}

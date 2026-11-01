@@ -15,7 +15,7 @@
   (window.__fr = window.__fr || {})['sk'] = frameSk; // usado só pelos testes
   function frameSk(an, k, ex, mirror) {
     const A = MS.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(SKS * (mirror ? -1 : 1), SKS);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(SKS * (mirror ? -1 : 1), SKS); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
     ctx.drawImage(MSI[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     // rosto aceso só dentro da tela escura do quadro (o mesmo do vôlei)
     if (f.s && f.sz) {
@@ -154,6 +154,7 @@
      Praia do vôlei pintado ao fundo; céu alto com estrelas quando a câmera sobe; rampa com a parede de madeira azul,
      pista de compensado, deck, corrimão e borda de metal; calçadão de pedras na frente; Amiguinhos pintados torcendo. */
   const SC = window.SKSC, SCI = {}, PAT = {};
+  addEventListener('wz-img', () => { for (const k in PAT) delete PAT[k]; }); // imagem trocada pelo editor: refaz as versões pintadas
   if (SC) for (const [n, src] of Object.entries(SC)) { SCI[n] = new Image(); SCI[n].src = src; }
   const SCOK = () => !!SC && Object.values(SCI).every((im) => im.complete && im.naturalWidth > 0) && ready('ceu', 'mar', 'areia', 'b_frente');
   // textura repetida com o tamanho do ladrilho em unidades do jogo

@@ -1,5 +1,6 @@
   /* ============================================================ Amiguinho: pranchas aprovadas (todos os movimentos do vôlei, versão da ficha de modelo). Cor do adversário trocada no desenho. */
   const MB = window.MVB, MBI = {}, MBK = {}, MBT = {};
+  addEventListener('wz-img', () => { for (const k in MBT) delete MBT[k]; }); // imagem trocada pelo editor: refaz as versões pintadas
   if (MB) for (const [nm, a] of Object.entries(MB.a)) { MBI[nm] = new Image(); MBI[nm].src = a.src; MBK[nm] = new Image(); MBK[nm].src = a.mask; if (a.msrc) { MBI[nm + '~m'] = new Image(); MBI[nm + '~m'].src = a.msrc; MBK[nm + '~m'] = new Image(); MBK[nm + '~m'].src = a.mmask; } }
   const MVBOK = () => !!MB && Object.keys(MBI).every((n) => MBI[n].complete && MBI[n].naturalWidth > 0 && MBK[n].complete && MBK[n].naturalWidth > 0);
   const SB5 = 34.8 / 152; // mesma altura da bolha antiga na quadra
@@ -37,7 +38,7 @@
   function frameB5(an, k, mode, ex, mirror) {
     const A = MB.a[an], n = A.f.length, half = k % 1 !== 0 && A.m && A.m[k | 0], key = half ? an + '~m' : an, f = half || A.f[clamp(k | 0, 0, n - 1)];
     const ay = mode === 'a' && f.s ? (f.s[1] + f.s[3]) / 2 + MB.scrh : f.ay;
-    ctx.save(); ctx.scale(SB5 * (mirror ? -1 : 1), SB5);
+    ctx.save(); ctx.scale(SB5 * (mirror ? -1 : 1), SB5); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
     ctx.drawImage(tintImg(key, BCOL), f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     // rosto: desenhado numa tela à parte e recortado pela máscara da tela escura do quadro
     if (f.s && f.sz) {

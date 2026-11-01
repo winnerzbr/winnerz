@@ -1,6 +1,6 @@
 # IAmiguinho: Jogos de Verão
 
-Minigames de praia inspirados em California Games. Roda no navegador e é publicado como página (artefato) no Claude.
+Minigames de praia inspirados em California Games. Roda no navegador. Está no site do WinnerZ (www.winnerz.com.br/jogos-de-verao; o editor em /studio/jogos-de-verao) e continua publicado como página (artefato) no Claude.
 
 ## Decisões em vigor
 - **Plataforma:** continua no navegador.
@@ -466,4 +466,26 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **iPhone e iPad:** lá o volume não muda pelo código; a troca de faixa é seca e a pausa não abaixa a música.
 - Cópia das faixas prontas no repositório: `jogos/jogos-de-verao/musica/` (as originais em 320 kbps ficam com o dono).
 - **Teste:** `testes/trilha.cjs` (abertura com o tema, as 18 provas com faixa, pausa, resultado, botão desligado e ligado, pódio, os 7 arquivos carregando).
+
+## No site do WinnerZ (01/11, pedido do dono)
+- **Endereços:** `/jogos-de-verao` (o jogo em tela inteira, para quem tem acesso ao site) e `/studio/jogos-de-verao` (o mesmo jogo com o editor já aberto; só a administração; cartão "Jogos de Verão" no Studio). O link discreto "WinnerZ" no canto de baixo volta para o site.
+- **Como funciona:** a página pronta do jogo fica em `public/demo/jogos-verao/` (cópia da pasta `jogos_verao` que o `build3.py` monta: `index.html`, `img/`, `musica/`). A página do site (`src/pages/JogosVerao.tsx`) mostra o jogo numa moldura e liga nele a ponte `src/lib/jogosPonte.ts`, que faz o papel do banco da página do Claude: o editor não muda nada e funciona nos dois lugares.
+- **Onde fica guardado no site:** tabela `jogo_dados` (caminhos `verao/wz/rascunho`, `verao/wz/aplicado`, `verao/wz/v<data>`) e pasta `jogos` do Storage (imagens pintadas, `verao/<arquivo>-<código>.webp`). Todo mundo lê; só a administração grava (migração `0097_jogos_de_verao.sql`). **O dono precisa rodar a 0097 no Supabase (SQL Editor) uma vez**; até lá, a página avisa a administração no alto.
+- **Começo igual ao da página do Claude:** na primeira vez, com o banco do site vazio, o editor e o jogo usam a "semente" (`cart2/semente.json`, o rascunho e o aplicado do dono em 01/11, 01h42/01h28, 187 quadros de rosto). O primeiro "Aplicar" no site passa a valer dali em diante. Os dois lugares não se misturam depois disso: o que for feito no site fica no site.
+- **Atualizar o jogo no site:** depois do `build3.py`, copiar `jogos_verao/` para `public/demo/jogos-verao/` e enviar (o Vercel publica sozinho).
+- **Achado no caminho:** o jogo aplicava o que foi salvo assim que o banco respondia; com o banco rápido, isso acontecia antes de os desenhos dos personagens terminarem de carregar, e os rostos não entravam. Agora espera a página montar. Pode ter sido parte do problema dos rostos de 01/11 de madrugada.
+- **Teste:** `testes/wzsite.cjs` com `testes/wzsite_host.html` (moldura igual à do site, com um Supabase de mentira).
+
+## Desenho inteiro e pintura no editor (01/11, pedido do dono)
+- **Desenho inteiro de cada quadro** (Rostos e quadros > "Desenho inteiro neste quadro"): mover (já existia), tamanho e giro em volta dos pés, em número ou arrastando ("Tamanho do desenho" e "Girar o desenho"). Vale para todos os personagens (`f.ks` e `f.kr` nos quadros; desenhados em `anim5.js`, `animb2.js`, `skp.js`, `ebp.js`, `bcp.js`).
+- **Aba Pintura (`cart2/pintura.js`), escolha do dono: pintura própria no estilo Procreate, sem anúncios (o Photopea foi descartado):**
+  - abre qualquer quadro dos personagens (inclusive os "quadros do meio", marcados ½) ou qualquer imagem do cenário (galeria; "só as grandes" ou "todas");
+  - ferramentas: pincel, borracha, conta-gotas (também Alt + clique), balde, mão; desfazer e refazer (40 passos); zoom na rodinha e com dois dedos; atalhos B, E, I, G, H/Espaço, [ ], Ctrl+Z, Ctrl+Shift+Z;
+  - pincel com pressão da caneta (tamanho, e opacidade se ligar), opacidade, fluxo, suavizar (estabilizador); pincéis prontos: Redondo, Aerógrafo, Nanquim, Lápis (com grão) e Giz;
+  - importa pincéis do Procreate (.brush e .brushset: a forma e o grão) e do Photoshop (.abr de versão 6 em diante, pincéis de amostra), e imagens (.png/.jpg/.webp) como ponta; os importados ficam guardados no navegador (IndexedDB) e saem com o ×;
+  - camadas: nova, mostrar/esconder, opacidade, juntar para baixo, apagar; o quadro anterior clarinho por baixo nos personagens;
+  - "Salvar no jogo" junta as camadas, monta a folha inteira de novo com o quadro pintado e guarda a imagem; o jogo troca a imagem na hora (registro de imagens `cart2/imgreg.js`, primeiro script da página) e as versões coloridas dos Amiguinhos são refeitas. Vale para todo mundo depois do "Aplicar no jogo". "Voltar à original" tira a pintura daquela imagem.
+  - Onde a imagem fica: no site, na pasta `jogos` do Storage. Na página do Claude não há onde guardar imagens: a pintura vale só até recarregar (o editor avisa) e não vai para o banco.
+  - Limites desta etapa: os quadros têm o tamanho que o jogo usa (ex.: 105×160 o IAmiguinho parado), então o traço fica do tamanho do jogo; a máscara do visor (onde o rosto aparece) não muda com a pintura; ainda não tem seleção, transformar, borrar/dedo, modos de mistura nem as configurações finas dos pincéis do Procreate (só forma e grão).
+  - Teste: `testes/wzpintura.cjs` (pincéis de teste em `testes/pinceis/`).
 

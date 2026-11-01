@@ -87,6 +87,7 @@ const IAmiguinhoPage = lazy(() => import('./pages/IAmiguinho').then((m) => ({ de
 const TradutorPage = lazy(() => import('./pages/Tradutor').then((m) => ({ default: m.TradutorPage })));
 const StudioSofaPage = lazy(() => import('./pages/StudioSofa').then((m) => ({ default: m.StudioSofaPage })));
 const StudioLivePage = lazy(() => import('./pages/StudioLive').then((m) => ({ default: m.StudioLivePage })));
+const JogosVeraoPage = lazy(() => import('./pages/JogosVerao').then((m) => ({ default: m.JogosVeraoPage })));
 const StudioIAmiguinhoPage = lazy(() => import('./pages/StudioIAmiguinho').then((m) => ({ default: m.StudioIAmiguinhoPage })));
 const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}</Suspense>;
 
@@ -197,6 +198,9 @@ function Routes({ path }: { path: string }): ReactNode {
   if (match('/studio/sofa', path)) return lazyPage(<StudioSofaPage />);
   if (match('/studio/live', path)) return lazyPage(<StudioLivePage />);
   if (match('/studio/iamiguinho', path)) return lazyPage(<StudioIAmiguinhoPage />);
+  // IAmiguinho: Jogos de Verão (o jogo numa moldura de tela inteira; no Studio, com o editor aberto)
+  if (match('/jogos-de-verao', path)) return lazyPage(<JogosVeraoPage />);
+  if (match('/studio/jogos-de-verao', path)) return isAdminNow() ? lazyPage(<JogosVeraoPage editor />) : <GoTo to="/jogos-de-verao" />;
   if ((m = match('/convite/:code', path))) return <InvitePage code={m.code} />;
   if (match('/studio/correcoes', path)) return <StudioFixesPage />;
   if (match('/studio/moderacao', path)) return <StudioModerationPage />;

@@ -22,7 +22,7 @@
   function frame5(an, k, mode, ex, mirror) {
     const A = M5.a[an], n = A.f.length, half = k % 1 !== 0 && A.m && A.m[k | 0], key = half ? an + '~m' : an, f = half || A.f[clamp(k | 0, 0, n - 1)];
     const ay = mode === 'a' && f.s ? (f.s[1] + f.s[3]) / 2 + M5.scrh : f.ay;
-    ctx.save(); ctx.scale(S5 * (mirror ? -1 : 1), S5);
+    ctx.save(); ctx.scale(S5 * (mirror ? -1 : 1), S5); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
     ctx.drawImage(M5I[key], f.x, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     // rosto: desenhado numa tela à parte e recortado pela máscara da tela escura do quadro
     if (f.s && f.sz) {

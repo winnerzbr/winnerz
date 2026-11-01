@@ -861,3 +861,10 @@ a.session__back-link:hover { color: var(--ink); }
 .contas__nome { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
 .contas__acao { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; }
 .contas__item > .faint { font-size: 13px; padding-right: 14px; }
+
+/* IAmiguinho: Jogos de Verão (o jogo em tela inteira, por cima do site) */
+.jogo-cheio { position: fixed; inset: 0; z-index: 2000; background: #0d0f24; }
+.jogo-cheio iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.jogo-cheio__sair { position: absolute; left: 8px; bottom: 8px; z-index: 2; font: 700 11px/1 var(--font-display, inherit); letter-spacing: .08em; text-transform: uppercase; color: #fff6d6; background: rgba(13, 15, 36, .55); padding: 6px 9px; border-radius: 4px; text-decoration: none; opacity: .55; }
+.jogo-cheio__sair:hover, .jogo-cheio__sair:focus-visible { opacity: 1; }
+.jogo-cheio__aviso { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 3; max-width: min(640px, calc(100% - 32px)); margin: 0; padding: 10px 14px; background: #fff3c4; color: #1b1f4f; border: 2px solid #e2c56a; border-radius: 6px; font-size: 14px; }

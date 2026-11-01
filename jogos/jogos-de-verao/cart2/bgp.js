@@ -10,6 +10,7 @@
   window.__BGOK = BGOK;
   // bugue do Amiguinho na cor de cada um (feito uma vez por cor)
   const BGT = {};
+  addEventListener('wz-img', () => { for (const k in BGT) delete BGT[k]; }); // imagem trocada pelo editor: refaz as versões pintadas
   function bgTint(set, col) {
     const key = set + col; if (BGT[key]) return BGT[key];
     const im = BGI[set], c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;

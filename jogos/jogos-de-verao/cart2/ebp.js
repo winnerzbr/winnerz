@@ -13,7 +13,7 @@
   window.__ebPick = (tt) => ebPick(embaixadinha, tt); // usado só pelos testes
   function frameEb(an, k, ex, mirror) {
     const A = ME.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(EBK5 * (mirror ? -1 : 1), EBK5);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(EBK5 * (mirror ? -1 : 1), EBK5); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
     ctx.drawImage(MEI[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     if (f.s && f.sz) {
       if (!FTE) FTE = document.createElement('canvas');

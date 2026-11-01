@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Jogos de Verão no site, desenho inteiro e pintura no editor
+- **Pedido do dono:** editar a imagem do personagem (não só o rosto): tamanho, posição etc.; uma ferramenta de desenho/pintura com a caneta no estilo do Procreate, integrada ao editor, para personagens e cenários, com pincéis do Procreate e do Photoshop; e publicar o jogo e o editor no site.
+- **Decidido (pergunta ao dono):** pintura própria, sem anúncios (Photopea descartado). Ela sai em etapas.
+- **Feito:**
+  - no site: `/jogos-de-verao` e `/studio/jogos-de-verao` (cartão no Studio); dados do editor na tabela `jogo_dados` e imagens na pasta `jogos` (migração 0097); começa com a semente (o que o dono já tinha no editor da página do Claude);
+  - desenho inteiro por quadro: tamanho e giro (além de mover), em número ou arrastando;
+  - aba Pintura, 1ª etapa (detalhes em `jogos-de-verao.md`);
+  - correção: o que foi aplicado podia chegar antes dos desenhos carregarem e os rostos não entravam; agora espera a página montar.
+- **Testes:** `wzpintura.cjs`, `wzsite.cjs` (novos), `wzbanco.cjs`, `wzdono.cjs`, `todas.cjs`, `trilha.cjs`. Teste da ponte do site: `src/lib/jogosPonte.test.ts`. Página do Claude também publicada.
+- **Pendente:** o dono rodar a `0097_jogos_de_verao.sql` no Supabase; conferir no site com a caneta; próximas etapas da pintura (seleção, transformar, borrar, modos de mistura, ajustes finos dos pincéis importados, refazer a máscara do visor).
+- **Não deu para conferir aqui:** a instalação das dependências do site falhou (sem acesso ao registro de pacotes nesta sessão), então os tipos e o build do site ficam para a verificação automática do GitHub e para o Vercel.
+
 ## 01/11/2026: Vôlei, dificuldade até "impossível" no editor
 - **Pedido do dono:** no editor, um limite de dificuldade do Amiguinho no vôlei em que o valor mais alto é "impossível" (não erra, não dá para ganhar), para ajustar a dificuldade dos campeonatos.
 - **Feito:** seção "Dificuldade dos adversários" em Mecânicas > Vôlei (partida rápida, Torneio e Copa), barras de 0 a 1,2 com o nome do nível; no 1,2 o Amiguinho não perde ponto (detalhes em `jogos-de-verao.md`). Nenhum valor do jogo mudou; o dono escolhe. Jogo publicado.

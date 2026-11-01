@@ -15,7 +15,7 @@
   let FTB = null;
   function frameBc(an, k, ex, mirror) {
     const A = MB.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
-    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(BCS * (mirror ? -1 : 1), BCS);
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(BCS * (mirror ? -1 : 1), BCS); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
     ctx.drawImage(MBI[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     if (f.s && f.sz) {
       if (!FTB) FTB = document.createElement('canvas');

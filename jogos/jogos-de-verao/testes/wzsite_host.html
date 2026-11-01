@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><title>host</title>
+<style>html,body{margin:0;height:100%}iframe{border:0;width:100%;height:100%}</style>
+<iframe id="f" src="/demo/jogos-verao/index.html?editor=1"></iframe>
+<script type="module">
+import { criaPonte } from '/ponte.js';
+const T = window.__T = new Map(), F = window.__F = new Map();
+const sb = {
+  from: () => ({
+    select: () => ({
+      eq: (k, v) => ({ maybeSingle: async () => ({ data: T.has(v) ? { dados: structuredClone(T.get(v)) } : null, error: null }) }),
+      like: (k, pat) => { const pre = pat.replace(/%$/, '').replace(/\\(.)/g, '$1'); return Promise.resolve({ data: [...T].filter(([c]) => c.startsWith(pre)).map(([caminho, dados]) => ({ caminho, dados: structuredClone(dados) })), error: null }); },
+      limit: () => Promise.resolve({ data: [], error: null }),
+    }),
+    upsert: async (r) => { T.set(r.caminho, structuredClone(r.dados)); return { error: null }; },
+    delete: () => ({ eq: async (k, v) => { T.delete(v); return { error: null }; } }),
+  }),
+  storage: { from: () => ({ upload: async (n, blob) => { F.set(n, await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(blob); })); return { error: null }; }, getPublicUrl: (n) => ({ data: { publicUrl: F.get(n) } }) }) },
+  auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) },
+};
+const ponte = criaPonte(async () => sb, async () => true);
+const f = document.getElementById('f');
+setInterval(() => { const w = f.contentWindow; try { if (w && w.location.pathname.includes('/demo/jogos-verao/') && !w.claude) w.claude = ponte; } catch {} }, 50);
+</script>

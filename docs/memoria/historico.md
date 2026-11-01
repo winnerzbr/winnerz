@@ -8,7 +8,8 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - **O dono relatou:** continua igual; salva, abre o jogo e as mudanças não aparecem; no editor voltam os rostos do jogo.
 - **Achado:** a configuração dele está inteira no banco e, aqui, faz o desenho mudar no jogo e no editor; a falha é na leitura do banco na página dele, que daqui não dá para ver.
 - **Feito:** leitura por três caminhos e uma linha de conferência no editor (seção do editor em `jogos-de-verao.md`); imagem de antes e depois enviada ao dono. Jogo publicado.
-- **Pendente:** foto da linha de conferência para achar onde a leitura falha.
+- **Foto do dono (01h10):** página nova (01/11 01:03), banco e dono ok, aplicado lido pelos três caminhos (187 quadros), 187 quadros entraram no jogo às 01h09, rascunho e editor com 187. A leitura está funcionando. O último rascunho salvo no banco é de 00h43; nada foi salvo depois disso.
+- **Pendente:** o dono conferir o vôlei e, ao mexer de novo, ver se aparece "Rascunho salvo" no alto do editor.
 
 ## 01/11/2026: Editor do jogo, rostos salvos que não voltavam
 - **O dono relatou:** mexeu nos rostos do IAmiguinho do vôlei e aplicou; ao voltar ao editor, os rostos não estavam como ele aplicou, e no jogo as mudanças não valiam.

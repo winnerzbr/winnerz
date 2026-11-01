@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Editor do jogo, causa do rosto fora do lugar
+- **O dono mostrou (fotos):** o rosto do run ajustado e salvo; no jogo o rosto estava em outro lugar; ao reabrir o editor, os números iguais mas o desenho como antes.
+- **Causa:** o "olhar para a bola" do vôlei mexia o rosto dentro do visor e ficava guardado depois de jogar, mexendo também o desenho do editor. Salvar e carregar estavam certos.
+- **Decidido (Claude, para o dono confirmar):** o rosto fica parado onde o dono pôs; o olhar virou um número em Mecânicas > Vôlei ("Rosto olhando para a bola", 0 = parado, 1 = como antes).
+- **Testes:** `wzolhar.cjs` (novo), `wzaovivo.cjs`, `wzdono.cjs`, `wzbanco.cjs`, `todas.cjs`. Jogo publicado.
+
 ## 01/11/2026: Editor do jogo, rostos ainda sem valer (2ª tentativa)
 - **O dono relatou:** continua igual; salva, abre o jogo e as mudanças não aparecem; no editor voltam os rostos do jogo.
 - **Achado:** a configuração dele está inteira no banco e, aqui, faz o desenho mudar no jogo e no editor; a falha é na leitura do banco na página dele, que daqui não dá para ver.

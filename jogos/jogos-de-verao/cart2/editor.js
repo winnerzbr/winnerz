@@ -8,11 +8,13 @@
    - Textos: falas do IAmiguinho e nomes das provas;
    - Versões: voltar a uma versão aplicada, copiar e colar tudo (cópia de segurança).
    Onde fica guardado: no banco da própria página (db), em wz/rascunho, wz/aplicado e wz/v<data> (versões). */
-const WZ_OBJS = { SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG };
+// o rosto acompanhar a bola com o olhar (vôlei): 0 = fica exatamente onde o dono colocou nos Rostos e quadros
+const ROSTO = window.ROSTO = { olhar: 0 };
+const WZ_OBJS = { ROSTO, SF_MAN, SOBJ, HP_AIR, HP_BTN, HP_LIP, EB_BOLAS, PT_MAN, PT_GRIND, BQ, BX, BX_MAN, OB, OB_TIPO, FR, AR, DU, CN, FU, NT, JS, JS_MAN, DIVE, SERVE, SPEC, SPK, SPK_F, SPKG, OPP, PP, BC, BG };
 const WZ_REG = {
   surfe: ['SF_MAN', 'SOBJ'], halfpipe: ['HP_AIR', 'HP_BTN', 'HP_LIP'], embaixadinha: ['EB_BOLAS'], patins: ['PT_MAN', 'PT_GRIND'], basquete: ['BQ'],
   pingue: ['PP'], bmx: ['BX', 'BX_MAN'], obstaculos: ['OB', 'OB_TIPO'], frisbee: ['FR'], arco: ['AR'], duelo: ['DU'], canoagem: ['CN'], futebol: ['FU'],
-  bocha: ['BC'], natacao: ['NT'], jetski: ['JS', 'JS_MAN'], bugue: ['BG'], volei: ['DIVE', 'SERVE', 'SPEC', 'SPK', 'SPK_F', 'SPKG', 'OPP'],
+  bocha: ['BC'], natacao: ['NT'], jetski: ['JS', 'JS_MAN'], bugue: ['BG'], volei: ['ROSTO', 'DIVE', 'SERVE', 'SPEC', 'SPK', 'SPK_F', 'SPKG', 'OPP'],
 };
 // nomes em português dos números (os que não estão aqui aparecem com o nome técnico)
 const WZ_NOMES = {
@@ -29,6 +31,7 @@ const WZ_NOMES = {
   vx: 'Velocidade x', vy: 'Velocidade y', fric: 'Atrito', rest: 'Quique', v0: 'Força mínima', v1: 'Força máxima', max: 'Máximo', back: 'Recuo', h: 'Altura', w: 'Largura', f: 'Quadros', x: 'Multiplicador', v: 'Valor', d: 'Duração', nota: 'Nota',
 };
 const WZ_DESC = {
+  ROSTO: { olhar: 'Rosto olhando para a bola' },
   BG: { padW: 'Meia largura da esteira de turbo', kr: 'Tamanho do corpo do bugue na batida (raio)', kf: 'Distância do centro até a frente e a traseira na batida', boxR: 'Raio da caixa de item', boxT: 'Segundos para a caixa voltar',
     voltas: 'Voltas por corrida', hw: 'Meia largura da pista', r: 'Raio do bugue na mureta', vmax: 'Velocidade máxima', eng: 'Força do motor', brake: 'Força do freio', grip: 'Aderência', gripD: 'Aderência derrapando',
     wb: 'Distância entre os eixos (curva)', water: 'Freio na água', boostV: 'Ganho do turbo', sw: 'Meia largura do atalho', Z: 'Zoom da câmera', g: 'Gravidade dos saltos' },
@@ -37,6 +40,7 @@ const WZ_DESC = {
 };
 // explicação de cada número (aparece ao parar o mouse em cima da linha). Chave: "OBJ.campo" ou "OBJ.*.campo" (vale para todos os itens).
 const WZ_EXPL = {
+  'ROSTO.olhar': 'Quanto o rosto anda dentro do visor para olhar a bola durante o vôlei. 0 = o rosto fica parado exatamente onde você colocou em Rostos e quadros. 1 = anda um pouco, olhando para a bola (era assim antes de 01/11). Vale para o IAmiguinho e o Amiguinho.',
   'ev.dur': 'Quanto tempo dura a partida, em segundos. 0 quer dizer que a prova acaba por tentativas ou pontos, não pelo relógio.',
   'ev.med.0': 'Pontos que a pessoa precisa fazer para ganhar a medalha de bronze.', 'ev.med.1': 'Pontos para ganhar a medalha de prata.', 'ev.med.2': 'Pontos para ganhar a medalha de ouro.',
   'SF_MAN.*.v': 'Pontos que a manobra vale quando o pouso dá certo.', 'SF_MAN.*.d': 'Quanto tempo a manobra leva no ar (segundos). Maior = precisa de um voo mais longo; pousar antes de acabar é queda.',
@@ -674,9 +678,10 @@ function wzRostos(m) {
       g.fillStyle = '#e9d7ad'; g.fillRect(0, r.height * .82, r.width, r.height * .18); g.strokeStyle = 'rgba(27,31,79,.3)'; g.beginPath(); g.moveTo(r.width / 2, 0); g.lineTo(r.width / 2, r.height); g.stroke();
       g.translate(r.width / 2, r.height * .82); g.scale(zoom, zoom);
       // quadro anterior clarinho por baixo, para encaixar um no outro
+      window.__wzSemOlhar = true;
       const nq = A0.a[WZE.ran].f.length; if (WZE.ronion && nq > 1) { g.save(); g.globalAlpha = .3; S.fn(WZE.ran, (WZE.rk - 1 + nq) % nq, ex); g.restore(); }
       S.fn(WZE.ran, WZE.rk, ex);
-    } catch { /* desenho carregando */ } finally { ctx = save; }
+    } catch { /* desenho carregando */ } finally { ctx = save; window.__wzSemOlhar = false; }
   }
   // arrastar o rosto
   let dr = null;

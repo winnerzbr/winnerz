@@ -49,7 +49,9 @@
       const front = A.front || (an === 'turn' && k >= 2 && k <= 4), cx = f.s[4] ?? (f.s[0] + f.s[2]) / 2, cy = f.s[5] ?? (f.s[1] + f.s[3]) / 2;
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       // o rosto gira junto com a tela (inclinação medida em cada quadro)
-      const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, LOOKB[0] * L1 * .12, L2 * .03 + LOOKB[1] * L2 * .13, fk, fkx); g.restore(); } finally { ctx = save; }
+      // olhar para a bola: o editor desenha sempre com o rosto parado; no jogo, quanto anda vem do editor (ROSTO.olhar)
+      const ol = window.__wzSemOlhar ? 0 : (window.ROSTO ? window.ROSTO.olhar : 1);
+      const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, LOOKB[0] * ol * L1 * .12, L2 * .03 + LOOKB[1] * ol * L2 * .13, fk, fkx); g.restore(); } finally { ctx = save; }
       g.globalCompositeOperation = 'destination-in'; g.drawImage(MBK[key], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FB, 0, 0, f.w, f.h, -f.ax, -ay, f.w, f.h);
     }

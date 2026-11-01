@@ -115,10 +115,13 @@ const WZ_SETS = [
 const WZ_PISTA_CAMPOS = ['name', 'fala', 'pts', 'sc', 'ramps', 'boxes', 'pads', 'fofa', 'slopes', 'farol'];
 
 // as peças da pista apontam para pedacinhos da linha (24 por ponto): ficam sempre dentro da pista
+// atalho mais curto que isso (dois cliques quase no mesmo lugar) não cabe a lagoa e quebrava o desenho da corrida: sai
+const WZ_SC_MIN = 20;
 function wzPistaOk(T) {
   const n = T.pts.length * 24, w = (i) => ((Math.round(i) % n) + n) % n;
   T.boxes = T.boxes.map(w); T.ramps = T.ramps.map(w); T.fofa = T.fofa.map(w); T.pads.forEach((p) => { p.i = w(p.i); });
   for (const c of [...T.sc, ...T.slopes]) { c.a = w(c.a); c.b = Math.min(n - 1, Math.max(c.a + 2, Math.round(c.b))); }
+  T.sc = T.sc.filter((c) => c.b - c.a >= WZ_SC_MIN);
 }
 const WZ = (() => {
   const clone = (o) => (o === undefined ? undefined : JSON.parse(JSON.stringify(o)));
@@ -649,7 +652,7 @@ function wzPistas(m) {
       marca();
       if (md === 'boxes' || md === 'ramps' || md === 'fofa') { D[md].push(nr.i); D[md].sort((a, b) => a - b); WZE.sel = D[md].indexOf(nr.i); }
       else if (md === 'pads') { D.pads.push({ i: nr.i, o: 0 }); WZE.sel = D.pads.length - 1; }
-      else if (md === 'sc' || md === 'slopes') { if (!pend) { pend = { md, a: nr.i }; info.textContent = 'Agora clique onde termina.'; return; } const a = pend.a, b = nr.i; pend = null; if (md === 'sc') D.sc.push({ a: Math.min(a, b), b: Math.max(a, b), kind: 'agua' }); else D.slopes.push({ a: Math.min(a, b), b: Math.max(a, b), s: 1 }); WZE.sel = D[md].length - 1; }
+      else if (md === 'sc' || md === 'slopes') { if (!pend) { pend = { md, a: nr.i }; info.textContent = 'Agora clique onde termina.'; return; } const a = pend.a, b = nr.i; pend = null; if (md === 'sc' && Math.abs(b - a) < WZ_SC_MIN) { info.textContent = 'Atalho curto demais: clique no começo e depois bem mais adiante na pista.'; return; } if (md === 'sc') D.sc.push({ a: Math.min(a, b), b: Math.max(a, b), kind: 'agua' }); else D.slopes.push({ a: Math.min(a, b), b: Math.max(a, b), s: 1 }); WZE.sel = D[md].length - 1; }
       salvar(); desenha(); return;
     }
     if (md === 'farol' && !D.farol) { marca(); D.farol = [Math.round(x), Math.round(y)]; salvar(); desenha(); return; }

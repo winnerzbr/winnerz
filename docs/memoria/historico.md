@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Corrida de bugue sem bugues (corrigido)
+- **O dono:** a corrida de bugue abria só com a pista reta, sem bugues e sem o resto da tela.
+- **Causa:** a pista Lagoa Azul aplicada no editor tinha 3 atalhos de lagoa com começo e fim quase no mesmo ponto (dois cliques quase no mesmo lugar). A lagoa ficava com tamanho negativo, o desenho da corrida dava erro e parava antes dos bugues.
+- **Feito:** atalho curto demais fica de fora da corrida (`ev_bugue.js`); o editor não deixa criar atalho curto ("Atalho curto demais") e tira os que já existem ao carregar a pista (`WZ_SC_MIN` em `editor.js`). Os 2 atalhos de verdade da Lagoa Azul continuam. Jogo publicado no site e na página do Claude.
+- **Testes:** `bgatalho.cjs` (novo), `bugue.cjs`, `bgcena.cjs`, `wzeditor.cjs` (escolhia as abas pela posição; agora pelo nome).
+
 ## 01/11/2026: Jogos de Verão, 15 músicas novas e volume da trilha
 - **O dono mandou** 15 músicas (uma por prova) e pediu para igualar o volume de todas, inclusive as já aplicadas, sem a música cobrir os sons e efeitos das partidas.
 - **Feito:** cada prova toca a sua faixa; todas as 22 igualadas em -18 LUFS; no jogo a música toca bem mais baixa (cerca de -30 LUFS) e os efeitos ficaram 2x mais altos; o volume de música das opções passou a valer para as faixas gravadas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

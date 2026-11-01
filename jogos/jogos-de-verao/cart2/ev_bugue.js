@@ -70,7 +70,8 @@ function bgLoad(ti) {
   T.line = T.line || bgLine(T.pts); BG_LINE = T.line; BG_RAMPS = T.ramps.map((i) => ({ i })); BG_BOXES = T.boxes; BG_PADS = T.pads;
   const n = BG_LINE.length;
   // os atalhos: corredores retos com lagoa (água) ou areia fofa no meio
-  BG_SCS = T.sc.map((c) => { const A = BG_LINE[c.a], B = BG_LINE[c.b], len = Math.hypot(B[0] - A[0], B[1] - A[1]); return { ...c, A, B, len, x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, rx: len / 2 - 40, ry: 30, ang: Math.atan2(B[1] - A[1], B[0] - A[0]), walls: c.walls }; });
+  // atalho curto demais (dois cliques quase no mesmo lugar no editor) fica de fora: a lagoa teria tamanho negativo e a corrida não desenhava
+  BG_SCS = T.sc.filter((c) => { const A = BG_LINE[c.a], B = BG_LINE[c.b]; return A && B && Math.hypot(B[0] - A[0], B[1] - A[1]) >= 160; }).map((c) => { const A = BG_LINE[c.a], B = BG_LINE[c.b], len = Math.hypot(B[0] - A[0], B[1] - A[1]); return { ...c, A, B, len, x: (A[0] + B[0]) / 2, y: (A[1] + B[1]) / 2, rx: Math.max(20, len / 2 - 40), ry: 30, ang: Math.atan2(B[1] - A[1], B[0] - A[0]), walls: c.walls }; });
   // areia fofa por dentro das curvas: o lado de dentro sai do sentido da virada
   BG_FOFA = T.fofa.map((i) => { const p = BG_LINE[(i - 8 + n) % n], q = BG_LINE[i], r = BG_LINE[(i + 8) % n], cr = (q[0] - p[0]) * (r[1] - q[1]) - (q[1] - p[1]) * (r[0] - q[0]), a = Math.atan2(r[1] - p[1], r[0] - p[0]), sd = cr > 0 ? 1 : -1; return { x: q[0] - Math.sin(a) * BG.hw * .65 * sd, y: q[1] + Math.cos(a) * BG.hw * .65 * sd, r: 24, i, sd }; });
   BG_SLOPE = new Int8Array(n); for (const z of T.slopes) for (let i = z.a; i <= z.b; i++) BG_SLOPE[i % n] = z.s;

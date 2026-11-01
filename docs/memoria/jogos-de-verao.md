@@ -451,6 +451,9 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Teste do editor: `testes/wzdificuldade.cjs`.
 - **Teste:** `testes/wzeditor.cjs` (abre, muda número, rosto (arrastando o tamanho) e fala, aplica com nome, abre de novo depois de jogar e pausar e pela terceira vez, arrasta o lançamento da bocha, recarrega e confere); `testes/wzaovivo.cjs` (explicações, rosto ao vivo digitando, números acompanhando o arraste); `testes/wzrostos_vivo.cjs` (os 6 números em cada um dos 5 personagens mudam o desenho na hora); `testes/wzpista_estragada.cjs` (rascunho com atalho fora da pista não trava o rosto nem o jogo).
 
+## Atalhos das pistas do bugue (01/11)
+- Atalho (lagoa ou areia fofa) precisa ter pelo menos uns 160 px de comprimento. Mais curto que isso, a corrida ignora e o editor não deixa criar (nem guarda). Antes, um atalho curto quebrava o desenho da corrida inteira.
+
 ## Trilha sonora gravada (01/11)
 - **O dono mandou:** 22 músicas (7 primeiro e mais 15 no mesmo dia); "Carnaval na Areia" é a música tema. Cada prova tem a sua.
 - **Onde cada uma toca:**

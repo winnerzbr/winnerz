@@ -471,19 +471,27 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Como é** (`cart2/ev_teco.js`, entre a Canoagem e o Futebol):
   - de lado, o cenário passa sozinho; quatro teco-tecos voam livres (◀ ▶ ▲ ▼ ou analógico): o IAmiguinho (azul) e os Amiguinhos Rosa, Amarelo e Verde;
   - água: segurar ✕ / Espaço / "Água" atira gotas da pistola; o tanque esvazia e enche num rasante no mar (bem baixo, espirrando água); no alto enche bem devagar; o nível aparece na bolha em cima do nariz e no canto da tela;
-  - bexiga: ○ / X / "Bexiga" joga uma bexiga que cai em curva; acertou um teco-teco, o piloto fica tonto 2,4 s (rodopia, não atira, não pontua) e quem jogou ganha 100; depois fica 1,3 s sem poder levar outra; acertou alvos, estoura tudo em volta; começa com 3, máximo 5; cestas de bexigas descem de paraquedas (+3);
+  - bexiga: ○ / X / "Bexiga" joga uma bexiga que cai em curva; acertou um teco-teco, o piloto fica tonto 2,8 s (rodopia, não atira, não pontua) e quem jogou ganha 100; depois fica 1,3 s sem poder levar outra; acertou alvos, estoura tudo em volta; começa com 3, máximo 5; cestas de bexigas descem de paraquedas (+3);
   - alvos (quem dá o último acerto leva): balão de festa 100 (sobem da praia, cachos de 5), pipa presa num barco 150 (2 acertos), drone 250 (3), patinho inflável preso em balões 350 (4) e o dirigível da Costa WinnerZ (aos 52 s e aos 100 s) com 4 alvos de 200 (3 acertos cada) e bônus de 600 para quem fizer o último;
   - argolas douradas em arco de 5: a primeira passagem leva 150, argolas seguidas (até 4 s entre uma e outra) +60 cada;
   - estouros seguidos rápidos (1,2 s) fazem sequência: ×1,25, ×1,5… até ×2;
   - 2 minutos, com 3, 2, 1 e "Vai!"; no fim, a colocação dos quatro pelo placar decide a medalha (1º ouro, 2º prata, 3º bronze). A pontuação da prova é 3.000 / 2.200 / 1.600 / 400 pela colocação mais os pontos ÷ 10 (até 599);
-  - os Amiguinhos escolhem o melhor alvo à frente (pontos, distância, quantos acertos faltam), alinham a altura e atiram; pegam argolas e cestas; enchem o tanque no mar; jogam bexiga em quem está à frente e mais abaixo, de preferência em quem está ganhando; às vezes desviam de bexigas. Acerto 0,55, 0,66 e 0,78.
+  - os Amiguinhos escolhem o melhor alvo à frente (pontos, distância, quantos acertos faltam), alinham a altura e atiram; pegam argolas e cestas; enchem o tanque no mar; jogam bexiga em quem está à frente e mais abaixo, de preferência em quem está ganhando; às vezes desviam de bexigas. Acerto 0,74, 0,8 e 0,86 (veja "Mais difícil").
 - **Na tela:** o tempo no alto, o placar dos quatro no canto direito, o tanque e as bexigas no canto esquerdo; no fim, a colocação. Céu nos 4 horários pelo relógio, morro, cidade e farol (com luz girando à noite), gaivotas ao longe e o mar com ondas.
 - **Celular:** setas e os botões "Água" e "Bexiga". **Controle:** analógico, ✕ água, ○ bexiga.
 - **Editor:** Mecânicas > Teco-teco d'Água > "Voo, água e bexigas" (duração, velocidades, gasto e enchimento do tanque, bexigas, tempo tonto, pontos das argolas, acerto dos Amiguinhos, tamanho dos teco-tecos).
 - **Música:** usa o Turbo Jet até chegar uma faixa própria.
 - **Arte:** provisória, toda desenhada pelo jogo. Os pedidos estão na página de pedidos (Teco-teco d'Água: teco-tecos do IAmiguinho e do Amiguinho, atirando e jogando bexiga, tonto, folha dos alvos, dirigível, argola e água, e o céu com o mar nos 4 horários, que também aparece em "Todos os cenários").
 - **Ajustes do dono (01/11):** aviões menores (tamanho 0,85, antes 1,2), para sobrar mais céu livre; com o tanque vazio a pistola não atira mais: só volta quando o tanque chega a 25% (no rasante isso leva meio segundo; no alto, uns 12 s). O "Tanque vazio!" aparece uma vez e a barra do tanque pisca. Os dois números estão no editor ("Tamanho dos teco-tecos" e "Água no tanque para a pistola voltar a atirar").
-- **Teste:** `testes/teco.cjs` (partidas simuladas, tanque vazio sem atirar, rasante enchendo e fotos de uma partida com o teclado).
+- **Mais difícil (01/11, pedido do dono: estava fácil, os Amiguinhos ficavam colados brigando pelas mesmas coisas, e dava para ficar na frente de todo mundo atirando):**
+  - cadência da pistola caiu à metade (4,5 gotas por segundo, antes 9) e cada gota gasta quase o dobro de água (o tanque cheio dura uns 11 s de tiro);
+  - as gotas vão só até uns 240 px (somem antes); ninguém passa de 60% da largura da tela (não dá mais para ficar colado na borda da direita);
+  - cada Amiguinho tem um jeito: **Rosa** voa alto e fica mais atrás, de longe, atrás de drones, patinhos e do dirigível; **Amarelo** fica no meio da altura e no meio da tela, caça argolas, balões e cestas; **Verde** voa baixo e na frente, pega o que acabou de entrar na tela, rouba o último acerto dos alvos que os outros quase estouraram e joga muita bexiga em quem está ganhando;
+  - eles se espalham: um alvo ou uma fileira de argolas que outro Amiguinho já foi buscar vale bem menos para os outros, e eles desviam uns dos outros (colados passou de 31% para uns 12% do tempo);
+  - quando você abre mais de 900 pontos sobre o melhor Amiguinho, eles apertam: jogam melhor e saem para te caçar com bexigas (ficam atrás e acima de você);
+  - acerto dos Amiguinhos 0,74, 0,8 e 0,86.
+  - No teste, o jogador que fica na frente segurando a água ganhou 2 de 6 partidas (antes ganhava todas, longe), levando 4 a 7 bexigas por partida.
+- **Teste:** `testes/teco.cjs` (partidas simuladas, o jogador "na frente segurando a água", quanto tempo os Amiguinhos ficam colados, tanque vazio sem atirar, rasante enchendo e fotos de uma partida com o teclado).
 
 ## Atalhos das pistas do bugue (01/11)
 - Atalho (lagoa ou areia fofa) precisa ter pelo menos uns 160 px de comprimento. Mais curto que isso, a corrida ignora e o editor não deixa criar (nem guarda). Antes, um atalho curto quebrava o desenho da corrida inteira.

@@ -23,6 +23,20 @@ const N = Number(process.argv[2] || 4);
     return out;
   }, N);
   console.log(sim.join('\n'));
+  // jogador "na frente": fica no limite da frente, alinha com o alvo mais perto e segura a água o tempo todo (o jeito que estava fácil demais)
+  const frente = await p.evaluate((N) => {
+    const ev = teco, res = []; let junto = 0, amostras = 0;
+    for (let m = 0; m < N; m++) {
+      ev.init(); const ctl0 = ev.ctlOf;
+      ev.ctlOf = function () { const me = this.me; if (me.seco || me.water < .05) return { mx: 0, my: 1, fire: false, bomb: false };
+        const alvos = this.tg.filter((q) => !q.dead && !q.fall && q.kind !== 'cesta' && q.x > me.x + 10).sort((a, b) => a.x - b.x), q = alvos[0];
+        const ty = q ? q.y - 4 : 90; return { mx: 1, my: clamp((ty - me.y) / 12, -1, 1), fire: true, bomb: this.P.some((o) => !o.me && o.x > me.x + 20 && o.x < me.x + 140 && o.y > me.y + 10 && o.y < me.y + 90) }; };
+      let t = 0; while (t < 200) { if (ev.update(DT, {})) break; t += DT; if (Math.round(t * 60) % 30 === 0) { const ai = ev.P.slice(1); for (let a = 0; a < 3; a++) for (let b = a + 1; b < 3; b++) { amostras++; if (Math.hypot(ai[a].x - ai[b].x, ai[a].y - ai[b].y) < 30) junto++; } } }
+      ev.ctlOf = ctl0; res.push(`${ev.rank}º, levou ${ev.st.levou} bexigas (${ev.me.pts} × ${ev.P.slice(1).map((o) => o.name + ' ' + o.pts).join(', ')})`);
+    }
+    return res.join('\n') + `\nAmiguinhos colados (a menos de 30): ${Math.round(junto / amostras * 100)}% do tempo`;
+  }, N);
+  console.log('jogador na frente segurando a água:\n' + frente);
   // partida de verdade, com o teclado
   await p.evaluate(() => { choose(teco); start(); });
   const k = (c, ms) => p.keyboard.down(c).then(() => p.waitForTimeout(ms)).then(() => p.keyboard.up(c));

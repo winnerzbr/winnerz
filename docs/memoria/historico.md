@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pedidos, todos os cenários juntos e pedidos do brushset
+- **O dono pediu:** separar todos os pedidos (prompts) de cenário na página de pedidos, para pedir todos ao ChatGPT; ele está montando um brushset com a arte do jogo (o ChatGPT gera as artes e depois os pincéis, e ele pinta artes próprias com a mesma estética).
+- **Feito:** a página "Pedidos das provas novas" ganhou, logo depois dos anexos, a seção "Todos os cenários" (44 pedidos): Quiosque do Coqueiral (pingue-pongue), Vila dos Pescadores (bocha), Dunas Brancas (bugue), Praia do Centro (embaixadinha) e, trazidos da página do skate, o Skatepark do Viaduto e as peças da pista do half-pipe. Os cartões das provas são os mesmos (mesma marca de "Feita"); os do skate são novos nesta página. O galpão do teaser (vídeo) ficou de fora. No fim, "Depois: o brushset", com 2 pedidos novos: pontas de pincel (folha 4 x 3 com 12 pontas em branco sobre preto) e grãos que repetem (6 texturas em cinza, uma por resposta). Os cartões de cada prova continuam no lugar.
+
 ## 01/11/2026: Pingue-pongue, Amiguinho pintado (8 pranchas)
 - **O dono mandou** as 8 pranchas do Amiguinho no tênis de mesa (com os prompts).
 - **Feito:** recortadas e montadas como as outras do Amiguinho (massa igualada sem contar a raquete, pés presos, rosto aceso, cor do adversário com a raquete sempre vermelha), no jogo com as mesmas regras do IAmiguinho; a bolinha desenhada do saque saiu. Entraram na Prévia das pranchas e no editor. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

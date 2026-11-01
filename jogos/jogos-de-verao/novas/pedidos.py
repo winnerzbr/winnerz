@@ -1,7 +1,7 @@
 """Pedidos das provas novas (30/10/2026): prompts das pranchas (personagens e objetos) e dos cenários de cada prova nova.
 Cada prova entra quando o jogo dela é feito. A página segue o formato do Moveset do Skate (cartões com Copiar e Feita)."""
 import json, re, sys, pathlib
-sys.path.insert(0, 'skate'); from moves import STYLE as STYLE0, KEEP, KEEPG
+sys.path.insert(0, 'skate'); from moves import STYLE as STYLE0, KEEP, KEEPG, SCENE as SK_SCENE, SCENE_PISTA as SK_PISTA
 ROOT = pathlib.Path('.')
 V = open('moveset_volei/index.html').read()
 css = V[V.index('<link rel="preconnect"'):V.index('</style>') + 8]
@@ -186,6 +186,19 @@ data = []
 for g in GAMES:
     data.append(dict(id=g['id'], n=g['n'], lugar=g['lugar'], nota=g['nota'], groups=[dict(h=x['h'], who=x['who'], p=x['p'], cards=x['cards']) for x in g['groups']]))
 TOTAL = sum(len(x['cards']) for g in GAMES for x in g['groups'])
+# pincéis (01/11, pedido do dono): depois de gerar os cenários, pedir ao ChatGPT as pontas e os grãos para montar um brushset no Procreate
+BRUSH = [
+ dict(t='Pontas de pincel (Shape) a partir das artes', sub='anexe: os cenários aprovados + referência de estilo', txt=
+  'Attached: the approved painted backgrounds of this game and the STYLE REFERENCE. I am building a Procreate brush set to paint NEW art with exactly this look. '
+  'Study how the paint is applied in the attached images: the soft brush texture, the clean saturated colors, the soft shading, how leaves, sand, clouds, water, wood and lights are painted. '
+  'Make a BRUSH SHAPE SHEET: a grid of 4 columns x 3 rows of equal square cells on a PURE BLACK background. In each cell ONE brush stamp in white and grays only (white = paint, gray = partial paint, black = no paint), centered, with black space around it, never touching the cell borders. No color, no text, no numbers, no grid lines. '
+  'The 12 stamps, in reading order: 1 soft round with the same soft edge as the painted shading; 2 firm round with a slightly textured, painterly edge; 3 flat bristle dab (one short wide stroke mark); 4 dry brush streak; 5 sand speckle cluster; 6 cloud puff; 7 sea foam and wave crest splash; 8 palm frond leaf; 9 grass tuft; 10 leaf cluster for bushes; 11 small stars and sparkles; 12 soft round light glow. Every stamp must look like it was painted with the same hand as the attached art.'),
+ dict(t='Grãos de pincel (Grain), texturas que repetem', sub='uma textura por resposta · anexe: os cenários aprovados + referência de estilo', txt=
+  'Attached: the approved painted backgrounds of this game and the STYLE REFERENCE. I am building a Procreate brush set with exactly this look. '
+  'Make SEAMLESS TILEABLE grain textures for brushes, ONE per answer (I will say "next"), each a square image, GRAYSCALE ONLY (white = paint shows through, black = paint blocked), filling the whole square evenly, no border, no vignette, no light falloff, no text, tiling perfectly on all four sides. '
+  'Match the texture you can see in the attached paintings. The 6 grains: 1 canvas and paper tooth of the painted backgrounds; 2 fine sand; 3 coarse beach sand with tiny pebbles; 4 soft painterly noise for skies and gradients; 5 wood grain for planks, kiosks and ramps; 6 water ripple.'),
+]
+TOTAL += len(SK_SCENE) + len(SK_PISTA) + len(BRUSH)
 html = '''<title>Pedidos das provas novas</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 ''' + css + '''
@@ -215,7 +228,7 @@ figure.anx .ib button.ok { background: #2f8a4f; color: #fff; border-color: #2f8a
   <div class="tips"><b>Como pedir</b><ol>
     <li>Personagens: use a mesma conversa (ou uma nova) com as regras do vôlei. As regras estão no passo 1 de cada personagem logo abaixo. Em cada pedido, anexe a ficha de modelo e a grade-guia (os anexos ficam no topo da página e no começo de cada grupo) e, quando o cartão tiver, a referência de pose em cinza.</li>
     <li>Objetos que aparecem em várias pranchas (como a raquete) vêm primeiro: aprovados, viram anexo fixo dos pedidos seguintes.</li>
-    <li>Cenários: primeiro a versão do dia; os outros horários saem dela, anexando a imagem aprovada.</li>
+    <li>Cenários: primeiro a versão do dia; os outros horários saem dela, anexando a imagem aprovada. Todos os cenários juntos (e os pedidos do brushset) estão logo depois dos anexos, em <a href="#cenarios">Todos os cenários</a>.</li>
     <li>Me mande as imagens como forem saindo.</li>
   </ol></div>
   <main id="main" style="display:grid;gap:26px"></main>
@@ -224,6 +237,8 @@ figure.anx .ib button.ok { background: #2f8a4f; color: #fff; border-color: #2f8a
 const GAMES = ''' + json.dumps(data, ensure_ascii=False) + ''';
 const RULES = { ia: ''' + json.dumps(RULES_IA, ensure_ascii=False) + ''', bl: ''' + json.dumps(RULES_BL, ensure_ascii=False) + ''' };
 const TOTAL = ''' + str(TOTAL) + ''';
+const SK = { cena: ''' + json.dumps(SK_SCENE, ensure_ascii=False) + ''', pista: ''' + json.dumps(SK_PISTA, ensure_ascii=False) + ''' };
+const BRUSH = ''' + json.dumps(BRUSH, ensure_ascii=False) + ''';
 const KEY = 'pedidos-provas-novas-feitas';
 let done = {};
 try { done = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { done = {}; }
@@ -247,6 +262,18 @@ function card(k, title, sub, text, pose, refs) {
 }
 function render() {
   let h = `<section><h2>Anexos para o ChatGPT <small>copie ou baixe</small></h2><p>As imagens que os pedidos mandam anexar. “Copiar imagem” coloca a imagem na área de transferência: no ChatGPT, é só colar (Ctrl+V) na caixa de mensagem junto com o texto. Se o navegador não deixar copiar, use “Baixar” (pede confirmação) e anexe o arquivo. Cada grupo de pedidos abaixo repete os anexos que ele usa.</p><div class="anxg">${Object.values(ANX).map(([f, t, s2]) => imgBox(f, t, s2)).join('')}</div></section>`;
+  // ---- todos os cenários juntos (01/11, pedido do dono): para gerar tudo de uma vez e montar o brushset com a mesma estética.
+  // Os cartões das provas são os mesmos das seções de cada prova (marcar "Feita" num marca no outro ao recarregar).
+  const CEN = [];
+  GAMES.forEach((g) => { let n = 0; g.groups.forEach((x, gi) => { const cs = x.cards.map((c) => { n++; return [`${g.id}-${gi}-${n}`, `${n}. ${c.t}`, c]; }); if (x.who === 'cen' && g.id !== 'teaser') CEN.push({ h: `${x.h.replace(/^Cenário · /, '')} · ${g.n}`, p: x.p, cs }); }); });
+  CEN.push({ h: 'Skatepark do Viaduto · Half-pipe', p: 'Fundo distante quadrado (1:1) e meio-plano 16:9 em fundo verde; peça o dia primeiro. A capa é a noite. (Da página do Moveset do Skate.)', cs: SK.cena.map((c, j) => [`sk-vd-${j}`, `V${j + 1}. ${c.t}`, c]) });
+  CEN.push({ h: 'Peças da pista · Half-pipe', p: 'Rampa, chão e céu alto do skate, em fundo verde. (Da página do Moveset do Skate.)', cs: SK.pista.map((c, j) => [`sk-pista-${j}`, `P${j + 1}. ${c.t}`, c]) });
+  const nCen = CEN.reduce((a, x) => a + x.cs.length, 0);
+  h += `<section id="cenarios"><h2>Todos os cenários <small>${nCen} pedidos</small></h2><p>Os pedidos de cenário de todas as provas num lugar só, para gerar tudo de uma vez e montar um brushset com a mesma estética do jogo. Em cada lugar, peça primeiro a versão base (o dia); os outros horários saem dela, anexando a imagem aprovada. Os mesmos cartões continuam na seção de cada prova. O galpão do teaser (vídeo) ficou de fora.</p><div class="anxg mini"><span class="anxk">Anexo de todos os cenários</span>${imgBox(...ANX.estilo)}</div></section>`;
+  CEN.forEach((x) => { h += `<section><h2>${esc(x.h)} <small>${x.cs.length} pedidos</small></h2><p>${esc(x.p)}</p>`; x.cs.forEach(([k, t, c]) => { h += card(k, t, c.sub || 'anexe: referência de estilo', c.txt, c.pose, c.refs); }); h += '</section>'; });
+  h += `<section><h2>Depois: o brushset <small>${BRUSH.length} pedidos</small></h2><p>Com os cenários aprovados, peça as pontas e os grãos dos pincéis. No Procreate: Estúdio do pincel → Forma (importe a ponta, uma de cada vez) e Grão (importe a textura). O pintor do editor do jogo também aceita imagem como ponta de pincel.</p>`;
+  BRUSH.forEach((c, j) => { h += card(`br-${j}`, `B${j + 1}. ${c.t}`, c.sub, c.txt); });
+  h += '</section><section><h2>Pedidos por prova</h2><p>Personagens, objetos e cenários de cada prova, na ordem de sempre.</p></section>';
   GAMES.forEach((g) => {
     h += `<section><h2>${esc(g.n)}</h2><p>${esc(g.lugar)}</p><p>${esc(g.nota)}</p></section>`;
     let n = 0;

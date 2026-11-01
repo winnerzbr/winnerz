@@ -82,7 +82,15 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/pingue.cjs`: jogadores automáticos contra o Amiguinho; troca média de 6 a 11 batidas;
   - `testes/ppkeys.cjs`: teclado, saque e 2 jogadores;
   - `testes/todas.cjs`.
-- **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto). A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
+- **Arte provisória (até 01/11 para o IAmiguinho; o Amiguinho segue assim):** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto). A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
+- **IAmiguinho pintado (01/11):** as 8 pranchas do dono chegaram e estão no jogo (`cart2/mvpi.py` → `mvpi.js`, window.MVPI; desenho em `cart2/ppi.js`; pranchas em `jogos/jogos-de-verao/pingue/pranchas`, quadros `cart2/mv2/pp_*`). A raquete vem desenhada na mão: nesses quadros o jogo não desenha a raquete separada.
+  - Escalas pela régua (cabeça igualada à do vôlei): pronto 1,064 · passos de lado 1,009 · topspin 1,040 · cortada 1,017 · efeito 1,015 · saque 1,043 · andando com a raquete atrás 1,059 · balão 1,099. Cabeça de cada quadro igualada à mediana da prancha (±12%). O meio da cabeça (âncora) não conta a raquete vermelha.
+  - Qual prancha aparece: parado → pronto (laço); andando → passos de lado (para trás, ao contrário); preparado andando → andando com a raquete atrás; preparado parado → os quadros antes do toque do golpe (o braço vai para trás com o tempo de preparo); depois da batida → do toque até o fim. Rebater = topspin, cortada = cortada, efeito e toque curto = efeito, balão = balão. Toque no quadro 4 (no balão e no saque, 5).
+  - Saque: bolinha na mão (1), jogando para cima (2 e 3), raquete atrás (4), batida (5 a 8). A bolinha desenhada saiu dos quadros 1 a 3 (o jogo desenha a dele); na mão, a bolinha do jogo aparece no lugar da mão desenhada e, ao subir, volta ao caminho de sempre em 0,15 s (só o desenho; a física é a mesma).
+  - Comemorar e lamentar seguem com o desenho do vôlei e a raquete separada. O Amiguinho continua com o desenho do vôlei (sem pranchas do pingue-pongue dele ainda).
+  - No editor (Rostos e quadros): "IAmiguinho no pingue-pongue".
+  - Prévia: as 8 entraram somando à página publicada (`previa_pp.py`).
+  - Teste: `testes/ppintado.cjs` (folha com os 8 movimentos e fotos do jogo).
 - **Raquete e bolinha pintadas (31/10):** folha do dono (frente vermelha, de lado, 3/4, inclinada, verso preto e a bolinha), montada em `cart2/mvpp.py` -> `mvpp.js` (window.PPA) e desenhada por `cart2/ppp.js`. IAmiguinho com a borracha vermelha e o Amiguinho com a preta; esperando: 3/4 (o Amiguinho, o verso); preparada: de frente; no meio da batida: de lado; 14 unidades de comprimento, girando em volta do meio da cabeça (a mesma posição e giro de antes); a bolinha pintada no lugar da desenhada (o placar continua por cima quando ela passa no alto). A folha virou anexo das pranchas na página de pedidos. Teste: `testes/pprakete.cjs`.
 
 ### Bocha na areia (como funciona)

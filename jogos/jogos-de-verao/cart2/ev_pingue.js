@@ -216,7 +216,7 @@ const pingue = {
     if (!serving) { if (kind === 'rebater' || kind === 'cortada') a += 3.2 * Math.min(0, sIn) * (1 - .5 * Math.min(1, Q)); else a += 2.6 * Math.max(0, sIn) * (1 - .5 * Math.min(1, Q)); }
     const ar = a * Math.PI / 180;
     Object.assign(b, { vx: f * V * Math.cos(ar), vy: -V * Math.sin(ar), s, last: i, side: -1, nb: 0, toss: false, serve: serving ? 1 : 0, let: false, why: '' });
-    p.arm = null; p.sw = { t: 0, kind }; p.cool = .12; this.hits++; this.longest = Math.max(this.longest, this.hits);
+    p.arm = null; p.sw = { t: 0, kind, serve: !!serving, label }; p.cool = .12; this.hits++; this.longest = Math.max(this.longest, this.hits);
     const me = i === 0 || this.two;
     if (me && Q >= 1) { this.perfeitas++; pop('Perfeita!', b.x, b.y - 16, '#bfefff'); }
     if (me && kind === 'cortada' && !serving) this.cortadas++; if (me && kind === 'toque' && !serving) this.curtas++;

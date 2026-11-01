@@ -117,7 +117,7 @@ def frame_fix(nm):
         out.append(float(np.clip(r, .88, 1.12)) if abs(r - 1) > .02 else 1.0)
     return out
 ALIGN = {'v2_readyU': 'v2_ready', 'v2_readyD': 'v2_ready'}
-def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=(), mids=False):
+def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=(), mids=False, NORED=()):
     OUT = {'q': Q, 'scrh': round(SCRH * Q, 1), 'a': {}}
     TL = {}
     for an, sheets in ANIM.items():
@@ -129,7 +129,8 @@ def build(ANIM, SH, FRONT, ALIGN, var, path, AXB=(), HEAD=(), mids=False):
             FF = frame_fix(nm)
             for j, q in enumerate(fr):
                 im = Image.open(f'mv2/{nm}_{j}.png'); a = np.array(im); H, W = a.shape[:2]
-                al = a[..., 3] > 100; hx = np.where(al[:int(H * .45)].any(0))[0]
+                al = a[..., 3] > 100; alh = al & ~((a[..., 0] > 150) & (a[..., 1] < 110) & (a[..., 2] < 110)) if nm in NORED else al  # pingue-pongue: a raquete vermelha não conta no meio da cabeça
+                hx = np.where(alh[:int(H * .45)].any(0))[0]
                 ax = (hx.min() + hx.max()) / 2 if W < H * 1.2 else W * .55
                 if nm in AXB:  # skate: âncora no meio da prancha (as rodas), não na cabeça
                     bc = np.where(al[int(H * .8):].any(0))[0]; ax = (bc.min() + bc.max()) / 2

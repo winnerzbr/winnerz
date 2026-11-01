@@ -111,6 +111,7 @@ const WZ_SETS = [
   { id: 'sk', nome: 'IAmiguinho no skate', atl: () => window.MVSK, fn: (an, k, ex) => window.__fr.sk(an, k, ex, false), esc: () => 50.5 / 177 },
   { id: 'eb', nome: 'IAmiguinho na embaixadinha', atl: () => window.MVEB, fn: (an, k, ex) => window.__fr.eb(an, k, ex, false), esc: () => (window.MVEB ? 52 / window.MVEB.a.espera.f[0].ay : 1) },
   { id: 'bc', nome: 'IAmiguinho na bocha', atl: () => window.MVBC, fn: (an, k, ex) => window.__fr.bc(an, k, ex, false), esc: () => 56 / 325 / (window.MVBC ? window.MVBC.q : .5) },
+  { id: 'pi', nome: 'IAmiguinho no pingue-pongue', atl: () => window.MVPI, fn: (an, k, ex) => window.__fr.pi(an, k, ex, false), esc: () => 56 / 325 / (window.MVPI ? window.MVPI.q : .5) },
 ];
 const WZ_PISTA_CAMPOS = ['name', 'fala', 'pts', 'sc', 'ramps', 'boxes', 'pads', 'fofa', 'slopes', 'farol'];
 

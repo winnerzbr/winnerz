@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pingue-pongue, IAmiguinho pintado (8 pranchas)
+- **O dono mandou** as 8 pranchas do IAmiguinho no tênis de mesa (pronto, passos de lado, topspin, cortada, efeito por baixo, saque, andando com a raquete atrás e balão).
+- **Feito:** recortadas, medidas pela régua (todas dentro do modelo) e no jogo, com a raquete desenhada na mão e o rosto aceso no visor; a bolinha desenhada no saque saiu (o jogo usa a dele, posta na mão desenhada). Entraram também no editor (Rostos e quadros) e na Prévia das pranchas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.
+- **Pendente:** as pranchas do Amiguinho no pingue-pongue (ele segue com o desenho do vôlei); comemorar e lamentar do IAmiguinho com raquete, se o dono quiser.
+- **Testes:** `ppintado.cjs` (novo), `pingue.cjs`, `ppkeys.cjs`, `pprakete.cjs`.
+
 ## 01/11/2026: Corrida de bugue sem bugues (corrigido)
 - **O dono:** a corrida de bugue abria só com a pista reta, sem bugues e sem o resto da tela.
 - **Causa:** a pista Lagoa Azul aplicada no editor tinha 3 atalhos de lagoa com começo e fim quase no mesmo ponto (dois cliques quase no mesmo lugar). A lagoa ficava com tamanho negativo, o desenho da corrida dava erro e parava antes dos bugues.

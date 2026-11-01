@@ -387,7 +387,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Parado: espera (laço), bola nas mãos (6 à frente, 17 acima dos pés). Andando: quicando (laço; a bola quica 15 à frente). Segurando: carregando, as mãos sobem do peito até o alto em 0,35 s e ficam no quadro 8; a bola vai junto (posições por quadro em `BQ_MAOS_CAR`). Soltou: o arremesso a partir do quadro 4 (a soltura), com o pulo desenhado. Cesta: comemorar (laço). Errou: mãos na cabeça.
   - O cenário, a cesta, a bola, o defensor e a torcida continuam os de antes (o cenário pintado da Quadra da Laje ainda não chegou).
   - As 6 pranchas estão na Prévia (`previa_bq.py`). Teste: `testes/bqpintado.cjs`.
-- **Pendente:** o dono testar; o cenário, a cesta, a bola, a torcida e o Amiguinho defensor pintados.
+- **Amiguinho defensor pintado (01/11):** 6 pranchas do dono (4 de marcação, 2 de pulo; em `basquete/pranchas_amiguinho`). Ficaram as de 3/4, iguais ao Amiguinho do vôlei: `bv2_bq_defesa_c` (marcando) e `bv2_bq_toco_a` (pulo do toco). A defesa_d veio com a 2ª linha espelhada; a defesa_a com as mãos para baixo; defesa_b e toco_b de perfil. `cart2/mvbbq.py` → `mvbbq.js` (animações bqDefesa e bqToco no Amiguinho do vôlei, com a cor dele); desenho em `bqp.js`. Marcando = laço; agachando = toco 1-2; no pulo = toco 3-8 (a altura vem da física). Escala pela massa: 1,045 e 1,127. Na Prévia (`previa_bbq.py`).
+- **Pendente:** o dono testar; o cenário, a cesta, a bola e a torcida pintados.
 
 ## Patins pintado: cenário, obstáculos e corrimão (01/11/2026)
 - **Chegou do dono:** o pacote do Calçadão das Ondas: orla em panorama 32:9 que repete e a faixa do calçadão 6:1 nos 4 horários, a camada de luzes da noite (com as posições dos postes, quiosques e lua), a folha de obstáculos e prêmios (com as regiões de cada peça) e o corrimão em 3 peças. Originais em `patins/arte`, com os prompts.

@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Amiguinho defensor do basquete pintado
+- **O dono mandou** 6 pranchas do Amiguinho no basquete (marcação e pulo do toco, com tentativas repetidas).
+- **Feito:** escolhidas as de 3/4 (como o Amiguinho do vôlei): marcando e pulo do toco, no jogo e na Prévia. Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: IAmiguinho pintado no patins
 - **O dono mandou** as 12 animações do IAmiguinho no patins (e, antes, o mesmo pacote do cenário do patins de novo: idêntico, nada mudou).
 - **Feito:** as 12 no jogo (passada, agachado, salto, pegada, Aviãozinho, Tesoura, Mortal, os 3 corrimões, giro e queda) e na Prévia. Os atlas de cada personagem pintado foram juntados em uma imagem só (surfe, basquete e patins), e a página do jogo caiu de 501 para 473 arquivos.

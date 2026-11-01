@@ -16,7 +16,10 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.evaluate(() => { const u = basquete.update; basquete.update = function (dt, I) { this.t += dt; return false; }; window.__bu = u; basquete.cheer = 1.2; basquete.balls = []; basquete.shootT = 0; basquete.charging = false; });
   await p.waitForTimeout(200); await p.screenshot({ path: 'amg/bq_festa.png', clip });
   await p.evaluate(() => { basquete.cheer = 0; basquete.missT = .4; }); await p.waitForTimeout(150); await p.screenshot({ path: 'amg/bq_errou.png', clip });
-  await p.evaluate(() => { basquete.missT = 0; basquete.update = window.__bu; });
+  // o Amiguinho defensor (a partir da 4ª série): marcando, agachando e no pulo do toco
+  for (const [nm, js] of [['def_marca', '{ph:"idle",t:1,lift:0}'], ['def_agacha', '{ph:"agacha",t:.1,lift:0}'], ['def_pulo', '{ph:"pulo",t:.31,lift:40}']]) {
+    await p.evaluate((js) => { basquete.missT = 0; Object.assign(basquete.def, { on: true, x: 300 }, eval('(' + js + ')')); }, js); await p.waitForTimeout(150); await p.screenshot({ path: `amg/bq_${nm}.png`, clip: { x: 0, y: 300, width: 900, height: 470 } }); }
+  await p.evaluate(() => { basquete.missT = 0; basquete.def.on = false; basquete.update = window.__bu; });
   for (let i = 0; i < 4; i++) { await p.keyboard.down('Space'); await p.waitForTimeout(500 + i * 120); await p.keyboard.up('Space'); await p.waitForTimeout(1400); }
   console.log('estado:', await p.evaluate(() => [mode, basquete.score, basquete.shots, basquete.made].join(' · ')));
   console.log(errs.join(' | ') || 'sem erros'); await b.close();

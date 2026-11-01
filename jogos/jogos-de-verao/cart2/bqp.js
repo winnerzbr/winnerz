@@ -45,3 +45,17 @@
       ctx.save(); ctx.translate(x, VGY + 1); frameBq(an, k, ex, face < 0); ctx.restore();
     };
   }
+  // Amiguinho defensor pintado (mvbbq.py -> MVB.a.bqDefesa e bqToco, desenhado pelo Amiguinho do vôlei com a cor dele):
+  // parado marcando = defesa (laço); agachando = toco 1-2; no pulo = toco 3-8 (a altura vem da física)
+  if (typeof basquete !== 'undefined') {
+    const vSprite16b = vSprite;
+    vSprite = function (key, anim, f, p, face) {
+      const MB2 = window.MVB;
+      if (key !== 'am_rosa' || cur !== basquete || !MB2 || !MB2.a.bqDefesa || !window.__fr || !window.__fr.bl) return vSprite16b.apply(this, arguments);
+      const D = basquete.def, tt = arguments[8] || 0, lift = arguments[10] || 0;
+      let an = 'bqDefesa', k = Math.floor(tt * 8) % 8, ex = 0;
+      if (D.ph === 'agacha') { an = 'bqToco'; k = Math.min(1, Math.floor((1 - D.t / .32) * 2)); }
+      else if (D.ph === 'pulo') { an = 'bqToco'; k = Math.min(7, 2 + Math.floor((1 - D.t / .62) * 6)); ex = 5; }
+      try { ctx.save(); ctx.translate(p.x, p.y - lift); window.__fr.bl(an, k, 'g', ex, face < 0); ctx.restore(); } catch (e) { ctx.restore(); return vSprite16b.apply(this, arguments); }
+    };
+  }

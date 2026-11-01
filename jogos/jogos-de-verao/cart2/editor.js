@@ -198,9 +198,38 @@ const WZDB = (() => {
   const unpack = (d) => { if (!d) return null; const o = { ...d }; if (typeof d.json === 'string') { try { o.cfg = JSON.parse(d.json); } catch { o.cfg = null; } delete o.json; } return o; };
   // nenhuma leitura fica esperando para sempre: depois de 8 s desiste
   const limite = (pr, ms = 8000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('demorou')), ms))]);
-  const MEM = {};
-  async function get(k) { await init(); if (db) { try { const s = await limite(db.doc('wz/' + k).get()); const v = s.exists ? unpack(s.data()) : null; MEM[k] = v; return v; } catch { return MEM[k] ?? null; } } return LOCAL ? lsGet(k) : null; }
-  async function set(k, v) { await init(); MEM[k] = v; if (db) return limite(db.doc('wz/' + k).set(pack(v)), 15000); if (LOCAL) return lsSet(k, v); throw new Error('sem banco'); }
+  const MEM = {}, LIDO = {};
+  // leitura confirmada pelo banco: a leitura simples podia devolver uma cópia antiga guardada no navegador
+  // (de uma visita anterior), e o editor abria com rostos antigos e o jogo aplicava a versão velha.
+  // Espera a resposta confirmada (até 8 s); se não vier, usa a cópia que tiver. Entre a cópia e o que foi salvo nesta
+  // visita, fica sempre o mais novo.
+  const novo = (a, b) => (!a ? b : !b ? a : (b.at || 0) > (a.at || 0) ? b : a);
+  function lerConfirmado(k) {
+    return new Promise((res) => {
+      let ult = null, fim = false, un = null;
+      const acaba = (v) => { if (fim) return; fim = true; clearTimeout(t); try { un && un(); } catch { /* */ } res(v); };
+      const t = setTimeout(() => acaba(ult), 8000);
+      try {
+        un = db.doc('wz/' + k).onSnapshot((s) => { const v = s.exists ? unpack(s.data()) : null; ult = { v, cache: !!(s.metadata && s.metadata.fromCache) }; if (!ult.cache) acaba(ult); }, () => acaba(ult));
+      } catch { acaba(null); }
+    });
+  }
+  async function get(k) {
+    await init();
+    if (db) { const r = await lerConfirmado(k); const v = novo(r ? r.v : null, MEM[k]); MEM[k] = v; LIDO[k] = r ? (r.cache ? 'cópia do navegador' : 'banco') : 'nada'; return v; }
+    return LOCAL ? novo(lsGet(k), MEM[k]) : (MEM[k] ?? null);
+  }
+  // uma gravação de cada vez por documento, na ordem (uma antiga não chega depois de uma nova)
+  const FILA = {};
+  async function set(k, v) {
+    await init(); v = v && v.cfg !== undefined ? { ...v, cfg: JSON.parse(JSON.stringify(v.cfg)) } : v; MEM[k] = v;
+    const vez = (FILA[k] || Promise.resolve()).catch(() => {}).then(() => {
+      if (MEM[k] !== v) return; // já veio uma mais nova: ela é que vai ser gravada
+      if (db) return limite(db.doc('wz/' + k).set(pack(v)), 15000);
+      if (LOCAL) return lsSet(k, v); throw new Error('sem banco');
+    });
+    FILA[k] = vez; return vez;
+  }
   async function del(k) { await init(); if (db) return db.doc('wz/' + k).delete(); if (LOCAL) try { localStorage.removeItem('wz_' + k); } catch { /* */ } }
   async function versions() {
     await init();
@@ -212,13 +241,21 @@ const WZDB = (() => {
     if (db) return limite(db.doc('wz/' + id).set(pack(v)), 15000);
     if (LOCAL) { const L = lsGet('versoes') || []; L.unshift({ id, ...v }); lsSet('versoes', L.slice(0, 30)); }
   }
-  return { init, get, set, del, versions, addVersion };
+  return { init, get, set, del, versions, addVersion, LIDO };
 })();
 
 // ---------- o jogo carrega a configuração aplicada assim que o banco responde
-let WZ_APLICADO = null;
+// Se o banco responder com uma prova já em andamento, a mudança fica guardada e entra quando a prova acabar
+// (antes ela era perdida até recarregar a página). Enquanto o dono testa o rascunho, vale o rascunho.
+let WZ_APLICADO = null, WZ_PEND = false, WZ_TESTE = false;
+function wzAplicaSalvo() {
+  if (WZ_TESTE || document.getElementById('wz')) return;
+  if (typeof mode !== 'undefined' && (mode === 'play' || mode === 'pause')) { WZ_PEND = true; return; }
+  WZ_PEND = false; try { WZ.apply(WZ_APLICADO); } catch (e) { console.warn('editor: não deu para aplicar', e); }
+}
+setInterval(() => { if (WZ_PEND) wzAplicaSalvo(); }, 500);
 WZDB.init().then(async (st) => {
-  const ap = await WZDB.get('aplicado'); if (ap && ap.cfg) { WZ_APLICADO = ap.cfg; if (!(mode === 'play' || mode === 'pause')) WZ.apply(ap.cfg); }
+  const ap = await WZDB.get('aplicado'); if (ap && ap.cfg) { WZ_APLICADO = ap.cfg; wzAplicaSalvo(); }
   if (st.owner) { wzBotao(); return; }
   // a resposta de quem é o dono pode chegar atrasada: confere de novo algumas vezes
   const u = window.claude && window.claude.use ? await window.claude.use('user').catch(() => null) : null; if (!u) return;
@@ -277,10 +314,17 @@ const WZ_CSS = `
 `;
 const WZE = { cfg: { mec: {}, pistas: {}, rostos: {}, textos: {} }, aba: 'mec', ev: 'bugue', salvo: true, hist: [], aplicadoEm: 0 };
 let wzTimer = 0;
+async function wzSalva() {
+  clearTimeout(wzTimer); wzTimer = 0; if (WZE.salvo) return;
+  try { await WZDB.set('rascunho', { cfg: WZE.cfg, at: Date.now() }); WZE.salvo = true; wzStatus('Rascunho salvo'); } catch (e) { wzStatus('Não deu para salvar o rascunho agora (' + (e && (e.code || e.message)) + ')'); }
+}
 function wzMudou() {
   WZE.salvo = false; wzStatus('Salvando rascunho…'); clearTimeout(wzTimer);
-  wzTimer = setTimeout(async () => { try { await WZDB.set('rascunho', { cfg: WZE.cfg, at: Date.now() }); WZE.salvo = true; wzStatus('Rascunho salvo'); } catch (e) { wzStatus('Não deu para salvar o rascunho agora (' + (e && (e.code || e.message)) + ')'); } }, 1200);
+  wzTimer = setTimeout(wzSalva, 800);
 }
+// fechar a página logo depois de mexer não perde a última mudança
+addEventListener('pagehide', () => { if (!WZE.salvo) wzSalva(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && !WZE.salvo) wzSalva(); });
 function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.textContent = t; }
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
@@ -292,11 +336,14 @@ async function wzAbrir() {
   try { if (mode === 'play' && typeof pause === 'function') pause(); } catch { /* */ }
   let r = null, ap = null;
   try { [r, ap] = await Promise.all([WZDB.get('rascunho'), WZDB.get('aplicado')]); } catch { /* abre com o que tiver */ }
-  WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(r && r.cfg) || WZ.clone(ap && ap.cfg) || WZ.clone(WZE.cfg) || {});
+  // abre com o mais novo: o rascunho, ou o aplicado se ele for mais recente; com mudança ainda não salva nesta visita, fica ela
+  const base = (r && r.cfg && ap && ap.cfg) ? (ap.at > r.at ? ap : r) : (r && r.cfg ? r : ap && ap.cfg ? ap : null);
+  if (WZE.salvo) WZE.cfg = Object.assign({ mec: {}, pistas: {}, rostos: {}, textos: {} }, WZ.clone(base && base.cfg) || WZ.clone(WZE.cfg) || {});
+  WZE.lido = WZDB.LIDO ? (WZDB.LIDO.rascunho || '') : '';
   WZE.aplicadoEm = ap ? ap.at : WZE.aplicadoEm || 0;
   try { WZ.apply(WZE.cfg); } catch (e) { console.warn('editor: configuração com problema', e); } // o editor mostra o rascunho
   const box = el('div', { id: 'wz' },
-    el('header', {}, el('h1', {}, 'Editor dos Jogos de Verão'), el('span', { class: 'st', id: 'wz-st' }, WZE.aplicadoEm ? `Aplicado pela última vez em ${new Date(WZE.aplicadoEm).toLocaleString('pt-BR')}` : 'Nada aplicado ainda'),
+    el('header', {}, el('h1', {}, 'Editor dos Jogos de Verão'), el('span', { class: 'st', id: 'wz-st' }, (WZE.lido === 'cópia do navegador' || WZE.lido === 'nada' ? 'O banco não respondeu: abri a última cópia guardada. ' : '') + (WZE.aplicadoEm ? `Aplicado pela última vez em ${new Date(WZE.aplicadoEm).toLocaleString('pt-BR')}` : 'Nada aplicado ainda')),
       el('button', { type: 'button', on: { click: wzTestar } }, 'Testar'),
       el('button', { type: 'button', class: 'pri', on: { click: wzAplicar } }, 'Aplicar no jogo'),
       el('button', { type: 'button', on: { click: wzFechar } }, 'Fechar')),
@@ -310,11 +357,11 @@ async function wzAbrir() {
   document.body.append(box); try { wzRender(); } catch (e) { wzStatus('Esta aba teve um problema; escolha outra.'); console.warn(e); }
   } finally { wzAbrindo = false; }
 }
-function wzFechar() { const b = document.getElementById('wz'); if (b) b.remove(); clearInterval(WZE.anim); try { WZ.apply(WZ_APLICADO); } catch (e) { console.warn(e); } }
+function wzFechar() { if (!WZE.salvo) wzSalva(); const b = document.getElementById('wz'); if (b) b.remove(); clearInterval(WZE.anim); WZ_TESTE = false; WZ_PEND = false; try { WZ.apply(WZ_APLICADO); } catch (e) { console.warn(e); } }
 function wzTestar() {
   // joga com o rascunho (só aqui; o jogo dos outros continua com o aplicado). Ao voltar ao menu, abre o editor de novo pelo botão.
   const ev = EVENTS.find((e) => e.id === WZE.ev) || EVENTS[0]; const b = document.getElementById('wz'); if (b) b.remove(); clearInterval(WZE.anim);
-  WZ.apply(WZE.cfg); if (ev === bugue && WZE.pista != null) bugue.trackSel = WZE.pista;
+  WZ_TESTE = true; WZ.apply(WZE.cfg); if (ev === bugue && WZE.pista != null) bugue.trackSel = WZE.pista;
   choose(ev); showOv(true); wzAviso('Testando o rascunho. Para voltar a editar, toque em Editor.');
 }
 function wzAviso(t) { if (typeof say === 'function') say(t); }
@@ -335,6 +382,7 @@ function wzPergunta(texto, campo = false) {
 async function wzAplicar() {
   const nome = await wzPergunta('Aplicar o rascunho no jogo de todo mundo? Dê um nome para esta versão (opcional):', true); if (nome === null) return; const at = Date.now();
   try {
+    await wzSalva();
     await WZDB.set('aplicado', { cfg: WZE.cfg, at, nome });
     await WZDB.addVersion({ cfg: WZE.cfg, at, nome: nome || '' });
     WZ_APLICADO = WZ.clone(WZE.cfg); WZE.aplicadoEm = at; wzStatus(`Aplicado em ${new Date(at).toLocaleString('pt-BR')}: já vale para quem abrir o jogo`);

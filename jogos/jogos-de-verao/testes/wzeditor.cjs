@@ -50,7 +50,7 @@ const { chromium } = require('playwright');
   await p.screenshot({ path: 'amg/wz_rostos2.png' });
   await p.click('#wz header button >> nth=2'); await p.waitForTimeout(300); await p.click('#wz-abrir'); await p.waitForTimeout(500); console.log('abriu pela terceira vez:', await p.locator('#wz').count()); await p.click('#wz header button >> nth=2');
   // recarrega: o jogo lê o aplicado
-  await p.reload(); await p.waitForTimeout(1800);
+  await p.reload(); await p.waitForTimeout(13500); // sem o banco (teste local), o editor espera 12 s pela ponte
   console.log('ao abrir de novo:', await p.evaluate(() => [BG.vmax, FALA.intro.bugue[0]]));
   console.log(errs.join(' | ') || 'sem erros'); await b.close();
 })();

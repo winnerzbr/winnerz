@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Editor do jogo, rostos salvos que não voltavam
+- **O dono relatou:** mexeu nos rostos do IAmiguinho do vôlei e aplicou; ao voltar ao editor, os rostos não estavam como ele aplicou, e no jogo as mudanças não valiam.
+- **Achado:** o banco tinha tudo salvo certo; a leitura é que falhava (aceitava a primeira resposta, que pode ser uma cópia antiga do navegador; e, se o banco respondesse durante uma prova, o aplicado não entrava).
+- **Feito:** leitura confirmada, sempre o mais novo, aplicado entrando ao fim da prova, gravações em ordem e gravação imediata ao fechar (detalhes em `jogos-de-verao.md`, seção do editor). Jogo publicado.
+- **Testes:** `wzbanco.cjs` (novo), `wzeditor.cjs`, `wzaovivo.cjs`, `wzrostos_vivo.cjs`, `wzpista_estragada.cjs`, `trilha.cjs`.
+- **Pendente:** o dono conferir no navegador dele (recarregar a página do jogo).
+
 ## 01/11/2026: Jogos de Verão, trilha sonora gravada
 - **O dono mandou:** 7 músicas para a trilha ("Carnaval na Areia" é o tema).
 - **Feito:** as músicas entraram no jogo no lugar das de código: tema na abertura, Disco do Caranguejo nos menus e resultados, Mambo do Pódio no pódio e cada prova com a faixa do seu tipo (tabela em `jogos-de-verao.md`, seção "Trilha sonora gravada"). Jogo publicado.

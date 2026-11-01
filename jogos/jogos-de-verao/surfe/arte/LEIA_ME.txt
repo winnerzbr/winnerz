@@ -1,0 +1,45 @@
+IAmiguinho: Jogos de Verão — Surf em Costa WinnerZ
+PACOTE TÉCNICO • REVISÃO 2
+
+01_imagens: as 12 imagens principais, na ordem do pedido.
+02_modulos_tubo: entrada, meio repetível e fechamento, em verde e transparente.
+03_pranchas_transparentes: cópia da prancha do tubo com canal alpha.
+00_Visao_Geral.jpg: índice visual; os rótulos aparecem apenas nessa prévia.
+
+O QUE FOI FINALIZADO
+• Quatro faixas de onda em 2048 × 512 px, proporção exata 4:1.
+• Repetição horizontal das faixas corrigida e conferida em três cópias.
+• Geometria da onda compartilhada entre os quatro horários; as cores foram
+  calibradas nas respectivas artes-base, preservando pinceladas e espuma.
+• Fundo vazio das pranchas normalizado para RGB(0,255,0), #00FF00.
+  Cores pintadas, brilhos e pixels mistos das bordas foram preservados.
+• Módulo central do tubo com teto e piso contínuos na repetição horizontal.
+• Luzes noturnas extraídas do próprio cenário nas mesmas coordenadas, com
+  fundo #000000 fora dos brilhos selecionados. Sem o disco da lua.
+
+TAMANHOS
+Pranchas de objetos/efeitos/tubo: 1672 × 941 px.
+Quatro cenários e camada noturna: 1672 × 941 px.
+Quatro faixas de onda: 2048 × 512 px.
+Módulos do tubo: entrada 506 × 512; meio 567 × 512; fechamento 503 × 512.
+Os três módulos têm a mesma altura e linha de base.
+
+USO DAS IMAGENS
+05, 07, 09 e 11 repetem na horizontal. A continuidade foi verificada também
+na vizinhança das bordas, além da igualdade dos pixels extremos.
+O módulo 02_meio_repetivel do tubo repete na horizontal, tanto em RGB como
+em alpha. Entrada e fechamento são estágios separados: não foram projetados
+como peças com encaixe automático nas extremidades do módulo central.
+
+A camada 12 conserva as coordenadas do cenário 10. Ela pode ser usada para
+realçar as luzes com composição de tela/adição e intensidade ajustada. É uma
+extração por máscara de uma pintura, não um passe físico de renderização.
+Estrelas muito fracas podem ser atenuadas para eliminar resíduos de nuvens.
+
+PRESERVAÇÃO E VERIFICAÇÃO
+Os quatro cenários são cópias byte a byte das artes-base; enquadramento,
+barco e Pedra Furada permanecem intactos. Os originais das demais imagens
+também foram preservados no pacote anterior de artes-base.
+Este pacote passou por conferência numérica e visual de dimensões, cores,
+repetição e registro das luzes. Não foi executado dentro da engine do jogo.
+FICHA_TECNICA.json traz dimensões, hashes e resultados resumidos.

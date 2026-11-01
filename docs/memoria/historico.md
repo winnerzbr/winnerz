@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: surfe pintado no jogo
+- **O dono mandou** as 11 pranchas do IAmiguinho no surfe e o pacote técnico do cenário (mar e céu e onda nos 4 horários, luzes da noite, tubo em 3 módulos, objetos e espuma).
+- **Feito:** tudo no jogo, no lugar do 16 bits (`cart2/mvsf.py`, `cart2/sfcen.py`, `cart2/sfp.js`), desenhado em alta; régua com a cabeça igualada à do vôlei; as 11 pranchas na Prévia com o veredito "aprovada". Jogo publicado na página do Claude e no site.
+- **Pendente:** o dono testar.
+
+---
+
 ## 01/11/2026: prancha do surfe aprovada
 - **O dono mandou** a folha de modelo da prancha do surfe (5 vistas, azul-clara com faixa creme).
 - **Feito:** aprovada; a imagem virou anexo do cartão da prancha e de todos os pedidos do IAmiguinho no surfe na página de pedidos.

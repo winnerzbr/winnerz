@@ -33,6 +33,7 @@ O plano tem 19 provas, e o jogo publicado tem 19 (com o Teco-teco d'Água, de 01
   - Onde o Amiguinho do vôlei já serve (parado, correndo, comemorar, triste), a prova usa o do vôlei e só pede o que falta. A bola do futebol e a biruta vêm da Embaixadinha.
   - **Surfe, prancha aprovada (01/11):** azul-clara com faixa creme e quilha azul-marinho, em 5 vistas (`novas/anexos/ref_prancha_surfe.jpg`). Está no cartão da folha de modelo e em todos os pedidos do IAmiguinho no surfe, para anexar junto.
   - São 381 pedidos na página (168 de cenário em "Todos os cenários"). Os cartões de cenário são os mesmos nas duas guias: marcar "Feita" numa marca na outra.
+- **Surfe pintado (01/11):** IAmiguinho, cenário, onda, tubo, objetos e espuma pintados; detalhes na seção "Surfe pintado".
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
@@ -364,6 +365,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Gaivota: 4 quadros batendo as asas.
 - **Correção (31/10):** a comemoração ficava em looping durante a partida. O relógio da partida recomeça a cada partida e uma marca antiga, maior que o relógio, deixava a comemoração ligada; agora ela zera e só acontece uma vez por comemoração. Teste em `testes/ebcena.cjs`.
 - **Pendente:** o dono testar; a bolinha de gude pintada.
+
+## Surfe pintado (01/11/2026)
+- **Chegou do dono:** as 11 pranchas do IAmiguinho no surfe (em pé, subindo a parede, agachado no tubo, decolando e no ar, Superman, Indy, Rabeta, Mortal desenhado em pé, aterrissagem, caldo e o giro em 8 vistas) e o pacote técnico: mar e céu do Pico da Pedra Furada nos 4 horários, a parede da onda nos 4 horários (faixa 4:1 que repete), a camada de luzes da noite, o tubo em 3 módulos (entrada, meio que repete e fechamento), a folha de objetos e a de espuma e respingos. Originais em `surfe/pranchas` e `surfe/arte` (com os prompts que ele usou).
+- **No jogo** (`cart2/mvsf.py` → `mvsf.js`; `cart2/sfcen.py` → `sfcen.js`; desenho em `cart2/sfp.js`; a prova passou a `paint: true`, desenhada em alta). A física e as regras não mudaram.
+  - Escalas pela régua (cabeça igualada à do vôlei): em pé 1,004 · subindo 0,942 · tubo 1,004 · aterrissagem 1,031 · no ar 1,031 · Superman 1,046 · Indy 1,041 · Rabeta 0,996 · Mortal 0,979 · caldo e giro 1,0. A cabeça varia de 4 a 7% entre quadros; cada quadro igualado à mediana da prancha (menos no caldo e no giro). Em pé, da quilha à hélice = 42 (o de 16 bits tinha uns 39).
+  - Âncora no meio da prancha, embaixo (a prancha não escorrega quando o corpo inclina); no caldo, na cabeça, com a linha da água no corte dos quadros 5 a 8.
+  - Qual prancha aparece: na onda, em pé (laço); segurando para subir ou na batida, subindo; no tubo, agachado; depois de pousar, a aterrissagem. No ar sem manobra, o voo com o quadro pela velocidade (2 a 4 subindo, 5 e 6 no alto, 7 e 8 descendo). Manobra: o quadro segue o andamento (Superman, Indy, Rabeta, Mortal; no Mortal o jogo gira o desenho uma volta para trás). Giro: as 8 vistas; com manobra junto, perto de lado mostra a manobra achatando, de frente e de costas as vistas do giro. Caldo: cai (1 a 4), afunda e volta (5 a 8), some no fim.
+  - Cenário pelo relógio (perto da troca de horário mistura os dois); de noite, as luzes da camada 12 por cima, piscando de leve. O mar e o céu sobem um pouco junto com a crista, como antes. A água da frente usa o fundo da faixa da onda, mais escuro.
+  - Tubo: o teto do módulo do meio fica na altura do teto da física (6 acima, para o IAmiguinho agachado não atravessar); entrada à esquerda e fechamento à direita terminam macios na ponta de fora.
+  - Objetos: estrela, concha, concha dourada (a de cima da crista), boia, pedra, prancha solta, gaivota (2 quadros) e drone (2 quadros). Espuma: 3 colunas na quebra, 4 respingos e 2 de rastro.
+  - As 11 pranchas estão na Prévia (somadas à página publicada por `previa_sf.py`).
+  - Teste: `testes/sfpintado.cjs` (fotos de cada situação e dos 4 horários, e uma partida com o teclado).
+- **Pendente:** o dono testar.
 
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.

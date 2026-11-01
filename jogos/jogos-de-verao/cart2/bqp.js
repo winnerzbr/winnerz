@@ -4,7 +4,7 @@
      (as mãos sobem do peito até o alto em 0,35 s e ficam lá; a bola vai junto). Soltou: o arremesso a partir do quadro da soltura,
      com o pulo desenhado. Cesta: comemoração. Errou: mãos na cabeça. O rosto aceso é o do vôlei, dentro da tela de cada quadro. */
   const MBQ = window.MVBQ, BQI = {}, BQM = {};
-  if (MBQ) for (const [nm, a] of Object.entries(MBQ.a)) { BQI[nm] = new Image(); BQI[nm].src = a.src; BQM[nm] = new Image(); BQM[nm].src = a.mask; }
+  if (MBQ) { const im = new Image(), mk = new Image(); im.src = MBQ.src; mk.src = MBQ.mask; for (const nm of Object.keys(MBQ.a)) { BQI[nm] = im; BQM[nm] = mk; } } // um atlas só para todas as animações (junta.py)
   const BQOK = () => !!MBQ && Object.keys(MBQ.a).every((n) => BQI[n].complete && BQI[n].naturalWidth > 0 && BQM[n].complete && BQM[n].naturalWidth > 0);
   window.__BQOK = BQOK;
   const BQK5 = MBQ ? 50 / MBQ.a.espera.f[0].ay : 1; // em pé, da sola à hélice = 50 (o de 16 bits tinha 48,5)
@@ -13,7 +13,7 @@
   function frameBq(an, k, ex, mirror) {
     const A = MBQ.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(BQK5 * (mirror ? -1 : 1), BQK5); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); }
-    ctx.drawImage(BQI[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
+    ctx.drawImage(BQI[an], f.x, A.y || 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     if (f.s && f.sz) {
       if (!FTBQ) FTBQ = document.createElement('canvas');
       const w = Math.ceil(f.w), h = Math.ceil(f.h);
@@ -22,7 +22,7 @@
       const cx = f.s[4] ?? (f.s[0] + f.s[2]) / 2, cy = f.s[5] ?? (f.s[1] + f.s[3]) / 2;
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14.5, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, 0, L2 * .03, fk, fkx); g.restore(); } finally { ctx = save; }
-      g.globalCompositeOperation = 'destination-in'; g.drawImage(BQM[an], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(BQM[an], f.x, A.y || 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FTBQ, 0, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     }
     ctx.restore();

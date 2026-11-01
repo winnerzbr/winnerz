@@ -6,7 +6,7 @@
      O caldo afunda e volta à tona. O rosto aceso é o mesmo do vôlei, desenhado dentro da tela escura de cada quadro.
      Cenário nos 4 horários pelo relógio de quem joga (perto da troca de horário, mistura os dois); de noite, as luzes por cima. */
   const MSF = window.MVSF, SFC = window.SFC, SFI = {}, SFM = {};
-  if (MSF) for (const [nm, a] of Object.entries(MSF.a)) { SFI[nm] = new Image(); SFI[nm].src = a.src; SFM[nm] = new Image(); SFM[nm].src = a.mask; }
+  if (MSF) { const im = new Image(), mk = new Image(); im.src = MSF.src; mk.src = MSF.mask; for (const nm of Object.keys(MSF.a)) { SFI[nm] = im; SFM[nm] = mk; } } // um atlas só para todas as animações (junta.py)
   const sfImg = (k, src) => { if (!src) return null; let im = SFI['_' + k]; if (!im) { im = SFI['_' + k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
   const SFOK = () => !!MSF && !!SFC && Object.keys(MSF.a).every((n) => SFI[n].complete && SFI[n].naturalWidth > 0 && SFM[n].complete && SFM[n].naturalWidth > 0)
     && !!sfImg('atl', SFC.atl) && ['entrada', 'meio', 'fecha'].every((k) => sfImg('t_' + k, SFC.tubo[k].src));
@@ -18,7 +18,7 @@
   function frameSf(an, k, ex, mirror, sx = 1) {
     const A = MSF.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(SFU * (mirror ? -1 : 1) * sx, SFU); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); }
-    ctx.drawImage(SFI[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
+    ctx.drawImage(SFI[an], f.x, A.y || 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     if (f.s && f.sz) {
       if (!FTSF) FTSF = document.createElement('canvas');
       const w = Math.ceil(f.w), h = Math.ceil(f.h);
@@ -27,7 +27,7 @@
       const cx = f.s[4] ?? (f.s[0] + f.s[2]) / 2, cy = f.s[5] ?? (f.s[1] + f.s[3]) / 2;
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14.5, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate((f.r || 0) + (f.inv ? Math.PI : 0)); glowFace(ex, 0, L2 * .03, fk, fkx); g.restore(); } finally { ctx = save; }
-      g.globalCompositeOperation = 'destination-in'; g.drawImage(SFM[an], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(SFM[an], f.x, A.y || 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FTSF, 0, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     }
     ctx.restore();

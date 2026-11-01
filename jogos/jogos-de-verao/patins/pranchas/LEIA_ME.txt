@@ -1,0 +1,46 @@
+IAmiguinho: Jogos de Verão — Patins
+12 animações / 96 frames
+
+CONTEÚDO
+pranchas/ — 12 PNGs, cada um com 4 colunas × 2 linhas.
+frames/ — os mesmos 96 desenhos em PNGs individuais, sem corte automático.
+previews/ — 12 WebPs animados a 12 fps, em velocidade reduzida para inspeção.
+atlas.json — retângulos dos frames, pivôs, ordem e indicações de loop.
+verificacao_tecnica.json — resultado da conferência de arquivos, dimensões e margens.
+
+DIMENSÕES E POSICIONAMENTO
+Pranchas: 1776 × 888 px.
+Células: 444 × 444 px.
+Ordem: esquerda para direita, primeira linha e depois segunda linha.
+O guia enviado tem 1774 × 887 px; o canvas foi ajustado em 2 × 1 px para permitir oito células inteiras exatamente iguais.
+Fundo RGB: 0,255,0 (#00FF00), sem canal alfa. Aplicar chroma key para obter transparência no jogo.
+Chão / contato do apoio: y=405 dentro de cada célula. Nos grinds as rodas podem ficar abaixo do contato da sola com o apoio.
+Pivô usual: (222,405). Queda: (264,405), compensando a margem extra necessária para o corpo deitado. Usar o pivô por animação para manter alinhamento no jogo.
+A escala foi ajustada uniformemente por frame usando a medida visual do topo do boné ao queixo, com alvo de 134 px. As âncoras manuais têm incerteza de 2–8 px na imagem de origem; não equivalem a medição anatômica exata.
+
+ANIMAÇÕES
+01_passada — passada alternada; loop 1–8.
+02_agachamento — descida 1–4; repetir 5–8 para manter a posição baixa.
+03_salto — preparação, subida, ápice e pouso; executar uma vez.
+04_grab — segurar o patim no ar e soltar; executar uma vez.
+05_aviao — pose de avião no ar e retorno; executar uma vez.
+06_tesoura — abertura das pernas e preparação para pousar; executar uma vez.
+07_flip — recolhimento e abertura, sempre com a cabeça para cima; a rotação completa fica a cargo do jogo.
+08_soul_grind — equilíbrio no apoio; loop 1–8.
+09_royale_grind — equilíbrio com pernas cruzadas; loop 1–8.
+10_grind_baixo — equilíbrio agachado; loop 1–8.
+11_giro — oito ângulos da mesma pose no ar; loop 1–8.
+12_queda — tropeço, queda, deslizamento e sentar; executar uma vez.
+
+TEMPO
+A configuração solicitada está registrada no atlas: 60 frames por segundo, 16,6667 ms por desenho.
+Tocar os oito desenhos uma vez nessa velocidade ocupa 133,3333 ms.
+Os PNGs não possuem duração embutida; aplicar o tempo no motor.
+As prévias WebP são mais lentas (12 fps) apenas para facilitar a inspeção das poses.
+O material foi revisado visualmente e verificado como arquivos; a reprodução e as transições ainda não foram testadas no motor do jogo.
+
+IMPORTAÇÃO
+Usar os retângulos e pivôs do atlas, sem trim automático.
+Remover o verde antes de habilitar filtragem que misture o fundo às bordas.
+As pranchas não contêm trilhos, efeitos, texto, numeração nem linhas-guia.
+

@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: IAmiguinho pintado no patins
+- **O dono mandou** as 12 animações do IAmiguinho no patins (e, antes, o mesmo pacote do cenário do patins de novo: idêntico, nada mudou).
+- **Feito:** as 12 no jogo (passada, agachado, salto, pegada, Aviãozinho, Tesoura, Mortal, os 3 corrimões, giro e queda) e na Prévia. Os atlas de cada personagem pintado foram juntados em uma imagem só (surfe, basquete e patins), e a página do jogo caiu de 501 para 473 arquivos.
+- **Pendente:** o dono testar o patins, o surfe e o basquete.
+
+---
+
 ## 01/11/2026: basquete (IAmiguinho) e patins (cenário) pintados
 - **O dono mandou** 12 pranchas do IAmiguinho no basquete e o pacote do cenário do patins (orla, calçadão, luzes, obstáculos, prêmios e corrimão).
 - **Feito:** basquete com as 6 pranchas escolhidas pela régua (andar, espera, carregando, arremesso, comemorar, errou), a bola nas mãos em cada quadro; patins com o Calçadão das Ondas pintado nos 4 horários e todos os obstáculos e prêmios. As 6 pranchas na Prévia. Publicado na página do Claude e no site.

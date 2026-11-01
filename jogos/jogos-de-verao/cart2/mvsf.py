@@ -38,3 +38,4 @@ for an, A in OUT['a'].items():
             if cy > f['h'] * .55 and an != 'caldo': f['inv'] = 1
     if an == 'caldo' and A['f'][3].get('s'): A['f'][3]['inv'] = 1  # só o quadro 4 está de cabeça para baixo (no 7 e no 8 só a cabeça aparece fora da água)
 open('mvsf.js', 'w').write('window.MVSF = ' + json.dumps(OUT) + ';\n'); print('mvsf.js', len(open('mvsf.js').read()) // 1024, 'KB')
+from junta import junta_arquivo; junta_arquivo('mvsf.js', 'MVSF')  # um atlas só (limite de arquivos da página publicada)

@@ -394,10 +394,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **No jogo** (`cart2/ptcen.py` → `ptcen.js`, desenho em `cart2/ptp.js`; `paint: true`). A física não mudou.
   - A orla anda a 40% (repete a cada 800 de largura, na altura da tela); o calçadão anda junto com você (faixa de 342 × 57, do 168 até o pé da tela). Horário pelo relógio, misturando perto da troca; de noite as luzes piscam de leve por cima.
   - Buraco no calçadão (estica do tamanho do buraco), coco rolando (4 quadros pela rotação), coco caindo com a sombra crescendo, bola de frescobol, picolé e água de coco (balançando) e o corrimão: poste da esquerda, barra que repete e poste da direita, na altura da física (38 + 4).
-  - O IAmiguinho no patins continua o de 16 bits até as pranchas dele chegarem; o Amiguinho parado é o do vôlei.
+  - O Amiguinho parado é o do vôlei.
   - Teste: `testes/ptpintado.cjs` (os 4 horários com todos os obstáculos e uma partida).
-- **Pendente:** o dono testar; as pranchas do IAmiguinho no patins.
-- **Atenção ao publicar:** a página do jogo está com 501 arquivos (478 imagens, 22 músicas e a página); o limite é 511. Na próxima prova pintada, tirar da publicação as imagens que a página não usa mais ou juntar atlas.
+- **IAmiguinho pintado no patins (01/11, as 12 animações do pacote do dono):** `cart2/mvpt.py` → `mvpt.js`, desenho em `ptp.js` (o de 16 bits fica só de reserva, enquanto as pranchas não carregam). O pacote já veio com a escala igualada (boné ao queixo = 134 px): uma escala só (1,03), sem ajuste por quadro. Em pé nos patins = 50.
+  - Andando: a passada (pelo caminho andado). Agachado: desce (1-4) e fica embaixo (5-8). No ar: o salto, o quadro pela velocidade (3 a 7); segurando ▼, pegando o patins (fica no 5); Aviãozinho, Tesoura e Mortal seguem o andamento (no Mortal o jogo gira uma volta para trás); girando, as 8 vistas (com manobra junto, perto de lado mostra a manobra achatando). Corrimão: Soul (padrão), Royale ou Agachado. Tombo final: a queda.
+  - As 12 pranchas estão na Prévia (`previa_pt.py`).
+- **Pendente:** o dono testar.
+- **Atlas juntos (01/11):** cada personagem pintado novo (surfe, basquete, patins) fica num atlas só e numa máscara só (`cart2/junta.py`: cada animação ganha `y`, a imagem fica em `src`/`mask` do topo). Antes era uma imagem e uma máscara por animação e a página publicada chegou a 501 dos 511 arquivos; agora tem 450 imagens. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais.
 
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.

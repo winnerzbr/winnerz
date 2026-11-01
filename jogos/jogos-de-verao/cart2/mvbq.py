@@ -28,3 +28,4 @@ def ff(nm):
 mv5.frame_fix = ff
 OUT = mv5.build(ANIM, SH, set(), {}, 'MVBQ', 'mvbq.js')
 open('mvbq.js', 'w').write('window.MVBQ = ' + json.dumps(OUT) + ';\n'); print('mvbq.js', len(open('mvbq.js').read()) // 1024, 'KB')
+from junta import junta_arquivo; junta_arquivo('mvbq.js', 'MVBQ')  # um atlas só (limite de arquivos da página publicada)

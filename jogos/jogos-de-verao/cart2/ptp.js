@@ -27,8 +27,106 @@
     for (let xx = x0 + we - .5; xx < x1 - wd; xx += wm - .5) { const ww = Math.min(wm, x1 - wd - xx + .5); ctx.drawImage(m, 0, 0, R0.meio.w * ww / wm, R0.meio.h, xx, top, ww, hh); }
     ctx.drawImage(e, x0, top, we, hh); ctx.drawImage(d, x1 - wd, top, wd, hh); ctx.restore();
   }
+  /* ---------- IAmiguinho pintado no patins (mvpt.py -> window.MVPT, 12 animações do pacote do dono)
+     Andando: a passada (pelo caminho andado). Agachado: desce (1-4) e fica embaixo (5-8). No ar: o salto (o quadro segue a subida
+     e a descida); segurando ▼, a pegada no patins; Aviãozinho, Tesoura e Mortal seguem o andamento da manobra (no Mortal o jogo gira
+     o desenho uma volta para trás); girando, as 8 vistas. No corrimão: Soul, Royale ou Agachado (o padrão é o Soul). Tombo final: a queda. */
+  const MPT = window.MVPT, PTJ = {};
+  if (MPT) { PTJ.im = new Image(); PTJ.im.src = MPT.src; PTJ.mk = new Image(); PTJ.mk.src = MPT.mask; }
+  const PTIOK = () => !!MPT && PTJ.im.complete && PTJ.im.naturalWidth > 0 && PTJ.mk.complete && PTJ.mk.naturalWidth > 0;
+  window.__PTIOK = PTIOK;
+  const PTK5 = MPT ? 50 / MPT.a.passada.f[0].ay : 1; // em pé nos patins, da roda à hélice = 50 (o de 16 bits tinha 48,5)
+  let FTPT = null;
+  (window.__fr = window.__fr || {})['pt'] = framePt;
+  function framePt(an, k, ex, sx = 1) {
+    const A = MPT.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n], y0 = A.y || 0;
+    ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(PTK5 * sx, PTK5);
+    ctx.drawImage(PTJ.im, f.x, y0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
+    if (f.s && f.sz) {
+      if (!FTPT) FTPT = document.createElement('canvas');
+      const w = Math.ceil(f.w), h = Math.ceil(f.h);
+      if (FTPT.width < w || FTPT.height < h) { FTPT.width = Math.max(FTPT.width, w); FTPT.height = Math.max(FTPT.height, h); }
+      const g = FTPT.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, FTPT.width, FTPT.height);
+      const cx = f.s[4] ?? (f.s[0] + f.s[2]) / 2, cy = f.s[5] ?? (f.s[1] + f.s[3]) / 2;
+      const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14.5, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
+      const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, 0, L2 * .03, fk, fkx); g.restore(); } finally { ctx = save; }
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(PTJ.mk, f.x, y0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      ctx.drawImage(FTPT, 0, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
+    }
+    ctx.restore();
+  }
+  const PTST = { cr0: -9, wasCr: false };
+  function ptIA(ev, tt) {
+    if (ev.deadT > 0) { const k = clamp((1.6 - ev.deadT) / 1.2, 0, .999); ctx.save(); ctx.translate(PPX, PGY + 1); framePt('queda', Math.floor(k * 8), k < .5 ? 3 : 4); ctx.restore(); return; }
+    if (ev.inv > 0 && Math.floor(tt * 16) % 2) return;
+    const fy = PGY - ev.y, ex = ev.inv > 0 ? 3 : 2;
+    if (ev.air) { ctx.globalAlpha = .4; ptPart('sombra', PPX, PGY + 1, 16, 4); ctx.globalAlpha = 1; }
+    if (ev.crouch && !PTST.wasCr) PTST.cr0 = tt; PTST.wasCr = !!ev.crouch;
+    ctx.save(); ctx.translate(PPX, fy + 1);
+    if (ev.air) {
+      const tr = ev.trick, c = Math.cos(ev.rot), gv = ((Math.round((ev.rot / TAU) * 8) % 8) + 8) % 8;
+      let an, k, ang = 0;
+      if (tr) { const pr = Math.min(1, tr.t / tr.d); an = { aviao: 'aviao', tesoura: 'tesoura', mortal: 'flip' }[tr.k] || 'salto'; k = Math.min(7, Math.floor(pr * 8)); if (tr.k === 'mortal') ang = -TAU * pr; }
+      else if (ev.grab) { an = 'grab'; k = Math.min(4, Math.floor(ev.grabT / .2 * 4)); }
+      else { an = 'salto'; const v = ev.vy; k = v > 200 ? 2 : v > 90 ? 3 : v > -60 ? 4 : v > -180 ? 5 : 6; }
+      if (ang) { ctx.translate(0, -22); ctx.rotate(ang); ctx.translate(0, 22); }
+      if (ev.spinning && (!tr || tr.k !== 'mortal')) {
+        // giro: as 8 vistas; com manobra ou pegada, perto de lado a pose da manobra (achatando), de frente e de costas as vistas do giro
+        if ((tr || ev.grab) && Math.abs(c) >= .75) framePt(an, k, ex, (c < 0 ? -1 : 1) * Math.max(.85, Math.abs(c)));
+        else framePt('giro', gv, ex);
+      } else framePt(an, k, ex);
+    } else if (ev.grind) {
+      const an = { soul: 'soul', royale: 'royale', agachado: 'baixo' }[ev.gStyle] || 'soul'; framePt(an, Math.floor(tt * 9) % 8, 2);
+    } else if (ev.crouch) { const e = tt - PTST.cr0; framePt('agacha', e < .2 ? Math.floor(e / .2 * 4) : 4 + Math.floor(tt * 6) % 4, ev.inv > 0 ? 3 : 0); }
+    else framePt('passada', Math.floor(ev.d / 9) % 8, ev.inv > 0 ? 3 : 0);
+    ctx.restore();
+  }
+  // o IAmiguinho de 16 bits (enquanto as pranchas pintadas não carregam)
+  function ptIA16(tt) {
+    const ok = true, spr2 = (nm, cx, by, w, h) => ptPart(nm, cx, by - (h ?? 4) / 2, w, h);
+  if (!sReady('ia_pt', 'rostos')) return;
+  const look = { lx: 1, ly: 0 };
+  if (this.deadT > 0) { const k = 1.6 - this.deadT; vSprite('ia_pt', 'man', k < .5 ? 4 : 5, { x: PPX, y: PGY + 1 }, 1, k < .5 ? 3 : 4, look, false, tt); return; }
+  if (this.inv > 0 && Math.floor(tt * 16) % 2) return;
+  const fy = PGY - this.y;
+  if (this.air) { ctx.globalAlpha = .4; ok && spr2('sombra', PPX, PGY + 2, 16, 4); ctx.globalAlpha = 1; }
+  if (this.air && this.trick) {
+    // manobra no ar: o giro (se tiver) aparece como o corpo virando; o mortal dá uma volta para trás
+    const tr = this.trick, pr = Math.min(1, tr.t / tr.d), cr = Math.cos(this.rot);
+    ctx.save(); ctx.translate(PPX, fy - 22);
+    if (tr.k === 'mortal') {
+      if (this.spinning) ctx.scale((cr < 0 ? -1 : 1) * Math.max(.85, Math.abs(cr)), 1); // mortal girando: só um leve achatado
+      const a = -TAU * pr;
+      if (pr < .15) vSprite('ia_pt', 'base', 5, { x: 0, y: 23 }, 1, 2, look, false, tt, a);
+      else if (pr < .72) { ctx.rotate(a + Math.PI); this.ptFlip(tt); }
+      else { ctx.rotate(-(1 - pr) / .28 * .9); vSprite('ia_pt', 'man2', 3, { x: 0, y: 0 }, 1, 2, look, false, tt); }
+    } else {
+      const fi = tr.k === 'aviao' ? 0 : 1, pose = () => vSprite('ia_pt', 'man2', fi, { x: 0, y: 23 }, 1, 2, look, false, tt);
+      if (this.spinning) ptCombo(fi ? 'pt_tesoura' : 'pt_aviao', 'pt', this.rot / TAU, pose, 1, 2, tt, 23, look); else pose();
+    }
+    ctx.restore(); return;
+  }
+  if (this.air && this.spinning && this.grab) {
+    // agarrando o patins no meio do giro
+    ctx.save(); ctx.translate(PPX, fy - 22);
+    ptCombo('pt_agarra', 'pt', this.rot / TAU, () => vSprite('ia_pt', 'man', 2, { x: 0, y: 23 }, 1, 2, look, false, tt), 1, 2, tt, 23, look);
+    ctx.restore(); return;
+  }
+  let anim = 'base', f = Math.floor(this.d / 16) % 4, face = 1, expr = 0, key = 'ia_pt';
+  if (this.grind) { anim = this.gStyle ? 'man2' : 'man'; f = this.gStyle ? Object.values(PT_GRIND).find((g) => g.k === this.gStyle).f : 3; expr = 2; }
+  else if (this.air && this.spinning) {
+    // giro: de lado → de frente → de lado (espelhado) → de costas
+    if (sReady('ia_giro')) { key = 'ia_giro'; anim = 'pt'; f = ((Math.round((this.rot / TAU) * 8) % 8) + 8) % 8; expr = 2; } // as 8 vistas em volta dele
+    else { const q = Math.floor((this.rot / TAU) * 4) % 4; anim = q % 2 ? 'man' : 'base'; f = q === 1 ? 0 : q === 3 ? 1 : 5; face = q === 2 ? -1 : 1; expr = 2; }
+  } else if (this.air && this.grab) { anim = 'man'; f = 2; expr = 2; }
+  else if (this.air) f = 5;
+  else if (this.crouch) f = 4;
+  if (this.inv > 0) expr = 3;
+  vSprite(key, anim, f, { x: PPX, y: fy + 1 }, face, expr, look, false, tt);
+  }
   if (typeof patins !== 'undefined') {
     const draw16p = patins.draw;
+    patins.__ia16 = ptIA16;
     patins.draw = function (tt) {
       if (!PTOK()) return draw16p.call(this, tt);
       const d = this.d, P = ptPesos().filter(([, w]) => w > .001), night = P.reduce((a, [v, w]) => a + (v === 'noite' ? w : v === 'tarde' ? w * .25 : 0), 0);
@@ -63,44 +161,7 @@
         }
       }
       for (const s of this.sparks) R(s.x, s.y, 1.5, 1.5, s.t < .15 ? '#ffffff' : '#ffd04a');
-      if (!sReady('ia_pt', 'rostos')) return;
-      const look = { lx: 1, ly: 0 };
-      if (this.deadT > 0) { const k = 1.6 - this.deadT; vSprite('ia_pt', 'man', k < .5 ? 4 : 5, { x: PPX, y: PGY + 1 }, 1, k < .5 ? 3 : 4, look, false, tt); return; }
-      if (this.inv > 0 && Math.floor(tt * 16) % 2) return;
-      const fy = PGY - this.y;
-      if (this.air) { ctx.globalAlpha = .4; ok && spr2('sombra', PPX, PGY + 2, 16, 4); ctx.globalAlpha = 1; }
-      if (this.air && this.trick) {
-        // manobra no ar: o giro (se tiver) aparece como o corpo virando; o mortal dá uma volta para trás
-        const tr = this.trick, pr = Math.min(1, tr.t / tr.d), cr = Math.cos(this.rot);
-        ctx.save(); ctx.translate(PPX, fy - 22);
-        if (tr.k === 'mortal') {
-          if (this.spinning) ctx.scale((cr < 0 ? -1 : 1) * Math.max(.85, Math.abs(cr)), 1); // mortal girando: só um leve achatado
-          const a = -TAU * pr;
-          if (pr < .15) vSprite('ia_pt', 'base', 5, { x: 0, y: 23 }, 1, 2, look, false, tt, a);
-          else if (pr < .72) { ctx.rotate(a + Math.PI); this.ptFlip(tt); }
-          else { ctx.rotate(-(1 - pr) / .28 * .9); vSprite('ia_pt', 'man2', 3, { x: 0, y: 0 }, 1, 2, look, false, tt); }
-        } else {
-          const fi = tr.k === 'aviao' ? 0 : 1, pose = () => vSprite('ia_pt', 'man2', fi, { x: 0, y: 23 }, 1, 2, look, false, tt);
-          if (this.spinning) ptCombo(fi ? 'pt_tesoura' : 'pt_aviao', 'pt', this.rot / TAU, pose, 1, 2, tt, 23, look); else pose();
-        }
-        ctx.restore(); return;
-      }
-      if (this.air && this.spinning && this.grab) {
-        // agarrando o patins no meio do giro
-        ctx.save(); ctx.translate(PPX, fy - 22);
-        ptCombo('pt_agarra', 'pt', this.rot / TAU, () => vSprite('ia_pt', 'man', 2, { x: 0, y: 23 }, 1, 2, look, false, tt), 1, 2, tt, 23, look);
-        ctx.restore(); return;
-      }
-      let anim = 'base', f = Math.floor(this.d / 16) % 4, face = 1, expr = 0, key = 'ia_pt';
-      if (this.grind) { anim = this.gStyle ? 'man2' : 'man'; f = this.gStyle ? Object.values(PT_GRIND).find((g) => g.k === this.gStyle).f : 3; expr = 2; }
-      else if (this.air && this.spinning) {
-        // giro: de lado → de frente → de lado (espelhado) → de costas
-        if (sReady('ia_giro')) { key = 'ia_giro'; anim = 'pt'; f = ((Math.round((this.rot / TAU) * 8) % 8) + 8) % 8; expr = 2; } // as 8 vistas em volta dele
-        else { const q = Math.floor((this.rot / TAU) * 4) % 4; anim = q % 2 ? 'man' : 'base'; f = q === 1 ? 0 : q === 3 ? 1 : 5; face = q === 2 ? -1 : 1; expr = 2; }
-      } else if (this.air && this.grab) { anim = 'man'; f = 2; expr = 2; }
-      else if (this.air) f = 5;
-      else if (this.crouch) f = 4;
-      if (this.inv > 0) expr = 3;
-      vSprite(key, anim, f, { x: PPX, y: fy + 1 }, face, expr, look, false, tt);
+      if (!PTIOK()) { this.__ia16(tt); return; }
+      ptIA(this, tt);
     };
   }

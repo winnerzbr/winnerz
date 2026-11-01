@@ -1,0 +1,1140 @@
+{
+  "format": "IAmiguinho roller animation atlas v1",
+  "sheet_size_px": [
+    1776,
+    888
+  ],
+  "cell_size_px": [
+    444,
+    444
+  ],
+  "grid_columns": 4,
+  "grid_rows": 2,
+  "frame_order": "row-major",
+  "background_rgb": [
+    0,
+    255,
+    0
+  ],
+  "has_alpha": false,
+  "requested_frame_rate_fps": 60,
+  "frame_duration_ms": 16.666666666666668,
+  "eight_frame_duration_ms": 133.33333333333334,
+  "inspection_preview_fps": 12,
+  "notes_pt": [
+    "Prévia WebP a12fps apenas para inspeção; os PNGs não possuem duração embutida.",
+    "O pivô de queda compensa42px de margem adicional para o corpo deitado.",
+    "Na animação de agachamento, quadros1–4 são a descida; repetir apenas5–8 para manter a posição baixa."
+  ],
+  "animations": {
+    "01_passada": {
+      "sheet": "pranchas/01_passada.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": true,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/01_passada/08.png"
+        }
+      ]
+    },
+    "02_agachamento": {
+      "sheet": "pranchas/02_agachamento.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/02_agachamento/08.png"
+        }
+      ]
+    },
+    "03_salto": {
+      "sheet": "pranchas/03_salto.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/03_salto/08.png"
+        }
+      ]
+    },
+    "04_grab": {
+      "sheet": "pranchas/04_grab.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/04_grab/08.png"
+        }
+      ]
+    },
+    "05_aviao": {
+      "sheet": "pranchas/05_aviao.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/05_aviao/08.png"
+        }
+      ]
+    },
+    "06_tesoura": {
+      "sheet": "pranchas/06_tesoura.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/06_tesoura/08.png"
+        }
+      ]
+    },
+    "07_flip": {
+      "sheet": "pranchas/07_flip.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/07_flip/08.png"
+        }
+      ]
+    },
+    "08_soul_grind": {
+      "sheet": "pranchas/08_soul_grind.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": true,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/08_soul_grind/08.png"
+        }
+      ]
+    },
+    "09_royale_grind": {
+      "sheet": "pranchas/09_royale_grind.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": true,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/09_royale_grind/08.png"
+        }
+      ]
+    },
+    "10_grind_baixo": {
+      "sheet": "pranchas/10_grind_baixo.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": true,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/10_grind_baixo/08.png"
+        }
+      ]
+    },
+    "11_giro": {
+      "sheet": "pranchas/11_giro.png",
+      "frame_count": 8,
+      "pivot_px": [
+        222,
+        405
+      ],
+      "loop": true,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/11_giro/08.png"
+        }
+      ]
+    },
+    "12_queda": {
+      "sheet": "pranchas/12_queda.png",
+      "frame_count": 8,
+      "pivot_px": [
+        264,
+        405
+      ],
+      "loop": false,
+      "hold_loop_frame_indices_zero_based": null,
+      "frames": [
+        {
+          "index": 0,
+          "rect_xywh": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/01.png"
+        },
+        {
+          "index": 1,
+          "rect_xywh": [
+            444,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/02.png"
+        },
+        {
+          "index": 2,
+          "rect_xywh": [
+            888,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/03.png"
+        },
+        {
+          "index": 3,
+          "rect_xywh": [
+            1332,
+            0,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/04.png"
+        },
+        {
+          "index": 4,
+          "rect_xywh": [
+            0,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/05.png"
+        },
+        {
+          "index": 5,
+          "rect_xywh": [
+            444,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/06.png"
+        },
+        {
+          "index": 6,
+          "rect_xywh": [
+            888,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/07.png"
+        },
+        {
+          "index": 7,
+          "rect_xywh": [
+            1332,
+            444,
+            444,
+            444
+          ],
+          "file": "frames/12_queda/08.png"
+        }
+      ]
+    }
+  }
+}

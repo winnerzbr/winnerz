@@ -82,7 +82,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - `testes/pingue.cjs`: jogadores automáticos contra o Amiguinho; troca média de 6 a 11 batidas;
   - `testes/ppkeys.cjs`: teclado, saque e 2 jogadores;
   - `testes/todas.cjs`.
-- **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto) e raquete desenhada pelo jogo. A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
+- **Arte provisória:** desenhos do vôlei (espera, corrida, recuo, golpe no chão e andando agachado com o golpe pronto). A página de pedidos ganhou "Andando com a raquete preparada" e "Balão (defesa lá atrás)" para os dois personagens (28 pedidos).
+- **Raquete e bolinha pintadas (31/10):** folha do dono (frente vermelha, de lado, 3/4, inclinada, verso preto e a bolinha), montada em `cart2/mvpp.py` -> `mvpp.js` (window.PPA) e desenhada por `cart2/ppp.js`. IAmiguinho com a borracha vermelha e o Amiguinho com a preta; esperando: 3/4 (o Amiguinho, o verso); preparada: de frente; no meio da batida: de lado; 14 unidades de comprimento, girando em volta do meio da cabeça (a mesma posição e giro de antes); a bolinha pintada no lugar da desenhada (o placar continua por cima quando ela passa no alto). A folha virou anexo das pranchas na página de pedidos. Teste: `testes/pprakete.cjs`.
 
 ### Bocha na areia (como funciona)
 - **Cena:** vista de cima, na Vila dos Pescadores (pintada, ver "Vila pintada"). A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.

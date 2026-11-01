@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Jogos de Verão, raquete e bolinha do pingue-pongue pintadas
+- **O dono mandou:** a folha da raquete (5 vistas) e da bolinha.
+- **Feito:** raquete pintada (vermelha para o IAmiguinho, preta para o Amiguinho; 3/4 esperando, de frente preparada, de lado no meio da batida) e bolinha pintada; a folha virou anexo das pranchas do pingue-pongue na página de pedidos. Detalhes em `jogos-de-verao.md`.
+- **Testes:** `pprakete.cjs` (novo), `pingue.cjs`, `todas.cjs`.
+- **Pendente:** pranchas dos personagens do pingue-pongue e o quiosque.
+
 ## 31/10/2026: Editor do jogo, rosto ao vivo e botão
 - **O dono relatou:** o botão só apareceu digitando "editor"; os rostos e quadros ainda não atualizavam ao vivo.
 - **Feito:** a aplicação das mudanças não para mais no meio por causa de uma peça de pista fora do lugar (causa provável); o desenho é sempre refeito; o botão confere de novo quem é o dono algumas vezes. Detalhes em `jogos-de-verao.md`.

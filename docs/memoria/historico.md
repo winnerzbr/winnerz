@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pintura do editor, 3ª etapa (cara e gestos do Procreate)
+- **O dono pediu:** no iPad a pinça com dois dedos pintava (o primeiro dedo virava traço); os .brushset do Procreate ainda não importavam; copiar uma camada para outros quadros, escolhendo quais (com "todos"), para reaproveitar desenhos na animação; a pintura com a aparência do Procreate (para achar os botões) e com as funções e gestos dele.
+- **Feito:** a tela de pintura foi refeita no jeito do Procreate (galeria, barra de cima, barra do lado, janelas, assistente de animação); dedo só pinta depois de um instante e o segundo dedo cancela o traço; com caneta o dedo não pinta; importação sem filtro de tipo e mais tolerante; copiar camada para outros quadros alinhando pelos pés, salvando tudo de uma vez. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.
+- **Testes:** `wzpintura3.cjs` (novo), `wzsite.cjs` (atualizado), `wzbanco.cjs`, `wzrecarrega.cjs`, `wzolhar.cjs`.
+- **Pendente:** o dono testar no iPad com a caneta e com um .brushset de verdade; se algum pincel não abrir, a mensagem diz o motivo.
+
 ## 01/11/2026: Pintura do editor, 2ª etapa (recursos do Procreate)
 - **O dono:** a 1ª etapa funcionou; pediu a próxima, com recursos mais robustos como os do Procreate.
 - **Feito:** borrar, seleção (laço e retângulo), transformar, ajustes (matiz, saturação, brilho, desfoque), linha reta segurando a caneta, gestos (2 e 3 dedos, dedo parado), tela que gira e espelha, tela cheia, cor em quadrado + matiz com paleta, camadas com modos de mistura, travar transparência e máscara de recorte, duplicar/subir/descer/limpar, ajustes por pincel, leitura das configurações do pincel do Procreate, pintura do visor (onde o rosto aparece), lado em abas. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

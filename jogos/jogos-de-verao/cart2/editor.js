@@ -483,6 +483,7 @@ async function wzAplicar() {
 }
 function wzRender() {
   const m = document.getElementById('wz-main'); if (!m) return; clearInterval(WZE.anim);
+  if (WZE.aba !== 'pintura') { WZE.abaAntes = WZE.aba; const pc = document.getElementById('pc'); if (pc) pc.remove(); }
   document.querySelectorAll('#wz nav button').forEach((b, i) => b.classList.toggle('on', ['mec', 'pistas', 'cancha', 'rostos', 'pintura', 'textos', 'versoes'][i] === WZE.aba));
   m.replaceChildren(); try { const r = ({ mec: wzMec, pistas: wzPistas, cancha: wzCancha, rostos: wzRostos, pintura: wzPintura, textos: wzTextos, versoes: wzVersoes })[WZE.aba](m); if (r && r.catch) r.catch((e) => { m.append(el('p', { class: 'aviso' }, 'Esta parte teve um problema: ' + e.message)); }); } catch (e) { m.append(el('p', { class: 'aviso' }, 'Esta parte teve um problema: ' + e.message)); console.warn(e); }
 }

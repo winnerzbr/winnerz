@@ -12,13 +12,13 @@ const { chromium } = require('playwright');
   await f.evaluate(() => { WZE.cfg.mec['OPP.rapida.lvl'] = 1.2; WZ.apply(WZE.cfg); wzMudou(); }); await p.waitForTimeout(1500);
   console.log('rascunho na tabela:', await p.evaluate(() => [...window.__T.keys()].join(', ')));
   // pinta e salva
-  await f.evaluate(() => { WZE.aba = 'pintura'; WZP.modo = 'personagem'; WZP.set = 'ia'; WZP.an = 'idle'; WZP.k = 0; WZP.doc = null; wzRender(); });
+  await f.evaluate(() => { WZE.aba = 'pintura'; Object.assign(WZP, { modo: 'personagem', set: 'ia', an: 'idle', k: 0, meio: false, visor: false, estudio: true }); wzRender(); });
   await f.waitForFunction(() => WZP.doc && WZP.doc.w > 0, null, { timeout: 15000 });
   await f.evaluate(() => { const L = WZP.doc.camadas[0].c.getContext('2d'); L.fillStyle = '#ff00ff'; L.fillRect(10, 10, 40, 40); WZP.doc.mudou = true; });
-  await f.click('#wz button:has-text("Salvar no jogo")'); await p.waitForTimeout(1500);
-  console.log('pasta de imagens:', await p.evaluate(() => [...window.__F.keys()].join(', ')), '|', await f.textContent('#wz .pin ~ .ajuda, #wz .pin > .ajuda').catch(() => ''));
+  await f.click('#pc .pc-c .pc-txt'); await p.waitForTimeout(2500);
+  console.log('pasta de imagens:', await p.evaluate(() => [...window.__F.keys()].join(', ')), '|', await f.textContent('#pc .pc-aviso').catch(() => ''));
   // aplicar (a pergunta do nome: confirma vazio)
-  await f.click('#wz header button:has-text("Aplicar no jogo")'); await p.waitForTimeout(400);
+  await f.click('#pc .pc-top button:has-text("Galeria")'); await f.click('#pc button:has-text("Aplicar no jogo")'); await p.waitForTimeout(400);
   await f.click('button:has-text("Confirmar")');
   await p.waitForTimeout(1500);
   console.log('depois de aplicar:', await p.evaluate(() => [...window.__T.keys()].join(', ')));

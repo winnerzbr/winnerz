@@ -44,7 +44,7 @@ const wzpImg = (url) => new Promise((ok, no) => { const im = new Image(); im.onl
 async function wzpCarregaImportados() {
   for (const o of await WZP_DB.todos()) {
     if (WZP_PINCEIS.some((b) => b.id === o.id)) continue;
-    try { const p = wzpMascara(await wzpImg(o.ponta), 256, false), gr = o.grao ? wzpMascara(await wzpImg(o.grao), 512, false) : null; WZP_PINCEIS.push({ id: o.id, nome: o.nome, pontaC: p, graoC: gr, espaco: o.espaco || .1, girar: o.girar, importado: o.origem, ...(o.aj || {}) }); } catch { /* imagem estragada */ }
+    try { const p = wzpMascara(await wzpImg(o.ponta), 256, false), gr = o.grao ? wzpMascara(await wzpImg(o.grao), 512, false) : null; WZP_PINCEIS.push({ id: o.id, nome: o.nome, pontaC: p, graoC: gr, espaco: o.espaco || .1, girar: o.girar, importado: o.origem, colecao: o.colecao, ...(o.aj || {}) }); } catch { /* imagem estragada */ }
   }
 }
 // zip (Procreate): lê o índice do arquivo e descompacta com o próprio navegador
@@ -52,13 +52,20 @@ async function wzpZip(buf) {
   const v = new DataView(buf), u8 = new Uint8Array(buf), saida = {};
   let e = -1; for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 70000); i--) if (v.getUint32(i, true) === 0x06054b50) { e = i; break; }
   if (e < 0) throw new Error('não é um arquivo zip');
-  let p = v.getUint32(e + 16, true); const n = v.getUint16(e + 10, true);
-  for (let i = 0; i < n; i++) {
-    const met = v.getUint16(p + 10, true), tam = v.getUint32(p + 20, true), nl = v.getUint16(p + 28, true), el2 = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true), off = v.getUint32(p + 42, true);
-    const nome = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl)); p += 46 + nl + el2 + cl;
-    if (nome.endsWith('/')) continue;
+  let p = v.getUint32(e + 16, true), n = v.getUint16(e + 10, true);
+  // zip grande (zip64): o índice fica num registro à parte
+  if ((p === 0xffffffff || n === 0xffff) && e >= 20 && v.getUint32(e - 20, true) === 0x07064b50) { const z = Number(v.getBigUint64(e - 12, true)); if (v.getUint32(z, true) === 0x06064b50) { n = Number(v.getBigUint64(z + 32, true)); p = Number(v.getBigUint64(z + 48, true)); } }
+  for (let i = 0; i < n && p + 46 <= buf.byteLength; i++) {
+    if (v.getUint32(p, true) !== 0x02014b50) break;
+    const met = v.getUint16(p + 10, true), nl = v.getUint16(p + 28, true), el2 = v.getUint16(p + 30, true), cl = v.getUint16(p + 32, true);
+    let tam = v.getUint32(p + 20, true), off = v.getUint32(p + 42, true);
+    const nome = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+    // tamanhos do zip64 no campo extra
+    if (tam === 0xffffffff || off === 0xffffffff) { let q = p + 46 + nl; const fimx = q + el2; while (q + 4 <= fimx) { const id = v.getUint16(q, true), sz = v.getUint16(q + 2, true); if (id === 1) { let r = q + 4; if (v.getUint32(p + 24, true) === 0xffffffff) r += 8; if (tam === 0xffffffff) { tam = Number(v.getBigUint64(r, true)); r += 8; } if (off === 0xffffffff) off = Number(v.getBigUint64(r, true)); } q += 4 + sz; } }
+    p += 46 + nl + el2 + cl;
+    if (nome.endsWith('/') || /(^|\/)(__MACOSX|\._)/.test(nome)) continue;
     const lnl = v.getUint16(off + 26, true), lel = v.getUint16(off + 28, true), ini = off + 30 + lnl + lel, dados = u8.subarray(ini, ini + tam);
-    saida[nome] = async () => { if (met === 0) return dados; const ds = new DecompressionStream('deflate-raw'); return new Uint8Array(await new Response(new Blob([dados]).stream().pipeThrough(ds)).arrayBuffer()); };
+    saida[nome] = async () => { if (met === 0) return dados; if (met !== 8) throw new Error('compressão desconhecida'); if (typeof DecompressionStream === 'undefined') throw new Error('este navegador não abre arquivos compactados (atualize o iPad/navegador)'); const ds = new DecompressionStream('deflate-raw'); return new Uint8Array(await new Response(new Blob([dados]).stream().pipeThrough(ds)).arrayBuffer()); };
   }
   return saida;
 }
@@ -137,19 +144,33 @@ function wzpConfigProcreate(c) {
 async function wzpImporta(arq) {
   const nome = arq.name.replace(/\.[^.]+$/, ''), ext = (arq.name.split('.').pop() || '').toLowerCase(), novos = [];
   const guarda = async (n, ponta, grao, espaco, origem, aj = {}) => { const id = 'imp-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); const p = wzpMascara(ponta, 256), gr = grao ? wzpMascara(grao, 512, false) : null; const nm = aj.nome || n; delete aj.nome;
-    await WZP_DB.poe({ id, nome: nm, ponta: p.toDataURL('image/png'), grao: gr ? gr.toDataURL('image/png') : null, espaco: aj.espaco ?? espaco, origem, aj }); WZP_PINCEIS.push({ id, nome: nm, pontaC: p, graoC: gr, espaco: aj.espaco ?? espaco, importado: origem, ...aj }); novos.push(id); };
-  const buf = await arq.arrayBuffer();
-  if (ext === 'abr') { const L = wzpAbr(buf); for (let i = 0; i < L.length; i++) await guarda(L.length > 1 ? `${nome} ${i + 1}` : nome, L[i], null, .12, 'Photoshop'); }
-  else if (ext === 'brush' || ext === 'brushset' || ext === 'zip') {
-    const z = await wzpZip(buf), pastas = {};
-    for (const k of Object.keys(z)) { const m = /(?:^|\/)(shape|grain|brush)\.(png|archive)$/i.exec(k); if (m && ((m[1].toLowerCase() === 'brush') !== (m[2].toLowerCase() === 'archive'))) continue; if (!m) continue; const pasta = k.slice(0, k.length - m[0].length + (m[0].startsWith('/') ? 1 : 0)); (pastas[pasta] = pastas[pasta] || {})[m[1].toLowerCase()] = z[k]; }
-    const ks = Object.keys(pastas).filter((k) => pastas[k].shape);
-    for (let i = 0; i < ks.length; i++) {
-      const P = pastas[ks[i]], img = async (f) => { const b = await f(); const u = URL.createObjectURL(new Blob([b], { type: 'image/png' })); try { return await wzpImg(u); } finally { URL.revokeObjectURL(u); } };
-      let aj = {}; if (P.brush) { try { aj = wzpConfigProcreate(wzpBplist(await P.brush())); } catch { /* sem configurações legíveis */ } }
-      await guarda(ks.length > 1 ? `${nome} ${i + 1}` : nome, await img(P.shape), P.grain ? await img(P.grain) : null, .1, 'Procreate', aj);
+    await WZP_DB.poe({ id, nome: nm, ponta: p.toDataURL('image/png'), grao: gr ? gr.toDataURL('image/png') : null, espaco: aj.espaco ?? espaco, origem, colecao: nome, aj }); WZP_PINCEIS.push({ id, nome: nm, pontaC: p, graoC: gr, espaco: aj.espaco ?? espaco, importado: origem, colecao: nome, ...aj }); novos.push(id); };
+  const buf = await arq.arrayBuffer(), cab = new Uint8Array(buf.slice(0, 12));
+  // o tipo vem do conteúdo (no iPad o nome do arquivo às vezes chega trocado)
+  const ehZip = cab[0] === 0x50 && cab[1] === 0x4b, ehAbr = ext === 'abr' || String.fromCharCode(...cab.slice(4, 8)) === '8BIM', ehImg = /^(png|jpe?g|webp)$/.test(ext) || (cab[0] === 0x89 && cab[1] === 0x50) || (cab[0] === 0xff && cab[1] === 0xd8);
+  if (ehZip) {
+    const z = await wzpZip(buf), pastas = {}, base = (k) => k.split('/').pop().toLowerCase(), dir = (k) => k.slice(0, k.length - k.split('/').pop().length);
+    for (const k of Object.keys(z)) {
+      const b = base(k), d = dir(k); let tipo = null; if (/(^|\/)(reset|quicklook)\//i.test(k)) continue; // cópias de segurança e miniaturas do Procreate
+      if (/^shape\.(png|jpe?g)$/.test(b)) tipo = 'shape'; else if (/^grain\.(png|jpe?g)$/.test(b)) tipo = 'grain'; else if (b === 'brush.archive') tipo = 'brush';
+      if (tipo) (pastas[d] = pastas[d] || {})[tipo] = z[k];
     }
-  } else if (/^(png|jpe?g|webp)$/.test(ext)) { await guarda(nome, await wzpImg(URL.createObjectURL(arq)), null, .1, 'imagem'); }
+    const ks = Object.keys(pastas).filter((k) => pastas[k].shape || pastas[k].brush).sort();
+    if (!ks.length) throw new Error(`não achei pincéis do Procreate dentro do arquivo (${Object.keys(z).length} arquivos)`);
+    const img = async (f) => { const b = await f(); const u = URL.createObjectURL(new Blob([b], { type: 'image/png' })); try { return await wzpImg(u); } finally { URL.revokeObjectURL(u); } };
+    let falhas = 0;
+    for (let i = 0; i < ks.length; i++) {
+      const P = pastas[ks[i]];
+      try {
+        let aj = {}; if (P.brush) { try { aj = wzpConfigProcreate(wzpBplist(await P.brush())); } catch { /* sem configurações legíveis */ } }
+        // sem a forma em imagem (pincel que usa uma forma da biblioteca do Procreate): ponta redonda
+        const ponta = P.shape ? await img(P.shape) : wzpRedondo(.85), grao = P.grain ? await img(P.grain) : null;
+        await guarda(ks.length > 1 ? `${nome} ${i + 1}` : nome, ponta, grao, .1, 'Procreate', aj);
+      } catch { falhas++; }
+    }
+    if (!novos.length) throw new Error('os pincéis deste arquivo não abriram' + (falhas ? ` (${falhas} com problema)` : ''));
+  } else if (ehAbr) { const L = wzpAbr(buf); for (let i = 0; i < L.length; i++) await guarda(L.length > 1 ? `${nome} ${i + 1}` : nome, L[i], null, .12, 'Photoshop'); }
+  else if (ehImg) { await guarda(nome, await wzpImg(URL.createObjectURL(arq)), null, .1, 'imagem'); }
   else throw new Error('use .brush, .brushset, .abr ou uma imagem');
   if (!novos.length) throw new Error('não achei pincéis nesse arquivo');
   return novos;

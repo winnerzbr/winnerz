@@ -108,6 +108,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Teste: `testes/ppintado.cjs` (folha com os 8 movimentos e fotos do jogo).
 - **Raquete e bolinha pintadas (31/10):** folha do dono (frente vermelha, de lado, 3/4, inclinada, verso preto e a bolinha), montada em `cart2/mvpp.py` -> `mvpp.js` (window.PPA) e desenhada por `cart2/ppp.js`. IAmiguinho com a borracha vermelha e o Amiguinho com a preta; esperando: 3/4 (o Amiguinho, o verso); preparada: de frente; no meio da batida: de lado; 14 unidades de comprimento, girando em volta do meio da cabeça (a mesma posição e giro de antes); a bolinha pintada no lugar da desenhada (o placar continua por cima quando ela passa no alto). A folha virou anexo das pranchas na página de pedidos. Teste: `testes/pprakete.cjs`.
 
+- **Quiosque do Coqueiral pintado (01/11, imagens do dono em `pingue/arte`):** `cart2/ppcen.py` → `ppcen.js`; desenho em `ppp.js` (troca o `drawScene`; a mesa, a rede e os personagens são os de antes).
+  - Fundo (céu, mar, ilha e barcos) e meio-plano (quiosque de palha, varal de lâmpadas, coqueiros e dois Amiguinhos no balcão) nos 4 horários pelo relógio, misturando perto da troca; de noite as luzes dos dois por cima (estrelas, lua, barco; lâmpadas coloridas e a luminária do quiosque) e a luz quente sobre a mesa.
+  - O meio-plano entra em 85% do tamanho, preso no meio da tela, para o quiosque ficar atrás da mesa (no tamanho cheio o balcão encostava na mesa).
+  - Vieram duas versões do meio-plano do dia: ficou a que bate com os outros horários; a outra (`meio_dia_outra.png`, banquinhos mais baixos e cocos verdes) fica guardada.
+  - Teste: `testes/ppcena.cjs` (os 4 horários).
+- **Atenção ao publicar:** a página do jogo está com 502 arquivos (479 imagens, 22 músicas e a página), perto do limite de 511. O próximo cenário precisa juntar os horários num atlas só (como `junta.py` faz com os personagens) ou tirar imagens antigas que não são mais usadas.
+
 ### Bocha na areia (como funciona)
 - **Cena:** vista de cima, na Vila dos Pescadores (pintada, ver "Vila pintada"). A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
 - **Ordem:**

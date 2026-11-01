@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Quiosque do Coqueiral (pingue-pongue) pintado
+- **O dono mandou** o cenário do pingue-pongue: fundo e meio-plano nos 4 horários (duas versões do meio-plano do dia) e as luzes da noite.
+- **Feito:** no jogo, pelo relógio; o quiosque um pouco menor para ficar atrás da mesa. Publicado na página do Claude e no site.
+- **Atenção:** a página do jogo está com 502 de 511 arquivos.
+
+---
+
 ## 01/11/2026: Quadra da Laje (basquete) pintada
 - **O dono mandou** o pacote do basquete: cenário nos 4 horários com as luzes, cesta modular, redes (parada, chuá, balanço), bolas (girando e em chamas), carrinho e a torcida em 6 cores.
 - **Feito:** tudo no jogo; o basquete ficou todo pintado (IAmiguinho, Amiguinho defensor, cenário, cesta, bola e torcida). Publicado na página do Claude e no site.

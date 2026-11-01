@@ -32,3 +32,34 @@
     };
   }
 }
+  /* ---------- Quiosque do Coqueiral pintado (01/11/2026; ppcen.py -> window.PPC)
+     Fundo (céu, mar, ilha e barcos) e meio-plano (quiosque de palha, varal de lâmpadas, coqueiros e dois Amiguinhos no balcão)
+     nos 4 horários pelo relógio de quem joga (perto da troca mistura os dois); de noite, as luzes dos dois por cima, piscando de leve,
+     e a luz quente sobre a mesa. */
+  const PPC = window.PPC, PPX2 = {};
+  const ppImg = (k, src) => { if (!src) return null; let im = PPX2[k]; if (!im) { im = PPX2[k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
+  const PP_HORAS = [['noite', 5, 'manha'], ['manha', 10, 'dia'], ['dia', 16, 'tarde'], ['tarde', 19, 'noite']];
+  function ppPesos() {
+    const d = new Date(), h = window.__skHora != null ? window.__skHora : d.getHours() + d.getMinutes() / 60;
+    for (const [a, b, c] of PP_HORAS) if (Math.abs(h - b) < .5) { const t = h - b + .5; return [[a, 1 - t], [c, t]]; }
+    return [[h >= 5 && h < 10 ? 'manha' : h >= 10 && h < 16 ? 'dia' : h >= 16 && h < 19 ? 'tarde' : 'noite', 1]];
+  }
+  window.__PPCOK = () => !!PPC && ['dia', 'manha', 'tarde', 'noite'].some((h) => ppImg('f_' + h, PPC.f[h]) && ppImg('m_' + h, PPC.m[h]));
+  if (typeof pingue !== 'undefined' && PPC) {
+    const scene16 = pingue.drawScene;
+    pingue.drawScene = function (tt) {
+      let P = ppPesos().filter(([, w]) => w > .001).map(([h, w]) => [h, w, ppImg('f_' + h, PPC.f[h]), ppImg('m_' + h, PPC.m[h])]);
+      const ok = P.filter((p) => p[2] && p[3]); if (!ok.length) return scene16.call(this, tt);
+      if (ok.length < P.length) { P = ok; P[0][1] = 1; }
+      const night = P.reduce((a, [h, w]) => a + (h === 'noite' ? w : h === 'tarde' ? w * .3 : 0), 0);
+      ctx.save(); ctx.imageSmoothingEnabled = true;
+      for (const [, w, f] of P) { ctx.globalAlpha = w; ctx.drawImage(f, 0, 0, W, H); } ctx.globalAlpha = 1;
+      const lf = night > .01 && ppImg('lf', PPC.lf); if (lf) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.3 + .08 * Math.sin(tt * 1.7)); ctx.drawImage(lf, 0, 0, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+      // o meio-plano um pouco menor e mais para trás (85%, preso no meio da tela): o quiosque fica atrás da mesa, não encostado nela
+      const MK = .85, mx = W * (1 - MK) / 2, my = H * .5 * (1 - MK), mw = W * MK, mh = H * MK;
+      for (const [, w, , m] of P) { ctx.globalAlpha = w; ctx.drawImage(m, mx, my, mw, mh); } ctx.globalAlpha = 1;
+      const lm = night > .01 && ppImg('lm', PPC.lm); if (lm) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.5 + .12 * Math.sin(tt * 3)); ctx.drawImage(lm, mx, my, mw, mh); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
+      if (night > .05) { const lg = ctx.createRadialGradient(200, this.ty, 10, 200, this.ty, 150); lg.addColorStop(0, `rgba(255,210,140,${(.2 * night).toFixed(3)})`); lg.addColorStop(1, 'rgba(255,210,140,0)'); ctx.fillStyle = lg; ctx.fillRect(40, 40, 320, H - 40); }
+      ctx.restore();
+    };
+  }

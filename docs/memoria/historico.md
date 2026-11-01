@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Ideia registrada, teaser do IAmiguinho
+- **Pedido do dono:** registrar a ideia de um teaser de apresentação do IAmiguinho (galpão escuro, linha de produção de robôs sem boné, o cientista põe o boné em um deles e ele acende o visor).
+- **Feito:** a ideia completa ficou em `ideias.md` (arquivo novo, já no índice).
+- **Pendente:** nada; só registrada.
+
 ## 31/10/2026: Jogos de Verão, raquete e bolinha do pingue-pongue pintadas
 - **O dono mandou:** a folha da raquete (5 vistas) e da bolinha.
 - **Feito:** raquete pintada (vermelha para o IAmiguinho, preta para o Amiguinho; 3/4 esperando, de frente preparada, de lado no meio da batida) e bolinha pintada; a folha virou anexo das pranchas do pingue-pongue na página de pedidos. Detalhes em `jogos-de-verao.md`.

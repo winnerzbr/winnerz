@@ -176,8 +176,13 @@ const WZDB = (() => {
   function init() {
     if (ready) return ready;
     ready = (async () => {
-      try { if (window.claude && window.claude.use) { db = await window.claude.use('db'); user = await window.claude.use('user'); } } catch { db = null; }
-      return { db: !!db, owner: user ? !!(await user.isOwner?.()) : LOCAL, local: LOCAL };
+      // a ponte da página (window.claude) pode chegar depois do jogo começar: espera até 12 s por ela
+      for (let i = 0; i < 120 && !(window.claude && window.claude.use); i++) await new Promise((r) => setTimeout(r, 100));
+      try { if (window.claude && window.claude.use) { [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } } catch { db = null; }
+      let owner = LOCAL;
+      if (user) { try { owner = !!(await user.isOwner()); } catch { owner = false; } if (!owner) { try { owner = !!(await user.canEdit()); } catch { /* */ } } }
+      WZDB.info = { ponte: !!(window.claude && window.claude.use), db: !!db, user: !!user, owner };
+      return { db: !!db, owner, local: LOCAL };
     })();
     return ready;
   }
@@ -210,6 +215,9 @@ WZDB.init().then(async (st) => {
   if (st.owner) wzBotao();
 });
 
+// atalho de reserva: digitar e-d-i-t-o-r no teclado (fora de um campo) abre o editor mesmo sem o botão.
+// Quem não é dono pode até abrir, mas o banco não aceita salvar (só o dono escreve); a barra de cima avisa.
+{ let buf = ''; addEventListener('keydown', (e) => { if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || e.key.length !== 1) return; buf = (buf + e.key.toLowerCase()).slice(-6); if (buf === 'editor') { buf = ''; wzBotao(); wzAbrir(); } }); }
 // ---------- botão do editor (só para o dono) e a tela do editor
 function wzBotao() {
   if (document.getElementById('wz-abrir')) return;
@@ -288,6 +296,7 @@ async function wzAbrir() {
       el('main', { id: 'wz-main' })));
   // as teclas digitadas no editor não chegam no jogo (Espaço, setas, Enter)
   for (const t of ['keydown', 'keyup']) box.addEventListener(t, (e) => e.stopPropagation());
+  WZDB.init().then((st) => { if (!st.owner && !st.local) { const i = WZDB.info || {}; wzStatus(`Atenção: não reconheci você como dono desta página (ponte ${i.ponte ? 'ok' : 'não'}, banco ${i.db ? 'ok' : 'não'}, usuário ${i.user ? 'ok' : 'não'}). Talvez não dê para salvar.`); } });
   document.body.append(box); try { wzRender(); } catch (e) { wzStatus('Esta aba teve um problema; escolha outra.'); console.warn(e); }
   } finally { wzAbrindo = false; }
 }

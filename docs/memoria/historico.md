@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 31/10/2026: Editor do jogo, botão que não aparecia
+- **O dono relatou:** o botão do editor não aparece.
+- **Feito:** o editor espera a ponte da página chegar (até 12 s) antes de decidir se é o dono; aceita também quem pode editar; atalho de reserva digitando "editor" no teclado; aviso na barra de cima quando não reconhece o dono.
+- **Pendente:** o dono confirmar no jogo publicado.
+
 ## 31/10/2026: Editor do jogo, explicações e rostos ao vivo
 - **Pedidos do dono:** explicação de cada mecânica ao parar o mouse em cima; nos rostos e quadros, ver a mudança na hora em que muda o número.
 - **Feito:** "?" com explicação em todas as linhas das mecânicas (e o valor original); números dos rostos e quadros atualizam o desenho enquanto digita, e acompanham o arraste. Detalhes em `jogos-de-verao.md`.

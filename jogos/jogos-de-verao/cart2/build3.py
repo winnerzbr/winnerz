@@ -308,7 +308,9 @@ print('imagens', len(list(IMG.iterdir())), sum(f.stat().st_size for f in IMG.ite
 s = sub1("const syncMusic = () =>", (HERE / 'musica.js').read_text(encoding='utf-8') + "\nconst syncMusic = () =>", s)
 s = sub1("Music.play('orla'); Music.duck(1); setTimeout(() => Music.jingle(JINGLE.ouro[0], JINGLE.ouro[1]), 120);", "Music.play('podio'); Music.duck(1);", s)
 # editor do jogo (só para o dono): no fim do script principal, depois de tudo definido
-s = sub1("\nwindow.__verao = {", "\n" + (HERE / 'editor.js').read_text(encoding='utf-8') + "\nwindow.__verao = {", s)
+import datetime as _dt
+_ed = (HERE / 'editor.js').read_text(encoding='utf-8').replace('__BUILD__', (_dt.datetime.utcnow() - _dt.timedelta(hours=3)).strftime('%d/%m %H:%M'))
+s = sub1("\nwindow.__verao = {", "\n" + _ed + "\nwindow.__verao = {", s)
 idx = s.rfind('</script>')
 s = s[:idx + 9] + "\n<script>\n" + JS + "\n</script>" + s[idx + 9:]
 (ROOT / 'jogos_verao' / 'index.html').write_text(s, encoding='utf-8')

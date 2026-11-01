@@ -145,13 +145,15 @@ const WZ = (() => {
     return [A.f[k], A.m && A.m[k]].filter(Boolean);
   }
   function applyRosto(set, an, k, o) {
-    for (const f of metas(set, an, k)) {
+    const ms = metas(set, an, k);
+    for (const f of ms) {
       if (!RORIG.has(f)) RORIG.set(f, { s: f.s ? f.s.slice() : null, r: f.r, ax: f.ax, ay: f.ay });
       const g = RORIG.get(f);
       if (g.s && f.s) { const cx = g.s[4] ?? (g.s[0] + g.s[2]) / 2, cy = g.s[5] ?? (g.s[1] + g.s[3]) / 2; f.s[4] = cx + (o.fx || 0); f.s[5] = cy + (o.fy || 0);
         const L1 = g.s[6] || (f.sz ? f.sz[0] : 0), L2 = g.s[7] || (f.sz ? f.sz[1] : 0); f.s[6] = L1 * (o.fs || 1); f.s[7] = L2 * (o.fs || 1); }
       f.r = (g.r || 0) + (o.fr || 0) * Math.PI / 180; f.ax = g.ax - (o.ax || 0); f.ay = g.ay - (o.ay || 0);
     }
+    return ms.length > 0;
   }
   function restoreAll() {
     for (const [p, v] of ORIG) { const { kind, rest } = rootOf(p); const parts = rest.split('.'); let o = kind === 'obj' ? WZ_OBJS[parts.shift()] : kind === 'ev' ? EVENTS.find((e) => e.id === parts.shift()) : kind === 'fala' ? FALA : BG_TRACKS[+parts.shift()];
@@ -166,10 +168,11 @@ const WZ = (() => {
     const tenta = (fn, onde) => { try { fn(); } catch (e) { console.warn('editor: não deu para aplicar', onde, e); } };
     tenta(restoreAll, 'volta ao original'); cfg = cfg || {};
     for (const sec of ['mec', 'textos', 'pistas']) for (const [p, v] of Object.entries(cfg[sec] || {})) tenta(() => getSet(p, v, true), p);
-    for (const [p, o] of Object.entries(cfg.rostos || {})) tenta(() => { const [set, an, k] = p.split('.'); applyRosto(set, an, +k, o); }, p);
+    let nr = 0; for (const [p, o] of Object.entries(cfg.rostos || {})) tenta(() => { const [set, an, k] = p.split('.'); if (applyRosto(set, an, +k, o)) nr++; }, p);
     // contas que dependem dos números
     tenta(() => { BC.L = BC.x1 - BC.sx; }, 'cancha');
     tenta(() => { for (const T of BG_TRACKS) { T.line = null; wzPistaOk(T); } if (typeof BG_T !== 'undefined') { const i = BG_TRACKS.indexOf(BG_T); BG_T = null; bgLoad(Math.max(0, i)); } }, 'pistas');
+    return { rostos: nr };
   }
   return { get, apply, clone };
 })();
@@ -188,7 +191,7 @@ const WZDB = (() => {
       try { if (window.claude && window.claude.use) { [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } } catch { db = null; }
       let owner = LOCAL;
       if (user) { for (const f of ['isOwner', 'canEdit']) { if (owner) break; try { owner = !!(await user[f]()); } catch { /* */ } } if (!owner) { try { owner = (await user.can('data.write')) === true; } catch { /* */ } } }
-      WZDB.info = { ponte: !!(window.claude && window.claude.use), db: !!db, user: !!user, owner };
+      WZDB.info = { ponte: !!(window.claude && window.claude.use), db: !!db, user: !!user, owner, s: ((performance.now()) / 1000).toFixed(1) };
       return { db: !!db, owner, local: LOCAL };
     })();
     return ready;
@@ -198,7 +201,7 @@ const WZDB = (() => {
   const unpack = (d) => { if (!d) return null; const o = { ...d }; if (typeof d.json === 'string') { try { o.cfg = JSON.parse(d.json); } catch { o.cfg = null; } delete o.json; } return o; };
   // nenhuma leitura fica esperando para sempre: depois de 8 s desiste
   const limite = (pr, ms = 8000) => Promise.race([pr, new Promise((_, rej) => setTimeout(() => rej(new Error('demorou')), ms))]);
-  const MEM = {}, LIDO = {};
+  const MEM = {}, LIDO = {}, DIAG = { erros: [] };
   // leitura confirmada pelo banco: a leitura simples podia devolver uma cópia antiga guardada no navegador
   // (de uma visita anterior), e o editor abria com rostos antigos e o jogo aplicava a versão velha.
   // Espera a resposta confirmada (até 8 s); se não vier, usa a cópia que tiver. Entre a cópia e o que foi salvo nesta
@@ -214,9 +217,22 @@ const WZDB = (() => {
       } catch { acaba(null); }
     });
   }
+  // lê de três jeitos ao mesmo tempo (acompanhando o documento, lendo o documento e lendo a lista toda) e fica com o mais novo
   async function get(k) {
-    await init();
-    if (db) { const r = await lerConfirmado(k); const v = novo(r ? r.v : null, MEM[k]); MEM[k] = v; LIDO[k] = r ? (r.cache ? 'cópia do navegador' : 'banco') : 'nada'; return v; }
+    await init(); const t0 = Date.now();
+    if (db) {
+      const jeitos = [
+        lerConfirmado(k).then((r) => (r && r.v ? { v: r.v, f: r.cache ? 'cópia' : 'acompanhando' } : null)),
+        limite(db.doc('wz/' + k).get()).then((s2) => (s2.exists ? { v: unpack(s2.data()), f: s2.metadata && s2.metadata.fromCache ? 'cópia' : 'leitura' } : null)).catch((e) => { DIAG.erros.push(k + ' leitura: ' + (e && (e.code || e.message))); return null; }),
+        limite(db.collection('wz').get()).then((q) => { const d = q.docs.find((x) => x.id === k); return d ? { v: unpack(d.data()), f: 'lista' } : null; }).catch((e) => { DIAG.erros.push(k + ' lista: ' + (e && (e.code || e.message))); return null; }),
+      ];
+      const rs = (await Promise.all(jeitos)).filter((r) => r && r.v);
+      let melhor = null; for (const r of rs) if (!melhor || (r.v.at || 0) > (melhor.v.at || 0) || ((r.v.at || 0) === (melhor.v.at || 0) && melhor.f === 'cópia')) melhor = r;
+      const v = novo(melhor ? melhor.v : null, MEM[k]); MEM[k] = v;
+      LIDO[k] = melhor ? (melhor.f === 'cópia' ? 'cópia do navegador' : 'banco') : 'nada';
+      DIAG[k] = { fontes: rs.map((r) => r.f + ' ' + (r.v.at ? new Date(r.v.at).toLocaleTimeString('pt-BR') : '?')).join(', ') || 'nenhuma', quadros: v && v.cfg ? Object.keys(v.cfg.rostos || {}).length : 0, ms: Date.now() - t0 };
+      return v;
+    }
     return LOCAL ? novo(lsGet(k), MEM[k]) : (MEM[k] ?? null);
   }
   // uma gravação de cada vez por documento, na ordem (uma antiga não chega depois de uma nova)
@@ -241,7 +257,7 @@ const WZDB = (() => {
     if (db) return limite(db.doc('wz/' + id).set(pack(v)), 15000);
     if (LOCAL) { const L = lsGet('versoes') || []; L.unshift({ id, ...v }); lsSet('versoes', L.slice(0, 30)); }
   }
-  return { init, get, set, del, versions, addVersion, LIDO };
+  return { init, get, set, del, versions, addVersion, LIDO, DIAG };
 })();
 
 // ---------- o jogo carrega a configuração aplicada assim que o banco responde
@@ -249,9 +265,9 @@ const WZDB = (() => {
 // (antes ela era perdida até recarregar a página). Enquanto o dono testa o rascunho, vale o rascunho.
 let WZ_APLICADO = null, WZ_PEND = false, WZ_TESTE = false;
 function wzAplicaSalvo() {
-  if (WZ_TESTE || document.getElementById('wz')) return;
+  if (WZ_TESTE || document.getElementById('wz')) { WZDB.DIAG.jogo = { adiado: 'editor aberto ou testando' }; return; }
   if (typeof mode !== 'undefined' && (mode === 'play' || mode === 'pause')) { WZ_PEND = true; return; }
-  WZ_PEND = false; try { WZ.apply(WZ_APLICADO); } catch (e) { console.warn('editor: não deu para aplicar', e); }
+  WZ_PEND = false; try { const r = WZ.apply(WZ_APLICADO); WZDB.DIAG.jogo = { quando: new Date().toLocaleTimeString('pt-BR'), quadros: r ? r.rostos : '?' }; } catch (e) { console.warn('editor: não deu para aplicar', e); WZDB.DIAG.jogo = { erro: String(e) }; }
 }
 setInterval(() => { if (WZ_PEND) wzAplicaSalvo(); }, 500);
 WZDB.init().then(async (st) => {
@@ -273,10 +289,11 @@ function wzBotao() {
 }
 const WZ_CSS = `
 #wz-abrir{position:fixed;left:10px;bottom:10px;z-index:9999;font:600 13px/1 system-ui,sans-serif;padding:8px 12px;border-radius:8px;border:2px solid #1b1f4f;background:#fff6d6;color:#1b1f4f;cursor:pointer}
-#wz{position:fixed;inset:0;z-index:10000;background:#f4efe4;color:#1b1f4f;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto 1fr;}
+#wz{position:fixed;inset:0;z-index:10000;background:#f4efe4;color:#1b1f4f;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-rows:auto auto 1fr;}
 #wz *{box-sizing:border-box}
 #wz header{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;background:#1b1f4f;color:#fff6d6}
 #wz header h1{font-size:15px;margin:0 10px 0 0;font-weight:700;letter-spacing:.02em}
+#wz #wz-diag{font-size:11px;padding:3px 12px;background:#e9e0c8;color:#3a3a52;border-bottom:1px solid #cfc3a5}
 #wz header .st{font-size:12px;opacity:.85;margin-right:auto}
 #wz button{font:inherit;font-weight:600;font-size:13px;padding:6px 11px;border-radius:7px;border:1.5px solid #1b1f4f;background:#fffaf0;color:#1b1f4f;cursor:pointer}
 #wz button.pri{background:#ffd166}
@@ -328,6 +345,18 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && !WZ
 function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.textContent = t; }
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
+// linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
+const WZ_BUILD = '__BUILD__';
+function wzDiag() {
+  const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
+  const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
+  return [`página de ${WZ_BUILD}`, `banco ${i.db ? 'ok' : 'não'} · dono ${i.owner ? 'sim' : 'não'}`,
+    `aplicado: ${a ? `${a.quadros} quadros (${a.fontes}, ${a.ms} ms)` : 'não lido'}`,
+    `no jogo: ${j ? (j.quadros != null ? `${j.quadros} quadros às ${j.quando}` : j.adiado || j.erro) : 'ainda nada'}`,
+    `rascunho: ${r ? `${r.quadros} quadros (${r.fontes})` : 'não lido'}`, `editor com ${nq({ cfg: WZE.cfg })} quadros`,
+    D.erros && D.erros.length ? 'erros: ' + D.erros.slice(-3).join('; ') : ''].filter(Boolean).join(' | ');
+}
+setInterval(() => { const e = document.getElementById('wz-diag'); if (e) e.textContent = wzDiag(); }, 1000);
 let wzAbrindo = false;
 async function wzAbrir() {
   if (document.getElementById('wz')) return; if (wzAbrindo) return; wzAbrindo = true;
@@ -347,6 +376,7 @@ async function wzAbrir() {
       el('button', { type: 'button', on: { click: wzTestar } }, 'Testar'),
       el('button', { type: 'button', class: 'pri', on: { click: wzAplicar } }, 'Aplicar no jogo'),
       el('button', { type: 'button', on: { click: wzFechar } }, 'Fechar')),
+    el('div', { id: 'wz-diag' }, wzDiag()),
     el('div', { class: 'corpo' },
       el('nav', {}, ...[['mec', 'Mecânicas'], ['pistas', 'Pistas do bugue'], ['cancha', 'Cancha da bocha'], ['rostos', 'Rostos e quadros'], ['textos', 'Textos e falas'], ['versoes', 'Versões e cópia']].map(([k, t]) =>
         el('button', { type: 'button', class: WZE.aba === k ? 'on' : '', on: { click: () => { WZE.aba = k; wzRender(); } } }, t))),

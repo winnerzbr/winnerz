@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Editor do jogo, rostos ainda sem valer (2ª tentativa)
+- **O dono relatou:** continua igual; salva, abre o jogo e as mudanças não aparecem; no editor voltam os rostos do jogo.
+- **Achado:** a configuração dele está inteira no banco e, aqui, faz o desenho mudar no jogo e no editor; a falha é na leitura do banco na página dele, que daqui não dá para ver.
+- **Feito:** leitura por três caminhos e uma linha de conferência no editor (seção do editor em `jogos-de-verao.md`); imagem de antes e depois enviada ao dono. Jogo publicado.
+- **Pendente:** foto da linha de conferência para achar onde a leitura falha.
+
 ## 01/11/2026: Editor do jogo, rostos salvos que não voltavam
 - **O dono relatou:** mexeu nos rostos do IAmiguinho do vôlei e aplicou; ao voltar ao editor, os rostos não estavam como ele aplicou, e no jogo as mudanças não valiam.
 - **Achado:** o banco tinha tudo salvo certo; a leitura é que falhava (aceitava a primeira resposta, que pode ser uma cópia antiga do navegador; e, se o banco respondesse durante uma prova, o aplicado não entrava).

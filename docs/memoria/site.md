@@ -42,6 +42,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - **Álbum de figurinhas:** deixado de lado por causa de direitos autorais. Nada de figurinhas com arte de IA.
 - **Cartas Vivas** (cartas no estilo super trunfo): guardada para depois. Não usar o nome "Super Trunfo", que é marca da Grow.
 - **App de celular** (iPhone e Android): o site dentro do app, com widgets e notificações.
-- **Modo TV e Tradutor de tela:** aprovados.
+- **Tradutor de tela:** aprovado.
+- **Modo TV:** feito, mas **desligado** em 01/11/2026 a pedido do dono: o controle usado nos Jogos de Verão abria o Modo TV e tirava a pessoa do jogo. O código continua em `src/tv/`; para religar, trocar `MODO_TV` para `true` em `src/tv/mode.ts`. Desligado, o controle não abre nada no site e os endereços /tv não existem (o /tv/parear continua).
 - **IAmiguinho no Sofá:** aprovado. É só para as lives do dono, ver `lives.md`.
 - **Jornada:** o modo mapa sai e fica a linha do tempo com rolagem.

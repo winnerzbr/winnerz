@@ -5,13 +5,22 @@
  */
 import { useSyncExternalStore } from 'react';
 
+/**
+ * Desligado por pedido do dono (01/11/2026): o controle usado nos Jogos de Verão abria o Modo TV e tirava a pessoa
+ * do jogo. Com `false`, o controle não abre nada, os endereços /tv não existem e quem estava no Modo TV volta ao site.
+ * O código fica guardado; para religar, é só trocar para `true`.
+ */
+export const MODO_TV: boolean = false;
+
 const K = 'wz.tv', NAO = 'wz.tv.nao';
 const subs = new Set<() => void>();
 const read = (k: string) => { try { return sessionStorage.getItem(k) === '1'; } catch { return false; } };
-let on = typeof window !== 'undefined' && read(K);
+let on = MODO_TV && typeof window !== 'undefined' && read(K);
+if (!MODO_TV && typeof window !== 'undefined') { try { sessionStorage.removeItem(K); } catch { /* sem armazenamento */ } }
 
 export function tvOn() { return on; }
 export function setTv(v: boolean) {
+  if (!MODO_TV) v = false;
   on = v;
   try { if (v) { sessionStorage.setItem(K, '1'); sessionStorage.removeItem(NAO); } else { sessionStorage.removeItem(K); sessionStorage.setItem(NAO, '1'); } } catch { /* sem armazenamento */ }
   document.documentElement.classList.toggle('is-tv', v);

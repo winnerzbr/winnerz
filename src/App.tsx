@@ -94,8 +94,8 @@ const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;
   if (match('/', path)) return <Home />;
-  if (match('/tv', path)) return <TvHome />;
-  if (match('/tv/estante', path)) return <TvShelf />;
+  if (MODO_TV && match('/tv', path)) return <TvHome />;
+  if (MODO_TV && match('/tv/estante', path)) return <TvShelf />;
   if (match('/tv/parear', path)) return <TvApprovePage />;
   if (match('/chegada', path) || match('/boas-vindas', path)) {
     const n = Number(new URLSearchParams(path.split('?')[1] ?? '').get('passo'));
@@ -232,7 +232,7 @@ import { TvShell, TvAutoOpen } from './tv/Tv';
 import { TvPair, TvApprovePage } from './tv/TvPair';
 import { TvHome } from './tv/TvHome';
 import { TvShelf } from './tv/TvShelf';
-import { setTv, tvOn, useTv } from './tv/mode';
+import { MODO_TV, setTv, tvOn, useTv } from './tv/mode';
 
 export function App() {
   const path = usePath();
@@ -247,7 +247,7 @@ export function App() {
   const profileId = useStore((s) => s.profile?.id);
   const tvMode = useTv();
   // Modo TV: os endereços /tv ligam o painel da tela grande (o /tv/parear é a página do celular, fora dele).
-  const tvPath = path === '/tv' || path.startsWith('/tv?') || path.startsWith('/tv/estante');
+  const tvPath = MODO_TV && (path === '/tv' || path.startsWith('/tv?') || path.startsWith('/tv/estante'));
   useEffect(() => { if (tvPath && !tvOn()) setTv(true); }, [tvPath]);
   const inTv = (tvMode || tvPath) && !path.startsWith('/tv/parear');
 
@@ -309,7 +309,7 @@ export function App() {
 
   return (
     <NickGate>
-      <TvAutoOpen />
+      {MODO_TV && <TvAutoOpen />}
       {mode === 'demo' && (
         <div className="demo-bar">
           Modo demonstração: seus registros ficam só neste navegador. <button onClick={resetDemo}>Recomeçar a demonstração</button>

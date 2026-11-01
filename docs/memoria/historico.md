@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Modo TV desligado no site
+- **O dono:** ao usar o controle nos Jogos de Verão, no site, o jogo fechava e abria o modo de controle do site (Modo TV). Pediu para tirar esse modo por enquanto.
+- **Feito:** o Modo TV está desligado por uma chave (`MODO_TV` em `src/tv/mode.ts`): o controle não abre mais nada no site, os endereços /tv não abrem e quem estava no Modo TV volta ao site normal. O código fica guardado para religar depois. Detalhes em `site.md`.
+
 ## 01/11/2026: Pintura do editor, 3ª etapa (cara e gestos do Procreate)
 - **O dono pediu:** no iPad a pinça com dois dedos pintava (o primeiro dedo virava traço); os .brushset do Procreate ainda não importavam; copiar uma camada para outros quadros, escolhendo quais (com "todos"), para reaproveitar desenhos na animação; a pintura com a aparência do Procreate (para achar os botões) e com as funções e gestos dele.
 - **Feito:** a tela de pintura foi refeita no jeito do Procreate (galeria, barra de cima, barra do lado, janelas, assistente de animação); dedo só pinta depois de um instante e o segundo dedo cancela o traço; com caneta o dedo não pinta; importação sem filtro de tipo e mais tolerante; copiar camada para outros quadros alinhando pelos pés, salvando tudo de uma vez. Detalhes em `jogos-de-verao.md`. Jogo publicado no site e na página do Claude.

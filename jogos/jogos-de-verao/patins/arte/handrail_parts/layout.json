@@ -1,0 +1,27 @@
+{
+  "sheet": "../02_yellow_handrail.png",
+  "regions": {
+    "left_post": {
+      "x": 36,
+      "y": 16,
+      "width": 183,
+      "height": 128
+    },
+    "bar_repeat": {
+      "x": 267,
+      "y": 16,
+      "width": 186,
+      "height": 128
+    },
+    "right_post": {
+      "x": 501,
+      "y": 16,
+      "width": 182,
+      "height": 128
+    }
+  },
+  "connection": "Join part image edges with no gap; all parts use y=0.",
+  "bar_top_y": 14,
+  "ground_y": 114,
+  "reference_character_height": 325
+}

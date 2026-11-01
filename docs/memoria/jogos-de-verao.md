@@ -34,6 +34,7 @@ O plano tem 19 provas, e o jogo publicado tem 19 (com o Teco-teco d'Água, de 01
   - **Surfe, prancha aprovada (01/11):** azul-clara com faixa creme e quilha azul-marinho, em 5 vistas (`novas/anexos/ref_prancha_surfe.jpg`). Está no cartão da folha de modelo e em todos os pedidos do IAmiguinho no surfe, para anexar junto.
   - São 381 pedidos na página (168 de cenário em "Todos os cenários"). Os cartões de cenário são os mesmos nas duas guias: marcar "Feita" numa marca na outra.
 - **Surfe pintado (01/11):** IAmiguinho, cenário, onda, tubo, objetos e espuma pintados; detalhes na seção "Surfe pintado".
+- **Basquete (01/11):** IAmiguinho pintado. **Patins (01/11):** cenário, obstáculos e corrimão pintados. Detalhes nas seções próprias.
 - **Novas:** feitas uma por vez, jogáveis com arte provisória. Os pedidos das pranchas e dos cenários ficam na página "Pedidos das provas novas" (`novas/pedidos.py`), e a arte entra conforme o dono manda.
   - Feitas:
     - Pingue-pongue (`cart2/ev_pingue.js`): aprovado como protótipo, agora é lapidar;
@@ -378,6 +379,25 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - As 11 pranchas estão na Prévia (somadas à página publicada por `previa_sf.py`).
   - Teste: `testes/sfpintado.cjs` (fotos de cada situação e dos 4 horários, e uma partida com o teclado).
 - **Pendente:** o dono testar.
+
+## Basquete pintado: IAmiguinho (01/11/2026)
+- **Chegou do dono:** 12 pranchas do IAmiguinho no basquete (mais tentativas que pedidos: 5 de andar, 2 de espera, 2 de carregar). Originais em `basquete/pranchas`.
+- **Escolhidas pela régua** (a cabeça mais constante): andar `bq_andar_d` (1,5%), espera `bq_espera_b` (1%), carregando `bq_carrega_b` (6,8%); arremesso, comemorar e errou vieram uma de cada. As outras ficam guardadas.
+- **No jogo** (`cart2/mvbq.py` → `mvbq.js`, desenho em `cart2/bqp.js`; a prova passou a `paint: true`). A física não mudou. Em pé = 50 (o de 16 bits tinha 48,5). Escalas: espera 0,728 · andar 1,101 · carregando 0,787 · arremesso 1,031 · comemorar 0,839 · errou 0,872.
+  - Parado: espera (laço), bola nas mãos (6 à frente, 17 acima dos pés). Andando: quicando (laço; a bola quica 15 à frente). Segurando: carregando, as mãos sobem do peito até o alto em 0,35 s e ficam no quadro 8; a bola vai junto (posições por quadro em `BQ_MAOS_CAR`). Soltou: o arremesso a partir do quadro 4 (a soltura), com o pulo desenhado. Cesta: comemorar (laço). Errou: mãos na cabeça.
+  - O cenário, a cesta, a bola, o defensor e a torcida continuam os de antes (o cenário pintado da Quadra da Laje ainda não chegou).
+  - As 6 pranchas estão na Prévia (`previa_bq.py`). Teste: `testes/bqpintado.cjs`.
+- **Pendente:** o dono testar; o cenário, a cesta, a bola, a torcida e o Amiguinho defensor pintados.
+
+## Patins pintado: cenário, obstáculos e corrimão (01/11/2026)
+- **Chegou do dono:** o pacote do Calçadão das Ondas: orla em panorama 32:9 que repete e a faixa do calçadão 6:1 nos 4 horários, a camada de luzes da noite (com as posições dos postes, quiosques e lua), a folha de obstáculos e prêmios (com as regiões de cada peça) e o corrimão em 3 peças. Originais em `patins/arte`, com os prompts.
+- **No jogo** (`cart2/ptcen.py` → `ptcen.js`, desenho em `cart2/ptp.js`; `paint: true`). A física não mudou.
+  - A orla anda a 40% (repete a cada 800 de largura, na altura da tela); o calçadão anda junto com você (faixa de 342 × 57, do 168 até o pé da tela). Horário pelo relógio, misturando perto da troca; de noite as luzes piscam de leve por cima.
+  - Buraco no calçadão (estica do tamanho do buraco), coco rolando (4 quadros pela rotação), coco caindo com a sombra crescendo, bola de frescobol, picolé e água de coco (balançando) e o corrimão: poste da esquerda, barra que repete e poste da direita, na altura da física (38 + 4).
+  - O IAmiguinho no patins continua o de 16 bits até as pranchas dele chegarem; o Amiguinho parado é o do vôlei.
+  - Teste: `testes/ptpintado.cjs` (os 4 horários com todos os obstáculos e uma partida).
+- **Pendente:** o dono testar; as pranchas do IAmiguinho no patins.
+- **Atenção ao publicar:** a página do jogo está com 501 arquivos (478 imagens, 22 músicas e a página); o limite é 511. Na próxima prova pintada, tirar da publicação as imagens que a página não usa mais ou juntar atlas.
 
 ## Vôlei
 - **IAmiguinho:** 38 pranchas, completo.

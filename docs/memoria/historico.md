@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: basquete (IAmiguinho) e patins (cenário) pintados
+- **O dono mandou** 12 pranchas do IAmiguinho no basquete e o pacote do cenário do patins (orla, calçadão, luzes, obstáculos, prêmios e corrimão).
+- **Feito:** basquete com as 6 pranchas escolhidas pela régua (andar, espera, carregando, arremesso, comemorar, errou), a bola nas mãos em cada quadro; patins com o Calçadão das Ondas pintado nos 4 horários e todos os obstáculos e prêmios. As 6 pranchas na Prévia. Publicado na página do Claude e no site.
+- **Pendente:** o dono testar; o cenário do basquete e as pranchas do IAmiguinho no patins. A página do jogo está com 501 de 511 arquivos.
+
+---
+
 ## 01/11/2026: surfe pintado no jogo
 - **O dono mandou** as 11 pranchas do IAmiguinho no surfe e o pacote técnico do cenário (mar e céu e onda nos 4 horários, luzes da noite, tubo em 3 módulos, objetos e espuma).
 - **Feito:** tudo no jogo, no lugar do 16 bits (`cart2/mvsf.py`, `cart2/sfcen.py`, `cart2/sfp.js`), desenhado em alta; régua com a cabeça igualada à do vôlei; as 11 pranchas na Prévia com o veredito "aprovada". Jogo publicado na página do Claude e no site.

@@ -94,7 +94,7 @@
       const me = this.me(), cam = me.x - OB.SX, P = crPesos().filter(([, w]) => w > .001);
       ctx.save(); ctx.imageSmoothingEnabled = true;
       // fundo distante (céu, mar e areia molhada): quase parado; a beira da areia fica um pouco acima das raias
-      const fw = W + 60, fh = fw * 9 / 16, fx = -clamp(cam * .05, 0, 60), om = cam * .5, night = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0);
+      const fw = W + 60, fh = fw * 9 / 16, fx = -clamp(cam * .025, 0, 60) /* 02/11: baterias mais longas (até 220 m) */, om = cam * .5, night = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0);
       const FI = crImg('f', CRC.f); for (const [h, w] of P) { ctx.globalAlpha = w; ctx.drawImage(FI, 0, CRC.row[h] * 900, 1600, 900, fx, -46, fw, fh); }
       ctx.globalAlpha = 1;
       const LF = night > .01 && crImg('lf', CRC.lf);

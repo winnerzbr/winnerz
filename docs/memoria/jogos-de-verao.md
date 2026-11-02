@@ -444,6 +444,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Obstáculos: em pé, a altura antiga manda e a largura segue o desenho; poça, areia fofa (montinhos lado a lado) e a marca de largada esticam.
   - Testes: `testes/crpintado.cjs` (cada situação e os horários), `testes/crvitrine.cjs` (fotos grandes), `testes/crfluxo.cjs` (as 3 baterias no automático, sem erro).
 - **Pedidos:** a guia da Corrida na página de pedidos ficou como entregue.
+- **Pista mais longa e obstáculos com espaço (02/11, pedido do dono):** baterias de 185, 195 e 205 m (eram 60, 80 e 100), uns 30 s cada; o dono pediu sem relógio na tela (só a pista mais longa). Obstáculos em grupos (1-3, 2-3 e 2-4 por bateria) com 12 a 20 m entre um e outro (1,3 a 2 s correndo forte; o pulo cobre ~5 m), separados por trechos livres de 14 a 28 m; poça com espaço extra antes e depois; areia fofa só nos trechos livres; primeiros ~24 m e últimos ~30 m livres. Código em `build3.py` (troca o laço do `startHeat`). Teste `testes/crlonga.cjs`: 28 a 35 s por bateria, 4 a 9 obstáculos, menor espaço 12 m; fotos `testes/crmeio.cjs`. Medalhas mantidas (5.400 / 7.000 / 8.400): jogando no automático deu 6.400 a 7.700.
 - **Correndo e trotando com a cabeça em 3/4 (02/11, pacote novo do dono, revisão 5):** as duas pranchas foram trocadas em `corrida/pranchas_ia/pranchas` (as de perfil ficaram em `corrida/pranchas_ia/perfil`); mesma escala (K 1,08). As outras 4 vieram iguais.
 - **Pendente:** o dono testar.
 

@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Corrida na areia mais longa e com espaço entre os obstáculos
+- **O dono pediu:** corrida bem mais longa (sem relógio na tela) e obstáculos menos juntos, com um flow melhor.
+- **Feito:** baterias de 185, 195 e 205 m (uns 30 s cada); obstáculos em grupos com 12 a 20 m entre eles e trechos livres para embalar; poça com espaço para frear e voltar; areia fofa só nos trechos livres.
+- **Pendente:** o dono testar. Se quiser, pedir mais peças de meio-plano (a pista longa repete os guarda-sóis e o posto).
+
+---
+
 ## 02/11/2026: Corrida: correndo e trotando com a cabeça em 3/4
 - **O dono mandou:** as pranchas da corrida e do trote refeitas com a cabeça em 3/4.
 - **Feito:** trocadas no jogo e na Prévia (rosto aceso dentro do visor em todos os quadros); as de perfil ficaram guardadas.

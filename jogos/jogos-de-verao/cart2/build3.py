@@ -374,6 +374,30 @@ s = sub1("else if (k === 'bot') { P('bot', 0); if (Math.random() < .4) P('agua',
 s = sub1("  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, dur: 60,", "  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, paint: true, dur: 60,", s)
 # 02/11 · BMX com a física e a trilha novas (bxfis.js): medalhas pelos jogadores automáticos (só pedalando ~12.000, com o pulo na ponta da rampa ~21.000, com mortais ~29.000)
 s = sub1("paint: true, dur: 60, med: [2400, 4600, 7200], ia: 1900, nota: 'a bike era de rodinha',", "paint: true, dur: 60, med: [10000, 20000, 30000], ia: 7000, nota: 'a bike era de rodinha',", s)
+# 02/11 · corrida na areia (pedido do dono): baterias de ~30 s e obstáculos em grupos, com trechos livres entre eles (flow)
+s = sub1("const OB_LEN = [60, 80, 100];", "const OB_LEN = [185, 195, 205]; /* 02/11: ~30 s por bateria (eram 60, 80 e 100 m) */", s)
+s = sub1("""    const obs = [], fofa = []; let m = 9 + rand(0, 3);""", """    const obs = [], fofa = []; let m = 24 + rand(0, 4);""", s)
+s = sub1("""    while (m < OB_LEN[i] - 14) {
+      const k = pick(pool); obs.push({ k, m });
+      if (Math.random() < .35 + i * .1) fofa.push({ x0: (m + rand(2.5, 4)) * OB.PXM, x1: (m + rand(6, 9)) * OB.PXM });
+      m += Math.max(6.6, rand(7.5, 11.5) - i * 1.1);
+    }""", """    /* 02/11 (pedido do dono: obstáculos juntos demais, sem tempo de correr entre eles): grupos de 1 a 4 obstáculos com 12 a 20 m
+       entre um e outro (1,3 a 2 s correndo forte; o pulo cobre ~5 m), separados por trechos livres de 14 a 28 m para embalar.
+       Poça: mais espaço antes (para frear) e depois (para voltar a acelerar). A areia fofa fica nos trechos livres, nunca em cima
+       de um obstáculo. Os últimos ~30 m são livres (a arrancada final). Mais difícil a cada bateria: grupos maiores e mais juntos. */
+    const G0 = [16, 14, 12][i], GL = [[20, 28], [18, 26], [14, 22]][i], NG = [[1, 3], [2, 3], [2, 4]][i], FIM = OB_LEN[i] - 30;
+    while (m < FIM) {
+      const n = Math.floor(rand(NG[0], NG[1] + .999)); let prev = '';
+      for (let j = 0; j < n && m < FIM; j++) {
+        let k = pick(pool); if (k === 'poca' && (prev === 'poca' || j === n - 1 && n > 1)) k = 'cerca';
+        if (k === 'poca' && j > 0) m += 5;
+        obs.push({ k, m }); prev = k;
+        m += G0 + rand(0, 4) + (k === 'poca' ? 7 : k === 'tronco' || k === 'castelo' ? 2 : 0);
+      }
+      const livre = rand(GL[0], GL[1]);
+      if (Math.random() < .45 + i * .15) { const a = m + rand(1, 4); fofa.push({ x0: a * OB.PXM, x1: (a + rand(6, Math.min(11, livre - 6))) * OB.PXM }); }
+      m += livre;
+    }""", s)
 # 02/11 · corrida na areia pintada (mvcr.py -> mvcr.js, mvbcr.py -> mvbcr.js, crcen.py -> crcen.js, desenho em crp.js): desenhada em alta
 s = sub1("  id: 'obstaculos', name: 'Corrida na areia', tag: 'Areia · 3 baterias', wide: true, hi: true, dur: 0,", "  id: 'obstaculos', name: 'Corrida na areia', tag: 'Areia · 3 baterias', wide: true, hi: true, paint: true, dur: 0,", s)
 pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptsolve.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bxfis.js').read_text(encoding='utf-8')+ '\n' + (HERE / 'bxp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'crp.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados

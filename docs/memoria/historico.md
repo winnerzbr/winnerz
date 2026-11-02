@@ -11,6 +11,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - o teste do vôlei no Godot saiu do site e foi para `jogos/volei-godot/exportado/`; ninguém linkava a página, e o site caiu de 115 MB para 74 MB por versão;
   - nova regra no `vercel.json` (`scripts/vercel-pular.sh`): o Vercel só monta uma versão nova quando muda algo do site (`src`, `public`, `api` e arquivos de montagem). Commits só de `docs/`, `jogos/`, `art/` etc. não publicam.
 - **Decidido:** juntar as mudanças e enviar ao `main` uma vez por rodada de trabalho; arquivos grandes que não são do site ficam fora de `public/`. Pela regra nova do Vercel para o plano grátis, ao passar de 10 GB ele apaga sozinho as versões antigas. Ficam as 3 últimas, a que está no ar e a última prévia de cada ramo. O número no painel demora alguns dias para baixar.
+- **Aviso "GitHub user not found" no Vercel:** não tem relação com o espaço. Os commits desta sessão saíam como `Heverton <noreply@winnerz.com.br>`, e esse e-mail não é de nenhuma conta do GitHub. A partir de agora, os commits saem como `Claude <noreply@anthropic.com>`, como nas outras sessões. Os commits antigos com o aviso ficam como estão, porque não atrapalham.
 - **Pendente:** nada do dono. Se o Vercel bloquear um envio por falta de espaço, apagar versões antigas em Deployments no painel (o Claude não entra na conta).
 
 ---

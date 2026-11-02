@@ -16,6 +16,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   - O `vercel.json` só deixa montar uma versão nova quando muda algo do site (`scripts/vercel-pular.sh`).
   - Enviar ao `main` uma vez por rodada de trabalho, não a cada commit.
   - Arquivos grandes que não vão para o site ficam fora de `public/`.
+- **Autor dos commits:** `Claude <noreply@anthropic.com>`, que o GitHub reconhece. Com outro e-mail, o Vercel mostra o aviso "GitHub user not found". O aviso não bloqueia nada, mas é bom evitar.
 - Fase atual: refinar o site. Antes de cada etapa, o dono quer ver como vai ficar.
 
 ## Visual

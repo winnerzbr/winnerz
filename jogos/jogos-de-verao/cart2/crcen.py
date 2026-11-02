@@ -64,10 +64,10 @@ def meio(path):
         bb = Image.fromarray(p).getbbox(); out.append(((sl[1].start + bb[0], sl[0].start + bb[1], sl[1].start + bb[2], sl[0].start + bb[3]), p[bb[1]:bb[3], bb[0]:bb[2]]))
     return sorted(out, key=lambda q: q[0][0])
 BOX = None; MS = []
-# 02/11: mais 3 peças (quiosque de coco, coqueiros, rede de vôlei; ../corrida/props). Vieram manhã, pôr do sol, noite e luzes;
-# o dia ainda não: de dia usa a manhã. Mesma escala da prancha antiga (a prancha nova tem 1536 de largura, a antiga 1672).
+# 02/11: mais 3 peças (quiosque de coco, coqueiros, rede de vôlei; ../corrida/props): dia, manhã, pôr do sol, noite e luzes
+# (o dia chegou depois, no mesmo enquadramento). Mesma escala da prancha antiga (a prancha nova tem 1536 de largura, a antiga 1672).
 PR = '../corrida/props/Costa_WinnerZ_Props_Praia_'
-PROPS = {'dia': PR + 'Manha', 'manha': PR + 'Manha', 'tarde': PR + 'Por_do_Sol', 'noite': PR + 'Noite'}
+PROPS = {'dia': PR + 'Dia', 'manha': PR + 'Manha', 'tarde': PR + 'Por_do_Sol', 'noite': PR + 'Noite'}
 KBOX = None
 for h, (_, fm) in HORAS.items():
     ims = []; hs = []

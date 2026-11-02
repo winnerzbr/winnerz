@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Corrida: peças da praia na versão de dia
+- **O dono mandou:** de novo os pacotes da BMX e das peças da praia (já estavam no jogo, iguais) e depois a versão de DIA do quiosque de coco, coqueiros e rede de vôlei.
+- **Feito:** a versão de dia entrou no jogo (de dia usava a da manhã). Só a imagem do meio-plano da Corrida mudou; trocada direto na página pronta do site (`public/demo/jogos-verao`) e na página do Claude.
+- **Pendente:** nada desta parte.
+
+---
+
 ## 02/11/2026: sonoplastia retirada
 - **O dono pediu:** tirar os efeitos sonoros novos e voltar ao estado anterior, porque não gostou deles.
 - **Feito:** o jogo voltou aos bipes de antes em todas as 19 provas (no jogo publicado e no site). A água do surfe, a rede do basquete e os cenários novos da BMX e da Corrida continuam. Os arquivos dos sons ficam guardados e desligados (`SONOPLASTIA = False` no `build3.py`).

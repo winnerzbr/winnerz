@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Corrida: correndo e trotando com a cabeça em 3/4
+- **O dono mandou:** as pranchas da corrida e do trote refeitas com a cabeça em 3/4.
+- **Feito:** trocadas no jogo e na Prévia (rosto aceso dentro do visor em todos os quadros); as de perfil ficaram guardadas.
+- **Pendente:** o dono testar.
+
+---
+
 ## 02/11/2026: BMX: desenho maior e visor apagado na ponta da rampa
 - **O dono viu:** no salto aparecia um quadro diferente do IAmiguinho, maior e com o visor apagado.
 - **Feito:** era o empinando (e o quadro 4 do corpo para trás): a prancha veio ~8% maior e o pneu da frente levantado era confundido com a tela do rosto. Escala corrigida, rosto aceso no lugar certo, e o empinando só aparece segurando ◀ no chão.

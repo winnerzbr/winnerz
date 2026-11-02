@@ -444,6 +444,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Obstáculos: em pé, a altura antiga manda e a largura segue o desenho; poça, areia fofa (montinhos lado a lado) e a marca de largada esticam.
   - Testes: `testes/crpintado.cjs` (cada situação e os horários), `testes/crvitrine.cjs` (fotos grandes), `testes/crfluxo.cjs` (as 3 baterias no automático, sem erro).
 - **Pedidos:** a guia da Corrida na página de pedidos ficou como entregue.
+- **Correndo e trotando com a cabeça em 3/4 (02/11, pacote novo do dono, revisão 5):** as duas pranchas foram trocadas em `corrida/pranchas_ia/pranchas` (as de perfil ficaram em `corrida/pranchas_ia/perfil`); mesma escala (K 1,08). As outras 4 vieram iguais.
 - **Pendente:** o dono testar.
 
 ## Basquete pintado: IAmiguinho (01/11/2026)

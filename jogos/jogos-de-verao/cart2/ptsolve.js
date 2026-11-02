@@ -97,7 +97,7 @@
     if (atraso > 0) P.ptAtrasos = (P.ptAtrasos || 0) + 1;
     return atraso;
   }
-  window.__ptConfere = ptConfere;
+  window.__ptConfere = ptConfere; window.__ptJanelaDe = (P, it) => ptJanelaDe(P, it); window.__ptChega = (P, o) => ptChega(P, o);
   // espaço entre as coisas paradas no chão (01/11, pedido do dono: Amiguinhos colados e itens muito perto). Extensão de cada uma,
   // como aparece na tela; entre o padrão novo e o que já está na pista, pelo menos PT_ESPACO de chão livre.
   const PT_ESPACO = 34;
@@ -114,6 +114,24 @@
     for (const n of novos) { const a = ptExt(n); if (!a) continue; for (const o of velhos) { const b = ptExt(o); if (!b) continue; if (a[0] < b[1] + PT_ESPACO && a[1] > b[0] - PT_ESPACO) falta = Math.max(falta, b[1] + PT_ESPACO - a[0]); } }
     if (falta > 0) { ptAnda(P, novos, falta / P.v); P.ptEspacados = (P.ptEspacados || 0) + 1; }
   }
+  // janela do item alto (02/11, pedido do dono: "não dá para pegar o item de cima: tem bola ou coco vindo e, se seguro ▼ para o
+  // impulso, sou atingido; desviando, passo do item"). Para pegar com o impulso é preciso abaixar (0,25 s de carga + reação), pular
+  // ~0,46 s antes de passar pelo item e ficar no ar até ~0,46 s depois. Nessa janela não pode chegar nada que obrigue a pular ou abaixar
+  // fora da hora: o item é posto depois do que já vem e os padrões seguintes esperam a janela dele passar.
+  const PT_JAN = { antes: 1.15, trilho: .55, depois: .55, folga: .12 }; // antes: 0,2 s para pousar do que veio antes + abaixar + carga + reação
+  function ptChega(P, o) { // [entra, sai] em segundos: quando o obstáculo passa pela faixa do jogador
+    const px = P.d + PPX, sp = o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0, rel = P.v + sp * (o.v0 ? P.v / o.v0 : 1), w = o.w || 12;
+    const ent = (o.x - (px + 7)) / rel, sai = (o.x + w - (px - 7)) / rel;
+    return o.k === 'queda' ? [Math.min(ent, (o.x - (px + 7)) / (P.v + 38)), sai] : [ent, sai]; // o coco que cai depois rola
+  }
+  function ptJanelaDe(P, it) { const t = (it.x + 5 - (P.d + PPX)) / P.v; return [t - (it.trilho ? PT_JAN.trilho : PT_JAN.antes), t + PT_JAN.depois]; }
+  const ptCruza = (P, it, lista) => { const [j0, j1] = ptJanelaDe(P, it); let falta = 0; for (const o of lista) { if (!PT_TOMBO[o.k] || o === it.rail) continue; const [e, s] = ptChega(P, o); if (e < j1 + PT_JAN.folga && s > j0 - PT_JAN.folga) falta = Math.max(falta, j1 + PT_JAN.folga - e); } return falta; };
+  function ptJanela(P, n0) {
+    const px = P.d + PPX, altos = P.obs.slice(0, n0).filter((o) => o.alto && !o.got && o.x + 10 > px - 7), novos = P.obs.slice(n0); if (!altos.length || !novos.length) return 0;
+    let falta = 0; for (const it of altos) falta = Math.max(falta, ptCruza(P, it, novos));
+    if (falta > 0) { ptAnda(P, novos, falta); P.ptJanelas = (P.ptJanelas || 0) + 1; }
+    return falta;
+  }
   // itens altos (01/11, pedido do dono): acima do alcance do pulo comum; dá para pegar com o impulso ou pulando de cima do corrimão.
   // Picolé ou água de coco a 128 do chão (o pulo comum alcança até uns 95; o impulso, 125; do corrimão, 133). Valem 3×.
   const PT_ALTO = 128;
@@ -121,11 +139,15 @@
     const novos = P.obs.slice(n0), px = P.d + PPX, v = P.v; if (!novos.length) return;
     // em cima do corrimão do padrão novo
     const rail = novos.find((o) => o.k === 'corrimao');
-    if (rail && Math.random() < .45) { P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x: rail.x + rail.w * rand(.45, .7), y: PGY - PT_ALTO, alto: true, v0: v }); return; }
+    if (rail && Math.random() < .45) { const it = { k: Math.random() < .5 ? 'picole' : 'agua', x: rail.x + rail.w * rand(.45, .7), y: PGY - PT_ALTO, alto: true, trilho: true, rail, v0: v }; if (!ptCruza(P, it, P.obs)) P.obs.push(it); return; }
     // no espaço livre depois do padrão: o picolé do chão que já estaria ali sobe, ou entra um novo
     let fim = 0; for (const o of novos) if (PT_TOMBO[o.k]) { const sp = o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0; fim = Math.max(fim, (o.x + (o.w || 12) - px) / (v + sp)); }
-    const livre = (P.nextArr - P.t) - fim; if (livre < 1.05 || Math.random() > .4) return;
-    const x = px + v * (fim + livre * .5), chao = novos.find((o) => (o.k === 'picole' || o.k === 'agua') && !o.alto && Math.abs(o.x - x) < 70);
+    if (Math.random() > .4) return;
+    /* 02/11: o item fica depois de tudo o que já vem, com a janela inteira livre (antes ficava no meio do espaço até o próximo padrão,
+       e o próximo podia trazer bola ou coco bem na hora de abaixar para o impulso) */
+    let fimTudo = fim; for (const o of P.obs) if (PT_TOMBO[o.k]) fimTudo = Math.max(fimTudo, ptChega(P, o)[1]);
+    for (const o of P.obs) if (o.alto && !o.got) fimTudo = Math.max(fimTudo, ptJanelaDe(P, o)[1]); // um item alto de cada vez: a janela do anterior termina antes
+    const x = px + v * (fimTudo + PT_JAN.antes + PT_JAN.folga + .05) - 5, chao = novos.find((o) => (o.k === 'picole' || o.k === 'agua') && !o.alto && Math.abs(o.x - x) < 70);
     if (chao) { chao.alto = true; chao.y = PGY - PT_ALTO; chao.x = x; } else P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x, y: PGY - PT_ALTO, alto: true, v0: v });
   }
   if (typeof patins !== 'undefined') {
@@ -134,6 +156,7 @@
       const n0 = this.obs.length; spawn0.call(this);
       if (!window.__ptSemEspacar) ptEspaca(this, n0);
       if (!window.__ptSemConferir) ptConfere(this, n0);
+      if (!window.__ptSemJanela && this.obs.length > n0 && ptJanela(this, n0) > 0 && !window.__ptSemConferir) ptConfere(this, n0);
       if (this.obs.length > n0) ptAltos(this, n0);
     };
   }

@@ -370,6 +370,22 @@ s = sub1("else if (k === 'bot2') { P('bot', 0); P('bot', 30 / v); }", "else if (
 # a água de coco que ficava em cima do Amiguinho (parecia colada nele): agora 46 depois, onde você pega descendo do pulo
 s = sub1("else if (k === 'bot') { P('bot', 0); if (Math.random() < .4) P('agua', 3 / v, { y: PGY - 74 }); }", "else if (k === 'bot') { P('bot', 0); if (Math.random() < .4) P('agua', 46 / v, { y: PGY - 66 }); }", s)
 
+# 02/11 · patins (pedido do dono: "pular, segurar ▼ para pousar já abaixando e pegar impulso"): segurar ▼ até pousar não é mais tombo
+# ("Pousou agarrado"): você pousa abaixado e a carga do impulso já começa (0,1 s de crédito). O agarrar só vale pontos se soltar ▼ antes
+# de pousar (o risco do agarrado agora é perder os pontos, não cair). Vale no chão e no corrimão.
+s = sub1("""        if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.land(true); this.bump(why); }
+        else this.land(false);""",
+         """        const abx = this.grab; if (abx) { this.grab = false; this.grabT = 0; }
+        if (this.spinning || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : 'Pousou no meio da manobra'; this.land(true); this.bump(why); }
+        else { this.land(false); if (abx) { this.crouch = true; this.carga = .1; } }""", s)
+s = sub1("""    if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.y = PT_RH; this.land(true); this.bump(why); return; }""",
+         """    if (this.grab) { this.grab = false; this.grabT = 0; }
+    if (this.spinning || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : 'Pousou no meio da manobra'; this.y = PT_RH; this.land(true); this.bump(why); return; }""", s)
+
+# 02/11 · patins: soltar ▼ no mesmo instante em que aperta o pulo não perde mais a carga (fica guardada 0,12 s depois de soltar)
+s = sub1("      this.crouch = I.d; this.carga = I.d ? (this.carga || 0) + dt : 0;",
+         "      this.crouch = I.d; if (I.d) { this.carga = (this.carga || 0) + dt; this.cargaT = .12; } else if ((this.cargaT = (this.cargaT || 0) - dt) <= 0) this.carga = 0;", s)
+
 # 01/11 · BMX pintado (mvbx.py -> mvbx.js, bxcen.py -> bxcen.js, desenho em bxp.js): desenhado em alta, como as outras pintadas
 s = sub1("  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, dur: 60,", "  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, paint: true, dur: 60,", s)
 # 02/11 · BMX com a física e a trilha novas (bxfis.js): medalhas pelos jogadores automáticos (só pedalando ~12.000, com o pulo na ponta da rampa ~21.000, com mortais ~29.000)

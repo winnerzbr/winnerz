@@ -603,6 +603,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Espaço entre as coisas (01/11): os dois Amiguinhos seguidos ficam a 64 (eram 30 e ficavam colados); a água de coco que ficava em cima do Amiguinho foi para 46 depois dele (pega descendo do pulo); entre o padrão novo e o que já está no chão, pelo menos 34 de chão livre (`ptEspaca`). Medido em 30 partidas: nenhum caso perto demais na tela.
   - Sempre tem saída (`cart2/ptsolve.js`): cada padrão novo é conferido por um jogador que decide a cada 0,1 s (nada, abaixar ou pular; sem manobras e sem o impulso), junto com o que já está vindo. Sem saída, o padrão chega 0,15 s depois (até 2,4 s) ou é tirado. Bola e coco andam na proporção da sua velocidade (depois de um tombo, quando você fica lento, o que foi planejado continua no mesmo ritmo); a queda do coco pode esperar. Testes: `testes/ptsaida.cjs` (o jogador da busca joga 60 partidas inteiras: nenhum tombo; nem antes da conferência ele achou combinação impossível, então o caso do dono provavelmente pedia abaixar, já que a bola passa na altura da cabeça e pulando só passa no alto do pulo) e `testes/ptconfere.cjs` (dois casos impossíveis de propósito: um é atrasado, o outro tirado).
 - **Pendente:** o dono testar.
+- **Ajustes de 02/11 (pedidos do dono):**
+  - **Item alto com o caminho livre.** O dono relatou: "não dá para pegar o item de cima: vem bola ou coco e, se seguro ▼ para o impulso, sou atingido; desviando, passo do item".
+    - Cada item alto tem uma janela livre (`ptJanela` e `ptCruza` em `cart2/ptsolve.js`, `PT_JAN`), que vai de 1,15 s antes de chegar nele até 0,55 s depois. Esse tempo dá para pousar do que veio antes, abaixar, carregar 0,25 s e ficar no ar.
+    - O item fica depois de tudo o que já está vindo (e depois da janela do item alto anterior). Os padrões seguintes esperam a janela passar.
+    - No corrimão, a janela é de 0,55 s antes; se o próprio padrão a cruza, o item não entra.
+  - **Pousar segurando ▼ não é mais tombo** ("Pousou agarrado" saiu, no chão e no corrimão). Você pousa abaixado e a carga do impulso já começa com 0,1 s.
+    - O agarrar só vale pontos se soltar ▼ antes de pousar: o risco virou perder os pontos, não cair.
+  - **Soltar ▼ no mesmo instante do pulo não perde a carga:** ela fica guardada 0,12 s.
+  - **Teste `testes/ptalto.cjs`:** um jogador automático que abaixa, carrega e pula para cada item alto (fora do corrimão) e usa a busca no resto.
+    - Na versão de antes, 17 dos 34 tombos foram indo atrás do item.
+    - Agora pega 160 de 161 itens altos, com 0 tombos.
+    - Pousando segurando ▼: sem tombo, abaixado, e o pulo seguinte sai com impulso.
+    - `ptsaida` (60 partidas, nenhum tombo do jogador da busca) e `ptespaco` (alcance: comum 0/30, impulso 25/30, corrimão 28/30) continuam iguais.
 - **Atlas juntos (01/11):** cada personagem pintado novo (surfe, basquete, patins) fica num atlas só e numa máscara só (`cart2/junta.py`: cada animação ganha `y`, a imagem fica em `src`/`mask` do topo). Antes era uma imagem e uma máscara por animação e a página publicada chegou a 501 dos 511 arquivos; agora tem 450 imagens. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais.
 
 ## Vôlei

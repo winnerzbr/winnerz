@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: patins: item alto alcançável e pouso abaixado
+- **O dono pediu:**
+  - poder pegar o item alto: bola ou coco vinham bem na hora de abaixar para o impulso, e desviando passava do item;
+  - poder segurar ▼ no fim do pulo para já pousar abaixado e pegar impulso (antes era tombo "Pousou agarrado").
+- **Feito:**
+  - cada item alto agora tem uma janela livre para pousar, abaixar, carregar e pular; os obstáculos seguintes esperam;
+  - pousar segurando ▼ deixa você abaixado, com a carga já começando; o agarrar só vale pontos se soltar antes de pousar;
+  - soltar ▼ junto com o pulo não perde a carga.
+  - Medido com um jogador automático: 160 de 161 itens altos pegos, sem tombos (antes, metade dos tombos era indo atrás do item).
+- **Pendente:** o dono jogar; e ouvir os sons de desenho no jogo.
+
+---
+
 ## 02/11/2026: sons de desenho no jogo
 - **O dono pediu:** colocar no jogo os sons que escolheu na página "Sons de Desenho".
 - **Feito:**

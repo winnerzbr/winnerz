@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Patins com itens altos e mais espaço; Mortal do skate segurando ▼
+- **O dono pediu:** itens que só se pegam com o pulo alto; mais espaço entre os Amiguinhos e os outros itens; no skate, o Mortal numa direção, segurando como o giro, mais mortais valendo mais e pousando em pé.
+- **Feito:** itens altos dourados (impulso ou pulo do corrimão, valem 3×); Amiguinhos seguidos mais afastados, água de coco fora de cima do Amiguinho e espaço mínimo entre as coisas no chão; Mortal segurando ▼ (escolha do dono), com tombo se pousar no meio da volta. Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: Patins com impulso e sempre com saída; Mortal no skate
 - **O dono pediu:** Amiguinhos maiores; dar tempo de pular, fazer manobra e cair no corrimão (sugeriu agachar para pular mais alto); nenhuma combinação de obstáculos pode ser impossível; Mortal no skate.
 - **Feito:** Amiguinhos 72%; impulso (agachado 0,25 s e pula: 25% mais forte, com halo azul); corrigido o pulo que sempre saía girando (era o que fazia bater no corrimão no meio da manobra); conferência de saída em todo padrão novo de obstáculos (atrasa ou tira o que ficaria impossível); Mortal no skate com dois botões juntos. Publicado na página do Claude e no site.

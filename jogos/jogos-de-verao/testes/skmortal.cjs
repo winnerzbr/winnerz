@@ -1,4 +1,5 @@
-// Skate (01/11): Mortal com dois botões juntos. Confere a troca (juntos e com o segundo até 0,15 s depois), os pontos ao pousar e fotos da volta.
+// Skate (01/11): Mortal segurando ▼ (como o giro). Segura por tempos diferentes num voo e vê: quantos mortais, se pousou ou caiu e os pontos.
+// Também as fotos de uma volta. O toque rápido em ▼ continua sendo a Rabeta.
 const { chromium } = require('playwright'); const fs = require('fs');
 (async () => {
   const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 2 }); fs.mkdirSync('amg', { recursive: true });
@@ -8,15 +9,18 @@ const { chromium } = require('playwright'); const fs = require('fs');
   await p.evaluate(() => { window.__skHora = 12; choose(halfpipe); start(); }); await p.waitForTimeout(4500);
   const r = await p.evaluate(() => { const c = document.querySelector('canvas').getBoundingClientRect(); return { x: c.x, y: c.y, width: c.width, height: c.height }; });
   console.log(await p.evaluate(() => {
-    const H = halfpipe, out = [];
-    const voo = (seq) => { H.launch(1, 330); const nomes = []; for (let f = 0; f < 200 && H.air; f++) { const I = seq(f) || {}; H.airStep(1 / 60, I, { x: 0, y: 0 }); if (H.trick && !nomes.includes(H.trick.nome)) nomes.push(H.trick.nome); } return nomes.join(' → ') + ' · feitas: ' + H.doneTr.map((t) => t.nome).join(', '); };
-    out.push('juntos: ' + voo((f) => f === 5 ? { pa: 1, a: 1, pb: 1, b: 1 } : f < 12 ? { a: 1, b: 1 } : {}));
-    out.push('segundo 0,1 s depois: ' + voo((f) => f === 5 ? { pa: 1, a: 1 } : f === 11 ? { a: 1, pc: 1, c: 1 } : f < 15 && f > 5 ? { a: 1 } : {}));
-    out.push('segundo 0,3 s depois (não vira): ' + voo((f) => f === 5 ? { pe: 1, e: 1 } : f === 23 ? { pc: 1, c: 1 } : {}));
-    out.push('um botão só: ' + voo((f) => f === 5 ? { pb: 1, b: 1 } : {}));
-    return out.join('\n');
+    const H = halfpipe, out = []; const msgs = []; const fm = window.failMsg; window.failMsg = (m) => msgs.push(m); const pp = window.pop; let ult = ''; window.pop = (t, ...a) => { ult = t; return pp(t, ...a); };
+    for (const v of [300, 420]) {
+      H.launch(1, v); out.push(`voo de ${H.airDur.toFixed(2)} s (velocidade ${v}):`);
+      for (const seg of [0.05, .3, .5, .7, .9, 1.1, 1.3]) {
+        H.init(); H.launch(1, v); const f0 = H.falls, s0 = H.score; msgs.length = 0; ult = ''; let t = 0, nomes = [];
+        for (let f = 0; f < 400 && H.air; f++) { const segurando = t >= .08 && t < .08 + seg; H.airStep(1 / 60, segurando ? { d: 1 } : {}, { x: 0, y: segurando ? 1 : 0 }); if (H.trick && !nomes.includes(H.trick.nome)) nomes.push(H.trick.nome); t += 1 / 60; }
+        out.push(`  segurou ▼ ${seg.toFixed(2)} s: ${H.falls > f0 ? 'CAIU (' + msgs.join(', ') + ')' : 'pousou: ' + ult}${nomes.length ? ' · manobra: ' + nomes.join(', ') : ''}`);
+      }
+    }
+    window.failMsg = fm; window.pop = pp; return out.join('\n');
   }));
-  await p.evaluate(() => { const H = halfpipe; window.__u = H.update; H.update = function (dt) { this.t += dt; return false; }; H.launch(1, 330); H.ah = 70; H.trick = { ...HP_BTN.m, key: 'btn_m', t: 0 }; });
-  for (let i = 0; i < 6; i++) { await p.evaluate((i) => { halfpipe.trick.t = halfpipe.trick.d * i / 6; }, i); await p.waitForTimeout(80); await p.screenshot({ path: `amg/sk_mortal_${i}.png`, clip: r }); }
+  await p.evaluate(() => { const H = halfpipe; window.__u = H.update; H.update = function (dt) { this.t += dt; return false; }; H.launch(1, 330); H.ah = 70; H.flip = 1; });
+  for (let i = 0; i < 6; i++) { await p.evaluate((i) => { halfpipe.fl = 360 * i / 6 + 20; }, i); await p.waitForTimeout(80); await p.screenshot({ path: `amg/sk_mortal_${i}.png`, clip: r }); }
   console.log(errs.join(' | ') || 'sem erros'); await b.close();
 })();

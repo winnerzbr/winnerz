@@ -101,10 +101,11 @@
         else if (left < .36) { an = 'air'; fr = 4 + Math.min(3, Math.floor((1 - left / .36) * 4)); }
         else { an = 'air'; fr = Math.min(3, Math.floor((this.airT - .28) * 10)); }
       }
-      if (k === 'mortal') {
-        // 01/11 (pedido do dono): Mortal, uma volta para trás em volta do centro do corpo, encolhido (o voo, quadro 2)
+      // 01/11 (pedido do dono): mortais segurando ▼, para trás, em volta do centro do corpo (encolhido: o voo, quadro 2)
+      const flA = this.fl || 0;
+      if (this.flip || this.flSnap != null || Math.abs(flA - Math.round(flA / 360) * 360) > .5) {
         const c0 = skMeio('air'); ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);
-        ctx.translate(c0[0] * face, c0[1]); ctx.rotate(-face * pr * TAU); ctx.translate(-c0[0] * face, -c0[1]);
+        ctx.translate(c0[0] * face, c0[1]); ctx.rotate(-face * flA * Math.PI / 180); ctx.translate(-c0[0] * face, -c0[1]);
         frameSk('air', 2, 2, face < 0); ctx.restore(); return;
       }
       ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);

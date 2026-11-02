@@ -184,6 +184,12 @@
           ctx.globalAlpha = .4; ptPart('sombra', x + o.w / 2, PGY + 1, o.w + 6, 4); ctx.globalAlpha = 1; ptRail(x, o.w);
         } else if (!o.got) {
           const bob = Math.sin(tt * 4 + o.x) * 2;
+          if (o.alto) { // item alto: brilho dourado em volta (só com o impulso ou do corrimão)
+            ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(x + 4, o.y + 6 + bob, 1, x + 4, o.y + 6 + bob, 14);
+            g.addColorStop(0, `rgba(255,214,90,${.5 + .2 * Math.sin(tt * 6 + o.x)})`); g.addColorStop(1, 'rgba(255,214,90,0)'); ctx.fillStyle = g; ctx.fillRect(x - 10, o.y - 8 + bob, 28, 28);
+            for (let i = 0; i < 3; i++) { const a = tt * 3 + i * TAU / 3; ctx.fillStyle = '#fff3b0'; ctx.fillRect(x + 4 + Math.cos(a) * 11, o.y + 6 + bob + Math.sin(a) * 11, 1.6, 1.6); }
+            ctx.restore();
+          }
           ptPart(o.k === 'picole' ? 'picole' : 'agua', x + 4, o.y + 6 + bob);
         }
       }

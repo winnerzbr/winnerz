@@ -1260,7 +1260,6 @@ const HP_BTN = {
   b: { nome: 'Cristo', v: 170, d: .5, k: 'body', f: 1, tmp: 3 },
   c: { nome: 'Foguete', v: 160, d: .48, k: 'body', f: 2, tmp: 2 },
   e: { nome: 'Hélice', v: 190, d: .6, k: 'helice', f: 3, tmp: 0 },
-  m: { nome: 'Mortal', v: 230, d: .62, k: 'mortal', f: 0, tmp: 4 }, // dois botões juntos
 };
 // manobras na borda: uma por botão; T = tempo até cair
 const HP_LIP = {
@@ -1269,6 +1268,8 @@ const HP_LIP = {
   c: { nome: 'Grind na borda', v: 170, T: 1.45, k: 'grind' },
   e: { nome: 'Stall', v: 110, T: 1.8, k: 'stall' },
 };
+const HP_FLV = 600, HP_FLIPS = [0, 260, 620, 1050, 1550, 2100, 2700];
+const HP_FLNOME = (n) => n === 1 ? 'Mortal' : n === 2 ? 'Mortal duplo' : n === 3 ? 'Mortal triplo' : n + ' mortais';
 const HP_SPIN = [0, 80, 200, 330, 480, 650, 850, 1050, 1300];
 // a manobra continua enquanto o botão (ou a direção) que a começou estiver apertado
 function hpHeld(tk, I, dir) {
@@ -1303,9 +1304,9 @@ FALA.hpTrick = ['Essa foi limpa. O deck aplaudiu. Eu aplaudi por educação.', '
 const halfpipe = {
   id: 'halfpipe', name: 'Half-pipe', tag: 'Skate · 1 min 30 s', wide: true, hi: true, dur: 90, med: [2000, 5500, 10000], ia: 900, nota: 'o shape tava empenado',
   desc: 'Impulso com as setas, manobras no ar e na borda.',
-  steps: () => [touch ? 'Arraste na tela ou use as setas: para a frente dá impulso, para trás freia.' : 'Seta para a frente dá impulso; para trás, freia.', touch ? 'No ar: cada direção e cada botão (✕ ○ □ △) é uma manobra; dois botões juntos, Mortal. Segure para o lado para girar; girando, ↑ ↓ ou um botão combina.' : 'No ar: cada direção e cada botão é uma manobra; dois botões juntos, Mortal. Segure ◀ ▶ para girar; girando, ↑ ↓ ou um botão combina.', 'Na borda, segure um botão e solte na hora certa. Pouse alinhado.'],
+  steps: () => [touch ? 'Arraste na tela ou use as setas: para a frente dá impulso, para trás freia.' : 'Seta para a frente dá impulso; para trás, freia.', touch ? 'No ar: cada direção e cada botão (✕ ○ □ △) é uma manobra. Segure para o lado para girar e para baixo para dar mortais (solte a tempo de pousar em pé); girando, ↑ ou um botão combina.' : 'No ar: cada direção e cada botão é uma manobra. Segure ◀ ▶ para girar e ▼ para dar mortais (solte a tempo de pousar em pé); girando, ↑ ou um botão combina.', 'Na borda, segure um botão e solte na hora certa. Pouse alinhado.'],
   hint: () => '',
-  ctl: [['◀ ▶', 'frente: impulso · trás: freia', 'kb'], ['Setas · analógico direito', 'no ar: 8 manobras · segure ◀ ▶ para girar', 'kb'], ['Espaço X C V', 'no ar: manobras · dois juntos: Mortal · na borda: segure', 'kb'], ['Arrastar', 'impulso e manobras', 'touch'], ['✕ ○ □ △', 'no ar: manobras · dois juntos: Mortal · na borda: segure', 'touch'], ['Esc', 'pausa', 'kb']],
+  ctl: [['◀ ▶', 'frente: impulso · trás: freia', 'kb'], ['Setas · analógico direito', 'no ar: 8 manobras · segure ◀ ▶ para girar · segure ▼ para mortais', 'kb'], ['Espaço X C V', 'no ar: manobras · na borda: segure', 'kb'], ['Arrastar', 'impulso e manobras', 'touch'], ['✕ ○ □ △', 'no ar: manobras · na borda: segure', 'touch'], ['Esc', 'pausa', 'kb']],
   pad: { dirs: 'lrud', a: '✕', b: '○', c: '□', e: '△' },
   init() {
     Object.assign(this, {
@@ -1391,7 +1392,7 @@ const halfpipe = {
     if (fy !== null) this.cam = Math.max(this.cam, 24 - fy);
   },
   launch(side, v) {
-    Object.assign(this, { combined: false, prevY: 0, hoverUsed: false, hovT: 0, cbKey: null, cbRot: 0, gSpin: false, air: true, side, avy: v, ah: 0, peak: 0, airT: 0, airDur: 2 * v / this.g, trick: null, queued: null, doneTr: [], tap: null, spin: 0, rot: 0, snapTo: null });
+    Object.assign(this, { combined: false, prevY: 0, hoverUsed: false, hovT: 0, cbKey: null, cbRot: 0, gSpin: false, fl: 0, flip: 0, flSnap: null, air: true, side, avy: v, ah: 0, peak: 0, airT: 0, airDur: 2 * v / this.g, trick: null, queued: null, doneTr: [], tap: null, spin: 0, rot: 0, snapTo: null });
   },
   startLip(k, side, vin) {
     const L = HP_LIP[k];
@@ -1412,7 +1413,7 @@ const halfpipe = {
     }
   },
   startTrick(key) {
-    const T = HP_AIR[key] || HP_BTN[key.replace('btn_', '')]; if (!T) return;
+    const T = HP_AIR[key] || HP_BTN[key.replace('btn_', '')]; if (!T || this.flip || this.flSnap != null) return;
     if (this.trick) { this.queued = key; return; }
     if (this.spin) this.combined = true; // manobra começou no meio do giro
     this.trick = { ...T, key, t: 0 }; beep(620 + Object.keys(HP_AIR).indexOf(key) * 60, .05, 'square', .035); sfx.whoosh();
@@ -1423,22 +1424,21 @@ const halfpipe = {
     this.airT += dt; this.ah += this.avy * dt; this.avy -= this.g * dt * (hover ? .3 : 1); this.peak = Math.max(this.peak, this.ah);
     if (hover) this.airDur += dt * .7;
     // saiu da borda segurando o botão logo depois: ainda dá para pegar a borda
-    { const BK = ['a', 'b', 'c', 'e'], ps = BK.filter((bk) => I['p' + bk]), seg = BK.filter((bk) => I[bk] || I['p' + bk]);
-      if (ps.length && seg.length >= 2 && !(this.trick && this.trick.k === 'mortal') && (!this.trick || (this.trick.key.startsWith('btn_') && this.trick.t < .15))) { this.trick = null; this.queued = null; this.startTrick('btn_m'); }
-      else if (ps.length) this.startTrick('btn_' + ps[0]); }
+    for (const bk of ['a', 'b', 'c', 'e']) if (I['p' + bk]) { this.startTrick('btn_' + bk); break; }
     // direções: toque curto = manobra; segurar ◀/▶ = giro
     if (dir.x || dir.y) {
       if (!this.tap) this.tap = { t: 0, x: 0, y: 0, done: false };
       const tp = this.tap; tp.t += dt; if (dir.x) tp.x = dir.x; if (dir.y) tp.y = dir.y;
-      if (!this.spin && tp.done && dir.x && this.trick && (this.trick.key === 'u' || this.trick.key === 'd') && hpHeld(this.trick, I, { x: 0, y: dir.y })) {
+      if (!this.spin && tp.done && dir.x && this.trick && this.trick.key === 'u' && hpHeld(this.trick, I, { x: 0, y: dir.y })) {
         this.spin = dir.x; this.snapTo = null; this.combined = true; this.gSpin = true;
       } else if (this.spin && this.gSpin && !dir.x) {
         this.snapTo = this.spin > 0 ? Math.ceil(this.rot / 180 - 1e-6) * 180 : Math.floor(this.rot / 180 + 1e-6) * 180; this.spin = 0; this.gSpin = false;
       } else if (this.spin) {
         // girando: ↑ ou ↓ faz a pegada junto com o giro (combinada)
-        if (dir.y && !this.prevY) this.startTrick(dir.y < 0 ? 'u' : 'd');
+        if (dir.y < 0 && !this.prevY) this.startTrick('u');
       } else if (tp.t > HP_HOLD && !tp.done) {
         if (!tp.y && tp.x) { this.spin = tp.x; this.snapTo = null; if (this.trick) this.combined = true; }
+        else if (tp.y > 0 && !tp.x && !this.trick) { this.flip = 1; this.flSnap = null; tp.done = true; }
         else { this.startTrick(hpKey(tp.x, tp.y)); tp.done = true; }
       }
     } else if (this.tap) {
@@ -1449,6 +1449,8 @@ const halfpipe = {
     this.prevY = dir.y;
     const rot0 = this.rot;
     if (this.spin) this.rot += this.spin * HP_SPINV * dt;
+    if (this.flip) { if (dir.y > 0) this.fl += HP_FLV * dt; else { this.flip = 0; this.flSnap = Math.ceil(this.fl / 360 - 1e-6) * 360; } }
+    else if (this.flSnap != null) { this.fl = Math.min(this.flSnap, this.fl + HP_FLV * dt); if (this.fl >= this.flSnap) this.flSnap = null; }
     else if (this.snapTo !== null) { const d = this.snapTo - this.rot, st = HP_SPINV * dt; if (Math.abs(d) <= st) { this.rot = this.snapTo; this.snapTo = null; } else this.rot += Math.sign(d) * st; }
     if (this.trick && HP_CB[this.trick.key] && this.rot !== rot0) { if (this.cbKey !== this.trick.key) { this.cbKey = this.trick.key; this.cbRot = 0; } this.cbRot += Math.abs(this.rot - rot0); }
     if (this.trick) {
@@ -1461,8 +1463,11 @@ const halfpipe = {
   land() {
     // quanto falta para alinhar: giro fora do meio-giro e manobra que ainda não terminou
     const err = Math.abs(this.rot - Math.round(this.rot / 180) * 180), trLeft = this.trick ? 1 - this.trick.t / this.trick.d : 0;
+    const fe = ((this.fl || 0) % 360 + 360) % 360, fErr = Math.min(fe, 360 - fe), nF = Math.round((this.fl || 0) / 360);
+    if (fErr > 35) { this.fl = 0; this.flip = 0; this.flSnap = null; this.bail('Pousou no meio do mortal'); return; }
     if (err > 35 || trLeft > .2) { this.bail(trLeft > .2 ? 'Caiu no meio da manobra' : 'Pousou torto'); return; }
-    const sketchy = err > 10 || trLeft > .04;
+    const sketchy = err > 10 || trLeft > .04 || fErr > 10;
+    if (nF > 0) this.doneTr.push({ nome: HP_FLNOME(nF), v: HP_FLIPS[Math.min(HP_FLIPS.length - 1, nF)] });
     if (this.trick) this.doneTr.push(hpDone(this.trick));
     const k = Math.round(Math.abs(this.rot) / 180), deg = k * 180, list = [...this.doneTr];
     if (deg >= 180) { list.unshift({ nome: String(deg), v: HP_SPIN[Math.min(HP_SPIN.length - 1, k)] }); this.bestSpin = Math.max(this.bestSpin, deg); }
@@ -1476,7 +1481,7 @@ const halfpipe = {
     const side = this.side;
     // sem giro (ou giro par) ele desce de costas; giro ímpar, de frente
     this.stance = k % 2 ? this.stance : -this.stance;
-    Object.assign(this, { air: false, ah: 0, s: side * (HPL - .5), v: -side * Math.abs(this.avy), trick: null, queued: null, doneTr: [], spin: 0, rot: 0, snapTo: null, tap: null, cbKey: null, cbRot: 0, gSpin: false });
+    Object.assign(this, { air: false, ah: 0, s: side * (HPL - .5), v: -side * Math.abs(this.avy), trick: null, queued: null, doneTr: [], spin: 0, rot: 0, snapTo: null, tap: null, cbKey: null, cbRot: 0, gSpin: false, fl: 0, flip: 0, flSnap: null });
     this.clean = !sketchy; this.pass = { pump: 0, zone: 0, brake: 0 };
     if (sketchy) { this.wob = .7; this.wobbles++; shake = .15; sfx.whiff(); }
     if (!list.length) { if (!sketchy) sfx.land(); this.combo = Math.max(0, this.combo - 1); return; }
@@ -2110,7 +2115,7 @@ const patins = {
       else if (o.k === 'bot') { if (o.pis) continue; const enc = px1 > o.x + PT_BOT.x0 && px0 < o.x + PT_BOT.x1; if (enc && this.air && this.vy <= 40 && fh >= PT_BOT.p0 && fh < PT_BOT.p1) { this.pisa(o); continue; } hit = enc && fh < PT_BOT.cab; }
       else if (o.k === 'bola') hit = px1 > o.x && px0 < o.x + 6 && fh + bodyH > 39 && fh < 48;
       else if (o.k === 'corrimao') { if (this.air && this.grind !== o && fh < PT_RH && fh >= PT_RH - 14 && px > o.x - 4 && px < o.x + 30) { if (this.vy <= 0) this.sobeRail(o); continue; } hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6; }
-      else if (px1 > o.x && px0 < o.x + 10 && PGY - fh - bodyH < o.y + 14 && PGY - fh > o.y) { o.got = true; const v = o.k === 'agua' ? 60 : 30; this.bonus += Math.round(v * this.mult()); this.items++; pop(`${o.k === 'agua' ? 'Água de coco' : 'Picolé'} +${Math.round(v * this.mult())}`, PPX + 10, o.y - 6, '#bfefff'); sfx.coin(); }
+      else if (px1 > o.x && px0 < o.x + 10 && PGY - fh - bodyH < o.y + 14 && PGY - fh > o.y) { o.got = true; const v = (o.k === 'agua' ? 60 : 30) * (o.alto ? 3 : 1); this.bonus += Math.round(v * this.mult()); this.items++; pop(`${o.k === 'agua' ? 'Água de coco' : 'Picolé'}${o.alto ? ' lá no alto' : ''} +${Math.round(v * this.mult())}`, PPX + 10, o.y - 6, '#bfefff'); sfx.coin(); }
       if (hit) { o.hit = true; this.bump(PT_TOMBO[o.k]); }
       // passou limpo
       if (!o.hit && !o.clean && PT_TOMBO[o.k] && o.x + (o.w || 12) < px0 - 2) { o.clean = true; if (o.k !== 'corrimao' || !o.grinded) this.addCombo(); }
@@ -2176,11 +2181,11 @@ const patins = {
     if (k === 'buraco') { const w = holeW(); P('buraco', 0, { w }); if (Math.random() < .45) P('agua', w / 2 / v, { y: PGY - 70 }); }
     else if (k === 'coco') P('coco', 0);
     else if (k === 'bola') P('bola', 0);
-    else if (k === 'bot') { P('bot', 0); if (Math.random() < .4) P('agua', 3 / v, { y: PGY - 74 }); }
+    else if (k === 'bot') { P('bot', 0); if (Math.random() < .4) P('agua', 46 / v, { y: PGY - 66 }); }
     else if (k === 'corrimao') P('corrimao', 0, { w: Math.round(rand(70, 110) + L * 6) });
     else if (k === 'buraco2') { const w = holeW(); P('buraco', 0, { w }); P('buraco', gapJ + w / v, { w }); }
     else if (k === 'bola+buraco') { P('bola', 0); P('buraco', .58, { w: holeW() }); }
-    else if (k === 'bot2') { P('bot', 0); P('bot', 30 / v); }
+    else if (k === 'bot2') { P('bot', 0); P('bot', 64 / v); }
     else if (k === 'corrimao+bola') { const w = Math.round(rand(70, 100)); P('corrimao', 0, { w }); P('bola', w / v + .62); }
     else if (k === 'queda') P('queda', .5);
     else if (k === 'buraco+coco') { const w = holeW(); P('buraco', 0, { w }); P('coco', gapJ + w / v); }
@@ -11357,7 +11362,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '01/11 22:52';
+const WZ_BUILD = '01/11 23:30';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
@@ -14266,10 +14271,11 @@ window.SKVD = {"f": {"manha": "img/2e7e9abeb72b.webp", "dia": "img/bdc90a1b671a.
         else if (left < .36) { an = 'air'; fr = 4 + Math.min(3, Math.floor((1 - left / .36) * 4)); }
         else { an = 'air'; fr = Math.min(3, Math.floor((this.airT - .28) * 10)); }
       }
-      if (k === 'mortal') {
-        // 01/11 (pedido do dono): Mortal, uma volta para trás em volta do centro do corpo, encolhido (o voo, quadro 2)
+      // 01/11 (pedido do dono): mortais segurando ▼, para trás, em volta do centro do corpo (encolhido: o voo, quadro 2)
+      const flA = this.fl || 0;
+      if (this.flip || this.flSnap != null || Math.abs(flA - Math.round(flA / 360) * 360) > .5) {
         const c0 = skMeio('air'); ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);
-        ctx.translate(c0[0] * face, c0[1]); ctx.rotate(-face * pr * TAU); ctx.translate(-c0[0] * face, -c0[1]);
+        ctx.translate(c0[0] * face, c0[1]); ctx.rotate(-face * flA * Math.PI / 180); ctx.translate(-c0[0] * face, -c0[1]);
         frameSk('air', 2, 2, face < 0); ctx.restore(); return;
       }
       ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);
@@ -15765,6 +15771,12 @@ function bqDraw(tt) {
           ctx.globalAlpha = .4; ptPart('sombra', x + o.w / 2, PGY + 1, o.w + 6, 4); ctx.globalAlpha = 1; ptRail(x, o.w);
         } else if (!o.got) {
           const bob = Math.sin(tt * 4 + o.x) * 2;
+          if (o.alto) { // item alto: brilho dourado em volta (só com o impulso ou do corrimão)
+            ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(x + 4, o.y + 6 + bob, 1, x + 4, o.y + 6 + bob, 14);
+            g.addColorStop(0, `rgba(255,214,90,${.5 + .2 * Math.sin(tt * 6 + o.x)})`); g.addColorStop(1, 'rgba(255,214,90,0)'); ctx.fillStyle = g; ctx.fillRect(x - 10, o.y - 8 + bob, 28, 28);
+            for (let i = 0; i < 3; i++) { const a = tt * 3 + i * TAU / 3; ctx.fillStyle = '#fff3b0'; ctx.fillRect(x + 4 + Math.cos(a) * 11, o.y + 6 + bob + Math.sin(a) * 11, 1.6, 1.6); }
+            ctx.restore();
+          }
           ptPart(o.k === 'picole' ? 'picole' : 'agua', x + 4, o.y + 6 + bob);
         }
       }
@@ -15883,11 +15895,43 @@ function bqDraw(tt) {
     return atraso;
   }
   window.__ptConfere = ptConfere;
+  // espaço entre as coisas paradas no chão (01/11, pedido do dono: Amiguinhos colados e itens muito perto). Extensão de cada uma,
+  // como aparece na tela; entre o padrão novo e o que já está na pista, pelo menos PT_ESPACO de chão livre.
+  const PT_ESPACO = 34;
+  function ptExt(o) {
+    if (o.k === 'bot') return [o.x - 6, o.x + 22];
+    if (o.k === 'buraco') return [o.x - 6, o.x + o.w + 6];
+    if (o.k === 'corrimao') return [o.x - 8, o.x + o.w + 8];
+    if ((o.k === 'picole' || o.k === 'agua') && !o.alto && o.y > PGY - 40) return [o.x - 2, o.x + 12];
+    return null;
+  }
+  function ptAnda(P, novos, a) { for (const o of novos) { o.x += (P.v + (o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0) * (o.v0 ? P.v / o.v0 : 1)) * a; if (o.k === 'queda') o.wait = (o.wait || 0) + a; } P.nextArr += a; }
+  function ptEspaca(P, n0) {
+    const velhos = P.obs.slice(0, n0), novos = P.obs.slice(n0); let falta = 0;
+    for (const n of novos) { const a = ptExt(n); if (!a) continue; for (const o of velhos) { const b = ptExt(o); if (!b) continue; if (a[0] < b[1] + PT_ESPACO && a[1] > b[0] - PT_ESPACO) falta = Math.max(falta, b[1] + PT_ESPACO - a[0]); } }
+    if (falta > 0) { ptAnda(P, novos, falta / P.v); P.ptEspacados = (P.ptEspacados || 0) + 1; }
+  }
+  // itens altos (01/11, pedido do dono): acima do alcance do pulo comum; dá para pegar com o impulso ou pulando de cima do corrimão.
+  // Picolé ou água de coco a 128 do chão (o pulo comum alcança até uns 95; o impulso, 125; do corrimão, 133). Valem 3×.
+  const PT_ALTO = 128;
+  function ptAltos(P, n0) {
+    const novos = P.obs.slice(n0), px = P.d + PPX, v = P.v; if (!novos.length) return;
+    // em cima do corrimão do padrão novo
+    const rail = novos.find((o) => o.k === 'corrimao');
+    if (rail && Math.random() < .45) { P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x: rail.x + rail.w * rand(.45, .7), y: PGY - PT_ALTO, alto: true, v0: v }); return; }
+    // no espaço livre depois do padrão: o picolé do chão que já estaria ali sobe, ou entra um novo
+    let fim = 0; for (const o of novos) if (PT_TOMBO[o.k]) { const sp = o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0; fim = Math.max(fim, (o.x + (o.w || 12) - px) / (v + sp)); }
+    const livre = (P.nextArr - P.t) - fim; if (livre < 1.05 || Math.random() > .4) return;
+    const x = px + v * (fim + livre * .5), chao = novos.find((o) => (o.k === 'picole' || o.k === 'agua') && !o.alto && Math.abs(o.x - x) < 70);
+    if (chao) { chao.alto = true; chao.y = PGY - PT_ALTO; chao.x = x; } else P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x, y: PGY - PT_ALTO, alto: true, v0: v });
+  }
   if (typeof patins !== 'undefined') {
     const spawn0 = patins.spawn;
     patins.spawn = function () {
       const n0 = this.obs.length; spawn0.call(this);
+      if (!window.__ptSemEspacar) ptEspaca(this, n0);
       if (!window.__ptSemConferir) ptConfere(this, n0);
+      if (this.obs.length > n0) ptAltos(this, n0);
     };
   }
 

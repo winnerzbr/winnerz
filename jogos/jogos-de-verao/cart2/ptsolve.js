@@ -98,10 +98,42 @@
     return atraso;
   }
   window.__ptConfere = ptConfere;
+  // espaço entre as coisas paradas no chão (01/11, pedido do dono: Amiguinhos colados e itens muito perto). Extensão de cada uma,
+  // como aparece na tela; entre o padrão novo e o que já está na pista, pelo menos PT_ESPACO de chão livre.
+  const PT_ESPACO = 34;
+  function ptExt(o) {
+    if (o.k === 'bot') return [o.x - 6, o.x + 22];
+    if (o.k === 'buraco') return [o.x - 6, o.x + o.w + 6];
+    if (o.k === 'corrimao') return [o.x - 8, o.x + o.w + 8];
+    if ((o.k === 'picole' || o.k === 'agua') && !o.alto && o.y > PGY - 40) return [o.x - 2, o.x + 12];
+    return null;
+  }
+  function ptAnda(P, novos, a) { for (const o of novos) { o.x += (P.v + (o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0) * (o.v0 ? P.v / o.v0 : 1)) * a; if (o.k === 'queda') o.wait = (o.wait || 0) + a; } P.nextArr += a; }
+  function ptEspaca(P, n0) {
+    const velhos = P.obs.slice(0, n0), novos = P.obs.slice(n0); let falta = 0;
+    for (const n of novos) { const a = ptExt(n); if (!a) continue; for (const o of velhos) { const b = ptExt(o); if (!b) continue; if (a[0] < b[1] + PT_ESPACO && a[1] > b[0] - PT_ESPACO) falta = Math.max(falta, b[1] + PT_ESPACO - a[0]); } }
+    if (falta > 0) { ptAnda(P, novos, falta / P.v); P.ptEspacados = (P.ptEspacados || 0) + 1; }
+  }
+  // itens altos (01/11, pedido do dono): acima do alcance do pulo comum; dá para pegar com o impulso ou pulando de cima do corrimão.
+  // Picolé ou água de coco a 128 do chão (o pulo comum alcança até uns 95; o impulso, 125; do corrimão, 133). Valem 3×.
+  const PT_ALTO = 128;
+  function ptAltos(P, n0) {
+    const novos = P.obs.slice(n0), px = P.d + PPX, v = P.v; if (!novos.length) return;
+    // em cima do corrimão do padrão novo
+    const rail = novos.find((o) => o.k === 'corrimao');
+    if (rail && Math.random() < .45) { P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x: rail.x + rail.w * rand(.45, .7), y: PGY - PT_ALTO, alto: true, v0: v }); return; }
+    // no espaço livre depois do padrão: o picolé do chão que já estaria ali sobe, ou entra um novo
+    let fim = 0; for (const o of novos) if (PT_TOMBO[o.k]) { const sp = o.k === 'bola' ? 75 : o.k === 'coco' ? 38 : 0; fim = Math.max(fim, (o.x + (o.w || 12) - px) / (v + sp)); }
+    const livre = (P.nextArr - P.t) - fim; if (livre < 1.05 || Math.random() > .4) return;
+    const x = px + v * (fim + livre * .5), chao = novos.find((o) => (o.k === 'picole' || o.k === 'agua') && !o.alto && Math.abs(o.x - x) < 70);
+    if (chao) { chao.alto = true; chao.y = PGY - PT_ALTO; chao.x = x; } else P.obs.push({ k: Math.random() < .5 ? 'picole' : 'agua', x, y: PGY - PT_ALTO, alto: true, v0: v });
+  }
   if (typeof patins !== 'undefined') {
     const spawn0 = patins.spawn;
     patins.spawn = function () {
       const n0 = this.obs.length; spawn0.call(this);
+      if (!window.__ptSemEspacar) ptEspaca(this, n0);
       if (!window.__ptSemConferir) ptConfere(this, n0);
+      if (this.obs.length > n0) ptAltos(this, n0);
     };
   }

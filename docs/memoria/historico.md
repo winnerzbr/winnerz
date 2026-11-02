@@ -6,8 +6,8 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ## 02/11/2026: Corrida: peças da praia na versão de dia
 - **O dono mandou:** de novo os pacotes da BMX e das peças da praia (já estavam no jogo, iguais) e depois a versão de DIA do quiosque de coco, coqueiros e rede de vôlei.
-- **Feito:** a versão de dia entrou no jogo (de dia usava a da manhã). Só a imagem do meio-plano da Corrida mudou; trocada direto na página pronta do site (`public/demo/jogos-verao`) e na página do Claude.
-- **Pendente:** nada desta parte.
+- **Feito:** a versão de dia entrou no jogo (de dia usava a da manhã). Só a imagem do meio-plano da Corrida mudou; trocada direto na página pronta do site (`public/demo/jogos-verao`; imagem nova `img/c41bc7869d94.webp` no lugar de `img/2601a59b645d.webp`).
+- **Pendente:** a página do jogo no Claude não foi atualizada (esta sessão não tinha permissão para mudar artefatos antigos). Na próxima publicação dela, mandar o `index.html` e a imagem nova e tirar a antiga.
 
 ---
 

@@ -26,7 +26,7 @@ def tira_bola():
     json.dump(I0, open('mv2/info.json', 'w')); json.dump(out, open('mv2/bv2_pp_bola.json', 'w')); return out
 BOLA = tira_bola()
 src = open('mvb2.py', encoding='utf-8').read()
-N = {'espera': 1.012, 'lado': 1.047, 'topspin': 1.027, 'cortada': 1.069, 'efeito': 0.999, 'saque': 0.986, 'andar': 0.978, 'balao': 0.967}
+N = {'espera': 1.012, 'lado': 1.047, 'topspin': 1.027, 'cortada': 1.069, 'efeito': 0.999, 'saque': 0.986, 'andar': 0.978, 'balao': 0.967, 'festa': 1.012, 'lamento': 1.012}  # reações (01/11): mesma escala da espera
 an_ = lambda n: 'pp' + n[0].upper() + n[1:]
 NEW = {an_(n): [f'bv2_pp_{n}'] for n in N}
 SHN = {f'bv2_pp_{n}': (k, 'linha', 1) for n, k in N.items()}
@@ -46,3 +46,10 @@ sub("open('mvb.js', 'w').write('window.MVB = ' + json.dumps(OUT) + ';\\n'); prin
     "_f0 = OUT['a']['ppSaque']['f'][0]; _r = _f0['w'] / Image.open('mv2/bv2_pp_saque_0.png').width; EXTRA = {'ppBola': [round(BOLA[0][0] * _r - _f0['ax'], 1), round(BOLA[0][1] * _r - _f0['ay'], 1)], 'ppToque': {'topspin': 3, 'cortada': 3, 'efeito': 3, 'balao': 4, 'saque': 5}}\n"
     "open('mvbpp.js', 'w').write('if (window.MVB) { Object.assign(window.MVB.a, ' + json.dumps(OUT['a']) + '); Object.assign(window.MVB, ' + json.dumps(EXTRA) + '); }\\n'); print(len(open('mvbpp.js').read()) // 1024, 'KB', EXTRA)")
 exec(compile(src, 'mvb2.py', 'exec'), {'SHN': SHN, 'NEW': NEW, 'BOLA': BOLA, '__name__': '__mvbpp__'})
+# reações (01/11): quando a tela escura não aparece de verdade (de costas ou de lado, só uma fresta do visor), a medida pegava o
+# contorno do corpo inteiro e o rosto aceso saía em cima do corpo. Nesses quadros (caixa da tela maior que 60% do desenho) fica sem rosto.
+_s = open('mvbpp.js').read(); _i = _s.index('Object.assign(window.MVB.a, ') + len('Object.assign(window.MVB.a, '); _A, _e = json.JSONDecoder().raw_decode(_s[_i:]); _n = 0
+for _an in ('ppFesta', 'ppLamento'):
+    for _f in _A[_an]['f']:
+        if _f.get('s') and ((_f['s'][2] - _f['s'][0]) > _f['w'] * .6 or (_f['s'][3] - _f['s'][1]) > _f['h'] * .6): _f['s'] = None; _n += 1
+open('mvbpp.js', 'w').write(_s[:_i] + json.dumps(_A) + _s[_i + _e:]); print('reações sem rosto (tela não visível):', _n)

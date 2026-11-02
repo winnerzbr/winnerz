@@ -3,11 +3,11 @@
      de lado; com a raquete preparada andando: "andando com a raquete atrás"; parado e preparado: os quadros de antes do toque do golpe
      escolhido (o braço vai para trás conforme o tempo de preparo); depois da batida: do toque até o fim. Rebater = topspin, cortada =
      cortada, efeito e toque curto = efeito por baixo, balão = balão. Saque: a bolinha na mão (quadro 1), jogada para cima (2 e 3),
-     raquete atrás (4) e a batida (5 a 8). Comemorar e lamentar seguem com o desenho do vôlei e a raquete separada.
+     raquete atrás (4) e a batida (5 a 8). Comemorar e lamentar (01/11): as reações pintadas do pacote do dono (tocam uma vez e terminam prontos).
      O Amiguinho (01/11): as 8 pranchas dele (mvbpp.py, animações pp* do desenho do Amiguinho do vôlei, na cor do adversário), com as
      mesmas regras; o toque do saque dele é no quadro 6. */
   const PI = window.MVPI, PII = {}, PIK = {};
-  if (PI) for (const [nm, a] of Object.entries(PI.a)) { PII[nm] = new Image(); PII[nm].src = a.src; PIK[nm] = new Image(); PIK[nm].src = a.mask; }
+  if (PI) { const im = new Image(), mk = new Image(); im.src = PI.src; mk.src = PI.mask; for (const nm of Object.keys(PI.a)) { PII[nm] = im; PIK[nm] = mk; } } // um atlas só (junta.py)
   const PIOK = () => !!PI && Object.keys(PII).every((n) => PII[n].complete && PII[n].naturalWidth > 0 && PIK[n].complete && PIK[n].naturalWidth > 0);
   window.__PIOK = PIOK;
   const PIS = PI ? 56 / 325 / PI.q : 1; // a mesma escala do vôlei (as pranchas já vêm com a cabeça igualada)
@@ -15,7 +15,7 @@
   function framePi(an, k, ex, mirror) {
     const A = PI.a[an], n = A.f.length, f = A.f[((k | 0) % n + n) % n];
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.scale(PIS * (mirror ? -1 : 1), PIS); if (f.ks || f.kr) { ctx.rotate(f.kr || 0); ctx.scale(f.ks || 1, f.ks || 1); } // tamanho e giro do desenho inteiro (editor)
-    ctx.drawImage(PII[an], f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
+    ctx.drawImage(PII[an], f.x, A.y || 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     if (f.s && f.sz) {
       if (!FTP) FTP = document.createElement('canvas');
       const w = Math.ceil(f.w), h = Math.ceil(f.h);
@@ -24,7 +24,7 @@
       const cx = f.s[4] ?? (f.s[0] + f.s[2]) / 2, cy = f.s[5] ?? (f.s[1] + f.s[3]) / 2;
       const L1 = f.s[6] || f.sz[0], L2 = f.s[7] || f.sz[1], fk = L2 / 14.5, fkx = clamp(.62 * L1 / (11.6 * fk), .5, 1.3);
       const save = ctx; ctx = g; try { g.save(); g.translate(cx, cy); g.rotate(f.r || 0); glowFace(ex, 0, L2 * .03, fk, fkx); g.restore(); } finally { ctx = save; }
-      g.globalCompositeOperation = 'destination-in'; g.drawImage(PIK[an], f.x, 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
+      g.globalCompositeOperation = 'destination-in'; g.drawImage(PIK[an], f.x, A.y || 0, f.w, f.h, 0, 0, f.w, f.h); g.globalCompositeOperation = 'source-over';
       ctx.drawImage(FTP, 0, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h);
     }
     ctx.restore();
@@ -38,7 +38,9 @@
   const BLS = 34.8 / 152; // escala do Amiguinho do vôlei
   const cap = (n) => 'pp' + n[0].toUpperCase() + n.slice(1);
   const okDe = (i) => (i ? BLOK() : PIOK());
-  const pinta = (g, p) => okDe(p.i) && !(g.state === 'point' && g.st > .3 && !g.noPoint) && !g.over;
+  // comemorar e lamentar (01/11): as reações pintadas de cada um; sem elas (atlas antigo), o desenho do vôlei com a raquete separada
+  const temReacao = (i) => (i ? !!MB.a.ppFesta : !!PI.a.festa);
+  const pinta = (g, p) => okDe(p.i) && (temReacao(p.i) || (!(g.state === 'point' && g.st > .3 && !g.noPoint) && !g.over));
   const toqueDe = (i) => (i ? MB.ppToque : PI.toque), bolaDe = (i) => (i ? MB.ppBola && [MB.ppBola[0] * BLS, MB.ppBola[1] * BLS] : PI.bola && [PI.bola[0] * PIS, PI.bola[1] * PIS]);
   if (typeof pingue !== 'undefined' && (PI || (MB && MB.a.ppEspera))) {
     const char0 = pingue.drawChar, draw0 = pingue.draw;
@@ -47,7 +49,9 @@
       ctx.fillStyle = 'rgba(20,10,20,.3)'; ctx.beginPath(); ctx.ellipse(p.x, this.gy + 1, 15, 3, 0, 0, TAU); ctx.fill();
       const moving = p.mvT > 0, fwd = p.vx * p.f > 0, cyc = ((p.ph / TAU) % 1 + 1) % 1, T = toqueDe(p.i), b = this.b;
       let an = 'espera', k = Math.floor(tt * 8) % 8, ex = p.ex;
-      if (p.sw) { an = p.sw.serve ? 'saque' : p.sw.label === 'balão' ? 'balao' : SHEET[p.sw.kind] || 'topspin'; const c = T[an], q = clamp(p.sw.t / PP.sw, 0, 1); k = Math.min(7, c + Math.floor(q * (8 - c))); ex = 5; }
+      if (this.state === 'point' && this.st > .3 && !this.noPoint) { an = this.lastW === p.i ? 'festa' : 'lamento'; k = Math.min(7, Math.floor((this.st - .3) * 11)); ex = this.lastW === p.i ? 2 : 4; }
+      else if (this.over) { const won = this.sc[p.i] > this.sc[1 - p.i]; an = won ? 'festa' : 'lamento'; k = Math.min(7, Math.floor(this.overT * 11)); ex = won ? 2 : 4; }
+      else if (p.sw) { an = p.sw.serve ? 'saque' : p.sw.label === 'balão' ? 'balao' : SHEET[p.sw.kind] || 'topspin'; const c = T[an], q = clamp(p.sw.t / PP.sw, 0, 1); k = Math.min(7, c + Math.floor(q * (8 - c))); ex = 5; }
       else if (p.arm && p.arm.serve) { an = 'saque'; k = p.arm.t < .12 ? 1 : p.arm.t < .3 ? 2 : Math.min(T.saque - 1, 3 + Math.floor((p.arm.t - .3) / .12)); }
       else if (p.arm) { ex = 5; if (moving) { an = 'andar'; k = Math.floor(cyc * 8) % 8; if (!fwd) k = 7 - k; } else { an = SHEET[p.arm.kind] || 'topspin'; const c = T[an]; k = Math.min(c - 1, Math.floor(p.arm.t / .2 * c)); } }
       else if (this.state === 'serve' && this.server === p.i && b && b.held) { an = 'saque'; k = 0; }

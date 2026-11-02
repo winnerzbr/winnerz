@@ -96,7 +96,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Escalas pela régua (cabeça igualada à do vôlei): pronto 1,064 · passos de lado 1,009 · topspin 1,040 · cortada 1,017 · efeito 1,015 · saque 1,043 · andando com a raquete atrás 1,059 · balão 1,099. Cabeça de cada quadro igualada à mediana da prancha (±12%). O meio da cabeça (âncora) não conta a raquete vermelha.
   - Qual prancha aparece: parado → pronto (laço); andando → passos de lado (para trás, ao contrário); preparado andando → andando com a raquete atrás; preparado parado → os quadros antes do toque do golpe (o braço vai para trás com o tempo de preparo); depois da batida → do toque até o fim. Rebater = topspin, cortada = cortada, efeito e toque curto = efeito, balão = balão. Toque no quadro 4 (no balão e no saque, 5).
   - Saque: bolinha na mão (1), jogando para cima (2 e 3), raquete atrás (4), batida (5 a 8). A bolinha desenhada saiu dos quadros 1 a 3 (o jogo desenha a dele); na mão, a bolinha do jogo aparece no lugar da mão desenhada e, ao subir, volta ao caminho de sempre em 0,15 s (só o desenho; a física é a mesma).
-  - Comemorar e lamentar seguem com o desenho do vôlei e a raquete separada. Os pedidos delas (IAmiguinho e Amiguinho) estão no fim do Pingue-pongue na página de pedidos.
+  - Comemorar e lamentar: pintados desde 01/11 (ver "Reações pintadas" abaixo).
 - **Amiguinho pintado (01/11):** as 8 pranchas dele chegaram (com os prompts usados, guardados em `pingue/pranchas/prompts_amiguinho`) e estão no jogo: `cart2/mvbpp.py` → `mvbpp.js` acrescenta as animações ppEspera, ppLado, ppTopspin, ppCortada, ppEfeito, ppSaque, ppAndar e ppBalao ao desenho do Amiguinho do vôlei (mesma montagem: massa igualada, pés presos parado, centro da massa andando, rosto aceso, quadros do meio, cor do adversário).
   - A raquete (vermelha, na mão) não conta na massa nem no lugar dos pés (`cart2/ppred.py`) e não muda de cor com a cor do adversário (`animb2.js`).
   - Escala pela massa (sem a raquete): pronto 1,012 · pulinhos 1,047 · topspin 1,027 · cortada 1,069 · efeito 0,999 · saque 0,986 · pulinhos com a raquete atrás 0,978 · balão 0,967.
@@ -113,7 +113,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - O meio-plano entra em 85% do tamanho, preso no meio da tela, para o quiosque ficar atrás da mesa (no tamanho cheio o balcão encostava na mesa).
   - Vieram duas versões do meio-plano do dia: ficou a que bate com os outros horários; a outra (`meio_dia_outra.png`, banquinhos mais baixos e cocos verdes) fica guardada.
   - Teste: `testes/ppcena.cjs` (os 4 horários).
-- **Atenção ao publicar:** a página do jogo está com 502 arquivos (479 imagens, 22 músicas e a página), perto do limite de 511. O próximo cenário precisa juntar os horários num atlas só (como `junta.py` faz com os personagens) ou tirar imagens antigas que não são mais usadas.
+- **Reações pintadas (01/11, pacote do dono em `pingue/pranchas_reacoes`):** comemoração e lamento dos dois, de raquete na mão.
+  - IAmiguinho: `cart2/mvpi.py` ganhou festa e lamento (escala 1,064, igual ao pronto). Amiguinho: `cart2/mvbpp.py` ganhou ppFesta e ppLamento (1,012).
+  - Quando aparecem (`cart2/ppi.js`): depois de cada ponto e no fim da partida, quem fez o ponto comemora e quem perdeu lamenta; os 8 quadros correm em ~0,7 s e param no último. Antes era o desenho do vôlei com a raquete separada.
+  - Rosto aceso do Amiguinho: nos quadros de costas ou de lado o contorno escuro era confundido com a tela e o brilho cobria o corpo; agora, se a "tela" passa de 60% do quadro, o quadro fica sem rosto aceso (pós-processo no `mvbpp.py`).
+  - O IAmiguinho do pingue-pongue virou um atlas só (`junta_arquivo('mvpi.js','MVPI')`), como os do surfe, basquete e patins.
+  - Prévia: as reações entraram somando à página publicada (`previa_ppr.py`). Teste: `testes/ppreacao.cjs`.
+- **Arquivos da página publicada (01/11):** 496 (473 imagens, 22 músicas e a página), limite 511. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais; a publicação recusa tirar arquivos que a conversa não viu, então listar os arquivos da página antes (Artifact list, scope files).
 
 ### Bocha na areia (como funciona)
 - **Cena:** vista de cima, na Vila dos Pescadores (pintada, ver "Vila pintada"). A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
@@ -313,7 +319,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |
 |---|---|---|
-| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (16 provas; vôlei e skate pintados; pingue-pongue com arte provisória) |
+| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (vôlei, skate, surfe, basquete, patins e pingue-pongue pintados) |
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |

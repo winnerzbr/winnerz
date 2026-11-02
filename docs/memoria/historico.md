@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Reações do pingue-pongue pintadas
+- **O dono mandou** o pacote das reações do tênis de mesa: comemoração e lamento do IAmiguinho e do Amiguinho, de raquete na mão.
+- **Feito:** as 4 no jogo (depois de cada ponto e no fim da partida) e na Prévia. Corrigido o rosto aceso do Amiguinho nos quadros de costas e de lado (cobria o corpo). O IAmiguinho do pingue-pongue virou um atlas só. Publicado na página do Claude e no site; a página tem 496 de 511 arquivos.
+
+---
+
 ## 01/11/2026: Quiosque do Coqueiral (pingue-pongue) pintado
 - **O dono mandou** o cenário do pingue-pongue: fundo e meio-plano nos 4 horários (duas versões do meio-plano do dia) e as luzes da noite.
 - **Feito:** no jogo, pelo relógio; o quiosque um pouco menor para ficar atrás da mesa. Publicado na página do Claude e no site.

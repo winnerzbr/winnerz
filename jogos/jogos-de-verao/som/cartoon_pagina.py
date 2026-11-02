@@ -129,6 +129,14 @@ FICHAS = [
 ]
 
 FC_SONS, FC_OPS = prepara_fc()
+# 2ª rodada em código (out_c2): os que o dono marcou "Nenhuma serve"; viram as opções "Novo 1/2/3" (n2_, n3_, n4_)
+NOVOS = {}
+for p in sorted((AQUI / 'out_c2' / 'sfx').glob('*.wav')):
+    nome = p.stem; a, _ = le(p); alvo = -24 if nome.endswith('_loop') else -20
+    g = 10 ** (alvo / 20) / rms_ativo(a); pico = np.max(np.abs(a)) * g
+    if pico > 10 ** (-3 / 20): g *= 10 ** (-3 / 20) / pico
+    sons[nome] = wav64(a * g)
+    m = re.match(r'n(\d)_(.+?)(?:_(\d+))?$', nome); NOVOS.setdefault(m.group(2), {}).setdefault(int(m.group(1)), []).append(nome)
 grupos = []
 for titulo, itens in FICHAS:
     g = []
@@ -138,13 +146,15 @@ for titulo, itens in FICHAS:
                     key=lambda k: int(re.search(r'_(\d+)$', k).group(1)) if re.search(r'_(\d+)$', k) else 0)
         assert vs, sid
         pr, seg = PROMPTS[sid]
-        ops = [{'k': 'atual', 'nome': 'Feito em código', 'v': vs, 'arq': []}] + FC_OPS.get(sid, [])
+        novos = [{'k': f'N{n - 1}', 'nome': f'Novo {n - 1}', 'v': sorted(v), 'arq': []} for n, v in sorted(NOVOS.get(sid, {}).items())]
+        ops = [{'k': 'atual', 'nome': 'Feito em código', 'v': vs, 'arq': []}] + novos + FC_OPS.get(sid, [])
         g.append({'id': sid, 'nome': nome, 'como': como, 'onde': onde, 'loop': cont, 'ops': ops, 'prompt': pr + ' ' + ESTILO, 'seg': seg})
     grupos.append({'t': titulo, 'itens': g})
 usados = {v for g in grupos for i in g['itens'] for v in i['ops'][0]['v']}
 sons.update(FC_SONS)
 assert not set(FC_OPS) - {i['id'] for g in grupos for i in g['itens']}
-faltam = {k for k in sons if not k.startswith('fc_')} - usados
+faltam = {k for k in sons if not k.startswith('fc_') and not re.match(r'n\d_', k)} - usados
+assert set(NOVOS) <= {i['id'] for g in grupos for i in g['itens']}, set(NOVOS)
 assert not faltam, faltam
 
 html = (AQUI / 'cartoon_pagina.html').read_text(encoding='utf-8')

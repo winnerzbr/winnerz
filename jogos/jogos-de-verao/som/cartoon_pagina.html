@@ -103,7 +103,7 @@ details.pedir p { margin: 6px 0; font-size: 13px; }
   <header>
     <span class="eyebrow">IAmiguinho: Jogos de Verão · sonoplastia</span>
     <h1>Sons de desenho</h1>
-    <p class="lede">Sons de desenho animado para as 19 provas. Cada som tem até três opções do pacote FilmCow (A, B e C) e a primeira versão, feita em código. Toque as opções, ouça as cenas de cada prova com as que estão selecionadas e marque em “Fica com” a que vai para o jogo. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
+    <p class="lede">Sons de desenho animado para as 19 provas. Cada som tem até três opções do pacote FilmCow (A, B e C) e a primeira versão, feita em código. Os que ficaram sem opção boa ganharam três versões novas em código (Novo 1, 2 e 3). Toque as opções, ouça as cenas de cada prova com as que estão selecionadas e marque em “Fica com” a que vai para o jogo. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
     <div class="barra">
       <label for="vol">Volume <input id="vol" type="range" min="0" max="1.2" step="0.01" value="0.8"></label>
       <button class="btn fraco" id="parar" type="button">Parar tudo</button>
@@ -214,7 +214,7 @@ async function tocaFicha(id) {
 function mostraOpcao(id) {
   const f = FICHA[id], o = opc(id);
   f.querySelectorAll('.opc').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === o.k)));
-  f.querySelector('.de-onde').textContent = o.k === 'atual' ? 'Feito em código (primeira versão).' : 'FilmCow: ' + o.arq.join(' · ');
+  f.querySelector('.de-onde').textContent = o.k === 'atual' ? 'Feito em código (primeira versão).' : o.k[0] === 'N' ? 'Feito em código (versão nova, depois do “Nenhuma serve”).' : 'FilmCow: ' + o.arq.join(' · ');
   const vs = f.querySelector('.vars'); vs.replaceChildren();
   if (!it_loop(id) && o.v.length > 1) { vs.append('Variações'); o.v.forEach((n, k) => vs.append(el('button', { class: 'var', type: 'button', 'aria-label': ITEM[id].nome + ', variação ' + (k + 1), onclick: async () => { const s = await toca(n); acende(id, s.buffer.duration); } }, String(k + 1)))); }
   vs.hidden = !vs.childNodes.length;
@@ -233,7 +233,7 @@ for (const grp of GRUPOS) {
     play.innerHTML = ICON.play; play.addEventListener('click', () => tocaFicha(it.id));
     const onda = el('canvas', { class: 'onda', 'aria-hidden': 'true', style: 'color:var(--muted)' });
     const ops = el('div', { class: 'opcs', role: 'group', 'aria-label': 'Opções de ' + it.nome });
-    for (const o of it.ops) ops.append(el('button', { class: 'opc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false', title: o.nome, onclick: () => { if (loops.has(it.id)) paraLoop(it.id); SEL[it.id] = o.k; mostraOpcao(it.id); tocaFicha(it.id); } }, o.k === 'atual' ? 'Código' : o.k + ' · ' + o.nome));
+    for (const o of it.ops) ops.append(el('button', { class: 'opc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false', title: o.nome, onclick: () => { if (loops.has(it.id)) paraLoop(it.id); SEL[it.id] = o.k; mostraOpcao(it.id); tocaFicha(it.id); } }, o.k === 'atual' ? 'Código' : o.k[0] === 'N' ? o.nome : o.k + ' · ' + o.nome));
     const ficha = el('article', { class: 'ficha' },
       el('div', { class: 'topo' }, play, el('div', { style: 'min-width:0;display:grid;gap:2px' }, el('span', { class: 'nome' }, it.nome), el('span', { class: 'como' }, '“' + it.como + '”'))),
       onda, el('p', { class: 'onde' }, it.onde), ops);
@@ -253,7 +253,7 @@ for (const grp of GRUPOS) {
       el('p', {}, `Duração: ${String(it.seg).replace('.', ',')} s${it.loop ? ', e peça para repetir sem emenda (loop)' : ''}. Salvar como: `, el('strong', {}, it.id + '.wav')), cop));
     // escolha (guardada no banco da página)
     const esc = el('div', { class: 'escolha' }, el('span', { class: 'eyebrow' }, 'Fica com'));
-    for (const o of it.ops) esc.append(el('button', { class: 'esc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false' }, o.k === 'atual' ? 'Código' : o.k));
+    for (const o of it.ops) esc.append(el('button', { class: 'esc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false' }, o.k === 'atual' ? 'Código' : o.k[0] === 'N' ? o.nome : o.k));
     esc.append(el('button', { class: 'esc', type: 'button', 'data-k': 'nenhum', 'aria-pressed': 'false' }, 'Nenhuma serve'));
     const nota = el('input', { class: 'nota', type: 'text', id: 'nota-' + it.id, placeholder: 'Nota (opcional)', 'aria-label': 'Nota sobre ' + it.nome });
     const op = el('div', { class: 'opiniao' }, esc, nota); op.hidden = true; ficha.append(op);

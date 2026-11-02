@@ -18,7 +18,8 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - A página ganhou até 3 opções do pacote em cada som (A, B, C), além da versão em código.
   - As cenas tocam a opção selecionada, e "Fica com" guarda a escolha.
   - O pacote não tem sons de água, palmas nem rodinhas; neles fica o feito em código ou um pedido a um gerador.
-- **Pendente:** o dono escolher em "Fica com"; depois, colocar no jogo só os escolhidos.
+- **11h55:** o dono escolheu 60 dos 62 e pediu para refazer em código os 12 marcados "Nenhuma serve". Cada um ganhou 3 versões novas (Novo 1, 2 e 3) na página: motores com "pó-pó-pó" ou ronco macio, palmas de verdade, balão murchando, derrapada, rodinhas, corrimão, jato, braçada, bocha rolando e acelerada.
+- **Pendente:** o dono escolher entre as versões novas (e nos 3 sem escolha); depois, colocar no jogo só os escolhidos.
 
 ---
 

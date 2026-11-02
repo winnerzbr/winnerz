@@ -495,6 +495,17 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **A página agora** mostra, em cada som, as opções "Código" e A/B/C. A selecionada é a que toca e entra nas cenas.
   - "Fica com" guarda a escolha em `escolha/<som>` (`opcao`: atual, A, B, C ou nenhum, e `nota`).
   - A coleção antiga `avaliacao` tinha 2 marcações do dono: passinho de madeira em código "gostei" (passado para `escolha/passo_tip` = atual) e passo na areia em código "não gostei".
+- **Escolhas do dono (02/11, 11h55):**
+  - 60 de 62 marcadas;
+  - "Código" (1ª rodada) em 28 sons;
+  - FilmCow em 20 sons: aro A, balão estourando A, bonk B, chute A, "Vai!" A, puxar a corda A, disco A, manobra B, passo na areia B, areia fofa A, poça A, raquete A, Amiguinho andando B, pulo A, cesta A, tabela A, ta-dá B, tombo A, turbo B;
+  - sem escolha: passinho na ponta do pé, contagem e bolinha na mesa;
+  - "Nenhuma serve" em 12, refeitos a pedido dele ("Refazer por código as marcadas como nenhuma serve"): balão murchando, braçada, derrapada, corrimão, pistola d'água, os 3 motores, palminhas, rodinhas, bocha rolando e acelerada.
+- **2ª rodada em código** (`som/cartoon2.cx.js`, gera `out_c2`): 3 versões novas para cada um dos 12 ("Novo 1, 2 e 3" na página; padrão Novo 1). O que muda:
+  - motores com "pó-pó-pó" de escapamento ou ronco filtrado macio, sem a onda quadrada crua;
+  - palmas com 3 estalinhos por palma e várias pessoas;
+  - balão em "framboesa" (sopro tremido), em assobio ou em sopro batendo.
+  - As 12 escolhas "Nenhuma serve" foram limpas, com a nota "antes: nenhuma serve", para ele escolher de novo.
 - **Ainda não estão no jogo.** Entram só depois que o dono aprovar, pelo mesmo caminho de antes (`cart2/foley.js`, ligado por `SONOPLASTIA` no `build3.py`), com os sons que ele escolher.
 
 ## Bocha: a cancha segue a cancha pintada (02/11/2026, relato do dono: "as bolas estão saindo da quadra")

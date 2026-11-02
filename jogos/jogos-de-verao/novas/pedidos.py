@@ -221,6 +221,7 @@ GAMES = [
 # provas antigas no estilo pintado (01/11, pedido do dono: pedidos para todos os jogos)
 exec(open('novas/antigas1.py', encoding='utf-8').read()); exec(open('novas/antigas2.py', encoding='utf-8').read())
 GAMES += ANTIGAS1 + ANTIGAS2
+exec(open('novas/bmx2.py', encoding='utf-8').read()); GAMES += [BMX2]  # 02/11: a BMX com a trilha nova, numa guia própria
 
 data = []
 for g in GAMES:
@@ -312,7 +313,7 @@ function card(k, title, sub, text, pose, refs) {
   return `<div class="card${isDone ? ' done' : ''}" data-k="${k}"><div class="top"><div class="t"><b>${esc(title)}</b><span>${esc(sub)}</span></div><div class="acts"><label class="chk"><input type="checkbox"${isDone ? ' checked' : ''}> Feita</label><button class="cp" type="button">Copiar</button></div></div><pre>${esc(text)}</pre>${fig}</div>`;
 }
 // ---- guias (01/11, pedido do dono): uma guia para cada modalidade, para não ficar tudo misturado
-const ORDEM = ['surfe', 'halfpipe', 'embaixadinha', 'patins', 'basquete', 'pingue', 'bmx', 'obstaculos', 'frisbee', 'arco', 'duelo', 'canoagem', 'teco', 'futebol', 'bocha', 'natacao', 'jetski', 'bugue', 'volei', 'teaser'];
+const ORDEM = ['surfe', 'halfpipe', 'embaixadinha', 'patins', 'basquete', 'pingue', 'bmx', 'bmx2', 'obstaculos', 'frisbee', 'arco', 'duelo', 'canoagem', 'teco', 'futebol', 'bocha', 'natacao', 'jetski', 'bugue', 'volei', 'teaser'];
 const LINKS = {
   halfpipe: { n: 'Half-pipe', lugar: 'Skatepark do Viaduto: concreto sob um viaduto, grafites e postes. Capa: noite (azul-noite, ciano, magenta).', url: 'https://claude.ai/artifact/HBWsEJqsp6rZaBEmHStwS3', pagina: 'Moveset do Skate', nota: 'As pranchas do IAmiguinho no skate, as manobras combinadas e o cenário ficam na página própria do skate. Os pedidos do cenário e das peças da pista estão repetidos aqui embaixo.' },
   volei: { n: 'Vôlei', lugar: 'Praia do Pôr do Sol (o cenário atual, mantido). Capa: pôr do sol (rosa, laranja, roxo).', url: 'https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf', pagina: 'Moveset do Vôlei', nota: 'O vôlei foi a primeira prova pintada: as pranchas do IAmiguinho e do Amiguinho ficam na página própria do vôlei. A praia pintada do vôlei é a referência de estilo de todos os cenários.' },

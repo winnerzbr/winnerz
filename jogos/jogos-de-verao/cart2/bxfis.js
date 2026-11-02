@@ -204,7 +204,14 @@
       if (this.air) {
         this.airT += dt; this.peak = Math.max(this.peak, this.y - this.h(this.x)); this.topo = Math.max(this.topo, this.y);
         if (!this.trick) for (const key of 'bce') if (I['p' + key]) { this.trick = { key, ...BX_MAN[key], t: 0 }; if (Math.abs(this.rotSum) > .6) this.combined = true; sfx.whoosh(); break; }
-        if (this.trick) { const tr = this.trick; tr.t += dt; if (Math.abs(this.w) > 2) this.combined = true; if (tr.t >= tr.d) { this.airTr.push(tr.key); this.trick = null; sfx.tick(); } }
+        // 02/11 (pedido do dono, como no skate): segurando o botão, a manobra se mantém. Superman e Sem mãos param na pose cheia
+        // (o meio da manobra) enquanto segura; o Tailwhip continua girando o quadro (duplo, triplo...). Soltou, a manobra termina.
+        // Girando junto (◀ ▶) vira combinada. Pousar segurando (no meio da manobra) é tombo.
+        if (this.trick) {
+          const tr = this.trick, seg = !!I[tr.key]; if (Math.abs(this.w) > 2) this.combined = true;
+          if (tr.k === 'tailwhip') { tr.t += dt; if (tr.t >= tr.d) { if (seg) { tr.n = (tr.n || 1) + 1; tr.t -= tr.d; sfx.tick(); } else { this.airTr.push({ key: tr.key, n: tr.n || 1, hold: 0 }); this.trick = null; sfx.tick(); } } }
+          else { const H0 = tr.d * .5; if (seg && tr.t >= H0) { tr.t = H0; tr.hold = (tr.hold || 0) + dt; } else tr.t += dt; if (tr.t >= tr.d) { this.airTr.push({ key: tr.key, n: 1, hold: tr.hold || 0 }); this.trick = null; sfx.tick(); } }
+        }
         if (c) this.land();
       }
       const dx = this.x - x0; this.dist += Math.max(0, dx);
@@ -230,16 +237,18 @@
       if (airT < .3 && !flips && !this.airTr.length && !this.trick) { this.rotSum = 0; return; } // pulinho: nada a contar
       if (mid) return this.crash('Pousou no meio da manobra');
       if (Math.abs(diff) > BXF.TORTO) return this.crash(Math.abs(this.rotSum) > 2 ? (diff > 0 ? 'Girou demais' : 'Faltou girar') : 'Pousou torto');
-      if (this.trick) { this.airTr.push(this.trick.key); this.trick = null; }
+      if (this.trick) { this.airTr.push({ key: this.trick.key, n: this.trick.n || 1, hold: this.trick.hold || 0 }); this.trick = null; }
       const clean = Math.abs(diff) <= BXF.CLEAN;
       // o salto: distância (de onde decolou até onde pousou) e altura (acima da ponta da rampa), em metros (10 unidades = 1 m)
       const dm = Math.max(0, (this.x - this.tx0) / 10), am = Math.max(0, (this.topo - this.ty0) / 10);
       this.maxDist = Math.max(this.maxDist || 0, dm); this.maxAlt = Math.max(this.maxAlt || 0, am);
       let base = Math.round(dm * 6 + am * 22), nome = '';
       if (flips) { base += flips * (this.rotSum > 0 ? 300 : 340); this.flips += flips; nome = `${flips > 1 ? flips + ' ' : ''}${this.rotSum > 0 ? 'mortal para trás' : 'mortal para frente'}`; }
-      let tv = 0; for (const key of this.airTr) { tv += BX_MAN[key].v * (this.lastTr.includes(key) ? .5 : 1); this.lastTr = [...this.lastTr.slice(-1), key]; }
+      // manobra segurada vale mais pelo tempo segurado (+150% por segundo); cada volta a mais do Tailwhip vale uma inteira
+      let tv = 0; for (const m of this.airTr) { tv += BX_MAN[m.key].v * m.n * (1 + 1.5 * m.hold) * (this.lastTr.includes(m.key) ? .5 : 1); this.lastTr = [...this.lastTr.slice(-1), m.key]; }
       if (this.combined && flips) tv *= 1.3; base += Math.round(tv); this.mans += this.airTr.length;
-      if (this.airTr.length) nome = this.airTr.map((k) => BX_MAN[k].nome).join(' + ') + (nome ? ` + ${nome}` : '');
+      const NV = ['', '', ' duplo', ' triplo'], nm = (m) => BX_MAN[m.key].nome + (m.n > 1 ? (NV[m.n] || ` ×${m.n}`) : m.hold > .25 ? ' segurado' : '');
+      if (this.airTr.length) nome = this.airTr.map(nm).join(' + ') + (nome ? ` + ${nome}` : '');
       const med = `${Math.round(dm)} m${am >= 1 ? ' · ' + Math.round(am) + ' m de altura' : ''}`;
       if (dm >= 40 || am >= 6) this.bigAir++;
       if (clean && (airT > .45 || flips || this.airTr.length)) { this.combo++; this.bestCombo = Math.max(this.bestCombo, this.combo); this.clean++; }

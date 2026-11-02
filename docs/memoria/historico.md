@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: BMX com manobras seguradas e pedidos da trilha nova
+- **O dono disse:** "Agora sim! Ficou muito bom!" Pediu manobras que se mantêm segurando o botão (como no skate), combinando com o giro, e os prompts dos cenários, das peças da pista e dos movimentos do IAmiguinho, numa seção separada.
+- **Feito:** Superman e Sem mãos seguram a pose cheia, Tailwhip repete (duplo, triplo), tudo combinável com o mortal e valendo mais pelo tempo segurado. Guia nova "BMX · trilha nova" na página de pedidos com 29 pedidos. Publicado na página do Claude e no site.
+- **Pendente:** o dono gerar a arte da trilha nova.
+
+---
+
 ## 02/11/2026: BMX com trilha de flow
 - **O dono disse:** injogável; obstáculos demais em sequência, sem como pegar velocidade; a pista deve dar flow e o que pontua são os saltos (mais longe e mais alto) e as manobras; a pista pode ser feita em código.
 - **Feito:** trilha que desce sempre, escrita em código (vale → rampa → descida de pouso comprida), pontos pela distância e altura de cada salto, gravidade mais leve, pulo para cima na ponta da rampa, pista desenhada em código e câmera que se afasta nos saltos altos. Nenhum tombo nos jogadores automáticos; medalhas recalibradas. Publicado na página do Claude e no site.

@@ -123,7 +123,7 @@
     } else if (v.landT > 0) ex = 2; else if (v.pumping) ex = 5;
     let an = 'pedal', k = Math.floor((v.pedal || 0) * 1.4) % 8; // pedalando: ~1,5 volta por segundo; descansando, devagar
     if (v.air) {
-      const q = Math.min(7, Math.floor(pr * 8));
+      const q = tr && tr.hold > 0 && tr.t >= tr.d * .5 - 1e-6 ? [3, 4, 5, 4][Math.floor(tr.hold * 8) % 4] : Math.min(7, Math.floor(pr * 8)); // segurando: a pose cheia balançando
       if (tr && tr.k === 'superman') { an = 'super'; k = q; }
       else if (tr && tr.k === 'semmao') { an = 'semmao'; k = q; }
       else if (tr && tr.k === 'tailwhip') { an = 'tail'; k = q; }

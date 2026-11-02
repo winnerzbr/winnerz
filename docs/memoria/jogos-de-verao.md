@@ -459,6 +459,28 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - Não refazer sons sintetizados sem o dono pedir.
 - Teste `testes/bipes.cjs`: joga cada prova e confirma que os bipes tocam e que não sobrou nada dos sons novos. As 19 provas passaram, sem erros.
 
+## Sons de desenho animado (02/11/2026, em teste com o dono)
+- **Pedido do dono:** efeitos "mais estilo desenho animado e cartoonizados", numa página para ouvir e testar antes de ir para o jogo.
+- **Sons** (`som/cartoon.cx.js`, chirp): 75 arquivos em 62 fichas, entre elas:
+  - apito de êmbolo no pulo e no tombo, "boing" de berimbau de boca, blocos de madeira nos passos;
+  - xilofone e sininhos no placar, "pop" de rolha, bolhas e "ploc" na água;
+  - buzina de palhaço, motores "brrrum", trombone triste na derrota e fanfarra de kazoo na vitória.
+- **Página "Sons de Desenho":** https://claude.ai/artifact/UA1SgpSB47Bv1k7XEvNUXZ. É montada por `som/cartoon_pagina.py` com `cartoon_pagina.html` e tem:
+  - as fichas por família, com a onda desenhada, as variações e a velocidade nos sons contínuos;
+  - "Ouvir em cena", com uma sequência curta para cada uma das 19 provas;
+  - "Gostei / Não gostei" e uma nota por som, guardados no banco da página em `avaliacao/<som>`, e um recado geral em `recado/geral`.
+  - Para ler o que o dono marcou: lista `avaliacao` e `recado` dessa página.
+- **Ainda não estão no jogo.** Entram só depois que o dono aprovar, pelo mesmo caminho de antes (`cart2/foley.js`, ligado por `SONOPLASTIA` no `build3.py`), com os sons que ele escolher.
+
+## Bocha: a cancha segue a cancha pintada (02/11/2026, relato do dono: "as bolas estão saindo da quadra")
+- **Causa:** a cancha aplicada pelo editor tinha os lados de cima e de baixo mudados (`BC.y0` 49 e `BC.y1` 190; o original é 75 e 185). A vila pintada só acompanha a largura, então as tábuas do jogo ficaram 31 unidades abaixo das tábuas pintadas e as bolas paravam "fora", perto da água. Ainda sobrava uma faixa sem desenho embaixo da tela.
+- **Correção** (`bcAjusta` em `cart2/ev_bocha.js`, chamada no começo da partida e a cada aplicação do editor):
+  - a cancha do jogo mantém o formato da pintada (a altura sai da largura);
+  - a vila sempre cobre a tela inteira.
+- Vale para qualquer configuração guardada, no jogo publicado e no site. O que o dono tinha guardado vira a cancha original (diferença de 2 unidades).
+- O editor avisa disso na aba Cancha da bocha.
+- Teste `testes/bccancha.cjs`: original, a cancha do dono e um exagero; a cancha do jogo fica igual à pintada e a vila cobre a tela, com foto.
+
 ## Basquete: a bola por dentro da rede (02/11)
 - A bola entre as bordas do aro, do aro até o fim da rede, é desenhada antes da rede e do aro (`bqRede` em `cart2/bqp.js`): passando pela cesta, fica por trás da rede. Foto: `testes/bqrede.cjs`.
 

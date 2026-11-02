@@ -187,7 +187,7 @@ const WZ = (() => {
     tenta(() => { if (window.__WZIMG) window.__WZIMG.aplica(cfg.imgs || {}, !!guardar); }, 'imagens');
     let nr = 0; for (const [p, o] of Object.entries(cfg.rostos || {})) tenta(() => { const [set, an, k] = p.split('.'); if (applyRosto(set, an, +k, o)) nr++; }, p);
     // contas que dependem dos números
-    tenta(() => { BC.L = BC.x1 - BC.sx; }, 'cancha');
+    tenta(() => { if (typeof bcAjusta === 'function') bcAjusta(); else BC.L = BC.x1 - BC.sx; }, 'cancha');
     tenta(() => { for (const T of BG_TRACKS) { T.line = null; wzPistaOk(T); } if (typeof BG_T !== 'undefined') { const i = BG_TRACKS.indexOf(BG_T); BG_T = null; bgLoad(Math.max(0, i)); } }, 'pistas');
     return { rostos: nr };
   }
@@ -688,7 +688,7 @@ function wzPistas(m) {
 
 // ---------- CANCHA DA BOCHA (arrastando): os cantos da cancha (a vila pintada acompanha) e o ponto de lançamento
 function wzCancha(m) {
-  m.append(el('h2', {}, 'Cancha da bocha'), el('p', { class: 'ajuda' }, 'Arraste os círculos: os 4 cantos mudam o tamanho da cancha (o desenho da vila acompanha) e o círculo azul é de onde as bolas saem. Os montinhos e buracos são sorteados a cada partida; "Sortear de novo" mostra outro sorteio.'));
+  m.append(el('h2', {}, 'Cancha da bocha'), el('p', { class: 'ajuda' }, 'Arraste os círculos: os 4 cantos mudam o tamanho e o lugar da cancha (o desenho da vila acompanha; a cancha mantém o formato do desenho, então a altura segue a largura, e a vila sempre cobre a tela) e o círculo azul é de onde as bolas saem. Os montinhos e buracos são sorteados a cada partida; "Sortear de novo" mostra outro sorteio.'));
   const cv = el('canvas', { class: 'pc', style: 'height:auto;aspect-ratio:16/9;max-width:980px' }), g = cv.getContext('2d');
   m.append(cv, el('div', { class: 'chips', style: 'margin-top:8px' },
     el('button', { type: 'button', on: { click: () => { bocha.init(); desenha(); } } }, 'Sortear de novo'),

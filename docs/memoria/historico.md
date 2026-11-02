@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: bocha com as bolas fora da quadra; sons de desenho animado para testar
+- **O dono pediu:**
+  - arrumar a bocha: as bolas saíam da quadra, talvez por algo mexido sem querer no editor;
+  - sons "mais estilo desenho animado", numa página para ouvir e testar.
+- **Bocha:** a cancha guardada no editor estava mais alta que a pintada. Agora a cancha do jogo sempre segue a pintada (mesmo formato), e a vila cobre a tela. Publicado no jogo e no site.
+- **Sons:** 62 sons de desenho (75 arquivos com as variações), na página "Sons de Desenho". Ela tem cenas das 19 provas e marcação de "Gostei / Não gostei" com nota, que fica guardada para o Claude ler.
+- **Pendente:** o dono ouvir e marcar; depois, colocar no jogo só os aprovados.
+
+---
+
 ## 02/11/2026: Corrida: peças da praia na versão de dia
 - **O dono mandou:** de novo os pacotes da BMX e das peças da praia (já estavam no jogo, iguais) e depois a versão de DIA do quiosque de coco, coqueiros e rede de vôlei.
 - **Feito:** a versão de dia entrou no jogo (de dia usava a da manhã). Só a imagem do meio-plano da Corrida mudou; trocada direto na página pronta do site (`public/demo/jogos-verao`; imagem nova `img/c41bc7869d94.webp` no lugar de `img/2601a59b645d.webp`).

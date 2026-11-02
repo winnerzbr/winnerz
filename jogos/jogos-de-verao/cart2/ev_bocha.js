@@ -10,6 +10,18 @@
    Arte provisória: tudo desenhado pelo jogo; os personagens são os desenhos do vôlei. */
 const BC = { x0: 50, x1: 386, y0: 75, y1: 185, sx: 58, sy: 130, rb: 6, rj: 3.5, fc: 62, fv: .5, G: 3000, meter: 1.05 };
 BC.L = BC.x1 - BC.sx;
+/* 02/11 (o dono: "as bolas estão saindo da quadra"): a cancha do jogo segue sempre a cancha pintada. Ela mantém o formato do desenho
+   (a altura sai da largura) e a vila pintada cobre a tela inteira (sem faixa vazia). Assim, mexer nos cantos pelo editor não deixa
+   as tábuas do jogo fora das tábuas pintadas. Vale para qualquer configuração guardada. */
+function bcAjusta() {
+  const B = window.BCC; if (!B || !B.c) { BC.L = BC.x1 - BC.sx; return; }
+  const c = B.c, VWb = 400, VHb = 225, cw = c[2] - c[0], ch = c[3] - c[1];
+  const s = Math.max((BC.x1 - BC.x0) / cw, VWb / B.w, VHb / B.h);
+  const ox = Math.min(0, Math.max(VWb - B.w * s, BC.x0 - c[0] * s)), oy = Math.min(0, Math.max(VHb - B.h * s, BC.y0 - c[1] * s));
+  BC.x0 = ox + c[0] * s; BC.x1 = BC.x0 + cw * s; BC.y0 = oy + c[1] * s; BC.y1 = BC.y0 + ch * s;
+  BC.sx = Math.max(BC.x0 + 2, Math.min(BC.x0 + 60, BC.sx)); BC.sy = Math.max(BC.y0 + 10, Math.min(BC.y1 - 10, BC.sy));
+  BC.L = BC.x1 - BC.sx;
+}
 if (typeof Music !== 'undefined' && Music.songs.embaixadinha) Music.songs.bocha = Music.songs.embaixadinha;
 FALA.intro.bocha = [
   'Bocha na Vila dos Pescadores. Os pescadores jogam aqui desde antes de eu existir. E olha que eu sou atualizado.',
@@ -33,6 +45,7 @@ const bocha = {
   ctl: [['▲ ▼', 'mirar'], ['Espaço', 'segure: rolar', 'kb'], ['X', 'segure: pelo alto', 'kb'], ['Rolar', 'segure: rolar', 'touch'], ['Alto', 'segure: pelo alto', 'touch'], ['Esc', 'pausa', 'kb']],
   pad: { dirs: 'ud', a: 'Rolar', b: 'Alto' }, bannerY: 40,
   init() {
+    bcAjusta();
     Object.assign(this, {
       t: 0, score: 0, sc: [0, 0], round: 0, jackBy: 0, balls: [], jack: null, state: 'aim', st: 0, who: 0, kind: null, ang: 0, m: 0, mDir: 1, charging: false,
       left: [4, 4], fx: [], over: false, overT: 0, mood: 0, encostos: 0, tiradas: 0, nullT: 0, res: null, ai: {}, prev: { a: false, b: false }, lastThrow: -1, jackTries: 0,

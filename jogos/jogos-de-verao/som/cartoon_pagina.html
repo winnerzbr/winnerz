@@ -1,0 +1,279 @@
+<title>Sons de Desenho</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Instrument+Sans:wght@400..700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: mesa de som — barra de cenas no alto (uma por prova), depois as fichas dos sons em grade por família.
+   Linguagem do WinnerZ: títulos largos em caixa alta, cortes a 22°, âmbar só para o que está tocando agora. */
+:root {
+  --bg: #eef2f6; --panel: #ffffff; --ink: #111723; --muted: #5a6475; --line: #d3dbe5;
+  --azul: #1d63d8; --rosa: #d4427f; --agora: #e8960c; --agora-ink: #1a1204; --bom: #1f8a53; --ruim: #c2412d;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --corte: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0e13; --panel: #141a23; --ink: #edf1f7; --muted: #8d99ab; --line: #262f3c;
+  --azul: #5b9bff; --rosa: #ff7cb2; --agora: #ffb22e; --agora-ink: #1a1204; --bom: #44c47f; --ruim: #ff7a63; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0e13; --panel: #141a23; --ink: #edf1f7; --muted: #8d99ab; --line: #262f3c;
+  --azul: #5b9bff; --rosa: #ff7cb2; --agora: #ffb22e; --agora-ink: #1a1204; --bom: #44c47f; --ruim: #ff7a63; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); font-stretch: 125%; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(30px, 6vw, 56px); line-height: .95; }
+h2 { font-size: 20px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.lede { max-width: 62ch; color: var(--muted); margin: 0; }
+header { display: grid; gap: 12px; }
+
+.barra { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.barra label { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+input[type=range] { accent-color: var(--azul); width: 140px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn { border: 0; background: var(--ink); color: var(--bg); font-family: var(--display); font-stretch: 110%; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; padding: 9px 18px 9px 12px; clip-path: var(--corte); }
+.btn.fraco { background: var(--line); color: var(--ink); }
+.btn:focus-visible, .chip:focus-visible, .play:focus-visible, .var:focus-visible, .voto:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.contas { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.cenas { background: var(--panel); border: 1px solid var(--line); padding: 18px; display: grid; gap: 12px; }
+.cenas p { margin: 0; color: var(--muted); max-width: 70ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--bg); padding: 7px 16px 7px 10px; clip-path: var(--corte); font-family: var(--display); font-stretch: 100%; font-weight: 700; font-size: 13px; text-transform: uppercase; }
+.chip:hover { border-color: var(--azul); }
+.chip.on { background: var(--agora); color: var(--agora-ink); border-color: var(--agora); }
+
+.familia { display: grid; gap: 12px; }
+.familia > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 268px), 1fr)); gap: 10px; }
+.ficha { background: var(--panel); border: 1px solid var(--line); padding: 12px; display: grid; gap: 8px; align-content: start; min-width: 0; transition: border-color .12s, box-shadow .12s; }
+.ficha.tocando { border-color: var(--agora); box-shadow: inset 4px 0 0 var(--agora); }
+.topo { display: grid; grid-template-columns: 44px 1fr; gap: 10px; align-items: center; }
+.play { width: 44px; height: 44px; border: 0; background: var(--azul); color: #fff; display: grid; place-items: center; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.play svg { width: 16px; height: 16px; fill: currentColor; }
+.ficha.tocando .play { background: var(--agora); color: var(--agora-ink); }
+.nome { font-family: var(--display); font-stretch: 100%; font-weight: 800; font-size: 15px; line-height: 1.15; text-transform: uppercase; min-width: 0; }
+.como { font-family: var(--mono); font-size: 12px; color: var(--rosa); }
+.onda { width: 100%; height: 34px; display: block; }
+.onde { font-size: 13px; color: var(--muted); margin: 0; }
+.vars { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.var { border: 1px solid var(--line); background: transparent; min-width: 28px; height: 26px; font-family: var(--mono); font-size: 12px; }
+.var:hover { border-color: var(--azul); }
+.vel { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.vel input { flex: 1; width: auto; min-width: 0; }
+.vel output { width: 3.5ch; text-align: right; font-variant-numeric: tabular-nums; }
+.opiniao { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; border-top: 1px dashed var(--line); padding-top: 8px; }
+.voto { border: 1px solid var(--line); background: transparent; padding: 5px 10px; font-size: 13px; font-weight: 600; }
+.voto[aria-pressed=true][data-v=gostei] { background: var(--bom); border-color: var(--bom); color: #fff; }
+.voto[aria-pressed=true][data-v=nao] { background: var(--ruim); border-color: var(--ruim); color: #fff; }
+.nota { flex: 1 1 120px; min-width: 0; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 13px; padding: 5px 8px; }
+.recado { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--line); padding: 18px; }
+.recado textarea { width: 100%; box-sizing: border-box; min-height: 80px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; resize: vertical; }
+.estado { font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 1.2em; }
+@media (prefers-reduced-motion: reduce) { .ficha { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">IAmiguinho: Jogos de Verão · sonoplastia</span>
+    <h1>Sons de desenho</h1>
+    <p class="lede">Sons de desenho animado para as 19 provas. Toque cada um, ouça as cenas de cada prova e marque o que gostou. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
+    <div class="barra">
+      <label for="vol">Volume <input id="vol" type="range" min="0" max="1.2" step="0.01" value="0.8"></label>
+      <button class="btn fraco" id="parar" type="button">Parar tudo</button>
+      <span class="contas" id="contas"></span>
+    </div>
+  </header>
+
+  <section class="cenas" aria-labelledby="t-cenas">
+    <h2 id="t-cenas">Ouvir em cena</h2>
+    <p>Uma sequência curta de cada prova, do jeito que os sons apareceriam jogando. As fichas acendem enquanto tocam.</p>
+    <div class="chips" id="cenas"></div>
+  </section>
+
+  <div id="familias" class="familia-lista" style="display:grid;gap:28px"></div>
+
+  <section class="recado" aria-labelledby="t-recado">
+    <h2 id="t-recado">Recado geral</h2>
+    <label for="recado" class="eyebrow">O que achou do conjunto (estilo, volume, o que faltou)</label>
+    <textarea id="recado" placeholder="Ex.: gostei dos pulos, os motores estão altos, faltou som quando a bola cai na água"></textarea>
+    <span class="estado" id="estado"></span>
+  </section>
+</div>
+
+<script>
+const GRUPOS = /*__GRUPOS__*/null;
+const SONS = /*__SONS__*/null;
+
+// ---------- áudio
+let ac = null, mestre = null; const buf = {}; const ativos = new Set();
+function audio() {
+  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); mestre = ac.createGain(); mestre.gain.value = +document.getElementById('vol').value; mestre.connect(ac.destination); }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function b64(u) { const s = atob(u.split(',')[1]); const a = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i); return a.buffer; }
+async function pega(nome) {
+  if (buf[nome]) return buf[nome];
+  const c = audio(); buf[nome] = await new Promise((ok, erro) => c.decodeAudioData(b64(SONS[nome]), ok, erro));
+  return buf[nome];
+}
+// toca um som; devolve o nó (para parar ou mudar a velocidade)
+async function toca(nome, { quando = 0, loop = false, rate = 1, ate = 0, rateAte = 0, vol = 1 } = {}) {
+  const c = audio(), b = await pega(nome), s = c.createBufferSource(), g = c.createGain();
+  s.buffer = b; s.loop = loop; s.playbackRate.value = rate; g.gain.value = vol; s.connect(g); g.connect(mestre);
+  const t0 = c.currentTime + quando; s.start(t0);
+  if (rateAte && ate) { s.playbackRate.setValueAtTime(rate, t0); s.playbackRate.linearRampToValueAtTime(rateAte, t0 + ate); }
+  if (loop && ate) { g.gain.setValueAtTime(vol, t0 + ate - 0.08); g.gain.linearRampToValueAtTime(0, t0 + ate); s.stop(t0 + ate + 0.02); }
+  ativos.add(s); s.onended = () => ativos.delete(s);
+  return s;
+}
+function pararTudo() { for (const s of ativos) { try { s.stop(); } catch (e) {} } ativos.clear(); for (const t of timers) clearTimeout(t); timers.length = 0;
+  document.querySelectorAll('.ficha.tocando').forEach((f) => f.classList.remove('tocando')); document.querySelectorAll('.chip.on').forEach((c) => c.classList.remove('on'));
+  document.querySelectorAll('.play[data-loop]').forEach((p) => { p.dataset.on = ''; p.innerHTML = ICON.play; p.setAttribute('aria-label', 'Tocar ' + p.dataset.nome); });
+  loops.clear(); }
+document.getElementById('vol').addEventListener('input', (e) => { if (mestre) mestre.gain.value = +e.target.value; });
+document.getElementById('parar').addEventListener('click', pararTudo);
+
+// ---------- fichas
+const ICON = { play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z"/></svg>', stop: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3h10v10H3z"/></svg>' };
+const FICHA = {}, loops = new Map(), timers = [];
+function acende(id, dur) { const f = FICHA[id]; if (!f) return; f.classList.add('tocando'); clearTimeout(f._t); f._t = setTimeout(() => f.classList.remove('tocando'), Math.max(180, dur * 1000)); }
+function sorteia(item) { return item.v[Math.floor(Math.random() * item.v.length)]; }
+const ITEM = {};
+function el(tag, attrs = {}, ...kids) { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v); } for (const k of kids) e.append(k); return e; }
+
+function desenhaOnda(cv, nome) {
+  pega(nome).then((b) => {
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.round(r.height * dpr);
+    const g = cv.getContext('2d'), d = b.getChannelData(0), W = cv.width, H = cv.height, cor = getComputedStyle(cv).color;
+    g.clearRect(0, 0, W, H); g.fillStyle = cor; const passo = d.length / W;
+    let mx = 1e-6; for (let i = 0; i < d.length; i++) mx = Math.max(mx, Math.abs(d[i]));
+    for (let x = 0; x < W; x++) { let a = 0; for (let i = Math.floor(x * passo), f = Math.floor((x + 1) * passo); i < f; i++) a = Math.max(a, Math.abs(d[i])); const h = Math.max(1, (a / mx) * (H - 2)); g.fillRect(x, (H - h) / 2, 1, h); }
+  }).catch(() => {});
+}
+
+const familias = document.getElementById('familias');
+for (const grp of GRUPOS) {
+  const grade = el('div', { class: 'grade' });
+  familias.append(el('section', { class: 'familia' }, el('header', {}, el('h2', {}, grp.t), el('span', { class: 'eyebrow' }, grp.itens.length + (grp.itens.length === 1 ? ' som' : ' sons'))), grade));
+  for (const it of grp.itens) {
+    ITEM[it.id] = it;
+    const play = el('button', { class: 'play', type: 'button', 'aria-label': 'Tocar ' + it.nome, 'data-nome': it.nome });
+    play.innerHTML = ICON.play;
+    const onda = el('canvas', { class: 'onda', 'aria-hidden': 'true', style: 'color:var(--muted)' });
+    const ficha = el('article', { class: 'ficha' },
+      el('div', { class: 'topo' }, play, el('div', { style: 'min-width:0;display:grid;gap:2px' }, el('span', { class: 'nome' }, it.nome), el('span', { class: 'como' }, '“' + it.como + '”'))),
+      onda, el('p', { class: 'onde' }, it.onde));
+    FICHA[it.id] = ficha;
+    if (it.loop) {
+      play.dataset.loop = '1';
+      const rng = el('input', { type: 'range', min: '0.5', max: '2', step: '0.05', value: '1', id: 'vel-' + it.id, 'aria-label': 'Velocidade de ' + it.nome }), out = el('output', { for: 'vel-' + it.id }, '1,0×');
+      rng.addEventListener('input', () => { out.textContent = (+rng.value).toFixed(1).replace('.', ',') + '×'; const s = loops.get(it.id); if (s) s.playbackRate.setTargetAtTime(+rng.value, ac.currentTime, 0.05); });
+      ficha.append(el('label', { class: 'vel', for: 'vel-' + it.id }, 'Velocidade', rng, out));
+      play.addEventListener('click', async () => {
+        const s = loops.get(it.id);
+        if (s) { try { s.stop(); } catch (e) {} loops.delete(it.id); play.dataset.on = ''; play.innerHTML = ICON.play; play.setAttribute('aria-label', 'Tocar ' + it.nome); ficha.classList.remove('tocando'); return; }
+        const n = await toca(it.v[0], { loop: true, rate: +rng.value }); loops.set(it.id, n); play.dataset.on = '1'; play.innerHTML = ICON.stop; play.setAttribute('aria-label', 'Parar ' + it.nome); ficha.classList.add('tocando');
+      });
+    } else {
+      play.addEventListener('click', async () => { const n = sorteia(it); const s = await toca(n); acende(it.id, s.buffer.duration); });
+      if (it.v.length > 1) {
+        const vs = el('div', { class: 'vars' }, 'Variações');
+        it.v.forEach((n, k) => vs.append(el('button', { class: 'var', type: 'button', 'aria-label': it.nome + ', variação ' + (k + 1), onclick: async () => { const s = await toca(n); acende(it.id, s.buffer.duration); } }, String(k + 1))));
+        ficha.append(vs);
+      }
+    }
+    // opinião
+    const bG = el('button', { class: 'voto', type: 'button', 'data-v': 'gostei', 'aria-pressed': 'false' }, 'Gostei');
+    const bN = el('button', { class: 'voto', type: 'button', 'data-v': 'nao', 'aria-pressed': 'false' }, 'Não gostei');
+    const nota = el('input', { class: 'nota', type: 'text', id: 'nota-' + it.id, placeholder: 'Nota (opcional)', 'aria-label': 'Nota sobre ' + it.nome });
+    const op = el('div', { class: 'opiniao' }, bG, bN, nota); op.hidden = true; ficha.append(op);
+    ficha._op = { bG, bN, nota, op };
+    grade.append(ficha);
+    requestAnimationFrame(() => desenhaOnda(onda, it.v[0]));
+  }
+}
+// as ondas são desenhadas só depois do primeiro toque (o navegador só libera o som depois de uma ação)
+let ondasOk = false;
+function ondasDepoisDoToque() { if (ondasOk) return; ondasOk = true; for (const it of Object.values(ITEM)) { const cv = FICHA[it.id].querySelector('.onda'); desenhaOnda(cv, it.v[0]); } }
+addEventListener('pointerdown', ondasDepoisDoToque, { once: true }); addEventListener('keydown', ondasDepoisDoToque, { once: true });
+
+// ---------- cenas: [segundo, som, opções]
+const L = (t, id, ate, rate = 1, rateAte = 0) => [t, id, { loop: true, ate, rate, rateAte }];
+const serie = (id, t0, n, gap, ops) => Array.from({ length: n }, (_, k) => [t0 + k * gap, id, ops]);
+const CENAS = [
+  ['Corrida na areia', [[0, 'contagem'], [0.6, 'contagem'], [1.2, 'contagem'], [1.8, 'contagem_vai'], ...serie('passo_areia', 2.0, 6, 0.17), [3.05, 'pulo'], [3.4, 'pouso'], ...serie('passo_areia', 3.6, 4, 0.17), ...serie('passo_fofo', 4.3, 3, 0.24), ...serie('passo_areia', 5.05, 3, 0.17), [5.6, 'passo_poca'], ...serie('passo_areia', 5.85, 3, 0.17), [6.4, 'tombo'], ...serie('plof', 6.6, 4, 0.2), [8.0, 'wah_wah']]],
+  ['Surfe', [[0, 'whoosh'], [0.5, 'manobra'], [1.0, 'splash'], [1.6, 'whoosh'], [1.9, 'manobra'], [2.6, 'tombo'], [3.15, 'splash_grande'], [3.6, 'bolhas'], [4.3, 'ponto']]],
+  ['Half-pipe', [L(0, 'rodas_loop', 4.2, 1.1, 1.4), [0.8, 'ollie'], [0.85, 'whoosh'], [1.3, 'manobra'], [1.85, 'pouso_skate'], L(2.0, 'grind_loop', 0.8), [3.0, 'ollie'], [3.35, 'manobra'], [3.9, 'pouso_skate'], [4.4, 'ponto']]],
+  ['Embaixadinha', [...serie('toque', 0, 4, 0.45), [1.8, 'chute'], [2.35, 'toque'], [2.8, 'toque'], [3.3, 'ponto'], [3.8, 'toque'], [4.4, 'bola_areia'], [4.8, 'wah_wah']]],
+  ['Patins', [L(0, 'rodas_loop', 4.2, 1.3, 1.7), [1.0, 'manobra'], [1.9, 'derrapada'], L(2.4, 'grind_loop', 0.8, 1.2), [3.35, 'pouso_skate'], [4.2, 'tada']]],
+  ['Basquete', [...serie('quique', 0, 4, 0.4), ...serie('passo_tip', 0.2, 4, 0.4), [1.8, 'pulo'], [1.95, 'whoosh'], [2.5, 'aro'], [2.62, 'rede'], [3.0, 'ponto'], [3.7, 'tabela'], [4.0, 'aro'], [4.4, 'quique'], [4.75, 'quique']]],
+  ['Pingue-pongue', [[0, 'ping_raquete'], [0.38, 'ping_mesa'], [0.76, 'ping_raquete'], [1.12, 'ping_mesa'], [1.5, 'ping_raquete'], [1.84, 'ping_mesa'], [2.2, 'ping_raquete'], [2.5, 'ping_mesa'], [2.9, 'ponto']]],
+  ['BMX', [L(0, 'rodas_loop', 4.4, 1.0, 1.5), L(0.3, 'catraca_loop', 0.9), [1.4, 'whoosh'], [1.9, 'manobra'], [2.5, 'pouso'], [2.9, 'derrapada'], [3.5, 'tombo']]],
+  ['Frisbee', [[0, 'whoosh'], [0.1, 'disco_voo'], ...serie('passo_areia', 0.3, 4, 0.16), [0.95, 'pulo'], [1.25, 'pegou'], [1.45, 'pouso'], [1.9, 'ponto']]],
+  ['Tiro com arco', [[0, 'corda_puxa'], [0.7, 'corda_solta'], [0.74, 'whoosh'], [1.05, 'flecha_alvo'], [1.55, 'ponto'], [2.1, 'corda_puxa'], [2.8, 'corda_solta'], [3.1, 'balao_estoura'], [3.7, 'tada']]],
+  ['Duelo de água', [L(0, 'jato_loop', 1.2), [1.3, 'splat'], [1.5, 'estrelinhas'], L(2.1, 'jato_loop', 0.7), [2.9, 'splash'], [3.4, 'ponto']]],
+  ['Canoagem', [...serie('remada', 0, 6, 0.42), [2.6, 'splash'], [3.0, 'batida'], ...serie('remada', 3.7, 4, 0.42), [5.4, 'ponto']]],
+  ['Teco-teco d’Água', [L(0, 'motor_aviao_loop', 5.2, 1, 1.2), L(0.9, 'jato_loop', 0.8), [1.6, 'balao_estoura'], [2.4, 'pegou'], [3.0, 'balao_murcha'], [3.7, 'splat'], [3.9, 'estrelinhas'], [4.6, 'splash_grande']]],
+  ['Futebol de areia', [...serie('passo_areia', 0, 5, 0.17), [0.95, 'chute'], [1.45, 'trave'], ...serie('passo_areia', 2.1, 4, 0.17), [2.85, 'chute'], [3.25, 'rede'], [3.5, 'apito'], [3.9, 'palminhas']]],
+  ['Bocha na areia', [L(0, 'rolar_loop', 1.6, 1.0, 0.6), [1.6, 'bocha_bate'], L(1.65, 'rolar_loop', 0.6, 0.8, 0.4), [2.5, 'encostou'], [3.1, 'ponto']]],
+  ['Natação', [[0, 'apito'], [0.5, 'mergulho'], ...serie('bracada', 1.2, 7, 0.36), [3.8, 'bolhas'], [4.3, 'tada']]],
+  ['Jet ski', [[0, 'vrum'], L(0.4, 'motor_jetski_loop', 4.4, 0.8, 1.5), [1.8, 'splash'], [2.6, 'turbo'], [3.6, 'derrapada'], [4.2, 'batida']]],
+  ['Corrida de bugue', [[0, 'vrum'], L(0.4, 'motor_bugue_loop', 4.6, 0.8, 1.6), [1.6, 'buzina'], [2.4, 'derrapada'], [3.0, 'turbo'], [4.2, 'batida'], [5.2, 'vitoria']]],
+  ['Vôlei', [[0, 'toque'], ...serie('passo_areia', 0.2, 3, 0.17), [0.75, 'toque'], [1.2, 'pulo'], [1.5, 'chute'], [1.9, 'bola_areia'], [2.2, 'apito'], [2.5, 'ponto'], [2.9, 'palminhas']]],
+];
+const qual = (id) => (SONS[id] ? id : (ITEM[id] ? sorteia(ITEM[id]) : null));
+const famDe = (id) => (ITEM[id] ? id : Object.keys(ITEM).find((k) => ITEM[k].v.includes(id)));
+const cenasEl = document.getElementById('cenas');
+for (const [nome, passos] of CENAS) {
+  const chip = el('button', { class: 'chip', type: 'button' }, nome);
+  chip.addEventListener('click', async () => {
+    pararTudo(); chip.classList.add('on'); audio();
+    let fim = 0;
+    for (const [t, id, ops = {}] of passos) {
+      const n = qual(id); if (!n) continue; await pega(n);
+      const it = ITEM[famDe(id)];
+      toca(n, { quando: t, ...ops });
+      const d = ops.ate || buf[n].duration; fim = Math.max(fim, t + d);
+      timers.push(setTimeout(() => acende(it.id, d), t * 1000));
+    }
+    timers.push(setTimeout(() => chip.classList.remove('on'), fim * 1000 + 200));
+  });
+  cenasEl.append(chip);
+}
+
+// ---------- opiniões (banco da página: coleção "avaliacao", um documento por som; "recado/geral")
+const contas = document.getElementById('contas'), estado = document.getElementById('estado'), recado = document.getElementById('recado');
+const votos = {};
+function atualizaContas() {
+  const v = Object.values(votos), g = v.filter((x) => x === 'gostei').length, n = v.filter((x) => x === 'nao').length;
+  contas.textContent = `${g} gostei · ${n} não gostei · ${Object.keys(ITEM).length - g - n} sem marcar`;
+}
+function mostraVoto(id) { const o = FICHA[id]._op; o.bG.setAttribute('aria-pressed', String(votos[id] === 'gostei')); o.bN.setAttribute('aria-pressed', String(votos[id] === 'nao')); }
+(async () => {
+  let db = null; try { db = await window.claude?.use?.('db'); } catch (e) {}
+  if (!db) { estado.textContent = 'As marcações não estão sendo guardadas nesta tela. Os sons tocam normalmente.'; recado.disabled = true; return; }
+  for (const id of Object.keys(ITEM)) FICHA[id]._op.op.hidden = false;
+  atualizaContas();
+  const fila = {};
+  const grava = (id, dados) => { clearTimeout(fila[id]); fila[id] = setTimeout(() => db.collection('avaliacao').doc(id).set({ ...dados, quando: new Date().toISOString() }).then(() => { estado.textContent = 'Guardado.'; }).catch((e) => { estado.textContent = 'Não deu para guardar agora (' + (e?.code || 'erro') + '). Tente de novo em instantes.'; }), 400); };
+  const atual = (id) => ({ voto: votos[id] || '', nota: FICHA[id]._op.nota.value.trim() });
+  for (const id of Object.keys(ITEM)) {
+    const o = FICHA[id]._op;
+    for (const b of [o.bG, o.bN]) b.addEventListener('click', () => { votos[id] = votos[id] === b.dataset.v ? '' : b.dataset.v; mostraVoto(id); atualizaContas(); grava(id, atual(id)); });
+    o.nota.addEventListener('input', () => grava(id, atual(id)));
+  }
+  recado.addEventListener('input', () => { clearTimeout(fila._r); fila._r = setTimeout(() => db.doc('recado/geral').set({ texto: recado.value, quando: new Date().toISOString() }).then(() => { estado.textContent = 'Recado guardado.'; }).catch(() => { estado.textContent = 'Não deu para guardar o recado agora.'; }), 600); });
+  const t = setTimeout(() => { estado.textContent = 'As marcações antigas estão demorando para chegar.'; }, 10000);
+  db.collection('avaliacao').onSnapshot((snap) => {
+    clearTimeout(t);
+    for (const d of snap.docs) { const x = d.data() || {}; if (!ITEM[d.id]) continue; votos[d.id] = x.voto || ''; mostraVoto(d.id); const n = FICHA[d.id]._op.nota; if (document.activeElement !== n) n.value = x.nota || ''; }
+    atualizaContas();
+  }, () => { estado.textContent = 'Não deu para ler as marcações guardadas.'; });
+  db.doc('recado/geral').get().then((d) => { if (d.exists && document.activeElement !== recado) recado.value = (d.data() || {}).texto || ''; }).catch(() => {});
+})();
+</script>

@@ -24,6 +24,7 @@
     return (MBT[key] = c);
   }
   let BCOL = '#e86fa8';
+  window.__blCor = (c) => { const o = BCOL; BCOL = c; return o; }; // 01/11: o patins pinta cada Amiguinho da pista com a cor dele e devolve a anterior
   let LOOKB = [0, 0]; // para onde o rosto olha dentro do visor (-1 a 1), definido a cada quadro
   let FB = null; // tela temporária para o rosto
   (window.__fr = window.__fr || {})['bl'] = frameB5; // usado só pelos testes de rosto

@@ -2023,14 +2023,14 @@ const patins = {
   init() {
     Object.assign(this, {
       t: 0, left: this.dur, d: 0, v: 112, y: 0, vy: 0, air: false, crouch: false, grind: null, grindPts: 0, rot: 0, spinning: false, spinQ: 0, laps: 0,
-      grab: false, grabT: 0, grabArmed: false, buf: 0, combo: 0, maxCombo: 0, bumps: 0, inv: 0, obs: [], nextArr: 2.6, bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0,
+      grab: false, grabT: 0, grabArmed: false, buf: 0, combo: 0, maxCombo: 0, bumps: 0, inv: 0, obs: [], nextArr: 2.6, bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0, pisoes: 0,
       deadT: 0, nivel: 0, sparks: [], trick: null, airTr: [], lastTr: [], combined: false, gStyle: null, gStyles: [],
     });
   },
   demo() { this.air = true; this.y = 30; this.obs = [{ k: 'buraco', x: 60, w: 26 }, { k: 'corrimao', x: 150, w: 90 }, { k: 'bola', x: 260, y: 140 }]; },
   mult() { return Math.min(4, 1 + Math.floor(this.combo / 5) * .5); },
   hud() { const m = this.mult(); return [['Pontos', nf(this.score)], ['Tempo', `${Math.ceil(this.left)}s`, this.left <= 10], ['Combo', `×${String(m).replace('.', ',')}`, m > 1], ['Tombos', '■'.repeat(this.bumps) + '□'.repeat(Math.max(0, 3 - this.bumps)), this.bumps === 2]]; },
-  stats() { return [`${Math.round(this.d / 10)} m`, `${this.tricks} manobras`, `${this.grinds} corrimãos`, `combo máximo ${this.maxCombo} · ${this.bumps} tombos`]; },
+  stats() { return [`${Math.round(this.d / 10)} m`, `${this.tricks} manobras`, `${this.grinds} corrimãos · ${this.pisoes || 0} na cabeça`, `combo máximo ${this.maxCombo} · ${this.bumps} tombos`]; },
   vmax() { return Math.min(226, 112 + this.t * 1.9); },
   addCombo(n = 1) { this.combo += n; this.maxCombo = Math.max(this.maxCombo, this.combo); },
   update(dt, I) {
@@ -2080,10 +2080,9 @@ const patins = {
       this.y += this.vy * dt; this.vy -= PT_G * dt;
       // cair em cima de um corrimão
       if (this.vy < 0 && prevY >= PT_RH - 1 && this.y <= PT_RH) {
-        const o = this.obs.find((q) => q.k === 'corrimao' && !q.hit && this.d + PPX > q.x + 2 && this.d + PPX < q.x + q.w - 8);
+        const o = this.obs.find((q) => q.k === 'corrimao' && !q.hit && this.d + PPX > q.x - 4 && this.d + PPX < q.x + q.w - 4);
         if (o) {
-          if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.y = PT_RH; this.land(true); this.bump(why); }
-          else { this.land(false); this.y = PT_RH; this.grind = o; this.grindPts = 0; this.gStyle = null; this.gStyles = []; o.grinded = true; sfx.land(); }
+          this.sobeRail(o);
         }
       }
       if (this.air && this.y <= 0) {
@@ -2104,9 +2103,9 @@ const patins = {
       if (o.k === 'buraco') hit = !this.air && !this.grind && px > o.x + 4 && px < o.x + o.w - 4;
       else if (o.k === 'coco') hit = px1 > o.x + 2 && px0 < o.x + 11 && fh < 11;
       else if (o.k === 'queda') hit = px1 > o.x + 1 && px0 < o.x + 10 && o.h < fh + bodyH && o.h + 13 > fh;
-      else if (o.k === 'bot') hit = px1 > o.x + 2 && px0 < o.x + 14 && fh < 17;
+      else if (o.k === 'bot') { if (o.pis) continue; const enc = px1 > o.x + 2 && px0 < o.x + 14; if (enc && this.air && this.vy <= 40 && fh >= 5 && fh < 24) { this.pisa(o); continue; } hit = enc && fh < 17; }
       else if (o.k === 'bola') hit = px1 > o.x && px0 < o.x + 6 && fh + bodyH > 39 && fh < 48;
-      else if (o.k === 'corrimao') hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6;
+      else if (o.k === 'corrimao') { if (this.air && this.grind !== o && fh < PT_RH && fh >= PT_RH - 14 && px > o.x - 4 && px < o.x + 30) { if (this.vy <= 0) this.sobeRail(o); continue; } hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6; }
       else if (px1 > o.x && px0 < o.x + 10 && PGY - fh - bodyH < o.y + 14 && PGY - fh > o.y) { o.got = true; const v = o.k === 'agua' ? 60 : 30; this.bonus += Math.round(v * this.mult()); this.items++; pop(`${o.k === 'agua' ? 'Água de coco' : 'Picolé'} +${Math.round(v * this.mult())}`, PPX + 10, o.y - 6, '#bfefff'); sfx.coin(); }
       if (hit) { o.hit = true; this.bump(PT_TOMBO[o.k]); }
       // passou limpo
@@ -2122,6 +2121,16 @@ const patins = {
     this.grind = null; this.grindPts = 0; this.gStyle = null; this.gStyles = [];
   },
   midTrick() { return this.trick && this.trick.d - this.trick.t > .06; },
+  // cair em cima do corrimão: girando, agarrado ou no meio da manobra é tombo; senão começa a deslizar
+  sobeRail(o) {
+    if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.y = PT_RH; this.land(true); this.bump(why); return; }
+    this.land(false); this.y = PT_RH; this.grind = o; this.grindPts = 0; this.gStyle = null; this.gStyles = []; o.grinded = true; sfx.land();
+  },
+  // pulou na cabeça do Amiguinho: pontos, combo, ele cai no chão e você quica (as manobras no ar continuam)
+  pisa(o) {
+    o.pis = true; o.pisT = this.t; o.clean = true; const pts = Math.round(60 * this.mult()); this.bonus += pts; this.addCombo(); this.pisoes++;
+    pop(`Na cabeça! +${pts}`, PPX + 6, PGY - 62, '#ffd04a', true); sfx.point(); this.vy = PT_JV * .8; this.y = Math.max(this.y, 17);
+  },
   // pousou: conta as manobras do salto
   land(fail) {
     this.air = false; this.vy = 0;
@@ -11344,7 +11353,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '01/11 21:56';
+const WZ_BUILD = '01/11 22:24';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
@@ -13989,6 +13998,7 @@ window.SKVD = {"f": {"manha": "img/2e7e9abeb72b.webp", "dia": "img/bdc90a1b671a.
     return (MBT[key] = c);
   }
   let BCOL = '#e86fa8';
+  window.__blCor = (c) => { const o = BCOL; BCOL = c; return o; }; // 01/11: o patins pinta cada Amiguinho da pista com a cor dele e devolve a anterior
   let LOOKB = [0, 0]; // para onde o rosto olha dentro do visor (-1 a 1), definido a cada quadro
   let FB = null; // tela temporária para o rosto
   (window.__fr = window.__fr || {})['bl'] = frameB5; // usado só pelos testes de rosto
@@ -15577,13 +15587,40 @@ function bqDraw(tt) {
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(cx, cy); if (rot) ctx.rotate(rot); ctx.drawImage(im, f.x, 0, f.w, f.h, -ww / 2, -hh / 2, ww, hh); ctx.restore();
   }
   const PT_FW = 800, PT_CW = 342, PT_CY = 168; // orla (32:9 na altura da tela) e calçadão (6:1 com 57 de altura), em unidades
+  // 01/11 (pedido do dono): os postes ficam nas pontas da física (o deslize começa na curva da barra). Nas peças, o poste da esquerda
+  // fica no pixel 20 e o da direita no 162; antes o desenho começava uns 17 antes do corrimão de verdade e encostar na ponta era tombo.
+  // Corrimão curto: as duas pontas se encontram no meio, sem a peça do meio.
   function ptRail(x, w) {
     const R0 = PTC.rail, k = (PT_RH + 4) / (R0.chao - R0.top), top = PGY - PT_RH - 4 - R0.top * k, hh = R0.esq.h * k;
-    const we = R0.esq.w * k, wm = R0.meio.w * k, wd = R0.dir.w * k, x0 = x - we * .35, x1 = x + w + wd * .35;
+    const we = R0.esq.w * k, wm = R0.meio.w * k, wd = R0.dir.w * k, x0 = x - 2 - 20 * k, x1 = x + w + 2 + (R0.dir.w - 162) * k;
+    const eR = x0 + we, dL = x1 - wd, mid = dL > eR ? null : (eR + dL) / 2;
     const e = ptImg('r_esq', R0.esq.src), m = ptImg('r_meio', R0.meio.src), d = ptImg('r_dir', R0.dir.src);
     ctx.save(); ctx.imageSmoothingEnabled = true;
-    for (let xx = x0 + we - .5; xx < x1 - wd; xx += wm - .5) { const ww = Math.min(wm, x1 - wd - xx + .5); ctx.drawImage(m, 0, 0, R0.meio.w * ww / wm, R0.meio.h, xx, top, ww, hh); }
-    ctx.drawImage(e, x0, top, we, hh); ctx.drawImage(d, x1 - wd, top, wd, hh); ctx.restore();
+    if (mid == null) for (let xx = eR - .5; xx < dL + .5; xx += wm - .5) { const ww = Math.min(wm, dL + .5 - xx); ctx.drawImage(m, 0, 0, R0.meio.w * ww / wm, R0.meio.h, xx, top, ww, hh); }
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 1, top - 1, (mid ?? eR) - x0 + 1, hh + 2); ctx.clip(); ctx.drawImage(e, x0, top, we, hh); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(mid ?? dL, top - 1, x1 - (mid ?? dL) + 1, hh + 2); ctx.clip(); ctx.drawImage(d, dL, top, wd, hh); ctx.restore();
+    ctx.restore();
+  }
+  // 01/11 (pedido do dono): os Amiguinhos da pista pintados (o Amiguinho do vôlei, na cor de cada um, virado para você).
+  // Pisado: amassa e cai de cara no chão (o peixinho do vôlei, quadros 1 a 12), com estrelinhas, e some devagar.
+  const AM_PTCOR = { am_rosa: '#e86fa8', am_laranja: '#f08a3c', am_roxo: '#9a7cf0', am_dourado: '#e8c25a' }, PT_BOTK = .52;
+  function ptBot(v, o, x, tt) {
+    const MB = window.MVB; if (!MB || !MB.a.idle || !MB.a.dive || !window.__fr || !window.__fr.bl || !window.__blCor) return false;
+    const old = window.__blCor(AM_PTCOR[AM_PT[Math.floor(o.x) % AM_PT.length]]);
+    try {
+      ctx.save(); ctx.translate(x + 8, PGY + 1);
+      if (!o.pis) { ctx.scale(PT_BOTK, PT_BOTK); window.__fr.bl('idle', Math.floor(tt * 8 + o.x) % 16, 'g', 0, true); }
+      else {
+        const e = v.t - o.pisT;
+        ctx.globalAlpha = clamp((2.2 - e) / .5, 0, 1);
+        if (e < .12) { ctx.scale(PT_BOTK * 1.3, PT_BOTK * .55); window.__fr.bl('idle', 0, 'g', 4, true); } // amassou
+        else { ctx.scale(PT_BOTK, PT_BOTK); window.__fr.bl('dive', Math.min(11, Math.floor((e - .12) * 18)), 'g', 4, false); }
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+      if (o.pis) { const e = v.t - o.pisT; if (e > .3 && e < 2) for (let i = 0; i < 3; i++) { const a = tt * 5 + i * TAU / 3; R(x + 12 + Math.cos(a) * 7, PGY - 13 + Math.sin(a) * 2.2, 1.5, 1.5, '#ffd04a'); } }
+    } catch (err) { ctx.restore(); window.__blCor(old); return false; }
+    window.__blCor(old); return true;
   }
   /* ---------- IAmiguinho pintado no patins (mvpt.py -> window.MVPT, 12 animações do pacote do dono)
      Andando: a passada (pelo caminho andado). Agachado: desce (1-4) e fica embaixo (5-8). No ar: o salto (o quadro segue a subida
@@ -15708,7 +15745,7 @@ function bqDraw(tt) {
           const k = clamp(1 - o.h / 150, .2, 1); ctx.globalAlpha = .35 + .5 * k; ptPart('sombra', x + 6, PGY + 1, 8 + 12 * k, 4); ctx.globalAlpha = 1;
           ptPart('queda', x + 6, PGY - o.h - 8);
         } else if (o.k === 'bot') {
-          if (sReady('am_rosa')) vSprite(AM_PT[Math.floor(o.x) % AM_PT.length], 'parado', Math.floor(tt * 3 + o.x) % 4, { x: x + 8, y: PGY + 1 }, -1, 0, { lx: -1, ly: 0 }, false, tt, 0, 0, .55);
+          if (!ptBot(this, o, x, tt) && sReady('am_rosa') && !o.pis) vSprite(AM_PT[Math.floor(o.x) % AM_PT.length], 'parado', Math.floor(tt * 3 + o.x) % 4, { x: x + 8, y: PGY + 1 }, -1, 0, { lx: -1, ly: 0 }, false, tt, 0, 0, .55);
         } else if (o.k === 'bola') {
           if (!o.hit) { ctx.globalAlpha = .45; ptPart('sombra', x + 4, PGY + 1, 10, 3); ctx.globalAlpha = 1; ptPart('bola', x + 8, o.y + 6); }
         } else if (o.k === 'corrimao') {

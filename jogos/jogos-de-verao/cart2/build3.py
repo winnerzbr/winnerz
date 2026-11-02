@@ -286,6 +286,34 @@ s = s.replace("this.px < this.rx - BQ.TRES", "this.px < BQ_LINHA3")
 s = sub1("    if (b.y > VGY - R0) {\n      b.y = VGY - R0;", "    if (b.y > VGY - (BQ.CHAO || R0)) {\n      b.y = VGY - (BQ.CHAO || R0);", s)  # o chão pelo tamanho do desenho da bola (bqp.js)
 s = sub1("const BQ_SERIES = [", "const BQ_LINHA3 = 199.5; // a linha do meio pintada no chão da quadra, na altura dos pés\nconst BQ_SERIES = [", s)
 
+# 01/11 · patins (pedidos do dono):
+# 1) corrimão: o deslize começa na ponta. Dá para cair em cima desde a curva da barra (4 antes do começo) até 4 antes do fim; perto do
+#    começo, se os pés estão até 14 abaixo do topo da barra, descendo sobe no corrimão e subindo passa (antes era tombo).
+s = sub1("const o = this.obs.find((q) => q.k === 'corrimao' && !q.hit && this.d + PPX > q.x + 2 && this.d + PPX < q.x + q.w - 8);",
+         "const o = this.obs.find((q) => q.k === 'corrimao' && !q.hit && this.d + PPX > q.x - 4 && this.d + PPX < q.x + q.w - 4);", s)
+s = sub1("""          if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.y = PT_RH; this.land(true); this.bump(why); }
+          else { this.land(false); this.y = PT_RH; this.grind = o; this.grindPts = 0; this.gStyle = null; this.gStyles = []; o.grinded = true; sfx.land(); }""",
+         "          this.sobeRail(o);", s)
+s = sub1("      else if (o.k === 'corrimao') hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6;",
+         "      else if (o.k === 'corrimao') { if (this.air && this.grind !== o && fh < PT_RH && fh >= PT_RH - 14 && px > o.x - 4 && px < o.x + 30) { if (this.vy <= 0) this.sobeRail(o); continue; } hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6; }", s)
+s = sub1("bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0,", "bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0, pisoes: 0,", s)
+s = sub1("`${this.grinds} corrimãos`", "`${this.grinds} corrimãos · ${this.pisoes || 0} na cabeça`", s)
+# 2) pular na cabeça do Amiguinho: dá pontos, ele cai no chão e você quica para cima (não é tombo)
+s = sub1("      else if (o.k === 'bot') hit = px1 > o.x + 2 && px0 < o.x + 14 && fh < 17;",
+         "      else if (o.k === 'bot') { if (o.pis) continue; const enc = px1 > o.x + 2 && px0 < o.x + 14; if (enc && this.air && this.vy <= 40 && fh >= 5 && fh < 24) { this.pisa(o); continue; } hit = enc && fh < 17; }", s)
+s = sub1("  midTrick() { return this.trick && this.trick.d - this.trick.t > .06; },",
+         """  midTrick() { return this.trick && this.trick.d - this.trick.t > .06; },
+  // cair em cima do corrimão: girando, agarrado ou no meio da manobra é tombo; senão começa a deslizar
+  sobeRail(o) {
+    if (this.spinning || (this.grab && this.grabT > .15) || this.midTrick()) { const why = this.spinning ? 'Pousou girando' : this.midTrick() ? 'Pousou no meio da manobra' : 'Pousou agarrado'; this.y = PT_RH; this.land(true); this.bump(why); return; }
+    this.land(false); this.y = PT_RH; this.grind = o; this.grindPts = 0; this.gStyle = null; this.gStyles = []; o.grinded = true; sfx.land();
+  },
+  // pulou na cabeça do Amiguinho: pontos, combo, ele cai no chão e você quica (as manobras no ar continuam)
+  pisa(o) {
+    o.pis = true; o.pisT = this.t; o.clean = true; const pts = Math.round(60 * this.mult()); this.bonus += pts; this.addCombo(); this.pisoes++;
+    pop(`Na cabeça! +${pts}`, PPX + 6, PGY - 62, '#ffd04a', true); sfx.point(); this.vy = PT_JV * .8; this.y = Math.max(this.y, 17);
+  },""", s)
+
 pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados
 js = sub1("  /* ---------------------------------------------------------- desenho principal do vôlei */", pint + "\n  /* ---------------------------------------------------------- desenho principal do vôlei */", js)
 js = sub1("function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }",

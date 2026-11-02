@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Patins: ponta do corrimão, Amiguinhos pintados e pulo na cabeça
+- **O dono pediu:** o deslize começar na ponta do corrimão (encostar na ponta pulando dava tombo); os Amiguinhos da pista pintados; pular na cabeça deles dar pontos, sem tombo, com eles caindo no chão.
+- **Feito:** postes do corrimão nas pontas de verdade e uma folga na ponta (tombos na simulação caíram de 26 para 12 em 60 pulos); Amiguinhos pintados na cor de cada um; pisão vale 60 × combo, você quica e ele cai de cara no chão com estrelinhas. Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: Tubo do surfe: pedido refeito e fundo provisório
 - **O dono pediu:** refazer a arte das ondas, porque o buraco no meio do tubo deixava ver a onda do cenário.
 - **Feito:** 3 pedidos novos do tubo (meio, entrada e fechamento) com o fundo do barril pintado, sem transparência, na página de pedidos. No jogo, até a arte chegar, o fundo do tubo é pintado com a própria água do teto, virada e mais escura. Publicado na página do Claude e no site.

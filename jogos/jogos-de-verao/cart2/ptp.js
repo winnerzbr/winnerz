@@ -19,13 +19,40 @@
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(cx, cy); if (rot) ctx.rotate(rot); ctx.drawImage(im, f.x, 0, f.w, f.h, -ww / 2, -hh / 2, ww, hh); ctx.restore();
   }
   const PT_FW = 800, PT_CW = 342, PT_CY = 168; // orla (32:9 na altura da tela) e calçadão (6:1 com 57 de altura), em unidades
+  // 01/11 (pedido do dono): os postes ficam nas pontas da física (o deslize começa na curva da barra). Nas peças, o poste da esquerda
+  // fica no pixel 20 e o da direita no 162; antes o desenho começava uns 17 antes do corrimão de verdade e encostar na ponta era tombo.
+  // Corrimão curto: as duas pontas se encontram no meio, sem a peça do meio.
   function ptRail(x, w) {
     const R0 = PTC.rail, k = (PT_RH + 4) / (R0.chao - R0.top), top = PGY - PT_RH - 4 - R0.top * k, hh = R0.esq.h * k;
-    const we = R0.esq.w * k, wm = R0.meio.w * k, wd = R0.dir.w * k, x0 = x - we * .35, x1 = x + w + wd * .35;
+    const we = R0.esq.w * k, wm = R0.meio.w * k, wd = R0.dir.w * k, x0 = x - 2 - 20 * k, x1 = x + w + 2 + (R0.dir.w - 162) * k;
+    const eR = x0 + we, dL = x1 - wd, mid = dL > eR ? null : (eR + dL) / 2;
     const e = ptImg('r_esq', R0.esq.src), m = ptImg('r_meio', R0.meio.src), d = ptImg('r_dir', R0.dir.src);
     ctx.save(); ctx.imageSmoothingEnabled = true;
-    for (let xx = x0 + we - .5; xx < x1 - wd; xx += wm - .5) { const ww = Math.min(wm, x1 - wd - xx + .5); ctx.drawImage(m, 0, 0, R0.meio.w * ww / wm, R0.meio.h, xx, top, ww, hh); }
-    ctx.drawImage(e, x0, top, we, hh); ctx.drawImage(d, x1 - wd, top, wd, hh); ctx.restore();
+    if (mid == null) for (let xx = eR - .5; xx < dL + .5; xx += wm - .5) { const ww = Math.min(wm, dL + .5 - xx); ctx.drawImage(m, 0, 0, R0.meio.w * ww / wm, R0.meio.h, xx, top, ww, hh); }
+    ctx.save(); ctx.beginPath(); ctx.rect(x0 - 1, top - 1, (mid ?? eR) - x0 + 1, hh + 2); ctx.clip(); ctx.drawImage(e, x0, top, we, hh); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(mid ?? dL, top - 1, x1 - (mid ?? dL) + 1, hh + 2); ctx.clip(); ctx.drawImage(d, dL, top, wd, hh); ctx.restore();
+    ctx.restore();
+  }
+  // 01/11 (pedido do dono): os Amiguinhos da pista pintados (o Amiguinho do vôlei, na cor de cada um, virado para você).
+  // Pisado: amassa e cai de cara no chão (o peixinho do vôlei, quadros 1 a 12), com estrelinhas, e some devagar.
+  const AM_PTCOR = { am_rosa: '#e86fa8', am_laranja: '#f08a3c', am_roxo: '#9a7cf0', am_dourado: '#e8c25a' }, PT_BOTK = .52;
+  function ptBot(v, o, x, tt) {
+    const MB = window.MVB; if (!MB || !MB.a.idle || !MB.a.dive || !window.__fr || !window.__fr.bl || !window.__blCor) return false;
+    const old = window.__blCor(AM_PTCOR[AM_PT[Math.floor(o.x) % AM_PT.length]]);
+    try {
+      ctx.save(); ctx.translate(x + 8, PGY + 1);
+      if (!o.pis) { ctx.scale(PT_BOTK, PT_BOTK); window.__fr.bl('idle', Math.floor(tt * 8 + o.x) % 16, 'g', 0, true); }
+      else {
+        const e = v.t - o.pisT;
+        ctx.globalAlpha = clamp((2.2 - e) / .5, 0, 1);
+        if (e < .12) { ctx.scale(PT_BOTK * 1.3, PT_BOTK * .55); window.__fr.bl('idle', 0, 'g', 4, true); } // amassou
+        else { ctx.scale(PT_BOTK, PT_BOTK); window.__fr.bl('dive', Math.min(11, Math.floor((e - .12) * 18)), 'g', 4, false); }
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+      if (o.pis) { const e = v.t - o.pisT; if (e > .3 && e < 2) for (let i = 0; i < 3; i++) { const a = tt * 5 + i * TAU / 3; R(x + 12 + Math.cos(a) * 7, PGY - 13 + Math.sin(a) * 2.2, 1.5, 1.5, '#ffd04a'); } }
+    } catch (err) { ctx.restore(); window.__blCor(old); return false; }
+    window.__blCor(old); return true;
   }
   /* ---------- IAmiguinho pintado no patins (mvpt.py -> window.MVPT, 12 animações do pacote do dono)
      Andando: a passada (pelo caminho andado). Agachado: desce (1-4) e fica embaixo (5-8). No ar: o salto (o quadro segue a subida
@@ -150,7 +177,7 @@
           const k = clamp(1 - o.h / 150, .2, 1); ctx.globalAlpha = .35 + .5 * k; ptPart('sombra', x + 6, PGY + 1, 8 + 12 * k, 4); ctx.globalAlpha = 1;
           ptPart('queda', x + 6, PGY - o.h - 8);
         } else if (o.k === 'bot') {
-          if (sReady('am_rosa')) vSprite(AM_PT[Math.floor(o.x) % AM_PT.length], 'parado', Math.floor(tt * 3 + o.x) % 4, { x: x + 8, y: PGY + 1 }, -1, 0, { lx: -1, ly: 0 }, false, tt, 0, 0, .55);
+          if (!ptBot(this, o, x, tt) && sReady('am_rosa') && !o.pis) vSprite(AM_PT[Math.floor(o.x) % AM_PT.length], 'parado', Math.floor(tt * 3 + o.x) % 4, { x: x + 8, y: PGY + 1 }, -1, 0, { lx: -1, ly: 0 }, false, tt, 0, 0, .55);
         } else if (o.k === 'bola') {
           if (!o.hit) { ctx.globalAlpha = .45; ptPart('sombra', x + 4, PGY + 1, 10, 3); ctx.globalAlpha = 1; ptPart('bola', x + 8, o.y + 6); }
         } else if (o.k === 'corrimao') {

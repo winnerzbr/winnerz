@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Pedidos das reações do pingue-pongue refeitos em 3/4
+- **O dono pediu:** refazer os prompts da comemoração e do lamento, porque de perfil o rosto não aparece. Antes ele tinha reenviado o mesmo pacote das reações (idêntico, nada mudou).
+- **Feito:** os 4 pedidos reescritos em 3/4 na página de pedidos, com a referência de ângulo de cada personagem (a pose parada do vôlei). Os cartões refeitos começam sem "Feita".
+- **Pendente:** o dono gerar as 4 pranchas novas; o jogo segue com as de perfil até lá.
+
+---
+
 ## 01/11/2026: Reações do pingue-pongue pintadas
 - **O dono mandou** o pacote das reações do tênis de mesa: comemoração e lamento do IAmiguinho e do Amiguinho, de raquete na mão.
 - **Feito:** as 4 no jogo (depois de cada ponto e no fim da partida) e na Prévia. Corrigido o rosto aceso do Amiguinho nos quadros de costas e de lado (cobria o corpo). O IAmiguinho do pingue-pongue virou um atlas só. Publicado na página do Claude e no site; a página tem 496 de 511 arquivos.

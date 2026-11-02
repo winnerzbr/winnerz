@@ -104,8 +104,9 @@
     for (let y = pBot; y > pTop - ph; y -= ph - .3) { const hh = Math.min(ph, y - pTop); if (hh > .3) bqPart('poste', pc, y - hh / 2, p.poste.uw, hh); }
     bqPart('topo', pc, top + p.topo.uh * .3);
     for (let x = BX + 6; x < pc - 2; x += p.braco.uw - .3) { const ww = Math.min(p.braco.uw, pc - 2 - x); bqPart('braco', x + ww / 2, ry - 15, ww, p.braco.uh); }
-    // tabela: de ry − 36 a ry + 8 (44), começando na frente da física (BX)
-    const y0 = ry - 36, th = 44, wE = p.tabE.uw, wD = p.tabD.uw; bqPart('tabE', BX - .5, y0, wE, th); bqPart('tabD', BX - .5 + wE, y0, wD, th);
+    // tabela: de ry − 36 a ry + 8 (44)
+    // 01/11 (pedido do dono): a tabela pintada é vista de frente, então o meio dela (o quadrado laranja) fica onde está o centro da bola quando ela bate (BX − BQ.R)
+    const y0 = ry - 36, th = 44, wE = p.tabE.uw, wD = p.tabD.uw, tx = BX - BQ.R - (wE + wD) / 2; /* o centro da bola encosta no meio */ bqPart('tabE', tx, y0, wE, th); bqPart('tabD', tx + wE, y0, wD, th);
     if (sReady('eb_obj')) {
       const E = SPR.eb_obj, k = clamp(v.wind / 40, -1, 1), f = E.fr[Math.abs(k) > .4 ? 'biruta1' : 'biruta2'], dir = k < -.05 ? -1 : 1;
       ctx.save(); ctx.translate(pc, top - 10); ctx.scale(dir, 1); ctx.drawImage(sImg('eb_obj'), f.x, f.y, f.w, f.h, -4.5, -f.h / 2, f.w / 2, f.h / 2); ctx.restore();
@@ -117,20 +118,27 @@
     else bqPart('rede', rx, ry + 1.4);
     bqPart('aro', rx, ry);
   }
+  const BQ_BOLA = 1.3;
   if (typeof basquete !== 'undefined') {
+    // 01/11 (pedido do dono): a cesta não anda mais (nem troca de lugar entre as séries, nem desliza); as séries mudam só o vento e a marcação.
+    // A linha de três é a linha do meio da quadra pintada (x 199,5 na altura dos pés).
+    // A bola é desenhada 30% maior (BQ_BOLA); a física do aro continua com o mesmo tamanho (com a bola maior, até o arremesso perfeito batia no aro).
+    // No chão ela quica pelo tamanho do desenho (BQ.CHAO), para não afundar na quadra.
+    BQ_SERIES.forEach((q) => { q.rx = 345; q.ry = 100; q.slide = 0; });
+    BQ.CHAO = (BQC ? BQC.p.bola0.uw / 2 : 7.3) * BQ_BOLA;
     const draw16q = basquete.draw, ball16q = basquete.ball;
     basquete.ball = function (x, y, spin, fire = false, vx = 1) {
       if (!BQCOK()) return ball16q.apply(this, arguments);
       const k = ((Math.floor(spin * 1.3) % 4) + 4) % 4;
-      if (fire) bqPart('fogo' + k, x, y, undefined, undefined, vx < 0 ? -1 : 1); else bqPart('bola' + k, x, y);
+      const e = BQ_BOLA, fb = BQC.p['fogo' + k], bb = BQC.p['bola' + k];
+      if (fire) bqPart('fogo' + k, x, y, fb && fb.uw * e, fb && fb.uh * e, vx < 0 ? -1 : 1); else bqPart('bola' + k, x, y, bb && bb.uw * e, bb && bb.uh * e);
     };
     basquete.draw = function (tt) { if (!BQCOK()) return draw16q.call(this, tt); bqDraw.call(this, tt); };
   }
 function bqDraw(tt) {
       bqScene(this, tt);
       const rx = this.rx, ry = this.ry, BX = this.bx(), art = sReady('bq_obj');
-      // linha de três pintada na areia (inclinada a 22°, como uma linha de quadra vista de lado)
-      { const lx = Math.round(this.rx - BQ.TRES); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.moveTo(lx - 2, VGY - 4); ctx.lineTo(lx + 1, VGY - 4); ctx.lineTo(lx + 1 + (H - VGY + 4) * .4, H); ctx.lineTo(lx - 2 + (H - VGY + 4) * .4, H); ctx.fill(); }
+      // 01/11: a linha de três é a linha do meio pintada na quadra (BQ_LINHA3); o jogo não desenha outra
       bqHoop(this, tt, BX, rx, ry);
       // marcação (Amiguinho rosa)
       const D = this.def;
@@ -149,7 +157,7 @@ function bqDraw(tt) {
         else by = Math.round(Math.sin(tt * 3)) * .5;
         this.ia(f, this.px, face, ex, { lx: 1, ly: this.charging ? -1 : 0 }, tt, lift);
         if (ball && this.shootT <= 0 && this.cheer <= .6) {
-          if (f === 1) { const q = Math.abs(Math.sin(tt * 8)); this.ball(this.px + face * hand[0], VGY - 5 - q * 7, tt * 4); }
+          if (f === 1) { const q = Math.abs(Math.sin(tt * 8)); this.ball(this.px + face * hand[0], VGY - (BQ.CHAO || 5) + 1 - q * 6, tt * 4); } /* a bola maior quica sem afundar no chão */
           else this.ball(this.px + face * hand[0], VGY - hand[1] + by, tt * .5);
         }
       }

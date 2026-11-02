@@ -408,6 +408,12 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Cesta em peças: base no chão, poste que repete até o topo, braço que repete até a tabela, tabela (bordas esquerda e direita, achatadas na largura para parecer vista de lado) de ry − 36 a ry + 8; rede atrás e aro por cima, no ponto de encaixe do pacote (a abertura de 260 px = o aro da física). Rede parada, chuá (4 quadros, logo que a bola passa) e balanço (4 quadros). A biruta continua a da Embaixadinha no alto do poste.
   - Bola: 4 quadros girando e 4 em chamas (o fogo fica para trás do movimento); 120 px de diâmetro = 11 da física. Carrinho de bolas no canto. Torcida: 6 cores × 4 quadros (2 olhando, 2 comemorando), nos mesmos 8 lugares de antes, encostada no alambrado.
   - Teste: `testes/bqpintado.cjs` (agora com os 4 horários, a rede e a bola de fogo).
+- **Ajustes pedidos pelo dono (01/11, `bqp.js` e `build3.py`):**
+  - A cesta não anda mais: fica parada em x 345, aro na altura 100 em todas as séries (antes trocava de lugar a cada série e deslizava na última). As séries agora mudam só o vento, a marcação e o aperto da força certa.
+  - Linha de três: é a linha do meio pintada no chão da quadra (`BQ_LINHA3` = 199,5, medida na altura dos pés). O jogo não desenha mais a linha branca inclinada. `BQ.TRES` só vale no desenho antigo de 16 bits (o editor avisa).
+  - Tabela: como a tabela pintada é vista de frente, o meio dela (o quadrado laranja) fica onde está o centro da bola quando ela bate (BX − BQ.R); o aro fica na frente da parte de baixo da tabela. A física da batida não mudou.
+  - Bola 30% maior no desenho (`BQ_BOLA` = 1,3), inclusive em chamas e quicando. A física do aro continua com a bola de antes (com a bola maior na física, até o arremesso perfeito batia no aro e saía). No chão ela quica pelo tamanho do desenho (`BQ.CHAO`), para não afundar na quadra.
+  - Simulação depois do ajuste: arremesso perfeito entra de três e de dois (40 de 40); na beirada da faixa boa, metade entra de três.
 - **Pendente:** o dono testar.
 
 ## Patins pintado: cenário, obstáculos e corrimão (01/11/2026)

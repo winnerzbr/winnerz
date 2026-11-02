@@ -280,6 +280,12 @@ s = sub1("    if (this.trick) this.doneTr.push({ nome: this.trick.nome, v: this.
 s = sub1("      if (i >= 0) { list.splice(i, 1); const j", "      if (i >= 0) { const Ti = list.splice(i, 1)[0]; const j", s)
 s = sub1("v: T.v * 1.5 + HP_SPIN[", "v: Ti.v * 1.5 + HP_SPIN[", s)
 js = (ROOT / 'verao_cartoon' / 'cartoon.js').read_text(encoding='utf-8')
+# 01/11 · basquete: a linha de três é a linha do meio da quadra pintada (não depende mais da distância até a cesta)
+assert s.count("this.px < this.rx - BQ.TRES") == 2
+s = s.replace("this.px < this.rx - BQ.TRES", "this.px < BQ_LINHA3")
+s = sub1("    if (b.y > VGY - R0) {\n      b.y = VGY - R0;", "    if (b.y > VGY - (BQ.CHAO || R0)) {\n      b.y = VGY - (BQ.CHAO || R0);", s)  # o chão pelo tamanho do desenho da bola (bqp.js)
+s = sub1("const BQ_SERIES = [", "const BQ_LINHA3 = 199.5; // a linha do meio pintada no chão da quadra, na altura dos pés\nconst BQ_SERIES = [", s)
+
 pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados
 js = sub1("  /* ---------------------------------------------------------- desenho principal do vôlei */", pint + "\n  /* ---------------------------------------------------------- desenho principal do vôlei */", js)
 js = sub1("function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }",

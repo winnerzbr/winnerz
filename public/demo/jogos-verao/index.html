@@ -2287,6 +2287,7 @@ Object.assign(SPR, BQS);
 const BQ_MAO = { parado: [7, 18], quica: [17, 11], carrega: [11, 47], solta: [15, 48] };
 const BQ = { G: 420, VMIN: 200, VMAX: 450, CHG: .9, R: 5.5, RR: 12, PR: 1.2, TRES: 150, CD: .5, SPD: 120, NEAR: 85 };
 // cada série: cesta (x, y), vento máximo, marcação, cesta deslizando
+const BQ_LINHA3 = 199.5; // a linha do meio pintada no chão da quadra, na altura dos pés
 const BQ_SERIES = [
   { t: 0, rx: 345, ry: 104, wind: 0, def: false, slide: 0 },
   { t: 12, rx: 330, ry: 92, wind: 0, def: false, slide: 0 },
@@ -2346,7 +2347,7 @@ const basquete = {
   },
   pOf(v) { return (v - BQ.VMIN) / (BQ.VMAX - BQ.VMIN); },
   // janelas de acerto (em força 0–1): perfeita e boa; de três e nas séries finais ficam mais estreitas
-  win() { const three = this.px < this.rx - BQ.TRES, k = 1 - this.serie * .05; return three ? [.02 * k, .05 * k] : [.028 * k, .065 * k]; },
+  win() { const three = this.px < BQ_LINHA3, k = 1 - this.serie * .05; return three ? [.02 * k, .05 * k] : [.028 * k, .065 * k]; },
   update(dt, I) {
     this.t += dt; this.left -= dt; this.cd = Math.max(0, this.cd - dt); this.shootT = Math.max(0, this.shootT - dt); this.net = Math.max(0, this.net - dt); this.cheer = Math.max(0, this.cheer - dt); this.missT = Math.max(0, this.missT - dt);
     if (this.left <= 0) { this.left = 0; return true; }
@@ -2399,7 +2400,7 @@ const basquete = {
       const k = (Math.abs(e) - wP) / (wG - wP), off = Math.sign(e) * (BQ.RR - 3) * (.35 + .65 * k);
       const save = this.rx; this.rx += off; v = this.vFor(ax); this.rx = save;
     }
-    const three = this.px < this.rx - BQ.TRES, near = this.rx - this.px < 130;
+    const three = this.px < BQ_LINHA3, near = this.rx - this.px < 130;
     const A = this.ang(); this.balls.push({ x: o.x, y: o.y, vx: v * Math.cos(A), vy: -v * Math.sin(A), ax, spin: 0, three, near, touched: false, done: false, bounces: 0, fire: this.fire, perfect: Math.abs(e) <= wP });
     sfx.jump();
   },
@@ -2435,8 +2436,8 @@ const basquete = {
     }
     if (b.cheer && b.y > this.ry + 22) { b.cheer = false; this.cheer = 1.1; }
     // chão
-    if (b.y > VGY - R0) {
-      b.y = VGY - R0; b.vy = -Math.abs(b.vy) * .5; b.vx *= .7; b.bounces++;
+    if (b.y > VGY - (BQ.CHAO || R0)) {
+      b.y = VGY - (BQ.CHAO || R0); b.vy = -Math.abs(b.vy) * .5; b.vx *= .7; b.bounces++;
       if (!b.done) { b.done = true; this.miss(); }
       if (b.bounces >= 3) b.gone = true;
     }
@@ -10987,7 +10988,7 @@ const WZ_EXPL = {
   'PT_MAN.*.v': 'Pontos da manobra no ar.', 'PT_MAN.*.d': 'Tempo que a manobra leva (segundos).', 'PT_GRIND.*.f': 'Qual desenho o estilo usa no corrimão.', 'PT_GRIND.*.x': 'Multiplicador de pontos do estilo no corrimão.',
   'BQ.G': 'Gravidade da bola. Maior = arremesso mais "reto" e rápido.', 'BQ.VMIN': 'Força do arremesso mais fraco.', 'BQ.VMAX': 'Força do arremesso mais forte.',
   'BQ.CHG': 'Tempo segurando o botão até a força máxima (segundos).', 'BQ.R': 'Tamanho da bola.', 'BQ.RR': 'Tamanho do aro. Maior = mais fácil de acertar.', 'BQ.PR': 'Folga na beira do aro: quanto a bola pode raspar e ainda entrar.',
-  'BQ.TRES': 'Distância da linha de 3 pontos.', 'BQ.CD': 'Espera entre um arremesso e outro (segundos).', 'BQ.SPD': 'Velocidade de andar.', 'BQ.NEAR': 'O mais perto da cesta que dá para chegar.',
+  'BQ.TRES': 'Só no desenho antigo (16 bits): no basquete pintado a linha de 3 é a linha do meio da quadra.', 'BQ.CD': 'Espera entre um arremesso e outro (segundos).', 'BQ.SPD': 'Velocidade de andar.', 'BQ.NEAR': 'O mais perto da cesta que dá para chegar.',
   'PP.g': 'Gravidade da bolinha.', 'PP.k': 'Resistência do ar na bolinha.', 'PP.cm': 'Força do efeito (quanto o efeito curva a bola).', 'PP.r': 'Tamanho da bolinha.',
   'PP.tx0': 'Começo da mesa (esquerda).', 'PP.tx1': 'Fim da mesa (direita).', 'PP.nx': 'Posição da rede.', 'PP.netH': 'Altura da rede. Maior = mais bolas na rede.', 'PP.half': 'Metade do comprimento da mesa.',
   'PP.sweet': 'Tamanho do ponto bom da raquete. Maior = mais fácil acertar em cheio.', 'PP.reachF': 'Alcance da raquete para a frente.', 'PP.reachB': 'Alcance da raquete para trás.',
@@ -11343,7 +11344,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '01/11 21:03';
+const WZ_BUILD = '01/11 21:29';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
@@ -15455,8 +15456,9 @@ window.SKVD = {"f": {"manha": "img/2e7e9abeb72b.webp", "dia": "img/bdc90a1b671a.
     for (let y = pBot; y > pTop - ph; y -= ph - .3) { const hh = Math.min(ph, y - pTop); if (hh > .3) bqPart('poste', pc, y - hh / 2, p.poste.uw, hh); }
     bqPart('topo', pc, top + p.topo.uh * .3);
     for (let x = BX + 6; x < pc - 2; x += p.braco.uw - .3) { const ww = Math.min(p.braco.uw, pc - 2 - x); bqPart('braco', x + ww / 2, ry - 15, ww, p.braco.uh); }
-    // tabela: de ry − 36 a ry + 8 (44), começando na frente da física (BX)
-    const y0 = ry - 36, th = 44, wE = p.tabE.uw, wD = p.tabD.uw; bqPart('tabE', BX - .5, y0, wE, th); bqPart('tabD', BX - .5 + wE, y0, wD, th);
+    // tabela: de ry − 36 a ry + 8 (44)
+    // 01/11 (pedido do dono): a tabela pintada é vista de frente, então o meio dela (o quadrado laranja) fica onde está o centro da bola quando ela bate (BX − BQ.R)
+    const y0 = ry - 36, th = 44, wE = p.tabE.uw, wD = p.tabD.uw, tx = BX - BQ.R - (wE + wD) / 2; /* o centro da bola encosta no meio */ bqPart('tabE', tx, y0, wE, th); bqPart('tabD', tx + wE, y0, wD, th);
     if (sReady('eb_obj')) {
       const E = SPR.eb_obj, k = clamp(v.wind / 40, -1, 1), f = E.fr[Math.abs(k) > .4 ? 'biruta1' : 'biruta2'], dir = k < -.05 ? -1 : 1;
       ctx.save(); ctx.translate(pc, top - 10); ctx.scale(dir, 1); ctx.drawImage(sImg('eb_obj'), f.x, f.y, f.w, f.h, -4.5, -f.h / 2, f.w / 2, f.h / 2); ctx.restore();
@@ -15468,20 +15470,27 @@ window.SKVD = {"f": {"manha": "img/2e7e9abeb72b.webp", "dia": "img/bdc90a1b671a.
     else bqPart('rede', rx, ry + 1.4);
     bqPart('aro', rx, ry);
   }
+  const BQ_BOLA = 1.3;
   if (typeof basquete !== 'undefined') {
+    // 01/11 (pedido do dono): a cesta não anda mais (nem troca de lugar entre as séries, nem desliza); as séries mudam só o vento e a marcação.
+    // A linha de três é a linha do meio da quadra pintada (x 199,5 na altura dos pés).
+    // A bola é desenhada 30% maior (BQ_BOLA); a física do aro continua com o mesmo tamanho (com a bola maior, até o arremesso perfeito batia no aro).
+    // No chão ela quica pelo tamanho do desenho (BQ.CHAO), para não afundar na quadra.
+    BQ_SERIES.forEach((q) => { q.rx = 345; q.ry = 100; q.slide = 0; });
+    BQ.CHAO = (BQC ? BQC.p.bola0.uw / 2 : 7.3) * BQ_BOLA;
     const draw16q = basquete.draw, ball16q = basquete.ball;
     basquete.ball = function (x, y, spin, fire = false, vx = 1) {
       if (!BQCOK()) return ball16q.apply(this, arguments);
       const k = ((Math.floor(spin * 1.3) % 4) + 4) % 4;
-      if (fire) bqPart('fogo' + k, x, y, undefined, undefined, vx < 0 ? -1 : 1); else bqPart('bola' + k, x, y);
+      const e = BQ_BOLA, fb = BQC.p['fogo' + k], bb = BQC.p['bola' + k];
+      if (fire) bqPart('fogo' + k, x, y, fb && fb.uw * e, fb && fb.uh * e, vx < 0 ? -1 : 1); else bqPart('bola' + k, x, y, bb && bb.uw * e, bb && bb.uh * e);
     };
     basquete.draw = function (tt) { if (!BQCOK()) return draw16q.call(this, tt); bqDraw.call(this, tt); };
   }
 function bqDraw(tt) {
       bqScene(this, tt);
       const rx = this.rx, ry = this.ry, BX = this.bx(), art = sReady('bq_obj');
-      // linha de três pintada na areia (inclinada a 22°, como uma linha de quadra vista de lado)
-      { const lx = Math.round(this.rx - BQ.TRES); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.moveTo(lx - 2, VGY - 4); ctx.lineTo(lx + 1, VGY - 4); ctx.lineTo(lx + 1 + (H - VGY + 4) * .4, H); ctx.lineTo(lx - 2 + (H - VGY + 4) * .4, H); ctx.fill(); }
+      // 01/11: a linha de três é a linha do meio pintada na quadra (BQ_LINHA3); o jogo não desenha outra
       bqHoop(this, tt, BX, rx, ry);
       // marcação (Amiguinho rosa)
       const D = this.def;
@@ -15500,7 +15509,7 @@ function bqDraw(tt) {
         else by = Math.round(Math.sin(tt * 3)) * .5;
         this.ia(f, this.px, face, ex, { lx: 1, ly: this.charging ? -1 : 0 }, tt, lift);
         if (ball && this.shootT <= 0 && this.cheer <= .6) {
-          if (f === 1) { const q = Math.abs(Math.sin(tt * 8)); this.ball(this.px + face * hand[0], VGY - 5 - q * 7, tt * 4); }
+          if (f === 1) { const q = Math.abs(Math.sin(tt * 8)); this.ball(this.px + face * hand[0], VGY - (BQ.CHAO || 5) + 1 - q * 6, tt * 4); } /* a bola maior quica sem afundar no chão */
           else this.ball(this.px + face * hand[0], VGY - hand[1] + by, tt * .5);
         }
       }

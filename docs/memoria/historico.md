@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Basquete: cesta parada, linha do meio como linha de 3, tabela e bola maior
+- **O dono pediu:** tirar o andar da cesta e usar a linha do meio pintada na quadra como divisor dos 3 pontos (a linha desenhada pelo jogo não combinava com a arte); a bola bater no meio da tabela, não na beirada; a bola maior.
+- **Feito:** cesta fixa em todas as séries; três pontos atrás da linha do meio, sem a linha extra; tabela centrada onde a bola bate; bola 30% maior no desenho (a física do aro ficou como antes, porque com a bola maior até o arremesso perfeito errava). Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: Pedidos das reações do pingue-pongue refeitos em 3/4
 - **O dono pediu:** refazer os prompts da comemoração e do lamento, porque de perfil o rosto não aparece. Antes ele tinha reenviado o mesmo pacote das reações (idêntico, nada mudou).
 - **Feito:** os 4 pedidos reescritos em 3/4 na página de pedidos, com a referência de ângulo de cada personagem (a pose parada do vôlei). Os cartões refeitos começam sem "Feita".

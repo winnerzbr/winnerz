@@ -3458,7 +3458,7 @@ FALA.intro.bmx = [
 FALA.bmxTombo = ['Tombou! A bike foi pra um lado, a dignidade pro outro.', 'Areia na boca. Agora tô com gosto de praia.', 'Calma, a bike tá bem. Eu acho. Ela não fala.'];
 FALA.bmxBom = ['Mortal e pousou limpo! Os siris aplaudiram.', 'Isso foi cinema. Câmera lenta e tudo.', 'Pousou que nem pena. Pena com rodinha.'];
 const bmx = {
-  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, paint: true, dur: 60, med: [3500, 8000, 13000], ia: 2600, nota: 'a bike era de rodinha',
+  id: 'bmx', name: 'BMX', tag: 'Pista · 60 segundos', wide: true, hi: true, paint: true, dur: 60, med: [10000, 20000, 30000], ia: 7000, nota: 'a bike era de rodinha',
   desc: 'Pedale, dê pump nas descidas, voe e pouse alinhado com o chão.',
   steps: () => [`Segure ${actName()}: no plano pedala; na descida dá impulso (pump). Na subida, solte.`, `No ar: ◀ ▶ giram a bike; ${touch ? '○ □ △' : 'X C V'} fazem manobras. Pouse com as rodas alinhadas ao chão.`, 'Pouso limpo sobe o combo. Torto, no meio da manobra ou na vala é tombo.'],
   hint: () => '',
@@ -11362,7 +11362,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '02/11 00:18';
+const WZ_BUILD = '02/11 00:38';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
@@ -12853,7 +12853,7 @@ window.SFC = {"f": {"dia": "img/1119b92062d0.webp", "manha": "img/82d0b0ac318b.w
 
 window.MVBX = {"q": 0.5, "scrh": 94.8, "a": {"pedal": {"front": false, "f": [{"w": 192, "h": 209, "ax": 95.9, "ay": 209.0, "s": [103.1, 44.8, 142.6, 88.6, 126.7, 66.7, 37.6, 43.0], "hd": null, "r": 0.0, "ar": 3131, "sz": [39.2, 43.5], "x": 0}, {"w": 191, "h": 209, "ax": 95.0, "ay": 209.0, "s": [104.2, 44.8, 142.6, 88.6, 127.1, 66.8, 37.3, 42.8], "hd": null, "r": 0.0, "ar": 3128, "sz": [39.2, 43.5], "x": 194}, {"w": 192, "h": 208, "ax": 95.6, "ay": 208.4, "s": [102.6, 45.9, 141.5, 89.1, 125.3, 67.6, 37.1, 42.6], "hd": null, "r": 0.0, "ar": 3039, "sz": [39.2, 43.5], "x": 387}, {"w": 191, "h": 209, "ax": 95.3, "ay": 209.0, "s": [103.7, 45.4, 142.0, 88.6, 126.6, 67.2, 37.0, 42.4], "hd": null, "r": 0.0, "ar": 3072, "sz": [39.2, 43.5], "x": 581}, {"w": 192, "h": 207, "ax": 95.6, "ay": 207.9, "s": [104.2, 44.8, 143.6, 88.6, 127.5, 66.6, 37.4, 42.7], "hd": null, "r": 0.0, "ar": 3068, "sz": [39.2, 43.5], "x": 774}, {"w": 192, "h": 207, "ax": 95.6, "ay": 207.4, "s": [103.1, 44.8, 142.6, 87.5, 126.1, 66.1, 37.4, 42.6], "hd": null, "r": 0.0, "ar": 3032, "sz": [39.2, 43.5], "x": 968}, {"w": 192, "h": 207, "ax": 95.6, "ay": 208.4, "s": [103.1, 44.8, 142.0, 87.5, 126.1, 66.2, 37.0, 42.5], "hd": null, "r": 0.0, "ar": 3020, "sz": [39.2, 43.5], "x": 1162}, {"w": 192, "h": 207, "ax": 95.6, "ay": 207.4, "s": [103.1, 36.7, 161.5, 88.6, 125.9, 63.4, 64.9, 33.9], "hd": null, "r": 0.0, "ar": 3547, "sz": [39.2, 43.5], "x": 1356}], "y": 0}, "pump": {"front": false, "f": [{"w": 192, "h": 208, "ax": 95.9, "ay": 209.0, "s": [90.2, 45.4, 132.8, 88.0, 115.3, 67.1, 40.5, 41.5], "hd": null, "r": 0.0, "ar": 3355, "sz": [42.7, 41.3], "x": 0}, {"w": 192, "h": 197, "ax": 95.9, "ay": 196.6, "s": [96.1, 47.5, 138.8, 89.6, 121.1, 69.1, 41.0, 41.2], "hd": null, "r": 0.0, "ar": 3423, "sz": [42.7, 41.3], "x": 194}, {"w": 192, "h": 188, "ax": 95.9, "ay": 189.0, "s": [96.1, 49.1, 140.4, 92.3, 121.4, 69.1, 44.8, 38.0], "hd": null, "r": 0.0, "ar": 3281, "sz": [42.7, 41.3], "x": 388}, {"w": 193, "h": 167, "ax": 96.1, "ay": 167.9, "s": [102.6, 48.6, 148.0, 89.6, 129.5, 66.6, 43.7, 35.1], "hd": null, "r": 0.0, "ar": 2569, "sz": [42.7, 41.3], "x": 582}, {"w": 192, "h": 183, "ax": 95.9, "ay": 183.1, "s": [99.4, 43.7, 142.6, 83.2, 123.1, 61.2, 43.7, 33.6], "hd": null, "r": 0.0, "ar": 2763, "sz": [42.7, 41.3], "x": 777}, {"w": 193, "h": 197, "ax": 96.1, "ay": 197.1, "s": [105.3, 42.1, 145.8, 82.6, 129.3, 62.4, 38.9, 39.4], "hd": null, "r": 0.0, "ar": 3072, "sz": [42.7, 41.3], "x": 971}, {"w": 192, "h": 209, "ax": 95.9, "ay": 209.0, "s": [99.4, 43.2, 139.9, 84.8, 123.5, 64.4, 39.5, 40.8], "hd": null, "r": 0.0, "ar": 3235, "sz": [42.7, 41.3], "x": 1166}, {"w": 193, "h": 198, "ax": 95.9, "ay": 198.2, "s": [103.1, 42.1, 145.3, 83.2, 127.7, 62.6, 39.7, 40.6], "hd": null, "r": 0.0, "ar": 3112, "sz": [42.7, 41.3], "x": 1360}], "y": 211}, "pouso": {"front": false, "f": [{"w": 192, "h": 208, "ax": 95.6, "ay": 208.4, "s": [103.1, 44.3, 142.6, 88.0, 126.7, 66.5, 37.5, 42.8], "hd": null, "r": 0.0, "ar": 3132, "sz": [40.5, 43.5], "x": 0}, {"w": 191, "h": 201, "ax": 95.3, "ay": 202.0, "s": [108.0, 45.4, 148.0, 88.0, 131.3, 66.5, 38.0, 42.1], "hd": null, "r": 0.0, "ar": 3111, "sz": [40.5, 43.5], "x": 194}, {"w": 191, "h": 192, "ax": 95.3, "ay": 192.8, "s": [104.2, 45.9, 143.6, 90.7, 127.6, 67.1, 38.5, 42.2], "hd": null, "r": 0.0, "ar": 2937, "sz": [40.5, 43.5], "x": 387}, {"w": 191, "h": 185, "ax": 95.3, "ay": 184.7, "s": [111.8, 45.9, 152.3, 91.3, 135.8, 67.7, 38.6, 42.3], "hd": null, "r": 0.0, "ar": 3030, "sz": [40.5, 43.5], "x": 580}, {"w": 192, "h": 208, "ax": 95.6, "ay": 208.4, "s": [112.3, 44.8, 153.4, 87.5, 135.9, 66.3, 38.3, 41.9], "hd": null, "r": 0.0, "ar": 3067, "sz": [40.5, 43.5], "x": 773}, {"w": 192, "h": 210, "ax": 95.6, "ay": 210.6, "s": [112.9, 46.4, 153.4, 89.1, 136.2, 67.6, 37.9, 42.0], "hd": null, "r": 0.0, "ar": 3098, "sz": [40.5, 43.5], "x": 967}, {"w": 192, "h": 211, "ax": 95.6, "ay": 211.7, "s": [111.2, 45.4, 151.7, 89.1, 134.9, 67.3, 38.0, 42.5], "hd": null, "r": 0.0, "ar": 3110, "sz": [40.5, 43.5], "x": 1161}, {"w": 192, "h": 210, "ax": 95.6, "ay": 210.1, "s": [110.7, 45.9, 151.2, 89.1, 134.4, 67.5, 38.0, 42.2], "hd": null, "r": 0.0, "ar": 3091, "sz": [40.5, 43.5], "x": 1355}], "y": 422}, "queda": {"front": false, "f": [{"w": 187, "h": 217, "ax": 105.0, "ay": 217.1, "s": [1.6, 95.0, 65.9, 160.9, 38.8, 127.6, 73.7, 84.7], "hd": null, "r": 0.0, "ar": 3821, "sz": [60.8, 55.6], "x": 0}, {"w": 201, "h": 217, "ax": 100.4, "ay": 217.1, "s": [1.6, 67.5, 72.9, 134.5, 40.4, 98.5, 79.2, 81.1], "hd": null, "r": 0.0, "ar": 3844, "sz": [60.8, 55.6], "x": 189}, {"w": 200, "h": 204, "ax": 99.6, "ay": 209.0, "s": [1.6, 54.5, 64.8, 121.5, 38.2, 83.8, 75.9, 75.7], "hd": null, "r": 0.0, "ar": 3178, "sz": [60.8, 55.6], "x": 392}, {"w": 217, "h": 163, "ax": 119.4, "ay": 166.9, "s": [1.6, 39.4, 61.0, 101.5, 35.8, 67.4, 69.6, 74.2], "hd": null, "r": 0.0, "ar": 2926, "sz": [60.8, 55.6], "x": 594}, {"w": 212, "h": 106, "ax": 116.7, "ay": 107.5, "s": [1.6, 48.6, 45.4, 80.5, 19.3, 68.1, 52.1, 21.0], "hd": null, "r": 0.0, "ar": 1277, "sz": [60.8, 55.6], "x": 813}, {"w": 205, "h": 103, "ax": 112.6, "ay": 103.1, "s": [91.3, 21.6, 145.3, 68.6, 118.9, 42.4, 45.5, 38.5], "hd": null, "r": 0.0, "ar": 2867, "sz": [60.8, 55.6], "x": 1027}, {"w": 204, "h": 144, "ax": 112.3, "ay": 143.6, "s": [88.0, 47.0, 130.7, 89.6, 109.3, 65.7, 47.1, 33.3], "hd": null, "r": 0.0, "ar": 3250, "sz": [60.8, 55.6], "x": 1234}, {"w": 204, "h": 159, "ax": 112.0, "ay": 158.8, "s": [135.0, 57.8, 197.1, 106.9, 157.9, 82.1, 61.4, 36.6], "hd": null, "r": 0.0, "ar": 3284, "sz": [60.8, 55.6], "x": 1440}], "y": 635}, "salto": {"front": false, "f": [{"w": 185, "h": 173, "ax": 92.3, "ay": 173.3, "s": [103.7, 44.8, 148.0, 91.8, 128.4, 64.6, 45.2, 37.6], "hd": null, "r": 0.0, "ar": 3335, "sz": [44.6, 45.4], "x": 0}, {"w": 181, "h": 197, "ax": 89.1, "ay": 196.6, "s": [79.9, 43.7, 122.0, 88.6, 104.7, 65.5, 40.2, 43.4], "hd": null, "r": 0.0, "ar": 3385, "sz": [44.6, 45.4], "x": 187}, {"w": 184, "h": 180, "ax": 91.8, "ay": 179.8, "s": [97.7, 48.6, 145.3, 92.9, 121.8, 67.7, 47.9, 33.9], "hd": null, "r": 0.0, "ar": 3067, "sz": [44.6, 45.4], "x": 370}, {"w": 187, "h": 176, "ax": 93.2, "ay": 175.5, "s": [106.9, 42.1, 151.2, 86.9, 130.3, 60.6, 47.4, 35.3], "hd": null, "r": 0.0, "ar": 3291, "sz": [44.6, 45.4], "x": 556}, {"w": 187, "h": 178, "ax": 93.2, "ay": 178.2, "s": [101.5, 41.6, 146.3, 86.4, 125.3, 60.8, 46.3, 35.0], "hd": null, "r": 0.0, "ar": 3234, "sz": [44.6, 45.4], "x": 745}, {"w": 188, "h": 178, "ax": 93.7, "ay": 177.7, "s": [103.7, 43.2, 150.1, 89.1, 127.2, 62.6, 47.8, 34.5], "hd": null, "r": 0.0, "ar": 3273, "sz": [44.6, 45.4], "x": 934}, {"w": 189, "h": 183, "ax": 94.2, "ay": 182.5, "s": [99.4, 43.2, 143.6, 90.7, 125.2, 65.5, 40.6, 42.8], "hd": null, "r": 0.0, "ar": 3341, "sz": [44.6, 45.4], "x": 1124}, {"w": 190, "h": 177, "ax": 94.5, "ay": 176.6, "s": [103.7, 43.7, 149.0, 90.7, 129.4, 65.4, 41.1, 43.0], "hd": null, "r": 0.0, "ar": 3312, "sz": [44.6, 45.4], "x": 1315}], "y": 854}, "super": {"front": false, "f": [{"w": 191, "h": 207, "ax": 95.3, "ay": 207.4, "s": [106.4, 46.4, 148.0, 88.6, 129.9, 67.5, 37.7, 41.4], "hd": null, "r": 0.0, "ar": 3019, "sz": [41.8, 42.1], "x": 0}, {"w": 188, "h": 207, "ax": 94.0, "ay": 207.4, "s": [94.5, 45.9, 135.5, 88.0, 117.7, 67.0, 37.8, 41.1], "hd": null, "r": 0.0, "ar": 2986, "sz": [41.8, 42.1], "x": 193}, {"w": 200, "h": 208, "ax": 104.5, "ay": 207.9, "s": [111.2, 48.1, 154.4, 90.2, 135.8, 69.3, 39.5, 41.2], "hd": null, "r": 0.0, "ar": 3123, "sz": [41.8, 42.1], "x": 383}, {"w": 214, "h": 207, "ax": 117.2, "ay": 206.8, "s": [132.3, 46.4, 173.3, 88.6, 155.4, 67.2, 37.6, 41.4], "hd": null, "r": 0.0, "ar": 2978, "sz": [41.8, 42.1], "x": 585}, {"w": 207, "h": 201, "ax": 107.2, "ay": 200.9, "s": [123.1, 45.4, 165.2, 88.0, 147.0, 66.6, 38.6, 41.6], "hd": null, "r": 0.0, "ar": 3089, "sz": [41.8, 42.1], "x": 801}, {"w": 191, "h": 201, "ax": 95.0, "ay": 200.9, "s": [104.2, 45.4, 145.8, 87.5, 127.4, 66.1, 38.0, 41.0], "hd": null, "r": 0.0, "ar": 3017, "sz": [41.8, 42.1], "x": 1010}, {"w": 191, "h": 200, "ax": 95.3, "ay": 200.3, "s": [110.7, 46.4, 152.8, 88.6, 134.3, 67.8, 38.2, 40.7], "hd": null, "r": 0.0, "ar": 3018, "sz": [41.8, 42.1], "x": 1203}, {"w": 194, "h": 202, "ax": 96.7, "ay": 202.0, "s": [111.2, 46.4, 153.4, 88.6, 135.1, 67.1, 38.4, 41.0], "hd": null, "r": 0.0, "ar": 3029, "sz": [41.8, 42.1], "x": 1396}], "y": 1053}, "semmao": {"front": false, "f": [{"w": 186, "h": 206, "ax": 92.9, "ay": 206.3, "s": [90.7, 42.1, 129.6, 84.8, 114.0, 63.8, 38.0, 41.9], "hd": null, "r": 0.0, "ar": 3090, "sz": [39.4, 42.1], "x": 0}, {"w": 187, "h": 207, "ax": 93.2, "ay": 206.8, "s": [85.3, 43.2, 124.2, 84.8, 109.0, 64.4, 38.0, 41.5], "hd": null, "r": 0.0, "ar": 3127, "sz": [39.4, 42.1], "x": 188}, {"w": 186, "h": 206, "ax": 92.9, "ay": 206.3, "s": [84.8, 42.1, 124.7, 84.8, 108.5, 63.5, 38.3, 42.3], "hd": null, "r": 0.0, "ar": 3110, "sz": [39.4, 42.1], "x": 377}, {"w": 187, "h": 207, "ax": 93.4, "ay": 207.4, "s": [88.0, 33.5, 146.9, 85.3, 111.5, 60.9, 65.3, 35.2], "hd": null, "r": 0.0, "ar": 3645, "sz": [39.4, 42.1], "x": 565}, {"w": 186, "h": 204, "ax": 92.9, "ay": 203.6, "s": [89.6, 42.7, 128.5, 84.8, 113.2, 64.0, 38.3, 42.2], "hd": null, "r": 0.0, "ar": 3140, "sz": [39.4, 42.1], "x": 754}, {"w": 186, "h": 203, "ax": 92.9, "ay": 203.0, "s": [88.6, 43.2, 129.1, 85.3, 112.6, 64.3, 38.8, 41.9], "hd": null, "r": 0.0, "ar": 3130, "sz": [39.4, 42.1], "x": 942}, {"w": 190, "h": 203, "ax": 94.8, "ay": 203.0, "s": [90.2, 42.7, 129.1, 84.2, 113.6, 64.1, 38.2, 41.1], "hd": null, "r": 0.0, "ar": 3123, "sz": [39.4, 42.1], "x": 1130}, {"w": 189, "h": 204, "ax": 94.2, "ay": 203.6, "s": [90.7, 43.2, 130.7, 84.8, 114.6, 64.3, 38.8, 41.7], "hd": null, "r": 0.0, "ar": 3132, "sz": [39.4, 42.1], "x": 1322}], "y": 1263}, "tail": {"front": false, "f": [{"w": 192, "h": 208, "ax": 95.6, "ay": 208.4, "s": [101.0, 44.8, 142.0, 88.6, 125.1, 67.0, 38.7, 43.0], "hd": null, "r": 0.0, "ar": 3315, "sz": [41.3, 42.9], "x": 0}, {"w": 188, "h": 210, "ax": 93.7, "ay": 210.1, "s": [89.1, 45.4, 131.2, 88.6, 113.8, 66.7, 39.7, 42.6], "hd": null, "r": 0.0, "ar": 3372, "sz": [41.3, 42.9], "x": 194}, {"w": 180, "h": 210, "ax": 89.6, "ay": 210.1, "s": [86.4, 45.4, 126.9, 88.0, 110.4, 66.4, 38.7, 41.9], "hd": null, "r": 0.0, "ar": 3225, "sz": [41.3, 42.9], "x": 384}, {"w": 176, "h": 207, "ax": 124.5, "ay": 206.8, "s": [66.4, 44.8, 108.0, 86.9, 90.2, 65.9, 38.9, 40.5], "hd": null, "r": 0.0, "ar": 3239, "sz": [41.3, 42.9], "x": 566}, {"w": 166, "h": 207, "ax": 126.9, "ay": 206.8, "s": [65.9, 44.8, 105.8, 86.9, 89.8, 66.0, 37.8, 41.9], "hd": null, "r": 0.0, "ar": 3206, "sz": [41.3, 42.9], "x": 744}, {"w": 157, "h": 207, "ax": 88.8, "ay": 206.8, "s": [65.9, 36.2, 126.4, 87.5, 89.5, 62.8, 65.7, 34.0], "hd": null, "r": 0.0, "ar": 3677, "sz": [41.3, 42.9], "x": 912}, {"w": 193, "h": 206, "ax": 96.4, "ay": 206.3, "s": [103.1, 44.3, 144.2, 87.5, 127.1, 66.0, 38.8, 42.2], "hd": null, "r": 0.0, "ar": 3205, "sz": [41.3, 42.9], "x": 1071}, {"w": 194, "h": 207, "ax": 96.7, "ay": 207.4, "s": [102.6, 45.4, 144.7, 88.0, 127.2, 66.6, 39.3, 42.4], "hd": null, "r": 0.0, "ar": 3222, "sz": [41.3, 42.9], "x": 1266}], "y": 1472}}, "src": "img/c5e28df0c4a6.webp", "mask": "img/c75fc88350a5.webp"};
 
-window.BXC = {"horas": ["dia", "manha", "tarde", "noite"], "f": "img/38f3757b1b4a.webp", "fw": 1280, "fh": 360, "ceuf": "img/3a3a79124d00.png", "ceu": {"dia": "#79b6ec", "manha": "#9ca1d2", "tarde": "#95617f", "noite": "#031f57"}, "m": "img/d0c2420ca696.webp", "mw": 1536, "mh": 256, "base": {"dia": "#b95a33", "manha": "#a95643", "tarde": "#7d3936", "noite": "#39314a"}, "l": "img/a655a1e2642d.webp", "vala": {"o0": 215, "o1": 935, "borda": 100}, "atl": "img/98ac9ddc8b46.webp", "p": {"vala": {"w": 1099, "h": 302, "ax": 0.0, "ay": 0.0, "x": 0}, "tabua": {"w": 120, "h": 44, "ax": 120.0, "ay": 0.0, "x": 1101}, "tires": {"w": 88, "h": 67, "ax": 43.7, "ay": 62.5, "x": 1223}, "fence": {"w": 136, "h": 57, "ax": 67.9, "ay": 52.9, "x": 1313}, "flag_01": {"w": 60, "h": 60, "ax": 7.5, "ay": 57.0, "x": 1451}, "flag_02": {"w": 60, "h": 60, "ax": 7.5, "ay": 57.0, "x": 1513}, "dust_01": {"w": 80, "h": 53, "ax": 40.0, "ay": 50.7, "x": 1575}, "dust_02": {"w": 96, "h": 64, "ax": 48.0, "ay": 60.8, "x": 1657}, "dust_03": {"w": 112, "h": 75, "ax": 56.0, "ay": 70.9, "x": 1755}, "dust_04": {"w": 128, "h": 85, "ax": 64.0, "ay": 81.1, "x": 1869}}, "u": 4.0};
+window.BXC = {"horas": ["dia", "manha", "tarde", "noite"], "f": "img/38f3757b1b4a.webp", "fw": 1280, "fh": 360, "ceuf": "img/3a3a79124d00.png", "ceu": {"dia": "#79b6ec", "manha": "#9ca1d2", "tarde": "#95617f", "noite": "#031f57"}, "m": "img/d0c2420ca696.webp", "mw": 1536, "mh": 256, "areia": {"dia": "#f8a95c", "manha": "#f9b479", "tarde": "#f7885a", "noite": "#5e6ba3"}, "duna": {"dia": "#ea9f61", "manha": "#d68e6f", "tarde": "#cd6049", "noite": "#214b7c"}, "terra": "img/fc05a1a4942e.webp", "base": {"dia": "#b95a33", "manha": "#a95643", "tarde": "#7d3936", "noite": "#39314a"}, "l": "img/a655a1e2642d.webp", "vala": {"o0": 215, "o1": 935, "borda": 100}, "atl": "img/98ac9ddc8b46.webp", "p": {"vala": {"w": 1099, "h": 302, "ax": 0.0, "ay": 0.0, "x": 0}, "tabua": {"w": 120, "h": 44, "ax": 120.0, "ay": 0.0, "x": 1101}, "tires": {"w": 88, "h": 67, "ax": 43.7, "ay": 62.5, "x": 1223}, "fence": {"w": 136, "h": 57, "ax": 67.9, "ay": 52.9, "x": 1313}, "flag_01": {"w": 60, "h": 60, "ax": 7.5, "ay": 57.0, "x": 1451}, "flag_02": {"w": 60, "h": 60, "ax": 7.5, "ay": 57.0, "x": 1513}, "dust_01": {"w": 80, "h": 53, "ax": 40.0, "ay": 50.7, "x": 1575}, "dust_02": {"w": 96, "h": 64, "ax": 48.0, "ay": 60.8, "x": 1657}, "dust_03": {"w": 112, "h": 75, "ax": 56.0, "ay": 70.9, "x": 1755}, "dust_04": {"w": 128, "h": 85, "ax": 64.0, "ay": 81.1, "x": 1869}}, "u": 4.0};
 
 window.BGC = {"d": {"dia": "img/3b2e716258d1.webp", "tarde": "img/9ed3cab9bca0.webp", "noite": "img/fc7266a168fb.webp"}, "mar": "img/93ccb3ad10c0.webp", "pista": "img/231e2f9cb4b4.webp", "atl": "img/10923a291611.webp", "p": {"bola_g": {"x": 0, "y": 0, "w": 126, "h": 120}, "bola_p": {"x": 128, "y": 0, "w": 80, "h": 80}, "balao_g": {"x": 210, "y": 0, "w": 134, "h": 111}, "balao_p": {"x": 346, "y": 0, "w": 68, "h": 80}, "frasco_g": {"x": 416, "y": 0, "w": 94, "h": 137}, "poca_g": {"x": 512, "y": 0, "w": 130, "h": 74}, "frasco_p": {"x": 644, "y": 0, "w": 54, "h": 75}, "poca_p": {"x": 700, "y": 0, "w": 81, "h": 56}, "coco_g": {"x": 783, "y": 0, "w": 142, "h": 124}, "coco_p": {"x": 927, "y": 0, "w": 99, "h": 86}, "guarda_g": {"x": 1028, "y": 0, "w": 155, "h": 140}, "guarda_p": {"x": 1185, "y": 0, "w": 94, "h": 94}, "onda_g": {"x": 1281, "y": 0, "w": 176, "h": 110}, "onda_p": {"x": 1459, "y": 0, "w": 108, "h": 75}, "fofa1": {"x": 1569, "y": 0, "w": 120, "h": 108}, "fofa2": {"x": 1691, "y": 0, "w": 222, "h": 140}, "fofa3": {"x": 0, "y": 142, "w": 338, "h": 190}, "faixa": {"x": 340, "y": 142, "w": 720, "h": 87}, "rampa_at": {"x": 1062, "y": 142, "w": 266, "h": 172}, "setas": {"x": 1330, "y": 142, "w": 174, "h": 172}, "trilha": {"x": 1506, "y": 142, "w": 182, "h": 188}, "caixa": {"x": 1690, "y": 142, "w": 128, "h": 122}, "rampa": {"x": 0, "y": 334, "w": 326, "h": 186}, "largada": {"x": 328, "y": 334, "w": 374, "h": 60}, "band_v": {"x": 704, "y": 334, "w": 102, "h": 77}, "band_b": {"x": 808, "y": 334, "w": 101, "h": 76}, "mureta": {"x": 911, "y": 334, "w": 93, "h": 53}, "torre": {"x": 1006, "y": 334, "w": 318, "h": 297}, "facho": {"x": 1326, "y": 334, "w": 347, "h": 228}}, "lagoa": "img/49bd3fe13f9c.webp", "esteira": {"src": "img/52e9ca152b25.webp", "w": 120, "h": 160}, "fx": "img/7a918b2353cd.webp"};
 
@@ -15937,20 +15937,41 @@ function bqDraw(tt) {
      mesas, vales com saída em rampa, degraus para cima e para baixo e a rampa gigante. A câmera sobe e desce junto nos saltos grandes.
      Medidas da arte: rodas de raio 12,6 com os centros a 12,85 para cada lado do meio da bike (medidos na prancha pedalando). */
   const BXF = {
-    G: 400, M: 1, I: 230, CY: 22,              // gravidade, massa, inércia de giro, centro de massa acima da âncora (o pé da bike)
+    G: 300, M: 1, I: 230, CY: 22,              // gravidade, massa, inércia de giro, centro de massa acima da âncora (o pé da bike)
     WR: 12.6, WX: 12.85,                       // roda: raio e distância do meio
-    KS: 170, KD: 15, PMAX: 3.2,                // suspensão: mola, amortecedor e o máximo que a roda afunda
+    KS: 140, KD: 13, PMAX: 3.2,                // suspensão: mola, amortecedor e o máximo que a roda afunda
     PED: 150, VPED: 235, PUMP: 170, BAL: 4400, BALD: 520, // pedal, pump e o equilíbrio do ciclista no chão            // pedal (força e velocidade máxima pedalando) e pump (▼ na descida)
     HOP: 150, HOP2: 215, CARGA: .25,           // pulo (▲) e pulo carregado (▼ antes)
     ROTA: 8.4, ROTK: 8, ROTD: .2, AJ: 2.4, // giro no ar; AJ: sem ◀ ▶, o ciclista vai alinhando a bike com o chão lá embaixo           // giro no ar: velocidade, quanto responde, quanto demora para parar
-    LEAN: 1500, VMAX: 430, RR: .22, AR: .02,   // inclinar no chão, velocidade máxima, atrito no chão e no ar
+    LEAN: 1500, VMAX: 400, RR: .06, AR: .01,   // inclinar no chão, velocidade máxima, atrito no chão e no ar
     HEAD: [2, 21, 7.5],                        // cabeça (em relação ao centro de massa) e raio: se encostar no chão, tombo
     CLEAN: .38, TORTO: 1.1,                    // pouso: limpo até 0,38 rad (22°) fora do chão; tombo acima de 1,1 rad (63°)
   };
-  const BXW = [[-BXF.WX, BXF.WR - BXF.CY], [BXF.WX, BXF.WR - BXF.CY]]; // rodas em relação ao centro de massa (trás, frente)
+  const BXW = [[-BXF.WX, BXF.WR - BXF.CY], [BXF.WX, BXF.WR - BXF.CY]];
+  // A PISTA (02/11): a lista dos trechos, na ordem. Fácil de mudar: cada linha é um trecho.
+  //   ['plano', comprimento]                      reta
+  //   ['descida', comprimento, quanto desce]      desce e arredonda num vale (pega velocidade)
+  //   ['ondas', quantas, largura, altura]         ondinhas (fora da pista por enquanto: em alta velocidade viram rampa)
+  //   ['salto', altura da rampa, inclinação da ponta, inclinação do pouso, comprimento do pouso]
+  //      inclinação = quanto sobe por unidade andada (1,0 = 45°, 1,4 = 54°, 1,8 = 61°); o pouso desce (−0,5 = 27°)
+  const BX_PISTA = [
+    ['descida', 260, 70],
+    ['salto', 18, .9, -.5, 460], ['salto', 20, 1.0, -.5, 480], ['salto', 22, 1.05, -.5, 500],
+    ['salto', 24, 1.1, -.55, 540], ['salto', 28, 1.15, -.55, 580],
+    ['descida', 220, 60],
+    ['salto', 42, 1.4, -.65, 820],                                  // o primeiro salto grande
+    ['salto', 22, 1.05, -.5, 500], ['salto', 26, 1.15, -.55, 560],
+    ['salto', 30, 1.2, -.6, 640], ['salto', 32, 1.25, -.6, 680],
+    ['descida', 260, 90],
+    ['salto', 58, 1.6, -.7, 1000],                                  // rampa gigante
+    ['salto', 24, 1.1, -.55, 540], ['salto', 32, 1.25, -.6, 680], ['salto', 36, 1.3, -.6, 720],
+    ['salto', 40, 1.35, -.65, 800],
+    ['descida', 280, 100],
+    ['salto', 68, 1.8, -.75, 1150],                                 // rampa gigante maior
+  ]; // rodas em relação ao centro de massa (trás, frente)
   if (typeof bmx !== 'undefined') Object.assign(bmx, {
-    desc: 'Pedale, pule nas rampas, gire no ar e pouse nas duas rodas.',
-    steps: () => [`Segure ${actName()} para pedalar. ▲ pula; abaixado (▼) um instante antes, pula mais alto. ▼ na descida dá pump.`, `No ar: ◀ ▶ giram a bike; ${touch ? '○ □ △' : 'X C V'} fazem manobras. No chão, ◀ ▶ empinam e inclinam.`, 'Pouse nas duas rodas e não bata a cabeça. Pouso limpo sobe o combo.'],
+    desc: 'Desça a trilha, voe das rampas e faça manobras. Vale o salto mais longe e mais alto.',
+    steps: () => [`Segure ${actName()} para pedalar. ▲ pula; abaixado (▼) um instante antes, pula mais alto. ▼ na descida dá pump.`, `No ar: ◀ ▶ giram a bike; ${touch ? '○ □ △' : 'X C V'} fazem manobras. No chão, ◀ ▶ empinam e inclinam.`, 'Os pontos vêm dos saltos: distância, altura, mortais e manobras. Pouse nas duas rodas na descida; pouso limpo sobe o combo.'],
     gp: 'Controle: ✕ pedala · ▲ pula · ▼ pump na descida · ◀ ▶ empina e gira no ar · ○ □ △ manobras · Start pausa',
     ctl: [['Espaço', 'pedala', 'kb'], ['▲', 'pula (com ▼ antes, mais alto)'], ['▼', 'pump na descida'], ['◀ ▶', 'empina · no ar, gira'], ['X C V', 'no ar: Superman, sem mãos, tailwhip', 'kb'], ['Pedalar', 'pedala', 'touch'], ['○ □ △', 'no ar: manobras', 'touch'], ['Esc', 'pausa', 'kb']],
     pad: { dirs: 'lrud', a: 'Pedalar', b: '○', c: '□', e: '△' },
@@ -15959,53 +15980,46 @@ function bqDraw(tt) {
         t: 0, left: this.dur, px: 60, py: 0, vx: 70, vy: 0, a: 0, w: 0, pen: [0, 0], cont: [false, false], noC: 0, air: false, carga: 0,
         x: 60, y: 0, ang: 0, lean: 0, rotSum: 0, airT: 0, peak: 0, camH: 0, landT: 0, wobT: 0, pumping: false, pedal: 0, wheel: 0,
         trick: null, airTr: [], lastTr: [], combined: false, crashT: 0, combo: 0, bestCombo: 0, pts: 0, score: 0,
-        flips: 0, mans: 0, clean: 0, tombos: 0, dist: 0, bigAir: 0, tr: [], end: 0, base: 0, fx: [], dust: [], puffs: [],
+        flips: 0, mans: 0, clean: 0, tombos: 0, dist: 0, bigAir: 0, maxDist: 0, maxAlt: 0, camG: null, zoom: 1, tx0: 0, ty0: 0, topo: 0, tr: [], end: 0, base: 0, fx: [], dust: [], puffs: [],
       });
-      this.addSeg(0, 220, 0, 0, 'lin'); this.gen(); this.pousa(60, 70);
+      this.iPista = 0; this.addSeg(0, 160, 0, 0, 0, 0); this.tr[0].sOut = 0; this.gen(); this.pousa(60, 70);
     },
     demo() { this.pousa(150, 0); this.py += 46; this.a = .35; this.air = true; this.trick = { key: 'b', ...BX_MAN.b, t: .25 }; this.sync(); },
-    // ---------- pista: segmentos com curva (lin, cos, in = vai ficando íngreme, out = começa íngreme); lip = ponta de rampa (tábua)
-    addSeg(x0, x1, h0, h1, e, pit = false, lip = false) { this.tr.push({ x0, x1, h0, h1, e, pit, lip, b: this.base }); this.end = x1; },
-    seg(w, h1, e = 'cos', o = {}) { const h0 = this.tr.length ? this.tr[this.tr.length - 1].h1 : 0; this.addSeg(this.end, this.end + w, h0, h1, e, !!o.pit, !!o.lip); },
+    // ---------- pista (02/11, segunda versão, pedido do dono: "a pista deve dar flow; o que pontua são os saltos e as manobras")
+    // Uma trilha que desce sempre: cada trecho é vale → rampa (kicker) → ponta → descida comprida de pouso → próximo vale.
+    // A descida de pouso é longa e lisa: saltou curto, cai no começo dela; saltou longe, cai mais embaixo; nos dois casos a
+    // bike pousa descendo e não perde velocidade, então sempre dá para pegar o próximo salto. A velocidade vem da descida
+    // (e do ✕ e do pump); a rampa é o lugar de pular (▲ na ponta, mais alto). Entre os saltos, às vezes, ondinhas para o pump.
+    // Os trechos estão escritos aqui embaixo (BX_PISTA), do mais fácil ao mais difícil; acabou a lista, ela repete maior.
+    // Cada ponto da pista tem altura e inclinação; entre dois pontos, curva suave (Hermite). Na ponta da rampa a inclinação
+    // muda de repente (de subida para descida): é ali que a bike decola.
+    addSeg(x0, x1, h0, h1, s0, s1, lip = false) { this.tr.push({ x0, x1, h0, h1, s0, s1, lip, e: 'h', b: 0 }); this.end = x1; },
+    ponto(dx, h1, s1in, s1out = s1in, lip = false) { // novo ponto a dx do último, com altura h1 (relativa ao último) e inclinações
+      const L = this.tr[this.tr.length - 1], h0 = L ? L.h1 : 0, s0 = L ? L.sOut : 0;
+      this.addSeg(this.end, this.end + dx, h0, h0 + h1, s0, s1in, lip); this.tr[this.tr.length - 1].sOut = s1out;
+    },
     h(x) {
       const T = this.tr; let lo = 0, hi = T.length - 1;
       if (x <= T[0].x0) return T[0].h0; if (x >= T[hi].x1) return T[hi].h1;
       while (lo < hi) { const m = (lo + hi + 1) >> 1; if (T[m].x0 <= x) lo = m; else hi = m - 1; }
-      const s = T[lo], u = clamp((x - s.x0) / Math.max(1e-6, s.x1 - s.x0), 0, 1);
-      const k = s.e === 'cos' ? (1 - Math.cos(u * Math.PI)) / 2 : s.e === 'in' ? u * u : s.e === 'out' ? 1 - (1 - u) * (1 - u) : u;
-      return s.h0 + (s.h1 - s.h0) * k;
+      const s = T[lo], w = Math.max(1e-6, s.x1 - s.x0), u = clamp((x - s.x0) / w, 0, 1), u2 = u * u, u3 = u2 * u;
+      return (2 * u3 - 3 * u2 + 1) * s.h0 + (u3 - 2 * u2 + u) * w * s.s0 + (-2 * u3 + 3 * u2) * s.h1 + (u3 - u2) * w * s.s1;
     },
-    pitAt(x) { return this.tr.some((s) => s.pit && x >= s.x0 && x <= s.x1); },
+    pitAt() { return false; },
     slope(x) { return (this.h(x + .6) - this.h(x - .6)) / 1.2; },
     gen() {
-      while (this.end < this.px + W * 1.8) {
-        const d = clamp(this.t / 50 + this.end / 14000, 0, 1), b = this.base, run = (w) => this.seg(w, b, 'lin');
-        const P = [['rollers', 2], ['whoops', .8], ['kicker', 2.6], ['morro', 1.4], ['mesa', 1.2], ['vale', 1.5], ['degrau', 1.1]];
-        if (this.end > 900) P.push(['agua', 1 + 2 * d]); if (this.end > 1800) P.push(['mega', .5 + 1.6 * d]);
-        let r = Math.random() * P.reduce((q, [, w]) => q + w, 0), k = P[0][0]; for (const [n, w] of P) { r -= w; if (r <= 0) { k = n; break; } }
-        if (k === 'rollers') { const n = 2 + Math.floor(rand(0, 3)), hh = rand(9, 14); for (let i = 0; i < n; i++) { this.seg(34, b + hh); this.seg(34, b); } }
-        else if (k === 'whoops') { const n = 5 + Math.floor(rand(0, 3)); for (let i = 0; i < n; i++) { this.seg(15, b + rand(5, 7)); this.seg(15, b); } }
-        else if (k === 'kicker') {
-          // kicker com vão e morro de pouso (a descida do morro é o lugar certo para pousar)
-          const hk = 18 + d * 14 + rand(0, 6), g = 30 + d * 60 + rand(0, 20);
-          run(40); this.seg(50, b + hk, 'in', { lip: true }); this.seg(5, b, 'lin'); run(g); this.seg(hk * 1.7, b + hk * .8); this.seg(12, b + hk * .8, 'lin'); this.seg(90 + hk, b); // face do morro de pouso: dá para subir
-        } else if (k === 'agua') {
-          const hh = 24 + d * 10, gap = 36 + d * 54 + rand(0, 10);
-          run(50); this.seg(50, b + hh, 'in', { lip: true }); this.seg(2, b - 64, 'lin'); this.seg(gap, b - 64, 'lin', { pit: true }); this.seg(2, b + hh - 4, 'lin'); this.seg(80, b);
-        } else if (k === 'morro') { const hh = 30 + d * 26; this.seg(rand(90, 120), b + hh); this.seg(rand(130, 170), b); }
-        else if (k === 'mesa') { const hh = 24 + d * 14; run(30); this.seg(50, b + hh, 'in', { lip: true }); this.seg(rand(60, 110), b + hh, 'lin'); this.seg(70, b); }
-        else if (k === 'vale') {
-          // depressão: desce, e a saída vira rampa (quanto mais rápido, mais alto)
-          const hv = rand(24, 40), hq = 6 + d * 14, wq = (hv + hq) * 1.5; this.seg(rand(70, 90), b - hv); this.seg(wq, b + hq, 'in', { lip: true }); this.seg(34, b); // saída: no máximo ~53° na ponta
-        } else if (k === 'degrau') {
-          if (b < 40 && (b < -10 || Math.random() < .5)) { this.seg(40, b + 24); this.base = b + 24; }
-          else { run(20); this.seg(5, b - 26, 'lin'); this.base = b - 26; } // degrau para baixo: um penhasco curto, salta da beira
-        } else if (k === 'mega') {
-          // rampa gigante: desce para pegar velocidade, sobe íngreme e voa; o pouso é a descida comprida do outro lado
-          const g = 110 + d * 70; this.seg(130, b - 34); this.seg(72, b + 34, 'in', { lip: true }); this.seg(5, b - 34, 'lin');
-          this.seg(g, b - 34, 'lin'); this.seg(80, b + 8); this.seg(180, b - 34); this.seg(80, b);
+      while (this.end < this.px + W * 2.2) {
+        const P = BX_PISTA[this.iPista % BX_PISTA.length], volta = Math.floor(this.iPista / BX_PISTA.length), k = 1 + volta * .15; this.iPista++;
+        const [tipo, a, b, c, d] = P;
+        if (tipo === 'plano') this.ponto(a, 0, 0);
+        else if (tipo === 'descida') { this.ponto(a * .55, -b * .5, -b / a * 1.4); this.ponto(a * .45, -b * .5, 0); } // desce e arredonda no vale
+        else if (tipo === 'ondas') { for (let i = 0; i < a; i++) { this.ponto(b * .5, c, 0); this.ponto(b * .5, -c - 4, 0); } }
+        else if (tipo === 'salto') {
+          // a = altura da rampa, b = inclinação da ponta (tangente), c = inclinação da descida de pouso, d = comprimento do pouso
+          const rk = a * k, tl = b, sl = c, L = d * k * 1.3, /* pouso 30% mais comprido: cabe o salto com o pulo na ponta */ wk = rk * 2.2 / tl * 1.3, D = -sl * L * .62;
+          this.ponto(wk, rk, tl, sl, true);         // a rampa: do vale (plano) até a ponta, cada vez mais inclinada
+          this.ponto(L, -D, 0);                     // o pouso: começa descendo com a inclinação c e arredonda no vale
         }
-        run(Math.max(30, 70 - d * 30) + rand(0, 30) * (1 - d));
       }
       while (this.tr.length > 4 && this.tr[1].x1 < this.px - W) this.tr.shift();
     },
@@ -16068,7 +16082,7 @@ function bqDraw(tt) {
         tq += dir * F.LEAN; this.vx -= this.vx * F.RR * dt; this.vy -= this.vy * F.RR * dt; }
       else {
         if (dir) this.w += (dir * F.ROTA - this.w) * Math.min(1, dt * F.ROTK);
-        else { const th = Math.atan(this.slope(this.px + this.vx * .25)), e = ((this.a - th) % TAU + TAU * 1.5) % TAU - Math.PI;
+        else { const th = Math.atan(this.slope(this.ondeCai())), e = ((this.a - th) % TAU + TAU * 1.5) % TAU - Math.PI;
           // perto de em pé (inclusive no fim de um mortal), o ciclista alinha com o chão; longe disso, o giro continua no embalo e vai parando
           if (Math.abs(e) < 1.2 || Math.abs(this.rotSum) < 2.2) this.w += (-e * F.AJ - this.w) * Math.min(1, dt * (Math.abs(this.rotSum) > 2.2 ? 6 : 3)); else this.w *= Math.exp(-dt / F.ROTD); }
         this.vx -= this.vx * F.AR * dt;
@@ -16101,8 +16115,8 @@ function bqDraw(tt) {
       const anyC = this.cont[0] || this.cont[1];
       if (anyC && I.d) this.carga += dt; else if (!I.d) this.carga = anyC ? 0 : this.carga;
       if (anyC && I.pu && !this.air) {
-        const imp = this.carga >= BXF.CARGA, v = imp ? BXF.HOP2 : BXF.HOP, s = this.slope(this.x), L = Math.hypot(1, s);
-        this.vx += -s / L * v; this.vy += 1 / L * v; this.w += 1.6; this.carga = 0; this.py += 1;
+        const imp = this.carga >= BXF.CARGA, v = imp ? BXF.HOP2 : BXF.HOP;
+        this.vy += v; this.w += 1.2; // o pulo empurra para cima (não para trás): na ponta da rampa, voa mais alto sem perder velocidade this.carga = 0; this.py += 1;
         sfx.jump(); if (imp) sfx.whoosh(); this.puff(this.x, this.h(this.x), 5);
       }
       const x0 = this.x, n = 4;
@@ -16116,43 +16130,54 @@ function bqDraw(tt) {
       if (this.parado > 1.4) { let nx = this.x + 40; for (let k = 0; k < 400 && (Math.abs(this.slope(nx)) > .15 || this.pitAt(nx) || Math.abs(this.slope(nx + 40)) > .4); k += 4) nx += 4; this.pousa(nx, 50); this.parado = 0; pop('Empurrou a bike', BX.SX, 90, '#ffd9a0'); }
       // cabeça no chão: tombo
       { const [hx, hy] = this.rot(BXF.HEAD[0], BXF.HEAD[1]), [dd] = this.chao(this.px + hx, this.py + hy, BXF.HEAD[2]); if (dd < BXF.HEAD[2]) { this.crash('Bateu a cabeça'); return false; } }
-      if (!this.air && this.noC > .07) { this.air = true; this.airT = this.noC; this.rotSum = 0; this.peak = 0; this.airTr = []; this.combined = false; this.trick = null; sfx.jump(); this.puff(this.x - 8, this.h(this.x - 8), 4); }
+      if (!this.air && this.noC > .07) { this.air = true; this.airT = this.noC; this.rotSum = 0; this.peak = 0; this.tx0 = this.x - this.vx * this.noC; this.ty0 = this.y; this.topo = this.y; this.airTr = []; this.combined = false; this.trick = null; sfx.jump(); this.puff(this.x - 8, this.h(this.x - 8), 4); }
       if (this.air) {
-        this.airT += dt; this.peak = Math.max(this.peak, this.y - this.h(this.x));
+        this.airT += dt; this.peak = Math.max(this.peak, this.y - this.h(this.x)); this.topo = Math.max(this.topo, this.y);
         if (!this.trick) for (const key of 'bce') if (I['p' + key]) { this.trick = { key, ...BX_MAN[key], t: 0 }; if (Math.abs(this.rotSum) > .6) this.combined = true; sfx.whoosh(); break; }
         if (this.trick) { const tr = this.trick; tr.t += dt; if (Math.abs(this.w) > 2) this.combined = true; if (tr.t >= tr.d) { this.airTr.push(tr.key); this.trick = null; sfx.tick(); } }
         if (c) this.land();
       }
-      const dx = this.x - x0; this.dist += Math.max(0, dx); this.pts += Math.max(0, dx) / 4;
+      const dx = this.x - x0; this.dist += Math.max(0, dx);
       this.pedal += (I.a && c ? 9 : c ? 2 : .5) * dt; this.wheel += dx / 7;
       if (c && !this.air) { const sp = Math.hypot(this.vx, this.vy); if (sp > 150 && Math.random() < dt * sp / 40) this.dust.push({ x: this.x - 12, y: BX.GY - this.h(this.x - 12) - 1, vx: rand(-50, -20), vy: rand(-40, -10), t: 0 }); }
       this.cam(dt); this.gen();
       this.score = Math.floor(this.pts);
       return false;
     },
-    cam(dt) { const y = this.crashT > 0 ? this.h(this.crashX) : this.y, T = y > 55 ? y - 55 : y < -12 ? y + 12 : 0; this.camH += (T - this.camH) * Math.min(1, dt * 5); },
+    ondeCai() { // onde a bike vai tocar o chão se seguir voando (para o ciclista já ir alinhando com aquele pedaço)
+      let x = this.px, y = this.py - BXF.CY, vy = this.vy; for (let t = 0; t < 3; t += .03) { vy -= BXF.G * .03; x += this.vx * .03; y += vy * .03; if (y < this.h(x)) return x; } return x;
+    },
+    cam(dt) {
+      // a câmera segue o chão (um pouco à frente: a trilha desce); no ar, se afasta (zoom) conforme a altura, até a metade
+      const x = this.crashT > 0 ? this.crashX : this.x, g = (this.h(x) + this.h(x + 120)) / 2, y = this.crashT > 0 ? this.h(x) : this.y;
+      if (this.camG == null) this.camG = g; this.camG += (g - this.camG) * Math.min(1, dt * 4); this.camH = this.camG;
+      const A = Math.max(0, y - this.camG), zT = clamp(150 / (A + 110), .5, 1); this.zoom = (this.zoom || 1) + (zT - (this.zoom || 1)) * Math.min(1, dt * 5);
+    },
     land() {
       this.air = false;
       const th = Math.atan(this.slope(this.x)), diff = ((this.a - th) % TAU + TAU * 1.5) % TAU - Math.PI, airT = this.airT;
       const flips = Math.round(Math.abs(this.rotSum) / TAU), mid = this.trick && this.trick.d - this.trick.t > .06;
-      if (airT < .22 && !flips && !this.airTr.length && !this.trick) { this.rotSum = 0; return; } // pulinho: nada a contar
+      if (airT < .3 && !flips && !this.airTr.length && !this.trick) { this.rotSum = 0; return; } // pulinho: nada a contar
       if (mid) return this.crash('Pousou no meio da manobra');
       if (Math.abs(diff) > BXF.TORTO) return this.crash(Math.abs(this.rotSum) > 2 ? (diff > 0 ? 'Girou demais' : 'Faltou girar') : 'Pousou torto');
       if (this.trick) { this.airTr.push(this.trick.key); this.trick = null; }
       const clean = Math.abs(diff) <= BXF.CLEAN;
-      let base = Math.round(airT * 80 + this.peak * .8), nome = '';
+      // o salto: distância (de onde decolou até onde pousou) e altura (acima da ponta da rampa), em metros (10 unidades = 1 m)
+      const dm = Math.max(0, (this.x - this.tx0) / 10), am = Math.max(0, (this.topo - this.ty0) / 10);
+      this.maxDist = Math.max(this.maxDist || 0, dm); this.maxAlt = Math.max(this.maxAlt || 0, am);
+      let base = Math.round(dm * 6 + am * 22), nome = '';
       if (flips) { base += flips * (this.rotSum > 0 ? 300 : 340); this.flips += flips; nome = `${flips > 1 ? flips + ' ' : ''}${this.rotSum > 0 ? 'mortal para trás' : 'mortal para frente'}`; }
       let tv = 0; for (const key of this.airTr) { tv += BX_MAN[key].v * (this.lastTr.includes(key) ? .5 : 1); this.lastTr = [...this.lastTr.slice(-1), key]; }
       if (this.combined && flips) tv *= 1.3; base += Math.round(tv); this.mans += this.airTr.length;
       if (this.airTr.length) nome = this.airTr.map((k) => BX_MAN[k].nome).join(' + ') + (nome ? ` + ${nome}` : '');
-      if (!nome && this.peak > 60) nome = 'Salto gigante';
-      if (this.peak > 60) this.bigAir++;
+      const med = `${Math.round(dm)} m${am >= 1 ? ' · ' + Math.round(am) + ' m de altura' : ''}`;
+      if (dm >= 40 || am >= 6) this.bigAir++;
       if (clean && (airT > .45 || flips || this.airTr.length)) { this.combo++; this.bestCombo = Math.max(this.bestCombo, this.combo); this.clean++; }
       const pts = Math.round(base * this.mult() * (clean ? 1 : .5)); this.pts += pts;
-      const sy = BX.GY - this.h(this.x) + this.camH;
-      if (pts >= 40) pop(`${nome ? nome.charAt(0).toUpperCase() + nome.slice(1) : clean ? 'Pouso limpo' : 'Ufa'} +${pts}`, BX.SX, sy - 52, clean ? (flips ? GO : '#ffffff') : '#ffd9a0', true);
+      const sy = BX.GY + (this.camH - this.h(this.x)) * (this.zoom || 1);
+      if (pts >= 30) { pop(`${clean ? '' : 'Desequilibrou · '}${nome ? nome.charAt(0).toUpperCase() + nome.slice(1) : 'Salto'} +${pts}`, BX.SX, sy - 84, clean ? (flips ? GO : '#ffffff') : '#ffd9a0', true); pop(med, BX.SX, sy - 70, '#bfefff'); }
       if (clean) { this.landT = .3; (flips || this.airTr.length ? sfx.big : sfx.land)(); if (flips) talk(FALA.bmxBom, .5); }
-      else { this.wobT = .5; sfx.land(); pop('Desequilibrou', BX.SX, sy - 30, '#ffd9a0'); }
+      else { this.wobT = .5; sfx.land(); }
       this.puff(this.x, this.h(this.x), clean ? 5 : 9);
       this.airTr = []; this.combined = false; this.rotSum = 0;
     },
@@ -16160,9 +16185,10 @@ function bqDraw(tt) {
       this.crashT = 1.3; this.tombos++; this.combo = 0; this.air = false; this.trick = null; this.airTr = [];
       this.sync(); this.crashAng = this.ang; this.crashAgua = agua; this.crashX = this.x; this.crashY = this.y;
       failMsg(why); sfx.crash(); shake = .3; talk(FALA.bmxTombo, .5);
-      if (agua) this.fx.push({ k: 'sp3', x: this.x, y: BX.GY - this.base + 34, t: 0, d: .7, s: 1 }); else this.puff(this.x, this.h(this.x), 14);
+      if (agua) this.fx.push({ k: 'sp3', x: this.x, y: BX.GY - this.h(this.x) + 34, t: 0, d: .7, s: 1 }); else this.puff(this.x, this.h(this.x), 14);
     },
-    stats() { return [`${Math.round(this.dist / 10)} m pedalados`, `${this.flips} mortais · ${this.mans} manobras · ${this.bigAir} saltos gigantes`, `${this.clean} pousos limpos · combo máximo ×${String(1 + .25 * Math.min(8, this.bestCombo)).replace('.', ',')}`, `${this.tombos} tombos`]; },
+    hud() { const m = this.mult(); return [['Pontos', nf(this.score)], ['Tempo', `${Math.ceil(this.left)}s`, this.left <= 10], ['Combo', `×${String(m).replace('.', ',')}`, m > 1], ['Maior salto', `${Math.round(this.maxDist || 0)} m`]]; },
+    stats() { return [`maior salto ${Math.round(this.maxDist || 0)} m · mais alto ${Math.round(this.maxAlt || 0)} m`, `${this.flips} mortais · ${this.mans} manobras · ${this.bigAir} saltos grandes`, `${this.clean} pousos limpos · combo máximo ×${String(1 + .25 * Math.min(8, this.bestCombo)).replace('.', ',')}`, `${this.tombos} tombos`]; },
   });
   window.__BXF = BXF;
 
@@ -16222,20 +16248,24 @@ function bqDraw(tt) {
     // fundo distante (céu, mar e morros), anda a 30%
     const of = ((cam * .3) % BX_FW + BX_FW) % BX_FW;
     // 02/11: a câmera sobe nos saltos grandes: o fundo sobe junto (60%) e, acima dele, a cor do céu do alto da imagem
-    const cy = v.camH || 0, fy0 = cy * .6, FW2 = BX_FW, FH2 = H, of2 = of;
+    const cy = v.camH || 0, ca = cy - (v.camG ?? cy), fy0 = ca * .6, /* o fundo só sobe com a altura do salto (a trilha desce sem o céu descer) */ FW2 = BX_FW, FH2 = H, of2 = of;
     for (const [h, w] of P) { ctx.globalAlpha = w; const CF = bxImg('ceuf', BXC.ceuf); if (fy0 > 0 && CF) for (let x = -of2; x < W; x += FW2) ctx.drawImage(CF, 0, bxRow(h) * 4 + 1, 320, 2, x, -1, FW2 + .6, fy0 + 3); /* o céu continua para cima (faixa desfocada) */ for (let x = -of2; x < W; x += FW2) ctx.drawImage(F, 0, bxRow(h) * fh, fw, fh, x, fy0, FW2 + .6, FH2); }
     if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); for (let x = -of2; x < W; x += FW2) ctx.drawImage(L, 0, 0, 960, 270, x, fy0, FW2 + .6, FH2); ctx.globalCompositeOperation = 'source-over'; }
-    ctx.restore(); ctx.save(); ctx.translate(0, cy * .9); ctx.imageSmoothingEnabled = true; // dunas: 90% da câmera
+    ctx.restore(); ctx.save(); ctx.translate(0, ca * .9); ctx.imageSmoothingEnabled = true; // dunas: 90% da subida do salto
     // dunas com cercas, pneus e bandeiras (plano médio), anda a 55%; o pé fica atrás da pista
     const om = ((cam * .55) % BX_MW + BX_MW) % BX_MW, my = BX.GY + 4 - BX_MH;
-    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) { ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.drawImage(M, 0, bxRow(h) * mh + mh - 3, mw, 2, x, my + BX_MH - .5, BX_MW + .6, 400); } } // embaixo das dunas, a areia continua
+    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) { ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); } R(0, my + BX_MH - 1, W, 400, BXC.duna[h]); } // embaixo das dunas, a areia continua (cor lisa)
     if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.45 + .1 * Math.sin(tt * 2.3 + 1)); for (let x = -om; x < W; x += BX_MW) ctx.drawImage(L, 0, 270, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.globalCompositeOperation = 'source-over'; }
-    ctx.globalAlpha = 1; ctx.restore(); ctx.save(); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true; // daqui para baixo, tudo anda com a câmera
+    ctx.globalAlpha = 1; ctx.restore(); ctx.save();
+    // daqui para baixo, tudo anda com a câmera; nos saltos altos a câmera se afasta (zoom) em volta do chão embaixo da bike,
+    // para o chão continuar aparecendo e dar para mirar o pouso
+    const z = v.zoom || 1, XA = BX.SX - BX.SX / z - 6, XB = BX.SX + (W - BX.SX) / z + 6;
+    ctx.translate(BX.SX, BX.GY); ctx.scale(z, z); ctx.translate(-BX.SX, -BX.GY); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true;
     const top = (sx) => BX.GY - v.h(sx + cam), V = BXC.p.vala, VO = BXC.vala, base = P.length > 1 && P[1][1] > .5 ? BXC.base[P[1][0]] : BXC.base[P[0][0]];
     // valas (o vão fundo entre as duas rampas): o miolo da peça pintada (a borda de trás, a água e a borda da frente) no fundo do vão,
     // na altura do chão; as paredes das rampas cobrem as laterais; embaixo, a cor da terra
     for (const s of v.tr) if (s.pit) {
-      const m = 8, xa = s.x0 - cam - m, xb = s.x1 - cam + m; if (xa > W || xb < 0) continue;
+      const m = 8, xa = s.x0 - cam - m, xb = s.x1 - cam + m; if (xa > XB || xb < XA) continue;
       const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - (s.b || 0) - 8, hh = H + 400 - y0;
       R(xa, y0 + hh - 2, xb - xa, H, base);
       ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(bxImg('atl', BXC.atl), V.x + sx0, sy0, sx1 - sx0, sy1 - sy0, xa, y0, xb - xa, hh); ctx.restore();
@@ -16243,25 +16273,24 @@ function bqDraw(tt) {
       { const nt = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0), td = P.reduce((q, [h, w]) => q + (h === 'tarde' ? w : h === 'manha' ? w * .5 : 0), 0);
         if (nt > .01) R(xa, y0, xb - xa, hh, `rgba(12,18,58,${.6 * nt})`); if (td > .01) R(xa, y0, xb - xa, hh, `rgba(90,30,40,${.28 * td})`); }
     }
-    // terra: a faixa da pista acompanha o perfil do chão (2 unidades por coluna); embaixo continua a cor da terra
-    const pr = BX_PW / (mw), ri = P.map(([h, w]) => [4 + bxRow(h), w]);
-    ctx.save(); ctx.imageSmoothingEnabled = true;
-    for (let sx = 0; sx < W; sx += 2) {
-      const wx = sx + cam; if (v.pitAt(wx + 1)) continue;
-      const y = top(sx), u = (((wx % BX_PW) + BX_PW) % BX_PW) / pr;
-      const sw = 2 / pr + .5, uu = Math.min(mw - sw - 2, u); // sem a última coluna da faixa (fazia uma linha clara na emenda)
-      for (const [row, w] of ri) { ctx.globalAlpha = w; ctx.drawImage(M, uu, row * mh, sw, mh, sx, y - 1.5, 2.4, BX_PH); }
-      ctx.globalAlpha = 1; R(sx, y - 2 + BX_PH, 2.4, H + 400 - (y - 2 + BX_PH), base);
+    // 02/11: a pista é desenhada em código (contorno da trilha): terra com o ladrilho pintado de cada horário, a faixa de areia em
+    // cima e o contorno escuro. Funciona em qualquer inclinação (a trilha desce, as rampas são íngremes).
+    const TT = bxImg('terra', BXC.terra), perfil = () => { ctx.beginPath(); ctx.moveTo(XA, top(XA)); for (let sx = XA + 2; sx <= XB; sx += 3) ctx.lineTo(sx, top(sx)); ctx.lineTo(XB, top(XB)); };
+    if (TT) for (const [h, w] of P) {
+      if (!BXI['pat_' + h]) { const c = document.createElement('canvas'); c.width = 384; c.height = 128; c.getContext('2d').drawImage(TT, 0, bxRow(h) * 128, 384, 128, 0, 0, 384, 128); BXI['pat_' + h] = ctx.createPattern(c, 'repeat'); }
+      const pat = BXI['pat_' + h]; pat.setTransform(new DOMMatrix([.5, 0, 0, .5, -((cam % 192) + 192) % 192, (-v.h(cam) * 0) ]));
+      ctx.globalAlpha = w; perfil(); ctx.lineTo(XB, H / z + 900 - cy); ctx.lineTo(XA, H / z + 900 - cy); ctx.closePath(); ctx.fillStyle = pat; ctx.fill();
+      perfil(); ctx.strokeStyle = BXC.areia[h]; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.save(); ctx.translate(0, 2.2); ctx.stroke(); ctx.restore();
     }
-    ctx.restore();
+    ctx.globalAlpha = 1; perfil(); ctx.strokeStyle = NAVY; ctx.lineWidth = 1.2; ctx.stroke();
     // tábua na ponta de cada rampa que termina numa vala (gira com a rampa)
     for (let i = 0; i < v.tr.length; i++) {
       const s = v.tr[i]; if (!(s.lip || (s.pit && v.tr[i - 1] && !v.tr.some((q) => q.lip && Math.abs(q.x1 - s.x0) < 8)))) continue;
-      const lx = (s.lip ? s.x1 : s.x0) - 2, sx = lx - cam; if (sx < -40 || sx > W + 40) continue; // a ponta da rampa (02/11: em toda rampa)
+      const lx = (s.lip ? s.x1 : s.x0) - 2, sx = lx - cam; if (sx < XA - 40 || sx > XB + 40) continue; // a ponta da rampa (02/11: em toda rampa)
       bxPart('tabua', sx + 1, top(sx) - 1, 1, 1, -Math.atan(v.slope(lx - 3)) + .12);
     }
     // bandeiras quadriculadas na beira da pista a cada 160 (balançando: os dois desenhos)
-    for (let k = Math.floor(cam / 160); k < (cam + W) / 160 + 1; k++) {
+    for (let k = Math.floor((cam + XA) / 160); k < (cam + XB) / 160 + 1; k++) {
       const wx = k * 160 + 40, sx = wx - cam; if (v.pitAt(wx)) continue;
       bxPart(Math.floor(tt * 3 + k) % 2 ? 'flag_01' : 'flag_02', sx, top(sx) + 1, .9);
     }

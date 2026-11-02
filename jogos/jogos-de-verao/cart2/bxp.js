@@ -54,20 +54,24 @@
     // fundo distante (céu, mar e morros), anda a 30%
     const of = ((cam * .3) % BX_FW + BX_FW) % BX_FW;
     // 02/11: a câmera sobe nos saltos grandes: o fundo sobe junto (60%) e, acima dele, a cor do céu do alto da imagem
-    const cy = v.camH || 0, fy0 = cy * .6, FW2 = BX_FW, FH2 = H, of2 = of;
+    const cy = v.camH || 0, ca = cy - (v.camG ?? cy), fy0 = ca * .6, /* o fundo só sobe com a altura do salto (a trilha desce sem o céu descer) */ FW2 = BX_FW, FH2 = H, of2 = of;
     for (const [h, w] of P) { ctx.globalAlpha = w; const CF = bxImg('ceuf', BXC.ceuf); if (fy0 > 0 && CF) for (let x = -of2; x < W; x += FW2) ctx.drawImage(CF, 0, bxRow(h) * 4 + 1, 320, 2, x, -1, FW2 + .6, fy0 + 3); /* o céu continua para cima (faixa desfocada) */ for (let x = -of2; x < W; x += FW2) ctx.drawImage(F, 0, bxRow(h) * fh, fw, fh, x, fy0, FW2 + .6, FH2); }
     if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); for (let x = -of2; x < W; x += FW2) ctx.drawImage(L, 0, 0, 960, 270, x, fy0, FW2 + .6, FH2); ctx.globalCompositeOperation = 'source-over'; }
-    ctx.restore(); ctx.save(); ctx.translate(0, cy * .9); ctx.imageSmoothingEnabled = true; // dunas: 90% da câmera
+    ctx.restore(); ctx.save(); ctx.translate(0, ca * .9); ctx.imageSmoothingEnabled = true; // dunas: 90% da subida do salto
     // dunas com cercas, pneus e bandeiras (plano médio), anda a 55%; o pé fica atrás da pista
     const om = ((cam * .55) % BX_MW + BX_MW) % BX_MW, my = BX.GY + 4 - BX_MH;
-    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) { ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.drawImage(M, 0, bxRow(h) * mh + mh - 3, mw, 2, x, my + BX_MH - .5, BX_MW + .6, 400); } } // embaixo das dunas, a areia continua
+    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) { ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); } R(0, my + BX_MH - 1, W, 400, BXC.duna[h]); } // embaixo das dunas, a areia continua (cor lisa)
     if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.45 + .1 * Math.sin(tt * 2.3 + 1)); for (let x = -om; x < W; x += BX_MW) ctx.drawImage(L, 0, 270, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.globalCompositeOperation = 'source-over'; }
-    ctx.globalAlpha = 1; ctx.restore(); ctx.save(); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true; // daqui para baixo, tudo anda com a câmera
+    ctx.globalAlpha = 1; ctx.restore(); ctx.save();
+    // daqui para baixo, tudo anda com a câmera; nos saltos altos a câmera se afasta (zoom) em volta do chão embaixo da bike,
+    // para o chão continuar aparecendo e dar para mirar o pouso
+    const z = v.zoom || 1, XA = BX.SX - BX.SX / z - 6, XB = BX.SX + (W - BX.SX) / z + 6;
+    ctx.translate(BX.SX, BX.GY); ctx.scale(z, z); ctx.translate(-BX.SX, -BX.GY); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true;
     const top = (sx) => BX.GY - v.h(sx + cam), V = BXC.p.vala, VO = BXC.vala, base = P.length > 1 && P[1][1] > .5 ? BXC.base[P[1][0]] : BXC.base[P[0][0]];
     // valas (o vão fundo entre as duas rampas): o miolo da peça pintada (a borda de trás, a água e a borda da frente) no fundo do vão,
     // na altura do chão; as paredes das rampas cobrem as laterais; embaixo, a cor da terra
     for (const s of v.tr) if (s.pit) {
-      const m = 8, xa = s.x0 - cam - m, xb = s.x1 - cam + m; if (xa > W || xb < 0) continue;
+      const m = 8, xa = s.x0 - cam - m, xb = s.x1 - cam + m; if (xa > XB || xb < XA) continue;
       const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - (s.b || 0) - 8, hh = H + 400 - y0;
       R(xa, y0 + hh - 2, xb - xa, H, base);
       ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(bxImg('atl', BXC.atl), V.x + sx0, sy0, sx1 - sx0, sy1 - sy0, xa, y0, xb - xa, hh); ctx.restore();
@@ -75,25 +79,24 @@
       { const nt = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0), td = P.reduce((q, [h, w]) => q + (h === 'tarde' ? w : h === 'manha' ? w * .5 : 0), 0);
         if (nt > .01) R(xa, y0, xb - xa, hh, `rgba(12,18,58,${.6 * nt})`); if (td > .01) R(xa, y0, xb - xa, hh, `rgba(90,30,40,${.28 * td})`); }
     }
-    // terra: a faixa da pista acompanha o perfil do chão (2 unidades por coluna); embaixo continua a cor da terra
-    const pr = BX_PW / (mw), ri = P.map(([h, w]) => [4 + bxRow(h), w]);
-    ctx.save(); ctx.imageSmoothingEnabled = true;
-    for (let sx = 0; sx < W; sx += 2) {
-      const wx = sx + cam; if (v.pitAt(wx + 1)) continue;
-      const y = top(sx), u = (((wx % BX_PW) + BX_PW) % BX_PW) / pr;
-      const sw = 2 / pr + .5, uu = Math.min(mw - sw - 2, u); // sem a última coluna da faixa (fazia uma linha clara na emenda)
-      for (const [row, w] of ri) { ctx.globalAlpha = w; ctx.drawImage(M, uu, row * mh, sw, mh, sx, y - 1.5, 2.4, BX_PH); }
-      ctx.globalAlpha = 1; R(sx, y - 2 + BX_PH, 2.4, H + 400 - (y - 2 + BX_PH), base);
+    // 02/11: a pista é desenhada em código (contorno da trilha): terra com o ladrilho pintado de cada horário, a faixa de areia em
+    // cima e o contorno escuro. Funciona em qualquer inclinação (a trilha desce, as rampas são íngremes).
+    const TT = bxImg('terra', BXC.terra), perfil = () => { ctx.beginPath(); ctx.moveTo(XA, top(XA)); for (let sx = XA + 2; sx <= XB; sx += 3) ctx.lineTo(sx, top(sx)); ctx.lineTo(XB, top(XB)); };
+    if (TT) for (const [h, w] of P) {
+      if (!BXI['pat_' + h]) { const c = document.createElement('canvas'); c.width = 384; c.height = 128; c.getContext('2d').drawImage(TT, 0, bxRow(h) * 128, 384, 128, 0, 0, 384, 128); BXI['pat_' + h] = ctx.createPattern(c, 'repeat'); }
+      const pat = BXI['pat_' + h]; pat.setTransform(new DOMMatrix([.5, 0, 0, .5, -((cam % 192) + 192) % 192, (-v.h(cam) * 0) ]));
+      ctx.globalAlpha = w; perfil(); ctx.lineTo(XB, H / z + 900 - cy); ctx.lineTo(XA, H / z + 900 - cy); ctx.closePath(); ctx.fillStyle = pat; ctx.fill();
+      perfil(); ctx.strokeStyle = BXC.areia[h]; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.save(); ctx.translate(0, 2.2); ctx.stroke(); ctx.restore();
     }
-    ctx.restore();
+    ctx.globalAlpha = 1; perfil(); ctx.strokeStyle = NAVY; ctx.lineWidth = 1.2; ctx.stroke();
     // tábua na ponta de cada rampa que termina numa vala (gira com a rampa)
     for (let i = 0; i < v.tr.length; i++) {
       const s = v.tr[i]; if (!(s.lip || (s.pit && v.tr[i - 1] && !v.tr.some((q) => q.lip && Math.abs(q.x1 - s.x0) < 8)))) continue;
-      const lx = (s.lip ? s.x1 : s.x0) - 2, sx = lx - cam; if (sx < -40 || sx > W + 40) continue; // a ponta da rampa (02/11: em toda rampa)
+      const lx = (s.lip ? s.x1 : s.x0) - 2, sx = lx - cam; if (sx < XA - 40 || sx > XB + 40) continue; // a ponta da rampa (02/11: em toda rampa)
       bxPart('tabua', sx + 1, top(sx) - 1, 1, 1, -Math.atan(v.slope(lx - 3)) + .12);
     }
     // bandeiras quadriculadas na beira da pista a cada 160 (balançando: os dois desenhos)
-    for (let k = Math.floor(cam / 160); k < (cam + W) / 160 + 1; k++) {
+    for (let k = Math.floor((cam + XA) / 160); k < (cam + XB) / 160 + 1; k++) {
       const wx = k * 160 + 40, sx = wx - cam; if (v.pitAt(wx)) continue;
       bxPart(Math.floor(tt * 3 + k) % 2 ? 'flag_01' : 'flag_02', sx, top(sx) + 1, .9);
     }

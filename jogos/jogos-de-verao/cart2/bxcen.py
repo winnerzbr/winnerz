@@ -27,6 +27,17 @@ for i, (_, d) in enumerate(HORAS):
     M.paste(Image.fromarray(key_green(A + d + '/plano_medio.png')).resize((1536, 256), Image.LANCZOS), (0, i * 256))
     M.paste(Image.open(A + d + '/pista.png').convert('RGBA').resize((1536, 256), Image.LANCZOS), (0, (4 + i) * 256))
 OUT['m'] = uri(M, q=84); OUT['mw'], OUT['mh'] = 1536, 256
+# 02/11: a pista virou desenho em código (contorno da trilha): a terra é um ladrilho feito da parte de baixo da faixa pintada
+# (ela e o espelho dela, para repetir também de cima para baixo), um por horário; a cor da areia de cima e a cor embaixo das dunas
+TT = Image.new('RGB', (384, 128 * 4)); OUT['areia'] = {}; OUT['duna'] = {}
+for i, (h, d) in enumerate(HORAS):
+    pi = Image.open(A + d + '/pista.png').convert('RGB'); w0, h0 = pi.size
+    terra = pi.crop((0, int(h0 * .42), w0, h0)).resize((384, 64), Image.LANCZOS)
+    t2 = Image.new('RGB', (384, 128)); t2.paste(terra, (0, 0)); t2.paste(terra.transpose(Image.FLIP_TOP_BOTTOM), (0, 64)); TT.paste(t2, (0, i * 128))
+    OUT['areia'][h] = '#%02x%02x%02x' % tuple(int(v) for v in np.asarray(pi.crop((0, int(h0 * .03), w0, int(h0 * .14))), float).reshape(-1, 3).mean(0))
+    md = key_green(A + d + '/plano_medio.png'); al = md[..., 3] > 200; bot = md[int(md.shape[0] * .9):]; ab = bot[..., 3] > 200
+    OUT['duna'][h] = '#%02x%02x%02x' % tuple(int(v) for v in bot[..., :3][ab].reshape(-1, 3).mean(0))
+OUT['terra'] = uri(TT, q=82)
 # cor da terra embaixo da faixa da pista (média das últimas linhas, por horário)
 OUT['base'] = {}
 for i, (h, d) in enumerate(HORAS):

@@ -9,11 +9,11 @@ const { chromium } = require('playwright');
   await p.evaluate(() => { choose(bmx); start(); }); await p.waitForTimeout(2500);
   const r = await p.evaluate(() => {
     const B = bmx, res = {};
-    const tempoNoAr = () => { let x = B.px, y = B.py, vx = B.vx, vy = B.vy; for (let t = 0; t < 3; t += .02) { vy -= 400 * .02; x += vx * .02; y += vy * .02; if (y - 22 < B.h(x)) return t; } return 3; };
+    const tempoNoAr = () => { let x = B.px, y = B.py, vx = B.vx, vy = B.vy; for (let t = 0; t < 3; t += .02) { vy -= __BXF.G * .02; x += vx * .02; y += vy * .02; if (y - 22 < B.h(x)) return t; } return 3; };
     for (const modo of ['só pedala', 'bom', 'mortal']) {
-      const T = { saltos: 0, pico: 0, mortais: 0, tombos: 0, pontos: 0, porque: {} }; const N = 8;
+      const T = { saltos: 0, pico: 0, mortais: 0, tombos: 0, pontos: 0, porque: {}, dist: [], vel: [], alt: [] }; const N = 6;
       for (let g = 0; g < N; g++) {
-        B.init(); window.failMsg = (m) => { T.porque[m] = (T.porque[m] || 0) + 1; }; let wasAir = false, segurando = 0;
+        B.init(); window.failMsg = (m) => { T.porque[m] = (T.porque[m] || 0) + 1; }; let wasAir = false, segurando = 0; const land0 = B.land; B.land = function () { const d = (this.x - this.tx0) / 10, a = (this.topo - this.ty0) / 10; if (this.airT > .3) { T.dist.push(d); T.alt.push(a); } return land0.call(this); };
         for (let f = 0; f < 3700; f++) {
           const I = { a: 1 }; const c = B.cont[0] || B.cont[1];
           if (modo !== 'só pedala') {
@@ -24,11 +24,12 @@ const { chromium } = require('playwright');
             if (!B.air) segurando = 0;
           }
           if (B.update(1 / 60, I)) break;
-          if (B.air && !wasAir) T.saltos++; wasAir = B.air; T.pico = Math.max(T.pico, B.peak || 0);
+          if (B.air && !wasAir) T.saltos++; wasAir = B.air; T.pico = Math.max(T.pico, B.peak || 0); if (f % 30 === 0 && B.crashT <= 0) T.vel.push(Math.hypot(B.vx, B.vy));
         }
-        T.mortais += B.flips; T.tombos += B.tombos; T.pontos += B.score;
+        T.mortais += B.flips; T.tombos += B.tombos; T.pontos += B.score; B.land = land0;
       }
-      res[modo] = `${(T.saltos / N).toFixed(0)} saltos · pico ${T.pico.toFixed(0)} · ${(T.mortais / N).toFixed(1)} mortais · ${(T.tombos / N).toFixed(1)} tombos · ${(T.pontos / N).toFixed(0)} pontos (média de ${N}) · ${JSON.stringify(T.porque)}`;
+      const md = (a) => a.length ? a.reduce((q, v) => q + v, 0) / a.length : 0, mx = (a) => a.length ? Math.max(...a) : 0, vs = T.vel.slice().sort((a, b) => a - b);
+      res[modo] = `velocidade ${vs[Math.floor(vs.length * .1)].toFixed(0)}–${vs[Math.floor(vs.length * .5)].toFixed(0)}–${vs[Math.floor(vs.length * .9)].toFixed(0)} · saltos ${md(T.dist).toFixed(0)} m (máx ${mx(T.dist).toFixed(0)}) altura ${md(T.alt).toFixed(1)} m (máx ${mx(T.alt).toFixed(0)}) · ${(T.saltos / N).toFixed(0)} saltos · pico ${T.pico.toFixed(0)} · ${(T.mortais / N).toFixed(1)} mortais · ${(T.tombos / N).toFixed(1)} tombos · ${(T.pontos / N).toFixed(0)} pontos (média de ${N}) · ${JSON.stringify(T.porque)}`;
     }
     return JSON.stringify(res, null, 1);
   });

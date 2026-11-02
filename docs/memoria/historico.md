@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: BMX com trilha de flow
+- **O dono disse:** injogável; obstáculos demais em sequência, sem como pegar velocidade; a pista deve dar flow e o que pontua são os saltos (mais longe e mais alto) e as manobras; a pista pode ser feita em código.
+- **Feito:** trilha que desce sempre, escrita em código (vale → rampa → descida de pouso comprida), pontos pela distância e altura de cada salto, gravidade mais leve, pulo para cima na ponta da rampa, pista desenhada em código e câmera que se afasta nos saltos altos. Nenhum tombo nos jogadores automáticos; medalhas recalibradas. Publicado na página do Claude e no site.
+- **Pendente:** o dono testar; a arte nova da pista.
+
+---
+
 ## 02/11/2026: BMX refeito com física de verdade
 - **O dono pediu:** refazer a jogabilidade e a física da BMX (a bike parecia grudada no chão), com saltos grandes, manobras satisfatórias e mais elementos na pista, como no Hill Climb Racing.
 - **Feito:** bike como corpo com peso, suspensão nas rodas, empinar, giro no ar e pouso de verdade; pulo (▲, mais alto com ▼ antes) e pump; ajudas leves do ciclista; pista nova com 10 tipos de trecho (whoops, kickers com morro de pouso, vales com rampa, degraus, rampa gigante...); câmera que sobe nos saltos; medalhas recalibradas. Testado com jogadores automáticos. Publicado na página do Claude e no site.

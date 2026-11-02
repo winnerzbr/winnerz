@@ -24,6 +24,8 @@ func hud() -> Array: return [["Pontos", Jogo.nf(pontos), false], ["", "", false]
 func estatisticas() -> Array: return []
 func placar_txt() -> String: return ""
 func explicacao() -> String: return ""
+## a prova tem placar desenhado nela mesma (ex.: o placar de madeira do vôlei): a barra de cima some durante o jogo
+func placar_proprio() -> bool: return false
 ## a prova pode desenhar uma camada de luz (somada, como o "lighter" do navegador): escreva desenhar_luz(tt)
 func desenhar_luz(_tt: float) -> void: pass
 func tem_luz() -> bool: return false

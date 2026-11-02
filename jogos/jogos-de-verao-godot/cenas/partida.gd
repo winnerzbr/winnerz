@@ -18,6 +18,7 @@ var faixa = null           # {s, c, t, d}
 var _hud_rot: Array[Label] = []
 var _hud_val: Array[Label] = []
 var _hud_nome: Label
+var _barra: PanelContainer
 var _fala: PanelContainer
 var _fala_txt: Label
 var _fala_t := 0.0
@@ -74,6 +75,7 @@ func _process(dt: float) -> void:
 		if shake <= 0.0: _encaixa()
 	prova.redesenha()
 	sobre.queue_redraw()
+	_barra.visible = not (prova.placar_proprio() and modo in [JOGANDO, PAUSA])
 	if modo != INTRO: _atualiza_hud()
 	if _fala_t > 0.0:
 		_fala_t -= dt
@@ -92,6 +94,7 @@ func banner(s: String, cor: Color = Color.WHITE, d := 1.4) -> void:
 # ---------------------------------------------------------------- placar de cima
 func _monta_hud() -> void:
 	var barra := PanelContainer.new()
+	_barra = barra
 	var sb := StyleBoxFlat.new(); sb.bg_color = Color(0.03, 0.04, 0.07, 0.82); sb.content_margin_left = 18; sb.content_margin_right = 18; sb.content_margin_top = 6; sb.content_margin_bottom = 8
 	barra.add_theme_stylebox_override("panel", sb)
 	barra.set_anchors_preset(Control.PRESET_TOP_WIDE)

@@ -11,7 +11,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - testa abrindo o projeto no Godot do PC dele;
   - começar pela base + o vôlei, e depois as outras provas uma por uma;
   - usar o editor do próprio Godot no lugar do editor de dentro do jogo.
-- **Em andamento:** projeto Godot 4.7.2 em `jogos/jogos-de-verao-godot/`.
+- **Feito:**
+  - projeto Godot 4.7.2 em `jogos/jogos-de-verao-godot/` com a base (menu, partida, placar, pausa, resultado, recordes, opções, música, sons, controles);
+  - o vôlei (partida rápida contra o Amiguinho Rosa), conferido lado a lado com o navegador: as fotos ficam quase iguais e as simulações dão números parecidos.
+  - O dono recebeu o projeto em .zip e o passo a passo (`README.md` do projeto).
+- **Pendente:**
+  - o dono abrir no PC e jogar, e conferir se há trancos (o cérebro do Amiguinho é mais pesado no Godot);
+  - depois, o Torneio e a Copa do vôlei e as outras 18 provas, uma por vez.
 
 ---
 

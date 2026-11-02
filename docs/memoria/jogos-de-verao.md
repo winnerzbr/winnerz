@@ -10,7 +10,24 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
     - ele testa abrindo o projeto no Godot do PC dele (F5);
     - começar pela base (menu, placar, medalhas, música, sons, controles) + o vôlei, e depois as outras provas uma de cada vez;
     - os números e as pistas passam a ser mexidos no editor do próprio Godot (o editor de dentro do jogo não será refeito).
-  - Godot 4.7.2 (estável), renderizador "Compatibility". O projeto fica em `jogos/jogos-de-verao-godot/`.
+  - Godot 4.7.2 (estável), renderizador "Compatibility". O projeto fica em `jogos/jogos-de-verao-godot/`. Como funciona e como passar cada prova: `ARQUITETURA.md`; para o dono jogar no PC: `README.md`, ambos na pasta do projeto.
+  - **Base (02/11):**
+    - menu com as 19 provas (as que ainda não passaram aparecem apagadas), explicação antes de jogar, barra de placar em cima, avisos que sobem e faixa do meio, fala do IAmiguinho em balão, pausa e resultado com medalha e recorde;
+    - opções de música, efeitos e tela cheia, guardadas em `user://`;
+    - controles de teclado e de controle;
+    - as faixas do dono e os sons de desenho escolhidos (`sons/*.wav`, cortados do `sons.mp3` do navegador por `ferramentas/sons.py`);
+    - a arte sai do navegador por `ferramentas/extrai_arte.py`;
+    - a prova pode ter placar próprio (`placar_proprio()`), e aí a barra de cima some durante o jogo.
+  - **Vôlei no Godot (02/11):** a partida rápida contra o Amiguinho Rosa, igual à do navegador.
+    - Física, cérebro novo (nível 0,45), personagens pintados com o rosto aceso no visor (shader), os 187 ajustes de rosto do editor do dono embutidos em `arte/MV5.json`, cenário com torcida e névoa, placar de madeira, falas e sons.
+    - Pontos: 200 por ponto seu + 120 × (7 − pontos do Amiguinho) + 600 se vencer.
+    - Ficaram para depois: Torneio, Copa e 2 jogadores.
+    - Arquivos: `provas/volei/` (`volei.gd`, `fisica.gd`, `cerebro.gd`, `personagem.gd` + shader), `arte/MV5`, `MVB`, `C2`.
+    - **Testes:**
+      - `fotos_volei` (partida com fotos);
+      - `sim_volei`, 110 partidas: você vence ~66% (no navegador, 150 partidas, 71%), pontos médios 6,2 × 4,85 (6,31 × 4,87), ~11 ralis por partida (11,2);
+      - `volei_comparar`: fotos do mesmo momento no Godot e no navegador, quase iguais.
+    - **Ponto de atenção:** o cérebro do Amiguinho gasta ~19 ms por segundo de jogo neste computador de 2 núcleos (no navegador, 1,2 ms). Raramente um passo passa de 16 ms (0,3% dos passos), o que pode dar um tranco a cada ~5 s. Conferir no PC do dono; há um modo com vários núcleos desligado (`PARALELO` em `cerebro.gd`).
   - Histórico: em 10/2026 o vôlei foi testado no Godot 4.3 (código em `jogos/volei-godot`, página exportada em `jogos/volei-godot/exportado/`) e o Unity foi avaliado e descartado; na época, a decisão foi continuar no navegador.
 - **Estilo:** desenho animado pintado no jogo inteiro, incluindo menus e HUD.
   - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.

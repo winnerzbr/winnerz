@@ -38,7 +38,7 @@ def lista():
         if n in vistos: continue
         o = objeto(n)
         if isinstance(o, dict):
-            t = json.dumps(o); k = t.count('data:image') + len(re.findall(r'img/[0-9a-f]{32}\.webp', t))
+            t = json.dumps(o); k = t.count('data:image') + len(re.findall(r'img/[0-9a-f]{12,32}\.webp', t))
             if k: vistos[n] = (k, len(t) // 1024)
     for n, (k, kb) in sorted(vistos.items(), key=lambda x: -x[1][1]): print(f'{n:14s} {k:4d} imagens  {kb:7d} KB')
 
@@ -56,7 +56,7 @@ def extrai(nome):
                 ext = 'jpg' if m.group(1) == 'jpeg' else m.group(1); dados = base64.b64decode(m.group(2))
                 arq = f'{base}_{hashlib.md5(dados).hexdigest()[:6]}.{ext}'; (dst / arq).write_bytes(dados); n[0] += 1
                 return f'res://arte/{nome}/{arq}'
-            m = re.match(r'(?:\./)?img/([0-9a-f]{32}\.webp)$', v)
+            m = re.match(r'(?:\./)?img/([0-9a-f]{12,32}\.webp)$', v)
             if m and (src / 'img' / m.group(1)).exists():
                 arq = f'{base}_{m.group(1)[:6]}.webp'; shutil.copy(src / 'img' / m.group(1), dst / arq); n[0] += 1
                 return f'res://arte/{nome}/{arq}'

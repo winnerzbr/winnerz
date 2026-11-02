@@ -53,20 +53,22 @@
     ctx.save(); ctx.imageSmoothingEnabled = true;
     // fundo distante (céu, mar e morros), anda a 30%
     const of = ((cam * .3) % BX_FW + BX_FW) % BX_FW;
-    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -of; x < W; x += BX_FW) ctx.drawImage(F, 0, bxRow(h) * fh, fw, fh, x, 0, BX_FW + .6, H); }
-    if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); for (let x = -of; x < W; x += BX_FW) ctx.drawImage(L, 0, 0, 960, 270, x, 0, BX_FW + .6, H); ctx.globalCompositeOperation = 'source-over'; }
+    // 02/11: a câmera sobe nos saltos grandes: o fundo sobe junto (60%) e, acima dele, a cor do céu do alto da imagem
+    const cy = v.camH || 0, fy0 = cy * .6, FW2 = BX_FW, FH2 = H, of2 = of;
+    for (const [h, w] of P) { ctx.globalAlpha = w; const CF = bxImg('ceuf', BXC.ceuf); if (fy0 > 0 && CF) for (let x = -of2; x < W; x += FW2) ctx.drawImage(CF, 0, bxRow(h) * 4 + 1, 320, 2, x, -1, FW2 + .6, fy0 + 3); /* o céu continua para cima (faixa desfocada) */ for (let x = -of2; x < W; x += FW2) ctx.drawImage(F, 0, bxRow(h) * fh, fw, fh, x, fy0, FW2 + .6, FH2); }
+    if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); for (let x = -of2; x < W; x += FW2) ctx.drawImage(L, 0, 0, 960, 270, x, fy0, FW2 + .6, FH2); ctx.globalCompositeOperation = 'source-over'; }
+    ctx.restore(); ctx.save(); ctx.translate(0, cy * .9); ctx.imageSmoothingEnabled = true; // dunas: 90% da câmera
     // dunas com cercas, pneus e bandeiras (plano médio), anda a 55%; o pé fica atrás da pista
     const om = ((cam * .55) % BX_MW + BX_MW) % BX_MW, my = BX.GY + 4 - BX_MH;
-    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); }
+    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += BX_MW) { ctx.drawImage(M, 0, bxRow(h) * mh, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.drawImage(M, 0, bxRow(h) * mh + mh - 3, mw, 2, x, my + BX_MH - .5, BX_MW + .6, 400); } } // embaixo das dunas, a areia continua
     if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.45 + .1 * Math.sin(tt * 2.3 + 1)); for (let x = -om; x < W; x += BX_MW) ctx.drawImage(L, 0, 270, mw, mh, x, my, BX_MW + .6, BX_MH); ctx.globalCompositeOperation = 'source-over'; }
-    ctx.globalAlpha = 1; ctx.restore();
-    artHaze(118, BX.GY - 10);
+    ctx.globalAlpha = 1; ctx.restore(); ctx.save(); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true; // daqui para baixo, tudo anda com a câmera
     const top = (sx) => BX.GY - v.h(sx + cam), V = BXC.p.vala, VO = BXC.vala, base = P.length > 1 && P[1][1] > .5 ? BXC.base[P[1][0]] : BXC.base[P[0][0]];
     // valas (o vão fundo entre as duas rampas): o miolo da peça pintada (a borda de trás, a água e a borda da frente) no fundo do vão,
     // na altura do chão; as paredes das rampas cobrem as laterais; embaixo, a cor da terra
     for (const s of v.tr) if (s.pit) {
       const m = 8, xa = s.x0 - cam - m, xb = s.x1 - cam + m; if (xa > W || xb < 0) continue;
-      const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - 8, hh = H - y0 + 2;
+      const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - (s.b || 0) - 8, hh = H + 400 - y0;
       R(xa, y0 + hh - 2, xb - xa, H, base);
       ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(bxImg('atl', BXC.atl), V.x + sx0, sy0, sx1 - sx0, sy1 - sy0, xa, y0, xb - xa, hh); ctx.restore();
       // a peça da vala só veio de dia: escurece com o horário (noite azulada, pôr do sol avermelhado)
@@ -81,13 +83,13 @@
       const y = top(sx), u = (((wx % BX_PW) + BX_PW) % BX_PW) / pr;
       const sw = 2 / pr + .5, uu = Math.min(mw - sw - 2, u); // sem a última coluna da faixa (fazia uma linha clara na emenda)
       for (const [row, w] of ri) { ctx.globalAlpha = w; ctx.drawImage(M, uu, row * mh, sw, mh, sx, y - 1.5, 2.4, BX_PH); }
-      ctx.globalAlpha = 1; if (y - 1.5 + BX_PH < H) R(sx, y - 2 + BX_PH, 2.4, H - (y - 2 + BX_PH), base);
+      ctx.globalAlpha = 1; R(sx, y - 2 + BX_PH, 2.4, H + 400 - (y - 2 + BX_PH), base);
     }
     ctx.restore();
     // tábua na ponta de cada rampa que termina numa vala (gira com a rampa)
-    for (let i = 1; i < v.tr.length; i++) {
-      const s = v.tr[i]; if (!s.pit) continue;
-      const lx = s.x0 - 2, sx = lx - cam; if (sx < -40 || sx > W + 40) continue; // a ponta da rampa (antes da parede de 2 que desce)
+    for (let i = 0; i < v.tr.length; i++) {
+      const s = v.tr[i]; if (!(s.lip || (s.pit && v.tr[i - 1] && !v.tr.some((q) => q.lip && Math.abs(q.x1 - s.x0) < 8)))) continue;
+      const lx = (s.lip ? s.x1 : s.x0) - 2, sx = lx - cam; if (sx < -40 || sx > W + 40) continue; // a ponta da rampa (02/11: em toda rampa)
       bxPart('tabua', sx + 1, top(sx) - 1, 1, 1, -Math.atan(v.slope(lx - 3)) + .12);
     }
     // bandeiras quadriculadas na beira da pista a cada 160 (balançando: os dois desenhos)
@@ -102,7 +104,7 @@
       // tombo: a queda pintada (desequilíbrio, tombo, chão e levantando) no lugar do tombo; na vala, afunda na água
       const k = Math.min(7, Math.floor((1.3 - v.crashT) / 1.3 * 9)), gx = v.crashX - cam;
       if (v.crashAgua) {
-        const wy = BX.GY + 12;
+        const sp = v.tr.find((q) => q.pit && v.crashX >= q.x0 - 30 && v.crashX <= q.x1 + 10), wy = BX.GY - (sp ? sp.b : 0) + 12;
         ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, wy); ctx.clip(); ctx.translate(gx, wy + Math.min(1, (1.3 - v.crashT) * 2) * 30); frameBx('queda', Math.min(3, k), 4, false); ctx.restore();
         R(gx - 16, wy - 1, 32, 1, 'rgba(255,255,255,.8)'); return;
       }
@@ -125,7 +127,8 @@
       else { an = 'salto'; const hg = v.y - v.h(v.x); k = v.airT < .18 ? Math.min(2, Math.floor(v.airT / .18 * 3)) : v.vy > 60 ? 3 : v.vy > -40 ? (v.vy > 0 ? 4 : 5) : hg < 34 ? 7 : 6; }
     } else if (v.landT > 0) { an = 'pouso'; k = Math.min(7, Math.floor((1 - v.landT / .3) * 8)); }
     else if (v.pumping) { an = 'pump'; k = Math.floor(tt * 12) % 8; }
-    ctx.save(); ctx.translate(sx, sy); ctx.rotate(-(v.ang + lean) + wob); frameBx(an, k, ex, false); ctx.restore();
+    const sus = v.pen ? (v.pen[0] + v.pen[1]) / 2 : 0; // a roda afunda um pouco no chão (suspensão): o desenho sobe junto
+    ctx.save(); ctx.translate(sx, sy); ctx.rotate(-(v.ang + lean) + wob); ctx.translate(0, -sus); frameBx(an, k, ex, false); ctx.restore();
   }
   if (typeof bmx !== 'undefined') {
     const draw16x = bmx.draw;
@@ -138,7 +141,8 @@
       const PUF = { p0: 'dust_01', p1: 'dust_02', p2: 'dust_03', p3: 'dust_04' };
       for (const p of this.puffs) { const k = p.t / p.d; ctx.globalAlpha = clamp(1.3 - k * 1.3, 0, 1); bxPart(PUF[p.k] || 'dust_01', p.x - cam, p.y + 1, .8 + k * .5, p.sx); ctx.globalAlpha = 1; }
       for (const p of this.dust) R(p.x - cam, p.y, 2, 2, p.t < .2 ? '#f6d6ae' : '#d9a066');
-      artVignette(BX.GY - 60);
       bxRider(this, tt);
+      ctx.restore(); // fim da câmera (aberta em bxScene)
+      artVignette(BX.GY - 60);
     };
   }

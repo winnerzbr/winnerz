@@ -14,6 +14,13 @@ OUT = {'horas': [h for h, _ in HORAS]}
 F = Image.new('RGB', (1280, 360 * 4))
 for i, (_, d) in enumerate(HORAS): F.paste(Image.open(A + d + '/fundo_distante.png').convert('RGB').resize((1280, 360), Image.LANCZOS), (0, i * 360))
 OUT['f'] = uri(F, q=80); OUT['fw'], OUT['fh'] = 1280, 360
+# faixa do céu (o alto de cada horário bem desfocado na horizontal): continua o céu para cima quando a câmera sobe, sem riscos
+from PIL import ImageFilter
+CE = Image.new('RGB', (320, 4 * 4))
+for i, (_, d) in enumerate(HORAS): CE.paste(F.crop((0, i * 360, 1280, i * 360 + 4)).filter(ImageFilter.BoxBlur(40)).resize((320, 4), Image.LANCZOS), (0, i * 4))
+OUT['ceuf'] = uri(CE, fmt='PNG')
+# cor do céu no alto de cada horário (preenche acima do fundo quando a câmera sobe nos saltos grandes)
+OUT['ceu'] = {h: '#%02x%02x%02x' % tuple(int(v) for v in np.asarray(F.crop((0, i * 360, 1280, i * 360 + 6)), float).reshape(-1, 3).mean(0)) for i, (h, _) in enumerate(HORAS)}
 # plano médio (dunas, fundo verde) e faixa da pista (6:1): 1536 × 256 cada, plano médio nas linhas 0-3 e pista nas 4-7
 M = Image.new('RGBA', (1536, 256 * 8))
 for i, (_, d) in enumerate(HORAS):

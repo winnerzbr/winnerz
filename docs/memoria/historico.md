@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: BMX refeito com física de verdade
+- **O dono pediu:** refazer a jogabilidade e a física da BMX (a bike parecia grudada no chão), com saltos grandes, manobras satisfatórias e mais elementos na pista, como no Hill Climb Racing.
+- **Feito:** bike como corpo com peso, suspensão nas rodas, empinar, giro no ar e pouso de verdade; pulo (▲, mais alto com ▼ antes) e pump; ajudas leves do ciclista; pista nova com 10 tipos de trecho (whoops, kickers com morro de pouso, vales com rampa, degraus, rampa gigante...); câmera que sobe nos saltos; medalhas recalibradas. Testado com jogadores automáticos. Publicado na página do Claude e no site.
+- **Pendente:** o dono testar.
+
+---
+
 ## 01/11/2026: BMX pintado e tubo do surfe refeito
 - **O dono mandou:** as 8 pranchas do IAmiguinho na BMX, a pista nos 4 horários com os objetos, o modelo da bike e as ondas com as emendas corrigidas (o tubo com o fundo do barril pintado e a correnteza).
 - **Feito:** BMX todo pintado (IAmiguinho, fundo, dunas, terra, vala, tábua, bandeiras e poeira, nos 4 horários) e na Prévia; tubo novo e correnteza pintada no surfe (o fundo provisório saiu). Página de pedidos: entregas marcadas e a bike aprovada como anexo. Publicado na página do Claude e no site; a página do jogo tem 503 de 511 arquivos.

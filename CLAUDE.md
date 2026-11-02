@@ -5,7 +5,7 @@ Este arquivo é a memória dos projetos do WinnerZ: o site, as lives e os jogos.
 ## Antes de começar
 1. Leia `docs/memoria/README.md` (índice) e o arquivo do projeto da tarefa:
    - `site.md`: o site;
-   - `jogos-de-verao.md`: o jogo;
+   - `jogos-de-verao.md`: o jogo na versão do navegador (parada). Desde 02/11/2026, o jogo é feito no Godot, no repositório `winnerzbr/iamiguinho-jogos-de-verao`, que tem a memória própria;
    - `lives.md`: as lives e o IAmiguinho.
 2. Leia as últimas entradas de `docs/memoria/historico.md`.
 3. O que estiver escrito ali já foi decidido. Não pergunte de novo e não refaça.

@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: o jogo no Godot ganhou repositório próprio
+- **O dono pediu:** receber as versões novas sem baixar e importar sempre.
+- **Feito:**
+  - o dono criou o repositório privado `winnerzbr/iamiguinho-jogos-de-verao`, e o projeto Godot foi para lá, com `CLAUDE.md` e memória própria;
+  - aqui, `jogos/jogos-de-verao-godot/` ficou só com um aviso.
+  - Ele vai usar o GitHub Desktop para puxar cada versão.
+- **Daqui em diante:** o trabalho no jogo é no repositório novo. Esta memória fica como registro da versão do navegador.
+
+---
+
 ## 02/11/2026: Godot: controle nos menus
 - **O dono relatou:** "nos menus alguns comandos do controle não funcionam". Ele também notou umas travadinhas no vôlei e decidiu deixar assim por enquanto.
 - **Causa:** no Godot, o ✕ e o ○ do controle não vinham ligados a confirmar e voltar nos menus.

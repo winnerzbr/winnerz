@@ -3,6 +3,7 @@
 Minigames de praia inspirados em California Games. Roda no navegador. Está no site do WinnerZ (www.winnerz.com.br/jogos-de-verao; o editor em /studio/jogos-de-verao) e continua publicado como página (artefato) no Claude.
 
 ## Decisões em vigor
+- **Onde o jogo continua (02/11/2026, 15h30):** no repositório próprio `winnerzbr/iamiguinho-jogos-de-verao` (privado), com o `CLAUDE.md` e a memória dele em `docs/memoria/` (`jogo.md`, `historico.md` e a cópia desta memória em `navegador.md`). Trabalho novo no jogo vai lá. Esta memória fica como registro da versão do navegador.
 - **Plataforma (decisão do dono em 02/11/2026, 13h22):** o jogo vai ser lançado no **Steam** e passa a ser feito no **Godot**. A versão do navegador não recebe mais mudanças.
   - Motivo: o jogo está ficando melhor do que ele esperava e não vai ficar de graça no site.
   - Escolhas dele:
@@ -10,7 +11,7 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
     - ele testa abrindo o projeto no Godot do PC dele (F5);
     - começar pela base (menu, placar, medalhas, música, sons, controles) + o vôlei, e depois as outras provas uma de cada vez;
     - os números e as pistas passam a ser mexidos no editor do próprio Godot (o editor de dentro do jogo não será refeito).
-  - Godot 4.7.2 (estável), renderizador "Compatibility". O projeto fica em `jogos/jogos-de-verao-godot/`. Como funciona e como passar cada prova: `ARQUITETURA.md`; para o dono jogar no PC: `README.md`, ambos na pasta do projeto.
+  - Godot 4.7.2 (estável), renderizador "Compatibility". O projeto ficou em `jogos/jogos-de-verao-godot/` até 02/11, 15h30, e foi para `winnerzbr/iamiguinho-jogos-de-verao`. Como funciona e como passar cada prova: `ARQUITETURA.md`; para o dono jogar no PC: `README.md`, ambos na pasta do projeto.
   - **Base (02/11):**
     - menu com as 19 provas (as que ainda não passaram aparecem apagadas), explicação antes de jogar, barra de placar em cima, avisos que sobem e faixa do meio, fala do IAmiguinho em balão, pausa e resultado com medalha e recorde;
     - opções de música, efeitos e tela cheia, guardadas em `user://`;

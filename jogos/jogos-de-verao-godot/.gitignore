@@ -1,6 +1,0 @@
-# pasta que o Godot cria sozinho ao abrir o projeto (não vai para o repositório)
-.godot/
-/exportado/
-
-# fotos dos testes automáticos (geradas a cada teste)
-/testes/fotos/

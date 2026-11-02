@@ -532,6 +532,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
       - jato, remada, os 3 motores, derrapada, turbo;
       - buzina de palhaço ao passar alguém de perto no bugue (no máximo a cada 4 s).
     - Pingue-pongue e bocha trocam os bipes diretos.
+  - **Palminhas tiradas (02/11, 12h48, o dono: "ficaram ruins"):** saíram do `sons.js` (Corrida, basquete, vôlei e gol no futebol) e do arquivo (`escolhas.json` = nenhum; também marcado na página). Agora são 95 trechos, 683 KB.
   - **Sem som de ambiente** (mar, torcida, vento): o conjunto escolhido não tem.
   - `FOL.play` ganhou um 5º número, o atraso (estrelinhas e bolhas logo depois do impacto).
   - O volume segue o dos efeitos nas opções.
@@ -548,6 +549,12 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 
 ## Basquete: a bola por dentro da rede (02/11)
 - A bola entre as bordas do aro, do aro até o fim da rede, é desenhada antes da rede e do aro (`bqRede` em `cart2/bqp.js`): passando pela cesta, fica por trás da rede. Foto: `testes/bqrede.cjs`.
+
+- **Bola maior e por dentro do aro (02/11, 12h48, pedido do dono):**
+  - a bola é desenhada 1,6× (`BQ_BOLA`, era 1,3); a física do aro não mudou;
+  - o aro é desenhado em duas metades, cortado na linha do meio do anel, 2,5 acima do `ry` (`bqAro` em `cart2/bqp.js`): a de trás, com o suporte, vai antes da bola que está na cesta, e a da frente vai depois da bola e da rede;
+  - a bola entra nessa ordem a 14 acima do aro (era 9), para não encostar na metade da frente na troca.
+  - Fotos em 6 alturas: `testes/bqrede.cjs`.
 
 ## Surfe: água e tubo animados (02/11, pedido do dono)
 - Em `cart2/sfp.js`: `sfOndula` desenha a imagem em faixas finas, cada uma deslocada para os lados por uma onda que anda (o mar lá atrás: mais forte perto da onda; a parede: mais forte embaixo; o tubo: mais forte no teto que despenca); `sfBrilho` passa a própria imagem por cima em "luz suave", andando (os reflexos correm pela água). Gravação: `testes/sfagua.cjs`.

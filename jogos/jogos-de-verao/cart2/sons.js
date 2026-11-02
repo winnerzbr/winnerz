@@ -41,6 +41,7 @@ const FOL = (() => {
   setInterval(() => { if (!actx) return; const now = actx.currentTime; out(); for (const id in loops) { const L = loops[id]; if (now - L.seen > .15 || !soundOn || SFXV <= 0) { stopL(L, now); delete loops[id]; } } }, 100);
   return { play, loop, load, ok, map: MAP };
 })();
+// 02/11 (o dono): as palminhas saíram do jogo ("ficaram ruins").
 // os bipes de cada prova viram sons de desenho: nome, [nome, volume] ou uma função (devolve true se tocou; false deixa o bipe tocar também)
 const FOL_GERAL = { start: 'contagem_vai', point: 'ponto', coin: 'pegou', big: 'tada', win: 'vitoria', over: 'wah_wah' };
 const FOL_TROCA = {
@@ -51,7 +52,7 @@ const FOL_TROCA = {
   surfe: { jump: ['splash', .9], crash: () => (FOL.play('splash_grande'), FOL.play('bolhas', .6, 1, 0, .35), true), pump: ['splash', .6], whoosh: ['whoosh', .9], whiff: ['splash_grande', .8], big: 'manobra' },
   basquete: { jump: ['pulo_boing', .7], tick: 'aro', crash: 'tabela' },
   embaixadinha: { kick: 'toque', over: () => FOL.play('bola_areia') },
-  futebol: { kick: 'chute', tick: 'trave', jump: ['pulo', .6], big: () => (FOL.play('rede'), FOL.play('palminhas', .9), true), over: () => FOL.play('rede') },
+  futebol: { kick: 'chute', tick: 'trave', jump: ['pulo', .6], big: () => (FOL.play('rede'), true), over: () => FOL.play('rede') },
   volei: { kick: 'toque', jump: ['pulo', .5] },
   frisbee: { whoosh: 'disco_voo', land: 'bola_areia', tick: ['pegou', .8] },
   arco: { tick: 'corda_puxa', whoosh: 'corda_solta', land: ['bola_areia', .6], big: () => (FOL.play('balao_estoura'), FOL.play('tada', .7, 1, 0, .15), true) },
@@ -90,7 +91,6 @@ const FOL_PASSO = {
       }
       m[key] = k;
     }
-    if (ev.cheer > 2 && !(m.cheer > 2)) FOL.play('palminhas', .7); m.cheer = ev.cheer;
   },
   bmx(v, dt, I, m) {
     const sp = Math.hypot(v.vx || 0, v.vy || 0), n = folN(m, 'vmax', sp);
@@ -106,10 +106,9 @@ const FOL_PASSO = {
     m.vy = m.vy || new WeakMap();
     for (const b of v.balls) { const p = m.vy.get(b); if (p !== undefined && p > 60 && b.vy < 0 && b.y > VGY - 30) FOL.play('quique', clamp(p / 300, .25, 1)); m.vy.set(b, b.vy); }
     if (v.net > 0 && !(m.net > 0)) FOL.play('rede', .9); m.net = v.net;
-    if (v.cheer > .9 && !(m.cheer > .9)) FOL.play('palminhas', .6); m.cheer = v.cheer;
   },
   futebol(v, dt, I, m) { const b = v.ball; if (!b) return; if (m.bvy !== undefined && m.bvy > 70 && b.vy < 0) FOL.play('bola_areia', clamp(m.bvy / 300, .2, .8)); m.bvy = b.vy; },
-  volei(v, dt, I, m) { if (v.state !== m.st) { if (v.state === 'point') FOL.play('bola_areia', .9); if (v.cheer > .5) FOL.play('palminhas', .5); } m.st = v.state; },
+  volei(v, dt, I, m) { if (v.state !== m.st) { if (v.state === 'point') FOL.play('bola_areia', .9); } m.st = v.state; },
   bocha(v, dt, I, m) {
     let rola = 0;
     for (const b of v.balls.concat(v.jack ? [v.jack] : [])) { if (!b) continue; if (b.mv && !b.fly) rola = Math.max(rola, Math.hypot(b.vx, b.vy)); }

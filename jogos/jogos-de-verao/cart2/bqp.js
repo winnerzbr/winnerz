@@ -121,9 +121,17 @@
     if (nt > .3) bqPart('swish' + Math.min(3, Math.floor((1 - (nt - .3) / .5) * 4)), rx, ry - 1.2);
     else if (nt > 0) bqPart('bal' + (Math.floor(tt * 14) % 4), rx, ry - 1.2);
     else bqPart('rede', rx, ry);
-    bqPart('aro', rx, ry);
+    bqAro(rx, ry, 'frente');
   }
-  const BQ_BOLA = 1.3;
+  // 02/11 (pedido do dono: a bola na cesta passava por trás do aro inteiro): o aro em duas metades, cortado na linha do meio do anel
+  // (2,5 acima do ry). A de trás (com o suporte) vai antes da bola que está na cesta; a da frente, depois da bola e da rede.
+  const BQ_ARO_MEIO = 2.5;
+  function bqAro(rx, ry, parte) {
+    ctx.save(); ctx.beginPath();
+    if (parte === 'tras') ctx.rect(rx - 60, ry - 60, 120, 60 - BQ_ARO_MEIO); else ctx.rect(rx - 60, ry - BQ_ARO_MEIO, 120, 60);
+    ctx.clip(); bqPart('aro', rx, ry); ctx.restore();
+  }
+  const BQ_BOLA = 1.6; /* 02/11 (pedido do dono): bola maior (era 1,3) */
   if (typeof basquete !== 'undefined') {
     // 01/11 (pedido do dono): a cesta não anda mais (nem troca de lugar entre as séries, nem desliza); as séries mudam só o vento e a marcação.
     // A linha de três é a linha do meio da quadra pintada (x 199,5 na altura dos pés).
@@ -146,7 +154,9 @@ function bqDraw(tt) {
       // 01/11: a linha de três é a linha do meio pintada na quadra (BQ_LINHA3); o jogo não desenha outra
       bqHoop(this, tt, BX, rx, ry);
       // 02/11: a bola dentro da cesta (entre as bordas do aro, do aro até o fim da rede) vai antes da rede: fica por trás dela
-      const naCesta = (b) => Math.abs(b.x - rx) < BQ.RR && b.y > ry - 9 && b.y < ry + 30;
+      // 02/11: com a bola maior, ela entra nessa ordem um pouco mais cedo (14 acima do aro), quando ainda não encosta na metade da frente
+      const naCesta = (b) => Math.abs(b.x - rx) < BQ.RR && b.y > ry - 14 && b.y < ry + 30;
+      bqAro(rx, ry, 'tras');
       for (const b of this.balls) if (naCesta(b)) this.ball(b.x, b.y, b.spin, b.fire && !b.done, b.vx);
       bqRede(this, tt, rx, ry);
       // marcação (Amiguinho rosa)

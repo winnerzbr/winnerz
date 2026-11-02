@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: sem palminhas; basquete com bola maior e por dentro do aro
+- **O dono pediu:**
+  - tirar as palminhas do jogo ("ficaram ruins");
+  - aumentar a bola do basquete;
+  - a bola na cesta passava por trás do aro inteiro: tem que passar por dentro dele.
+- **Feito:**
+  - as palminhas saíram de todas as provas;
+  - a bola do basquete ficou 23% maior;
+  - o aro tem uma metade de trás e uma da frente, e a bola passa entre as duas, por trás da rede.
+- **Pendente:** o dono testar e ouvir os sons.
+
+---
+
 ## 02/11/2026: patins: item alto alcançável e pouso abaixado
 - **O dono pediu:**
   - poder pegar o item alto: bola ou coco vinham bem na hora de abaixar para o impulso, e desviando passava do item;

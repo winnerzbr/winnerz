@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: o jogo vai para o Steam, feito no Godot
+- **Decisão do dono:** lançar o IAmiguinho: Jogos de Verão no Steam quando estiver pronto, sem deixá-lo de graça no site, e passar o desenvolvimento para o Godot.
+- **Escolhas dele:**
+  - a versão do navegador fica no site como está, por enquanto;
+  - testa abrindo o projeto no Godot do PC dele;
+  - começar pela base + o vôlei, e depois as outras provas uma por uma;
+  - usar o editor do próprio Godot no lugar do editor de dentro do jogo.
+- **Em andamento:** projeto Godot 4.7.2 em `jogos/jogos-de-verao-godot/`.
+
+---
+
 ## 02/11/2026: sem palminhas; basquete com bola maior e por dentro do aro
 - **O dono pediu:**
   - tirar as palminhas do jogo ("ficaram ruins");

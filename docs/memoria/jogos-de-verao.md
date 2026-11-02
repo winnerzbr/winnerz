@@ -3,9 +3,15 @@
 Minigames de praia inspirados em California Games. Roda no navegador. Está no site do WinnerZ (www.winnerz.com.br/jogos-de-verao; o editor em /studio/jogos-de-verao) e continua publicado como página (artefato) no Claude.
 
 ## Decisões em vigor
-- **Plataforma:** continua no navegador.
-  - O Godot foi testado: o vôlei foi refeito nele, com o código em `jogos/volei-godot` e a página exportada em `jogos/volei-godot/exportado/` (saiu do site em 02/11/2026 para economizar espaço no Vercel).
-  - O Unity foi avaliado e descartado.
+- **Plataforma (decisão do dono em 02/11/2026, 13h22):** o jogo vai ser lançado no **Steam** e passa a ser feito no **Godot**. A versão do navegador não recebe mais mudanças.
+  - Motivo: o jogo está ficando melhor do que ele esperava e não vai ficar de graça no site.
+  - Escolhas dele:
+    - a versão do navegador fica no site como está, por enquanto;
+    - ele testa abrindo o projeto no Godot do PC dele (F5);
+    - começar pela base (menu, placar, medalhas, música, sons, controles) + o vôlei, e depois as outras provas uma de cada vez;
+    - os números e as pistas passam a ser mexidos no editor do próprio Godot (o editor de dentro do jogo não será refeito).
+  - Godot 4.7.2 (estável), renderizador "Compatibility". O projeto fica em `jogos/jogos-de-verao-godot/`.
+  - Histórico: em 10/2026 o vôlei foi testado no Godot 4.3 (código em `jogos/volei-godot`, página exportada em `jogos/volei-godot/exportado/`) e o Unity foi avaliado e descartado; na época, a decisão foi continuar no navegador.
 - **Estilo:** desenho animado pintado no jogo inteiro, incluindo menus e HUD.
   - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.
   - O 16 bits fica só como backup e nas provas que ainda vão ter as regras revistas.

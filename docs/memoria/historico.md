@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Godot: controle nos menus
+- **O dono relatou:** "nos menus alguns comandos do controle não funcionam". Ele também notou umas travadinhas no vôlei e decidiu deixar assim por enquanto.
+- **Causa:** no Godot, o ✕ e o ○ do controle não vinham ligados a confirmar e voltar nos menus.
+- **Feito:**
+  - ✕ confirma e ○ volta em todas as telas;
+  - Start pausa e volta ao jogo, sem pausar e despausar no mesmo aperto;
+  - a lista de provas rola com o direcional e as opções ficam sozinhas na tela;
+  - o foco volta se o mouse tirar ele.
+  - Testado só com botões do controle. O .zip novo foi para o dono.
+- **Pendente:** o dono conferir no controle dele.
+
+---
+
 ## 02/11/2026: o jogo vai para o Steam, feito no Godot
 - **Decisão do dono:** lançar o IAmiguinho: Jogos de Verão no Steam quando estiver pronto, sem deixá-lo de graça no site, e passar o desenvolvimento para o Godot.
 - **Escolhas dele:**

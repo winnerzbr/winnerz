@@ -27,6 +27,10 @@ func _ready() -> void:
 	_eixo("u", JOY_AXIS_LEFT_Y, -1.0)
 	_eixo("d", JOY_AXIS_LEFT_Y, 1.0)
 	_eixo("e", JOY_AXIS_TRIGGER_RIGHT, 1.0)
+	# 02/11 (o dono: "nos menus alguns comandos do controle não funcionam"): no Godot, confirmar e voltar nos menus vêm só com
+	# Enter/Espaço e Esc. O controle ganha ✕ (A) para confirmar e ○ (B) para voltar.
+	_mapa("ui_accept", [], [JOY_BUTTON_A])
+	_mapa("ui_cancel", [], [JOY_BUTTON_B])
 	for k in BOTOES:
 		I[k] = false
 		I["p" + k] = false

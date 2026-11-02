@@ -23,6 +23,8 @@ var _fala: PanelContainer
 var _fala_txt: Label
 var _fala_t := 0.0
 var _tela: Control         # explicação, pausa ou resultado
+var _voltar := Callable()  # o que ○ (ou Esc) faz na tela aberta
+var _foco: Button          # o botão que recebe o foco se ele se perder
 
 func _ready() -> void:
 	theme = Tema.cria()
@@ -55,8 +57,6 @@ func _encaixa() -> void:
 func _physics_process(_d: float) -> void:
 	if modo != JOGANDO:
 		return
-	if Input.is_action_just_pressed("pausa"):
-		_pausa(); return
 	var I := Entrada.ler()
 	prova.t += DT
 	for q in pops: q.t += DT
@@ -81,8 +81,6 @@ func _process(dt: float) -> void:
 		_fala_t -= dt
 		_fala.modulate.a = clampf(_fala_t * 2.0, 0.0, 1.0)
 		_fala.visible = _fala_t > 0.0
-	if modo == PAUSA and Input.is_action_just_pressed("pausa"):
-		_continua()
 
 # ---------------------------------------------------------------- avisos
 func pop(s: String, x: float, y: float, cor: Color = Color.WHITE, grande := false) -> void:
@@ -156,6 +154,7 @@ func _abre_tela(titulo: String, sub: String, corpo: Array, botoes: Array) -> voi
 	for c in corpo: v.add_child(c)
 	var hb := HBoxContainer.new(); hb.add_theme_constant_override("separation", 14); v.add_child(hb)
 	var primeiro: Button
+	_voltar = botoes[botoes.size() - 1][1] if botoes.size() > 0 else Callable()
 	for b in botoes:
 		var bt := Button.new(); bt.text = b[0]; bt.pressed.connect(b[1]); hb.add_child(bt)
 		if primeiro == null: primeiro = bt
@@ -163,6 +162,24 @@ func _abre_tela(titulo: String, sub: String, corpo: Array, botoes: Array) -> voi
 	_tela.set_meta("raiz", raiz)
 	_tela = raiz
 	if primeiro: primeiro.call_deferred("grab_focus")
+	_foco = primeiro
+
+## 02/11 (o dono: "nos menus alguns comandos do controle não funcionam"):
+## Start/Esc pausam e voltam ao jogo (pelo aperto, uma vez só); ○ (ou Esc) volta em cada tela: na explicação e no resultado vai
+## ao menu, na pausa continua o jogo; se o foco se perder (ex.: clique fora), o direcional devolve o foco ao primeiro botão.
+func _unhandled_input(ev: InputEvent) -> void:
+	if ev.is_action_pressed("pausa") and not ev.is_echo():
+		if modo == JOGANDO: _pausa(); get_viewport().set_input_as_handled(); return
+		if modo == PAUSA: _continua(); get_viewport().set_input_as_handled(); return
+	if modo == JOGANDO: return
+	if ev.is_action_pressed("ui_cancel") and not ev.is_echo():
+		get_viewport().set_input_as_handled()
+		if modo == PAUSA: _continua()
+		elif _voltar.is_valid(): _voltar.call()
+		return
+	if _foco and is_instance_valid(_foco) and get_viewport().gui_get_focus_owner() == null:
+		for a in ["ui_up", "ui_down", "ui_left", "ui_right", "ui_accept"]:
+			if ev.is_action_pressed(a): _foco.grab_focus(); get_viewport().set_input_as_handled(); return
 
 func _fecha_tela() -> void:
 	if _tela: _tela.queue_free(); _tela = null

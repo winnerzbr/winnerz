@@ -27,7 +27,14 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
       - `fotos_volei` (partida com fotos);
       - `sim_volei`, 110 partidas: você vence ~66% (no navegador, 150 partidas, 71%), pontos médios 6,2 × 4,85 (6,31 × 4,87), ~11 ralis por partida (11,2);
       - `volei_comparar`: fotos do mesmo momento no Godot e no navegador, quase iguais.
-    - **Ponto de atenção:** o cérebro do Amiguinho gasta ~19 ms por segundo de jogo neste computador de 2 núcleos (no navegador, 1,2 ms). Raramente um passo passa de 16 ms (0,3% dos passos), o que pode dar um tranco a cada ~5 s. Conferir no PC do dono; há um modo com vários núcleos desligado (`PARALELO` em `cerebro.gd`).
+  - **Controle nos menus (02/11, 15h16, relato do dono: "nos menus alguns comandos do controle não funcionam"):**
+    - No Godot 4.7, confirmar e voltar dos menus (`ui_accept` e `ui_cancel`) vêm só com Enter/Espaço e Esc. O controle ganhou ✕ (A) para confirmar e ○ (B) para voltar (`nucleo/entrada.gd`).
+    - ○ volta em cada tela: explicação e resultado vão ao menu, a pausa continua o jogo e as opções fecham.
+    - Start e Esc pausam e voltam ao jogo pelo aperto, uma vez só (antes, a mesma apertada podia pausar e despausar no mesmo instante).
+    - A lista de provas rola junto com o direcional. As opções ficam sozinhas na tela.
+    - Se o foco se perder (clique fora), o direcional devolve.
+    - Teste `testes/controle_menus.tscn`: só com botões do controle, passa por menu, explicação, jogo, pausa e opções.
+    - **Ponto de atenção:** o cérebro do Amiguinho gasta ~19 ms por segundo de jogo neste computador de 2 núcleos (no navegador, 1,2 ms). Raramente um passo passa de 16 ms (0,3% dos passos), o que pode dar um tranco a cada ~5 s. No PC do dono também deu umas travadinhas; por decisão dele (02/11), fica assim por enquanto; há um modo com vários núcleos desligado (`PARALELO` em `cerebro.gd`).
   - Histórico: em 10/2026 o vôlei foi testado no Godot 4.3 (código em `jogos/volei-godot`, página exportada em `jogos/volei-godot/exportado/`) e o Unity foi avaliado e descartado; na época, a decisão foi continuar no navegador.
 - **Estilo:** desenho animado pintado no jogo inteiro, incluindo menus e HUD.
   - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.

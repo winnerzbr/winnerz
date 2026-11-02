@@ -4,6 +4,9 @@ extends Control
 static var _abriu := false
 var _opcoes: PanelContainer
 var _grade: GridContainer
+var _conteudo: Control
+var _opc_primeiro: Control
+var _ultimo: Control  # o último botão com foco (volta para ele ao fechar as opções)
 
 func _ready() -> void:
 	theme = Tema.cria()
@@ -17,10 +20,12 @@ func _ready() -> void:
 	for lado in ["left", "right"]: m.add_theme_constant_override("margin_" + lado, 56)
 	m.add_theme_constant_override("margin_top", 40); m.add_theme_constant_override("margin_bottom", 32)
 	add_child(m)
+	_conteudo = m
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 18); m.add_child(v)
 	v.add_child(Tema.etiqueta("WinnerZ apresenta", 14))
 	v.add_child(Tema.titulo("IAmiguinho: Jogos de Verão", 46))
 	var sc := ScrollContainer.new(); sc.size_flags_vertical = Control.SIZE_EXPAND_FILL; sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true  # o controle desce até as provas de baixo e a lista acompanha
 	v.add_child(sc)
 	_grade = GridContainer.new(); _grade.columns = 4; _grade.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_grade.add_theme_constant_override("h_separation", 14); _grade.add_theme_constant_override("v_separation", 14)
@@ -70,8 +75,30 @@ func _cartao(p: Dictionary) -> Button:
 			get_tree().change_scene_to_file("res://cenas/partida.tscn"))
 	return b
 
+func _fecha_opcoes() -> void:
+	if _opcoes: _opcoes.queue_free(); _opcoes = null
+	_conteudo.visible = true
+	if _ultimo and is_instance_valid(_ultimo): _ultimo.grab_focus()
+
+## ○ (ou Esc) fecha as opções; se o foco se perder (ex.: clique fora), o direcional devolve o foco
+func _unhandled_input(ev: InputEvent) -> void:
+	if ev.is_action_pressed("ui_cancel") and not ev.is_echo() and _opcoes:
+		get_viewport().set_input_as_handled(); _fecha_opcoes(); return
+	if get_viewport().gui_get_focus_owner() == null:
+		for a in ["ui_up", "ui_down", "ui_left", "ui_right", "ui_accept"]:
+			if ev.is_action_pressed(a):
+				get_viewport().set_input_as_handled()
+				if _opcoes and _opc_primeiro: _opc_primeiro.grab_focus(); return
+				var alvo: Control = _ultimo if _ultimo and is_instance_valid(_ultimo) and _ultimo.is_visible_in_tree() else _grade.get_child(Jogo.PROVAS.size() - 1)
+				alvo.grab_focus(); return
+
+func _process(_d: float) -> void:
+	var f := get_viewport().gui_get_focus_owner()
+	if f and _opcoes == null: _ultimo = f
+
 func _abre_opcoes() -> void:
 	if _opcoes: _opcoes.queue_free()
+	_conteudo.visible = false  # as opções ficam sozinhas na tela (o direcional não escapa para as provas atrás)
 	_opcoes = PanelContainer.new()
 	_opcoes.set_anchors_preset(Control.PRESET_CENTER)
 	var v := VBoxContainer.new(); v.add_theme_constant_override("separation", 14); _opcoes.add_child(v)
@@ -87,7 +114,8 @@ func _abre_opcoes() -> void:
 	var tc := CheckButton.new(); tc.text = "Tela cheia"; tc.button_pressed = Jogo.opcoes.tela_cheia
 	tc.toggled.connect(func(x): Jogo.opcoes.tela_cheia = x; Jogo.salva_opcoes())
 	v.add_child(tc)
-	var f := Button.new(); f.text = "Fechar"; f.pressed.connect(func(): _opcoes.queue_free(); _opcoes = null; _grade.get_child(Jogo.PROVAS.size() - 1).grab_focus()); v.add_child(f)
+	var f := Button.new(); f.text = "Fechar"; f.pressed.connect(_fecha_opcoes); v.add_child(f)
 	add_child(_opcoes)
 	_opcoes.position = (get_viewport_rect().size - _opcoes.get_combined_minimum_size()) / 2
+	_opc_primeiro = primeiro
 	primeiro.call_deferred("grab_focus")

@@ -68,6 +68,9 @@
     const sm = ctx.imageSmoothingEnabled; ctx.imageSmoothingEnabled = false;
     try { return vSprite16.apply(this, arguments); } finally { ctx.imageSmoothingEnabled = sm; }
   };
+  // meio dos quadros de uma animação (em unidades do half-pipe, a partir da âncora), a média de todos: eixo do Mortal
+  const SKMEIO = {};
+  function skMeio(an) { if (SKMEIO[an]) return SKMEIO[an]; const F = MS.a[an].f; let x = 0, y = 0; for (const f of F) { x += f.w / 2 - f.ax; y += f.h / 2 - f.ay; } return (SKMEIO[an] = [x / F.length * SKS, y / F.length * SKS]); }
   // no ar: saída da rampa, voo, pouso preparado e as manobras com prancha pintada
   if (typeof halfpipe !== 'undefined') {
     const air16 = halfpipe.drawAir;
@@ -97,6 +100,12 @@
         if (this.airT < .28) { an = 'takeoff'; fr = 3 + Math.min(4, Math.floor(this.airT / .28 * 5)); }
         else if (left < .36) { an = 'air'; fr = 4 + Math.min(3, Math.floor((1 - left / .36) * 4)); }
         else { an = 'air'; fr = Math.min(3, Math.floor((this.airT - .28) * 10)); }
+      }
+      if (k === 'mortal') {
+        // 01/11 (pedido do dono): Mortal, uma volta para trás em volta do centro do corpo, encolhido (o voo, quadro 2)
+        const c0 = skMeio('air'); ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);
+        ctx.translate(c0[0] * face, c0[1]); ctx.rotate(-face * pr * TAU); ctx.translate(-c0[0] * face, -c0[1]);
+        frameSk('air', 2, 2, face < 0); ctx.restore(); return;
       }
       ctx.save(); ctx.translate(xw, fy); ctx.rotate(-sd * Math.PI / 2);
       // girando: as 16 vistas em volta dele (de lado, de frente, de costas). Com manobra no meio do giro, a pose da manobra

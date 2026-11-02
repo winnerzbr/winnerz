@@ -298,9 +298,30 @@ s = sub1("      else if (o.k === 'corrimao') hit = this.grind !== o && px > o.x 
          "      else if (o.k === 'corrimao') { if (this.air && this.grind !== o && fh < PT_RH && fh >= PT_RH - 14 && px > o.x - 4 && px < o.x + 30) { if (this.vy <= 0) this.sobeRail(o); continue; } hit = this.grind !== o && px > o.x && px < o.x + o.w && fh < PT_RH && fh + bodyH > PT_RH - 6; }", s)
 s = sub1("bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0,", "bonus: 0, score: 0, items: 0, tricks: 0, grinds: 0, pisoes: 0,", s)
 s = sub1("`${this.grinds} corrimãos`", "`${this.grinds} corrimãos · ${this.pisoes || 0} na cabeça`", s)
+# 3) Amiguinhos maiores (01/11): desenhados a 72% (eram 52%); caixa: de x − 1 a x + 17, cabeça a 23; pisão com os pés de 7 a 32
+# 4) impulso (01/11, ideia do dono): agachado 0,25 s e pula = pulo 25% mais forte (1,56× mais alto, 25% mais tempo no ar), para dar
+#    tempo de uma manobra e ainda cair no corrimão. Mais um pedido: bola e coco andam na proporção da sua velocidade (o que estava
+#    planejado continua no mesmo ritmo depois de um tombo, quando você fica mais lento); a queda do coco pode esperar (o.wait).
+s = sub1("const PGY = 202, PPX = 100, PT_RH = 38, PT_G = 760, PT_JV = 280, PT_AIR = 2 * PT_JV / PT_G;",
+         "const PGY = 202, PPX = 100, PT_RH = 38, PT_G = 760, PT_JV = 280, PT_AIR = 2 * PT_JV / PT_G;\nconst PT_CARGA = .25, PT_IMP = 1.25, PT_BOT = { x0: -1, x1: 17, cab: 23, p0: 7, p1: 32 };", s)
+s = sub1("      this.crouch = I.d;\n      if (jumpP || this.buf > 0) { this.air = true; this.vy = PT_JV; this.crouch = false;",
+         "      this.crouch = I.d; this.carga = I.d ? (this.carga || 0) + dt : 0;\n      if (jumpP || this.buf > 0) { const imp = this.carga >= PT_CARGA; this.air = true; this.vy = PT_JV * (imp ? PT_IMP : 1); this.impulso = imp; if (imp) { this.impulsos = (this.impulsos || 0) + 1; sfx.whoosh(); } this.carga = 0; this.crouch = false;", s)
+s = sub1("      if (o.k === 'coco') { o.x -= 38 * (1) * dt; o.r += dt * 9; }\n      if (o.k === 'bola') o.x -= 75 * dt;\n      if (o.k === 'queda') { o.h -= o.vh * dt;",
+         "      if (o.k === 'coco') { o.x -= 38 * (o.v0 ? this.v / o.v0 : 1) * dt; o.r += dt * 9; }\n      if (o.k === 'bola') o.x -= 75 * (o.v0 ? this.v / o.v0 : 1) * dt;\n      if (o.k === 'queda') if (o.wait > 0) o.wait -= dt; else { o.h -= o.vh * dt;", s)
+s = sub1("const ob = { k: kk, x, ...o };", "const ob = { k: kk, x, v0: v, ...o };", s)
+s = sub1("else if (k === 'bot2') { P('bot', 0); P('bot', 20 / v); }", "else if (k === 'bot2') { P('bot', 0); P('bot', 30 / v); }", s)
+s = sub1("`O patins anda sozinho e acelera. ▲ ou ${actName()} pula, ▼ abaixa.`", "`O patins anda sozinho e acelera. ▲ ou ${actName()} pula, ▼ abaixa. Abaixado um instante e pula: impulso, vai mais alto.`", s)
+s = sub1("`${this.grinds} corrimãos · ${this.pisoes || 0} na cabeça`", "`${this.grinds} corrimãos · ${this.pisoes || 0} na cabeça · ${this.impulsos || 0} impulsos`", s)
+s = sub1("tricks: 0, grinds: 0, pisoes: 0,", "tricks: 0, grinds: 0, pisoes: 0, impulsos: 0, carga: 0,", s)
+# 5) o botão que pula não gira mais junto (01/11): no quadro do pulo (do chão ou do corrimão) o mesmo aperto também contava como "▲ no ar"
+#    e todo pulo saía girando; agora o giro é só com um segundo aperto, como diz a explicação.
+s = sub1("    const jumpP = I.pu || I.pa;", "    const jumpP = I.pu || I.pa; this.jf = 0;", s)
+s = sub1("      if (jumpP) { this.endGrind(); this.air = true; this.vy = PT_JV;", "      if (jumpP) { this.endGrind(); this.air = true; this.vy = PT_JV; this.jf = 1;", s)
+s = sub1("const imp = this.carga >= PT_CARGA; this.air = true;", "const imp = this.carga >= PT_CARGA; this.jf = 1; this.air = true;", s)
+s = sub1("      const prevY = this.y;\n      if (jumpP) {", "      const prevY = this.y;\n      if (jumpP && !this.jf) {", s)
 # 2) pular na cabeça do Amiguinho: dá pontos, ele cai no chão e você quica para cima (não é tombo)
 s = sub1("      else if (o.k === 'bot') hit = px1 > o.x + 2 && px0 < o.x + 14 && fh < 17;",
-         "      else if (o.k === 'bot') { if (o.pis) continue; const enc = px1 > o.x + 2 && px0 < o.x + 14; if (enc && this.air && this.vy <= 40 && fh >= 5 && fh < 24) { this.pisa(o); continue; } hit = enc && fh < 17; }", s)
+         "      else if (o.k === 'bot') { if (o.pis) continue; const enc = px1 > o.x + PT_BOT.x0 && px0 < o.x + PT_BOT.x1; if (enc && this.air && this.vy <= 40 && fh >= PT_BOT.p0 && fh < PT_BOT.p1) { this.pisa(o); continue; } hit = enc && fh < PT_BOT.cab; }", s)
 s = sub1("  midTrick() { return this.trick && this.trick.d - this.trick.t > .06; },",
          """  midTrick() { return this.trick && this.trick.d - this.trick.t > .06; },
   // cair em cima do corrimão: girando, agarrado ou no meio da manobra é tombo; senão começa a deslizar
@@ -311,10 +332,25 @@ s = sub1("  midTrick() { return this.trick && this.trick.d - this.trick.t > .06;
   // pulou na cabeça do Amiguinho: pontos, combo, ele cai no chão e você quica (as manobras no ar continuam)
   pisa(o) {
     o.pis = true; o.pisT = this.t; o.clean = true; const pts = Math.round(60 * this.mult()); this.bonus += pts; this.addCombo(); this.pisoes++;
-    pop(`Na cabeça! +${pts}`, PPX + 6, PGY - 62, '#ffd04a', true); sfx.point(); this.vy = PT_JV * .8; this.y = Math.max(this.y, 17);
+    pop(`Na cabeça! +${pts}`, PPX + 6, PGY - 62, '#ffd04a', true); sfx.point(); this.vy = PT_JV * .8; this.y = Math.max(this.y, PT_BOT.cab);
   },""", s)
 
-pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados
+# 01/11 · skate (pedido do dono): Mortal. Dois botões juntos (quaisquer dois de ✕ ○ □ △; se o segundo vier até 0,15 s depois do
+# primeiro, a manobra do primeiro vira o Mortal). Uma volta para trás em volta do centro do corpo (desenho em skp.js).
+s = sub1("  e: { nome: 'Hélice', v: 190, d: .6, k: 'helice', f: 3, tmp: 0 },\n};",
+         "  e: { nome: 'Hélice', v: 190, d: .6, k: 'helice', f: 3, tmp: 0 },\n  m: { nome: 'Mortal', v: 230, d: .62, k: 'mortal', f: 0, tmp: 4 }, // dois botões juntos\n};", s)
+s = sub1("    for (const bk of ['a', 'b', 'c', 'e']) if (I['p' + bk]) { this.startTrick('btn_' + bk); break; }",
+         "    { const BK = ['a', 'b', 'c', 'e'], ps = BK.filter((bk) => I['p' + bk]), seg = BK.filter((bk) => I[bk] || I['p' + bk]);\n"
+         "      if (ps.length && seg.length >= 2 && !(this.trick && this.trick.k === 'mortal') && (!this.trick || (this.trick.key.startsWith('btn_') && this.trick.t < .15))) { this.trick = null; this.queued = null; this.startTrick('btn_m'); }\n"
+         "      else if (ps.length) this.startTrick('btn_' + ps[0]); }", s)
+s = sub1("'No ar: cada direção e cada botão (✕ ○ □ △) é uma manobra. Segure para o lado para girar; girando, ↑ ↓ ou um botão combina.'",
+         "'No ar: cada direção e cada botão (✕ ○ □ △) é uma manobra; dois botões juntos, Mortal. Segure para o lado para girar; girando, ↑ ↓ ou um botão combina.'", s)
+s = sub1("'No ar: cada direção e cada botão é uma manobra. Segure ◀ ▶ para girar; girando, ↑ ↓ ou um botão combina.'",
+         "'No ar: cada direção e cada botão é uma manobra; dois botões juntos, Mortal. Segure ◀ ▶ para girar; girando, ↑ ↓ ou um botão combina.'", s)
+s = sub1("['✕ ○ □ △', 'no ar: manobras · na borda: segure', 'touch']", "['✕ ○ □ △', 'no ar: manobras · dois juntos: Mortal · na borda: segure', 'touch']", s)
+s = sub1("['Espaço X C V', 'no ar: manobras · na borda: segure', 'kb']", "['Espaço X C V', 'no ar: manobras · dois juntos: Mortal · na borda: segure', 'kb']", s)
+
+pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptsolve.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados
 js = sub1("  /* ---------------------------------------------------------- desenho principal do vôlei */", pint + "\n  /* ---------------------------------------------------------- desenho principal do vôlei */", js)
 js = sub1("function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }",
           "function heldPos(v, i) { const p = v.P[i], f = i ? -1 : 1; if (i === 0 && ART2() && MV5OK()) return held5(p, f); if (i === 1 && ART2() && MVBOK()) return heldB5(p, f); return { x: p.x + f * 15.5 * CHAR_K, y: p.y - (v.charging ? 24 : 18) * CHAR_K }; }", js)

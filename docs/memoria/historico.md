@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Patins com impulso e sempre com saída; Mortal no skate
+- **O dono pediu:** Amiguinhos maiores; dar tempo de pular, fazer manobra e cair no corrimão (sugeriu agachar para pular mais alto); nenhuma combinação de obstáculos pode ser impossível; Mortal no skate.
+- **Feito:** Amiguinhos 72%; impulso (agachado 0,25 s e pula: 25% mais forte, com halo azul); corrigido o pulo que sempre saía girando (era o que fazia bater no corrimão no meio da manobra); conferência de saída em todo padrão novo de obstáculos (atrasa ou tira o que ficaria impossível); Mortal no skate com dois botões juntos. Publicado na página do Claude e no site.
+
+---
+
 ## 01/11/2026: Patins: ponta do corrimão, Amiguinhos pintados e pulo na cabeça
 - **O dono pediu:** o deslize começar na ponta do corrimão (encostar na ponta pulando dava tombo); os Amiguinhos da pista pintados; pular na cabeça deles dar pontos, sem tombo, com eles caindo no chão.
 - **Feito:** postes do corrimão nas pontas de verdade e uma folga na ponta (tombos na simulação caíram de 26 para 12 em 60 pulos); Amiguinhos pintados na cor de cada um; pisão vale 60 × combo, você quica e ele cai de cara no chão com estrelinhas. Publicado na página do Claude e no site.

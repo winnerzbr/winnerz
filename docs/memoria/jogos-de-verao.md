@@ -440,6 +440,11 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Amiguinhos da pista pintados: o Amiguinho do vôlei (parado, `idle`) a 52% do tamanho, na cor de cada um (rosa, laranja, roxo, dourado; `window.__blCor` troca a cor e devolve a anterior), virado para você.
   - Pular na cabeça (`pisa`): descendo, com os pés entre 5 e 24 de altura em cima dele, vale 60 × combo, sobe o combo e você quica (80% do pulo; as manobras no ar continuam). Ele amassa e cai de cara no chão (o peixinho do vôlei, quadros 1 a 12), com estrelinhas, e some em 2 s. Chegar baixo (pés abaixo de 5) ou subindo ainda é tombo. Conta no resultado ("na cabeça"). Simulação: dos 60 pulos, 13 na cabeça, 35 por cima e 12 tombos (antes 22 tombos).
   - Teste: `testes/ptpisa.cjs` (simulação, fotos da pista, do pisão quadro a quadro e da ponta do corrimão, e uma partida).
+- **Mais ajustes do dono (01/11, segunda rodada):**
+  - Amiguinhos maiores: 72% (eram 52%). Caixa de colisão `PT_BOT` (de x − 1 a x + 17, cabeça a 23, pisão com os pés de 7 a 32). Os dois Amiguinhos seguidos ficam 30 de distância (eram 20).
+  - Impulso (ideia do dono, para dar "flow"): agachado (▼) 0,25 s ou mais e pula = pulo 25% mais forte (`PT_IMP`), 1,56× mais alto e 25% mais tempo no ar. Carregado, aparece um halo azul embaixo dos patins e faíscas subindo. Conta no resultado ("impulsos") e está na explicação antes da prova.
+  - Corrigido: o aperto que pula também contava como "▲ no ar" no mesmo quadro, e todo pulo saía girando (`this.jf`). Agora o giro é só com um segundo aperto. Era isso que fazia bater no corrimão no meio da manobra. Teste `testes/ptfluxo.cjs` (manobra começando 0,15 s depois do pulo): Mortal e giro antes do corrimão 0 de 50 com o pulo normal e 27 de 50 com o impulso (os outros 23 são momentos de pulo fora da janela); Aviãozinho e Tesoura dão com o pulo normal.
+  - Sempre tem saída (`cart2/ptsolve.js`): cada padrão novo é conferido por um jogador que decide a cada 0,1 s (nada, abaixar ou pular; sem manobras e sem o impulso), junto com o que já está vindo. Sem saída, o padrão chega 0,15 s depois (até 2,4 s) ou é tirado. Bola e coco andam na proporção da sua velocidade (depois de um tombo, quando você fica lento, o que foi planejado continua no mesmo ritmo); a queda do coco pode esperar. Testes: `testes/ptsaida.cjs` (o jogador da busca joga 60 partidas inteiras: nenhum tombo; nem antes da conferência ele achou combinação impossível, então o caso do dono provavelmente pedia abaixar, já que a bola passa na altura da cabeça e pulando só passa no alto do pulo) e `testes/ptconfere.cjs` (dois casos impossíveis de propósito: um é atrasado, o outro tirado).
 - **Pendente:** o dono testar.
 - **Atlas juntos (01/11):** cada personagem pintado novo (surfe, basquete, patins) fica num atlas só e numa máscara só (`cart2/junta.py`: cada animação ganha `y`, a imagem fica em `src`/`mask` do topo). Antes era uma imagem e uma máscara por animação e a página publicada chegou a 501 dos 511 arquivos; agora tem 450 imagens. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais.
 
@@ -470,6 +475,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - o dono testar os botões no celular.
 
 ## Skate (Half-pipe)
+- **Mortal (01/11, pedido do dono):** dois botões juntos no ar (quaisquer dois de ✕ ○ □ △; se o segundo vier até 0,15 s depois do primeiro, a manobra do primeiro vira o Mortal). `HP_BTN.m`: 230 pontos, 0,62 s. Uma volta para trás em volta do centro do corpo, encolhido (quadro 2 do voo), desenhado em `skp.js` (`skMeio`). Está na explicação e nos controles. Teste: `testes/skmortal.cjs`.
 - **Pranchas:** o IAmiguinho está todo pintado.
   - No chão: parado, impulso, freio, desequilíbrio e pouso.
   - No ar: saída da rampa, voo, flips (o corpo e o skate girando em separado), 3 pegadas e as 4 manobras dos botões.

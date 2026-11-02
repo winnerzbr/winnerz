@@ -35,7 +35,7 @@
   }
   // 01/11 (pedido do dono): os Amiguinhos da pista pintados (o Amiguinho do vôlei, na cor de cada um, virado para você).
   // Pisado: amassa e cai de cara no chão (o peixinho do vôlei, quadros 1 a 12), com estrelinhas, e some devagar.
-  const AM_PTCOR = { am_rosa: '#e86fa8', am_laranja: '#f08a3c', am_roxo: '#9a7cf0', am_dourado: '#e8c25a' }, PT_BOTK = .52;
+  const AM_PTCOR = { am_rosa: '#e86fa8', am_laranja: '#f08a3c', am_roxo: '#9a7cf0', am_dourado: '#e8c25a' }, PT_BOTK = .72; // 01/11: maiores (eram 52%), a caixa de colisão acompanha (PT_BOT)
   function ptBot(v, o, x, tt) {
     const MB = window.MVB; if (!MB || !MB.a.idle || !MB.a.dive || !window.__fr || !window.__fr.bl || !window.__blCor) return false;
     const old = window.__blCor(AM_PTCOR[AM_PT[Math.floor(o.x) % AM_PT.length]]);
@@ -50,7 +50,7 @@
         ctx.globalAlpha = 1;
       }
       ctx.restore();
-      if (o.pis) { const e = v.t - o.pisT; if (e > .3 && e < 2) for (let i = 0; i < 3; i++) { const a = tt * 5 + i * TAU / 3; R(x + 12 + Math.cos(a) * 7, PGY - 13 + Math.sin(a) * 2.2, 1.5, 1.5, '#ffd04a'); } }
+      if (o.pis) { const e = v.t - o.pisT; if (e > .3 && e < 2) for (let i = 0; i < 3; i++) { const a = tt * 5 + i * TAU / 3; R(x + 13 + Math.cos(a) * 9, PGY - 17 + Math.sin(a) * 3, 1.8, 1.8, '#ffd04a'); } }
     } catch (err) { ctx.restore(); window.__blCor(old); return false; }
     window.__blCor(old); return true;
   }
@@ -188,7 +188,16 @@
         }
       }
       for (const s of this.sparks) R(s.x, s.y, 1.5, 1.5, s.t < .15 ? '#ffffff' : '#ffd04a');
+      // impulso carregado (agachado 0,25 s): halo azul pulsando embaixo dos patins
+      this.ptCarregado = !this.air && !this.grind && this.crouch && this.carga >= PT_CARGA;
+      if (this.ptCarregado) { ctx.save(); const pu = .55 + .2 * Math.sin(tt * 18); ctx.fillStyle = `rgba(95,212,255,${pu})`; ctx.beginPath(); ctx.ellipse(PPX, PGY, 15, 3.6, 0, 0, TAU); ctx.fill(); ctx.fillStyle = `rgba(255,255,255,${pu})`; ctx.beginPath(); ctx.ellipse(PPX, PGY, 8, 1.8, 0, 0, TAU); ctx.fill(); ctx.restore(); }
       if (!PTIOK()) { this.__ia16(tt); return; }
       ptIA(this, tt);
+      // impulso carregado: faíscas subindo dos patins (por cima do desenho)
+      if (this.ptCarregado) {
+        ctx.save();
+        for (let i = 0; i < 6; i++) { const k = (tt * 2.4 + i / 6) % 1; ctx.globalAlpha = 1 - k * k; ctx.fillStyle = i % 2 ? '#5fd4ff' : '#ffffff'; ctx.fillRect(PPX - 12 + i * 4.6, PGY - 4 - k * 20, 2, 4); }
+        ctx.restore();
+      }
     };
   }

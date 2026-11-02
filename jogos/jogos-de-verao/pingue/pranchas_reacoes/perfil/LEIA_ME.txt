@@ -1,0 +1,26 @@
+IAmiguinho: Jogos de Verão — Tênis de mesa
+
+QUATRO ANIMAÇÕES
+01_iamiguinho_comemoracao: preparação, salto, raquete erguida, aterrissagem, giro da raquete e prontidão.
+02_iamiguinho_decepcao: olhar para trás, desânimo, mão no boné, toque da raquete na mão e recuperação.
+03_amiguinho_comemoracao: squash, salto de gelatina, mãos erguidas, aterrissagem e recuperação.
+04_amiguinho_decepcao: olhar para trás, corpo caindo, squash, toque da raquete e recuperação.
+
+CONTEÚDO
+pranchas/: quatro PNGs de 1776×888, grade invisível de 4×2, oito frames cada.
+frames/: 32 PNGs de 444×444, na mesma ordem das pranchas.
+previews/: quatro WebPs animados para inspeção.
+atlas.json: retângulos, tamanhos, âncora e dados do acabamento.
+prompts_geracao.json: prompts usados com o gerador integrado de imagens.
+
+IMPORTAÇÃO
+As grades anexadas medem 1774×887 e têm células fracionárias. A entrega usa 1776×888 para obter células iguais de 444×444, mantendo proporcionalmente o enquadramento da guia.
+Ordem: esquerda para direita, linha superior antes da inferior.
+Remover apenas o verde de recorte RGB(0,255,0). Manter o mesmo ponto de origem em todos os frames: (222,406), correspondente à linha do chão.
+Os frames de salto ficam acima da linha de chão; não centralizar cada recorte automaticamente.
+As prévias são lentas, para conferir as poses. No jogo a 60fps, defina por quanto tempo cada desenho aparece. As animações de reação devem tocar uma vez e retornar ao estado de prontidão.
+
+VERIFICAÇÃO E LIMITES
+Foram conferidos oito frames por prancha, visores vazios, presença das raquetes, direção, sequência das poses, margens, fundo verde e correspondência entre os frames e as pranchas.
+O acabamento aplica escala uniforme e registro, sem alongar braços ou pernas. Como são desenhos pintados, há pequenas diferenças de contorno entre os frames; as medidas técnicas estão no atlas.
+Ainda não foi feito teste no motor do jogo.

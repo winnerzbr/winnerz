@@ -113,9 +113,11 @@
     }
     // rede: parada · chuá (esticada, logo que a bola passa) · balançando depois; o aro por cima
     const nt = v.net;
-    if (nt > .3) bqPart('swish' + Math.min(3, Math.floor((1 - (nt - .3) / .5) * 4)), rx, ry);
-    else if (nt > 0) bqPart('bal' + (Math.floor(tt * 14) % 4), rx, ry);
-    else bqPart('rede', rx, ry + 1.4);
+    // 01/11 (pedido do dono): a rede presa no aro. A parada vai no ponto de encaixe do pacote (antes estava 1,4 abaixo e ficava solta);
+    // o chuá e o balanço sobem 1,2 (12 px da peça) para o anel branco de cima ficar escondido atrás do aro.
+    if (nt > .3) bqPart('swish' + Math.min(3, Math.floor((1 - (nt - .3) / .5) * 4)), rx, ry - 1.2);
+    else if (nt > 0) bqPart('bal' + (Math.floor(tt * 14) % 4), rx, ry - 1.2);
+    else bqPart('rede', rx, ry);
     bqPart('aro', rx, ry);
   }
   const BQ_BOLA = 1.3;

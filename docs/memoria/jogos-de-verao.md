@@ -119,9 +119,10 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Rosto aceso do Amiguinho: nos quadros de costas ou de lado o contorno escuro era confundido com a tela e o brilho cobria o corpo; agora, se a "tela" passa de 60% do quadro, o quadro fica sem rosto aceso (pós-processo no `mvbpp.py`).
   - O IAmiguinho do pingue-pongue virou um atlas só (`junta_arquivo('mvpi.js','MVPI')`), como os do surfe, basquete e patins.
   - Prévia: as reações entraram somando à página publicada (`previa_ppr.py`). Teste: `testes/ppreacao.cjs`.
-  - **Refazer em 3/4 (pedido do dono, 01/11):** as quatro vieram de perfil (o gerador chegou a corrigir para "strict side profile") e o rosto não aparece. Os pedidos foram reescritos na página de pedidos (guia Pingue-pongue, fim): câmera em 3/4 virada para a frente e para a direita em todos os quadros, como o IAmiguinho e o Amiguinho parados no vôlei; visor largo e sempre à vista, nada na frente dele; raquete na mão do lado direito da imagem. Novos anexos: `novas/anexos/ref_34_iamiguinho.jpg` e `ref_34_amiguinho.jpg` (quadros `v2_ready_0` e `bv2_espera_0`). No `pedidos.py`, os textos de câmera ficam em `CAM_IA`/`CAM_BL`; um cartão pode ter `kv` (sufixo da chave do "Feita") para um pedido refeito não aparecer como feito, e a contagem só soma cartões que existem.
+  - **Em 3/4 no jogo (01/11, pacote `IAmiguinho_Tenis_de_Mesa_Reacoes_3_4`):** as 4 pranchas novas substituíram as de perfil (guardadas em `pingue/pranchas_reacoes/perfil`), mesmos nomes, mesmo caminho (`mv2/cutf.py`, `mvpi.py`, `mvbpp.py`, build, `previa_ppr.py`). O rosto aparece em todos os quadros, menos no 6 do lamento do Amiguinho (o visor visto de cima). O quadro 8 é igual ao 1.
+  - **Antes (pedido refeito em 3/4 (pedido do dono, 01/11):** as quatro vieram de perfil (o gerador chegou a corrigir para "strict side profile") e o rosto não aparece. Os pedidos foram reescritos na página de pedidos (guia Pingue-pongue, fim): câmera em 3/4 virada para a frente e para a direita em todos os quadros, como o IAmiguinho e o Amiguinho parados no vôlei; visor largo e sempre à vista, nada na frente dele; raquete na mão do lado direito da imagem. Novos anexos: `novas/anexos/ref_34_iamiguinho.jpg` e `ref_34_amiguinho.jpg` (quadros `v2_ready_0` e `bv2_espera_0`). No `pedidos.py`, os textos de câmera ficam em `CAM_IA`/`CAM_BL`; um cartão pode ter `kv` (sufixo da chave do "Feita") para um pedido refeito não aparecer como feito, e a contagem só soma cartões que existem.
   - Quando chegarem: trocar as pranchas em `pingue/pranchas_reacoes` e rodar de novo `mvpi.py`, `mvbpp.py` e o build (o rosto aceso do Amiguinho volta a aparecer, porque o visor fica visível).
-- **Arquivos da página publicada (01/11):** 496 (473 imagens, 22 músicas e a página), limite 511. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais; a publicação recusa tirar arquivos que a conversa não viu, então listar os arquivos da página antes (Artifact list, scope files).
+- **Arquivos da página publicada (01/11):** 497 (474 imagens, 22 músicas e a página), limite 511. Ao publicar, mandar as imagens novas e tirar (null) as que a página não usa mais; a publicação recusa tirar arquivos que a conversa não viu, então listar os arquivos da página antes (Artifact list, scope files).
 
 ### Bocha na areia (como funciona)
 - **Cena:** vista de cima, na Vila dos Pescadores (pintada, ver "Vila pintada"). A cancha tem tábuas baixas em volta. IAmiguinho joga com as bolas azuis e o Amiguinho com as rosa, 4 para cada lado; o bolim é laranja.
@@ -393,7 +394,13 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Objetos: estrela, concha, concha dourada (a de cima da crista), boia, pedra, prancha solta, gaivota (2 quadros) e drone (2 quadros). Espuma: 3 colunas na quebra, 4 respingos e 2 de rastro.
   - As 11 pranchas estão na Prévia (somadas à página publicada por `previa_sf.py`).
   - Teste: `testes/sfpintado.cjs` (fotos de cada situação e dos 4 horários, e uma partida com o teclado).
-- **Pendente:** o dono testar.
+- **Ajustes pedidos pelo dono (01/11, `sfp.js` e `sfcen.py`):**
+  - Mortal: gira em volta do centro do corpo (o meio dos quadros do mortal, a média de todos, `sfMeio`), não mais em volta dos pés.
+  - Ondas: o tubo e as 3 colunas de espuma da quebra ganharam as cores de cada horário. A conta de cor sai das 4 faixas da onda (mesmo desenho, só a cor muda): uma fórmula ajustada pixel a pixel que leva a cor do dia para a do horário (erro médio de 4 a 5 em 255). Um atlas por horário (`SFC.th`, com entrada, meio, fechamento e colunas), misturados perto da troca de horário. Antes, de noite, o tubo ficava turquesa forte.
+  - Sem cortes: o pé dos módulos do tubo some na água; a entrada some à direita e o fechamento à esquerda e à direita (30%), por cima do meio; o meio fica preso entre as pontas (o último pedaço passava do fechamento e fazia uma parede reta).
+  - A faixa da onda vai até o pé da tela (antes acabava numa faixa escura). Saiu a faixa escura da frente com a linha azul e os riscos: era só enfeite do desenho de 16 bits, sem função. As colunas de espuma vão até o pé da tela.
+  - Correnteza (o "quadrado escuro com riscos" que aparece da 3ª série em diante): tem função (dentro dela subir fica difícil e a onda puxa para baixo). Pedido de arte na página de pedidos (guia Surfe, grupo Correnteza: uma textura em pé que repete de cima para baixo, na luz do dia, com a parede da onda aprovada como anexo `novas/anexos/ref_onda_surfe.jpg`). Até chegar, a faixa provisória ficou com as beiradas macias.
+- **Pendente:** o dono testar; a arte da correnteza.
 
 ## Basquete pintado: IAmiguinho (01/11/2026)
 - **Chegou do dono:** 12 pranchas do IAmiguinho no basquete (mais tentativas que pedidos: 5 de andar, 2 de espera, 2 de carregar). Originais em `basquete/pranchas`.
@@ -414,6 +421,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Tabela: como a tabela pintada é vista de frente, o meio dela (o quadrado laranja) fica onde está o centro da bola quando ela bate (BX − BQ.R); o aro fica na frente da parte de baixo da tabela. A física da batida não mudou.
   - Bola 30% maior no desenho (`BQ_BOLA` = 1,3), inclusive em chamas e quicando. A física do aro continua com a bola de antes (com a bola maior na física, até o arremesso perfeito batia no aro e saía). No chão ela quica pelo tamanho do desenho (`BQ.CHAO`), para não afundar na quadra.
   - Simulação depois do ajuste: arremesso perfeito entra de três e de dois (40 de 40); na beirada da faixa boa, metade entra de três.
+  - Rede presa no aro (01/11): a parada vai no ponto de encaixe do pacote (estava 1,4 abaixo e ficava solta); o chuá e o balanço sobem 1,2 para o anel branco de cima ficar atrás do aro.
 - **Pendente:** o dono testar.
 
 ## Patins pintado: cenário, obstáculos e corrimão (01/11/2026)

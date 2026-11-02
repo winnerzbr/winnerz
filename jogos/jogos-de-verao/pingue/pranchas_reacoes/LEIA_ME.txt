@@ -1,26 +1,28 @@
-IAmiguinho: Jogos de Verão — Tênis de mesa
+IAmiguinho: Jogos de Verão — Reações de tênis de mesa em três-quartos
 
-QUATRO ANIMAÇÕES
+ANIMAÇÕES
 01_iamiguinho_comemoracao: preparação, salto, raquete erguida, aterrissagem, giro da raquete e prontidão.
-02_iamiguinho_decepcao: olhar para trás, desânimo, mão no boné, toque da raquete na mão e recuperação.
+02_iamiguinho_decepcao: inclinação da cabeça, desânimo, mão no boné, toque da raquete na palma e recuperação.
 03_amiguinho_comemoracao: squash, salto de gelatina, mãos erguidas, aterrissagem e recuperação.
-04_amiguinho_decepcao: olhar para trás, corpo caindo, squash, toque da raquete e recuperação.
+04_amiguinho_decepcao: inclinação da cabeça, corpo cedendo, squash, toque da raquete e recuperação.
 
 CONTEÚDO
 pranchas/: quatro PNGs de 1776×888, grade invisível de 4×2, oito frames cada.
 frames/: 32 PNGs de 444×444, na mesma ordem das pranchas.
-previews/: quatro WebPs animados para inspeção.
-atlas.json: retângulos, tamanhos, âncora e dados do acabamento.
-prompts_geracao.json: prompts usados com o gerador integrado de imagens.
+previews/: quatro WebPs animados para conferir as poses.
+atlas.json: retângulos, tamanhos, âncora e registro técnico do acabamento.
+prompts_geracao.json: instruções de geração e correções.
 
 IMPORTAÇÃO
-As grades anexadas medem 1774×887 e têm células fracionárias. A entrega usa 1776×888 para obter células iguais de 444×444, mantendo proporcionalmente o enquadramento da guia.
+As grades anexadas medem 1774×887, com células fracionárias. A entrega usa 1776×888 para obter células iguais de 444×444, mantendo proporcionalmente o enquadramento da guia.
 Ordem: esquerda para direita, linha superior antes da inferior.
-Remover apenas o verde de recorte RGB(0,255,0). Manter o mesmo ponto de origem em todos os frames: (222,406), correspondente à linha do chão.
-Os frames de salto ficam acima da linha de chão; não centralizar cada recorte automaticamente.
-As prévias são lentas, para conferir as poses. No jogo a 60fps, defina por quanto tempo cada desenho aparece. As animações de reação devem tocar uma vez e retornar ao estado de prontidão.
+Fundo de recorte: RGB(0,255,0), #00FF00.
+Ponto de origem comum: (222,406), correspondente à linha do chão. Não recentralizar os recortes automaticamente: isso elimina a subida do salto.
+O frame 8 é uma cópia exata do frame 1. As duas reações de cada personagem compartilham a mesma pose de prontidão.
+Visão em três-quartos voltada para a direita e para o observador; raquete na mão à direita da imagem; visores vazios para o rosto desenhado pelo jogo.
+As prévias têm reprodução lenta para inspeção. Em um jogo a 60fps, configure a duração de cada desenho no motor: a taxa de renderização não precisa ser igual à taxa da animação. As reações podem tocar uma vez e retornar à prontidão.
 
-VERIFICAÇÃO E LIMITES
-Foram conferidos oito frames por prancha, visores vazios, presença das raquetes, direção, sequência das poses, margens, fundo verde e correspondência entre os frames e as pranchas.
-O acabamento aplica escala uniforme e registro, sem alongar braços ou pernas. Como são desenhos pintados, há pequenas diferenças de contorno entre os frames; as medidas técnicas estão no atlas.
-Ainda não foi feito teste no motor do jogo.
+VERIFICAÇÃO
+Conferidos: quantidade de frames, recortes, margens, fundo de recorte, correspondência entre pranchas e frames, visores descobertos e mão da raquete. Foram feitos ajustes de escala e posicionamento para o layout comum, sem alongar braços ou pernas.
+São desenhos pintados com pequenas variações de contorno entre poses. Os dados do acabamento estão no atlas.
+Não foi realizado teste dentro do motor do jogo.

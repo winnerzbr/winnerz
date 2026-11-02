@@ -9,7 +9,7 @@
   if (MSF) { const im = new Image(), mk = new Image(); im.src = MSF.src; mk.src = MSF.mask; for (const nm of Object.keys(MSF.a)) { SFI[nm] = im; SFM[nm] = mk; } } // um atlas só para todas as animações (junta.py)
   const sfImg = (k, src) => { if (!src) return null; let im = SFI['_' + k]; if (!im) { im = SFI['_' + k] = new Image(); im.src = src; } return im.complete && im.naturalWidth ? im : null; };
   const SFOK = () => !!MSF && !!SFC && Object.keys(MSF.a).every((n) => SFI[n].complete && SFI[n].naturalWidth > 0 && SFM[n].complete && SFM[n].naturalWidth > 0)
-    && !!sfImg('atl', SFC.atl) && ['entrada', 'meio', 'fecha'].every((k) => sfImg('t_' + k, SFC.tubo[k].src));
+    && !!sfImg('atl', SFC.atl) && Object.keys(SFC.th).every((h) => sfImg('th_' + h, SFC.th[h].src));
   window.__SFOK = SFOK;
   // unidades do jogo por pixel guardado: em pé, da quilha à hélice = 42 (o desenho de 16 bits tinha uns 39 com a prancha)
   const SFU = MSF ? 42 / MSF.a.pe.f[0].ay : 1;
@@ -44,6 +44,11 @@
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(x, y); ctx.scale(u * s * flip, u * s);
     ctx.drawImage(im, f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h); ctx.restore();
   }
+  // peça do atlas de um horário (tubo e colunas de espuma, com a cor do horário); x, y = onde vai o pé (meio embaixo) ou o canto (canto = true)
+  function sfPartH(h, name, x, y, w, hh, canto) {
+    const T = SFC.th[h], f = T.p[name], im = sfImg('th_' + h, T.src); if (!f || !im) return;
+    ctx.drawImage(im, f.x, 0, f.w, f.h, canto ? x : x - w / 2, canto ? y : y - hh, w, hh);
+  }
   const SF_MARCOR = { dia: '#1f62b8', manha: '#2a6aa8', tarde: '#2b3a80', noite: '#0d1b48' };
   const SF_ONDAW = 444, SF_ONDAH = 111, SF_CRISTA = 4; // a faixa da onda, em unidades do jogo
   const SF_TK = .30; // unidades por pixel guardado nos módulos do tubo
@@ -58,13 +63,16 @@
     const lf = night > .01 && sfImg('lf', SFC.lf); if (lf) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); ctx.drawImage(lf, 0, oy, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     // a parede da onda, andando com você (a faixa repete)
     const y0 = SL - SF_CRISTA, off = ((cam % SF_ONDAW) + SF_ONDAW) % SF_ONDAW;
-    for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w; for (let x = -off; x < W; x += SF_ONDAW) ctx.drawImage(im, x, y0, SF_ONDAW + .6, SF_ONDAH); }
+    for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w; for (let x = -off; x < W; x += SF_ONDAW) ctx.drawImage(im, x, y0, SF_ONDAW + .6, Math.max(SF_ONDAH, H - y0 + 1)); } // 01/11: a água vai até o pé da tela
     ctx.globalAlpha = 1;
     // correnteza: faixas escuras que descem
     for (const z of ev.zones) {
       const zx = Math.round(z.x - cam); if (zx > W || zx + z.w < 0) continue;
-      R(zx, SL + 6, z.w, SBASE - SL - 6, 'rgba(10,20,70,.30)');
-      for (let k = 0; k < 10; k++) { const yy = SL + 8 + ((k * 23 + tt * 70) % (SBASE - SL - 14)); R(zx + 6 + ((k * 37) % Math.max(1, z.w - 16)), Math.round(yy), 2, 8, 'rgba(12,22,80,.6)'); }
+      // provisório até a arte da correnteza chegar (pedido na página de pedidos): bordas macias, sem o retângulo
+      const gz = ctx.createLinearGradient(zx, 0, zx + z.w, 0); gz.addColorStop(0, 'rgba(10,20,70,0)'); gz.addColorStop(.25, 'rgba(10,20,70,.26)'); gz.addColorStop(.75, 'rgba(10,20,70,.26)'); gz.addColorStop(1, 'rgba(10,20,70,0)');
+      const gy = SL + 6, gh = SBASE - SL - 6; ctx.fillStyle = gz; ctx.fillRect(zx, gy, z.w, gh);
+      for (let k = 0; k < 10; k++) { const yy = SL + 8 + ((k * 23 + tt * 70) % (SBASE - SL - 14)), xx = 6 + ((k * 37) % Math.max(1, z.w - 16)); ctx.globalAlpha = Math.min(1, Math.min(xx, z.w - xx) / (z.w * .25)) * .5; R(zx + xx, Math.round(yy), 2, 8, 'rgba(12,22,80,1)'); }
+      ctx.globalAlpha = 1;
     }
     // tubos: o meio repete; a entrada (o lábio enrolando) à esquerda e o fechamento (a explosão de espuma) à direita.
     // O teto do meio (a parte de baixo da água que enrola) fica na altura do teto do tubo da física.
@@ -72,24 +80,24 @@
     for (const tb of ev.tubes) {
       const top = tb.roof - teto - 6, ex = tb.x0 - tw('entrada') + 30 - cam, fx0 = tb.x1 - 30 - cam;
       if (ex > W || fx0 + tw('fecha') < 0) continue;
-      const mi = sfImg('t_meio', TB.meio.src), en = sfImg('t_entrada', TB.entrada.src), fe = sfImg('t_fecha', TB.fecha.src);
-      for (let x = ex + tw('entrada') - 4; x < fx0 + 8; x += tw('meio') - 1) if (x < W && x + tw('meio') > 0) ctx.drawImage(mi, x, top, tw('meio') + .6, th);
-      if (ex < W && ex + tw('entrada') > 0) ctx.drawImage(en, ex, top, tw('entrada'), th);
-      if (fx0 < W && fx0 + tw('fecha') > 0) ctx.drawImage(fe, fx0, top, tw('fecha'), th);
+      // o meio vai por baixo das pontas (a entrada some à direita e o fechamento some à esquerda por cima dele: sem emenda)
+      for (const [h, w] of P) {
+        ctx.globalAlpha = w;
+        const m0 = ex + tw('entrada') * .8, m1 = fx0 + tw('fecha') * .4; // o meio fica só entre as pontas (o último pedaço não passa do fechamento)
+        ctx.save(); ctx.beginPath(); ctx.rect(m0, top - 2, m1 - m0, th + 4); ctx.clip();
+        for (let x = m0; x < m1; x += tw('meio') - 1) if (x < W && x + tw('meio') > 0) sfPartH(h, 'meio', x, top, tw('meio') + .6, th, true);
+        ctx.restore();
+        if (ex < W && ex + tw('entrada') > 0) sfPartH(h, 'entrada', ex, top, tw('entrada'), th, true);
+        if (fx0 < W && fx0 + tw('fecha') > 0) sfPartH(h, 'fecha', fx0, top, tw('fecha'), th, true);
+      }
+      ctx.globalAlpha = 1;
     }
     // a quebra à esquerda: três colunas de espuma, cada uma num quadro diferente
     [[4, -2, 1], [24, 0, .96], [46, 1, 1]].forEach(([cx, ph, k]) => {
-      const nm = 'col' + ((Math.floor(tt * 8) + ph + 3) % 3), f = SFC.p[nm], h = (SBASE + 10 - (SL - 22)) * k, s = h / (f.h / SFC.u);
-      sfPart(nm, cx, SBASE + 10, s);
+      const nm = 'col' + ((Math.floor(tt * 8) + ph + 3) % 3), hh = (H + 4 - (SL - 22)) * k;
+      for (const [h, w] of P) { const f = SFC.th[h].p[nm]; ctx.globalAlpha = w; sfPartH(h, nm, cx, H + 4, hh * f.w / f.h, hh); } ctx.globalAlpha = 1;
     });
-    // água da frente, na cor do horário
-    for (const [v, w] of P) { ctx.globalAlpha = w; R(0, SBASE, W, H - SBASE, SF_MARCOR[v]); } ctx.globalAlpha = 1;
-    // a água da frente com a textura do fundo da faixa da onda (passa um pouco mais rápido), mais escura
-    { const o2 = (((cam * 1.1) % SF_ONDAW) + SF_ONDAW) % SF_ONDAW; for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w * .85;
-      for (let x = -o2; x < W; x += SF_ONDAW) ctx.drawImage(im, 0, im.height * .62, im.width, im.height * .38, x, SBASE, SF_ONDAW + .6, H - SBASE); }
-      ctx.globalAlpha = 1; R(0, SBASE, W, H - SBASE, night > .5 ? 'rgba(4,8,30,.35)' : 'rgba(10,25,80,.28)'); }
-    R(0, SBASE, W, 1, NAVY); R(0, SBASE + 1, W, 2, night > .5 ? '#3d7fc0' : '#58d6dc');
-    for (let i = 0; i < 22; i++) R(((i * 41 - cam * 1.1) % W + W) % W, SBASE + 6 + (i * 11) % 30, 8 + (i % 4) * 3, 1, i % 3 ? 'rgba(255,255,255,.4)' : night > .5 ? 'rgba(190,210,255,.45)' : 'rgba(255,190,170,.5)');
+    // 01/11 (pedido do dono): saiu a faixa escura da frente com os riscos (era só enfeite do desenho de 16 bits); a faixa da onda vai até o pé da tela
     // estrelas, conchas e obstáculos
     for (const o of ev.objs) {
       if (o.done) continue;
@@ -108,6 +116,14 @@
     for (const p of ev.spray) R(p.x - cam, p.y, 2, 2, '#ffffff');
     artVignette(SBASE - 50);
     sfSurfer(ev, tt);
+  }
+  // meio dos quadros de uma animação (em unidades do jogo, a partir da âncora da quilha), a média de todos os quadros
+  const SFMEIO = {};
+  function sfMeio(an) {
+    if (SFMEIO[an]) return SFMEIO[an];
+    const F = MSF.a[an].f, n = F.length; let x = 0, y = 0;
+    for (const f of F) { x += f.w / 2 - f.ax; y += f.h / 2 - f.ay; }
+    return (SFMEIO[an] = [x / n * SFU, y / n * SFU]);
   }
   function sfSurfer(ev, tt) {
     const y = ev.y;
@@ -129,6 +145,10 @@
         const c = Math.cos(ev.rot * TAU), gv = ((Math.round(ev.rot * 8) % 8) + 8) % 8; ctx.rotate(ang);
         if (tr && Math.abs(c) >= .75) frameSf(an, k, 2, false, (c < 0 ? -1 : 1) * Math.max(.85, Math.abs(c)));
         else frameSf('giro', gv, 2);
+      } else if (tr && tr.k === 'mortal') {
+        // 01/11 (pedido do dono): o mortal gira em volta do centro do corpo, como na vida real (antes girava em volta dos pés,
+        // porque o desenho é preso pela quilha). O eixo é o meio dos quadros do mortal, o mesmo em todos, para o corpo não tremer.
+        const c = sfMeio('mortal'); ctx.translate(c[0], c[1]); ctx.rotate(ang); ctx.translate(-c[0], -c[1]); frameSf(an, k, 2);
       } else { ctx.rotate(ang); frameSf(an, k, 2); }
       ctx.restore(); return;
     }

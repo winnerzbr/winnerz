@@ -1,6 +1,8 @@
 {
   "format": "4 columns x 2 rows",
   "order": "left to right, then top to bottom",
+  "view": "three-quarter right-front",
+  "paddle_hand": "screen-right",
   "cell_size": [
     444,
     444
@@ -31,7 +33,8 @@
         444
       ],
       "frame_folder": "frames/01_iamiguinho_comemoracao",
-      "preview": "previews/01_iamiguinho_comemoracao.webp"
+      "preview": "previews/01_iamiguinho_comemoracao.webp",
+      "first_and_last_identical": true
     },
     {
       "sheet": "pranchas/02_iamiguinho_decepcao.png",
@@ -45,7 +48,8 @@
         444
       ],
       "frame_folder": "frames/02_iamiguinho_decepcao",
-      "preview": "previews/02_iamiguinho_decepcao.webp"
+      "preview": "previews/02_iamiguinho_decepcao.webp",
+      "first_and_last_identical": true
     },
     {
       "sheet": "pranchas/03_amiguinho_comemoracao.png",
@@ -59,7 +63,8 @@
         444
       ],
       "frame_folder": "frames/03_amiguinho_comemoracao",
-      "preview": "previews/03_amiguinho_comemoracao.webp"
+      "preview": "previews/03_amiguinho_comemoracao.webp",
+      "first_and_last_identical": true
     },
     {
       "sheet": "pranchas/04_amiguinho_decepcao.png",
@@ -73,7 +78,8 @@
         444
       ],
       "frame_folder": "frames/04_amiguinho_decepcao",
-      "preview": "previews/04_amiguinho_decepcao.webp"
+      "preview": "previews/04_amiguinho_decepcao.webp",
+      "first_and_last_identical": true
     }
   ],
   "rectangles": [
@@ -136,6 +142,7 @@
   ],
   "finishing": {
     "robot_finish.json": {
+      "status": "final",
       "cell_size": [
         444,
         444
@@ -144,504 +151,530 @@
         1776,
         888
       ],
-      "grid_normalization": "1774x887 source to four equal 444px columns and two 444px rows; each original cell treated separately.",
-      "uniform_sprite_scale": 0.87,
-      "shape_deformation": false,
       "background_rgb": [
         0,
         255,
         0
       ],
-      "ground_anchor": [
-        222,
-        406
+      "ready_shared_across_sheets": true,
+      "ready_first_equals_last": true,
+      "final_export_method": "Translate and chroma-clean repaired source cells; no final anatomy warping. Earlier rigid head-assembly normalization was followed by imagegen seam repair using the clean source.",
+      "head_height_final_approx_px": [
+        134,
+        138
       ],
-      "head_horizontal_anchor": 222,
-      "method": "Uniform affine scaling and translation only; key cleanup and a narrow edge despill retain the navy outline. No limb or body warping.",
+      "neutral_neck_to_ground_approx_px": 157,
+      "head_measurement_note": "Visual landmark approximation; not a claim of exact per-pixel anatomical equivalence across tilted poses.",
+      "inspection_fps": 12,
+      "engine_playback_tested": false,
       "sheets": [
         {
           "name": "01_iamiguinho_comemoracao",
-          "source": "generated_images/exec-0272b4d7-0190-4315-ade2-82db895de623.png",
+          "source": "generated_images/exec-23602579-a904-4695-80d4-2edb5f8215f3.png",
           "sheet": "pranchas/01_iamiguinho_comemoracao.png",
-          "inspection_preview": "previews/01_iamiguinho_comemoracao.webp",
-          "inspection_fps": 12,
-          "head_heights_final_approx": [
-            139.2,
-            137.5,
-            135.7,
-            134.8,
-            133.1,
-            134.0,
-            134.0,
-            134.0
-          ],
+          "preview": "previews/01_iamiguinho_comemoracao.webp",
           "frames": [
             {
-              "frame": 1,
-              "file": "frames/01_iamiguinho_comemoracao/01.png",
-              "source_cell": [
-                0,
-                0,
-                444,
-                444
-              ],
-              "source_foot_y": 433,
-              "source_head_center_x_approx": 219,
-              "transform_scale": 0.87,
-              "translation": [
-                31.47,
-                29.29000000000002
-              ],
-              "head_center_x_approx": 222,
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                122,
                 81,
-                342,
+                77,
+                390,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 978
+              "translation": [
+                0,
+                0
+              ],
+              "frame": 1,
+              "source_cell": [
+                0,
+                0,
+                444,
+                444
+              ],
+              "size": [
+                444,
+                444
+              ]
             },
             {
+              "feet_bottom_y": 406,
+              "foreground_bounds": [
+                92,
+                81,
+                336,
+                407
+              ],
+              "minimum_margin": 37,
+              "translation": [
+                0,
+                0
+              ],
               "frame": 2,
-              "file": "frames/01_iamiguinho_comemoracao/02.png",
               "source_cell": [
                 444,
                 0,
                 887,
                 444
               ],
-              "source_foot_y": 433,
-              "source_head_center_x_approx": 229,
-              "transform_scale": 0.87,
-              "translation": [
-                22.77000000000001,
-                29.29000000000002
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 406,
-              "foreground_bounds": [
-                124,
-                113,
-                342,
-                407
-              ],
-              "minimum_margin": 37,
-              "despilled_source_edge_pixels": 887
+              "size": [
+                444,
+                444
+              ]
             },
             {
-              "frame": 3,
-              "file": "frames/01_iamiguinho_comemoracao/03.png",
-              "source_cell": [
-                887,
-                0,
-                1330,
-                444
-              ],
-              "source_foot_y": 410,
-              "source_head_center_x_approx": 226,
-              "transform_scale": 0.87,
-              "translation": [
-                25.379999999999995,
-                8.300000000000011
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 365,
+              "feet_bottom_y": 375,
               "foreground_bounds": [
-                116,
                 44,
-                345,
-                366
+                22,
+                391,
+                376
               ],
-              "minimum_margin": 44,
-              "despilled_source_edge_pixels": 870
+              "minimum_margin": 22,
+              "translation": [
+                0,
+                10
+              ],
+              "frame": 3,
+              "source_cell": [
+                887,
+                0,
+                1330,
+                444
+              ],
+              "size": [
+                444,
+                444
+              ]
             },
             {
+              "feet_bottom_y": 360,
+              "foreground_bounds": [
+                58,
+                16,
+                400,
+                361
+              ],
+              "minimum_margin": 16,
+              "translation": [
+                0,
+                12
+              ],
               "frame": 4,
-              "file": "frames/01_iamiguinho_comemoracao/04.png",
               "source_cell": [
                 1330,
                 0,
                 1774,
                 444
               ],
-              "source_foot_y": 405,
-              "source_head_center_x_approx": 223,
-              "transform_scale": 0.87,
-              "translation": [
-                27.99000000000001,
-                -2.3500000000000227
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 350,
-              "foreground_bounds": [
-                105,
-                32,
-                346,
-                351
-              ],
-              "minimum_margin": 32,
-              "despilled_source_edge_pixels": 878
+              "size": [
+                444,
+                444
+              ]
             },
             {
+              "feet_bottom_y": 380,
+              "foreground_bounds": [
+                75,
+                38,
+                404,
+                381
+              ],
+              "minimum_margin": 38,
+              "translation": [
+                0,
+                11
+              ],
               "frame": 5,
-              "file": "frames/01_iamiguinho_comemoracao/05.png",
               "source_cell": [
                 0,
                 444,
                 444,
                 887
               ],
-              "source_foot_y": 389,
-              "source_head_center_x_approx": 221,
-              "transform_scale": 0.87,
-              "translation": [
-                29.72999999999999,
-                31.569999999999993
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 370,
-              "foreground_bounds": [
-                110,
-                60,
-                344,
-                371
-              ],
-              "minimum_margin": 60,
-              "despilled_source_edge_pixels": 898
+              "size": [
+                444,
+                444
+              ]
             },
             {
+              "feet_bottom_y": 406,
+              "foreground_bounds": [
+                112,
+                56,
+                402,
+                407
+              ],
+              "minimum_margin": 37,
+              "translation": [
+                0,
+                2
+              ],
               "frame": 6,
-              "file": "frames/01_iamiguinho_comemoracao/06.png",
               "source_cell": [
                 444,
                 444,
                 887,
                 887
               ],
-              "source_foot_y": 413,
-              "source_head_center_x_approx": 231,
-              "transform_scale": 0.87,
-              "translation": [
-                21.03,
-                46.69
-              ],
-              "head_center_x_approx": 222,
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                113,
-                86,
-                341,
+                87,
+                52,
+                384,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 1055
-            },
-            {
+              "translation": [
+                0,
+                1
+              ],
               "frame": 7,
-              "file": "frames/01_iamiguinho_comemoracao/07.png",
               "source_cell": [
                 887,
                 444,
                 1330,
                 887
               ],
-              "source_foot_y": 413,
-              "source_head_center_x_approx": 220,
-              "transform_scale": 0.87,
-              "translation": [
-                30.599999999999994,
-                46.69
-              ],
-              "head_center_x_approx": 222,
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                111,
-                85,
-                339,
+                81,
+                77,
+                390,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 1194
-            },
-            {
+              "translation": [
+                0,
+                0
+              ],
+              "ready_source": "01_iamiguinho_comemoracao/01.png",
               "frame": 8,
-              "file": "frames/01_iamiguinho_comemoracao/08.png",
               "source_cell": [
                 1330,
                 444,
                 1774,
                 887
               ],
-              "source_foot_y": 413,
-              "source_head_center_x_approx": 212,
-              "transform_scale": 0.87,
-              "translation": [
-                37.56,
-                46.69
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 406,
-              "foreground_bounds": [
-                122,
-                85,
-                335,
-                407
-              ],
-              "minimum_margin": 37,
-              "despilled_source_edge_pixels": 1026
+              "size": [
+                444,
+                444
+              ]
             }
           ],
           "visual_checks": {
-            "eight_frames": true,
-            "paddle_in_every_frame": true,
-            "visors_blank": true,
+            "front_three_quarter_right": true,
+            "wide_blank_visors": true,
+            "paddle_screen_right": true,
             "no_ball": true,
-            "no_guides_or_text": true,
-            "action_order_checked": true
+            "clean_anatomy_junctions": true,
+            "correct_frame4_cap_touch_or_both_arms_up": true,
+            "correct_frame6_grip": true
           }
         },
         {
           "name": "02_iamiguinho_decepcao",
-          "source": "generated_images/exec-8a6c356d-d626-4951-9189-2d495eaa26ee.png",
+          "source": "generated_images/exec-5a694525-c8ce-4d12-b1a4-b1439bda71ef.png",
           "sheet": "pranchas/02_iamiguinho_decepcao.png",
-          "inspection_preview": "previews/02_iamiguinho_decepcao.webp",
-          "inspection_fps": 12,
-          "head_heights_final_approx": null,
+          "preview": "previews/02_iamiguinho_decepcao.webp",
           "frames": [
             {
-              "frame": 1,
-              "file": "frames/02_iamiguinho_decepcao/01.png",
-              "source_cell": [
-                0,
-                0,
-                444,
-                444
-              ],
-              "source_foot_y": 433,
-              "source_head_center_x_approx": 219,
-              "transform_scale": 0.87,
-              "translation": [
-                31.47,
-                29.29000000000002
-              ],
-              "head_center_x_approx": 222,
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                122,
                 81,
-                343,
+                77,
+                390,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 938
-            },
-            {
-              "frame": 2,
-              "file": "frames/02_iamiguinho_decepcao/02.png",
+              "translation": [
+                0,
+                0
+              ],
+              "ready_source": "01_iamiguinho_comemoracao/01.png",
+              "frame": 1,
               "source_cell": [
+                0,
+                0,
                 444,
-                0,
-                887,
                 444
               ],
-              "source_foot_y": 435,
-              "source_head_center_x_approx": 203,
-              "transform_scale": 0.87,
-              "translation": [
-                45.390000000000015,
-                27.55000000000001
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 406,
-              "foreground_bounds": [
-                129,
-                69,
-                324,
-                407
-              ],
-              "minimum_margin": 37,
-              "despilled_source_edge_pixels": 936
+              "size": [
+                444,
+                444
+              ]
             },
             {
-              "frame": 3,
-              "file": "frames/02_iamiguinho_decepcao/03.png",
-              "source_cell": [
-                887,
-                0,
-                1330,
-                444
-              ],
-              "source_foot_y": 441,
-              "source_head_center_x_approx": 225,
-              "transform_scale": 0.87,
-              "translation": [
-                26.25,
-                22.329999999999984
-              ],
-              "head_center_x_approx": 222,
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                103,
-                79,
-                335,
-                407
-              ],
-              "minimum_margin": 37,
-              "despilled_source_edge_pixels": 718
-            },
-            {
-              "frame": 4,
-              "file": "frames/02_iamiguinho_decepcao/04.png",
-              "source_cell": [
-                1330,
-                0,
-                1774,
-                444
-              ],
-              "source_foot_y": 441,
-              "source_head_center_x_approx": 239,
-              "transform_scale": 0.87,
-              "translation": [
-                14.069999999999993,
-                22.329999999999984
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 406,
-              "foreground_bounds": [
-                78,
                 94,
-                324,
+                68,
+                367,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 808
+              "translation": [
+                0,
+                0
+              ],
+              "frame": 2,
+              "source_cell": [
+                444,
+                0,
+                887,
+                444
+              ],
+              "size": [
+                444,
+                444
+              ]
             },
             {
-              "frame": 5,
-              "file": "frames/02_iamiguinho_decepcao/05.png",
-              "source_cell": [
-                0,
-                444,
-                444,
-                887
+              "feet_bottom_y": 406,
+              "foreground_bounds": [
+                88,
+                83,
+                333,
+                407
               ],
-              "source_foot_y": 408,
-              "source_head_center_x_approx": 240,
-              "transform_scale": 0.87,
+              "minimum_margin": 37,
               "translation": [
-                13.199999999999989,
-                51.04000000000002
+                0,
+                0
               ],
-              "head_center_x_approx": 222,
+              "frame": 3,
+              "source_cell": [
+                887,
+                0,
+                1330,
+                444
+              ],
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
               "feet_bottom_y": 406,
               "foreground_bounds": [
                 82,
-                96,
-                332,
+                85,
+                326,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 829
+              "translation": [
+                0,
+                0
+              ],
+              "frame": 4,
+              "source_cell": [
+                1330,
+                0,
+                1774,
+                444
+              ],
+              "size": [
+                444,
+                444
+              ]
             },
             {
+              "feet_bottom_y": 406,
+              "foreground_bounds": [
+                78,
+                91,
+                330,
+                407
+              ],
+              "minimum_margin": 37,
+              "translation": [
+                0,
+                1
+              ],
+              "frame": 5,
+              "source_cell": [
+                0,
+                444,
+                444,
+                887
+              ],
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
+              "feet_bottom_y": 406,
+              "foreground_bounds": [
+                92,
+                87,
+                326,
+                407
+              ],
+              "minimum_margin": 37,
+              "translation": [
+                0,
+                1
+              ],
               "frame": 6,
-              "file": "frames/02_iamiguinho_decepcao/06.png",
               "source_cell": [
                 444,
                 444,
                 887,
                 887
               ],
-              "source_foot_y": 411,
-              "source_head_center_x_approx": 225,
-              "transform_scale": 0.87,
-              "translation": [
-                26.25,
-                48.43000000000001
-              ],
-              "head_center_x_approx": 222,
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                109,
-                79,
-                345,
+                104,
+                71,
+                365,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 960
-            },
-            {
+              "translation": [
+                0,
+                1
+              ],
               "frame": 7,
-              "file": "frames/02_iamiguinho_decepcao/07.png",
               "source_cell": [
                 887,
                 444,
                 1330,
                 887
               ],
-              "source_foot_y": 413,
-              "source_head_center_x_approx": 214,
-              "transform_scale": 0.87,
-              "translation": [
-                35.81999999999999,
-                46.69
-              ],
-              "head_center_x_approx": 222,
+              "size": [
+                444,
+                444
+              ]
+            },
+            {
               "feet_bottom_y": 406,
               "foreground_bounds": [
-                122,
-                80,
-                342,
+                81,
+                77,
+                390,
                 407
               ],
               "minimum_margin": 37,
-              "despilled_source_edge_pixels": 960
-            },
-            {
+              "translation": [
+                0,
+                0
+              ],
+              "ready_source": "01_iamiguinho_comemoracao/01.png",
               "frame": 8,
-              "file": "frames/02_iamiguinho_decepcao/08.png",
               "source_cell": [
                 1330,
                 444,
                 1774,
                 887
               ],
-              "source_foot_y": 414,
-              "source_head_center_x_approx": 212,
-              "transform_scale": 0.87,
-              "translation": [
-                37.56,
-                45.81999999999999
-              ],
-              "head_center_x_approx": 222,
-              "feet_bottom_y": 406,
-              "foreground_bounds": [
-                121,
-                85,
-                335,
-                407
-              ],
-              "minimum_margin": 37,
-              "despilled_source_edge_pixels": 951
+              "size": [
+                444,
+                444
+              ]
             }
           ],
           "visual_checks": {
-            "eight_frames": true,
-            "paddle_in_every_frame": true,
-            "visors_blank": true,
+            "front_three_quarter_right": true,
+            "wide_blank_visors": true,
+            "paddle_screen_right": true,
             "no_ball": true,
-            "no_guides_or_text": true,
-            "action_order_checked": true
+            "clean_anatomy_junctions": true,
+            "correct_frame4_cap_touch_or_both_arms_up": true,
+            "correct_frame6_grip": true
           }
         }
-      ],
-      "limitations": [
-        "Head size is approximately134px, with generated frame-to-frame variation; the uniform scale intentionally avoids deforming limbs or changing prop size per frame.",
-        "The loss sequence rotates and tilts the head, so its vertical screen-space height is not a fixed anatomical measurement.",
-        "Previews are inspection animations at12fps; not an engine playback test or temporal interpolation to60fps."
       ]
+    },
+    "robot_celebration_finish.json": {
+      "status": "final",
+      "tool": "built-in image_gen",
+      "final_sources": {
+        "celebration": "/workspace/scratch/ab2b2a31203b/generated_images/exec-23602579-a904-4695-80d4-2edb5f8215f3.png",
+        "loss": "/workspace/scratch/ab2b2a31203b/generated_images/exec-5a694525-c8ce-4d12-b1a4-b1439bda71ef.png"
+      },
+      "final_outputs": [
+        "output/table_tennis_3_4/pranchas/01_iamiguinho_comemoracao.png",
+        "output/table_tennis_3_4/pranchas/02_iamiguinho_decepcao.png"
+      ],
+      "attempts": [
+        {
+          "prompt": "Use case: precise-object-edit.\nEdit target: Image 1, the eight-frame table-tennis celebration sprite sheet. Image 2 is the canonical IAmiguinho MODEL SHEET for anatomical proportions only.\nMake ONE precise proportion correction in EVERY frame of Image 1: uniformly reduce the entire HEAD ASSEMBLY to 86 percent of its current linear size, anchored at the same chin/neck attachment point. The cream head, blank navy glass visor, blue headphones, blue-and-cream cap, and blue propeller all shrink together as one rigid proportional unit. The chin/neck connection remains at exactly its existing location, with the smaller head extending upward from it. The current neutral cap-top-to-chin height is about170px and must become about146px, while neck-to-ground remains about171px. This corrects the too-large head toward the model-sheet ratio of41%head to48%body. Do not shrink the whole character.\nKeep EVERYTHING ELSE unchanged: all eight original poses, the torso and limb sizes, hands, five fingers per hand, feet, shoes, paddles, grips, each frame's position, airborne height, and the4column×2row layout. Keep the same right-facing FRONT THREE-QUARTER camera view with a WIDE EMPTY VISOR clearly visible in every frame; do not turn to profile. The paddle stays on the RIGHT SIDE OF THE IMAGE in every frame, the free hand stays on the left. Keep the red paddle face, cream wooden handle, thin navy reverse; frame7 still shows its thin edge. Each paddle remains attached to the same hand and must never vanish. Frame2 retains its paddle. Frame4 retains both hands raised. Frame1 andframe8 remain ready stances.\nKeep the hand-painted cartoon finish, thick dark navy outline, cream/blue/cyan palette, white soles, and top-left light. Keep every background pixel flat pure green #00FF00. No facial features, eyes, mouth, emotions on the visor, balls, lines, shadows, text, numbers, guides, borders, or new objects. Same aspect ratio and framing as the edit target. Do not alter the approved camera angle or paddle handedness while correcting the head proportions.",
+          "path": "generated_images/exec-eb853fe4-2c1d-4419-8f0a-b345486660e2.png",
+          "selected": false,
+          "reason": "Head reduction moved neck and enlarged torso."
+        },
+        {
+          "prompt": "Use case: precise-object-edit. Image1 is the edit target, Image2 supplies the original short egg-shaped torso and limbs to preserve, Image3 is the canonical robot model.\nCorrect ONLY the slightly over-reduced head proportions in Image1. In each frame, enlarge its complete head assembly by approximately8percent relative to Image1, using the TOP OF THE CAP DOME as the fixed anchor, so the chin moves a little DOWN rather than the cap moving up. The target neutral head from cap-top to chin is147pixels and neck-to-foot is173pixels on this1774x887sheet: head/body ratio0.85, as in the canonical model. The neutral head currently measures only136pixels and the torso has accidentally become too tall. Restore the short small egg-shaped torso from Image2, without changing the arms, legs, hands, shoes or paddles. In the first frame keep cap dome top approximatelyy107 and set the chin at approximatelyy254, shoes still at428. These numbers are editing instructions only, do NOT draw them.\nAcross all frames preserve the same original poses, camera, grips, positions, paddle and airborne heights. Never lengthen or enlarge the body or limbs. Keep the corrected wide blank glass visor visible from the RIGHT-FACING FRONT THREE-QUARTER camera in all8frames; the paddle must remain on the RIGHT SIDE OF THE IMAGE, the free hand on the left. Keep the same red paddle, cream handle and navy back; frame7 stays edge-on. Frame2 has the paddle and frame4 has both arms raised. No ball. Keep thick navy outlines, hand-painted cartoon color/texture, top-left light, and puregreen #00FF00 background. Exactly8frames in4columns×2rows, no guides, labels, borders, numbers, facial features or added objects. Do not change camera angle, handedness, pose or prop design. Only restore the small amount of head size and undo the accidentally elongated upper torso.",
+          "path": "generated_images/exec-ea3cb2b9-6fca-4712-b25f-41b78a44df24.png",
+          "selected": false,
+          "reason": "Clean anatomy source for subsequent head normalization and seam repair."
+        },
+        {
+          "prompt": "Use case: precise-object-edit. IMAGE1 is a nearly finished game sprite sheet with correctly normalized SMALL HEADS and several accidental cutout seams. IMAGE2 is the clean source reference for reconstructing only the damaged pixels. Repair ONLY the cutout defects in IMAGE1. Preserve the current head size, the current small body proportions, the exact poses, overall scale, composition,4columns×2rows of8equalcells, all sprite positions and the green background. The head from top ofcap to chin is134pixels in each444pixelcell, and must stay that size; do NOT copy the larger head sizes from IMAGE2. Restore continuous hand-painted thick navy outlines and natural intact limb silhouettes with no green slices, detached outlines, missingfingers, choppedpaddles or holes through solid bodyparts. Keep FIVE fingers perhand. Repair sliced paddle edges and the narrow green cuts through the arms in frames3and4; restore intact paddles attached to the right hands. Repair the small head/neck seams in frames1,5,6,7. Frame7 paddle remains edge-on. Every visor stays fully unobstructed. Frame1 and8 are the SAME ready pose. Preserve the exact RIGHT-FACING FRONT THREE-QUARTER camera with a WIDE DARK EMPTY VISOR visible in everyframe. In ALL8frames the paddle remains on the RIGHT SIDE OF THE IMAGE and the freehand on the left. No face, eyes, mouth, balls, shadows, motionlines, text, guides, borders or numbers. Same blue/cream cap andpropeller, cyan-ring headphones, tinyeggtorso, creamlimbs, gloves, bluewhite-soledshoes, red-facedwoodenpaddle. Do not change the pose or the handedness. Keep background solid #00FF00. This is a local seam/occlusion repair, not a redesign or a rescale.",
+          "path": "generated_images/exec-23602579-a904-4695-80d4-2edb5f8215f3.png",
+          "selected": true,
+          "role": "final celebration source"
+        },
+        {
+          "prompt": "Use case: precise-object-edit. IMAGE1 is a nearly finished game sprite sheet with correctly normalized SMALL HEADS and several accidental cutout seams. IMAGE2 is the clean source reference for reconstructing only the damaged pixels. Repair ONLY the cutout defects in IMAGE1. Preserve the current head size, the current small body proportions, the exact poses, overall scale, composition,4columns×2rows of8equalcells, all sprite positions and the green background. The head from top ofcap to chin is134pixels in each444pixelcell, and must stay that size; do NOT copy the larger head sizes from IMAGE2. Restore continuous hand-painted thick navy outlines and natural intact limb silhouettes with no green slices, detached outlines, missingfingers, choppedpaddles or holes through solid bodyparts. Keep FIVE fingers perhand. Frame4: reconstruct the small occluded cap/ear/upper-arm area so the LEFT empty glove naturally touches the cap, with no green hole or slice. Keep RIGHT hand holding the paddle low beside knee. Frame6: RIGHT hand grips the wooden handle, LEFT palm gently taps the red blade BELOW THE VISOR. Restore narrow green neck seams in frames3,5,6,7 and remove any detached old headphone fringe in frame2. Frame1 and8 are the SAME ready pose. Preserve the exact RIGHT-FACING FRONT THREE-QUARTER camera with a WIDE DARK EMPTY VISOR visible in everyframe. In ALL8frames the paddle remains on the RIGHT SIDE OF THE IMAGE and the freehand on the left. No face, eyes, mouth, balls, shadows, motionlines, text, guides, borders or numbers. Same blue/cream cap andpropeller, cyan-ring headphones, tinyeggtorso, creamlimbs, gloves, bluewhite-soledshoes, red-facedwoodenpaddle. Do not change the pose or the handedness. Keep background solid #00FF00. This is a local seam/occlusion repair, not a redesign or a rescale.",
+          "path": "generated_images/exec-5a694525-c8ce-4d12-b1a4-b1439bda71ef.png",
+          "selected": true,
+          "role": "final loss source"
+        }
+      ],
+      "finishing": {
+        "script": "work/table_tennis_3_4/export_robot_final.py",
+        "method": "Pure-green cleanup and translation only after final seam repair; shared exact ready frame for 1/8 across both sheets.",
+        "head_height_approx_px": [
+          134,
+          138
+        ],
+        "neutral_body_height_approx_px": 157,
+        "minimum_margin_px": 16,
+        "celebration_feet_y": [
+          406,
+          406,
+          375,
+          360,
+          380,
+          406,
+          406,
+          406
+        ],
+        "loss_feet_y": [
+          406,
+          406,
+          406,
+          406,
+          406,
+          406,
+          406,
+          406
+        ],
+        "report": "work/table_tennis_3_4/robot_finish.json"
+      }
     },
     "blob_finish.json": {
       "cell_size": [
@@ -665,10 +698,11 @@
       "sheets": [
         {
           "name": "03_amiguinho_comemoracao",
-          "path": "/workspace/scratch/ab2b2a31203b/output/table_tennis/pranchas/03_amiguinho_comemoracao.png",
-          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-b85fbf6d-922e-4004-9acd-fd4cf8933136.png",
-          "uniform_scale": 1.0774410774410774,
+          "path": "/workspace/scratch/ab2b2a31203b/output/table_tennis_3_4/pranchas/03_amiguinho_comemoracao.png",
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-022f29ac-7ee6-4986-bba1-09d645bfbfc6.png",
+          "uniform_scale": 1.118881118881119,
           "neutral_standing_height": 320,
+          "first_last_ready_identical": true,
           "frame_count": 8,
           "frames": [
             {
@@ -679,23 +713,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                0,
-                0,
-                444,
-                444
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 206,
+              "scale": 1.118881118881119,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                94,
+                26,
                 87,
-                391,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": true
             },
             {
               "frame": 2,
@@ -705,23 +733,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                444,
-                0,
-                443,
-                444
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 216,
+              "scale": 1.118881118881119,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                78,
-                129,
-                414,
+                44,
+                119,
+                432,
                 407
               ],
-              "minimum_cell_margin": 30
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 3,
@@ -731,23 +753,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                887,
-                0,
-                443,
-                444
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 223,
-              "ground_or_foot_bottom_y": 394,
+              "scale": 1.118881118881119,
+              "ground_or_foot_bottom_y": 398,
               "airborne": true,
               "foreground_bbox": [
-                59,
-                18,
-                378,
-                395
+                25,
+                76,
+                432,
+                399
               ],
-              "minimum_cell_margin": 18
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 4,
@@ -757,23 +773,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                1330,
-                0,
-                444,
-                444
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 222,
-              "ground_or_foot_bottom_y": 389,
+              "scale": 1.118881118881119,
+              "ground_or_foot_bottom_y": 392,
               "airborne": true,
               "foreground_bbox": [
-                65,
+                37,
                 14,
-                399,
-                390
+                417,
+                393
               ],
-              "minimum_cell_margin": 14
+              "minimum_cell_margin": 14,
+              "common_ready_reused": false
             },
             {
               "frame": 5,
@@ -783,23 +793,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                0,
-                444,
-                444,
-                443
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 241,
-              "ground_or_foot_bottom_y": 399,
+              "scale": 1.118881118881119,
+              "ground_or_foot_bottom_y": 402,
               "airborne": true,
               "foreground_bbox": [
-                58,
-                22,
-                393,
-                400
+                31,
+                76,
+                432,
+                403
               ],
-              "minimum_cell_margin": 22
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 6,
@@ -809,23 +813,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                444,
-                444,
-                443,
-                443
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 215,
+              "scale": 1.118881118881119,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                80,
-                114,
-                402,
+                39,
+                95,
+                417,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 27,
+              "common_ready_reused": false
             },
             {
               "frame": 7,
@@ -835,23 +833,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                887,
-                444,
-                443,
-                443
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 218,
+              "scale": 1.118881118881119,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                85,
-                96,
-                388,
+                44,
+                88,
+                411,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 33,
+              "common_ready_reused": false
             },
             {
               "frame": 8,
@@ -861,32 +853,27 @@
                 444,
                 444
               ],
-              "source_rect": [
-                1330,
-                444,
-                444,
-                443
-              ],
-              "scale": 1.0774410774410774,
-              "source_body_center_x": 223,
+              "scale": 1.118881118881119,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                86,
-                90,
-                388,
+                26,
+                87,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": true
             }
           ]
         },
         {
           "name": "04_amiguinho_decepcao",
-          "path": "/workspace/scratch/ab2b2a31203b/output/table_tennis/pranchas/04_amiguinho_decepcao.png",
-          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-a6362b06-20b1-49ed-af49-180ba61bad4e.png",
-          "uniform_scale": 0.9495548961424333,
+          "path": "/workspace/scratch/ab2b2a31203b/output/table_tennis_3_4/pranchas/04_amiguinho_decepcao.png",
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-c00277e4-15a9-4ce0-b3db-fac464a0050a.png",
+          "uniform_scale": 1.0289389067524115,
           "neutral_standing_height": 320,
+          "first_last_ready_identical": true,
           "frame_count": 8,
           "frames": [
             {
@@ -897,23 +884,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                0,
-                0,
-                444,
-                444
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 213,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                93,
+                26,
                 87,
-                391,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": true
             },
             {
               "frame": 2,
@@ -923,23 +904,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                444,
-                0,
-                443,
-                444
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 215,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                97,
-                87,
-                385,
+                20,
+                88,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 3,
@@ -949,23 +924,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                887,
-                0,
-                443,
-                444
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 228,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                46,
-                141,
-                387,
+                10,
+                123,
+                434,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 10,
+              "common_ready_reused": false
             },
             {
               "frame": 4,
@@ -975,23 +944,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                1330,
-                0,
-                444,
-                444
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 236,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                15,
-                175,
-                392,
+                19,
+                153,
+                432,
                 407
               ],
-              "minimum_cell_margin": 15
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 5,
@@ -1001,23 +964,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                0,
-                444,
-                444,
-                443
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 231,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                43,
-                171,
-                392,
+                18,
+                144,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 6,
@@ -1027,23 +984,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                444,
-                444,
-                443,
-                443
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 223,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                89,
-                112,
-                363,
+                84,
+                121,
+                388,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 37,
+              "common_ready_reused": false
             },
             {
               "frame": 7,
@@ -1053,23 +1004,17 @@
                 444,
                 444
               ],
-              "source_rect": [
-                887,
-                444,
-                443,
-                443
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 219,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
-                90,
-                79,
-                381,
+                22,
+                86,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": false
             },
             {
               "frame": 8,
@@ -1079,28 +1024,22 @@
                 444,
                 444
               ],
-              "source_rect": [
-                1330,
-                444,
-                444,
-                443
-              ],
-              "scale": 0.9495548961424333,
-              "source_body_center_x": 217,
+              "scale": 1.0289389067524115,
               "ground_or_foot_bottom_y": 406,
               "airborne": false,
               "foreground_bbox": [
+                26,
                 87,
-                92,
-                385,
+                432,
                 407
               ],
-              "minimum_cell_margin": 37
+              "minimum_cell_margin": 12,
+              "common_ready_reused": true
             }
           ]
         }
       ],
-      "notes": "One common scale per sheet, no per-pose bbox fitting or limb resizing. Airborne heights reduced to preserve the raised paddles and at least12px top margin. Physical paddle size is visually matched; imagegen may retain small painted differences. No engine test."
+      "notes": "One uniform scale per source sheet and rigid frame alignment only; no deformation. Margin constrained placement. Both animations reuse the same exact ready frame1/8. Airborne jump height kept modest so the raised paddle and stretched jelly remain uncropped. No engine test."
     }
   },
   "engine_tested": false

@@ -7,10 +7,10 @@ i = s.index('window.FR=') + 10; FR, e1 = dec.raw_decode(s[i:])
 j = s.index('window.ATL=') + 11; ATL, e2 = dec.raw_decode(s[j:])
 k = s.index('window.ANIM=') + 12; ANIM, e3 = dec.raw_decode(s[k:])
 NOTAS = [
- ('IAmiguinho', 'pp_festa', 'Pingue-pongue · comemoração', 'Já no jogo: depois do ponto ganho e no fim da partida ganha; toca uma vez e termina pronto.'),
- ('IAmiguinho', 'pp_lamento', 'Pingue-pongue · lamento', 'Já no jogo: depois do ponto perdido e no fim da partida perdida.'),
- ('Amiguinho', 'bv2_pp_festa', 'Pingue-pongue · comemoração', 'Já no jogo: no 1 e no 8 o visor aparece pouco (fica sem o rosto aceso).'),
- ('Amiguinho', 'bv2_pp_lamento', 'Pingue-pongue · lamento', 'Já no jogo: de costas e de lado, o visor é só uma fresta (sem o rosto aceso).'),
+ ('IAmiguinho', 'pp_festa', 'Pingue-pongue · comemoração', 'Já no jogo, em 3/4 (01/11): depois do ponto ganho e no fim da partida ganha; toca uma vez e termina pronto.'),
+ ('IAmiguinho', 'pp_lamento', 'Pingue-pongue · lamento', 'Já no jogo, em 3/4 (01/11): depois do ponto perdido e no fim da partida perdida.'),
+ ('Amiguinho', 'bv2_pp_festa', 'Pingue-pongue · comemoração', 'Já no jogo, em 3/4 (01/11): o rosto aparece em todos os quadros.'),
+ ('Amiguinho', 'bv2_pp_lamento', 'Pingue-pongue · lamento', 'Já no jogo, em 3/4 (01/11): no 6 o visor é visto de cima e fica sem o rosto aceso.'),
 ]
 ANIM = [a for a in ANIM if str(a['sh'][0]) not in ('pp_festa', 'pp_lamento', 'bv2_pp_festa', 'bv2_pp_lamento')]
 TODAS = [(q, nm, t, nota, 1) for q, nm, t, nota in NOTAS]

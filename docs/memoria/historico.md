@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Rede da cesta, surfe (mortal, ondas, faixa escura) e reações em 3/4
+- **O dono pediu:** a rede presa no aro; o mortal do surfe girando pelo centro do corpo; as ondas sem cortes e no jeito da arte do mar; explicar o quadrado escuro com riscos (pedir arte se tiver função, tirar se não tiver). Mandou também as reações do pingue-pongue refeitas em 3/4.
+- **Feito:** rede no ponto de encaixe do pacote; mortal pelo centro do corpo; tubo e espuma com a cor de cada horário (tirada das faixas da onda) e bordas macias, a água até o pé da tela; saiu a faixa escura da frente (não tinha função). A correnteza (o quadrado escuro que aparece da 3ª série em diante) tem função: ganhou pedido de arte na página de pedidos. Reações em 3/4 no jogo e na Prévia. Publicado na página do Claude e no site.
+- **Pendente:** a arte da correnteza; o dono testar.
+
+---
+
 ## 01/11/2026: Basquete: cesta parada, linha do meio como linha de 3, tabela e bola maior
 - **O dono pediu:** tirar o andar da cesta e usar a linha do meio pintada na quadra como divisor dos 3 pontos (a linha desenhada pelo jogo não combinava com a arte); a bola bater no meio da tabela, não na beirada; a bola maior.
 - **Feito:** cesta fixa em todas as séries; três pontos atrás da linha do meio, sem a linha extra; tabela centrada onde a bola bate; bola 30% maior no desenho (a física do aro ficou como antes, porque com a bola maior até o arremesso perfeito errava). Publicado na página do Claude e no site.

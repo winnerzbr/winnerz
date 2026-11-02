@@ -1,0 +1,20 @@
+TEXTURAS DE ONDA — ENCAIXES CORRIGIDOS
+
+Arquivos PNG RGB, sem mudança de dimensões:
+01_tubo_entrada.png — 1254 x 1254
+02_tubo_meio_repetivel.png — 1254 x 1254
+03_tubo_fechamento.png — 1254 x 1254
+04_corrente_repetivel_vertical.png — 887 x 1774
+
+Montagem horizontal: entrada, uma ou mais cópias do meio, fechamento.
+As três peças usam a mesma escala e alinhamento pela base.
+A corrente se repete de cima para baixo e mantém proporção 1:2.
+O verde de recorte das peças do tubo foi padronizado para #00FF00.
+
+Verificação: entrada–meio, meio–meio, meio–fechamento e corrente
+inferior–superior têm diferença máxima de 0 em todos os canais RGB.
+As áreas centrais da pintura foram preservadas; os ajustes de encaixe
+ficam nas margens. O arquivo verificacao.json registra os testes e hashes.
+
+previa_montagem.png é apenas uma prévia reduzida da montagem horizontal;
+use os quatro PNGs numerados como texturas no jogo.

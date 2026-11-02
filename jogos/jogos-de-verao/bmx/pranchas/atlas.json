@@ -1,0 +1,1799 @@
+{
+  "sheet_size": [
+    1776,
+    888
+  ],
+  "cell_size": [
+    444,
+    444
+  ],
+  "columns": 4,
+  "rows": 2,
+  "order": "left to right, top to bottom",
+  "ground_anchor": [
+    222,
+    406
+  ],
+  "background_rgb": [
+    0,
+    255,
+    0
+  ],
+  "sheets": [
+    {
+      "name": "01_pedalando",
+      "sheet": "pranchas/01_pedalando.png",
+      "frames": "frames/01_pedalando",
+      "preview": "previews/01_pedalando.webp",
+      "frame_count": 8,
+      "loop": true
+    },
+    {
+      "name": "02_pumping",
+      "sheet": "pranchas/02_pumping.png",
+      "frames": "frames/02_pumping",
+      "preview": "previews/02_pumping.webp",
+      "frame_count": 8,
+      "loop": true
+    },
+    {
+      "name": "03_salto",
+      "sheet": "pranchas/03_salto.png",
+      "frames": "frames/03_salto",
+      "preview": "previews/03_salto.webp",
+      "frame_count": 8,
+      "loop": false
+    },
+    {
+      "name": "04_superman",
+      "sheet": "pranchas/04_superman.png",
+      "frames": "frames/04_superman",
+      "preview": "previews/04_superman.webp",
+      "frame_count": 8,
+      "loop": false
+    },
+    {
+      "name": "05_no_hander",
+      "sheet": "pranchas/05_no_hander.png",
+      "frames": "frames/05_no_hander",
+      "preview": "previews/05_no_hander.webp",
+      "frame_count": 8,
+      "loop": false
+    },
+    {
+      "name": "06_tailwhip",
+      "sheet": "pranchas/06_tailwhip.png",
+      "frames": "frames/06_tailwhip",
+      "preview": "previews/06_tailwhip.webp",
+      "frame_count": 8,
+      "loop": false
+    },
+    {
+      "name": "07_aterrissagem",
+      "sheet": "pranchas/07_aterrissagem.png",
+      "frames": "frames/07_aterrissagem",
+      "preview": "previews/07_aterrissagem.webp",
+      "frame_count": 8,
+      "loop": false
+    },
+    {
+      "name": "08_queda",
+      "sheet": "pranchas/08_queda.png",
+      "frames": "frames/08_queda",
+      "preview": "previews/08_queda.webp",
+      "frame_count": 8,
+      "loop": false
+    }
+  ],
+  "rectangles": [
+    {
+      "frame": 1,
+      "x": 0,
+      "y": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 2,
+      "x": 444,
+      "y": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 3,
+      "x": 888,
+      "y": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 4,
+      "x": 1332,
+      "y": 0,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 5,
+      "x": 0,
+      "y": 444,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 6,
+      "x": 444,
+      "y": 444,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 7,
+      "x": 888,
+      "y": 444,
+      "width": 444,
+      "height": 444
+    },
+    {
+      "frame": 8,
+      "x": 1332,
+      "y": 444,
+      "width": 444,
+      "height": 444
+    }
+  ],
+  "finishing": {
+    "sheets": [
+      {
+        "name": "01_pedalando",
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-5eb1e705-0f26-4335-a5f4-cb1aee120e96.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              25,
+              13,
+              416,
+              439
+            ],
+            "output_bounds": [
+              42,
+              18,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              6.419999999999959
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              25,
+              13,
+              415,
+              440
+            ],
+            "output_bounds": [
+              41,
+              18,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              6.509999999999991
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              25,
+              16,
+              417,
+              441
+            ],
+            "output_bounds": [
+              41,
+              18,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              4.599999999999966
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              25,
+              13,
+              416,
+              440
+            ],
+            "output_bounds": [
+              43,
+              18,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              6.509999999999991
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              25,
+              10,
+              417,
+              433
+            ],
+            "output_bounds": [
+              42,
+              18,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              10.879999999999995
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              24,
+              9,
+              415,
+              433
+            ],
+            "output_bounds": [
+              42,
+              20,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              12.879999999999995
+            ],
+            "minimum_margin": 20,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              25,
+              10,
+              416,
+              433
+            ],
+            "output_bounds": [
+              42,
+              18,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              10.879999999999995
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              25,
+              10,
+              416,
+              433
+            ],
+            "output_bounds": [
+              42,
+              20,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              12.879999999999995
+            ],
+            "minimum_margin": 20,
+            "lowest_foreground_y": 406
+          }
+        ],
+        "notes": "Eight distinct loop phases retained; no duplicated endpoint. Grounded wheel bottoms aligned to y406."
+      },
+      {
+        "name": "02_pumping",
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-bef4e69b-5697-40a9-a0a6-fd92355bf039.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              22,
+              13,
+              415,
+              439
+            ],
+            "output_bounds": [
+              40,
+              19,
+              397,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              7.419999999999959
+            ],
+            "minimum_margin": 19,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              21,
+              38,
+              414,
+              439
+            ],
+            "output_bounds": [
+              40,
+              40,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              7.419999999999959
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              23,
+              55,
+              415,
+              439
+            ],
+            "output_bounds": [
+              40,
+              56,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              6.419999999999959
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              23,
+              98,
+              417,
+              440
+            ],
+            "output_bounds": [
+              41,
+              95,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              6.509999999999991
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              22,
+              58,
+              415,
+              432
+            ],
+            "output_bounds": [
+              40,
+              66,
+              397,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              13.789999999999964
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              21,
+              29,
+              414,
+              432
+            ],
+            "output_bounds": [
+              39,
+              40,
+              398,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              13.789999999999964
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              22,
+              4,
+              415,
+              432
+            ],
+            "output_bounds": [
+              39,
+              17,
+              398,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              13.789999999999964
+            ],
+            "minimum_margin": 17,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              23,
+              28,
+              417,
+              432
+            ],
+            "output_bounds": [
+              41,
+              38,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              12.789999999999964
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          }
+        ],
+        "notes": "Eight distinct loop phases retained; no duplicated endpoint. Grounded wheel bottoms aligned to y406."
+      },
+      {
+        "name": "03_salto",
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-1afa26d9-b214-466d-a0c4-d48c07614436.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              0,
+              0,
+              378,
+              354
+            ],
+            "output_bounds": [
+              45,
+              84,
+              389,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              44.54999999999999,
+              83.76999999999998
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              1,
+              0,
+              372,
+              402
+            ],
+            "output_bounds": [
+              53,
+              35,
+              392,
+              401
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              52.285000000000004,
+              35.089999999999975
+            ],
+            "minimum_margin": 35,
+            "lowest_foreground_y": 400
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              1,
+              1,
+              378,
+              368
+            ],
+            "output_bounds": [
+              42,
+              44,
+              386,
+              379
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              42.275000000000006,
+              44.02999999999997
+            ],
+            "minimum_margin": 42,
+            "lowest_foreground_y": 378
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              1,
+              1,
+              383,
+              360
+            ],
+            "output_bounds": [
+              46,
+              37,
+              395,
+              365
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              45.459999999999994,
+              37.31
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 364
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              0,
+              1,
+              381,
+              364
+            ],
+            "output_bounds": [
+              44,
+              25,
+              391,
+              355
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              43.639999999999986,
+              23.670000000000016
+            ],
+            "minimum_margin": 25,
+            "lowest_foreground_y": 354
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              0,
+              1,
+              384,
+              363
+            ],
+            "output_bounds": [
+              46,
+              27,
+              396,
+              359
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              45.915000000000006,
+              26.579999999999984
+            ],
+            "minimum_margin": 27,
+            "lowest_foreground_y": 358
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              1,
+              0,
+              387,
+              373
+            ],
+            "output_bounds": [
+              42,
+              40,
+              395,
+              381
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              42.275000000000006,
+              40.47999999999996
+            ],
+            "minimum_margin": 40,
+            "lowest_foreground_y": 380
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              0,
+              1,
+              387,
+              361
+            ],
+            "output_bounds": [
+              42,
+              66,
+              396,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              41.81999999999999,
+              66.39999999999998
+            ],
+            "minimum_margin": 42,
+            "lowest_foreground_y": 396
+          }
+        ],
+        "notes": "Eight full connected silhouettes extracted to recover the first source frame below its nominal row. Wheel-contact trajectory places compression on ground and subsequent phases above it; same whole-sprite scale throughout."
+      },
+      {
+        "name": "04_superman",
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-8a772583-6789-4724-ae3f-0612e7f48fff.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              1,
+              0,
+              392,
+              423
+            ],
+            "output_bounds": [
+              43,
+              12,
+              399,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              41.81999999999999,
+              11.979999999999961
+            ],
+            "minimum_margin": 12,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              1,
+              0,
+              385,
+              424
+            ],
+            "output_bounds": [
+              45,
+              10,
+              396,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              45.005,
+              10.069999999999993
+            ],
+            "minimum_margin": 10,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              1,
+              1,
+              408,
+              425
+            ],
+            "output_bounds": [
+              27,
+              9,
+              399,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              26.805000000000003,
+              8.159999999999968
+            ],
+            "minimum_margin": 9,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              2,
+              1,
+              439,
+              423
+            ],
+            "output_bounds": [
+              8,
+              10,
+              409,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              8.14999999999999,
+              9.979999999999961
+            ],
+            "minimum_margin": 8,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              2,
+              1,
+              424,
+              411
+            ],
+            "output_bounds": [
+              35,
+              19,
+              422,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              35.44999999999999,
+              18.899999999999977
+            ],
+            "minimum_margin": 19,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              0,
+              1,
+              390,
+              410
+            ],
+            "output_bounds": [
+              60,
+              21,
+              415,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              59.565000000000005,
+              20.810000000000002
+            ],
+            "minimum_margin": 21,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              1,
+              0,
+              392,
+              410
+            ],
+            "output_bounds": [
+              42,
+              23,
+              398,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              41.365,
+              22.810000000000002
+            ],
+            "minimum_margin": 23,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              0,
+              1,
+              397,
+              412
+            ],
+            "output_bounds": [
+              38,
+              21,
+              399,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              38.17999999999999,
+              20.99000000000001
+            ],
+            "minimum_margin": 21,
+            "lowest_foreground_y": 396
+          }
+        ],
+        "notes": "Recovered eight complete connected rider-and-bike silhouettes, including the source frame4 shoe beyond its nominal cell, before rigid placement. Modest airborne wheel height preserves fixed character scale and clear cell margins."
+      },
+      {
+        "name": "05_no_hander",
+        "source": "/workspace/scratch/ab2b2a31203b/work/bmx/no_hander_knees_repaired_source.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              26,
+              15,
+              406,
+              437
+            ],
+            "output_bounds": [
+              43,
+              9,
+              390,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              -2.759999999999991
+            ],
+            "minimum_margin": 9,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              24,
+              15,
+              406,
+              437
+            ],
+            "output_bounds": [
+              43,
+              9,
+              392,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              -2.759999999999991
+            ],
+            "minimum_margin": 9,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              29,
+              15,
+              410,
+              437
+            ],
+            "output_bounds": [
+              47,
+              11,
+              394,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              -2.759999999999991
+            ],
+            "minimum_margin": 11,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              33,
+              15,
+              416,
+              437
+            ],
+            "output_bounds": [
+              50,
+              10,
+              399,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              -2.759999999999991
+            ],
+            "minimum_margin": 10,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              28,
+              13,
+              408,
+              429
+            ],
+            "output_bounds": [
+              45,
+              16,
+              392,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              4.519999999999982
+            ],
+            "minimum_margin": 16,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              20,
+              13,
+              402,
+              428
+            ],
+            "output_bounds": [
+              38,
+              17,
+              388,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              5.430000000000007
+            ],
+            "minimum_margin": 17,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              21,
+              13,
+              410,
+              428
+            ],
+            "output_bounds": [
+              39,
+              18,
+              394,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              7.430000000000007
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              26,
+              13,
+              411,
+              429
+            ],
+            "output_bounds": [
+              43,
+              17,
+              396,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              5.519999999999982
+            ],
+            "minimum_margin": 17,
+            "lowest_foreground_y": 396
+          }
+        ],
+        "notes": "Fixed whole-sprite scale and modest airborne wheel-height bob. Source frames4–5 revised by image generation to place the knees beside the saddle; other six source frames unchanged."
+      },
+      {
+        "name": "06_tailwhip",
+        "source": "/workspace/scratch/ab2b2a31203b/work/bmx/06_tailwhip_front_locked_source.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              2,
+              0,
+              394,
+              426
+            ],
+            "source_origin": [
+              23,
+              14
+            ],
+            "output_bounds": [
+              42,
+              9,
+              400,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              40.90999999999999,
+              9.25
+            ],
+            "minimum_margin": 9,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              0,
+              0,
+              384,
+              430
+            ],
+            "source_origin": [
+              489,
+              12
+            ],
+            "output_bounds": [
+              61,
+              5,
+              411,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              61.385000000000005,
+              4.610000000000014
+            ],
+            "minimum_margin": 5,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              0,
+              0,
+              367,
+              429
+            ],
+            "source_origin": [
+              931,
+              12
+            ],
+            "output_bounds": [
+              60,
+              5,
+              395,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              60.475,
+              4.519999999999982
+            ],
+            "minimum_margin": 5,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              0,
+              0,
+              360,
+              423
+            ],
+            "source_origin": [
+              1413,
+              12
+            ],
+            "output_bounds": [
+              96,
+              9,
+              424,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              95.50999999999999,
+              8.979999999999961
+            ],
+            "minimum_margin": 9,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              0,
+              0,
+              339,
+              423
+            ],
+            "source_origin": [
+              97,
+              454
+            ],
+            "output_bounds": [
+              108,
+              10,
+              418,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              108.24999999999999,
+              9.979999999999961
+            ],
+            "minimum_margin": 10,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              1,
+              2,
+              322,
+              425
+            ],
+            "source_origin": [
+              541,
+              451
+            ],
+            "output_bounds": [
+              109,
+              8,
+              403,
+              395
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              108.705,
+              8.159999999999968
+            ],
+            "minimum_margin": 8,
+            "lowest_foreground_y": 394
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              1,
+              0,
+              395,
+              422
+            ],
+            "source_origin": [
+              906,
+              453
+            ],
+            "output_bounds": [
+              38,
+              13,
+              398,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              37.725,
+              12.889999999999986
+            ],
+            "minimum_margin": 13,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              1,
+              1,
+              397,
+              425
+            ],
+            "source_origin": [
+              1348,
+              451
+            ],
+            "output_bounds": [
+              36,
+              11,
+              398,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              36.359999999999985,
+              10.159999999999968
+            ],
+            "minimum_margin": 11,
+            "lowest_foreground_y": 396
+          }
+        ],
+        "notes": "Source frames4–5 revised by image generation to keep the front fork, handlebar, and gripping hands facing right while the rear frame travels around the steering axis. Tailwhip yaw remains an illustrated approximation. Same whole-sprite scale and source horizontal registration throughout; complete silhouettes and thin wheel spokes retained."
+      },
+      {
+        "name": "07_aterrissagem",
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-d736764a-3918-4ce6-900a-2c88eda04cec.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              25,
+              13,
+              416,
+              439
+            ],
+            "output_bounds": [
+              41,
+              19,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              7.419999999999959
+            ],
+            "minimum_margin": 19,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              25,
+              28,
+              415,
+              439
+            ],
+            "output_bounds": [
+              41,
+              31,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              5.419999999999959
+            ],
+            "minimum_margin": 31,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              25,
+              48,
+              416,
+              440
+            ],
+            "output_bounds": [
+              42,
+              48,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              4.509999999999991
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              25,
+              62,
+              416,
+              440
+            ],
+            "output_bounds": [
+              42,
+              61,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              6.509999999999991
+            ],
+            "minimum_margin": 37,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              25,
+              8,
+              417,
+              433
+            ],
+            "output_bounds": [
+              41,
+              20,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              12.879999999999995
+            ],
+            "minimum_margin": 20,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              24,
+              6,
+              415,
+              433
+            ],
+            "output_bounds": [
+              42,
+              16,
+              400,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              10.879999999999995
+            ],
+            "minimum_margin": 16,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              24,
+              4,
+              416,
+              433
+            ],
+            "output_bounds": [
+              42,
+              14,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              20.435000000000002,
+              10.879999999999995
+            ],
+            "minimum_margin": 14,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              25,
+              4,
+              416,
+              433
+            ],
+            "output_bounds": [
+              42,
+              17,
+              399,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              19.97999999999999,
+              12.879999999999995
+            ],
+            "minimum_margin": 17,
+            "lowest_foreground_y": 406
+          }
+        ],
+        "notes": "All wheel contacts registered to the common ground line."
+      },
+      {
+        "name": "08_queda",
+        "source": "/workspace/scratch/ab2b2a31203b/work/bmx/08_crash_compact_source.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "sheet_size": [
+          1776,
+          888
+        ],
+        "cell_size": [
+          444,
+          444
+        ],
+        "uniform_scale": 0.91,
+        "chroma_key_rgb": [
+          0,
+          255,
+          0
+        ],
+        "first_last_copied": false,
+        "frames": [
+          {
+            "frame": 1,
+            "source_bounds": [
+              3,
+              3,
+              385,
+              446
+            ],
+            "output_bounds": [
+              41,
+              2,
+              390,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              39.08999999999999,
+              0.05000000000001137
+            ],
+            "minimum_margin": 2,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 2,
+            "source_bounds": [
+              2,
+              3,
+              414,
+              445
+            ],
+            "output_bounds": [
+              38,
+              2,
+              413,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              35.905,
+              -0.040000000000020464
+            ],
+            "minimum_margin": 2,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 3,
+            "source_bounds": [
+              3,
+              2,
+              411,
+              417
+            ],
+            "output_bounds": [
+              41,
+              18,
+              413,
+              397
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              38.635000000000005,
+              15.439999999999998
+            ],
+            "minimum_margin": 18,
+            "lowest_foreground_y": 396
+          },
+          {
+            "frame": 4,
+            "source_bounds": [
+              3,
+              3,
+              448,
+              335
+            ],
+            "output_bounds": [
+              17,
+              94,
+              424,
+              400
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              16.33999999999999,
+              93.06
+            ],
+            "minimum_margin": 17,
+            "lowest_foreground_y": 399
+          },
+          {
+            "frame": 5,
+            "source_bounds": [
+              3,
+              2,
+              436,
+              221
+            ],
+            "output_bounds": [
+              29,
+              206,
+              425,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              28.169999999999987,
+              203.79999999999998
+            ],
+            "minimum_margin": 19,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 6,
+            "source_bounds": [
+              3,
+              3,
+              421,
+              214
+            ],
+            "output_bounds": [
+              33,
+              214,
+              414,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              30.445,
+              212.17
+            ],
+            "minimum_margin": 30,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 7,
+            "source_bounds": [
+              3,
+              3,
+              419,
+              297
+            ],
+            "output_bounds": [
+              32,
+              139,
+              413,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              31.355000000000004,
+              136.64
+            ],
+            "minimum_margin": 31,
+            "lowest_foreground_y": 406
+          },
+          {
+            "frame": 8,
+            "source_bounds": [
+              3,
+              3,
+              419,
+              327
+            ],
+            "output_bounds": [
+              34,
+              112,
+              415,
+              407
+            ],
+            "uniform_scale": 0.91,
+            "translation": [
+              31.809999999999988,
+              109.33999999999997
+            ],
+            "minimum_margin": 29,
+            "lowest_foreground_y": 406
+          }
+        ],
+        "notes": "Manual whole-frame source regions preserve both disconnected rider and bicycle, source-row overflow, and the frame5 hand beyond its nominal cell. Frames1–2 tire contacts and frames5–8 body/hand/foot ground contacts registered to y406. Frames3–4 airborne. Source frame3 falling bicycle repositioned by image generation before rigid finishing. No anatomy masks or limb deformation."
+      }
+    ]
+  },
+  "engine_tested": false
+}

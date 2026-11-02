@@ -1,0 +1,420 @@
+[
+  {
+    "pedaling": {
+      "prompt": "Use case: stylized-concept. Production game animation sprite sheet of IAmiguinho with his approved red BMX. Use image1 as the exact character MODEL SHEET, image2 as the exact 4column x2row GUIDE GRID layout only, image3 as the approved BMX design. Create ONE sheet with exactly8 sequential animation frames in reading order, FOUR equal columns and TWO equal rows. Wide2:1 canvas matching the guide, preferably1776x888 or proportional high resolution. Never draw guides, cell borders, words or numbers.\nCANONICAL MODEL: big cream round head with blue-and-cream striped cap and blue propeller, blue/cyan headphones, BLANK dark glass visor, tiny cream egg torso, thin SHORT cream limbs, white gloves with FIVE fingers including thumb, blue wristcuffs, big blue sneakers with white soles. Exactly2arms2hands2legs, noextra limbs. Head(cap top to chin)41%, neck-to-foot48%, propeller11% of a standing character; DO NOT elongate body or limbs for poses. At a normalized444x444 cell the head cap-top-to-chin is134pixels and hypothetical standing height325pixels. Preserve this physical head size in all eight frames whatever the pose, no per-frame scaling. Short little body only slightly taller than head when standing, fixed bone lengths.\nBIKE: identical compact red diamond BMX in all frames, black knobby tires, silver spokes/rims, navy saddle, blue grips and pedals, blank white handlebar numberplate. Same wheel diameter approximately100pixels, bike length approximately330pixels in each444cell. Same rigid frame size, saddle and bar geometry in allframes,2wheels only. Hands on actual blue grips and shoes on actual pedals when specified, plausible bent joints. Use enough side separation to see both limbs where possible.\nCAMERA: fixed SIDE VIEW facing RIGHT in every frame, matching side-view character from model. No camera turns. Top-left light, painterly rich localcolors, soft brush texture, thick organic DARK NAVY outlines. Consistent side projection and scale, no perspective change.\nLAYOUT: normalized groundy406 within each444cell; grounded wheel bottoms touch this same invisible ground, airborne frames rise when specified. Keep head near horizontalcenter of its cell. Keep the entire rider AND entire bike inside each cell with generous padding, especiallypropeller/tires/arms. No crossing cell borders. Pure flat GREEN #00FF00 fills every space outside artwork, including wheel-spoke holes. No shadows, dust, motion lines, props, ball, floor, ramp, labels, text, numbers or facialfeatures. Do not draw expressions in visor.\nMotion is coherent smooth small-step in-betweenanimation, not8unrelatedposes.\nSHEET: PEDALING A BMX, seamless8-framecycle. Standing above the saddle ON THE PEDALS, leaning gently forward, both white gloved hands holding both blue handlebar grips throughout. The bike frame and wheelaxles are locked at identical position and scale in everycell, both wheelbottoms remainontheground. Head and torso make only a tiny naturalbob.\nPedals and legs complete ONE FULL360degree crank revolution over the8 distinct frames, advancing45degrees each frame. The two cranks are exactly180degrees opposed. In screen coordinates(clockwise forward pedaling for right-facingbike): frame1 NEARpedal at the FRONT of the crankcircle(right/3oclock), FARpedal atback(left/9oclock); frame2 nearlowerfront/farupperback; frame3 nearbottom/fartop; frame4 nearlowerback/farupperfront; frame5 nearback/farfront; frame6 nearupperback/farlowerfront; frame7 neartop/farbottom; frame8 nearupperfront/farlowerback, flowing smoothlybacktoframe1. Shoes remain on their pedals, soles approximatelylevel, knees follow this rotationnaturally without stretchinglegs or reversingkneejoints. Keep distinctnear/farlegs; NEVER duplicatelegs or lockbothfeetinasinglephase. Bothwheelsrotate coherentlyclockwise via slightlychangingspokeangles while their outercircles/tread dimensionsstayunchanged. Handsstayongrips. The8thpose is the lastphase BEFOREframe1, not a duplicateframe1.",
+      "initial_source": "generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png",
+      "final_source": "generated_images/exec-5eb1e705-0f26-4335-a5f4-cb1aee120e96.png"
+    },
+    "pumping": {
+      "prompt": "Use case: stylized-concept. Production game animation sprite sheet of IAmiguinho with his approved red BMX. Use image1 as the exact character MODEL SHEET, image2 as the exact 4column x2row GUIDE GRID layout only, image3 as the approved BMX design. Create ONE sheet with exactly8 sequential animation frames in reading order, FOUR equal columns and TWO equal rows. Wide2:1 canvas matching the guide, preferably1776x888 or proportional high resolution. Never draw guides, cell borders, words or numbers.\nCANONICAL MODEL: big cream round head with blue-and-cream striped cap and blue propeller, blue/cyan headphones, BLANK dark glass visor, tiny cream egg torso, thin SHORT cream limbs, white gloves with FIVE fingers including thumb, blue wristcuffs, big blue sneakers with white soles. Exactly2arms2hands2legs, noextra limbs. Head(cap top to chin)41%, neck-to-foot48%, propeller11% of a standing character; DO NOT elongate body or limbs for poses. Match the same physical head and limb sizes as image4, the mounted-rider reference; do not enlarge or shrink body parts. Preserve this physical head size in all eight frames whatever the pose, no per-frame scaling. Short little body only slightly taller than head when standing, fixed bone lengths.\nBIKE: identical compact red diamond BMX in all frames, black knobby tires, silver spokes/rims, navy saddle, blue grips and pedals, blank white handlebar numberplate. Keep exactly the same physical bike geometry and same wheel diameter as reference image4, the approved mounted-rider scale. Same rigid frame size, saddle and bar geometry in allframes,2wheels only. Hands on actual blue grips and shoes on actual pedals when specified, plausible bent joints. Use enough side separation to see both limbs where possible.\nCAMERA: fixed SIDE VIEW facing RIGHT in every frame, matching side-view character from model. No camera turns. Top-left light, painterly rich localcolors, soft brush texture, thick organic DARK NAVY outlines. Consistent side projection and scale, no perspective change.\nLAYOUT: normalized groundy406 within each444cell; grounded wheel bottoms touch this same invisible ground, airborne frames rise when specified. Keep head near horizontalcenter of its cell. Keep the entire rider AND entire bike inside each cell with generous padding, especiallypropeller/tires/arms. No crossing cell borders. Pure flat GREEN #00FF00 fills every space outside artwork, including wheel-spoke holes. No shadows, dust, motion lines, props, ball, floor, ramp, labels, text, numbers or facialfeatures. Do not draw expressions in visor.\nMotion is coherent smooth small-step in-betweenanimation, not8unrelatedposes.\nReference image4 is the mounted IAmiguinho and BMX scale/style reference, not an action to copy.\nSHEET: PUMPING ON THE BIKE, smooth8frame compression-extension loop, fixedsideviewRIGHT. Both hands remainonbluegrips, bothfeetremainonlevelbluepedals (one crankpointsforward, otherback, samelevelpedals throughout; NO PEDALING inthissheet). Bothwheels remainoncommoninvisibleground, bikeframe/tires fixedsize andposition.\nThe RIDER changesheightbyflexingthe SAME short arms andknees, not byscaling. Pelvis staysabove saddle, body leanforward, littlecreamtorso, largeheadconstantphysicalsize.\nFrame1 mid-high stance startingcompression, slightbend.\nFrame2 lower bynaturalelbow/kneeflexion.\nFrame3 lowerstill, chestclosertohandlebars.\nFrame4 deepestcompactcrouch, elbowsandkneesdeeplybent, headvisiblylower, not buriedbehindgrips; knees don'tbendbackwards.\nFrame5 beginsrising fromdeepcrouch.\nFrame6 midwayrising.\nFrame7 tallestpumpstance withlegsandarmsnearlyextendedbutnotoverlongorlocked, pelvisabove saddle.\nFrame8 veryslight returntowardframe1height, so8→1closesnaturally.\nSmallgradualchanges1→2→3→4and5→6→7→8. The crankangle staysLOCKED. Preservebikegeometryexactly; onlytinywheelspokechangesforslowrolling. No ramp, grounddrawing, dust, shadows, actionlines or labels. Entirebikeandriderfullyinsideeachcell.",
+      "initial_source": "generated_images/exec-858e6325-d896-4eca-b319-7116d63538cf.png",
+      "final_source": "generated_images/exec-bef4e69b-5697-40a9-a0a6-fd92355bf039.png"
+    },
+    "references": [
+      "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+      "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png",
+      "/workspace/scratch/ab2b2a31203b/upload/6e5aac95-0688-4032-a7ba-856af318b687.png"
+    ]
+  },
+  {
+    "pedaling_correction": "Use case: precise-object-edit. Edit the attached8frame4x2 BMX PEDALING sheet. Preserve itscharacterdesign, headphysicalsize, torso, armsandhandsongrips, bicycleframe, saddle, fork, wheelcentersanddimensions, blue/cream/redpalette, outlines, lighting, background, gridlayout andoverallscale. Visorblank.\nCorrect ONLY the eight crank/pedal angles and the corresponding legs/shoes to show a TRUE COMPLETE FORWARD CLOCKWISE PEDAL REVOLUTION. The currentlegcycle skips the lower-back half of the revolution. This must be fixed. Use a SMALL constant crankradius of28pixels atthissheetresolution, notalargeorbit. Bothcranksalways180degreesopposed, fixedcrankcenteronbottombracket. Eachshoe'sSOLErestsonthebluepedal, twofootcontactsperframe. Slightnaturalhipboballowed tokeepcanonicalshortlimbs; noelongatedlegs or backbendingknees.\nNearpedal inframe1 mustpoint EXACTLY3oclock(right/front), far9oclock(left/back).\nFrame2 near4:30(lower-right), far10:30(upper-left).\nFrame3 near6oclock(DIRECTLYBELOWthecrank), far12oclock(DIRECTLYABOVE).\nFrame4 near7:30(LOWER-LEFT, BELOWandBEHINDthecrank), far1:30(upper-right).\nFrame5 near9oclock(left/BACK), far3oclock(right/front).\nFrame6 near10:30(upper-left), far4:30(lower-right).\nFrame7 near12oclock(DIRECTLYABOVE), far6oclock(DIRECTLYBELOW).\nFrame8 near1:30(upper-right), far7:30(lower-left), flowingintoframe1.\nIt is crucial thatframes3and4show the NEARbluepedal BELOW the crank, withthe nearshoeonit, andframes4and5show itBEHINDthecrank. DO NOTreuseanupperpedalposeinthoseframes. Theseare8small45degreeincrements, NEVER8unrelatedlegposes. Shownearlegandfarlegas2distinctshortcreamlegswiththeirproperbluecuffedshoes, noextrafoot, noextraknee. Do notmovethebike, changeheadorlimbsize, redrawfaces, cropanypartorintroduceanytext/clocklabels/numbers/arrows. Keep puregreen#00FF00 everywhereoutsideart.",
+    "pumping_correction": "Use case: precise-object-edit. Edit the attached8frame4x2 BMX PUMPING sheet. Preserve allcharactersizes, head/bikescale, colors, sideviewRIGHT, glovedhandsongrips, blankvisors, outlines, painterlyfinish, bicycleframeandwheelpositions, andpuregreen#00FF00background. Two targetedmotioncorrections only.\nA) In ALL8frames fix the CRANKS at the SAME LEVELhorizontal3oclock/9oclockposition: nearpedal directlyRIGHT ofcrankcenter, farpedal directlyLEFT, bothpedalaxles atthesameheightasthecrankcenter, fixedcrankradius28pixels. ThisisPUMPINGnotpedaling: donotrotatethecrankacrossframes. Bothshoessolesstayonthecorrespondingpedals andbothkneesbendnaturally. Keepshortcanonicallimbs, noelongation.\nB) Frame5(bottomrowleft) riseswaytoomuchafterdeepframe4. LowerONLYthatframe5riderintoalowcrouch likeframe3, slightlyhigherthanframe4, tobegintheupwardreleasegradually. Keepbothhandsonactualgrips, torsoandheadlowwithbentelbows/knees, fixedheadsize. Frame6remainmediumheight,frame7highest,frame8slightdipbacktowardframe1. Thus1→2→3→4gradualcompression,5stilllow,6middle,7high,8return. Neverchangebicyclesizeorwheelheighttomakecrouch.\nNoaddedtext,numbers,borders,groundline,shadows,dust,rampsorobjects. Keep8frames4columns2rows withallspritesinsidecells."
+  },
+  {
+    "status": "final source artwork ready for root technical finish",
+    "tool": "built-in image_gen",
+    "sheets": [
+      {
+        "key": "03_BMX_AIR",
+        "selected_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-1afa26d9-b214-466d-a0c4-d48c07614436.png",
+        "size": [
+          1774,
+          887
+        ],
+        "qa": {
+          "frame_count": 8,
+          "camera": "right-facing side, matches pedalbase",
+          "blank_visors": true,
+          "both_hands_on_bars": true,
+          "both_feet_on_pedals": true,
+          "wheels_per_frame": 2,
+          "character_parts_present": true,
+          "head_size_note": "Visual approximate match to base; projected cap-to-chin differs with head tilt. No code anatomy edits performed.",
+          "action": "compress, pop, rise, compact float, extend, prepare landing",
+          "finishing_note": "Use full connected component extraction: frame1 extends below nominal row boundary to y472 inclusive, with safe gap before row2 artwork at y500. Do not hard-crop at y443. Components all isolated and unclipped.",
+          "source_component_heights": [
+            352,
+            399,
+            364,
+            357,
+            361,
+            360,
+            371,
+            358
+          ]
+        }
+      },
+      {
+        "key": "07_BMX_LANDING",
+        "selected_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-d736764a-3918-4ce6-900a-2c88eda04cec.png",
+        "size": [
+          1774,
+          887
+        ],
+        "qa": {
+          "frame_count": 8,
+          "camera": "right-facing side, matches pedalbase",
+          "blank_visors": true,
+          "both_hands_on_bars": true,
+          "both_feet_on_pedals": true,
+          "wheels_per_frame": 2,
+          "bike_geometry_stable": true,
+          "head_size_approx_px": 147,
+          "action": "touchdown, absorb frames2-4, recover frames5-7, riding frame8",
+          "finishing_note": "All wheel bottoms near same baseline; root finishing should align to406. Recovery fromframe4to5 is brisk; final inspection preview should verify desired timing."
+        }
+      }
+    ],
+    "component_bounds_report": "/workspace/scratch/ab2b2a31203b/work/bmx/air_landing_components.json",
+    "generations": [
+      {
+        "key": "air_initial",
+        "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-bfa939bf-e5bc-4b36-9c8a-c84402fd56be.png",
+        "selected": false,
+        "prompt": "Use case: stylized-concept. Create ONE production animation sprite sheet, exactly8frames in FOUR equal columns and TWO equal rows, reading order, wide2:1 layout matching image2. Image1 is the canonical IAmiguinho model and proportions. Image2 is the guide layout only. Image3 is the exact approved BMX design. Image4 is the APPROVED BMX PEDAL BASE: match its character and bicycle drawing SIZE, PAINTING STYLE and fixed RIGHT-FACING SIDE CAMERA, but DO NOT copy its pedaling action.\nNew sheet03: BMX AIR / jump through the air.\n1: Compress at an invisible ramp lip, deeply bend knees and elbows, both hands gripping blue bars, both shoes on pedals.\n2: Pop upward, begin extending from that compression, front wheel lifting a little first, then both wheels clear.\n3: Rising in the air, knees bent, bicycle drawn up directly under the small body, hands still on handlebars.\n4: A little higher, both knees still bent, bicycle held beneath him; same body and bike sizes.\n5: Float near the top of the jump, bike nearly level, relaxed compact elbows and knees.\n6: Continue floating, only a small change in posture, beginning to descend.\n7: Extend elbows and knees moderately downward to prepare landing; shoes still firmly on pedals, hands still on grips.\n8: Ready to land, bike level beneath the rider, both hands gripping bars and both feet on pedals.\nThere is NO ramp or floor in the drawing. Show all8poses of the SAME robot on the SAME red BMX. Preserve coherent small-step motion between frames.\nSCALE LOCK: match image4 SOURCE SIZE exactly rather than enlarging or miniaturizing any frame. The raw drawing has approximately147pixels from cap top to chin, bicycle overalllength~390pixels and identical round tires~140pixels at this reference resolution. Keep those same relative physical sizes in every frame. All bodybones, head, hands, shoes, bicycleframe and tires have constant size; only rigid movement and joint bends change. Do not lengthen the short arms, short legs, tiny egg-shaped torso or neck. Canonical standing proportions remain41%head,48%neck-to-feet,11%propeller.\nKeep fixed side camera facingRIGHT, no front or back camera turns. Top-left light, hand-painted cartoon textures, thick organic darknavyoutline. Same cream head/body, blue-and-cream cap with bluepropeller, blueheadphones withcyanrings, plain BLANK DARK GLASS visor with faintreflection only, white5-finger gloves, bluewristcuffs and bigbluesneakers withwhitesoles. Exactly2arms,2hands,2legs. Both hands on their actual grips and bothshoes on the actual pedals in everyframe. Preserve oppositecrank pedals and believable joints.\nBMX: exact compact RED diamondframe, blackknobbytires, silverspokes/rims, navysaddle, bluegrips/bluepedals and blankcreamnumberplate. Exactly2wheels; same roundwheelgeometry in allframes. Keep bicyclevisible and whole, not hidden or cut by spriteedges.\nComposition: every whole rider plus bicycle fits in its owncell with clear space around propeller, hands and tires. Same horizontalcentering. Airborneframes rise naturally; compactknees/elbows make room so no part touches or crosses cellborders. Do not shrink the airframes to fit. Keep grounded wheel line consistent in frame1; all other frames are airborne.\nPure flat GREEN #00FF00 background including all wheelspokeholes. No groundshadow, motionlines, dust, sand, ball, paddle, floor, ramp, words, numbers, guides, cellborders or facialfeatures.",
+        "references": [
+          "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+          "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png",
+          "/workspace/scratch/ab2b2a31203b/upload/6e5aac95-0688-4032-a7ba-856af318b687.png",
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png"
+        ]
+      },
+      {
+        "key": "air_head_correction",
+        "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-b46dede9-aea9-461b-8045-c4a4eccf2c0c.png",
+        "selected": false,
+        "prompt": "Use case: precise-object-edit.\nIMAGE1 is the BMX AIR sprite sheet to correct. IMAGE2 is the approved PEDAL BASE and establishes the character and bike sizes. IMAGE3 is the onlyvalid character anatomicalmodel. IMAGE4 is only the4x2layout guide.\nThe AIRsheet accidentally made the robot's HEAD too small relative to the bike and tinybody. Correct that one scale inconsistency in all8frames: the cap-top-to-chin head dimension must match IMAGE2, approximately147pixels, rather than the current123–130pixels. Keep the SAME bicycle size and geometry (rawlength390pixels, tire140pixels) and the same canonical SHORT body/limbs. Do not enlarge or stretch the torso/limbs and do not shrink the bike.\nEnlarge each complete head assembly proportionally, creamhead+visor+headphones+cap+propeller asoneconsistentdesign, matching the approvedbase. Keep the cap dome top near its current position so the chin moves a little down and the torso stays small and compact; this leaves room above the propeller. Use natural extra bending of the knees and elbows where needed, without changing any bone lengths, to keep both rider and bike ENTIRELY inside eachcell. No clippedpropeller, no tirecrossingrowborder: in particular frame1's fronttire must fit above the bottom of itscell withgreenmargin. Do not miniaturize differentframes tofit.\nPreserve the AIRaction sequence and approvedright-facing sidecamera:\n1deepcompression at invisiblelip,2popoff,3–4rise withkneesbent andbikeunderbody,5–6float withbikelevel,7extend moderatelytoland,8readytoland.\nKeep bothhands grippingactualhandlebars and bothshoes onactualoppositecrankpedals throughout; retain2arms,2hands,2legs and fivefingers perglove. Same blackblankglassvisor, never drawface/eyes/mouth. Keep the visor visible and hands attachedtohandlebars rather than drifting onto theface.\nMaintain exactly8frames,4columns×2rows and same broad2:1canvas. MatchBASEhand-paintedstyle, thickdarknavyoutline, creamrobot, blueandcreamstripedpropellercap, cyanringheadphones, bluewristbands andbluewhitesoledsneakers. ExactsamecompactredBMX withnavysaddle, blackknobbytires, silverspokes/rims, bluegrips/pedals, blankcreamnumberplate. PureflatGREEN#00FF00background includingallspokeholes. No shadows, dust, trails, lines, ramp, floor,ball,words,numbers,guides orcellborders. Preserveapprovedcharacteridentity, neutralblankface, allbikeparts, and the stagesofthejump.",
+        "references": [
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-bfa939bf-e5bc-4b36-9c8a-c84402fd56be.png",
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png",
+          "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+          "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png"
+        ]
+      },
+      {
+        "key": "air_compact_final",
+        "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-1afa26d9-b214-466d-a0c4-d48c07614436.png",
+        "selected": true,
+        "prompt": "Use case: precise-object-edit. Image1 is the AIR sprite sheet to refine; Image2 is the approved robot/bike SIZE anchor; Image3 the canonical robot anatomy; Image4 the4x2grid layout.\nChange ONLY the articulation and placement needed to make these8jumpframes fit safely inside theircells while preserving the SAMEphysical robot andBMXsizes. The current airborne poses stand too high above the bike, leaving no margin for jumping. Inframes3,4,5,6 bend bothknees DEEPLY and fold the elbows: lower the tiny torso towardthebike so the robot is in a compact BMX mid-air tuck, still with BOTH shoes on pedals and BOTH hands onbluehandlegrips. Lean the little torso forward above the frame, with head held lower over thehandlebars, keeping visorvisible. This must reduce the total height of rider+bike by BENDING existingshortlimbs, never rescaling or stretching anypart.\nKeep the source bike's identical redframe/geometry and tiresabout140pixels; head captop-tochin matches approvedbaseabout147pixels. Same5-finger gloves, shortcreamarms/legs, small eggtorso, bluewhitesoledshoes, cap,propeller andheadphones. DO NOT create a smallerhead or smallerbike in airframes. Bike/rider totalheight should fit comfortably atabout380–395pixels insideeach444pixelcell. Leave at least20pixels of puregreen aboveeachpropeller and beloweachlowesttire; nevercross the middle rowboundary. Frame1's tire must no longercross into row2.\nMotionsequence unchanged:1deepcompression at invisiblelip;2a modest pop with frontwheel lifted andrider beginningextension;3and4rising with compact knees/elbows andbike directlybeneath;5and6compact floating posture atapex, slightchange;7moderatelyextendtoland;8readytoland. Bothhandskeepgrips andbothfeetkeepoppositepedals throughout. Allposes sideview facingRIGHT, matchingapprovedbase; blankdarkglassface,noeyes/nomouth. No needforaverylargeverticaljumpinsidecells; showa modest readablearc and compactposture.\nPreserve8frames4columns×2rows, oneentirerider/bike percell, allobjectshapes, painting, colors, thickdarknavyoutlines andtopleftlight. Sameblackknobbytires,silverrims/spokes, navysaddle, bluegrips/pedals, blankcreamnumberplate. PureflatGREEN#00FF00backgroundandwheelholes. No floor,ramp,shadow,dust,motionlines,ball,letters,numbers,borders,labels or otherobjects. Noextrahands,legs orwheels.",
+        "references": [
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-b46dede9-aea9-461b-8045-c4a4eccf2c0c.png",
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png",
+          "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+          "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png"
+        ]
+      },
+      {
+        "key": "landing_final",
+        "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-d736764a-3918-4ce6-900a-2c88eda04cec.png",
+        "selected": true,
+        "prompt": "Use case: stylized-concept. Create ONE animation sprite sheet with EXACTLY8frames in FOUR equal columns×TWO equal rows, reading order, wide2:1 canvas matching image2. Image1 is the onlyvalid IAmiguinho character proportions. Image2 supplies the GUIDE GRID layout only, never draw its lines/labels. Image3 is the exact approved red BMX model. Image4 is the APPROVED PEDAL BASE: MATCH ITS CHARACTER AND BICYCLE DRAWING SIZE, CAMERA andPAINTING exactly. Use it only as the size/style anchor, do not copy its pedaling motion.\nSheet07 BMX LANDING, fixed right-facing side view:\n1: Both wheels have just touched the same invisible ground line after a jump, the rider still a little extended, both hands on handlebars and both shoes on pedals.\n2: Begin absorbing impact, knees and elbows bend.\n3: Sink deeper, small torso lowers between shoulders and hips, elbows and knees more bent.\n4: Deepest controlled compression, hips low and head lower, hands still attached to grips, shoes still on pedals. The anatomical limbs remain the same short lengths; they BEND, never stretch.\n5: Start recovering upward.\n6: Rise a little more, gradually straighten elbows and knees.\n7: Almost back to regular riding posture.\n8: Return to the approved baseline pedaling stance, ready to resume riding.\nEvery consecutive pose changes modestly and coherently. The BMX is rigid and level, BOTH wheelbottoms aligned to the SAME invisible baseline in every frame, with identical wheelpositions/wheeldiameters and bikegeometry. Only the rider's bent joints absorb impact. No bounce high into the air, no tricks, nofall.\nCRITICAL SIZE LOCK: take the head assembly, torso, hands, shoes and bike SIZES directly from Image4, the approvedpedalbase. The raw cap-top-to-chin height is approximately147pixels and MUST stay that size in eachcell, even in the deepcrouch. Do not make smallheads to get more margin. Eachbike is approximately390pixels long with roundtires approximately140pixels across at this sourceimage scale. These are physical immutableobject dimensions. Keep every bike and rider entirely inside itscell, clear ofborders, with the tires justabove the cellbottom. Latertechnicalregistration will set the final groundline; do not miniaturize the character. Preservecanonicalstandingproportions41%head,48%neck-to-feet,11%propeller, tinyeggtorso andshortcreamlimbs. Never lengthen the torso/neck/arms/legs. Knees bendforward; elbows bendnormally; exactly2arms,2hands,2legs. The front andfar legs remain distinct as in the approvedbase. Whitegloves eachhave5fingers includingthumb, wrapping actualbluehandlegrips. Bigbluesneakers withwhitesoles stand onactualbluepedals, oppositecranks.\nExact same blue-and-cream cap withbluepropeller, blueheadphones withcyanrings, creamroundhead and tinybody. Glassvisor alwaysBLANK DARKNAVY with onlyfaintreflection: noface, noeyes, nomouth. ExactcompactREDdiamondBMX, blackknobbytires, silverrims/spokes, navysaddle, bluegrips andpedals, plaincreamblanknumberplate, exactly2wheels. No newbikeparts orchangesbetweenframes.\nFixed SIDE VIEW facingRIGHT, matching Image4 camera, no cameraspin. Top-leftlighting; hand-paintedcartoonbrushtexture withthickdarknavyorganicoutline. PURE FLAT GREEN #00FF00 everywhereoutsideart including wheelspokeholes. No shadow, motionlines, dust, ball, ramp, floor, words, numbers, labels, grid, cellborders or otherobjects.",
+        "references": [
+          "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+          "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png",
+          "/workspace/scratch/ab2b2a31203b/upload/6e5aac95-0688-4032-a7ba-856af318b687.png",
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png"
+        ]
+      }
+    ],
+    "no_code_art_editing": true
+  },
+  {
+    "tool": "built-in image_gen",
+    "baseline": "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png",
+    "entries": [
+      {
+        "key": "04_superman",
+        "prompt": "Use case: stylized-concept. ONE production animation sprite sheet for IAmiguinho on his red BMX. Image1 is the canonical CHARACTER MODEL. Image2 is layout GUIDE ONLY: four equal columns x two equal rows; do not draw any guides, labels, numbers or cellborders. Image3 is approved BMX design. Image4 is the PEDAL BASELINE: match its exact rider design, physical head size, bike size, painterly rendering and SIDE camera, but create the new action specified below.\nWide2:1 canvas preferably1776x888,8 equal444x444cells. Exactly8full frames in reading order. Pure flat RGB(0,255,0) green background, also inside wheel spokes. No shadows, dust, motionlines, floor, ramp, ball, table, text or numbers. No reference panels embedded in result.\nCharacter always SIDE VIEW facing RIGHT, no turntowardcamera. Same cream head with bluecream striped cap andbluepropeller, cyanring blue headphones, BLANK dark navy visor: noface/eyes/mouth/symbols. Tiny egg creamtorso, fixed SHORT thin creamarmsandlegs, whitefive-finger gloves withbluecuffs, bluesneakerswhitesoles. Exactly2arms2hands2legs2feet. All poses retain the exact anatomical sizes of baseline; particularly head cap-top-to-chin approximately147px in raw444cell. Bodyandlimbs must never stretch or grow during any trick. Keep proportions identical to model.\nBike is the identical red compact diamond BMX in all frames: two blackknobbywheels approximately140pxdiameter inraw444cell, rigid frame, silver spokes/rims, navy saddle, bluepedalsandgrips, plainblank white handlebarplate. Matchbaseline rawbikelength about390px; never resize the bike independently by pose. Two wheels only. Correct real grip/pedal contacts. Top-left light, detailed hand-paintedcartoon brushwork and thickorganicnavyoutline, consistent colorsandcamera.\nEachcell fullycontains its wholebike,rider,propeller,alllimbs withpadding. Fixed head size and nearcentralhorizontalplacement, no dynamic per-frame scaling. Airborne action can use modest vertical lift tokeep allpartsinside. Do not show ground/shadows; root will register exactgroundline later. Do not shrink the bighead tofitposes.\nSheet: BMX SUPERMAN trick in the air,8smoothsequentialframes. Keep BOTH HANDS FIRMLY ON THE ACTUAL BLUE HANDLEBAR GRIPS IN ALL8FRAMES, never release. Only feet leavepedals.\n1 airborne in normal compact riding posture, kneesbent, bothshoes onpedals, handsgrips.\n2 feet begin lifting offpedals, hips start moving backward, bothhands stillgripping.\n3 legs moveback andup, bodyopeningintoahorizontalpose abovebike, feetclearofpedals, handsgrips.\n4 FULL SUPERMAN: the small BODY and BOTH LEGS extend HORIZONTALLY BACKWARD to theLEFT ABOVE thebike; hips andfeet are wellabove theframe/saddle. Botharms extendforward toRIGHT, bothhandsgriphandlebar. Head remains samebigsize lookingRIGHT. Keep actualshortbodyandleglengths; this is joint extension, NOT anatomicalstretch. Bodyandlegstogether form a short horizontalflyingline, heels farleftbutinsidecell. Bike stays beneaththerider andfacingRIGHT.\n5 hold same full horizontal Superman withtinysettlingvariation, bothhandsgrips, bothlegsbehindabovebike.\n6 pull bothknees backtowardbike, hipsreturn towardseat, handsneverrelease.\n7 feet approachingpedals, bodyreturningcompactridingpose.\n8 bothfeetbackonpedals, bothhandsgrips, readyto land, completebikeairborne.\nDo not place the stretched body below or behind the bike atwheelheight. Atfullpose bodyandlegsareclearly ABOVE it. Exactlytwolegs, separate enough toread. Sequence must have eight genuinely different in-betweens.",
+        "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-8a772583-6789-4724-ae3f-0612e7f48fff.png",
+        "qa": "8frames, blank visor, both hands retain bar grips throughout. Full Superman horizontal above bike frames4-5. WARNING frame4 rear shoes extend about10px LEFT of nominal rawcell boundary (still in image, recover by connected-component extraction with neighbouring green gutter); final rigid placement needed. No imagecanvas crop."
+      },
+      {
+        "key": "05_no_hander",
+        "prompt": "Use case: stylized-concept. ONE production animation sprite sheet for IAmiguinho on his red BMX. Image1 is the canonical CHARACTER MODEL. Image2 is layout GUIDE ONLY: four equal columns x two equal rows; do not draw any guides, labels, numbers or cellborders. Image3 is approved BMX design. Image4 is the PEDAL BASELINE: match its exact rider design, physical head size, bike size, painterly rendering and SIDE camera, but create the new action specified below.\nWide2:1 canvas preferably1776x888,8 equal444x444cells. Exactly8full frames in reading order. Pure flat RGB(0,255,0) green background, also inside wheel spokes. No shadows, dust, motionlines, floor, ramp, ball, table, text or numbers. No reference panels embedded in result.\nCharacter always SIDE VIEW facing RIGHT, no turntowardcamera. Same cream head with bluecream striped cap andbluepropeller, cyanring blue headphones, BLANK dark navy visor: noface/eyes/mouth/symbols. Tiny egg creamtorso, fixed SHORT thin creamarmsandlegs, whitefive-finger gloves withbluecuffs, bluesneakerswhitesoles. Exactly2arms2hands2legs2feet. All poses retain the exact anatomical sizes of baseline; particularly head cap-top-to-chin approximately147px in raw444cell. Bodyandlimbs must never stretch or grow during any trick. Keep proportions identical to model.\nBike is the identical red compact diamond BMX in all frames: two blackknobbywheels approximately140pxdiameter inraw444cell, rigid frame, silver spokes/rims, navy saddle, bluepedalsandgrips, plainblank white handlebarplate. Matchbaseline rawbikelength about390px; never resize the bike independently by pose. Two wheels only. Correct real grip/pedal contacts. Top-left light, detailed hand-paintedcartoon brushwork and thickorganicnavyoutline, consistent colorsandcamera.\nEachcell fullycontains its wholebike,rider,propeller,alllimbs withpadding. Fixed head size and nearcentralhorizontalplacement, no dynamic per-frame scaling. Airborne action can use modest vertical lift tokeep allpartsinside. Do not show ground/shadows; root will register exactgroundline later. Do not shrink the bighead tofitposes.\nSheet: BMX NO-HANDER trick in the air,8smoothsequentialframes.\n1 airborne in normal compact riding posture, bothhandsgripping bluehandlebars, bothfeet onpedals.\n2 beginrelease: bothhands justlift awayfrom thegrips together, knees squeezingthenavy saddle, feetkeepcontactwithpedals.\n3 bothhands clearlyoffhandlebar and opening outward/upward, kneespinchingseat forstability.\n4 FULL NO-HANDER: BOTH ARMS spread WIDE and UP on either side of thehead/torso, bothwhitegloves open and visiblyEMPTY, hands visibly separated fromgrips; knees squeeze saddle, feet onpedals, bodybalanced overbike. Keepactualshortarm lengths; do notelongate arms toreachabovehead. Show allfivefingers oneachopenhand.\n5 holdsamefullbotharmswide/up pose withtinysettlingvariation. Bothgrips empty. Bothknees holdseat.\n6 botharmsbegin returning towardbars, bothhandsstillawayfromgrips.\n7 hands approachbluegrips; short elbowsbendnaturally; kneesrelaxing.\n8 BOTH HANDS backholding actualbluegrips, bothfeetpedals, ready toland.\nAtframes4-5 do NOT leaveanyhandonbars; no extrahands. Nohandercannotbeonehander. Keepheadsamebaseline size andbodylimb sizes. Bike remains same size, levelandsideRIGHT in allframes; neither character nor bike rotates.",
+        "path": "/workspace/scratch/ab2b2a31203b/work/bmx/no_hander_knees_repaired_source.png",
+        "qa": "Both knee pairs now visibly contact the same existing saddle nose; raised open hands and blank visors preserved. Source cells have original dimensions, all six other frames pixel-identical.",
+        "knee_repair_candidate": {
+          "path": "/workspace/scratch/ab2b2a31203b/work/bmx/no_hander_knees_repaired_source.png",
+          "original_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-b8d84903-9dce-4c8a-ac12-b8c3296e4f80.png",
+          "changed_frames": [
+            4,
+            5
+          ],
+          "unchanged_other_frames_pixel_exact": true,
+          "prompts_file": "/workspace/scratch/ab2b2a31203b/work/bmx/no_hander_knee_repair_prompts.json",
+          "technical_finish_applied": false,
+          "status": "approved by root; promoted to final source",
+          "qa": "Both knee pairs now visibly contact the same existing saddle nose; raised open hands and blank visors preserved. Source cells have original dimensions, all six other frames pixel-identical.",
+          "technical_finish_status": "finisher reprocessing approved source"
+        },
+        "source_history": [
+          {
+            "path": "/workspace/scratch/ab2b2a31203b/generated_images/exec-b8d84903-9dce-4c8a-ac12-b8c3296e4f80.png",
+            "status": "superseded by approved knee correction",
+            "qa": "8frames, blank visors, both arms wide/up and empty grips frames4-5; release and return progression visible; no source canvas clipping."
+          }
+        ],
+        "status": "final approved source"
+      }
+    ]
+  },
+  {
+    "task": "BMX 06 tailwhip and 08 crash",
+    "mode": "built-in image_gen",
+    "status": "crash_final_tailwhip_superseded_by_steering_repair",
+    "references": [
+      "/workspace/scratch/ab2b2a31203b/upload/c168b4ca-29f6-4160-b79a-641dd8d24864.png",
+      "/workspace/scratch/ab2b2a31203b/upload/e0a072d5-e303-4fe1-9945-883d8cf3b241.png",
+      "/workspace/scratch/ab2b2a31203b/upload/6e5aac95-0688-4032-a7ba-856af318b687.png",
+      "/workspace/scratch/ab2b2a31203b/generated_images/exec-2191596c-222f-4324-b724-d8923976e977.png"
+    ],
+    "shared_scale": {
+      "raw_head_cap_to_chin_px": 147,
+      "raw_bike_side_length_px": 390,
+      "raw_wheel_diameter_px": 140,
+      "target_uniform_finish_scale": 0.91,
+      "target_cell_px": 444,
+      "target_ground_y": 406
+    },
+    "sheets": [
+      {
+        "id": "06_tailwhip",
+        "source": "/workspace/scratch/ab2b2a31203b/work/bmx/06_tailwhip_connected_source.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "generation_call_count": 4,
+        "status": "superseded_by_steering_repair",
+        "prompt": "Use case: stylized-concept. Edit the fourth reference into a different production game animation sprite sheet, preserving its rider identity, BMX design, side-facing-right camera, physical sizes and hand-painted rendering. Reference 1 is the exact character model; reference 2 is the exact 4 columns by 2 rows guide layout only; reference 3 is the approved red BMX model; reference 4 is the pedal sheet used ONLY for exact character/bike scale, rendering and camera, NOT its pedaling poses.\nCreate ONE wide 2:1 sheet, ideally 1776x888, with EXACTLY EIGHT frames in reading order, 4 equal columns and 2 equal rows. No lines, borders, numbering or text. Every cell contains EXACTLY ONE complete IAmiguinho and EXACTLY ONE complete BMX with TWO wheels. All artwork fits inside its own cell without touching any cell boundary.\nCANONICAL SIZE: preserve the fourth reference scale in every pose: head cap-top to chin approximately147px at444px cell, bike full side length approximately390px, wheel diameter approximately140px. Never shrink a difficult pose to fit. Keep fixed short limb lengths and the huge head/tiny egg torso proportions of the model, even when lying or airborne. Cream head and small torso, blue/cream striped cap and blue propeller, blue headphones with cyan rims, plain EMPTY dark navy glass visor, thin SHORT cream arms/legs, exactly two white gloves with FIVE fingers each (four fingers and thumb), blue wrist cuffs, big blue sneakers with white soles. No face or symbols in visor.\nBMX invariant: red rigid diamond frame, black knobby tires, silver rims/spokes, navy saddle, blue handlebar grips, blue pedals, small BLANK white numberplate. Preserve complete rigid closed frame triangles, fixed frame tube lengths, and proper crank/chain/rear axle connections. No bent or detached tubes, no third wheel. Both wheels stay attached to the bike in every frame.\nFixed SIDE CAMERA facing RIGHT, as reference4, top-left illumination, rich painterly cartoon colors and soft brush texture, thick DARK NAVY outline. Green #00FF00 flat everywhere outside objects and through spokes. Ground is invisible at y406 in every444pxcell, relative row. No floor, shadows, dust, dirt, sparks, motion streaks, labels, effects or other objects. Eight readable consecutive poses, not repeated unrelated illustrations. Small deliberate pose changes. Keep head roughly near horizontal center; compact composition and slight in-cell repositioning allowed to avoid clipping, but no scaling.\nSPECIFIC ANIMATION: BMX TAILWHIP, a single full360degree revolution of the REAR FRAME ASSEMBLY AROUND THE STEERING/HEAD-TUBE AXIS, while airborne. This is NOT a wheel spin, NOT a whole rider/bike somersault, and NOT just leaning the rear tire. Rider torso/head keep facing RIGHT throughout. BOTH HANDS continuously hold the same blue grips; the bars, front fork and front wheel keep their forward orientation. Frame, saddle, crank, chain and rear wheel rotate together as ONE rigid connected assembly about the steering pivot. Front and rear wheels remain identifiable and connected. Feet leave the pedals and clear the swinging frame, then catch them at end.\nFrame1: already airborne, knees slightly bent, both hands on bars, rear frame normal behind front wheel, feet poised over pedals.\nFrame2: initiating kick with one shoe, both feet lift clear, rear assembly begins yawing away around head tube about45degrees.\nFrame3: rear assembly at90degrees, visibly foreshortened in depth, rear wheel strongly foreshortened, rider remains right-facing and grips fixed.\nFrame4: rear assembly around150degrees, swings around to opposite side of steering assembly; head/torso not rotating.\nFrame5: clear halfway180degree tailwhip, intact frame and rear wheel are on opposite side of steering pivot from their normal position; both feet visibly tucked clear. Use compact layout preserving actual sizes and connected frame triangles.\nFrame6: rear assembly around270degrees, foreshortened from the other side; same front fork/bar orientation and hands on grips.\nFrame7: rear assembly completes360degrees and is back under the rider in its normal side-right orientation; feet still just above pedals.\nFrame8: both shoes CATCH the real blue pedals, knees gently bent, both hands still on bars, whole bike level and ready to land, still airborne.\nIMPORTANT: all8frames are airborne with tires above groundline. Do not add a ground jump takeoff. Change rear frame angle explicitly across3-6. Preserve a coherent mechanical tailwhip and full rider anatomy, with no body or bike part clipped.",
+        "repairs": [
+          {
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-84d1c389-cd57-4f1c-b875-d6266ebe18c6.png",
+            "prompt": "Use case: precise-object-edit. Correct this BMX TAILWHIP animation sheet. Image 1 is the edit target; image 2 is the approved BMX model, whose LOWER-RIGHT view shows the essential 180-degree halfway frame position; image 3 is the exact robot model. Preserve the hand-painted style, robot identity, blank visor, cap/propeller/headphones, thick navy outline, flat green background, four columns by two rows and exactly eight frames of image 1. No text or guide lines.\nThe rear BMX assembly must make a full 360-degree YAW around the steering/head-tube axis as one connected RIGID assembly. The target's frame 3 is disconnected and its midpoint never reaches 180 degrees: repair these. Every cell has exactly one intact red BMX with two attached wheels and one robot with two hands, two arms and two legs.\nUse the lower-right bike in image 2 as keyframe 5's mechanical arrangement: the front wheel and handlebars are LEFT of the rear frame; the rear wheel, saddle, crank and intact frame triangles extend to the RIGHT of the head tube. The rider's head and torso MUST STILL FACE RIGHT; he does NOT turn with the frame. BOTH GLOVED HANDS always grip the actual blue handlebars. Feet are airborne and off the pedals in frames 2–7. Temporarily recenter the whole pose and let the rider lean/reach naturally so the entire bike fits inside its 444px cell at halfway. Do not resize the bike or stretch the short limbs. Rotate around the steering axis, NOT the bottom bracket and NOT just tilting the rear tire.\nFrame 1: preserve normal airborne bike orientation, front wheel right/rear wheel left, both hands on bars.\nFrame 2: initiating kick, both feet clear, about 45-degree rear frame yaw.\nFrame 3: REPAIR to about 90-degree yaw. Coherent foreshortened connected red tubes reach continuously from head tube to crank, seatpost and rear axle. Narrow rear tire due to depth. NO detached rear wheel or seatpost and NO gap where the connecting frame should be.\nFrame 4: REPAIR to about 150-degree rear frame yaw, visibly on the opposite side of the steering axis, approaching the approved lower-right bike keypose. Front steering unit keeps its direction; rider head faces right.\nFrame 5: REPAIR to full 180-degree rear frame swung to the opposite side of steering axis, a coherent diamond frame like the approved model's lower-right view: front wheel on left, rear wheel on right. Clear complete frame triangles, same size, not folded. Rider head still faces right, hands on bars, shoes tucked clear.\nFrame 6: REPAIR to about 270-degree yaw, connected frame foreshortened the other way.\nFrame 7: full 360 degrees, normal front wheel right/rear wheel left, both feet just above pedals.\nFrame 8: catch the actual pedals, both hands still on bars.\nAt 444px cell size, preserve head cap-top-to-chin 147px, physical wheel diameter 140px, bike side length 390px in ALL frames. Foreshortening only from frame yaw. All eight poses complete within cells, no clipping or overlap with adjacent frames. Pure green #00FF00, no text, numbers, borders, facial features, motion lines, ground or shadows. Mechanical continuity is essential."
+          },
+          {
+            "frame": 3,
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-ebd869a4-60b3-417e-a546-bf9f75d33623.png",
+            "prompt": "Edit this SINGLE square sprite pose, preserving the entire robot exactly, its head size, blank face, hand positions, feet, front handlebars/fork/front wheel, scale and composition. Fix ONLY the bicycle's disconnected red frame. The rear wheel and saddle at LEFT must be joined continuously to the head tube under the hands at RIGHT by a complete rigid red diamond BMX frame. Draw the missing bright red top tube from the seat-tube junction just below the left saddle to the front head tube; draw the red down tube from the front head tube down-left to the crank; draw the seat tube to the crank and rear stays to the rear axle. Include blue pedals attached to that crank, not mysteriously attached to the rear axle. The diamond frame is foreshortened during a tailwhip, but every tube is visibly connected, forming intact triangles. NO floating wheel/saddle, NO broken or detached bike, NO third wheel. Use reference2's connected foreshortened red frame as guidance, but preserve reference1 robot/front steering unit. Same one robot, two hands holding bars, two legs, two attached wheels. Keep the green background and exact original scale/composition. Draw no text, shadows or outlines besides character/bike. Whole silhouette fully within square.",
+            "assembly": "whole square pose uniformly resized into raw cell [887,0,1330,444]"
+          },
+          {
+            "frame": 4,
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-b0448a44-e857-4410-8ac5-b05e4773f4bd.png",
+            "prompt": "Edit reference1 SINGLE square sprite pose to show a150-degree BMX TAILWHIP, between the starting pose and reference2's180-degree pose. Reference2 supplies target mechanical arrangement ONLY, not scale change. The whole rear red diamond frame, saddle, crank, chain and rear wheel swing together around the HEAD-TUBE steering axis. They are now on the RIGHT side of the steering head; handlebars and front wheel are on the LEFT. This must be an intact connected bicycle with exactly two wheels. The rear frame is turned slightly in depth, so the rear tire appears modestly foreshortened, but the same physical diameter; the intact two red frame triangles are legible.\nThe ROBOT STILL FACES RIGHT, plain dark visor unchanged, same proportions and 147px head cap-to-chin in444pxsquare. His hands must both continuously hold the actual blue grips now to the left of his torso; short arms bend naturally, do not detach. Both shoes stay tucked above and clear of swinging frame. Do not rotate robot's head left. Preserve painterly cartoon rendering, thick navy outline, cream/blue robot and red BMX. Preserve physical bike length390px and wheels140px when not foreshortened. Recenter the whole pose slightly so both wheels and cap propeller fit completely INSIDE THE SQUARE with at least12px padding. Do NOT clip right tire like reference2's cropped edge. Pure green#00FF00 background, no text, labels, motionlines, floor or shadows. One complete robot and one coherent complete BMX.",
+            "assembly": "whole square pose uniformly resized into raw cell [1330,0,1774,444]"
+          }
+        ],
+        "qa_passes": [
+          "8 distinct frames",
+          "right-facing rider and empty visor throughout",
+          "both hands on blue grips",
+          "connected intact diamond frames and two attached wheels in every frame",
+          "visible opposite-side rear frame poses around150–180 degrees in frames4–5",
+          "return to normal bike orientation and pedal catch"
+        ],
+        "verification_limits": [
+          "Intermediate yaw angles are illustrative rather than mechanically measured.",
+          "Frame4 front wheel is perspective-enlarged relative to neighboring frames.",
+          "No engine test; final temporal smoothness not validated."
+        ],
+        "technical_notes": [
+          "All8frames must be positioned airborne.",
+          "Raw frame5 rear tire spills about14px into next cell but is fully present and separated; recover whole silhouette before fitting.",
+          "Uniform whole-pose source edits only; no limb or head warping performed during assembly."
+        ],
+        "superseding_source": "/workspace/scratch/ab2b2a31203b/work/bmx/06_tailwhip_front_locked_source.png",
+        "superseding_manifest": "tailwhip_steering_repair_manifest.json"
+      },
+      {
+        "id": "08_crash",
+        "source": "/workspace/scratch/ab2b2a31203b/work/bmx/08_crash_compact_source.png",
+        "source_size": [
+          1774,
+          887
+        ],
+        "generation_call_count": 5,
+        "status": "final_compact_source",
+        "prompt": "Create ONE production BMX crash sprite sheet, 4 equal columns by2 equal rows, EXACTLY8 frames, wide2:1 canvas1776x888. Image1 exact robot model; image2 guidegrid only; image3 exact BMX; image4 exact rider+bike scale and painting style. Draw NEW CRASH POSES, not pedaling. No grid lines, labels, numbers or text. Flat puregreen#00FF00 throughout including wheel holes, no shadows or dust.\nCRITICAL COMPOSITION: EACH complete rider+bike pose must fit within a380px-wide by390px-high safe rectangle centered in its444x444 cell. Clear gutters of at least24px between neighboring poses. No artwork touches or crosses the invisible cell borders. Use compact bent knees and tucked limbs, not giant extended horizontal poses. The whole robot and bike stay at the exact same physical size in all8frames: robothead147px cap-to-chin, BMXside length390px, tire diameter140px; these are scale guides, do not draw numbers. Keep rider's tiny torso/SHORT limbs as model, no per-frame shrink. For fallen poses, lay the bicycle BEHIND the robot in depth, partially overlapping naturally; never miniaturize it.\nEach cell exactly1robot with2arms2legs2five-fingerhands and1complete intact BMX with2wheels. Red rigid diamond frame, navy saddle, bluegrips/pedals, silver spokes, knobby blacktires, white BLANK plate. Robot cap+propeller, cyanblueheadphones, EMPTY darkglassvisor (noeyes/mouth), creamtorso/limbs, whitegloves, bluecuffs/sneakers/whitesoles. Fixed SIDE camera looking toward RIGHT, paintedcartoonthicknavyoutline, topleftlight. No other objects, floor, shadows, effects, facialfeatures or injuries.\nFrame1: compact riding pose, frontwheel stops on invisiblegroundrelativey406, backwheel slightlyraised, robot leaningoverbar.\nFrame2: bike pitchesforward, rearwheel higher, rider legs tuck up and weight passesoverhandlebar.\nFrame3: robot releasesbars and tightlytucks knees/elbows, somersaultingforward withbike fallingbehind. Bigheadsame147px, keepwholeposewithinitscell.\nFrame4: compact forwardtumble continuing down, headright/down, bothshortarmsbent. Bike behind remains intact and same size.\nFrame5: BELLY DOWN atrelativegroundy406, headRIGHT aroundcellx270, bothhandsaheadaroundx365 (notpastx400), knees bentUP withbothbluefeet overhips aroundx170, not stretchedleft. This compact bellypose is essential. Lay the fullsizedbike on its side BEHIND him; naturallyoverlapbodyinfrontofbike, two wheelsrecognizable. Keepwholeposeinsidecell.\nFrame6: compact groundROLL into smallball, knees/elbows tuckednearbody, samebike lyingbehind. Nothing crossescellborders.\nFrame7: sittingupgroundy406, kneesbent, onehandnearhead to suggestdazed posture, visor STILL EMPTY. Samefullsizedbike lyingbehind.\nFrame8: gettingup, onekneelow, onefootplanted, onehandbracing, headRIGHT; samebike lyingbehind.\nThese are eight compact distinct poses in eight equalcells, NOT one panoramic scene. Samecharacterandbikescale. Use depthoverlap where needed to fit, never spreadfigures acrossneighboringcells.",
+        "prior_attempts": [
+          {
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-a42c8dd0-fc89-4411-8ecd-45dee61a913e.png",
+            "prompt": "Use case: stylized-concept. Edit the fourth reference into a different production game animation sprite sheet, preserving its rider identity, BMX design, side-facing-right camera, physical sizes and hand-painted rendering. Reference 1 is the exact character model; reference 2 is the exact 4 columns by 2 rows guide layout only; reference 3 is the approved red BMX model; reference 4 is the pedal sheet used ONLY for exact character/bike scale, rendering and camera, NOT its pedaling poses.\nCreate ONE wide 2:1 sheet, ideally 1776x888, with EXACTLY EIGHT frames in reading order, 4 equal columns and 2 equal rows. No lines, borders, numbering or text. Every cell contains EXACTLY ONE complete IAmiguinho and EXACTLY ONE complete BMX with TWO wheels. All artwork fits inside its own cell without touching any cell boundary.\nCANONICAL SIZE: preserve the fourth reference scale in every pose: head cap-top to chin approximately147px at444px cell, bike full side length approximately390px, wheel diameter approximately140px. Never shrink a difficult pose to fit. Keep fixed short limb lengths and the huge head/tiny egg torso proportions of the model, even when lying or airborne. Cream head and small torso, blue/cream striped cap and blue propeller, blue headphones with cyan rims, plain EMPTY dark navy glass visor, thin SHORT cream arms/legs, exactly two white gloves with FIVE fingers each (four fingers and thumb), blue wrist cuffs, big blue sneakers with white soles. No face or symbols in visor.\nBMX invariant: red rigid diamond frame, black knobby tires, silver rims/spokes, navy saddle, blue handlebar grips, blue pedals, small BLANK white numberplate. Preserve complete rigid closed frame triangles, fixed frame tube lengths, and proper crank/chain/rear axle connections. No bent or detached tubes, no third wheel. Both wheels stay attached to the bike in every frame.\nFixed SIDE CAMERA facing RIGHT, as reference4, top-left illumination, rich painterly cartoon colors and soft brush texture, thick DARK NAVY outline. Green #00FF00 flat everywhere outside objects and through spokes. Ground is invisible at y406 in every444pxcell, relative row. No floor, shadows, dust, dirt, sparks, motion streaks, labels, effects or other objects. Eight readable consecutive poses, not repeated unrelated illustrations. Small deliberate pose changes. Keep head roughly near horizontal center; compact composition and slight in-cell repositioning allowed to avoid clipping, but no scaling.\nSPECIFIC ANIMATION: BMX CRASH AND RECOVERY, eight compact consecutive poses. Rider initially faces RIGHT; only physically tumbling during frames3-6 may change the body's orientation. Throughout, the visor stays empty dark glass; portray dazed/sighing ONLY with body posture, never eyes, mouth, stars or symbols. This is a non-graphic cartoon fall with no damage or injuries. Bike stays intact and included in EVERY cell, exactly two attached wheels.\nFrame1: riding right, front tire suddenly stops at invisible ground y406, rider begins tipping over handlebars, back wheel just lifting.\nFrame2: rear wheel lifting further and intact bike pitched forward around stopped front tire; rider's short legs lift from pedals, hands still near handlebars, big head tucked safely, weight forward.\nFrame3: rider releases grips and tumbles FORWARD OVER bars in a compact tuck, elbows/knees bent; bike pitches behind him, both wheels and connected red frame preserved.\nFrame4: rider continues compact forward tumble, head and arms oriented toward the right/down; the intact bike falls BEHIND the rider to the left. No extralimbs and no collision text.\nFrame5: rider reaches invisible ground BELLY DOWN, head facing right, little legs and sneakers lifted, arms ahead; intact bike lies behind to the left, bike may overlap behind rider for compact framing but remains one coherent complete bike with two wheels. Do not flatten or shrink the robot's head/body.\nFrame6: a small compact sideways/forward ROLL on ground, shoulders and hips rolling naturally, same head and fixed limb lengths; bike lies still behind him.\nFrame7: rider sitting upright on the ground, knees bent, shoulders slightly slumped, a hand held near head to suggest dazed posture; EMPTY visor. Bike remains lying behind.\nFrame8: rider starts GETTING UP, one knee down and one shoe planted, one hand bracing on ground, other free, facing RIGHT; bike still lying behind ready to retrieve.\nKeep entire robot and bicycle inside each444cell at the same physical scale as the reference. Compose the fallen bicycle in depth behind the rider where necessary, without deleting wheels, clipping, introducing a second bike or shrinking either subject. Frame1-2 grounded wheel contacty406; frame5-8 body/feet contacty406. Flat puregreen background, no drawn ground, shadow, trails or dirt.",
+            "status": "rejected_cell_overflow_and_miniature_bikes"
+          },
+          {
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-17d87abb-4d7e-4952-b25a-0c9aa953f112.png",
+            "prompt": "Use case: precise-object-edit. Repair the BMX crash sprite sheet. Image 1 is the edit target; image 2 is the rider+bike baseline for PHYSICAL SCALE only; image 3 is the approved BMX model; image 4 is the character model. Exactly eight poses, four columns by two rows, 2:1 canvas 1776x888, each cell 444x444. Preserve thick dark navy outlines, hand-painted cartoon rendering and flat pure green #00FF00. No text, borders, guides, faces, shadows, dust or motion lines.\nCRITICAL REPAIRS: each complete robot+bike pose must fit entirely inside ITS OWN 444px CELL with padding. In the target, the lower-left belly pose crosses into neighboring frame 6; upper-row tires cross the row boundary. Recompose these compactly inside their cells, without cutting any body part, shrinking the bicycle, or touching neighboring art. Use available vertical space and close staging.\nPHYSICAL SIZE LOCK: same cap-top-to-chin 147px as the baseline, tiny cream torso, SHORT thin limbs, five-finger gloves and big blue sneakers. Same BMX side length 390px and wheel diameter 140px. Appropriate foreshortening when fallen is allowed, but NEVER uniformly miniaturize the bicycle to fit. Exactly one robot with two arms, two legs and two hands, plus one intact bike with two attached wheels in every cell. Closed red frame triangles, connected wheel axles, blue grips/pedals and blank white plate. Visor always plain dark navy glass.\nPreserve action order with compact staging:\n1. Front tire stops on invisible ground at relative y406; back wheel rises a little; rider leans forward on bars.\n2. Bike pitches forward, feet leave pedals, rider weight over handlebars.\n3. Compact tuck tumbling forward over handlebars, intact bike behind.\n4. Continue compact forward tumble with head right/down, intact bike falling behind.\n5. BELLY DOWN on relative ground y406, head RIGHT, arms ahead, short legs bent up. Put the big head around cell x300 and feet left, with both hands fully inside the right edge and at least 12px clearance. The bike lies BEHIND the robot in the SAME CELL, never a neighboring cell. Natural partial overlap behind the rider is allowed, but keep one complete intact bike with both recognizable wheels, and do not miniaturize it. Entire propeller visible.\n6. Small compact ground roll, knees and arms tucked, whole body and head inside the cell, intact same-size bike behind.\n7. Sitting on relative ground y406, hand near head suggests dazed posture, but NO visor features or symbols. Same bike behind.\n8. Beginning to get up, one knee down and one shoe planted, one hand braced, head right, same bike behind.\nAll frames complete and separate. No tire or propeller crosses the row split. Keep the full consistent robot and bike scale; no miniature bicycles. Only pose and genuine depth foreshortening change. Clean anatomy and continuous outlines.",
+            "status": "rejected_persistent_overflow"
+          }
+        ],
+        "qa_passes": [
+          "8 readable crash/recovery poses",
+          "empty dark visors throughout",
+          "one robot and one intact bike with two wheels in every frame",
+          "compact belly/roll poses",
+          "no source artwork clipped at outer canvas",
+          "frame4 propeller complete with3greenpixels to rightedge"
+        ],
+        "frame_foreground_boxes_exclusive": [
+          [
+            24,
+            26,
+            406,
+            469
+          ],
+          [
+            464,
+            27,
+            875,
+            469
+          ],
+          [
+            910,
+            9,
+            1317,
+            423
+          ],
+          [
+            1329,
+            148,
+            1771,
+            480
+          ],
+          [
+            12,
+            614,
+            445,
+            831
+          ],
+          [
+            458,
+            614,
+            875,
+            824
+          ],
+          [
+            902,
+            543,
+            1318,
+            837
+          ],
+          [
+            1346,
+            523,
+            1761,
+            846
+          ]
+        ],
+        "frame3_separate_components": {
+          "rider": [
+            1116,
+            9,
+            1317,
+            277
+          ],
+          "bike": [
+            910,
+            120,
+            1224,
+            423
+          ],
+          "note": "components maytouchafterpositionedit; extractunion"
+        },
+        "contact_bottom_y_raw": {
+          "1": 468,
+          "2": 468,
+          "5": 830,
+          "6": 823,
+          "7": 836,
+          "8": 845
+        },
+        "technical_notes": [
+          "Do not select largest8connectedcomponents: frame3rider andbike are separate and must be grouped.",
+          "Upperrow tires extend below nominal y444 row but are fully separated from lowerrowart; use extended extraction windows.",
+          "Frame5hand reaches x444 and must be included.",
+          "Frame1/2topmargin is tight when contact bottom maps toy406.",
+          "Finalframe3combinedheight414px becomes377px at0.91; bikebottomraw422 canbe placedaboveoronground406 withgoodmargin."
+        ],
+        "verification_limits": [
+          "Some projected proportions vary with perspective and tumble.",
+          "No game-engine playback test."
+        ],
+        "repairs": [
+          {
+            "frame": 3,
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-a156351d-8090-4668-b571-3475c7ad10ab.png",
+            "prompt": "Make one precise position edit to this sprite. Preserve the canvas aspect ratio and framing exactly. The robot on the upper-right MUST stay at exactly the same position, size, pose, colors and drawing, untouched. The entire intact red bicycle on the left/below must be translated straight UP by45 pixels measured in this 440x500 reference image (9% of image height). Keep the bicycle's scale, rotation, every frame tube, both wheels, saddle, crank, pedals and handlebar EXACTLY unchanged; only translate the WHOLE bicycle UP. Do not move the robot or any individual bike part independently. The bike still falls behind and below the airborne robot, but closer to him vertically, with natural overlap if needed. The lowest front tire should end near y435 instead of y480. The top of robot propeller stays near y10. Maintain empty dark visor, all anatomy, thick dark navy painted outline, flat puregreen #00FF00, and no extra marks/text/shadows. One robot, one intact bicycle, exactly two wheels. Nothing cropped. This is a strict object translation, not a redraw or scale change.",
+            "result": "bike moved up31px, rider unchanged; combinedheight440px"
+          },
+          {
+            "frame": 3,
+            "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7fa83adb-8fba-47c0-8305-71348629d851.png",
+            "prompt": "Precise position-only edit. Keep the entire robot absolutely unchanged at exactly the same position, size and pose. Move ONLY the entire intact bicycle STRAIGHT UP an additional6% of image height, preserving exactly its rotation and scale and all components. This is about25px in a440x500 version of this image, or80px at the attached resolution. Leave more empty green below the front tire; the bicycle falls closer vertically behind the tucked robot. Do not move or resize the robot. Do not resize, redraw, break apart or rotate the bicycle. Keep both wheels attached and every red frame tube. Same composition, puregreen#00FF00, same blankvisor, sameoutline, no newobjects/shadows/text. Entire robot and entire bike stay inside the image.",
+            "result": "bike moved upadditional26px; total57px, rider unchanged; combinedheight414px",
+            "assembly": "whole generated440x500crop resized tooriginalcrop size and pasted at[889,0]; other7framesunchanged"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "task": "06 BMX TAILWHIP: targeted steering and frame-swing repair for frames 4 and 5",
+    "status": "root approved; released to technical finisher",
+    "input_source": "/workspace/scratch/ab2b2a31203b/work/bmx/06_tailwhip_connected_source.png",
+    "crop_target": "/workspace/scratch/ab2b2a31203b/work/bmx/tailwhip_f45_target.png",
+    "orientation_reference": "/workspace/scratch/ab2b2a31203b/work/bmx/tailwhip_f36_reference.png",
+    "generated_candidate_rejected": "/workspace/scratch/ab2b2a31203b/generated_images/exec-ae07deae-c01e-47f6-8b2d-2f3f11cdc57d.png",
+    "rejection_reason": "Steering was corrected, but rear assembly remained left of the steerer rather than depicting the mid-tailwhip turnaround.",
+    "selected_generated_repair": "/workspace/scratch/ab2b2a31203b/generated_images/exec-f87f2567-9878-44e8-b5d3-e31de907cd2c.png",
+    "final_source": "/workspace/scratch/ab2b2a31203b/work/bmx/06_tailwhip_front_locked_source.png",
+    "operations": [
+      "Extract original F4/F5 into two 444-square cells, with F3/F6 reference strip.",
+      "Imagegen repaired two-cell strip only: fixed right-facing steering, hands reaching right; rear frame behind front wheel in F4 and across front of it in F5.",
+      "Uniform imagegen strip normalization from 1774x887 to 888x444 (same 2:1 aspect ratio).",
+      "Paste into original F4 444x444 and F5 444x443; no transforms of the other six sprites.",
+      "Remove obsolete F5 rear-wheel overflow bbox [444,746,459,828] from left-edge cell6 empty area; cleanup rectangle [444,700,485,860] replaced with pure green. Actual F6 rider/bike untouched."
+    ],
+    "qa": {
+      "size": [
+        1774,
+        887
+      ],
+      "front_assembly_and_hands": "Now face/reach screen-right in both repaired frames, consistent with F3/F6.",
+      "tailwhip_mechanics": "Rear assembly stays connected to steerer; rear wheel passes behind fixed front assembly in F4 and in front in F5 using depth foreshortening.",
+      "canonical_identity": "Blank visor, blue/cream propeller cap and blue headphones retained; head scale visually consistent with neighboring frames.",
+      "unchanged": "Frames1,2,3,7,8 pixel-identical. Frame6 sprite pixel-identical, only obsolete F5 overflow in its empty left margin removed.",
+      "caveat": "Visual animation art; mechanical anchors/proportion measurements approximate. Technical finisher still normalizes green, scale and registration.",
+      "root_approval": "Root inspected f87f and approved steering orientation, turnaround, and scale."
+    },
+    "generations": [
+      {
+        "key": "tailwhip_steering_repair",
+        "prompt": "EDIT IMAGE 1, a two-frame 888x444 cartoon BMX animation strip. Image 2 is a REFERENCE FOR CORRECT FRONT STEERING ASSEMBLY orientation, rider position, size, camera, anatomy and style. Return exactly TWO equal square frames side by side on flat #00FF00, no borders/text. This is a focused mechanical repair of frames 4 and 5 of a BMX tailwhip. Both input target frames incorrectly point the ENTIRE bicycle and the gripping arms to the left. FIX THAT while preserving the robot head/cap, body size, outfit, paint texture, and total bike physical size.\n\nCRITICAL FIX in BOTH cells: the rider still looks RIGHT. The front handlebar, blank white number plate, steering head tube, front fork and FRONT WHEEL must be on the RIGHT of the rider as in BOTH poses of image 2. Rider torso is LEFT of steering head, BOTH short arms reach FORWARD TO SCREEN RIGHT, both five-finger gloves grasp the two blue handlebar grips. The white number plate is to the RIGHT of the robot's chest. Front fork angles DOWN-RIGHT to a front wheel whose hub is near the lower-right of each cell. DO NOT rotate or mirror the front wheel/steering/handlebar unit left. Match image 2 front assembly size and screen position.\n\nTAILWHIP action: ONLY the red REAR frame triangle, saddle, crank and REAR wheel swing around the fixed steering head. Show the REAR assembly rotated around to the FAR SIDE of the front steering assembly with strong depth foreshortening and partial occlusion. First cell is approximately 150 degrees into tailwhip, second cell approximately 210 degrees: projected rear frame points back through depth, rear wheel appears as an oblique narrower ellipse partly behind the front wheel, rather than the normal flat full side-on rear wheel far left. The rear frame MUST remain physically connected to the same steering head through its two red tubes. Keep ONE handlebar, ONE steering head, ONE front fork, exactly TWO wheels. No floating unattached bicycle parts. Do NOT turn the whole bicycle to face LEFT. A flat mirrored bicycle is specifically wrong. At both poses knees remain tucked up with feet lifted away from the pedals, short legs unchanged.\n\nPreserve the identical IAmiguinho identity: blue and cream propeller cap, cream big head, empty dark navy glass visor, blue/cyan headphones, little egg torso, thin short cream limbs, blue wristbands, five-finger gloves and blue sneakers. Keep head proportions/size the same as source, approximately 147px cap-to-chin for each 444px cell. Same physical wheel diameter about140px despite perspective, each full character and bicycle entirely inside its cell with breathing room. No stretched arms or legs. Keep art side-view facing right, thick dark navy outlines, hand-painted blue cream red cartoon brushwork, top-left light. Pure green background #00FF00. No shadow, floor, text, labels, numbers, borders, speed lines, trails or extra objects. Only TWO frames.",
+        "reference_paths": [
+          "/workspace/scratch/ab2b2a31203b/work/bmx/tailwhip_f45_target.png",
+          "/workspace/scratch/ab2b2a31203b/work/bmx/tailwhip_f36_reference.png"
+        ],
+        "output_hint": "Generated images are saved to /workspace/scratch/ab2b2a31203b/generated_images as /workspace/scratch/ab2b2a31203b/generated_images/exec-ae07deae-c01e-47f6-8b2d-2f3f11cdc57d.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+      },
+      {
+        "key": "tailwhip_steering_repair2",
+        "prompt": "Precisely edit this TWO-FRAME BMX tailwhip strip. Preserve ALL of each robot, the hands and grips, the white handlebar number plate, the front red fork and the LARGE FRONT WHEEL on the RIGHT exactly unchanged. Preserve canvas and scale, 2 equal square cells side-by-side, flat pure #00FF00.\n\nChange ONLY THE REAR HALF of each bicycle, to depict the halfway rotation of a tailwhip. Currently the REAR wheel, saddle, crank and red frame are still on the LEFT of the steering tube. They must swing to the OTHER SIDE: to the RIGHT of the steering tube, partially OVERLAPPING the fixed FRONT wheel, as a physically connected BMX rear frame rotates around the steering tube in midair.\n\nThe FRONT fork/frontwheel/handlebar assembly DOES NOT TURN and DOES NOT MOVE, it still faces screen RIGHT. The rear triangle and two red main tubes stay attached at the SAME steering head underneath the number plate. The red top tube and down tube now extend toward SCREEN RIGHT from the head tube (rather than left) in strong depth foreshortening. The navy saddle is now RIGHT of the head tube around the upper-right of the front wheel. The bottom bracket and blue pedals also move RIGHT with the frame. The rear wheel is now RIGHT of the head tube, just behind and partly overlapping the fixed front wheel. Show exactly TWO wheels, clearly distinguishable, the back one as a narrow ellipse. Remove the old rear wheel/frame/crank/saddle from the left; that area is now plain green. No bicycle parts remain beneath the robot's LEFT-side shoes.\n\nFIRST CELL: rear assembly at150degrees of rotation, passing BEHIND the fixed frontwheel, narrow rearwheel ellipse visible to the RIGHT behind it. SECOND CELL: rear assembly at210degrees, passing slightly IN FRONT of fixed frontwheel, narrow rearwheel ellipse offset to the right, the different over/under layering shows rotation continuation. Both positions remain inside cell with margins: use strong depth foreshortening of frame length, not shrinking its physical component sizes. Frontwheel, frontfork and hands stay on screenRIGHT in both. Do not mirror the whole bicycle. Do not produce normal front-right/rear-left parked bikes. Rear wheel must occupy right half of each cell, rear hub right of steering axis. One handlebar, one fork, one headset, two wheels connected by the red frame.\n\nSame hand-painted cartoon style, thick navy outlines, same red/blue colors, blank visor, no texts, lines, numbers, ground or shadows. Preserve top half (robot) unchanged.",
+        "reference_paths": [
+          "/workspace/scratch/ab2b2a31203b/generated_images/exec-ae07deae-c01e-47f6-8b2d-2f3f11cdc57d.png"
+        ],
+        "output_hint": "Generated images are saved to /workspace/scratch/ab2b2a31203b/generated_images as /workspace/scratch/ab2b2a31203b/generated_images/exec-f87f2567-9878-44e8-b5d3-e31de907cd2c.png by default.\nIf you need to use a generated image at another path, copy it and leave the original in place unless the user explicitly asks you to delete it.\nThe generated image is already displayed to the user. There is no need to render it in the final response as a Markdown image or file link."
+      }
+    ]
+  }
+]

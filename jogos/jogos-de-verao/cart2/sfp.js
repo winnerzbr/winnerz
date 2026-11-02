@@ -65,40 +65,29 @@
     const y0 = SL - SF_CRISTA, off = ((cam % SF_ONDAW) + SF_ONDAW) % SF_ONDAW;
     for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w; for (let x = -off; x < W; x += SF_ONDAW) ctx.drawImage(im, x, y0, SF_ONDAW + .6, Math.max(SF_ONDAH, H - y0 + 1)); } // 01/11: a água vai até o pé da tela
     ctx.globalAlpha = 1;
-    // correnteza: faixas escuras que descem
+    // correnteza (01/11, arte do dono: 04_corrente_repetivel_vertical): a água descendo, na cor do horário, com os lados macios
+    // (na peça) e o alto e o pé sumindo em fatias; a textura anda para baixo.
     for (const z of ev.zones) {
-      const zx = Math.round(z.x - cam); if (zx > W || zx + z.w < 0) continue;
-      // provisório até a arte da correnteza chegar (pedido na página de pedidos): bordas macias, sem o retângulo
-      const gz = ctx.createLinearGradient(zx, 0, zx + z.w, 0); gz.addColorStop(0, 'rgba(10,20,70,0)'); gz.addColorStop(.25, 'rgba(10,20,70,.26)'); gz.addColorStop(.75, 'rgba(10,20,70,.26)'); gz.addColorStop(1, 'rgba(10,20,70,0)');
-      const gy = SL + 6, gh = SBASE - SL - 6; ctx.fillStyle = gz; ctx.fillRect(zx, gy, z.w, gh);
-      for (let k = 0; k < 10; k++) { const yy = SL + 8 + ((k * 23 + tt * 70) % (SBASE - SL - 14)), xx = 6 + ((k * 37) % Math.max(1, z.w - 16)); ctx.globalAlpha = Math.min(1, Math.min(xx, z.w - xx) / (z.w * .25)) * .5; R(zx + xx, Math.round(yy), 2, 8, 'rgba(12,22,80,1)'); }
+      const zx = z.x - cam; if (zx > W || zx + z.w < 0) continue;
+      const gy = SL + 4, gh = SBASE + 8 - gy, th2 = z.w * 2, off = (tt * 60) % th2, L = Math.min(14, gh * .25);
+      const fatia = (h, w, y0, y1, al) => { if (y1 <= y0 || al <= 0) return; ctx.save(); ctx.globalAlpha = w * al * .92; ctx.beginPath(); ctx.rect(zx, y0, z.w, y1 - y0); ctx.clip();
+        for (let y = gy - th2 + off; y < y1; y += th2 - .5) if (y + th2 > y0) sfPartH(h, 'corrente', zx, y, z.w, th2 + .5, true);
+        ctx.restore(); };
+      for (const [h, w] of P) { const N = 6; for (let i = 0; i < N; i++) { fatia(h, w, gy + L * i / N, gy + L * (i + 1) / N, (i + .5) / N); fatia(h, w, gy + gh - L * (i + 1) / N, gy + gh - L * i / N, (i + .5) / N); } fatia(h, w, gy + L, gy + gh - L, 1); }
       ctx.globalAlpha = 1;
     }
-    // tubos: o meio repete; a entrada (o lábio enrolando) à esquerda e o fechamento (a explosão de espuma) à direita.
-    // O teto do meio (a parte de baixo da água que enrola) fica na altura do teto do tubo da física.
+    // tubos (01/11, arte refeita pelo dono: o fundo do barril pintado e as peças emendando sem diferença): entrada | meio × n | fechamento,
+    // lado a lado; o meio estica um pouco para caber um número inteiro de peças. O teto do meio fica na altura do teto do tubo da física.
     const TB = SFC.tubo, tw = (k) => TB[k].w * SF_TK, th = TB.meio.h * SF_TK, teto = 260 * .75 * SF_TK;
     for (const tb of ev.tubes) {
       const top = tb.roof - teto - 6, ex = tb.x0 - tw('entrada') + 30 - cam, fx0 = tb.x1 - 30 - cam;
       if (ex > W || fx0 + tw('fecha') < 0) continue;
-      // 01/11 (pedido do dono): o vão do meio do tubo é transparente e mostrava a onda do cenário. Até a arte nova chegar (pedido na
-      // página de pedidos), a parede de trás é o teto do meio virado e escurecido (peça 'fundo'), sumindo devagar nas duas pontas
-      { const a0 = ex + tw('entrada') * .4, a1 = fx0 + tw('fecha') * .6, y1 = top + th * .44, fh = th * .44, L = tw('entrada') * .3;
-        if (a1 > 0 && a0 < W) for (const [h, w] of P) {
-          const fatia = (x0, x1, al) => { if (x1 <= x0 || al <= 0) return; ctx.save(); ctx.globalAlpha = w * al; ctx.beginPath(); ctx.rect(x0, y1, x1 - x0, fh); ctx.clip();
-            for (let x = a0 - (((cam * .9) % tw('meio')) + tw('meio')) % tw('meio'); x < x1; x += tw('meio') - 1) if (x + tw('meio') > x0) sfPartH(h, 'fundo', x, y1, tw('meio') + .6, fh, true);
-            ctx.restore(); };
-          const N = 8; for (let i = 0; i < N; i++) { fatia(a0 + L * i / N, a0 + L * (i + 1) / N, (i + .5) / N); fatia(a1 - L * (i + 1) / N, a1 - L * i / N, (i + .5) / N); }
-          fatia(a0 + L, a1 - L, 1);
-        } }
-      // o meio vai por baixo das pontas (a entrada some à direita e o fechamento some à esquerda por cima dele: sem emenda)
+      const m0 = ex + tw('entrada'), n = Math.max(1, Math.round((fx0 - m0) / tw('meio'))), wm = (fx0 - m0) / n, f0 = m0 + n * wm;
       for (const [h, w] of P) {
         ctx.globalAlpha = w;
-        const m0 = ex + tw('entrada') * .8, m1 = fx0 + tw('fecha') * .4; // o meio fica só entre as pontas (o último pedaço não passa do fechamento)
-        ctx.save(); ctx.beginPath(); ctx.rect(m0, top - 2, m1 - m0, th + 4); ctx.clip();
-        for (let x = m0; x < m1; x += tw('meio') - 1) if (x < W && x + tw('meio') > 0) sfPartH(h, 'meio', x, top, tw('meio') + .6, th, true);
-        ctx.restore();
-        if (ex < W && ex + tw('entrada') > 0) sfPartH(h, 'entrada', ex, top, tw('entrada'), th, true);
-        if (fx0 < W && fx0 + tw('fecha') > 0) sfPartH(h, 'fecha', fx0, top, tw('fecha'), th, true);
+        for (let i = 0; i < n; i++) { const x = m0 + i * wm; if (x < W && x + wm > 0) sfPartH(h, 'meio', x - .3, top, wm + .6, th, true); }
+        if (ex < W && ex + tw('entrada') > 0) sfPartH(h, 'entrada', ex, top, tw('entrada') + .4, th, true);
+        if (f0 < W && f0 + tw('fecha') > 0) sfPartH(h, 'fecha', f0 - .4, top, tw('fecha'), th, true);
       }
       ctx.globalAlpha = 1;
     }

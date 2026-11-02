@@ -1,0 +1,357 @@
+{
+  "sheet": "prancha_objetos.png",
+  "sheet_size": [
+    1448,
+    1086
+  ],
+  "background_rgb": [
+    0,
+    255,
+    0
+  ],
+  "coordinates": "zero-based pixels; bounds are end-exclusive",
+  "group_count": 9,
+  "assets": [
+    {
+      "name": "pit_lip",
+      "file": "recortes/pit_lip.png",
+      "atlas_extraction_window_xyxy": [
+        0,
+        0,
+        1100,
+        390
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        18,
+        86,
+        1085,
+        356
+      ],
+      "canvas_size": [
+        1099,
+        302
+      ],
+      "anchor_xy": [
+        549,
+        285
+      ],
+      "source_anchor_xy": [
+        551,
+        355
+      ],
+      "placement_xy": [
+        16,
+        16
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 16
+    },
+    {
+      "name": "tires",
+      "file": "recortes/tires.png",
+      "atlas_extraction_window_xyxy": [
+        1100,
+        0,
+        1448,
+        390
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        1113,
+        124,
+        1429,
+        356
+      ],
+      "canvas_size": [
+        348,
+        264
+      ],
+      "anchor_xy": [
+        173,
+        247
+      ],
+      "source_anchor_xy": [
+        1270,
+        355
+      ],
+      "placement_xy": [
+        16,
+        16
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 16
+    },
+    {
+      "name": "flag_01",
+      "file": "recortes/flag_01.png",
+      "atlas_extraction_window_xyxy": [
+        0,
+        390,
+        450,
+        725
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        122,
+        414,
+        397,
+        701
+      ],
+      "canvas_size": [
+        320,
+        320
+      ],
+      "anchor_xy": [
+        40,
+        304
+      ],
+      "source_anchor_xy": [
+        145,
+        700
+      ],
+      "placement_xy": [
+        17,
+        18
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 15
+    },
+    {
+      "name": "flag_02",
+      "file": "recortes/flag_02.png",
+      "atlas_extraction_window_xyxy": [
+        450,
+        390,
+        800,
+        725
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        504,
+        414,
+        732,
+        705
+      ],
+      "canvas_size": [
+        320,
+        320
+      ],
+      "anchor_xy": [
+        40,
+        304
+      ],
+      "source_anchor_xy": [
+        524,
+        704
+      ],
+      "placement_xy": [
+        20,
+        14
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 14
+    },
+    {
+      "name": "fence",
+      "file": "recortes/fence.png",
+      "atlas_extraction_window_xyxy": [
+        800,
+        390,
+        1448,
+        725
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        842,
+        473,
+        1373,
+        677
+      ],
+      "canvas_size": [
+        563,
+        236
+      ],
+      "anchor_xy": [
+        281,
+        219
+      ],
+      "source_anchor_xy": [
+        1107,
+        676
+      ],
+      "placement_xy": [
+        16,
+        16
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 16
+    },
+    {
+      "name": "dust_01",
+      "file": "recortes/dust_01.png",
+      "atlas_extraction_window_xyxy": [
+        0,
+        725,
+        250,
+        1086
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        30,
+        867,
+        194,
+        983
+      ],
+      "canvas_size": [
+        480,
+        320
+      ],
+      "anchor_xy": [
+        240,
+        304
+      ],
+      "source_anchor_xy": [
+        111,
+        982
+      ],
+      "placement_xy": [
+        159,
+        189
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 15
+    },
+    {
+      "name": "dust_02",
+      "file": "recortes/dust_02.png",
+      "atlas_extraction_window_xyxy": [
+        250,
+        725,
+        550,
+        1086
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        282,
+        835,
+        517,
+        989
+      ],
+      "canvas_size": [
+        480,
+        320
+      ],
+      "anchor_xy": [
+        240,
+        304
+      ],
+      "source_anchor_xy": [
+        399,
+        988
+      ],
+      "placement_xy": [
+        123,
+        151
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 15
+    },
+    {
+      "name": "dust_03",
+      "file": "recortes/dust_03.png",
+      "atlas_extraction_window_xyxy": [
+        550,
+        725,
+        950,
+        1086
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        584,
+        787,
+        910,
+        1001
+      ],
+      "canvas_size": [
+        480,
+        320
+      ],
+      "anchor_xy": [
+        240,
+        304
+      ],
+      "source_anchor_xy": [
+        746,
+        1000
+      ],
+      "placement_xy": [
+        78,
+        91
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 15
+    },
+    {
+      "name": "dust_04",
+      "file": "recortes/dust_04.png",
+      "atlas_extraction_window_xyxy": [
+        950,
+        725,
+        1448,
+        1086
+      ],
+      "atlas_foreground_bounds_xyxy": [
+        973,
+        740,
+        1425,
+        1031
+      ],
+      "canvas_size": [
+        480,
+        320
+      ],
+      "anchor_xy": [
+        240,
+        304
+      ],
+      "source_anchor_xy": [
+        1198,
+        1030
+      ],
+      "placement_xy": [
+        15,
+        14
+      ],
+      "source_scale": 1.0,
+      "minimum_margin": 13
+    }
+  ],
+  "animation_groups": {
+    "flags": {
+      "order": [
+        "flag_01",
+        "flag_02"
+      ],
+      "canvas_size": [
+        320,
+        320
+      ],
+      "anchor_xy": [
+        40,
+        304
+      ],
+      "anchor_type": "pole base"
+    },
+    "dust": {
+      "order": [
+        "dust_01",
+        "dust_02",
+        "dust_03",
+        "dust_04"
+      ],
+      "canvas_size": [
+        480,
+        320
+      ],
+      "anchor_xy": [
+        240,
+        304
+      ],
+      "anchor_type": "bottom center"
+    }
+  },
+  "finishing": "Pure-green key normalization with fractional edge coverage; integer translations only. No per-frame scaling; no disconnected components discarded."
+}

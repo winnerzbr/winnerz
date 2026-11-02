@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: BMX pintado e tubo do surfe refeito
+- **O dono mandou:** as 8 pranchas do IAmiguinho na BMX, a pista nos 4 horários com os objetos, o modelo da bike e as ondas com as emendas corrigidas (o tubo com o fundo do barril pintado e a correnteza).
+- **Feito:** BMX todo pintado (IAmiguinho, fundo, dunas, terra, vala, tábua, bandeiras e poeira, nos 4 horários) e na Prévia; tubo novo e correnteza pintada no surfe (o fundo provisório saiu). Página de pedidos: entregas marcadas e a bike aprovada como anexo. Publicado na página do Claude e no site; a página do jogo tem 503 de 511 arquivos.
+
+---
+
 ## 01/11/2026: Patins com itens altos e mais espaço; Mortal do skate segurando ▼
 - **O dono pediu:** itens que só se pegam com o pulo alto; mais espaço entre os Amiguinhos e os outros itens; no skate, o Mortal numa direção, segurando como o giro, mais mortais valendo mais e pousando em pé.
 - **Feito:** itens altos dourados (impulso ou pulo do corrimão, valem 3×); Amiguinhos seguidos mais afastados, água de coco fora de cima do Amiguinho e espaço mínimo entre as coisas no chão; Mortal segurando ▼ (escolha do dono), com tombo se pousar no meio da volta. Publicado na página do Claude e no site.

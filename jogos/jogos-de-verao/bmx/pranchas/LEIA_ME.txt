@@ -1,0 +1,33 @@
+IAmiguinho: Jogos de Verão — BMX
+
+OITO ANIMAÇÕES
+01_pedalando: volta completa dos pedais, ciclo.
+02_pumping: compressão e extensão sobre os pedais, ciclo.
+03_salto: compressão, impulso, subida, flutuação e preparação para aterrissar.
+04_superman: pernas saem dos pedais, corpo se estende para trás e retorna.
+05_no_hander: mãos soltam o guidão, braços abrem e mãos retornam.
+06_tailwhip: giro do quadro sob o personagem e retomada dos pedais.
+07_aterrissagem: contato das rodas, absorção e recuperação.
+08_queda: desequilíbrio, tombo, contato no chão e recuperação.
+
+ARQUIVOS
+pranchas/: oito PNGs, cada um com 4 colunas × 2 linhas e oito frames.
+frames/: 64 PNGs individuais de 444×444, na ordem de leitura.
+previews/: oito WebPs animados para inspeção das poses.
+atlas.json: retângulos, âncora e registros do acabamento técnico.
+prompts_geracao.json: instruções usadas na geração e nas correções.
+
+IMPORTAÇÃO
+Pranchas: 1776×888. A guia original de 1774×887 foi normalizada para células inteiras e iguais de 444×444.
+Ordem de leitura: da esquerda para a direita, linha superior antes da inferior.
+Verde de recorte: RGB(0,255,0), #00FF00.
+Âncora comum: (222,406). Preserve a posição de cada frame, sem recentralização automática no motor.
+As rodas dos movimentos no chão usam a linha y406. As poses aéreas ficam acima dela; o motor pode controlar a trajetória do salto de todo o ator sem alterar o tamanho do desenho.
+Pedalada e pumping são ciclos. As demais animações devem tocar uma vez e transitar para o estado seguinte. O último frame dos ciclos é uma fase anterior ao primeiro, não uma duplicação.
+As prévias foram configuradas em aproximadamente 12 desenhos por segundo. Num jogo renderizado a 60fps, configure separadamente quanto tempo cada desenho aparece. Ajuste o timing dos eventos ao movimento no motor.
+Os visores permanecem vazios para o jogo desenhar o rosto. A queda não inclui poeira nem solo desenhado.
+
+VERIFICAÇÃO
+Conferidos: quantidade de frames, recortes, fundo verde, margens, correspondência entre frames e pranchas, contato com o guidão e progressão visual das poses. As correções foram feitas no gerador de imagens; o acabamento técnico preserva cada conjunto com escala uniforme e deslocamento rígido, sem alongar partes do corpo.
+Por serem desenhos pintados, há pequenas variações de contorno e ângulos entre frames. No tailwhip, a rotação do quadro é uma aproximação visual: os ângulos de direção e de perspectiva não constituem uma simulação mecânica exata. A revisão visual não constitui prova de medidas anatômicas ou mecânicas exatas em cada pixel.
+Não foi realizado teste dentro do motor do jogo.

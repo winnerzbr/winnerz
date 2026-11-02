@@ -1,0 +1,101 @@
+{
+  "method": "Shared original painted strip, minimum-error quilting cuts, narrow smooth feather, separate key mask.",
+  "tube_margin_pixels": 176,
+  "tube_source_column": 868,
+  "rip_margin_pixels": 220,
+  "rip_source_row": 992,
+  "exact_boundary_tests": {
+    "entry_to_middle": {
+      "max_channel_difference": 0,
+      "mean_channel_difference": 0.0,
+      "identical": true
+    },
+    "middle_wrap": {
+      "max_channel_difference": 0,
+      "mean_channel_difference": 0.0,
+      "identical": true
+    },
+    "middle_to_closeout": {
+      "max_channel_difference": 0,
+      "mean_channel_difference": 0.0,
+      "identical": true
+    },
+    "rip_vertical_wrap": {
+      "max_channel_difference": 0,
+      "mean_channel_difference": 0.0,
+      "identical": true
+    }
+  },
+  "untouched_regions_relative_to_key_normalized_source": {
+    "middle_center": true,
+    "entry_outside_right_margin": true,
+    "closeout_outside_left_margin": true,
+    "rip_center": true
+  },
+  "dimensions": {
+    "02_tubo_meio_repetivel.png": [
+      1254,
+      1254
+    ],
+    "01_tubo_entrada.png": [
+      1254,
+      1254
+    ],
+    "03_tubo_fechamento.png": [
+      1254,
+      1254
+    ],
+    "04_corrente_repetivel_vertical.png": [
+      887,
+      1774
+    ]
+  },
+  "original_air_pixels_normalized": {
+    "middle": 364176,
+    "entry": 482207,
+    "closeout": 378197
+  },
+  "cut_ranges": {
+    "middle_left": [
+      74,
+      131
+    ],
+    "middle_right": [
+      88,
+      135
+    ],
+    "entry_right": [
+      76,
+      133
+    ],
+    "closeout_left": [
+      83,
+      135
+    ],
+    "rip_top": [
+      118,
+      144
+    ],
+    "rip_bottom": [
+      114,
+      138
+    ]
+  },
+  "sha256": {
+    "01_tubo_entrada.png": "2a4f61a666915219481ced9ae0f0be88a1be8a85e52d6be83f2435cfcaa1db81",
+    "02_tubo_meio_repetivel.png": "ca00438fc3ecc485ff490d98105aaba6db2bc94657716ec4ceb4f5c94f083828",
+    "03_tubo_fechamento.png": "834ef2bda9928031986cf053ecda5be3ae7b5571fcd8515106c3d5ef44cb9f45",
+    "04_corrente_repetivel_vertical.png": "952baf1295667014d30b77df8ef301cb9c77976ee535b0467dd7559519b64bad"
+  },
+  "normalized_key_check": {
+    "01_tubo_entrada.png": {
+      "nonpure_key_pixels": 0
+    },
+    "02_tubo_meio_repetivel.png": {
+      "nonpure_key_pixels": 0
+    },
+    "03_tubo_fechamento.png": {
+      "nonpure_key_pixels": 0
+    }
+  }
+}

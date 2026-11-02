@@ -1,0 +1,23 @@
+Costa WinnerZ — Cenário BMX
+
+CONTEÚDO
+15 PNGs principais: três camadas em quatro horários, duas camadas de luz e uma prancha de objetos.
+dia/, amanhecer/, por_do_sol/ e noite/: fundo_distante.png, plano_medio.png e pista.png.
+luzes/: fundo_distante.png e plano_medio.png, com fundo preto.
+objetos/: prancha principal e recortes dos itens.
+previas/: quatro composições JPG para conferir a combinação das camadas.
+prompts_geracao.json: instruções usadas na criação e nos ajustes.
+
+USO
+Fundo distante: PNG de 2048×576, panorama 32:9 equivalente a duas telas 16:9 lado a lado.
+Plano médio e pista: PNGs de 2172×362, faixas 6:1. Cada camada pode repetir e rolar de forma independente.
+As bordas esquerda e direita foram conferidas para repetição horizontal.
+O verde de recorte é #00FF00. O plano médio mantém a mesma máscara de fundo nos quatro horários.
+As versões de luz usam as mesmas dimensões e coordenadas das respectivas camadas noturnas; use blend Add ou Screen conforme o motor, ajustando a intensidade para evitar duplicar o brilho já presente na arte noturna.
+As prévias são exemplos de montagem, sem personagem e sem definir escala de colisão.
+
+CONSTRUÇÃO E VERIFICAÇÃO
+Arte criada com o gerador integrado de imagens. Acabamento técnico por código para recorte, repetição, alinhamento das variações de cor, máscara verde e extração das luzes.
+As variações de iluminação conservam a estrutura das bases diurnas. Sol, lua, estrelas e luzes acesas seguem as mudanças solicitadas para cada horário.
+Conferidos: proporções das imagens, dimensões entre horários, emendas laterais, máscara verde, quantidade dos arquivos e integridade do ZIP.
+Não foi realizado teste dentro do motor do jogo.

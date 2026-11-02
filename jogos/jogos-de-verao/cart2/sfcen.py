@@ -42,9 +42,15 @@ def macio(im, esq=0., dir=0., pe=0.):
     if pe: m *= np.clip((hh - 1 - np.arange(hh)) / (hh * pe), 0, 1)[:, None]
     a[..., 3] = (a[..., 3] * m).astype(np.uint8); return Image.fromarray(a)
 TUBO = {}
-for k, nm, b in (('entrada', '01_entrada', dict(esq=.1, dir=.15, pe=.22)), ('meio', '02_meio_repetivel', dict(pe=.22)), ('fecha', '03_fechamento', dict(esq=.15, dir=.3, pe=.22))):
-    im = Image.open(T + nm + '.png').convert('RGBA'); w, h = round(im.width * .75), round(im.height * .75)
-    TUBO[k] = macio(im.resize((w, h), Image.LANCZOS), **b)
+# 01/11 (pedido do dono): tubo refeito (../surfe/arte/04_tubo_refeito): o fundo do barril veio pintado, sem buraco, e as peças emendam
+# sem diferença (entrada | meio | meio | ... | fechamento). Quadradas, 1254 px; guardadas a 384 px (115 unidades, a mesma altura de antes;
+# o teto termina a 51% da peça, como antes). Macio só onde a peça termina na água: o pé, a esquerda da entrada e a direita do fechamento.
+T2 = '../surfe/arte/04_tubo_refeito/'
+for k, nm, b in (('entrada', '01_tubo_entrada', dict(esq=.1, pe=.15)), ('meio', '02_tubo_meio_repetivel', dict(pe=.15)), ('fecha', '03_tubo_fechamento', dict(dir=.25, pe=.15))):
+    im = Image.fromarray(key_green(T2 + nm + '.png'))
+    TUBO[k] = macio(im.resize((384, 384), Image.LANCZOS), **b)
+# correnteza pintada (repete de cima para baixo): guardada a 222 × 444, com os lados macios
+CORR = macio(Image.open(T2 + '04_corrente_repetivel_vertical.png').convert('RGBA').resize((222, 444), Image.LANCZOS), esq=.3, dir=.3)
 OUT['tubo'] = {k: {'w': im.width, 'h': im.height} for k, im in TUBO.items()}
 # peças: componentes de cada folha em fundo verde
 def parts(path, minpx=1500):
@@ -78,13 +84,7 @@ OUT['atl'] = uri(atl, q=88); OUT['p'] = meta; OUT['u'] = U
 OUT['th'] = {}
 for h in HORAS:
     pcs = [(k, colore(TUBO[k], h), None) for k in ('entrada', 'meio', 'fecha')]
-    # fundo do tubo (provisório, 01/11): o vão do meio é transparente e mostrava a onda do cenário. A parede de trás é feita com o
-    # próprio teto do meio (20% a 50% da altura) virado de cabeça para baixo e escurecido, mais escuro em cima (embaixo do teto).
-    mm = np.asarray(pcs[1][1], float); hh_ = mm.shape[0]; sl = mm[int(hh_ * .27):int(hh_ * .5)][::-1].copy()
-    sl = np.asarray(Image.fromarray(sl.astype(np.uint8)).resize((mm.shape[1], int(hh_ * .42)), Image.LANCZOS), float)
-    al = sl[..., 3:] / 255; base = (sl[..., :3] * al).sum((0, 1)) / max(1, al.sum()); sl[..., :3] = sl[..., :3] * al + base * (1 - al)  # sem os pixels pretos da borda
-    sh = np.linspace(.5, .85, sl.shape[0])[:, None, None]; sl[..., :3] *= sh; sl[..., 3] = 255
-    pcs.append(('fundo', Image.fromarray(sl.clip(0, 255).astype(np.uint8)), None))
+    pcs.append(('corrente', colore(CORR, h), None))
     for j, im in enumerate(COLS):
         kk = 44 * U / im.width; pcs.append((f'col{j}', colore(im, h).resize((max(1, round(im.width * kk)), max(1, round(im.height * kk))), Image.LANCZOS), 1))
     at = Image.new('RGBA', (sum(im.width + 2 for _, im, _ in pcs), max(im.height for _, im, _ in pcs))); x = 0; pm = {}

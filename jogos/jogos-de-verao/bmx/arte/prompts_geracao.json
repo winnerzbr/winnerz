@@ -1,0 +1,561 @@
+[
+  {
+    "asset": "far",
+    "mode": "built-in image_gen",
+    "style_reference": "/workspace/scratch/ab2b2a31203b/upload/download(20261102-013856).jpg",
+    "day": {
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-8d53d64d-747e-461c-8e01-9765a6903100.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: FAR BACKGROUND layer for a 2D side-scrolling BMX game.\nReference image: use the attached painted beach ONLY as a painting-style reference (soft hand-painted brush texture, clean colors, soft shading, atmospheric depth, no dark outlines). Do not reproduce its tropical palms, foreground beach objects, huts or sunset.\nCreate ONE VERY WIDE 32:9 seamless horizontal panorama, ideally 3840 x 1080 pixels, equivalent to two 16:9 screens side by side. The composition is a continuous side-view landscape with no central perspective vanishing point.\nPlace: the restinga of Costa WinnerZ, a fictional sunny Brazilian coastal town: low wind-shaped coastal scrub in subdued olive and sage greens, broad rounded pale ochre sand dunes, a thin distant blue strip of sea behind the dunes, a few low broad-canopied cashew trees. Two or three TINY hazy house silhouettes far on the horizon, unobtrusive and small, whose windows can be lit in a later night version.\nDAYTIME, hot summer: pale yellowish light-blue sky, subtle heat haze, a strong small white-yellow sun high in the sky, very soft sparse wispy clouds. The landscape is distant, hazy and LOW CONTRAST, softer and lighter than gameplay objects. Neutral bright warm sunlight, no sunset orange wash.\nComposition: upper half mostly open sky; distant sea/horizon around 50–55% height; low dunes and scrub between about 55% and 70% height. The entire bottom 30% must be EMPTY, QUIET, ALMOST FLAT SAND COLOR with only barely perceptible soft brush grain; no vegetation, stones, houses, tracks or objects there because the game will cover it.\nSEAMLESS HORIZONTAL TILING IS ESSENTIAL: the left and right vertical edges must meet with the same sky, horizon, sea level, dune contours and colors. Keep the outermost 10% of both sides low-detail and open, with matching flat horizon and low scrub/terrain heights; keep all trees and houses away from both edges. No visible seam when copies are placed side by side.\nHand-painted cartoon background, beautiful soft brushwork matching the reference, clean saturated but hazy colors, soft shading, no outlines around scenery.\nNo text, no letters, no logos, no numbers, no watermark, no people, no characters, no bikes, no track surface in foreground.",
+      "raw_size": [
+        2172,
+        724
+      ],
+      "notes": "Raw2172×724. Final normalization and seam locking recorded in finish/day_specs.json; use finished2048×576 DAY for variants.",
+      "suggested_crop_deprecated": null
+    },
+    "variants": [],
+    "status": "all_sources_generated_ready_for_technical_finish",
+    "variants_manifest": "variants_manifest.json"
+  },
+  {
+    "prepared_day": "/workspace/scratch/ab2b2a31203b/output/bmx_cenario/dia/fundo_distante.png",
+    "edit_reference": "/workspace/scratch/ab2b2a31203b/work/bmx_scenery/finish/far_day_edit.png",
+    "active_box": [
+      0,
+      53,
+      2048,
+      629
+    ],
+    "variants": [
+      {
+        "name": "amanhecer",
+        "prompt": "Use case: lighting-weather. Edit the attached FAR BACKGROUND for the BMX game. Keep exactly the same canvas dimensions, framing, composition, painted brush texture, horizon height, sea, sand dunes, scrub, cashew trees, tiny distant houses, cloud silhouettes, and every terrestrial object's shape, position and size. Do not redraw or rearrange the landscape. Preserve the whole lower30% as quiet empty sand. No extra buildings, trees, vegetation, people, characters, tracks or foreground objects. This is one relighting variant of exactly the same layer. Preserve seamless left-right periodic edges in colors and terrain, with no seam. No text, letters, labels, logos or watermark.\nWORKING CANVAS: the input is2048x683 with a32:9 panoramic active image between y53 and y628, and flat puregreen #00FF00 letterbox bars above and below. Keep that exact canvas and active rectangle; keep the green bars exactly unchanged. Do not expand the landscape into them. Do not zoom, crop, stretch, move the horizon or alter the positions of trees and tinyhouses. Only relight the existing active panorama.\nEARLY MORNING relighting: low golden sunlight coming from the LEFT, light atmospheric haze, long soft shadows cast to the right, pale peach and lilac sky. The existing sand turns gently warm peach; vegetation remains soft olive but with lilac cool shadows. Keep distant sea muted blue-lilac. Sky illumination may replace the daytime sun with a low unobtrusive sunrise glow near the left horizon; keep all actual cloud silhouettes and terrain exactly fixed. Gentle, luminous and readable, no black areas.",
+        "source": "exec-82d3b8c9-163e-426d-b95c-a370b2a7b7ae.png"
+      },
+      {
+        "name": "por_do_sol",
+        "prompt": "Use case: lighting-weather. Edit the attached FAR BACKGROUND for the BMX game. Keep exactly the same canvas dimensions, framing, composition, painted brush texture, horizon height, sea, sand dunes, scrub, cashew trees, tiny distant houses, cloud silhouettes, and every terrestrial object's shape, position and size. Do not redraw or rearrange the landscape. Preserve the whole lower30% as quiet empty sand. No extra buildings, trees, vegetation, people, characters, tracks or foreground objects. This is one relighting variant of exactly the same layer. Preserve seamless left-right periodic edges in colors and terrain, with no seam. No text, letters, labels, logos or watermark.\nWORKING CANVAS: the input is2048x683 with a32:9 panoramic active image between y53 and y628, and flat puregreen #00FF00 letterbox bars above and below. Keep that exact canvas and active rectangle; keep the green bars exactly unchanged. Do not expand the landscape into them. Do not zoom, crop, stretch, move the horizon or alter the positions of trees and tinyhouses. Only relight the existing active panorama.\nSUNSET relighting: orange, pink and purple sky with glowing existing clouds; a warm sun LOW near the horizon over the sea, warm backlight and long soft shadows. Shift the daytime sun down to the horizon as the celestial lighting change, while EVERY LANDSCAPE OBJECT remains exactly in place and at the same size. Existing terrain and clouds retain their shapes. Sand softly peach/orange, vegetation muted warm purplish olive in the shadows. Painterly, hazy and lowcontrast; not oversaturated neon.",
+        "source": "exec-49ce2904-ac3c-47ec-8df5-c1d3ce609a8b.png"
+      },
+      {
+        "name": "noite",
+        "prompt": "Use case: lighting-weather. Edit the attached FAR BACKGROUND for the BMX game. Keep exactly the same canvas dimensions, framing, composition, painted brush texture, horizon height, sea, sand dunes, scrub, cashew trees, tiny distant houses, cloud silhouettes, and every terrestrial object's shape, position and size. Do not redraw or rearrange the landscape. Preserve the whole lower30% as quiet empty sand. No extra buildings, trees, vegetation, people, characters, tracks or foreground objects. This is one relighting variant of exactly the same layer. Preserve seamless left-right periodic edges in colors and terrain, with no seam. No text, letters, labels, logos or watermark.\nWORKING CANVAS: the input is2048x683 with a32:9 panoramic active image between y53 and y628, and flat puregreen #00FF00 letterbox bars above and below. Keep that exact canvas and active rectangle; keep the green bars exactly unchanged. Do not expand the landscape into them. Do not zoom, crop, stretch, move the horizon or alter the positions of trees and tinyhouses. Only relight the existing active panorama.\nNIGHT relighting: deep night-blue sky with MANY small sparse natural stars and a THIN CRESCENT MOON over the sea. Cool blue moonlight on existing dunes, sand, foliage and sea; keep everything readable, never black. Replace daytime sun with the thin crescent in the sky; add only the requested celestial lights. Turn on a few tiny warm orange/yellow windows IN THE EXISTING tiny distant houses near the horizon; do not add or move houses. Keep all terrain, trees, cloud silhouettes and house shapes at exactly the same positions and sizes. Empty bottom30% becomes subdued cool blue sand with readable soft texture. No additional lamps, lanterns, fireflies or light objects.",
+        "source": "exec-66f8e471-fa35-4f64-b869-770932de6bea.png"
+      }
+    ],
+    "lights": {
+      "source": "exec-119d44a4-a810-44ef-b795-5c179f858268.png",
+      "prompt": "Use case: background-extraction.\nAsset type: emissive LIGHTS ONLY layer for the attached NIGHT panorama of the BMX game.\nUse the attached NIGHT image as the EXACT spatial reference. Keep EXACTLY THE SAME image dimensions, canvas, framing, coordinate system, and positions of every light.\nProduce an image that contains ONLY: (1) the thin crescent moon at its exact existing position and shape; (2) every small star at its exact existing position; (3) the few tiny illuminated windows of the existing distant houses on the horizon at their exact positions. Preserve their original light colors and give each a soft subtle glow.\nEverything else must be PURE BLACK RGB(0,0,0), including all sky, clouds, sea, sea reflection, dunes, trees, shrubs, houses themselves, sand, and the former green letterbox bars. Do NOT include the sea reflection. Do not show any silhouettes, horizon line, ground texture, vegetation outlines or sky gradient.\nThis is an aligned additive light map, not a new scene. Do not move, resize, duplicate, add or remove lights. No extra large stars or decorative starbursts. No text, labels, watermark, numbers or logos. Black background is required, not transparency."
+    }
+  },
+  {
+    "task": "BMX restinga mid-ground strip",
+    "mode": "built-in image_gen",
+    "reference": "/workspace/scratch/ab2b2a31203b/upload/download(20261102-013856).jpg",
+    "day": {
+      "raw_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-ce9af418-893f-46f5-96bf-e6e7c835edb9.png",
+      "prompt": "Use case: stylized-concept.\nAsset: horizontal tiling MID-GROUND strip for a 2D side-scrolling BMX game.\nUse the attached painted beach ONLY as the reference for soft hand-painted brush texture and clean saturated-but-soft cartoon colors, not its tropical palms, buildings, sky, or sunset.\n\nOUTPUT COMPOSITION: make a 3072 by 1024 wide canvas. The actual asset is a very thin 6:1 panoramic strip inside the CENTER HALF of the canvas: exactly 3072 by 512, from y256 to y768. Everything above y256 and below y768 must be flat pure chroma green #00FF00. Do not draw any frame, line, label or text marking this band. Inside the band, all space ABOVE the dune silhouettes is also flat pure green #00FF00. The bottom of the terrain is a straight horizontal crop at y768. This produces a long panoramic terrain strip, not a deep landscape.\n\nThe strip depicts the restinga near Costa WinnerZ, a fictional sunny Brazilian coastal town. A continuous row of low rounded ochre sand dunes extends across the entire width, with sparse low olive-green coastal scrub. A few weathered wooden fences half buried in the sand, one small stack of old tires, and two small colorful track flags. Include three tiny unlit glass lanterns hanging from three of the existing fenceposts; these exact lanterns will light up in a later night version. Modest details, calm and not crowded. No characters, no people, no buildings, no bicycles, no road, no sea, no sun, no clouds or sky painting.\n\nDAYLIGHT: hot bright daytime with soft white sunlight from upper left, ochre sand, muted olive scrub, gently bleached wood. LOW CONTRAST and softer than the foreground riding track. Soft painterly shading and visible brushwork like the style reference. NO black or navy outlines on background shapes.\n\nSEAMLESS HORIZONTAL TILE: the left and right edges join into a continuous unobtrusive dune silhouette at exactly the same height, color, and slope. Keep the outermost 10% on each side low-detail plain sand with only tiny low scrub, and keep fences, tires, lanterns and flags away from those edge regions. Neither an obvious hill peak nor a trough at the seam. No vignette or edge darkening. Repeated copies should look like one continuous coastal dune strip.\n\nKEY COLOR: #00FF00 is used ONLY for empty background, never inside dune, shrub, fence, tire or flag artwork. Pure flat green, no gradient, no tint, no shadows on the green. No text, letters, numbers, logos, watermarks, borders or guides.",
+      "qa": {
+        "subject": "Rounded ochre dunes, olive coastal scrub, fences, tire stack, two flags, two unlit lanterns",
+        "background": "Pure green empty space; no drawn sky/sea/sun",
+        "composition": "Central panoramic band with flat bottom; raw canvas padded above/below"
+      },
+      "finished_master": "/workspace/scratch/ab2b2a31203b/output/bmx_cenario/dia/plano_medio.png",
+      "finished_size": [
+        2172,
+        362
+      ]
+    },
+    "variants_manifest": "variants_manifest.json",
+    "generation_status": "all_requested_midground_sources_generated_and_visually_reviewed"
+  },
+  {
+    "day_master": "/workspace/scratch/ab2b2a31203b/output/bmx_cenario/dia/plano_medio.png",
+    "edit_reference": "/workspace/scratch/ab2b2a31203b/work/bmx_scenery/finish/mid_day_edit.png",
+    "active_crop": [
+      0,
+      181,
+      2172,
+      543
+    ],
+    "sources": {
+      "morning": "/workspace/scratch/ab2b2a31203b/generated_images/exec-69559002-e54e-4a6f-9207-7e99963c789e.png",
+      "sunset": "/workspace/scratch/ab2b2a31203b/generated_images/exec-085b22a2-5f48-45ec-b1bc-8662e6b12ddd.png",
+      "night": "/workspace/scratch/ab2b2a31203b/generated_images/exec-3a72eae8-a7d4-4e5d-b0d4-0df5ca5550a0.png",
+      "lights": "/workspace/scratch/ab2b2a31203b/generated_images/exec-33a11a41-e5ad-4194-b825-616782bd2e60.png"
+    },
+    "prompts": {
+      "morning": "Use case: lighting-weather.\nEDIT TARGET: the attached finished DAY mid-ground strip. Preserve the entire drawing pixel-aligned: same dunes, every shrub and blade, both fences, both flags, tire stack and the TWO existing lanterns in exactly the same positions and at the same sizes. Preserve the source canvas, framing, camera, perspective and brush texture. No new objects, no deletion, no shifts, no reshaping.\nThe input is2172x724, with the actual6:1 asset in the central band x0,y181,width2172,height362. Keep the same band/canvas and every empty pixel flat pure #00FF00; do NOT fill the green sky with any scene, clouds, sun, moon or stars. The puregreen letterboxing above and below and puregreen gaps around vegetation remain exactly identical. Only the colored foreground artwork is relit.\nKeep left and right edge colors and terrain profiles matched seamlessly for horizontal repeating. Soft painterly cartoon finish with no outlines, no text, letters, numbers, logos, people or characters. Keep all silhouettes exact; no added cast shadows into the green. EARLY MORNING: change only illumination/colors to low golden sunlight coming from the LEFT, soft light haze, long soft shadows ON THE SAND, gently peach and lilac ambient fill on the existing surfaces. The sky itself stays chroma green. Keep both existing lanterns OFF.",
+      "sunset": "Use case: lighting-weather.\nEDIT TARGET: the attached finished DAY mid-ground strip. Preserve the entire drawing pixel-aligned: same dunes, every shrub and blade, both fences, both flags, tire stack and the TWO existing lanterns in exactly the same positions and at the same sizes. Preserve the source canvas, framing, camera, perspective and brush texture. No new objects, no deletion, no shifts, no reshaping.\nThe input is2172x724, with the actual6:1 asset in the central band x0,y181,width2172,height362. Keep the same band/canvas and every empty pixel flat pure #00FF00; do NOT fill the green sky with any scene, clouds, sun, moon or stars. The puregreen letterboxing above and below and puregreen gaps around vegetation remain exactly identical. Only the colored foreground artwork is relit.\nKeep left and right edge colors and terrain profiles matched seamlessly for horizontal repeating. Soft painterly cartoon finish with no outlines, no text, letters, numbers, logos, people or characters. Keep all silhouettes exact; no added cast shadows into the green. SUNSET: change only illumination/colors to warm orange-pink light and soft purple shaded areas, warm low backlighting and long soft shadows ON THE SAND. Keep the painterly highlights soft, not glossy. The sky itself stays chroma green. Keep both existing lanterns OFF.",
+      "night": "Use case: lighting-weather.\nEDIT TARGET: the attached finished DAY mid-ground strip. Preserve the entire drawing pixel-aligned: same dunes, every shrub and blade, both fences, both flags, tire stack and the TWO existing lanterns in exactly the same positions and at the same sizes. Preserve the source canvas, framing, camera, perspective and brush texture. No new objects, no deletion, no shifts, no reshaping.\nThe input is2172x724, with the actual6:1 asset in the central band x0,y181,width2172,height362. Keep the same band/canvas and every empty pixel flat pure #00FF00; do NOT fill the green sky with any scene, clouds, sun, moon or stars. The puregreen letterboxing above and below and puregreen gaps around vegetation remain exactly identical. Only the colored foreground artwork is relit.\nKeep left and right edge colors and terrain profiles matched seamlessly for horizontal repeating. Soft painterly cartoon finish with no outlines, no text, letters, numbers, logos, people or characters. Keep all silhouettes exact; no added cast shadows into the green. NIGHT: change only illumination/colors to cool deep-blue moonlight across the ochre sand, scrub, fences, tires and flags. Keep readable midtones and visible brush texture, never near-black silhouettes. Turn ON only the TWO existing glass lanterns hanging on the fenceposts: tiny warm yellow-white cores with soft orange local glow lighting the nearby wood and sand. Keep both lanterns in the exact same position and size. Do not add a moon, stars, houses, or additional lanterns. The sky and every empty background pixel stay puregreen #00FF00.",
+      "lights": "Use case: precise-object-edit.\nCreate an emissive LIGHTS-ONLY pass from the attached NIGHT mid-ground image, preserving its exact2172x724 canvas size, framing, and every light coordinate. Keep the exact central6:1 asset band x0,y181,width2172,height362.\nShow ONLY the TWO existing fence-lantern lights in their EXACT SAME positions and at their EXACT SAME sizes as the source image: the warm yellow-white luminous glass/core, each surrounded by a delicate soft warm orange glow. These are the lantern on the left fence beside the tires and the lantern on the right fence. Preserve their individual shape and glow falloff without relocating or enlarging them.\nEVERYTHING ELSE IS PURE SOLID BLACK #000000: all sand, dunes, shrubs, tires, fenceposts, fences, flags, shadows and the entire formerly green background must disappear into black. Do not draw any fence silhouette or lantern's nonemissive dark metal outline. No illuminated ground patches. Do not add stars, moon, other lights, text, labels, borders or anything new. This is a precisely aligned game additive-glow overlay, not a new scene."
+    },
+    "qa": {
+      "morning": "Soft golden-left lighting with pink/lilac fill, green preserved visually",
+      "sunset": "Warm orange lighting/purple shade, green preserved visually",
+      "night": "Cool readable blue ground, exactly two existing lanterns lit",
+      "lights": "Two warm lantern glows on black, needs finisher exact centroid alignment to final night",
+      "geometry": "All scene objects retained in same approximate pixel positions; finisher locks DAY geometry and green mask"
+    }
+  },
+  {
+    "task": "BMX track texture, four times of day",
+    "mode": "built-in image_gen",
+    "reference": "/workspace/scratch/ab2b2a31203b/upload/download(20261102-013856).jpg",
+    "day": {
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-e8a70bf4-748c-4a8a-bde8-1ab08feafd66.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: seamless horizontal ground texture for a hand-painted 2D side-view BMX game.\nReference image: use the attached painted beach ONLY as a reference for soft brushwork, gentle tonal modeling and richly painted cartoon surfaces. Do not reproduce the beach, sky, sun, water or palm trees.\n\nCreate a 3072 by 1024 image containing one very wide 6:1 texture strip, 3072 by 512, occupying ONLY the exact central horizontal half of the canvas, from y256 through y767. The upper quarter and lower quarter of the canvas are perfectly flat pure green #00FF00 padding. Straight hard horizontal boundaries separate the strip from the green padding; no outline or border. The active strip extends all the way to the left and right canvas edges. It will be cropped out without stretching.\n\nThe entire central active strip is packed dirt of a BMX track seen directly from the side, like a game platform cross-section. At the very top edge of the strip is a thin lighter tan riding surface with subtle horizontal bicycle tire marks. Below it, the full remaining active area is ochre and warm brown compacted earth, small embedded stones, sparse fine roots and subtle painted sediment variations. Ground fills every pixel of the central strip: no sky, no empty area, no green, no grass. Keep the overall top surface nearly level and perfectly matching at left and right.\n\nLighting is neutral bright DAY, hot Brazilian coast: soft warm sand colors, gentle low contrast, readable forms without harsh black shadows. Painterly cartoon texture, visible soft brushwork, soft shading, NO dark outlines. Ground texture has low visual contrast and does not compete with gameplay.\n\nThis texture MUST repeat seamlessly from its right edge to its left edge. Both edges have exactly matching layer heights, earth color, texture density and illumination. Keep the outermost 8% on both sides simple and compatible; do not place a unique root, large rock, dark patch or highlight directly on an edge. Natural varied hand-painted detail in the middle. No people, no characters, no bikes, no ramps, no flags, no buildings, no text, no letters, no numbers, no logos, no watermark. Do not add cast shadows or decorative borders.",
+      "status": "finished_day_master",
+      "visual_qa": [
+        "Packed earth fills active strip",
+        "Lighter riding surface and tire marks at top",
+        "Small stones and roots",
+        "No sky, people, letters or logos",
+        "Soft painterly style"
+      ],
+      "finished_source": "/workspace/scratch/ab2b2a31203b/output/bmx_cenario/dia/pista.png",
+      "edit_target": "/workspace/scratch/ab2b2a31203b/work/bmx_scenery/finish/track_day_edit.png",
+      "finished_dimensions": [
+        2172,
+        362
+      ],
+      "edit_canvas_dimensions": [
+        2172,
+        724
+      ],
+      "active_box": [
+        0,
+        181,
+        2172,
+        362
+      ]
+    },
+    "variants": {
+      "morning": {
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-3e2c3d08-994b-4459-b9c0-1c933297925d.png",
+        "prompt": "Use case: lighting-weather.\nEdit target: the attached finished seamless BMX dirt texture. This is a side-view ground texture, NOT a landscape.\nKeep the image at exactly the same size, aspect ratio, framing and crop. Preserve every rock, root, tire mark, painted brushstroke, earth layer, contour and detail in EXACTLY the same pixel positions and at the same sizes. The complete original drawing must remain registered. Change ONLY the lighting and colors, never redraw, add, move or remove any feature. Preserve the left/right repeat: the two edges have the same earth layers, matching colors and lighting, and tile seamlessly sideways.\nThe very top is the lighter riding surface; every pixel below remains dirt. Do NOT add sky, sun, moon, stars, clouds, water, plants, flags, buildings, lamps, people, characters, symbols, letters, numbers or text. No green chroma background within this texture. Keep its soft painterly cartoon brushwork and low contrast. No outlines.\nEARLY MORNING lighting only: low golden sunlight coming from the LEFT, faint cool lilac ambient fill in recesses, long soft shadows already consistent with the existing stones and ridges, light haze and pale peach highlights on the riding surface. The earth remains recognizably ochre and brown. Gentle readable shading, never high contrast. Do not invent a sky; its peach/lilac morning influence is only reflected in the dirt colors.\nCANVAS LOCK: the target is 2172×724. The active 6:1 earth strip is x0,y181,width2172,height362. Keep both pure #00FF00 padding bands above and below exactly unchanged. Do not extend the texture into the padding; do not shift the crop. Apply lighting only inside the earth strip.",
+        "status": "ready_for_geometry_and_seam_finish",
+        "visual_qa": [
+          "Same stones, roots and tire marks are recognizably registered",
+          "Lighting change is clear",
+          "No added objects or sky",
+          "Active earth strip and green padding preserved"
+        ],
+        "notes": "Left-to-right illumination gradient requires periodic technical finishing"
+      },
+      "sunset": {
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-a146cf42-71e9-4314-a70c-4b0e31b3c025.png",
+        "prompt": "Use case: lighting-weather.\nEdit target: the attached finished seamless BMX dirt texture. This is a side-view ground texture, NOT a landscape.\nKeep the image at exactly the same size, aspect ratio, framing and crop. Preserve every rock, root, tire mark, painted brushstroke, earth layer, contour and detail in EXACTLY the same pixel positions and at the same sizes. The complete original drawing must remain registered. Change ONLY the lighting and colors, never redraw, add, move or remove any feature. Preserve the left/right repeat: the two edges have the same earth layers, matching colors and lighting, and tile seamlessly sideways.\nThe very top is the lighter riding surface; every pixel below remains dirt. Do NOT add sky, sun, moon, stars, clouds, water, plants, flags, buildings, lamps, people, characters, symbols, letters, numbers or text. No green chroma background within this texture. Keep its soft painterly cartoon brushwork and low contrast. No outlines.\nSUNSET lighting only: warm orange and pink low backlight, soft purplish ambient shadows, long gentle shadows from existing shallow stones and ridges. A subtle orange rim of light along the existing top riding surface. The dirt remains ochre and brown with sunset coloration, not a blazing orange filter. Do not draw sun or sky; only their light is reflected on the earth. Keep clear readable ground texture.\nCANVAS LOCK: the target is 2172×724. The active 6:1 earth strip is x0,y181,width2172,height362. Keep both pure #00FF00 padding bands above and below exactly unchanged. Do not extend the texture into the padding; do not shift the crop. Apply lighting only inside the earth strip.",
+        "status": "ready_for_geometry_and_seam_finish",
+        "visual_qa": [
+          "Same stones, roots and tire marks are recognizably registered",
+          "Lighting change is clear",
+          "No added objects or sky",
+          "Active earth strip and green padding preserved"
+        ],
+        "notes": "Warm rim and violet earth shadows"
+      },
+      "night": {
+        "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-fda55219-159f-461f-8603-e82a646dc8ea.png",
+        "prompt": "Use case: lighting-weather.\nEdit target: the attached finished seamless BMX dirt texture. This is a side-view ground texture, NOT a landscape.\nKeep the image at exactly the same size, aspect ratio, framing and crop. Preserve every rock, root, tire mark, painted brushstroke, earth layer, contour and detail in EXACTLY the same pixel positions and at the same sizes. The complete original drawing must remain registered. Change ONLY the lighting and colors, never redraw, add, move or remove any feature. Preserve the left/right repeat: the two edges have the same earth layers, matching colors and lighting, and tile seamlessly sideways.\nThe very top is the lighter riding surface; every pixel below remains dirt. Do NOT add sky, sun, moon, stars, clouds, water, plants, flags, buildings, lamps, people, characters, symbols, letters, numbers or text. No green chroma background within this texture. Keep its soft painterly cartoon brushwork and low contrast. No outlines.\nNIGHT lighting only: cool soft moonlight, deep blue ambient light, the lighter riding surface softly illuminated in muted blue-gray and lavender. The earth below retains subdued brown/ochre identity under cool light. All stones, roots and tire marks remain clearly readable; dark enough to feel nighttime but NEVER black or crushed shadows. No moon, stars or lamps are drawn because this layer is only the dirt cross-section.\nCANVAS LOCK: the target is 2172×724. The active 6:1 earth strip is x0,y181,width2172,height362. Keep both pure #00FF00 padding bands above and below exactly unchanged. Do not extend the texture into the padding; do not shift the crop. Apply lighting only inside the earth strip.",
+        "status": "ready_for_geometry_and_seam_finish",
+        "visual_qa": [
+          "Same stones, roots and tire marks are recognizably registered",
+          "Lighting change is clear",
+          "No added objects or sky",
+          "Active earth strip and green padding preserved"
+        ],
+        "notes": "Night remains readable with cool moonlit riding surface"
+      }
+    }
+  },
+  {
+    "task": "BMX track asset sheet",
+    "tool": "built-in image_gen",
+    "use_case": "stylized-concept",
+    "source": "/workspace/scratch/ab2b2a31203b/work/bmx_scenery/assets/assets_lip_up_source.png",
+    "source_size": [
+      1448,
+      1086
+    ],
+    "prompt": "Use case: stylized-concept.\nAsset type: one production game prop and effect sprite atlas for a 2D side-scrolling BMX game.\nInput image1 is the IAmiguinho MODEL SHEET used only for scale, thick dark navy outlines, saturated painted rendering and lighting. Input image2 is a painted beach used only for handmade brushwork. Do not draw either reference scene or any character.\nCreate a roomy 2048x1536 landscape sheet on perfectly flat pure chroma green #00FF00. Exactly NINE separated sprite groups, with generous green gutters, fully visible and not touching any image edge. Side-view assets facing along a track that travels right. Thick dark navy organic outlines; hand-painted cartoon finish with soft dimensional shading and visible fine brush texture. Light from top left. No ground or drop shadows.\nTOP ROW: a large wide water pit on the left, and a separate stack of old black rubber tires on the right. The pit is dug into an ochre dirt track, seen from the SIDE as a long low cutaway: muddy brown water in the depression, wet darker banks, little embedded stones, complete contained dirt silhouette. A short WOODEN TAKE-OFF LIP made of worn brown planks is attached at its upper LEFT bank, angled gently upward toward the water and the RIGHT. The pit is substantially wider than every other asset. No extra surrounding landscape.\nMIDDLE ROW: two small TRACK FLAGS at the left and middle, and one short wooden FENCE WITH ROPE on the right. The flags are TWO animation frames of the SAME orange-and-white checkerboard pennant on the SAME thin straight pole: same pole height, thickness, base alignment and cloth scale, with only a small change in the cloth flutter. The two frames remain separate with green space. Fence: short weathered wood posts and horizontal wood members, a visibly draped rope between posts, wholly isolated.\nBOTTOM ROW: exactly FOUR OCHRE DUST PUFFS in consecutive growth stages, clearly separated and ordered from small to medium to large to biggest. Same painterly dusty cloud style and dark navy outlines, soft rounded lobes, increasing size smoothly. Each dust puff is a contained silhouette; no scattered flecks connecting neighboring frames.\nRelative game scale: pit is a wide jump obstacle; flags and fence are small track decorations; tires are ordinary old BMX-track tires.\nNo text, letters, labels, numbers, borders, grid lines, logos, people, robots, bikes, water splashes, motion lines or shadows. Background must be uniformly #00FF00 including the spaces inside and between assets. Exactly9 groups: pit+attachedlip, tirestack, flagframe1, flagframe2, ropefence, dust1, dust2, dust3, dust4.\n",
+    "assets": [
+      {
+        "name": "water_pit_with_lip",
+        "extraction_window": [
+          0,
+          0,
+          1100,
+          390
+        ],
+        "foreground_bbox_exclusive": [
+          21,
+          88,
+          1082,
+          353
+        ]
+      },
+      {
+        "name": "tire_stack",
+        "extraction_window": [
+          1100,
+          0,
+          1448,
+          390
+        ],
+        "foreground_bbox_exclusive": [
+          1116,
+          127,
+          1427,
+          353
+        ]
+      },
+      {
+        "name": "flag_01",
+        "extraction_window": [
+          0,
+          390,
+          450,
+          725
+        ],
+        "foreground_bbox_exclusive": [
+          125,
+          415,
+          396,
+          700
+        ]
+      },
+      {
+        "name": "flag_02",
+        "extraction_window": [
+          450,
+          390,
+          800,
+          725
+        ],
+        "foreground_bbox_exclusive": [
+          505,
+          415,
+          731,
+          703
+        ]
+      },
+      {
+        "name": "rope_fence",
+        "extraction_window": [
+          800,
+          390,
+          1448,
+          725
+        ],
+        "foreground_bbox_exclusive": [
+          843,
+          476,
+          1370,
+          674
+        ]
+      },
+      {
+        "name": "dust_01",
+        "extraction_window": [
+          0,
+          725,
+          250,
+          1086
+        ],
+        "foreground_bbox_exclusive": [
+          33,
+          868,
+          193,
+          980
+        ]
+      },
+      {
+        "name": "dust_02",
+        "extraction_window": [
+          250,
+          725,
+          550,
+          1086
+        ],
+        "foreground_bbox_exclusive": [
+          283,
+          838,
+          516,
+          987
+        ]
+      },
+      {
+        "name": "dust_03",
+        "extraction_window": [
+          550,
+          725,
+          950,
+          1086
+        ],
+        "foreground_bbox_exclusive": [
+          585,
+          788,
+          907,
+          1000
+        ]
+      },
+      {
+        "name": "dust_04",
+        "extraction_window": [
+          950,
+          725,
+          1448,
+          1086
+        ],
+        "foreground_bbox_exclusive": [
+          976,
+          743,
+          1423,
+          1030
+        ]
+      }
+    ],
+    "group_count": 9,
+    "qa_passes": [
+      "All nine requested sprite groups present",
+      "Separated with green gutters and intact outer margins",
+      "Orange-and-white check flags in two flutter poses",
+      "Four dust puffs grow left to right",
+      "No text, characters or drop shadows",
+      "Dark navy outlines and painterly style match references"
+    ],
+    "notes": [
+      "Pit and attached wooden take-off lip form one combined sprite.",
+      "Dust groups include a few contained satellite puffs inside their extraction windows.",
+      "Flag poles should be registered to matching ground and tip anchors on extraction."
+    ],
+    "status": "final_technical_finish_complete",
+    "initial_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-f6f0a388-26b0-45a4-9698-0049318f6878.png",
+    "lip_repair": {
+      "generator_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-2684a2dd-9b6d-44c3-93b9-5f99965859f3.png",
+      "prompt": "Use case: precise-object-edit.\nEdit target: the attached side-view muddy water pit asset.\nMake ONE local correction only: change the wooden plank take-off platform at the upper LEFT bank so its riding surface slopes gently UP toward the RIGHT, with its highest right tip pointing out over the water. A BMX rider travels left-to-right up this small ramp and leaves its right tip to jump over the pit.\nCurrently it incorrectly slopes down toward the right. Reverse ONLY that ramp slope while keeping its total plank length and modest size. The left end should be lower and the right end higher. Keep natural wooden supports connected to the same left bank, with a gentle practical incline, not a dramatic steep kicker. Draw the upper right tip visibly higher on the page than the lower left start.\nCRITICAL INVARIANTS: do not redraw, resize, reframe, move or change the muddy water, all dirt banks, pit width, stones, wet edges, bottom silhouette, lighting or painted style. Keep the same image dimensions and margins. All change must stay near the small wooden platform and its supports at the upper-left bank. Every pixel elsewhere should be identical where possible.\nSame thick dark navy outlines, warm hand-painted cartoon wood and dirt. Flat pure green #00FF00 outside the asset. No text, no additional objects, no shadow.\n",
+      "target_crop": [
+        0,
+        0,
+        1100,
+        390
+      ],
+      "generated_resample_size": [
+        1100,
+        390
+      ],
+      "composition": "Only local wood-and-support mask used from edit; original pit water, remaining banks and all other eight sprites retained.",
+      "changed_pixel_bbox_exclusive": [
+        39,
+        68,
+        360,
+        230
+      ],
+      "other_eight_groups_pixel_identical": true
+    },
+    "final_sheet": "/workspace/scratch/ab2b2a31203b/output/bmx_cenario/objetos/prancha_objetos.png",
+    "technical_checks": {
+      "master": {
+        "size": [
+          1448,
+          1086
+        ],
+        "foreground_bounds_exclusive": [
+          18,
+          86,
+          1429,
+          1031
+        ],
+        "foreground_pixels": 537490,
+        "edge_rgb": [
+          0,
+          255,
+          0
+        ],
+        "minimum_margin": 18
+      },
+      "assets": {
+        "pit_lip": {
+          "size": [
+            1099,
+            302
+          ],
+          "foreground_bounds_exclusive": [
+            16,
+            16,
+            1083,
+            286
+          ],
+          "foreground_pixels": 190928,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 16
+        },
+        "tires": {
+          "size": [
+            348,
+            264
+          ],
+          "foreground_bounds_exclusive": [
+            16,
+            16,
+            332,
+            248
+          ],
+          "foreground_pixels": 58988,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 16
+        },
+        "flag_01": {
+          "size": [
+            320,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            17,
+            18,
+            292,
+            305
+          ],
+          "foreground_pixels": 27534,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 15
+        },
+        "flag_02": {
+          "size": [
+            320,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            20,
+            14,
+            248,
+            305
+          ],
+          "foreground_pixels": 25393,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 14
+        },
+        "fence": {
+          "size": [
+            563,
+            236
+          ],
+          "foreground_bounds_exclusive": [
+            16,
+            16,
+            547,
+            220
+          ],
+          "foreground_pixels": 60496,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 16
+        },
+        "dust_01": {
+          "size": [
+            480,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            159,
+            189,
+            323,
+            305
+          ],
+          "foreground_pixels": 11101,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 15
+        },
+        "dust_02": {
+          "size": [
+            480,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            123,
+            151,
+            358,
+            305
+          ],
+          "foreground_pixels": 23785,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 15
+        },
+        "dust_03": {
+          "size": [
+            480,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            78,
+            91,
+            404,
+            305
+          ],
+          "foreground_pixels": 47534,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 15
+        },
+        "dust_04": {
+          "size": [
+            480,
+            320
+          ],
+          "foreground_bounds_exclusive": [
+            15,
+            14,
+            467,
+            305
+          ],
+          "foreground_pixels": 91731,
+          "edge_rgb": [
+            0,
+            255,
+            0
+          ],
+          "minimum_margin": 13
+        }
+      },
+      "source_background_median_rgb": [
+        2.0,
+        249.0,
+        6.0
+      ],
+      "removed_components": 0,
+      "scale": 1.0
+    },
+    "technical_script": "/workspace/scratch/ab2b2a31203b/work/bmx_scenery/assets/finish_assets.py"
+  }
+]

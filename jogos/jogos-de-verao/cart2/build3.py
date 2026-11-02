@@ -398,6 +398,15 @@ s = sub1("""    while (m < OB_LEN[i] - 14) {
       if (Math.random() < .45 + i * .15) { const a = m + rand(1, 4); fofa.push({ x0: a * OB.PXM, x1: (a + rand(6, Math.min(11, livre - 6))) * OB.PXM }); }
       m += livre;
     }""", s)
+# 02/11 · corrida na areia (pedido do dono): o contato com o obstáculo começa no início do desenho (a frente do pé encostando) e
+# termina perto do fim dele; o pulo ficou mais longo e mais alto (0,56 s e 24 -> 0,85 s e 36). FR 6: o pé da frente pode entrar 2 no começo do desenho (a borda)
+s = sub1("const OB = { PXM: 8, SPR: 9.6, JOG: 6.6, WALK: 3.8, ACC: 7, DRAIN: .27, REC: .1, RECW: .32, JT: .56, JH: 24, SX: 120 };",
+         "const OB = { PXM: 8, SPR: 9.6, JOG: 6.6, WALK: 3.8, ACC: 7, DRAIN: .27, REC: .1, RECW: .32, JT: .85, JH: 36, SX: 120, FR: 6, FIM: 5 };", s)
+s = sub1("const OB_TIPO = { cerca: { h: 12, w: 5 }, tronco: { h: 7, w: 13 }, castelo: { h: 14, w: 9 }, siri: { h: 6, w: 8 }, poca: { h: 0, w: 22 } };",
+         "const OB_TIPO = { cerca: { h: 12, w: 21 }, tronco: { h: 7, w: 19 }, castelo: { h: 13, w: 23 }, siri: { h: 6, w: 14 }, poca: { h: 0, w: 25 } }; /* 02/11: w = largura do desenho pintado (na raia da frente); o desenho começa em x */", s)
+s = sub1("      if (r.x + 2 >= ox && r.x - 2 <= ox + T.w) {", "      if (r.x + OB.FR >= ox && r.x <= ox + T.w - OB.FIM) { /* 02/11: do pé da frente encostando no início do desenho até o meio do corredor passar o fim */", s)
+s = sub1("      if (!o.hit && !o.ok && r.x - 4 > ox + T.w) {", "      if (!o.hit && !o.ok && r.x > ox + T.w - OB.FIM) {", s)
+s = sub1("      const d = o.x + o.dx - r.x, want = r.v * OB.PXM * .2;", "      const d = o.x + o.dx - OB.FR - r.x, want = r.v * OB.PXM * .1; /* 02/11: pulam antes do pé encostar no desenho */", s)
 # 02/11 · corrida na areia pintada (mvcr.py -> mvcr.js, mvbcr.py -> mvbcr.js, crcen.py -> crcen.js, desenho em crp.js): desenhada em alta
 s = sub1("  id: 'obstaculos', name: 'Corrida na areia', tag: 'Areia · 3 baterias', wide: true, hi: true, dur: 0,", "  id: 'obstaculos', name: 'Corrida na areia', tag: 'Areia · 3 baterias', wide: true, hi: true, paint: true, dur: 0,", s)
 pint = (HERE / 'pintado.js').read_text(encoding='utf-8') + '\n' + (HERE / 'anim5.js').read_text(encoding='utf-8') + '\n' + (HERE / 'animb2.js').read_text(encoding='utf-8') + '\n' + (HERE / 'skp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ebp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bcp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bgp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ppi.js').read_text(encoding='utf-8') + '\n' + (HERE / 'sfp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bqp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'ptsolve.js').read_text(encoding='utf-8') + '\n' + (HERE / 'bxfis.js').read_text(encoding='utf-8')+ '\n' + (HERE / 'bxp.js').read_text(encoding='utf-8') + '\n' + (HERE / 'crp.js').read_text(encoding='utf-8')  # 01/11: surfe, basquete e cenário do patins pintados

@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
   for (const [bat, alvo] of [[0, 40], [2, 70], [2, 130]]) {
     await p.evaluate(([bat, alvo]) => {
       const O = obstaculos; O.startHeat(bat); window.__ou = window.__ou || O.update; O.update = window.__ou; let n = 0;
-      while (O.me().x / OB.PXM < alvo && n < 60 * 60) { const me = O.me(); let pula = false; for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - me.x; if (d > 0 && d < me.v * OB.PXM * .2 + 2) pula = true; break; } O.update(1 / 60, { r: me.st > .35, pa: pula }); n++; }
+      while (O.me().x / OB.PXM < alvo && n < 60 * 60) { const me = O.me(); let pula = false; for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - OB.FR - me.x; if (d > 0 && d < me.v * OB.PXM * .1 + 1) pula = true; break; } O.update(1 / 60, { r: me.st > .35, pa: pula }); n++; }
       O.update = function (dt) { this.t += dt; return false; };
     }, [bat, alvo]);
     await p.waitForTimeout(200); await p.screenshot({ path: `amg/crm_${bat}_${alvo}.png`, clip });

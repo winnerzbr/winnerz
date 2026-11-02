@@ -53,6 +53,17 @@
   if (typeof obstaculos !== 'undefined') {
     const draw16 = obstaculos.draw, runner16 = obstaculos.runner, ob16 = obstaculos.ob;
     obstaculos.ob = function (nm, cx, by, w, h) { if (!CROK()) return ob16.call(this, nm, cx, by, w, h); crPeca(nm, cx, by, w, h); };
+    // 02/11: o desenho de cada obstáculo começa em x (onde começa o contato) e tem a largura de OB_TIPO na raia da frente
+    const obst16 = obstaculos.obst, CR_OB = { cerca: ['cerca', 'cerca_caida', 14, 8], tronco: ['tronco', 'tronco', 7, 7], castelo: ['castelo', 'castelo_caido', 20, 9], siri: ['siri0', 'siri0', 8, 8], poca: ['poca', 'poca', 6, 6] };
+    obstaculos.obst = function (o, x, gy, sc, tt) {
+      if (!CROK()) return obst16.call(this, o, x, gy, sc, tt);
+      const q = CR_OB[o.k]; if (!q) return;
+      let nm = o.hit ? q[1] : q[0]; if (o.k === 'siri') nm = Math.floor(tt * 8 + o.x) % 2 ? 'siri0' : 'siri1';
+      const T = OB_TIPO[o.k], x0 = x + (o.k === 'siri' ? Math.round(o.dx) : 0);
+      if (o.k === 'poca') { crPeca('poca', x0 + T.w * sc / 2, gy + 2, T.w * sc, q[2] * sc); return; }
+      const f = CRC.p[nm], hh = (o.hit ? q[3] : q[2]) * sc, ww = hh * f.w / f.h;
+      crPeca(nm, x0 + ww / 2, gy + 1, ww, hh);
+    };
     obstaculos.runner = function (r, sx, gy, sc, tt) {
       const MB = window.MVB, amOK = MB && MB.a.crSprint && MB.a.party && window.__fr && window.__fr.bl && window.__blCor;
       if (!CROK() || (r.me ? !CRIOK() : !amOK)) return runner16.call(this, r, sx, gy, sc, tt);

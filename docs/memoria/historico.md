@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Corrida na areia: contato no início do obstáculo e pulo mais longo
+- **O dono pediu:** o contato no início do desenho do obstáculo (parecia no meio) e um pulo mais longo (caía demais); e aceitou os pedidos de peças a mais para o meio-plano.
+- **Feito:** cada obstáculo bate a partir do início do desenho; pulo mais longo e mais alto (0,85 s); os Amiguinhos pulam na hora certa. Pedidos do quiosque de coco, coqueiros e rede de vôlei (4 horários e luzes) na guia da Corrida.
+- **Pendente:** o dono testar e gerar as peças do meio-plano.
+
+---
+
 ## 02/11/2026: Corrida na areia mais longa e com espaço entre os obstáculos
 - **O dono pediu:** corrida bem mais longa (sem relógio na tela) e obstáculos menos juntos, com um flow melhor.
 - **Feito:** baterias de 185, 195 e 205 m (uns 30 s cada); obstáculos em grupos com 12 a 20 m entre eles e trechos livres para embalar; poça com espaço para frear e voltar; areia fofa só nos trechos livres.

@@ -14,7 +14,7 @@ const { chromium } = require('playwright');
       while (!fim && n < 60 * 200) {
         if (O.bat !== bat) { bat = O.bat; const ms = O.me().obs.map((o) => o.m); const gaps = ms.slice(1).map((m, j) => m - ms[j]); info.push({ L: OB_LEN[bat], n: ms.length, min: Math.min(...gaps).toFixed(1), fofa: O.fofa.length }); }
         const me = O.me(); let pula = false;
-        for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - me.x; if (d > 0 && d < me.v * OB.PXM * .2 + 2) pula = true; break; }
+        for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - OB.FR - me.x; if (d > 0 && d < me.v * OB.PXM * .1 + 1) pula = true; break; }
         let poca = me.obs.some((o) => o.k === 'poca' && !o.ok && o.x - me.x < 14 * OB.PXM / 8 * 8 && o.x - me.x > -22);
         const forte = jeito === 'bom' ? (me.st > .35 || (O.L - me.x) / OB.PXM < 30) && !poca : false;
         fim = O.update(1 / 60, { r: forte, pa: pula }); n++;

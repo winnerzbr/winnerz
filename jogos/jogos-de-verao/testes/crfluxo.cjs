@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
     for (const h of [8, 13, 18, 23]) { window.__skHora = h; O.draw(n / 60); }
     while (!fim && n < 60 * 120) {
       const me = O.me(); let pula = false;
-      for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - me.x; if (d > 0 && d < me.v * OB.PXM * .2 + 2) pula = true; break; }
+      for (const o of me.obs) { if (o.ok || o.hit || o.k === 'poca') continue; const d = o.x + o.dx - OB.FR - me.x; if (d > 0 && d < me.v * OB.PXM * .1 + 1) pula = true; break; }
       fim = O.update(1 / 60, { r: me.st > .3, pa: pula }); if (n % 3 === 0) O.draw(n / 60); n++;
     }
     return [fim, n, O.res.map((x) => x.pos + 1 + 'º ' + x.time.toFixed(1)).join(' · '), O.score, O.limpos, O.tropecos];

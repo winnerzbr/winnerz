@@ -73,6 +73,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .recado { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--line); padding: 18px; }
 .recado textarea { width: 100%; box-sizing: border-box; min-height: 80px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; resize: vertical; }
 .estado { font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 1.2em; }
+details.pedir { border-top: 1px dashed var(--line); padding-top: 8px; }
+details.pedir summary { cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--azul); }
+details.pedir p { margin: 6px 0; font-size: 13px; }
+.prompt { font-family: var(--mono); font-size: 12px; line-height: 1.5; background: var(--bg); border: 1px solid var(--line); padding: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.copiar { border: 1px solid var(--line); background: transparent; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+.fontes { background: var(--panel); border: 1px solid var(--line); padding: 18px; display: grid; gap: 14px; }
+.fontes .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px; }
+.fontes h3 { font-family: var(--display); font-stretch: 110%; font-weight: 800; text-transform: uppercase; font-size: 14px; margin: 0 0 6px; }
+.fontes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.fontes li { max-width: 60ch; }
+.fontes a { color: var(--azul); font-weight: 600; }
+.fontes p { margin: 0; color: var(--muted); max-width: 75ch; }
 @media (prefers-reduced-motion: reduce) { .ficha { transition: none; } }
 </style>
 
@@ -80,7 +92,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   <header>
     <span class="eyebrow">IAmiguinho: Jogos de Verão · sonoplastia</span>
     <h1>Sons de desenho</h1>
-    <p class="lede">Sons de desenho animado para as 19 provas. Toque cada um, ouça as cenas de cada prova e marque o que gostou. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
+    <p class="lede">Sons de desenho animado para as 19 provas. Toque cada um, ouça as cenas de cada prova e marque o que gostou. Para os que não ficaram bons, cada ficha tem o texto pronto para pedir a um gerador, e mais abaixo estão os sites com sons prontos. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
     <div class="barra">
       <label for="vol">Volume <input id="vol" type="range" min="0" max="1.2" step="0.01" value="0.8"></label>
       <button class="btn fraco" id="parar" type="button">Parar tudo</button>
@@ -92,6 +104,31 @@ button { font: inherit; color: inherit; cursor: pointer; }
     <h2 id="t-cenas">Ouvir em cena</h2>
     <p>Uma sequência curta de cada prova, do jeito que os sons apareceriam jogando. As fichas acendem enquanto tocam.</p>
     <div class="chips" id="cenas"></div>
+  </section>
+
+  <section class="fontes" aria-labelledby="t-fontes">
+    <h2 id="t-fontes">Trocar um som</h2>
+    <p>Para os sons de que não gostar, baixe um pronto ou peça a um gerador. Cada ficha tem, em "Pedir a um gerador", o texto pronto para copiar e o nome com que salvar o arquivo. Mande os arquivos aqui na conversa (pode ser um .zip), que eu coloco no jogo.</p>
+    <div class="cols">
+      <div>
+        <h3>Sons prontos, grátis</h3>
+        <ul>
+          <li><a href="https://filmcow.itch.io/filmcow-sfx-4" target="_blank" rel="noopener">FilmCow SFX 4</a>: a biblioteca "Toons" tem 735 sons clássicos de desenho (apitos, boings, buzinas, bonks, molas). Uso comercial liberado, sem precisar dar crédito. É a mais indicada.</li>
+          <li><a href="https://mixkit.co/free-sound-effects/cartoon/" target="_blank" rel="noopener">Mixkit, categoria Cartoon</a>: uns 130 sons de desenho para ouvir direto no site e baixar.</li>
+          <li><a href="https://www.zapsplat.com" target="_blank" rel="noopener">ZapSplat</a>: acervo enorme, com categoria de desenho. Na conta grátis, é preciso dar crédito (nos créditos do jogo).</li>
+          <li><a href="https://kenney.nl/assets/category:Audio" target="_blank" rel="noopener">Kenney</a>: pacotes de domínio público (impactos, interface, cassino). Bons para placar e cliques.</li>
+          <li><a href="https://freesound.org" target="_blank" rel="noopener">Freesound</a>: de tudo. Use só os marcados CC0 (sem crédito) ou CC-BY (com crédito).</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Geradores (escrever o som e ele cria)</h3>
+        <ul>
+          <li><strong>Adobe Firefly, "Gerar efeitos sonoros"</strong>: liberado para todos desde agosto de 2026, e a Adobe diz que o resultado é seguro para uso comercial. Se a sua assinatura da Adobe inclui créditos do Firefly, ele já está à mão.</li>
+          <li><strong>ElevenLabs, Sound Effects</strong>: o plano grátis dá uns 50 sons por mês, mas não permite uso comercial (o canal e o site contam como comercial). Para usar no jogo, só no plano Starter, de US$ 6 por mês.</li>
+        </ul>
+        <p style="margin-top:10px">Os textos estão em inglês porque os geradores entendem melhor. Ponha a duração indicada na ficha e gere 3 ou 4 opções de cada um para escolher.</p>
+      </div>
+    </div>
   </section>
 
   <div id="familias" class="familia-lista" style="display:grid;gap:28px"></div>
@@ -191,6 +228,11 @@ for (const grp of GRUPOS) {
     const bG = el('button', { class: 'voto', type: 'button', 'data-v': 'gostei', 'aria-pressed': 'false' }, 'Gostei');
     const bN = el('button', { class: 'voto', type: 'button', 'data-v': 'nao', 'aria-pressed': 'false' }, 'Não gostei');
     const nota = el('input', { class: 'nota', type: 'text', id: 'nota-' + it.id, placeholder: 'Nota (opcional)', 'aria-label': 'Nota sobre ' + it.nome });
+    const txt = el('div', { class: 'prompt' }, it.prompt), cop = el('button', { class: 'copiar', type: 'button' }, 'Copiar texto');
+    cop.addEventListener('click', () => { const ok = () => { cop.textContent = 'Copiado'; setTimeout(() => { cop.textContent = 'Copiar texto'; }, 1500); };
+      try { navigator.clipboard.writeText(it.prompt).then(ok, () => { const r = document.createRange(); r.selectNodeContents(txt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cop.textContent = 'Texto selecionado: copie com Ctrl+C'; }); } catch (e) { const r = document.createRange(); r.selectNodeContents(txt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } });
+    ficha.append(el('details', { class: 'pedir' }, el('summary', {}, 'Pedir a um gerador'), txt,
+      el('p', {}, `Duração: ${String(it.seg).replace('.', ',')} s${it.loop ? ', e peça para repetir sem emenda (loop)' : ''}. Salvar como: `, el('strong', {}, it.id.replace(/_loop$/, '') + (it.loop ? '_loop' : '') + '.wav')), cop));
     const op = el('div', { class: 'opiniao' }, bG, bN, nota); op.hidden = true; ficha.append(op);
     ficha._op = { bG, bN, nota, op };
     grade.append(ficha);

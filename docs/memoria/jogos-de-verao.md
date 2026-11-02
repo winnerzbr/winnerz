@@ -470,6 +470,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - "Ouvir em cena", com uma sequência curta para cada uma das 19 provas;
   - "Gostei / Não gostei" e uma nota por som, guardados no banco da página em `avaliacao/<som>`, e um recado geral em `recado/geral`.
   - Para ler o que o dono marcou: lista `avaliacao` e `recado` dessa página.
+- **Trocar sons (02/11, o dono: "alguns ficaram bons, mas muitos não"):** a página ganhou:
+  - em cada ficha, "Pedir a um gerador": o texto em inglês (`som/cartoon_prompts.py`, com um estilo comum no fim), a duração e o nome com que salvar o arquivo;
+  - a seção "Trocar um som", com onde baixar sons prontos e quais geradores usar.
+- **Onde baixar** (licenças conferidas em 02/11/2026):
+  - FilmCow SFX 4, biblioteca "Toons", com 735 sons de desenho: grátis, uso comercial, sem crédito. É a indicada;
+  - Mixkit Cartoon;
+  - ZapSplat: no grátis, exige crédito no jogo;
+  - Kenney: CC0;
+  - Freesound: só CC0 ou CC-BY.
+- **Geradores:**
+  - Adobe Firefly "Gerar efeitos sonoros": liberado para todos desde 08/2026, comercialmente seguro segundo a Adobe;
+  - ElevenLabs: o grátis não permite uso comercial; o Starter custa US$ 6 por mês.
+- O dono vai mandar os arquivos na conversa, com o nome de cada ficha.
 - **Ainda não estão no jogo.** Entram só depois que o dono aprovar, pelo mesmo caminho de antes (`cart2/foley.js`, ligado por `SONOPLASTIA` no `build3.py`), com os sons que ele escolher.
 
 ## Bocha: a cancha segue a cancha pintada (02/11/2026, relato do dono: "as bolas estão saindo da quadra")

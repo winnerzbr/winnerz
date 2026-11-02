@@ -4,6 +4,9 @@
 import base64, io, json, re, wave
 from pathlib import Path
 import numpy as np
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cartoon_prompts import P as PROMPTS, ESTILO
 from scipy.signal import resample_poly
 
 AQUI = Path(__file__).resolve().parent
@@ -132,7 +135,8 @@ for titulo, itens in FICHAS:
         vs = sorted([k for k in sons if re.fullmatch(re.escape(sid) + r'(_\d+)?', k) and (k == sid or not k.endswith('_loop'))],
                     key=lambda k: int(re.search(r'_(\d+)$', k).group(1)) if re.search(r'_(\d+)$', k) else 0)
         assert vs, sid
-        g.append({'id': sid, 'nome': nome, 'como': como, 'onde': onde, 'loop': cont, 'v': vs})
+        pr, seg = PROMPTS[sid]
+        g.append({'id': sid, 'nome': nome, 'como': como, 'onde': onde, 'loop': cont, 'v': vs, 'prompt': pr + ' ' + ESTILO, 'seg': seg})
     grupos.append({'t': titulo, 'itens': g})
 usados = {v for g in grupos for i in g['itens'] for v in i['v']}
 faltam = set(sons) - usados

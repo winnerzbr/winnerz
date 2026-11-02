@@ -10,7 +10,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - sons "mais estilo desenho animado", numa página para ouvir e testar.
 - **Bocha:** a cancha guardada no editor estava mais alta que a pintada. Agora a cancha do jogo sempre segue a pintada (mesmo formato), e a vila cobre a tela. Publicado no jogo e no site.
 - **Sons:** 62 sons de desenho (75 arquivos com as variações), na página "Sons de Desenho". Ela tem cenas das 19 provas e marcação de "Gostei / Não gostei" com nota, que fica guardada para o Claude ler.
-- **Pendente:** o dono ouvir e marcar; depois, colocar no jogo só os aprovados.
+- **Depois (o dono: "alguns ficaram bons, mas muitos não"; perguntou de onde pegar sons ou um texto para pedir a um gerador):**
+  - cada ficha da página ganhou o texto para pedir a um gerador, com a duração e o nome do arquivo;
+  - a página ganhou uma seção com onde baixar sons prontos (FilmCow "Toons" indicada: grátis, comercial, sem crédito) e quais geradores usar (Adobe Firefly; ElevenLabs só no plano pago para uso comercial);
+  - nenhuma marcação de "Gostei / Não gostei" tinha sido guardada até então.
+- **Pendente:** o dono marcar os bons e mandar os arquivos novos; depois, colocar no jogo só os aprovados.
 
 ---
 

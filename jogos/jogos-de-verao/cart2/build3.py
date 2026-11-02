@@ -448,9 +448,12 @@ JS = re.sub(r'data:image/(webp|png);base64,([A-Za-z0-9+/=]+)', _out, JS)
 print('imagens', len(list(IMG.iterdir())), sum(f.stat().st_size for f in IMG.iterdir()) // 1024, 'KB')
 # 02/11 · sonoplastia (pedido do dono): os sons feitos em código (som/foley.cx.js -> som/som.py -> musica/foley.mp3 + o mapa) e o
 # jeito de tocar (foley.js), depois de todas as provas; o passo do jogo chama window.__folHook a cada passo
-_fmap = (ROOT / 'som' / 'foley.json').read_text(); shutil.copy(ROOT / 'som' / 'foley.mp3', ROOT / 'jogos_verao' / 'musica' / 'foley.mp3')
-s = sub1("let cur = surfe, mode = 'menu',", (HERE / 'foley.js').read_text(encoding='utf-8').replace('__FOLMAP__', _fmap) + "\nlet cur = surfe, mode = 'menu',", s)
-s = sub1("      if (cur.update(DT, I)) { finishEvent(); break; }", "      if (cur.update(DT, I)) { finishEvent(); break; }\n      if (window.__folHook) window.__folHook(cur, DT, I);", s)
+# 02/11 (mais tarde): o dono não gostou e pediu para tirar; voltam os bipes de antes. Os arquivos ficam guardados.
+SONOPLASTIA = False
+if SONOPLASTIA:
+    _fmap = (ROOT / 'som' / 'foley.json').read_text(); shutil.copy(ROOT / 'som' / 'foley.mp3', ROOT / 'jogos_verao' / 'musica' / 'foley.mp3')
+    s = sub1("let cur = surfe, mode = 'menu',", (HERE / 'foley.js').read_text(encoding='utf-8').replace('__FOLMAP__', _fmap) + "\nlet cur = surfe, mode = 'menu',", s)
+    s = sub1("      if (cur.update(DT, I)) { finishEvent(); break; }", "      if (cur.update(DT, I)) { finishEvent(); break; }\n      if (window.__folHook) window.__folHook(cur, DT, I);", s)
 # trilha gravada (músicas do dono): faixas em jogos_verao/musica (feitas por musica.py), ligadas logo depois do sistema de música
 s = sub1("const syncMusic = () =>", (HERE / 'musica.js').read_text(encoding='utf-8') + "\nconst syncMusic = () =>", s)
 s = sub1("Music.play('orla'); Music.duck(1); setTimeout(() => Music.jingle(JINGLE.ouro[0], JINGLE.ouro[1]), 120);", "Music.play('podio'); Music.duck(1);", s)

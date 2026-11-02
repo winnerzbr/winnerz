@@ -450,12 +450,14 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Correndo e trotando com a cabeça em 3/4 (02/11, pacote novo do dono, revisão 5):** as duas pranchas foram trocadas em `corrida/pranchas_ia/pranchas` (as de perfil ficaram em `corrida/pranchas_ia/perfil`); mesma escala (K 1,08). As outras 4 vieram iguais.
 - **Pendente:** o dono testar.
 
-## Sonoplastia (02/11/2026, pedido do dono: "efeitos sonoros diversos em todos os jogos")
-- **Os sons:** 73 sons feitos em código (`som/foley.cx.js`, ferramenta chirp; sem rede para instalar o gerador de prévias, ele foi trocado por um vazio). `som/som.py` iguala o volume (batidas -20 dB, contínuos -24 dB, pico até -2) e junta tudo em `musica/foley.mp3` (1,1 MB, mono 96k) + o mapa `som/foley.json`; os contínuos entram duas vezes seguidas e o jogo repete o trecho do meio (a emenda não depende do atraso do mp3).
-- **Como tocam** (`cart2/foley.js`, entra antes de `let cur` no `build3.py`; o passo do jogo chama `window.__folHook`): `FOL.play(nome, vol, velocidade, lado)` (nomes com variações _1, _2... sorteiam) e `FOL.loop(id, nome, vol, velocidade)` chamado a cada passo (some em 0,15 s quando param de chamar: pausa, fim, troca de situação). Volume = 0,85 × o dos efeitos nas opções. O som destrava no primeiro toque/tecla. Se o arquivo não carregar, ficam os bipes de antes.
-- **Bipes trocados** (`FOL_TROCA`): os de ação (pulo, pouso, queda, chute, aro...) viram o som de verdade de cada prova; os de placar, contagem, menu e medalha continuam. Pingue-pongue e bocha: raquete, mesa, chão, bolas batendo e tábua no lugar dos bipes diretos.
-- **Por prova** (`FOL_PASSO`): corrida (passos na areia, na areia fofa e na poça pelo passo da animação; Amiguinhos com "plof" baixinho; apito na largada, torcida, festa ao vencer); BMX (terra pela velocidade, catraca sem pedalar, vento no ar); skate e patins (rodas pela velocidade, grind, vento); surfe (mar, água cortando, tubo, gaivotas, splash ao pousar e ao cair); basquete (quicando andando, quique no chão, aro, chuá, torcida); futebol, vôlei, embaixadinha (toque, chute, bola na areia, trave, rede, torcida); bocha (rolando, batendo, caindo na areia); frisbee (disco voando); arco (puxar e soltar a corda, flecha no alvo, balão); duelo (jato de água, pingos, splash); canoagem (rio, remada pelo lado, batida); natação (braçada, mergulho, apito, torcida); jet ski, bugue e teco-teco (motor pela velocidade, água ou areia, turbo, derrapada, pouso; o bugue mais perto também).
-- Teste `testes/somtodos.cjs`: joga cada prova uns segundos e lista os sons tocados (todas tocam, sem erros). O dono ainda não ouviu: ajustar volumes e timbres pelo que ele disser.
+## Sonoplastia: retirada (02/11/2026)
+- **Decisão do dono:** "não gostei dos efeitos sonoros novos": tirar e voltar ao estado anterior. O jogo voltou aos bipes de antes em todas as provas. A trilha sonora gravada não mudou.
+- No `cart2/build3.py`, a ligação dos sons fica desligada (`SONOPLASTIA = False`), e `musica/foley.mp3` saiu do jogo e do site.
+- Ficaram guardados, caso um dia ele queira tentar de outro jeito, como sons gravados de verdade:
+  - os 73 sons feitos em código (`som/foley.cx.js`, `som/som.py`, `som/foley.mp3` e `foley.json`);
+  - o jeito de tocar (`cart2/foley.js`).
+- Não refazer sons sintetizados sem o dono pedir.
+- Teste `testes/bipes.cjs`: joga cada prova e confirma que os bipes tocam e que não sobrou nada dos sons novos. As 19 provas passaram, sem erros.
 
 ## Basquete: a bola por dentro da rede (02/11)
 - A bola entre as bordas do aro, do aro até o fim da rede, é desenhada antes da rede e do aro (`bqRede` em `cart2/bqp.js`): passando pela cesta, fica por trás da rede. Foto: `testes/bqrede.cjs`.

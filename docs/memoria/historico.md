@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: sonoplastia retirada
+- **O dono pediu:** tirar os efeitos sonoros novos e voltar ao estado anterior, porque não gostou deles.
+- **Feito:** o jogo voltou aos bipes de antes em todas as 19 provas (no jogo publicado e no site). A água do surfe, a rede do basquete e os cenários novos da BMX e da Corrida continuam. Os arquivos dos sons ficam guardados e desligados (`SONOPLASTIA = False` no `build3.py`).
+- **Pendente:** nada.
+
+---
+
 ## 02/11/2026: espaço do Vercel (aviso de 100% dos 10 GB)
 - **O dono mandou:** o e-mail do Vercel dizendo que a conta grátis usou 100% dos 10 GB de "Deployment Storage".
 - **Causa:** o Vercel guarda uma cópia inteira do site a cada envio ao `main`. Com o Jogos de Verão (68 MB) e o teste do vôlei no Godot (41 MB) dentro de `public/demo`, cada cópia passou de 110 MB, e houve cerca de 100 envios entre 30/10 e 02/11. Só 36 de 113 commits desse período mudaram o site de verdade; o resto era memória, fontes dos jogos e artes.

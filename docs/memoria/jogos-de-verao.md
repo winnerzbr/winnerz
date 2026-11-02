@@ -483,6 +483,18 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Adobe Firefly "Gerar efeitos sonoros": liberado para todos desde 08/2026, comercialmente seguro segundo a Adobe;
   - ElevenLabs: o grátis não permite uso comercial; o Starter custa US$ 6 por mês.
 - O dono vai mandar os arquivos na conversa, com o nome de cada ficha.
+- **Pacote FilmCow (02/11):** o dono baixou e mandou as bibliotecas "Toons" e "Hits & Crunches" (48 kHz).
+  - Licença: grátis, uso comercial e sem crédito.
+  - Os arquivos originais não vão para o repositório (são 1.538 sons, 570 MB); ficam com o dono.
+  - `som/filmcow_opcoes.py` lista até 3 opções por som (A, B, C), escolhidas pelo nome e pelas medidas, algumas montadas com dois ou três sons. Exemplos:
+    - tombo = apito descendo + coco;
+    - motores = "motor de boca" (lip twiddle) em laço;
+    - derrota = trompete triste.
+  - `som/filmcow_prepara.py` corta, iguala o volume e prepara: batidas em mp3 e contínuos em laço sem emenda. Para rodar, a variável `FILMCOW` aponta para a pasta com os zips abertos.
+  - O pacote não tem água, palmas, rodinhas na areia nem bocha rolando. Nesses sons ficou só o feito em código.
+- **A página agora** mostra, em cada som, as opções "Código" e A/B/C. A selecionada é a que toca e entra nas cenas.
+  - "Fica com" guarda a escolha em `escolha/<som>` (`opcao`: atual, A, B, C ou nenhum, e `nota`).
+  - A coleção antiga `avaliacao` tinha 2 marcações do dono: passinho de madeira em código "gostei" (passado para `escolha/passo_tip` = atual) e passo na areia em código "não gostei".
 - **Ainda não estão no jogo.** Entram só depois que o dono aprovar, pelo mesmo caminho de antes (`cart2/foley.js`, ligado por `SONOPLASTIA` no `build3.py`), com os sons que ele escolher.
 
 ## Bocha: a cancha segue a cancha pintada (02/11/2026, relato do dono: "as bolas estão saindo da quadra")

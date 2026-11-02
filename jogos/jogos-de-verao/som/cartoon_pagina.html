@@ -73,6 +73,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .recado { display: grid; gap: 8px; background: var(--panel); border: 1px solid var(--line); padding: 18px; }
 .recado textarea { width: 100%; box-sizing: border-box; min-height: 80px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; padding: 8px 10px; resize: vertical; }
 .estado { font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 1.2em; }
+/* opções e escolha */
+.opcs { display: flex; flex-wrap: wrap; gap: 6px; }
+.opc { border: 1px solid var(--line); background: transparent; padding: 5px 12px 5px 8px; font-size: 12px; font-weight: 600; clip-path: var(--corte); text-align: left; max-width: 100%; }
+.opc[aria-pressed=true] { background: var(--azul); border-color: var(--azul); color: #fff; }
+.de-onde { margin: 0; font-family: var(--mono); font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.falta { margin: 0; font-size: 12px; color: var(--muted); border-left: 3px solid var(--line); padding-left: 8px; }
+.escolha { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; }
+.esc { border: 1px solid var(--line); background: transparent; padding: 5px 10px; font-size: 13px; font-weight: 700; min-width: 34px; }
+.esc[aria-pressed=true] { background: var(--bom); border-color: var(--bom); color: #fff; }
+.esc[data-k=nenhum][aria-pressed=true] { background: var(--ruim); border-color: var(--ruim); }
+.ficha.escolhida { border-color: var(--bom); }
 details.pedir { border-top: 1px dashed var(--line); padding-top: 8px; }
 details.pedir summary { cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--azul); }
 details.pedir p { margin: 6px 0; font-size: 13px; }
@@ -92,7 +103,7 @@ details.pedir p { margin: 6px 0; font-size: 13px; }
   <header>
     <span class="eyebrow">IAmiguinho: Jogos de Verão · sonoplastia</span>
     <h1>Sons de desenho</h1>
-    <p class="lede">Sons de desenho animado para as 19 provas. Toque cada um, ouça as cenas de cada prova e marque o que gostou. Para os que não ficaram bons, cada ficha tem o texto pronto para pedir a um gerador, e mais abaixo estão os sites com sons prontos. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
+    <p class="lede">Sons de desenho animado para as 19 provas. Cada som tem até três opções do pacote FilmCow (A, B e C) e a primeira versão, feita em código. Toque as opções, ouça as cenas de cada prova com as que estão selecionadas e marque em “Fica com” a que vai para o jogo. As marcações e as notas ficam guardadas aqui, e o Claude lê depois para ajustar.</p>
     <div class="barra">
       <label for="vol">Volume <input id="vol" type="range" min="0" max="1.2" step="0.01" value="0.8"></label>
       <button class="btn fraco" id="parar" type="button">Parar tudo</button>
@@ -102,7 +113,7 @@ details.pedir p { margin: 6px 0; font-size: 13px; }
 
   <section class="cenas" aria-labelledby="t-cenas">
     <h2 id="t-cenas">Ouvir em cena</h2>
-    <p>Uma sequência curta de cada prova, do jeito que os sons apareceriam jogando. As fichas acendem enquanto tocam.</p>
+    <p>Uma sequência curta de cada prova, do jeito que os sons apareceriam jogando, com a opção selecionada em cada ficha. As fichas acendem enquanto tocam.</p>
     <div class="chips" id="cenas"></div>
   </section>
 
@@ -175,12 +186,12 @@ function pararTudo() { for (const s of ativos) { try { s.stop(); } catch (e) {} 
 document.getElementById('vol').addEventListener('input', (e) => { if (mestre) mestre.gain.value = +e.target.value; });
 document.getElementById('parar').addEventListener('click', pararTudo);
 
-// ---------- fichas
+// ---------- fichas: cada som tem opções (o feito em código e até 3 do pacote FilmCow); a escolhida é a que toca e entra nas cenas
 const ICON = { play: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z"/></svg>', stop: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3h10v10H3z"/></svg>' };
-const FICHA = {}, loops = new Map(), timers = [];
+const FICHA = {}, loops = new Map(), timers = [], ITEM = {}, SEL = {}, ESC = {};
 function acende(id, dur) { const f = FICHA[id]; if (!f) return; f.classList.add('tocando'); clearTimeout(f._t); f._t = setTimeout(() => f.classList.remove('tocando'), Math.max(180, dur * 1000)); }
-function sorteia(item) { return item.v[Math.floor(Math.random() * item.v.length)]; }
-const ITEM = {};
+const opc = (id) => { const it = ITEM[id]; return it.ops.find((o) => o.k === SEL[id]) || it.ops[0]; };
+function sorteia(id) { const v = opc(id).v; return v[Math.floor(Math.random() * v.length)]; }
 function el(tag, attrs = {}, ...kids) { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v); } for (const k of kids) e.append(k); return e; }
 
 function desenhaOnda(cv, nome) {
@@ -192,56 +203,67 @@ function desenhaOnda(cv, nome) {
     for (let x = 0; x < W; x++) { let a = 0; for (let i = Math.floor(x * passo), f = Math.floor((x + 1) * passo); i < f; i++) a = Math.max(a, Math.abs(d[i])); const h = Math.max(1, (a / mx) * (H - 2)); g.fillRect(x, (H - h) / 2, 1, h); }
   }).catch(() => {});
 }
+function paraLoop(id) { const s = loops.get(id); if (!s) return; try { s.stop(); } catch (e) {} loops.delete(id); const f = FICHA[id]; f.classList.remove('tocando'); const p = f.querySelector('.play'); p.innerHTML = ICON.play; p.setAttribute('aria-label', 'Tocar ' + ITEM[id].nome); }
+async function tocaFicha(id) {
+  const it = ITEM[id], f = FICHA[id], p = f.querySelector('.play');
+  if (it.loop) {
+    if (loops.has(id)) { paraLoop(id); return; }
+    const n = await toca(opc(id).v[0], { loop: true, rate: +f.querySelector('.vel input').value }); loops.set(id, n); p.innerHTML = ICON.stop; p.setAttribute('aria-label', 'Parar ' + it.nome); f.classList.add('tocando');
+  } else { const s = await toca(sorteia(id)); acende(id, s.buffer.duration); }
+}
+function mostraOpcao(id) {
+  const f = FICHA[id], o = opc(id);
+  f.querySelectorAll('.opc').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === o.k)));
+  f.querySelector('.de-onde').textContent = o.k === 'atual' ? 'Feito em código (primeira versão).' : 'FilmCow: ' + o.arq.join(' · ');
+  const vs = f.querySelector('.vars'); vs.replaceChildren();
+  if (!it_loop(id) && o.v.length > 1) { vs.append('Variações'); o.v.forEach((n, k) => vs.append(el('button', { class: 'var', type: 'button', 'aria-label': ITEM[id].nome + ', variação ' + (k + 1), onclick: async () => { const s = await toca(n); acende(id, s.buffer.duration); } }, String(k + 1)))); }
+  vs.hidden = !vs.childNodes.length;
+  desenhaOnda(f.querySelector('.onda'), o.v[0]);
+}
+const it_loop = (id) => ITEM[id].loop;
+function marcaEscolha(id) { const f = FICHA[id], e = ESC[id] || ''; f.querySelectorAll('.esc').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.k === e))); f.classList.toggle('escolhida', !!e && e !== 'nenhum'); }
 
 const familias = document.getElementById('familias');
 for (const grp of GRUPOS) {
   const grade = el('div', { class: 'grade' });
   familias.append(el('section', { class: 'familia' }, el('header', {}, el('h2', {}, grp.t), el('span', { class: 'eyebrow' }, grp.itens.length + (grp.itens.length === 1 ? ' som' : ' sons'))), grade));
   for (const it of grp.itens) {
-    ITEM[it.id] = it;
-    const play = el('button', { class: 'play', type: 'button', 'aria-label': 'Tocar ' + it.nome, 'data-nome': it.nome });
-    play.innerHTML = ICON.play;
+    ITEM[it.id] = it; SEL[it.id] = it.ops.length > 1 ? it.ops[1].k : 'atual';
+    const play = el('button', { class: 'play', type: 'button', 'aria-label': 'Tocar ' + it.nome });
+    play.innerHTML = ICON.play; play.addEventListener('click', () => tocaFicha(it.id));
     const onda = el('canvas', { class: 'onda', 'aria-hidden': 'true', style: 'color:var(--muted)' });
+    const ops = el('div', { class: 'opcs', role: 'group', 'aria-label': 'Opções de ' + it.nome });
+    for (const o of it.ops) ops.append(el('button', { class: 'opc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false', title: o.nome, onclick: () => { if (loops.has(it.id)) paraLoop(it.id); SEL[it.id] = o.k; mostraOpcao(it.id); tocaFicha(it.id); } }, o.k === 'atual' ? 'Código' : o.k + ' · ' + o.nome));
     const ficha = el('article', { class: 'ficha' },
       el('div', { class: 'topo' }, play, el('div', { style: 'min-width:0;display:grid;gap:2px' }, el('span', { class: 'nome' }, it.nome), el('span', { class: 'como' }, '“' + it.como + '”'))),
-      onda, el('p', { class: 'onde' }, it.onde));
+      onda, el('p', { class: 'onde' }, it.onde), ops);
+    if (it.ops.length === 1) ficha.append(el('p', { class: 'falta' }, 'O pacote FilmCow não tem este tipo de som. Por enquanto fica o feito em código; dá para pedir a um gerador (abaixo).'));
+    ficha.append(el('p', { class: 'de-onde' }), el('div', { class: 'vars' }));
     FICHA[it.id] = ficha;
     if (it.loop) {
-      play.dataset.loop = '1';
       const rng = el('input', { type: 'range', min: '0.5', max: '2', step: '0.05', value: '1', id: 'vel-' + it.id, 'aria-label': 'Velocidade de ' + it.nome }), out = el('output', { for: 'vel-' + it.id }, '1,0×');
       rng.addEventListener('input', () => { out.textContent = (+rng.value).toFixed(1).replace('.', ',') + '×'; const s = loops.get(it.id); if (s) s.playbackRate.setTargetAtTime(+rng.value, ac.currentTime, 0.05); });
       ficha.append(el('label', { class: 'vel', for: 'vel-' + it.id }, 'Velocidade', rng, out));
-      play.addEventListener('click', async () => {
-        const s = loops.get(it.id);
-        if (s) { try { s.stop(); } catch (e) {} loops.delete(it.id); play.dataset.on = ''; play.innerHTML = ICON.play; play.setAttribute('aria-label', 'Tocar ' + it.nome); ficha.classList.remove('tocando'); return; }
-        const n = await toca(it.v[0], { loop: true, rate: +rng.value }); loops.set(it.id, n); play.dataset.on = '1'; play.innerHTML = ICON.stop; play.setAttribute('aria-label', 'Parar ' + it.nome); ficha.classList.add('tocando');
-      });
-    } else {
-      play.addEventListener('click', async () => { const n = sorteia(it); const s = await toca(n); acende(it.id, s.buffer.duration); });
-      if (it.v.length > 1) {
-        const vs = el('div', { class: 'vars' }, 'Variações');
-        it.v.forEach((n, k) => vs.append(el('button', { class: 'var', type: 'button', 'aria-label': it.nome + ', variação ' + (k + 1), onclick: async () => { const s = await toca(n); acende(it.id, s.buffer.duration); } }, String(k + 1))));
-        ficha.append(vs);
-      }
     }
-    // opinião
-    const bG = el('button', { class: 'voto', type: 'button', 'data-v': 'gostei', 'aria-pressed': 'false' }, 'Gostei');
-    const bN = el('button', { class: 'voto', type: 'button', 'data-v': 'nao', 'aria-pressed': 'false' }, 'Não gostei');
-    const nota = el('input', { class: 'nota', type: 'text', id: 'nota-' + it.id, placeholder: 'Nota (opcional)', 'aria-label': 'Nota sobre ' + it.nome });
     const txt = el('div', { class: 'prompt' }, it.prompt), cop = el('button', { class: 'copiar', type: 'button' }, 'Copiar texto');
     cop.addEventListener('click', () => { const ok = () => { cop.textContent = 'Copiado'; setTimeout(() => { cop.textContent = 'Copiar texto'; }, 1500); };
-      try { navigator.clipboard.writeText(it.prompt).then(ok, () => { const r = document.createRange(); r.selectNodeContents(txt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cop.textContent = 'Texto selecionado: copie com Ctrl+C'; }); } catch (e) { const r = document.createRange(); r.selectNodeContents(txt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } });
+      const sel = () => { const r = document.createRange(); r.selectNodeContents(txt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); cop.textContent = 'Texto selecionado: copie com Ctrl+C'; };
+      try { navigator.clipboard.writeText(it.prompt).then(ok, sel); } catch (e) { sel(); } });
     ficha.append(el('details', { class: 'pedir' }, el('summary', {}, 'Pedir a um gerador'), txt,
-      el('p', {}, `Duração: ${String(it.seg).replace('.', ',')} s${it.loop ? ', e peça para repetir sem emenda (loop)' : ''}. Salvar como: `, el('strong', {}, it.id.replace(/_loop$/, '') + (it.loop ? '_loop' : '') + '.wav')), cop));
-    const op = el('div', { class: 'opiniao' }, bG, bN, nota); op.hidden = true; ficha.append(op);
-    ficha._op = { bG, bN, nota, op };
+      el('p', {}, `Duração: ${String(it.seg).replace('.', ',')} s${it.loop ? ', e peça para repetir sem emenda (loop)' : ''}. Salvar como: `, el('strong', {}, it.id + '.wav')), cop));
+    // escolha (guardada no banco da página)
+    const esc = el('div', { class: 'escolha' }, el('span', { class: 'eyebrow' }, 'Fica com'));
+    for (const o of it.ops) esc.append(el('button', { class: 'esc', type: 'button', 'data-k': o.k, 'aria-pressed': 'false' }, o.k === 'atual' ? 'Código' : o.k));
+    esc.append(el('button', { class: 'esc', type: 'button', 'data-k': 'nenhum', 'aria-pressed': 'false' }, 'Nenhuma serve'));
+    const nota = el('input', { class: 'nota', type: 'text', id: 'nota-' + it.id, placeholder: 'Nota (opcional)', 'aria-label': 'Nota sobre ' + it.nome });
+    const op = el('div', { class: 'opiniao' }, esc, nota); op.hidden = true; ficha.append(op);
+    ficha._op = { esc, nota, op };
     grade.append(ficha);
-    requestAnimationFrame(() => desenhaOnda(onda, it.v[0]));
+    requestAnimationFrame(() => mostraOpcao(it.id));
   }
 }
-// as ondas são desenhadas só depois do primeiro toque (o navegador só libera o som depois de uma ação)
 let ondasOk = false;
-function ondasDepoisDoToque() { if (ondasOk) return; ondasOk = true; for (const it of Object.values(ITEM)) { const cv = FICHA[it.id].querySelector('.onda'); desenhaOnda(cv, it.v[0]); } }
+function ondasDepoisDoToque() { if (ondasOk) return; ondasOk = true; for (const id of Object.keys(ITEM)) desenhaOnda(FICHA[id].querySelector('.onda'), opc(id).v[0]); }
 addEventListener('pointerdown', ondasDepoisDoToque, { once: true }); addEventListener('keydown', ondasDepoisDoToque, { once: true });
 
 // ---------- cenas: [segundo, som, opções]
@@ -268,8 +290,8 @@ const CENAS = [
   ['Corrida de bugue', [[0, 'vrum'], L(0.4, 'motor_bugue_loop', 4.6, 0.8, 1.6), [1.6, 'buzina'], [2.4, 'derrapada'], [3.0, 'turbo'], [4.2, 'batida'], [5.2, 'vitoria']]],
   ['Vôlei', [[0, 'toque'], ...serie('passo_areia', 0.2, 3, 0.17), [0.75, 'toque'], [1.2, 'pulo'], [1.5, 'chute'], [1.9, 'bola_areia'], [2.2, 'apito'], [2.5, 'ponto'], [2.9, 'palminhas']]],
 ];
-const qual = (id) => (SONS[id] ? id : (ITEM[id] ? sorteia(ITEM[id]) : null));
-const famDe = (id) => (ITEM[id] ? id : Object.keys(ITEM).find((k) => ITEM[k].v.includes(id)));
+const qual = (id) => (ITEM[id] ? sorteia(id) : null);
+const famDe = (id) => id;
 const cenasEl = document.getElementById('cenas');
 for (const [nome, passos] of CENAS) {
   const chip = el('button', { class: 'chip', type: 'button' }, nome);
@@ -288,34 +310,36 @@ for (const [nome, passos] of CENAS) {
   cenasEl.append(chip);
 }
 
-// ---------- opiniões (banco da página: coleção "avaliacao", um documento por som; "recado/geral")
+// ---------- escolhas (banco da página: coleção "escolha", um documento por som; "recado/geral")
 const contas = document.getElementById('contas'), estado = document.getElementById('estado'), recado = document.getElementById('recado');
-const votos = {};
 function atualizaContas() {
-  const v = Object.values(votos), g = v.filter((x) => x === 'gostei').length, n = v.filter((x) => x === 'nao').length;
-  contas.textContent = `${g} gostei · ${n} não gostei · ${Object.keys(ITEM).length - g - n} sem marcar`;
+  const v = Object.values(ESC), e = v.filter((x) => x && x !== 'nenhum').length, n = v.filter((x) => x === 'nenhum').length;
+  contas.textContent = `${e} escolhidos · ${n} sem opção boa · ${Object.keys(ITEM).length - e - n} por escolher`;
 }
-function mostraVoto(id) { const o = FICHA[id]._op; o.bG.setAttribute('aria-pressed', String(votos[id] === 'gostei')); o.bN.setAttribute('aria-pressed', String(votos[id] === 'nao')); }
 (async () => {
   let db = null; try { db = await window.claude?.use?.('db'); } catch (e) {}
-  if (!db) { estado.textContent = 'As marcações não estão sendo guardadas nesta tela. Os sons tocam normalmente.'; recado.disabled = true; return; }
+  if (!db) { estado.textContent = 'As escolhas não estão sendo guardadas nesta tela. Os sons tocam normalmente.'; recado.disabled = true; return; }
   for (const id of Object.keys(ITEM)) FICHA[id]._op.op.hidden = false;
   atualizaContas();
   const fila = {};
-  const grava = (id, dados) => { clearTimeout(fila[id]); fila[id] = setTimeout(() => db.collection('avaliacao').doc(id).set({ ...dados, quando: new Date().toISOString() }).then(() => { estado.textContent = 'Guardado.'; }).catch((e) => { estado.textContent = 'Não deu para guardar agora (' + (e?.code || 'erro') + '). Tente de novo em instantes.'; }), 400); };
-  const atual = (id) => ({ voto: votos[id] || '', nota: FICHA[id]._op.nota.value.trim() });
+  const grava = (id) => { clearTimeout(fila[id]); fila[id] = setTimeout(() => db.collection('escolha').doc(id).set({ opcao: ESC[id] || '', nota: FICHA[id]._op.nota.value.trim(), quando: new Date().toISOString() }).then(() => { estado.textContent = 'Guardado.'; }).catch((e) => { estado.textContent = 'Não deu para guardar agora (' + (e?.code || 'erro') + '). Tente de novo em instantes.'; }), 400); };
   for (const id of Object.keys(ITEM)) {
     const o = FICHA[id]._op;
-    for (const b of [o.bG, o.bN]) b.addEventListener('click', () => { votos[id] = votos[id] === b.dataset.v ? '' : b.dataset.v; mostraVoto(id); atualizaContas(); grava(id, atual(id)); });
-    o.nota.addEventListener('input', () => grava(id, atual(id)));
+    o.esc.querySelectorAll('.esc').forEach((b) => b.addEventListener('click', () => {
+      ESC[id] = ESC[id] === b.dataset.k ? '' : b.dataset.k; marcaEscolha(id); atualizaContas(); grava(id);
+      if (ESC[id] && ESC[id] !== 'nenhum' && SEL[id] !== ESC[id]) { SEL[id] = ESC[id]; mostraOpcao(id); }
+    }));
+    o.nota.addEventListener('input', () => grava(id));
   }
   recado.addEventListener('input', () => { clearTimeout(fila._r); fila._r = setTimeout(() => db.doc('recado/geral').set({ texto: recado.value, quando: new Date().toISOString() }).then(() => { estado.textContent = 'Recado guardado.'; }).catch(() => { estado.textContent = 'Não deu para guardar o recado agora.'; }), 600); });
-  const t = setTimeout(() => { estado.textContent = 'As marcações antigas estão demorando para chegar.'; }, 10000);
-  db.collection('avaliacao').onSnapshot((snap) => {
+  const t = setTimeout(() => { estado.textContent = 'As escolhas guardadas estão demorando para chegar.'; }, 10000);
+  db.collection('escolha').onSnapshot((snap) => {
     clearTimeout(t);
-    for (const d of snap.docs) { const x = d.data() || {}; if (!ITEM[d.id]) continue; votos[d.id] = x.voto || ''; mostraVoto(d.id); const n = FICHA[d.id]._op.nota; if (document.activeElement !== n) n.value = x.nota || ''; }
+    for (const d of snap.docs) { const x = d.data() || {}; if (!ITEM[d.id]) continue; ESC[d.id] = x.opcao || ''; marcaEscolha(d.id);
+      if (ESC[d.id] && ESC[d.id] !== 'nenhum' && SEL[d.id] !== ESC[d.id] && ITEM[d.id].ops.some((o) => o.k === ESC[d.id])) { SEL[d.id] = ESC[d.id]; mostraOpcao(d.id); }
+      const n = FICHA[d.id]._op.nota; if (document.activeElement !== n) n.value = x.nota || ''; }
     atualizaContas();
-  }, () => { estado.textContent = 'Não deu para ler as marcações guardadas.'; });
+  }, () => { estado.textContent = 'Não deu para ler as escolhas guardadas.'; });
   db.doc('recado/geral').get().then((d) => { if (d.exists && document.activeElement !== recado) recado.value = (d.data() || {}).texto || ''; }).catch(() => {});
 })();
 </script>

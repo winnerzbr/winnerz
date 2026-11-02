@@ -7,6 +7,7 @@ import numpy as np
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cartoon_prompts import P as PROMPTS, ESTILO
+from filmcow_prepara import prepara as prepara_fc
 from scipy.signal import resample_poly
 
 AQUI = Path(__file__).resolve().parent
@@ -127,6 +128,7 @@ FICHAS = [
   ]),
 ]
 
+FC_SONS, FC_OPS = prepara_fc()
 grupos = []
 for titulo, itens in FICHAS:
     g = []
@@ -136,10 +138,13 @@ for titulo, itens in FICHAS:
                     key=lambda k: int(re.search(r'_(\d+)$', k).group(1)) if re.search(r'_(\d+)$', k) else 0)
         assert vs, sid
         pr, seg = PROMPTS[sid]
-        g.append({'id': sid, 'nome': nome, 'como': como, 'onde': onde, 'loop': cont, 'v': vs, 'prompt': pr + ' ' + ESTILO, 'seg': seg})
+        ops = [{'k': 'atual', 'nome': 'Feito em código', 'v': vs, 'arq': []}] + FC_OPS.get(sid, [])
+        g.append({'id': sid, 'nome': nome, 'como': como, 'onde': onde, 'loop': cont, 'ops': ops, 'prompt': pr + ' ' + ESTILO, 'seg': seg})
     grupos.append({'t': titulo, 'itens': g})
-usados = {v for g in grupos for i in g['itens'] for v in i['v']}
-faltam = set(sons) - usados
+usados = {v for g in grupos for i in g['itens'] for v in i['ops'][0]['v']}
+sons.update(FC_SONS)
+assert not set(FC_OPS) - {i['id'] for g in grupos for i in g['itens']}
+faltam = {k for k in sons if not k.startswith('fc_')} - usados
 assert not faltam, faltam
 
 html = (AQUI / 'cartoon_pagina.html').read_text(encoding='utf-8')

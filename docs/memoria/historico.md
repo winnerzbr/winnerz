@@ -14,7 +14,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - cada ficha da página ganhou o texto para pedir a um gerador, com a duração e o nome do arquivo;
   - a página ganhou uma seção com onde baixar sons prontos (FilmCow "Toons" indicada: grátis, comercial, sem crédito) e quais geradores usar (Adobe Firefly; ElevenLabs só no plano pago para uso comercial);
   - nenhuma marcação de "Gostei / Não gostei" tinha sido guardada até então.
-- **Pendente:** o dono marcar os bons e mandar os arquivos novos; depois, colocar no jogo só os aprovados.
+- **Mais tarde:** o dono mandou os pacotes FilmCow "Toons" e "Hits & Crunches" (48 kHz).
+  - A página ganhou até 3 opções do pacote em cada som (A, B, C), além da versão em código.
+  - As cenas tocam a opção selecionada, e "Fica com" guarda a escolha.
+  - O pacote não tem sons de água, palmas nem rodinhas; neles fica o feito em código ou um pedido a um gerador.
+- **Pendente:** o dono escolher em "Fica com"; depois, colocar no jogo só os escolhidos.
 
 ---
 

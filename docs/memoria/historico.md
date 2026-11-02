@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 01/11/2026: Tubo do surfe: pedido refeito e fundo provisório
+- **O dono pediu:** refazer a arte das ondas, porque o buraco no meio do tubo deixava ver a onda do cenário.
+- **Feito:** 3 pedidos novos do tubo (meio, entrada e fechamento) com o fundo do barril pintado, sem transparência, na página de pedidos. No jogo, até a arte chegar, o fundo do tubo é pintado com a própria água do teto, virada e mais escura. Publicado na página do Claude e no site.
+- **Pendente:** a arte nova do tubo.
+
+---
+
 ## 01/11/2026: Rede da cesta, surfe (mortal, ondas, faixa escura) e reações em 3/4
 - **O dono pediu:** a rede presa no aro; o mortal do surfe girando pelo centro do corpo; as ondas sem cortes e no jeito da arte do mar; explicar o quadrado escuro com riscos (pedir arte se tiver função, tirar se não tiver). Mandou também as reações do pingue-pongue refeitas em 3/4.
 - **Feito:** rede no ponto de encaixe do pacote; mortal pelo centro do corpo; tubo e espuma com a cor de cada horário (tirada das faixas da onda) e bordas macias, a água até o pé da tela; saiu a faixa escura da frente (não tinha função). A correnteza (o quadrado escuro que aparece da 3ª série em diante) tem função: ganhou pedido de arte na página de pedidos. Reações em 3/4 no jogo e na Prévia. Publicado na página do Claude e no site.

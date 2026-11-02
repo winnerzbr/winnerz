@@ -400,7 +400,8 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Sem cortes: o pé dos módulos do tubo some na água; a entrada some à direita e o fechamento à esquerda e à direita (30%), por cima do meio; o meio fica preso entre as pontas (o último pedaço passava do fechamento e fazia uma parede reta).
   - A faixa da onda vai até o pé da tela (antes acabava numa faixa escura). Saiu a faixa escura da frente com a linha azul e os riscos: era só enfeite do desenho de 16 bits, sem função. As colunas de espuma vão até o pé da tela.
   - Correnteza (o "quadrado escuro com riscos" que aparece da 3ª série em diante): tem função (dentro dela subir fica difícil e a onda puxa para baixo). Pedido de arte na página de pedidos (guia Surfe, grupo Correnteza: uma textura em pé que repete de cima para baixo, na luz do dia, com a parede da onda aprovada como anexo `novas/anexos/ref_onda_surfe.jpg`). Até chegar, a faixa provisória ficou com as beiradas macias.
-- **Pendente:** o dono testar; a arte da correnteza.
+  - Tubo refeito (01/11, pedido do dono): o vão do meio do tubo (50% a 80% da altura) veio transparente e mostrava a onda do cenário. Pedido novo na página de pedidos (guia Surfe, grupo "Tubo da onda (refeito)": meio que repete primeiro, depois entrada e fechamento com o meio aprovado anexado; quadradas, mesmas linhas: ar 0-20%, teto 20-50%, fundo do barril pintado 50-80%, parede da onda 80-100%; anexo `novas/anexos/ref_tubo_atual.jpg`). Até chegar, o jogo pinta o fundo provisório: o teto do meio virado e escurecido (peça `fundo` no atlas de cada horário), andando devagar e sumindo nas pontas.
+- **Pendente:** o dono testar; a arte da correnteza e o tubo refeito.
 
 ## Basquete pintado: IAmiguinho (01/11/2026)
 - **Chegou do dono:** 12 pranchas do IAmiguinho no basquete (mais tentativas que pedidos: 5 de andar, 2 de espera, 2 de carregar). Originais em `basquete/pranchas`.

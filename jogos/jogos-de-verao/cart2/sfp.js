@@ -80,6 +80,16 @@
     for (const tb of ev.tubes) {
       const top = tb.roof - teto - 6, ex = tb.x0 - tw('entrada') + 30 - cam, fx0 = tb.x1 - 30 - cam;
       if (ex > W || fx0 + tw('fecha') < 0) continue;
+      // 01/11 (pedido do dono): o vão do meio do tubo é transparente e mostrava a onda do cenário. Até a arte nova chegar (pedido na
+      // página de pedidos), a parede de trás é o teto do meio virado e escurecido (peça 'fundo'), sumindo devagar nas duas pontas
+      { const a0 = ex + tw('entrada') * .4, a1 = fx0 + tw('fecha') * .6, y1 = top + th * .44, fh = th * .44, L = tw('entrada') * .3;
+        if (a1 > 0 && a0 < W) for (const [h, w] of P) {
+          const fatia = (x0, x1, al) => { if (x1 <= x0 || al <= 0) return; ctx.save(); ctx.globalAlpha = w * al; ctx.beginPath(); ctx.rect(x0, y1, x1 - x0, fh); ctx.clip();
+            for (let x = a0 - (((cam * .9) % tw('meio')) + tw('meio')) % tw('meio'); x < x1; x += tw('meio') - 1) if (x + tw('meio') > x0) sfPartH(h, 'fundo', x, y1, tw('meio') + .6, fh, true);
+            ctx.restore(); };
+          const N = 8; for (let i = 0; i < N; i++) { fatia(a0 + L * i / N, a0 + L * (i + 1) / N, (i + .5) / N); fatia(a1 - L * (i + 1) / N, a1 - L * i / N, (i + .5) / N); }
+          fatia(a0 + L, a1 - L, 1);
+        } }
       // o meio vai por baixo das pontas (a entrada some à direita e o fechamento some à esquerda por cima dele: sem emenda)
       for (const [h, w] of P) {
         ctx.globalAlpha = w;

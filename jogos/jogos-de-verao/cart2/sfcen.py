@@ -78,6 +78,13 @@ OUT['atl'] = uri(atl, q=88); OUT['p'] = meta; OUT['u'] = U
 OUT['th'] = {}
 for h in HORAS:
     pcs = [(k, colore(TUBO[k], h), None) for k in ('entrada', 'meio', 'fecha')]
+    # fundo do tubo (provisório, 01/11): o vão do meio é transparente e mostrava a onda do cenário. A parede de trás é feita com o
+    # próprio teto do meio (20% a 50% da altura) virado de cabeça para baixo e escurecido, mais escuro em cima (embaixo do teto).
+    mm = np.asarray(pcs[1][1], float); hh_ = mm.shape[0]; sl = mm[int(hh_ * .27):int(hh_ * .5)][::-1].copy()
+    sl = np.asarray(Image.fromarray(sl.astype(np.uint8)).resize((mm.shape[1], int(hh_ * .42)), Image.LANCZOS), float)
+    al = sl[..., 3:] / 255; base = (sl[..., :3] * al).sum((0, 1)) / max(1, al.sum()); sl[..., :3] = sl[..., :3] * al + base * (1 - al)  # sem os pixels pretos da borda
+    sh = np.linspace(.5, .85, sl.shape[0])[:, None, None]; sl[..., :3] *= sh; sl[..., 3] = 255
+    pcs.append(('fundo', Image.fromarray(sl.clip(0, 255).astype(np.uint8)), None))
     for j, im in enumerate(COLS):
         kk = 44 * U / im.width; pcs.append((f'col{j}', colore(im, h).resize((max(1, round(im.width * kk)), max(1, round(im.height * kk))), Image.LANCZOS), 1))
     at = Image.new('RGBA', (sum(im.width + 2 for _, im, _ in pcs), max(im.height for _, im, _ in pcs))); x = 0; pm = {}

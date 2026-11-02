@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: sons de desenho no jogo
+- **O dono pediu:** colocar no jogo os sons que escolheu na página "Sons de Desenho".
+- **Feito:**
+  - os 61 sons escolhidos tocam nas 19 provas; o corrimão ficou sem som, porque nenhuma opção serviu;
+  - largada, ponto, vitória e derrota passaram a ser sons de desenho em todas as provas, como "Vai!", ta-dá, fanfarra e trompete triste;
+  - cada prova tem os seus: passos e tombo na Corrida, motores no bugue, no jet ski e no teco-teco, buzina de palhaço ao ultrapassar no bugue, estrelinhas quando alguém fica tonto, entre outros;
+  - arquivo `musica/sons.mp3` (710 KB) no jogo publicado e no site.
+- **Pendente:** o dono jogar e dizer o que ajustar (volume de cada som, onde faltou ou sobrou).
+
+---
+
 ## 02/11/2026: bocha com as bolas fora da quadra; sons de desenho animado para testar
 - **O dono pediu:**
   - arrumar a bocha: as bolas saíam da quadra, talvez por algo mexido sem querer no editor;

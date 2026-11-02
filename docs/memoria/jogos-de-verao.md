@@ -506,7 +506,36 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - palmas com 3 estalinhos por palma e várias pessoas;
   - balão em "framboesa" (sopro tremido), em assobio ou em sopro batendo.
   - As 12 escolhas "Nenhuma serve" foram limpas, com a nota "antes: nenhuma serve", para ele escolher de novo.
-- **Ainda não estão no jogo.** Entram só depois que o dono aprovar, pelo mesmo caminho de antes (`cart2/foley.js`, ligado por `SONOPLASTIA` no `build3.py`), com os sons que ele escolher.
+- **No jogo desde 02/11, meio-dia** (o dono: "Pronto, pode adicionar os novos sons no jogo").
+  - **Escolhas finais** (`som/escolhas.json`, cópia da coleção `escolha` da página):
+    - 32 da 1ª rodada em código;
+    - 19 do FilmCow;
+    - 10 da 2ª rodada: balão murchando Novo 2, braçada Novo 1, pistola Novo 3, motores bugue Novo 1, jet ski Novo 2 e teco-teco Novo 2, palminhas Novo 3, rodinhas Novo 2, bocha rolando Novo 1, acelerada Novo 2;
+    - a derrapada voltou para o código da 1ª rodada;
+    - corrimão: nenhum serviu, então fica sem som.
+  - **Arquivo:** `som/jogo_sons.py` junta os escolhidos em `musica/sons.mp3` (96 trechos, 60 s, 710 KB) + `som/sons.json`. Precisa da pasta do FilmCow (`FILMCOW`) para as opções A/B/C.
+  - **Como tocam:** `cart2/sons.js` (o motor do `foley.js`, com o mapa novo), ligado no `build3.py` antes de `let cur`.
+    - `FOL_GERAL`, para todas as provas: largada "Vai!", ponto, pegou, ta-dá, vitória, trompete triste na derrota.
+    - `FOL_TROCA`, por prova, por exemplo:
+      - Corrida: apito, pulo, pouso, tombo;
+      - skate e patins: ollie, pouso, manobra;
+      - surfe: splash e bolhas;
+      - duelo, bugue e teco-teco: splat ou batida + estrelinhas;
+      - jet ski: contagem e "vrum";
+      - arco: corda, balão e ta-dá;
+      - frisbee: disco e pegou.
+    - `FOL_PASSO`, a cada passo do jogo:
+      - passos na areia, na fofa e na poça, e o "plof" dos Amiguinhos;
+      - rodinhas e catraca;
+      - quique com passinho no basquete;
+      - bocha rolando e "Encostou!";
+      - jato, remada, os 3 motores, derrapada, turbo;
+      - buzina de palhaço ao passar alguém de perto no bugue (no máximo a cada 4 s).
+    - Pingue-pongue e bocha trocam os bipes diretos.
+  - **Sem som de ambiente** (mar, torcida, vento): o conjunto escolhido não tem.
+  - `FOL.play` ganhou um 5º número, o atraso (estrelinhas e bolhas logo depois do impacto).
+  - O volume segue o dos efeitos nas opções.
+  - Teste `testes/somdesenho.cjs`: as 19 provas tocam os sons, sem nome faltando e sem erros.
 
 ## Bocha: a cancha segue a cancha pintada (02/11/2026, relato do dono: "as bolas estão saindo da quadra")
 - **Causa:** a cancha aplicada pelo editor tinha os lados de cima e de baixo mudados (`BC.y0` 49 e `BC.y1` 190; o original é 75 e 185). A vila pintada só acompanha a largura, então as tábuas do jogo ficaram 31 unidades abaixo das tábuas pintadas e as bolas paravam "fora", perto da água. Ainda sobrava uma faixa sem desenho embaixo da tela.

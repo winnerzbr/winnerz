@@ -1,0 +1,22 @@
+Use case: stylized-concept.
+Asset type: exact 8-frame BMX game sprite sheet.
+Make ONE finished 1776x888 pixel image, 4 columns x 2 rows, eight equal 444x444 cells, pure flat #00FF00 background, NO visible grid, text or numbers.
+
+References: image1 character MODEL (identity and only valid body proportions); image2 GUIDE (cell layout, not visible); image3 approved BMX riding/Superman sheet (copy rider, red bike, painting and occupied scale); image4 approved BIKE MODEL (copy every component). This output is 4x2, not the reference's4x4.
+
+Animation: CONTINUOUS TAILWHIP held in the air. Rider upright facing RIGHT throughout. BOTH five-finger hands firmly grip the same handlebar grips throughout; both feet are tucked up completely OFF the pedals throughout. Rider's head, torso and hands stay in exactly the same place in every cell. The rider does NOT spin. Handlebar, front fork and FRONT wheel are the fixed steering assembly. The red tubular FRAME, saddle, cranks, pedals and REAR wheel make ONE continuous full orbit around the steering/head-tube axis underneath the stationary rider. Show clearly changing rear-wheel and red-frame projections, not eight normal bikes. Exactly two wheels in each frame, no ghost wheels or motion trails.
+Reading order:
+1: bike frame in its normal position under the rider, rear wheel behind.
+2: rear wheel/frame swinging out toward camera, beginning the orbit; foreshortened triangular frame.
+3: rear frame farther around the steering axis, strong three-quarter projection.
+4: rear wheel swings through the front side beneath the raised feet, markedly different from frame3.
+5: the orbiting bike frame is seen END-ON FROM ITS BACK, NARROW AND THIN; rear tire and frame edge-on in depth under the fixed grips. Keep the upright rider identical.
+6: rear frame emerging around the opposite side, reversed three-quarter projection.
+7: rear wheel sweeping back behind toward the normal bike side projection.
+8: rear frame almost returned to frame1, leaving one equal small step back to frame1. No landing or return of feet to pedals.
+This is a repeatable one-turn loop for double/triple tailwhips. Propeller spins gently. No huge vertical motion; game moves the drawing through the air. Every frame drawn headUP, never inverted.
+
+Scale: use the approved BMX sheet at its300px cell scaled1.48 to444px. Head cap-to-chin134px; standing-reference height325px; head41%, necktofeet48%, propeller11%. Small cream torso and short limbs keep exactly their reference length in all poses. Normal unforeshortened bicycle side length about350px, tire diametersabout122px. Same actual bike size in everyframe; perspective foreshortening is allowed. Center the orbit envelope in each cell so nothing reaches a cell boundary. Keep bike clear of local groundy406, approx wheel lowestpoint390. Do not shrink the rider head or physically lengthen arms or legs to fit the trick.
+
+Identity exactly: cream round big head and plain dark empty glass face, blue/cream striped cap with blue propeller, blue headphones with glowing cyan ring, small cream egg torso, thin cream arms and legs, white gloves with FOUR fingers plus thumb each and blue cuffs, big blue sneakers white soles. Exactly2arms2hands2legs. No fingers wrapped backwards. Thick dark navy organic outlines, richly hand-painted cartoon brushwork, blue/cream/red colors copied from references, upper-left light.
+Bike exactly approved: red diamond tube frame, red fork, dark navy saddle, black chunky tread tires, gray silver spoked rims, silver crank/chain, blue pedals, blue handlebar grips, small blank white handlebar plate. No extra bike parts. No shadow, dust, scenery, motion lines, captions, guides, labels, borders or facial features. Smooth meaningful in-between orbit poses, not repeated normal bicycle positions.

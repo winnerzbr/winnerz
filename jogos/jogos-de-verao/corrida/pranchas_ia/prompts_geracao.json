@@ -1,0 +1,783 @@
+{
+  "method": "built-in image_gen",
+  "revision": 2,
+  "sheets": [
+    {
+      "name": "01_sprint",
+      "generation_mode": "built-in imagegen",
+      "method": "opposite-phase pairs with color-coded anatomical pose guides; guide colors absent from final art",
+      "pairs": [
+        {
+          "pair": [
+            1,
+            5
+          ],
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "prompt": "Create TWO full-body game sprites side by side on pure #00FF00, a PAIR of opposite contact poses for a SPRINT cycle. Image1 is the character MODEL, identity/style/proportions only. Image2 is a color-coded POSE GUIDE, joint paths and overlap order only. Orange limbs in the guide mean anatomical RIGHT / near-camera limbs, cyan means LEFT / far limbs. Final limbs must use the MODEL cream/blue/white colors, NOT guide colors. No text or guides in output.\nCRITICAL DIFFERENCE: In LEFT sprite (phase1), the NEAR RIGHT THIGH comes from the foreground hip and travels toward RIGHT on the canvas, down to the forward contacting shoe. The FAR LEFT thigh travels toward LEFT and bends back, heel lifted behind. The NEAR RIGHT ARM pumps toward LEFT, behind the torso, palm facing inward.\nIn RIGHT sprite (phase5), the NEAR RIGHT THIGH comes from the foreground hip and travels toward LEFT on the canvas, bent knee and heel lifted BACK behind the pelvis. The FAR LEFT leg is the one extending toward RIGHT to contact the ground. The NEAR RIGHT ARM comes FORWARD toward RIGHT and visibly passes IN FRONT OF the cream torso. This is a real right/left limb swap, never keep the same foreground leg extended forward in both images. At the hip overlap, the near trailing thigh MUST cover the far thigh's upper root in the RIGHT sprite.\nExact IAmiguinho MODEL: small cream egg torso and SHORT thin cream limbs, BIG cream head, blue-and-cream cap and blue propeller, circular blue headphone with cyan ring, plain dark BLANK glass visor at right edge, blue wristbands, small WHITE FIVE-finger gloves (4 curled fingers and correctly placed thumb), big blue sneakers with WHITE soles. Both view STRICT side profile facing RIGHT like MODEL SIDE. Painted brush shading, thick dark navy outlines, top-left illumination. Same head size, body and limbs, proportions in both poses. Head cap-to-chin =41% of standing height, body from neck to shoe soles48%, propeller11%. Forward torso lean about20 degrees; no elongated legs. Runner fists relaxed; palms face toward body midline; dorsal near glove faces viewer, four curled finger knuckles plus thumb wrapped anatomically. Do not flip a hand independently of its forearm.\nTwo equal square working cells across a2:1 canvas, ample green margins. No ground, shadow, sand, dust, motion lines, numbers, captions, skeleton, guide colors, extra limbs or facial features. This pair will be cut and normalized into separate final animation frames later.",
+          "camera_prompt": "Edit ONLY the camera angle of the two heads in image1 to match the strict RIGHT SIDE PROFILE of image2. The blank glass visor should be a narrower vertical oval at the right edge of the cream head, not a broad front-facing screen. Keep the circular near headphone, cap, propeller, head size, poses, leg overlap, arm overlap, colors and white soles unchanged. The left pose has near leg forward and near arm behind; the right pose has near leg BEHIND and near arm in front of torso. Preserve this difference exactly. No new limbs, no palm inversion, no facial details, no text or guides. Keep the pure #00FF00 background and two sprites with margins.",
+          "pose_guide": "/workspace/scratch/ab2b2a31203b/work/running_v2/01_pose_pair_1.png"
+        },
+        {
+          "pair": [
+            2,
+            6
+          ],
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-2a5fdb68-fdff-4cfb-97dd-e92dd6b39cbd.png",
+          "prompt": "Create TWO isolated full-body IAmiguinho sprites side by side on pure green #00FF00. Image1 is APPROVED visual identity, exact head, body proportions, painting, clothes and SIDE RIGHT camera. Keep its head design unchanged. Image2 is POSE GUIDE ONLY: ORANGE is near/right arm and leg, CYAN is far/left arm and leg. Follow their actual joint paths and which limb covers which at hip/shoulder, but replace guide colors with original cream arms/legs, white gloves, blue cuffs/shoes. Same small body, short limbs, constant head size, same side camera as image1. Do NOT copy image1 poses; use image2's NEW poses.\nTwo equal cells, ONE sprite each. Each glove is a relaxed runner fist with four curled fingers and correctly attached thumb. Palms face inward toward body midline, back of near glove faces camera; don't invert wrists or palms. Dark visor remains BLANK, no eyes/mouth. Thick navy outlines, hand painted brushwork, top-left light, white shoe soles. No text/labels/grid/shadows/ground/sand/dust/guide colors. Exact two arms, two hands, two legs. Never elongate body/limbs. Preserve generous green margins.\nPAIR PHASES2 and6, PASSING / PUSH. LEFT: near RIGHT leg points DOWN and slightly BACK (left of hip), its shoe supports/pushes against invisible ground; far LEFT knee lifts FORWARD (right of hip), bent sharply, shoe under raised knee. Near RIGHT arm pumps FORWARD across/in front of torso; far arm BACK. RIGHT: swap actual limbs: near RIGHT knee up FORWARD with shoe off ground, far LEFT leg DOWN and slightly BACK supporting. Near RIGHT arm goes BACK; far LEFT arm forward. A visible one-foot-support / high-recovering-knee pose, not two straight split legs.",
+          "pose_guide": "/workspace/scratch/ab2b2a31203b/work/running_v2/01_pose_pair_2.png"
+        },
+        {
+          "pair": [
+            3,
+            7
+          ],
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-57dbe13d-79e8-4459-8aa0-4491a0b4532b.png",
+          "prompt": "Create TWO isolated full-body IAmiguinho sprites side by side on pure green #00FF00. Image1 is APPROVED visual identity, exact head, body proportions, painting, clothes and SIDE RIGHT camera. Keep its head design unchanged. Image2 is POSE GUIDE ONLY: ORANGE is near/right arm and leg, CYAN is far/left arm and leg. Follow their actual joint paths and which limb covers which at hip/shoulder, but replace guide colors with original cream arms/legs, white gloves, blue cuffs/shoes. Same small body, short limbs, constant head size, same side camera as image1. Do NOT copy image1 poses; use image2's NEW poses.\nTwo equal cells, ONE sprite each. Each glove is a relaxed runner fist with four curled fingers and correctly attached thumb. Palms face inward toward body midline, back of near glove faces camera; don't invert wrists or palms. Dark visor remains BLANK, no eyes/mouth. Thick navy outlines, hand painted brushwork, top-left light, white shoe soles. No text/labels/grid/shadows/ground/sand/dust/guide colors. Exact two arms, two hands, two legs. Never elongate body/limbs. Preserve generous green margins.\nPAIR PHASES3 and7, FLIGHT. Both shoes off the invisible ground. LEFT: near RIGHT thigh points backward toward LEFT and knee folds with heel tucked up near rump; far LEFT knee drives high FORWARD to RIGHT, lower leg bent with shoe below knee. Near RIGHT arm FORWARD in front of torso, far LEFT arm BACK. RIGHT: near RIGHT knee drives high FORWARD to RIGHT, lower leg bent and shoe below knee; far LEFT leg folds backward to LEFT, heel raised. Near RIGHT arm BACK, far LEFT arm FORWARD. At hip/shoulder crossings, foreground ORANGE guide parts must remain foreground even when pointing toward left.",
+          "pose_guide": "/workspace/scratch/ab2b2a31203b/work/running_v2/01_pose_pair_3.png"
+        },
+        {
+          "pair": [
+            4,
+            8
+          ],
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7b28f4cc-0f13-4106-89f5-42be1888347a.png",
+          "prompt": "Create TWO isolated full-body IAmiguinho sprites side by side on pure green #00FF00. Image1 is APPROVED visual identity, exact head, body proportions, painting, clothes and SIDE RIGHT camera. Keep its head design unchanged. Image2 is POSE GUIDE ONLY: ORANGE is near/right arm and leg, CYAN is far/left arm and leg. Follow their actual joint paths and which limb covers which at hip/shoulder, but replace guide colors with original cream arms/legs, white gloves, blue cuffs/shoes. Same small body, short limbs, constant head size, same side camera as image1. Do NOT copy image1 poses; use image2's NEW poses.\nTwo equal cells, ONE sprite each. Each glove is a relaxed runner fist with four curled fingers and correctly attached thumb. Palms face inward toward body midline, back of near glove faces camera; don't invert wrists or palms. Dark visor remains BLANK, no eyes/mouth. Thick navy outlines, hand painted brushwork, top-left light, white shoe soles. No text/labels/grid/shadows/ground/sand/dust/guide colors. Exact two arms, two hands, two legs. Never elongate body/limbs. Preserve generous green margins.\nPAIR PHASES4 and8, PRECONTACT. LEFT: near RIGHT thigh remains BACK toward LEFT, knee folded, heel recovering upward behind; far LEFT thigh extends FORWARD toward RIGHT with shin down and shoe about to touch invisible ground. Near RIGHT arm FORWARD over torso, far LEFT arm BACK. RIGHT: near RIGHT thigh reaches FORWARD toward RIGHT with shin down, shoe almost touches invisible ground; far LEFT leg folds BACK toward LEFT. Near RIGHT arm BACK, far LEFT arm FORWARD. Lead foot is extended lower than flight pose, but still unplanted. This advances flight into next contact, not a copy of either.",
+          "pose_guide": "/workspace/scratch/ab2b2a31203b/work/running_v2/01_pose_pair_4.png"
+        }
+      ],
+      "frame_sources": [
+        {
+          "index": 1,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "actor_count": 2,
+          "actor_index": 0,
+          "head_center_x": 540,
+          "head_reference_height": 322,
+          "target_bottom": 406
+        },
+        {
+          "index": 2,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-2a5fdb68-fdff-4cfb-97dd-e92dd6b39cbd.png",
+          "actor_count": 2,
+          "actor_index": 0,
+          "head_center_x": 540,
+          "head_reference_height": 322,
+          "target_bottom": 406
+        },
+        {
+          "index": 3,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-57dbe13d-79e8-4459-8aa0-4491a0b4532b.png",
+          "actor_count": 2,
+          "actor_index": 0,
+          "head_center_x": 540,
+          "head_reference_height": 322,
+          "target_bottom": 389
+        },
+        {
+          "index": 4,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "actor_count": 2,
+          "actor_index": 1,
+          "head_center_x": 1352,
+          "head_reference_height": 322,
+          "target_bottom": 400,
+          "note": "Verified far-left lead / near-right trailing pose from contact pair, elevated6px for precontact; intentional rigid downward in-between4→5, no anatomical relabeling."
+        },
+        {
+          "index": 5,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "actor_count": 2,
+          "actor_index": 1,
+          "head_center_x": 1352,
+          "head_reference_height": 322,
+          "target_bottom": 406
+        },
+        {
+          "index": 6,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-2a5fdb68-fdff-4cfb-97dd-e92dd6b39cbd.png",
+          "actor_count": 2,
+          "actor_index": 1,
+          "head_center_x": 1352,
+          "head_reference_height": 322,
+          "target_bottom": 406
+        },
+        {
+          "index": 7,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-57dbe13d-79e8-4459-8aa0-4491a0b4532b.png",
+          "actor_count": 2,
+          "actor_index": 1,
+          "head_center_x": 1352,
+          "head_reference_height": 322,
+          "target_bottom": 389
+        },
+        {
+          "index": 8,
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-7b28f4cc-0f13-4106-89f5-42be1888347a.png",
+          "actor_count": 2,
+          "actor_index": 1,
+          "head_center_x": 1352,
+          "head_reference_height": 322,
+          "target_bottom": 400
+        }
+      ],
+      "qa": {
+        "status": "paired phases1/5,2/6,3/7 verified by independent hip/shoulder trace; F4 changed to verified left-lead precontact; F8 nearforward accepted",
+        "near_leg_sequence": "front contact, back support, back folded, back recovery, back recovery as far contacts, front raised, front raised, front precontact",
+        "near_arm_sequence": "back, forward, forward, forward, forward, back, back, back"
+      }
+    },
+    {
+      "name": "02_trote_leve",
+      "tool": "built-in image_gen",
+      "source_type": "four_opposite_phase_pairs",
+      "frames": [
+        {
+          "frame": 1,
+          "source": "generated_images/exec-a669bd63-5662-4dbb-9e93-60c8310d9aee.png",
+          "source_box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "phase": "contacts",
+          "near_leg": "forward",
+          "target_bottom": 406
+        },
+        {
+          "frame": 2,
+          "source": "generated_images/exec-21ba723c-977f-40f2-b0e7-cb7e49e80cbe.png",
+          "source_box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "phase": "passing",
+          "near_leg": "supporting_under_hip",
+          "target_bottom": 406
+        },
+        {
+          "frame": 3,
+          "source": "generated_images/exec-4f379c71-3dba-4437-a10c-d09e9a6f291f.png",
+          "source_box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "phase": "flight",
+          "near_leg": "back",
+          "target_bottom": 394
+        },
+        {
+          "frame": 4,
+          "source": "generated_images/exec-7c5b5d66-f17e-491a-bab8-6f4549a5224f.png",
+          "source_box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "phase": "precontact",
+          "near_leg": "back",
+          "target_bottom": 403
+        },
+        {
+          "frame": 5,
+          "source": "generated_images/exec-a669bd63-5662-4dbb-9e93-60c8310d9aee.png",
+          "source_box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "phase": "contacts",
+          "near_leg": "back",
+          "target_bottom": 406
+        },
+        {
+          "frame": 6,
+          "source": "generated_images/exec-c66930a0-fed6-454c-a8d7-a4538cec393d.png",
+          "source_box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "phase": "passing",
+          "near_leg": "passing_forward",
+          "target_bottom": 406
+        },
+        {
+          "frame": 7,
+          "source": "generated_images/exec-4f379c71-3dba-4437-a10c-d09e9a6f291f.png",
+          "source_box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "phase": "flight",
+          "near_leg": "forward",
+          "target_bottom": 394
+        },
+        {
+          "frame": 8,
+          "source": "generated_images/exec-7c5b5d66-f17e-491a-bab8-6f4549a5224f.png",
+          "source_box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "phase": "precontact",
+          "near_leg": "forward",
+          "target_bottom": 403
+        }
+      ],
+      "prompts": [
+        {
+          "source": "generated_images/exec-bff2b354-3db5-4010-a3eb-34f971fe11ba.png",
+          "prompt": "Use case: stylized-concept.\nCreate TWO full-body sprites next to each other on a pure solid green #00FF00 canvas, one row of two equal square cells. These will become OPPOSITE contact phases (frame 1 and frame 5) of an easy jogging animation. No text, numbers, guides, shadows or ground. Output wide 2:1.\nInput 1 is the only character MODEL for identity, colors, proportions and painted style. Use its third view, strict SIDE PROFILE facing RIGHT. Input 2 is a pose-blocking diagram ONLY: black limbs mean NEAR/right, grey limbs mean FAR/left. Transfer the pose, joint directions and occlusion order, NOT its drawing, colors, labels or circles.\nIAmiguinho exactly: big cream round head, blank dark screen vertical at right edge of head, round blue headphone with cyan ring, cream/blue striped cap and blue propeller, tiny cream egg body, thin SHORT cream arms and legs, white five-finger gloves, blue wristbands, blue big sneakers with white soles. Thick navy outline and hand-painted shading from top left. Head 41%, neck-to-feet 48%, propeller 11% of standing height. In each cell cap-to-chin size must equal 30.2% of cell height, standing virtual ground-to-propeller height 73.2%. Keep head size and every segment length identical between both sprites. Upright relaxed jog, arms low, short stride, no sprint.\nLEFT SPRITE (frame 1): near RIGHT leg is IN FRONT of the other leg at the hip and extends diagonally forward to the RIGHT, near shoe contacting the invisible ground. Far LEFT leg trails to the LEFT, its upper thigh partly hidden BEHIND the near thigh. Near RIGHT arm swings backward to the LEFT of the torso; far LEFT arm swings gently forward RIGHT.\nRIGHT SPRITE (frame 5): SWAP the NEAR/FAR limb assignment. Near RIGHT thigh must be clearly IN FRONT at the hip but now travels BACKWARD to the LEFT, with its lifted near shoe behind. Far LEFT leg extends forward RIGHT to contact the invisible ground, with upper thigh emerging BEHIND the near thigh. Near RIGHT arm now swings FORWARD to the RIGHT, visibly crossing and covering the cream torso; far LEFT arm goes BACKWARD LEFT behind the torso.\nThe two poses are opposite steps, NOT two variations of the same leg leading. They face right in both cells; do not horizontally mirror the whole character.\nHands: anatomically relaxed half-closed runner hands, palms inward toward body, back of near hand toward camera. Four gently curled fingers plus ONE correctly attached thumb per hand, do not reverse palm or twist wrists. All arms connect naturally; exactly two arms and two legs.\nBoth contact soles share the same ground baseline at 91.4% of cell height. All art fully within its cell with ample green margin. Use the pose diagram's foreground black limb overlap to make the reversal unambiguous, but paint those limbs cream and shoes blue. Far limbs may be subtly shaded slightly darker, not grey. Visor always completely blank.",
+          "status": "superseded_by_camera_sole_repair"
+        },
+        {
+          "source": "generated_images/exec-a669bd63-5662-4dbb-9e93-60c8310d9aee.png",
+          "prompt": "Precise edit of attached TWO-pose jogging asset.\nKeep every limb, every hand, torso, near/far hip overlap, foot position, scale, color and painted style EXACTLY as now. The left sprite is near/right-leg contact, the right sprite is far/left-leg contact; preserve that visible limb reversal.\nChange only TWO details:\n1. BOTH heads must be strict SIDE PROFILE facing RIGHT, rather than 3/4. Keep the same head size and position. The blue/cyan headphone is a fully round disc on the side of the head. The blank dark visor becomes a NARROW VERTICAL strip on the RIGHT edge of head, not a broad front oval. Cap brim points directly RIGHT. The far headphone is hidden. Do not change any body pose or hand.\n2. Recolor ONLY the thin sole band on each of the four blue sneakers to warm WHITE, keeping navy outline, blue shoe uppers and tread.\nPreserve exactly two full separate sprites on flat pure green #00FF00, one row of two cells. No text or ground/shadow. Do not re-pose or flip anything.",
+          "status": "selected"
+        },
+        {
+          "source": "generated_images/exec-21ba723c-977f-40f2-b0e7-cb7e49e80cbe.png",
+          "prompt": "Use case: stylized-concept. Create a new TWO-SPRITE pair of EASY JOG PASSING POSES to continue the contact pair in image1. Image1 is exact character, painting, head, hand anatomy, scale and camera reference. Image2 is pose diagram only; its black limbs are near/right and grey limbs far/left. Do not copy its labels, ground, plain circles, black/grey colors.\nUse exactly same IAmiguinho from image1, strict side profile facing RIGHT, short small cream body and limbs, blue propeller cap/headphones and big blue white-soled sneakers. Blank narrow vertical dark visor, unchanged head/cap/propeller size and orientation. Exactly two arms, two legs, two five-finger hands. Same hand-painted texture, thick dark navy outline, light top-left. Canvas 1774x887, two equal cells in one row. Each full actor contained with green margin.\nLEFT sprite (frame2): NEAR RIGHT leg has moved to almost vertical UNDER THE HIP, supporting and pushing from the ground. Near thigh and knee drawn foreground, a continuous visible cream contour at the left-facing near hip down to the near shoe. The FAR LEFT knee passes forward toward RIGHT; its shoe is lifted in front, partly hidden behind the near supporting leg where they overlap. Near arm goes slightly backward/low LEFT; far arm gently forward RIGHT.\nRIGHT sprite (frame6): SWAP the near/far limbs. FAR LEFT leg almost vertical underneath, supporting on ground; its upper thigh is behind the torso. NEAR RIGHT knee passes forward RIGHT, with near shoe lifted in front and clearly IN FRONT of the supporting far leg. Near thigh begins at the camera-facing left hip and sweeps across front of the torso/hip toward the lifted knee. Near arm is slightly forward low, drawn on top of belly; far arm slightly backward.\nThis is a compact easy jog passing pair, feet close together; no split stride and no high sprint knees. Keep total body and segment lengths identical to image1.\nHands relaxed half-closed, palms face body, back of near hand faces camera. Do not twist or flip wrists; four gently curled fingers plus one thumb correctly placed. Keep visual palm direction continuous from the matching side of image1. Near arm always opposite near leg.\nSolid #00FF00 background. No text, guides, ground, sand, dust, shadows or extra objects.",
+          "status": "selected"
+        },
+        {
+          "source": "generated_images/exec-4f379c71-3dba-4437-a10c-d09e9a6f291f.png",
+          "prompt": "Use case: stylized-concept. Create a new pair of TWO full-body EASY JOG LOW FLIGHT sprites, side-by-side on pure solid #00FF00, one row of two equal cells. Image1 is exact approved character/painting/head/hand/scale reference; image2 is a pose blocking diagram only, with black=near/right limbs, grey=far/left. Transfer diagram poses and overlap ordering, not its colors/shapes/labels.\nKeep identical IAmiguinho side profile facing RIGHT, blank narrow dark visor, cream head, cap/blue propeller, circular blue/cyan headphone, compact egg torso and SHORT cream limbs. Five-finger white gloves, blue cuffs, blue shoes with white soles. Same head size, same limb length and shoe scale in both and as image1. Thick navy outlines, painted shading lit from top left. No ground, shadow, sand, dust, words or guide lines.\nThe LEFT SPRITE is frame3, opposite limb phase from the left contact sprite in image1. Both feet airborne, short easy stride. NEAR RIGHT leg sweeps BACK to LEFT: the near/right upper thigh MUST be the foreground thigh, clearly starting on the camera-facing left of the hip, its outline on TOP of far thigh, leading backward to a bent knee and a lifted blue shoe on the left. FAR LEFT leg reaches forward RIGHT, emerging from behind the near thigh. NEAR RIGHT arm is FORWARD on the right, crosses and occludes the torso; far arm back left behind body.\nThe RIGHT SPRITE is frame7, mirror of limb assignment but NOT mirror of character direction. NEAR RIGHT leg reaches forward RIGHT, foreground thigh/near shoe in front. FAR LEFT leg trails behind left, its thigh partly hidden behind near thigh. NEAR RIGHT arm swings backward LEFT; far arm forward RIGHT.\nBoth figures remain upright and relaxed, not leaning for sprint. Flight small: both soles just above invisible ground, no large leap or extreme stretch. Hands relaxed half-closed runners fists: palms inward, back of near hand toward viewer, thumb correctly attached, four curled fingers plus thumb, no arbitrary wrist flips. Each arm opposite the leg on same side. Preserve the reference head exactly in orientation and size. Wide1774x887.",
+          "status": "selected"
+        },
+        {
+          "source": "generated_images/exec-7c5b5d66-f17e-491a-bab8-6f4549a5224f.png",
+          "prompt": "Use case: stylized-concept. Create a new TWO-SPRITE pair of PRE-CONTACT poses for an EASY JOG. The leading foot is lowering, a moment before contact. Input1 is the exact character, scale, painted texture, color, side camera and hand anatomy reference. Input2 is only a black-near/grey-far pose blocking diagram; do not draw its marks, labels, colors or plain shapes. Two equal square cells in one row on wide1774x887 puregreen#00FF00.\nExact IAmiguinho from input1: strict RIGHT side profile, narrow vertical BLANK dark glass at the right of head, big round blue/cyan headphone, striped cream/blue cap and blue propeller, tiny cream egg body and short thin cream legs/arms, five-finger white gloves with blue cuffs, oversized blue sneakers with WHITE soles. Preserve head and limb lengths, top-left painted shading, thick dark navy outline. No ground, text, shadows, dust, sand or objects.\nLEFT sprite=frame4, far LEFT foot lowers toward invisible ground on the RIGHT, heel slightly ahead and toes about to settle. NEAR RIGHT leg trails BACK LEFT with knee bent and heel higher. The near right thigh is the FOREGROUND thigh starting visibly at the near/camera-facing hip and sweeping backward left; far thigh leads right from BEHIND. Near RIGHT arm goes FORWARD RIGHT and crosses/occludes the cream torso, far arm BACK LEFT behind torso.\nRIGHT sprite=frame8, reverse the near/far assignment. NEAR RIGHT foot lowers forward RIGHT, toes ready to contact. Near thigh is FOREGROUND and leads forward from the near hip; FAR LEFT leg trails back LEFT with heel higher, partly hidden behind near thigh at hip. Near arm swings BACK LEFT; far arm gently FORWARD RIGHT.\nBoth faces point RIGHT, do not mirror character. Both upright and relaxed with a short stride; no sprint. These are approaching contact, not the broad flight pose: bring the leading shoe slightly inward and down versus a flight pose; rear heel folds upward. Keep both arms low.\nHands must retain anatomically correct orientation: gently curled four fingers plus one thumb, palms facing inward, back of near hand visible, no backwards palms or wrist flips. Near arm opposite near leg. Same character size in both cells, full sprites with green margins.",
+          "status": "selected"
+        },
+        {
+          "source": "generated_images/exec-c66930a0-fed6-454c-a8d7-a4538cec393d.png",
+          "prompt": "Use case: precise-object-edit.\nMake ONE small animation correction in the RIGHT-HAND SPRITE only. Leave the entire left sprite absolutely unchanged.\nIn the right sprite, change ONLY the NEAR RIGHT ARM, currently bent forward across its belly with the white fist out front on the right. It must swing through a LOW NEUTRAL position toward the BACK as the near knee lifts forward. Lower this near forearm and glove to BESIDE THE HIP, slightly LEFT of the center of the cream belly, below the blue headphone. The near upper arm starts at the camera-facing shoulder and descends almost vertically, elbow gently bent, glove at hip height and slightly trailing LEFT. Draw it in front of the belly edge, with natural relaxed runner's wrist. The near glove should no longer project to the right of the torso. This is the in-between from forward arm to backward arm.\nKeep the hand anatomically consistent: same white relaxed half-closed glove, four curled fingers plus one thumb, palm inward toward body, back of near hand toward camera, no wrist flip. If needed the far arm can remain visible behind but do not add a third arm.\nKeep BOTH LEGS AND BOTH SHOES of the right sprite EXACTLY UNCHANGED, including which leg is raised forward. Keep its head, face screen, headphones, cap, propeller, torso, proportions, painting, light and scale unchanged. Keep strict profile facing RIGHT.\nNo changes to the left sprite. Same canvas and pure green background. No text, shadows, effects, labels or guides.",
+          "status": "selected_frame6_only",
+          "frame": 6
+        }
+      ],
+      "qa_notes": [
+        "Created from scratch using non-deliverable pose-blocking diagrams, not previous failed full-sheet gait.",
+        "Each pair places opposite near/far phases side by side. Contacts left near leg front, right near leg back; full-cycle order in frames array.",
+        "Strict side profile, blank visor, consistent head and character paint from anchor.",
+        "Near arm forward in frames3–6 visibly occludes torso; near arm backward in1–2/7–8.",
+        "Near/far leg reversal most visible in thigh/hip contour and lifted shoe overlap, but needs independent final visual QA; no claim of rig-verified anatomy.",
+        "Hands are relaxed curled fists with near-hand back outward and far palms inward; no intentional wrist flips.",
+        "Root finishing needed: 134px cap-to-chin, head horizontal registration, ground406 and small flight gaps, green normalization.",
+        "Independent root/run_finish QA confirmed near/far leg swap; frame6 near arm then lowered to neutral passing position beside hip so it no longer pumps forward together with near raised knee. Original frame2 is retained from its earlier source."
+      ],
+      "reference_paths": [
+        "upload/cc66a16c-45bf-4bcc-a8cb-9f616a5b2f4c.png",
+        "work/running_v2/jog/contact_pair_pose.png",
+        "work/running_v2/jog/passing_pair_pose.png",
+        "work/running_v2/jog/flight_pair_pose.png",
+        "work/running_v2/jog/precontact_pair_pose.png"
+      ]
+    },
+    {
+      "name": "03_largada",
+      "revision": "v2",
+      "generation_mode": "builtin image_gen; temporary colored annotations used as pose conditioning only, not final artwork",
+      "source_mode": "per_frame_sources",
+      "frames": [
+        {
+          "frame": 1,
+          "source": "generated_images/exec-5d1dda28-c3f7-417e-bdd1-638ca9d8a080.png",
+          "box": [
+            0,
+            0,
+            627,
+            627
+          ],
+          "pose": "kneeling wait",
+          "near_leg": "front planted, far rear knee down",
+          "near_arm": "palm down atground"
+        },
+        {
+          "frame": 2,
+          "source": "generated_images/exec-5d1dda28-c3f7-417e-bdd1-638ca9d8a080.png",
+          "box": [
+            627,
+            0,
+            1254,
+            627
+          ],
+          "pose": "kneeling tiny inhale",
+          "near_leg": "front planted, far rear knee down",
+          "near_arm": "palm down atground"
+        },
+        {
+          "frame": 3,
+          "source": "generated_images/exec-5d1dda28-c3f7-417e-bdd1-638ca9d8a080.png",
+          "box": [
+            0,
+            627,
+            627,
+            1254
+          ],
+          "pose": "kneeling tiny exhale",
+          "near_leg": "front planted, far rear knee down",
+          "near_arm": "palm down atground"
+        },
+        {
+          "frame": 4,
+          "source": "generated_images/exec-5d1dda28-c3f7-417e-bdd1-638ca9d8a080.png",
+          "box": [
+            627,
+            627,
+            1254,
+            1254
+          ],
+          "pose": "hips up set",
+          "near_leg": "front planted, far rear toe behind",
+          "near_arm": "palm down atground"
+        },
+        {
+          "frame": 5,
+          "source": "generated_images/exec-17788f9a-089f-4262-b7d0-76d60e88ebaf.png",
+          "box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "pose": "right push, left knee recovers",
+          "near_leg": "BACK LEFT foreground visible diagonal thigh",
+          "near_arm": "FORWARD RIGHT crossing chest"
+        },
+        {
+          "frame": 6,
+          "source": "generated_images/exec-2d2de31e-e20b-42ca-a9f1-776450f1de17.png",
+          "box": [
+            0,
+            0,
+            1254,
+            1254
+          ],
+          "pose": "left first stride",
+          "near_leg": "BACK LEFT foreground crossing OVER far forward thigh",
+          "near_arm": "FORWARD RIGHT"
+        },
+        {
+          "frame": 7,
+          "source": "generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "box": [
+            0,
+            0,
+            887,
+            887
+          ],
+          "pose": "right second stride; root verified source",
+          "near_leg": "FORWARD RIGHT foreground",
+          "near_arm": "BACK LEFT foreground"
+        },
+        {
+          "frame": 8,
+          "source": "generated_images/exec-17788f9a-089f-4262-b7d0-76d60e88ebaf.png",
+          "box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "pose": "left next stride",
+          "near_leg": "BACK LEFT foreground, bentkneeheelup",
+          "near_arm": "FORWARD RIGHT"
+        }
+      ],
+      "prompts": [
+        {
+          "stage": "starting quad",
+          "prompt": "Use case: stylized-concept. Create a GAME ANIMATION SPRITE SHEET, four consecutive frames in a TWO by TWO grid, equal square cells; no visible borders or labels. This is frames1–4 of IAmiguinho SPRINT START, to be assembled later. Image1 MODEL is the ONLY source for character design/proportions, specifically its SIDE view (third character). Image2 GUIDE supplies relative scale/ground line only; because this working sheet has2x2 cells, preserve each cell's dimensions, not its column count.\nUse EXACT MODEL robot, hand-painted cartoon with thick navy outline, cream round head, navy blank visor, blue/cream cap and blue propeller, single near circular blue headphone/cyan ring in SIDE view facing RIGHT, small cream egg torso, SHORT thin cream limbs, white FIVE-finger gloves, blue wristbands, largeblue sneakers/white soles. Blank visor, no face. Top-left light.\nMake output888x888, eachcell444x444, head cap-to-chin134pixels IN EVERY POSE, standing heightwould325pixels, groundbaseliney406incell. Head41%, neck-to-feet48%,propeller11%. Never enlarge limbs for poses. Exact strict SIDE PROFILE right. Each head near x222cellcenter.\nCRITICAL ANATOMY: both white gloves PALMS DOWN onto ground, backs/dorsal surfaces visible from above, NO palm pads facing viewer, NO inverted/upturned palms. Four fingers plusthumb perhand. Fingers point FORWARD towardRIGHT and press flat downward; thumb lies on medial edge, towardthe otherhand; wristangle natural. Fingers are never fan-shaped facing camera. In sideview the hands appear low horizontal ontheground with gently curled fingerends. Two separated hands atslightlydifferentdepth but exactly SAME horizontal groundplane.\nFrames1,2,3: classic KNEELING sprinter waiting stance. NEAR RIGHT foot planted forward under right hip,near right knee bent high. FAR LEFT leg folded behind with left KNEE touching the ground DIRECTLY at the SAME horizontal line as glove fingertips and right sneaker sole y406. Knee bottom MUST reachground, no hovering gap whatsoever. Left calfextends backward LEFT from kneepoint to lifted heel/toe-support sneaker. Small torso low, elbows naturally bent so hands reach ground WITHOUT stretching limbs. Head upright looksright, same size. Frame1 neutral crouch,frame2tinyinhale shouldersup2pixels,frame3tinyexhale settle2pixels, supportingcontactpointsstayfixed.\nFrame4: SET position, hips raise slightly and far left knee lifts fromground; front rightfoot and both PALMSDOWNhandsstillplanted atsamebaseline,backlefttoecontactsbehind. This is preparation, not yetrunning.\nAll4spritesisolatedonperfectlyflatpure #00FF00. No ground line, no startingblocks, no sand, no dust, no shadows, no motionlines, no text,numbers,labels,grid,props. Entire character with generousgreenmargins insideeachcell. No camera3/4: narrow blank visor at rightedgeofhead. Make a competent anatomical sprinterstart with correctly DOWNWARD-facing palms and grounded knee.",
+          "source": "generated_images/exec-27104733-8f71-45f7-9a03-85d667eedcd5.png"
+        },
+        {
+          "stage": "initial knee refinement; superseded thickerleg",
+          "prompt": "Use case: precise-object-edit. This four-frame sheet has one specific anatomical flaw in frames1,2,3: rear knees HOVER above the floor, rather than kneeling. FIX this completely. The entire folded rear lower leg must REST horizontally on the invisible ground, with its cream bottom edge EXACTLY LEVEL with the lowest sole and glove tips. For firstcell: move left/rear KNEE bottom from y540 DOWN to y563, keeping its x250. Its calf must lie behind it to theleft, very close tohorizontalground. Hipmovesdown23pixels to keep thighlengthconstant. Same exact relative correction in top-rightcell andbottom-leftcell. Let backknee flatten subtly at contact. Make the elbowbend a little so palmsstaydownwherecurrentlyplanted. Headsameconstant size, can lower rigidly withtorso. Absolutely NO green gap between kneeandimaginedplaneat bottomofshoe/palms. Rear shoe remains behind with toe tipped down into samegroundplane. Preserve frame4 unchanged. Preserve correct downward-facing palms, backs of white gloves visible,5fingers. Preserve samecharacterdesign,painterlystyle,blankvisors,4frames2x2,puregreenbackground. No ground lines,shadows,textorprops. Do not merely lowerkneebysmallamount: it MUST reach exact baseline of shoe soles and palms.",
+          "source": "generated_images/exec-46568cc9-02e5-4b96-80ae-417ba3a26139.png"
+        },
+        {
+          "stage": "initiallaunchquad; superseded nearlegfailure",
+          "prompt": "Use case: stylized-concept. Create four new consecutive SPRINT START launch/run frames as a TWO by TWO game sprite sheet on solid pure #00FF00. Source image1 is IAmiguinho MODEL, authority for design/proportion; source image2 is previous four startup poses, style+size reference ONLY, do not copy its kneelingpose. This is next four frames5,6,7,8, reading order. Eachcell samecharacter, same scale/headsize, strict SIDE PROFILE facingRIGHT; narrow blank darkvisor atRIGHT edge, near circular blue/cyanheadphone. Exact blue/creampropellercap,smallcream torso,thinSHORT arms/legs,white5fingergloves,bluewristbands,blue sneakers whitesoles,thicknavyoutline,painterlytop-leftlight. No face, no terrain/effects/text/labels/borders.\nANATOMY AND ALTERNATION ARE THE MAIN REQUIREMENT. Near RIGHT leg is in front of pelvis in depth, its hip origin visible closestcamera and its shoe/leg drawn OVER farleg at crossing. Far LEFT leg behindbody drawn behindnearleg. Keep this identity fixed in allframes. A forward foot must be connected to its actual leg fromHIP, not sameposewithchangedshading. The near/right arm always swings OPPOSITE near/rightleg. Eachhandhas4fingersand1thumb correctlyfoldedintoloosefist, thumbs towardtorso, dorsal knucklesout; no reversed palms.\nFRAME5 (top-left): explosive launch, near RIGHT support leg trails BACK towardLEFT with toe pushing invisibleground, far LEFT knee drives FORWARD towardRIGHT. Therefore near RIGHT arm pumps FORWARD towardRIGHT, far LEFT arm backwardLEFT. Torsoleansforward.\nFRAME6 (top-right): first LEFT step, FAR LEFT leg leads clearlyforwardRIGHT into contact, NEAR RIGHT thighandleg trailsBACKLEFT; NEAR RIGHT arm forwardRIGHT and farleftarmbackLEFT. Legs clearly attachedtohips withnear RIGHT leg coveringfaratcrossover.\nFRAME7 (bottom-left): second RIGHT step, reverse actual limbpositions: NEAR RIGHT knee/thigh andblueSHOE are IN FRONT towardRIGHT, FAR LEFT thigh/leg extendBACKLEFT. NEAR RIGHT arm swungBACK towardLEFT; FAR LEFT arm swungFORWARD towardRIGHT. This frame MUST shownearleg forward,notback.\nFRAME8 (bottom-right): next LEFT stride, reverse again: FAR LEFT leg extendsFORWARD towardRIGHT, NEAR RIGHT leg foldedBACK towardLEFT; NEAR RIGHT arm forwardRIGHT and FAR LEFT armbackLEFT. Preparetoflowintofullsprintrun. Actual nearleg direction pattern: BACK,BACK,FORWARD,BACK. Opposite neararm: FORWARD,FORWARD,BACK,FORWARD.\nKeep head horizontallycentered, alllegs modelshort, bodycorrectsize. No foot slipping outsidecells. Output square2x2 withgenerousmargins, no ground/shadow/effects. A fullcharacterineachcell,8limbsmaximum across4figures.",
+          "source": "generated_images/exec-584f989c-ce5f-4df9-84d1-31ad50915b54.png"
+        },
+        {
+          "stage": "frame6 textual leg swap; superseded ignored",
+          "prompt": "Edit this single running sprite. Correct the gait anatomy: keep the NEAR RIGHT ARM swinging FORWARD toward the right, in front of the chest, as it is. But the NEAR RIGHT LEG must swing BACK toward the LEFT, opposite that arm. Redraw both legs so the near right thigh is visibly on the FRONT of the pelvis in depth, crossing OVER the far thigh, and runs diagonally BACK-LEFT to a bent knee and rear blue shoe. The FAR LEFT leg extends FORWARD RIGHT with its thigh root BEHIND the near leg at the crossing. This is a left-foot-leading stride. The visible foreground leg MUST be the trailing leg; do not keep the foreground thigh leading right. Maintain two legs/two shoes, same short lengths and shoe sizes. Preserve the whole head,cap,headphone,blankvisor,arms,gloves,scale,greenbackground,painterlystyle. No motionlines, no shadows,no text. Foreground near arm FORWARD, foreground near leg BACKWARD.",
+          "source": "generated_images/exec-022db3ee-704f-4eb9-aba0-0567c7f72f88.png"
+        },
+        {
+          "stage": "frame6 annotatedlegswap selected",
+          "prompt": "Edit this running sprite using its temporary colored leg labels. MAGENTA marks the NEAR leg, which is currently infront towardRIGHT. CYAN marks the FAR leg currently behind towardLEFT. EXCHANGE THEIR POSES: the MAGENTA-marked near leg must now extend toward LEFT behind body, while the CYAN-marked far leg must extend toward RIGHT in front. Crucially retain depth order: former magenta NEAR thigh still overlays/covers former cyan FAR thigh at the pelvis crossing. Draw near thigh from circled visible outerhip diagonally DOWN-LEFT to rear knee, then lowerleg torearblue shoe. Far thigh emerges from BEHIND nearthigh andextends DOWN-RIGHT tofrontblue shoe. This swap must be anatomical, not just shading. Preserve same shortleglengths and two shoes pointedright. Keep the near arm pumpingright ahead, so nearleg opposes it. All head/body/arms/design unchanged. REMOVE every annotation, magenta/cyanmark and text, restore creamlegs everywhere; final solidpuregreenbackground, no text/guides/effects. Actual foreground NEAR thigh must visibly pointLEFT as it leaveship. DO NOT preserve magenta thigh's current rightwarddirection.",
+          "source": "generated_images/exec-ee4a84ba-af75-477c-a89c-b1200893f261.png",
+          "reference_annotation": "work/running_v2/03_leg_annotation.png"
+        },
+        {
+          "stage": "frames5and8fromverifiedswappose selected",
+          "prompt": "Create TWO consecutive-movement reference poses of the SAME character as image1, horizontally side by side in TWO equal square cells on solid #00FF00, no text/borders. Image1 is valid limb DEPTH reference: foreground NEAR RIGHT thigh extends BACKLEFT, overlaysfarleftthigh at hip; nearRIGHTarmforward. Retain this exact depth order in BOTH outputposes. Image2 MODEL supplies original SHORT limb sizes and strictSIDEfacecamera (thirdMODELcolumn), narrow darkblankvisoratrightedge, largecircularnearheadphone. Preserve painterlystyle,allcolors,white5fingergloves,bluecapandpropeller.\nLEFT output is SPRINTSTART frame5 launch: torso leans forward more, NEAR RIGHT leg extends backwardLEFT almoststraight atshortmodellength, toe of nearblue shoe pressesinvisibleground to PUSH. FAR LEFT knee lifts high forwardRIGHT with bentleg andshoe tucked underneath knee. NearRIGHTarm pumpsFORWARDRIGHT acrosschest, farLEFTarmbackLEFT. Knee/thigh roots must truly swap asreference1, NOT nearrightkneeforward.\nRIGHT output is frame8 LEFT stride: NEAR RIGHT leg bends BACKLEFT with heel lifting slightly higher thanreference1, farLEFTleg extendsFORWARDRIGHT approachingcontact. NearRIGHTarmforwardRIGHT,farLEFTarmbackLEFT, sameexactdepthorderasreference1. Do not swap depth. Foregroundnearlegback inbothposes.\nBoth heads constant size identicaltoeachother, centeredincells, strict rightSIDE, noeyesmouth. Same character design/proportions asMODEL, noelongatedbodyorlimbs, nofacialfeatures, no groundshadow,text,labels,terrain,sandorlines. Generousgreengapbetweenthetwofullcharacters.",
+          "source": "generated_images/exec-126f2e79-840b-4e90-8da7-9a7e04e3f17e.png"
+        },
+        {
+          "stage": "firstquad markedknee correction selected",
+          "prompt": "Image1 has temporary pose correction marks. Edit ONLY the cream rear knee in each of the first THREE characters. Orange circle identifies the knee, orange arrow directs it DOWN; magenta horizontal line is the exact ground plane. MOVE each circled knee down along the arrow until its bottom TOUCHES the MAGENTA LINE, level with sneaker soles and glovefingerbottoms. Slightly lower the pelvis and bend elbows to preserve SHORT limb lengths; do NOT make a thick tube or enlarge legs. The knee must rest directly ON the marked line with zero gap, not hover aboveit. Rear calf remains thin like MODEL and extendsbackleft. Preserve firstthreewaitingposes andcorrect palmsDOWN, dorsalglovebacks visible, thumbsmedial. Preserve fourthpose unchanged. Also matchMODEL'sSIDE camera: narrowemptyvisoronrightedgeofhead,no farheadphone. Maintainallhead sizes. After correction REMOVE ALL ORANGE CIRCLES/ARROWS AND MAGENTA LINES leavingpure #00FF00 behindthepaintedcharacter. Image2 is MODEL for strictsidehead,shortthinlegs andsamepainting. No effects, shadows, ground or text. Main objective: knee exactly at line before erasingline.",
+          "source": "generated_images/exec-5d1dda28-c3f7-417e-bdd1-638ca9d8a080.png",
+          "reference_annotation": "work/running_v2/03_knee_baseline_annotation.png"
+        },
+        {
+          "stage": "rearshoe lifted variant notselected",
+          "prompt": "Edit only the BACK LEG in poses1,2,3 (top two andbottomleft). Make an unmistakable kneeling pose: the bare cream BACK KNEE is the LOWEST point, pressed onto the invisible horizontal ground exactlylevelwith whitefingertips andfrontshoesole. Raise the REAR BLUE SHOE OFF the ground by25pixels. From the planted knee, the short calf angles UP and LEFT to that liftedrearshoe. Thus the backleg is supported by KNEE, not rearshoe. Lowerpelvisasneeded tokeepbothbones SHORT; noelongation. Currentbackkneehovers incorrectlyandthebackshoebearstheweight; reverse that bygroundingknee andliftingrearshoe. Otherbody/head/arms stayidentical; palmsarecorrectlyDOWNwithdorsalsurfacesvisible. Preserveframe4unchanged. Preservecharacterheadsize,colors,greenbackground. No grounddrawn,noshadow,nolines,noletters. The bottomedge of knee MUST be horizontallylevelwithbottomedgeofhandsandfrontshoe. There is NOperspectiveverticaloffset: allthreecontactpoints shareexactlyonehorizontalplane.",
+          "source": "generated_images/exec-7aeb56ad-4c5a-4c97-8194-c8de2e57059e.png"
+        },
+        {
+          "stage": "frames5and8headyawonly selected",
+          "prompt": "Use case: precise-object-edit. Image1 is the edit target, TWO running poses. Image2 is a CAMERA REFERENCE ONLY. Change ONLY each character's HEAD yaw in image1 to match the strict RIGHT SIDE PROFILE of the characters in image2: broadcream sideofhead, largecircularnearheadphone, a NARROWverticaldarkglassvisoratRIGHTedge, nofarheadphone. Keep cap-top-to-chin SIZE and headposition EXACTLYUNCHANGED; rotateheadyawonly, noscaling. Keep propellerposition/capdesign,blankvisor. Every bodypixel, arm, leg, hand, shoe, limbposition andhipoverlap fromimage1 MUSTremainunchanged. ParticularlybothNEAR thighs pointBACKLEFTinforeground andNEARarms pointFORWARDRIGHT: preserve that correctanatomy. Do not borrow bodyposes fromimage2. Two samefullfigures inexactcells,noextra. Preservepuregreenbackground,canvas1774x887,style,colors,top-leftlight,thicknavyoutline. No text,shadows,lines,terrain. Head yaw ONLY, matchingreference2.",
+          "source": "generated_images/exec-17788f9a-089f-4262-b7d0-76d60e88ebaf.png"
+        },
+        {
+          "stage": "frame6headyawonly selected",
+          "prompt": "Use case: precise-object-edit. Image1 is edit target ONE running sprite. Image2 is HEAD CAMERA referenceonly, twocharactersstrictSIDEprofile. Change ONLY HEAD yaw in image1 to match strict RIGHT SIDE of image2: largecircularnearheadphone,broadcreamheadside,and NARROWverticalblanknavyvisoratfarRIGHTedge. No broadfront-facingoval, nofarheadphone. Keep head cap-to-chin SIZE,position,capdesign andpropellersize EXACTLYUNCHANGED; rotateyawonly,noscaling. EVERY pixelofbody,arms,legs,gloves,shoes and limbpositions mustremainunchanged. Preserve correct foregroundNEAR thigh going BACKLEFT overfarforwardthigh at hip; preserve nearARMforwardRIGHT. Do NOT borrow anybodypose fromimage2. Same singlefullfigure,same1254squaresize,puregreenbackground,painterlystyle,navyoutline,noface,notext,noshadows,noeffects. Head yaw ONLY; noanatomychange.",
+          "source": "generated_images/exec-2d2de31e-e20b-42ca-a9f1-776450f1de17.png"
+        }
+      ],
+      "qa_notes": [
+        "CRITICAL HAND FIX: first4 poses have palms facing DOWN into invisibleground, visible dorsal gloves, finger directionsforward/right. No palm creases/upturned palm pads shown.",
+        "CRITICAL LEG FIX: frames6,7,8 actual near thigh roots alternate BACK,FRONT,BACK; neararms opposite FORWARD,BACK,FORWARD. Visible hip-overlap order verified, not merely shade swapping.",
+        "Frame5 near thigh is extended BACKLEFT in foreground with far recovery knee front; neararmforward.",
+        "Five-finger anatomy requested, some far-hand fingers overlap/occlude in strictside-orientedpalms. No extra visible digits.",
+        "Residual: first3 rear knee bottoms remain about10–12rawpx above near palm/forwardsole baseline (roughly6px atcanonicalscale). Repeatedimagegencontactcorrections did not fully eliminate this. Do NOT claim exactcoincidentcontact.",
+        "Raw scales vary bysource; finisher must uniformscale eachactor cap-to-chin to134px and registerground406 in444cells, preservingboneproportions.",
+        "No finalgridassembly/crop artifacts here; rootfinisherowns final6sheetpackaging.",
+        "Head yaw5,6,8 corrected to strictside matchingverifiedsprint pair. NearthighBACK/armFORWARD geometry retained unchanged aftercameraedit. Firstquad originalrightprofile maintained."
+      ],
+      "recommended_ground_bottoms": [
+        406,
+        406,
+        406,
+        406,
+        406,
+        406,
+        406,
+        399
+      ]
+    },
+    {
+      "name": "04_salto_barreira",
+      "generation_mode": "builtin image_gen",
+      "source_type": "selected_frames_from_valid_flight_and_recovery",
+      "frames": [
+        {
+          "frame": 1,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 0,
+          "source_box": [
+            0,
+            0,
+            444,
+            444
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 406
+        },
+        {
+          "frame": 2,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 1,
+          "source_box": [
+            444,
+            0,
+            887,
+            444
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 400
+        },
+        {
+          "frame": 3,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 2,
+          "source_box": [
+            887,
+            0,
+            1331,
+            444
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 368
+        },
+        {
+          "frame": 4,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 3,
+          "source_box": [
+            1331,
+            0,
+            1774,
+            444
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 349
+        },
+        {
+          "frame": 5,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 4,
+          "source_box": [
+            0,
+            444,
+            444,
+            887
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 359
+        },
+        {
+          "frame": 6,
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 5,
+          "source_box": [
+            444,
+            444,
+            887,
+            887
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 389
+        },
+        {
+          "frame": 7,
+          "source": "generated_images/exec-96e2ba75-9a90-44e4-9faf-8028b4202856.png",
+          "actor_count": 8,
+          "columns": 4,
+          "actor_index": 6,
+          "source_box": [
+            887,
+            444,
+            1331,
+            887
+          ],
+          "near_leg": "right_leading_foreground",
+          "near_arm": "backward",
+          "target_bottom": 406
+        },
+        {
+          "frame": 8,
+          "source": "generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "actor_count": 2,
+          "columns": 2,
+          "actor_index": 1,
+          "source_box": [
+            887,
+            0,
+            1774,
+            887
+          ],
+          "near_leg": "right_trailing_foreground",
+          "near_arm": "forward_over_torso",
+          "target_bottom": 400
+        }
+      ],
+      "prompts": [
+        {
+          "source": "generated_images/exec-4c88b527-72d6-43ee-a699-472cb27a1c78.png",
+          "prompt": "Use case: stylized-concept. Make ONE corrected 8-frame hand-painted cartoon HURDLE JUMP animation sprite sheet for a game. Reference1 is the ONLY valid IAmiguinho character model. Reference2 is exact four-column two-row guide and scale. Reference3 is OLD artwork for style only: its limb action was rejected. REDRAW the arm and leg poses according to the instructions below. Do NOT just recolor the old poses. Exactly8 frames in reading order on pure #00FF00, wide 2:1 canvas, no visible grid, no labels.\n\nFixed orthographic SIDE PROFILE facing RIGHT in every frame, exactly the model's SIDE figure. Large near cyan-ring headphone on left of picture/head, narrow blank dark glass visor along head's right front edge. No eyes, mouth, expression or markings on visor. Cream round head and tiny cream egg torso, short thin cream arms/legs, blue/cream striped cap with blue propeller, blue wristbands, big blue sneakers with white soles. Thick dark navy outline, hand-painted brush shading, top-left light. Exact two arms, two legs, two white gloves. FIVE digits per glove, four fingers naturally curled and one thumb. Correct palms and wrists: relaxed RUNNER FISTS throughout; palms turned inward toward his torso, the back of the near hand visible to camera; thumb wraps over curled fingers naturally. No open backward-facing palms, no palm accidentally on back of hand, no detached or twisted wrists.\n\nSCALE: 4x2 cells on1776x888 sheet, each444x444. Upright theoretical standing height325px: propeller35px, head cap-to-chin134px, neck-to-feet156px. At rest groundy406, proptopy81,captopy114,chiny248. SAME head dimensions and limb lengths in all8 poses. Head near x222 per cell, whole actor translated up for jump, no scaling body parts. No anatomy stretching to clear hurdle. Every sprite fully isolated with≥12px margins. NO actual hurdle, track, sand, dust, ground shadow, text, motion lines or other object.\n\nCRITICAL limb identities remain coherent across frames. NEAR limb = character's RIGHT limb, closest to camera. FAR limb = LEFT limb behind body, very slightly darker for depth but SAME size. BOTH legs must truly change angles, with genuine hip/knee motion, never fake a swap using shading alone. The right-arm swing counters right-leg swing; left arm counters left leg.\n\nExact8-pose sequence:\n1 LAST RUNNING STEP: RIGHT/NEAR leg leads in front touching ground, LEFT/FAR leg bent trailing behind. RIGHT/NEAR arm back (toward left of image), LEFT/FAR arm forward (toward right). Near thigh emerges in front of the pelvis.\n2 TAKEOFF: RIGHT/NEAR foot has travelled BACK and pushes off behind the pelvis, knee extending; LEFT/FAR thigh swings FORWARD and its leg straightens toward right. RIGHT/NEAR arm swings FORWARD across/occluding belly, LEFT/FAR arm goes BACK behind torso. This is visibly DIFFERENT leg/arm geometry from frame1.\n3 RISING: LEFT/FAR lead leg extended straight forward to the right, RIGHT/NEAR trail leg folded backward/outward naturally with heel back left. RIGHT/NEAR arm forward across belly, LEFT/FAR arm back. No split or elongated legs.\n4 APEX: SAME LEFT/FAR lead leg straight horizontal ahead; RIGHT/NEAR knee folded outward/back with heel tucked; RIGHT/NEAR forearm ahead across belly, LEFT/FAR forearm back. Original compact limb lengths, body leaning slightly forward.\n5 DESCENDING: KEEP LEFT lead and RIGHT trail (do not switch legs in midair). LEFT extended leg starts rotating downward, RIGHT bent trail knee starts recovering toward body. RIGHT arm still ahead, LEFT arm behind. Tiny gradual change from4.\n6 FOOT LOWERING: LEFT lead foot reaching down for landing. RIGHT trail thigh now draws FORWARD under pelvis, knee flexed. Arms begin their counter-swing; RIGHT arm draws back as RIGHT leg starts coming forward.\n7 LANDING: LEFT/FAR foot touches ground under pelvis with slight bent knee. RIGHT/NEAR knee comes FORWARD/up in front of pelvis, clearly visible to camera. RIGHT arm travels BACK, LEFT arm moves FORWARD.\n8 RUN OUT: RIGHT/NEAR leg is now the forward leading leg toward right, LEFT/FAR foot pushes BACK behind. RIGHT arm BACK and LEFT arm FORWARD. Distinct recovery stride continues a normal alternating run, ready for next contact. This is not a repeat of frame7.\n\nEnsure near/right arm really visibly crosses the torso in2–5, then goes behind in7–8, with the near/right leg doing the opposite. Preserve exact character size, head and colors; actual pose changes have priority over copying old rejected lower-body drawings. Eight cohesive sequential illustrations, no smears, no extra limbs.",
+          "status": "rejected same-side forward arm/leg"
+        },
+        {
+          "source": "generated_images/exec-35c0af2c-7918-4765-a924-fcd957dd05b7.png",
+          "prompt": "Use case: precise-object-edit. This is the edit target. Keep all8 sprite poses, ALL arm/leg positions, head and body shapes, colors, composition, scale, blank visors, green background and everything else unchanged. Make ONLY one local correction: BOTH GLOVES in EVERY frame must be softly CLOSED RUNNER FISTS with anatomically correct thumbs and wrists. Replace the open dangling finger-fan shapes at the LEFT side of each sprite with closed rounded fists, same hand size and position. No hand should have free splayed finger tips or a visible flat open palm.\nEach hand has4 fingers curled into the palm, plus1 thumb wrapped around outside. All palms face IN toward the body. At the near hand we see smooth DORSAL/back of glove and the four curled knuckles along its leading outer contour, with a small correctly placed thumb on the upper/inward side, not a giant reversed thumb. Hand and forearm continue naturally through blue wristband, wrist not rotated backward. At the far hand use the complementary inward palm angle, partially occluded as appropriate. Leftward/back swinging hands: knuckle end points left/down along natural forearm direction; thumb near upper inner side. Forward hands: knuckles point right, thumb upper/inner.\nDo not change arm direction or leg movement. Do not add digits. FIVE digits total per hand including hidden curled fingers. Thick navy outline and hand-painted cream-white gloves, not geometric balls. Exactly8 frames4x2, same dimensions1774x887, pure #00FF00. No text, guides, added body parts or motion marks.",
+          "status": "rejected limb assignment"
+        },
+        {
+          "source": "generated_images/exec-96e2ba75-9a90-44e4-9faf-8028b4202856.png",
+          "prompt": "Precise anatomical correction. IMAGE1 is the eight-frame HURDLE JUMP sheet to edit. IMAGE2 is a verified run-out pose reference ONLY for frame8. Preserve all head positions, head size, strict RIGHT SIDE camera, blank visors, clothing, propellers, painting, green background and8-frame4x2 layout. Head cap-to-chin stays unchanged. Do not redraw or change the heads.\n\nThe extended leading leg in image1 frames2–6 is actually the NEAR/RIGHT leg, as its upper thigh appears on the FOREGROUND side of the pelvis. KEEP that near/right leading leg and its existing geometry. Do not pretend it is left/far. Correct its opposite arm movement:\nIn frames2,3,4,5,6: REDRAW the NEAR/RIGHT arm so it swings BACKWARD to the LEFT of the torso, clearly attached at the visible near shoulder, not crossing belly toward the leading foot. Upper arm angles back, elbow naturally bent, fist rests back-left beside or behind hip. Redraw the FAR/LEFT arm FORWARD to the RIGHT, with its shoulder hidden behind torso, fist in front of chest but below blank visor. Near/right hand's dorsal/back surface visible; palm turned inward toward body. Four fingers curled plus one thumb, relaxed closed runner fists. Hands cannot flip palm-up. TWO arms total, remove old front-crossing near arm. Frame1 already has this correct counter-swing: use its arm anatomy as reference while respecting each body's angle.\n\nFrame7 (bottom row third): CORRECT LANDING. Same NEAR/RIGHT leg that was straight ahead in2–6 now places its shoe DOWN in front on invisible ground, knee slightly flexed to absorb landing. It must NOT be a raised forward knee. FAR/LEFT leg recovers bent behind. Near/right arm remains back-left, far/left arm forward-right. Keep same head and scale, bend legs without stretching.\n\nFrame8 (bottom row fourth): TRUE NEXT OPPOSITE RUNNING STEP. Use the exact hip/limb assignment from IMAGE2, scaled to match existing head size: NEAR/RIGHT thigh clearly emerges from the visible left/back side of pelvis and curves BACKWARD LEFT to lifted near shoe, covering the far thigh root. FAR/LEFT thigh emerges BEHIND the near thigh and goes FORWARD RIGHT to leading foot. NEAR/RIGHT arm swings FORWARD RIGHT visibly covering torso; FAR/LEFT arm swings BACK LEFT behind torso. This requires genuinely changing the thigh overlap and arm positions, not just colors. IMAGE2 provides the correct actual pose. Keep frame8's original head fully unchanged. Short model limbs, not an elongated adult runner.\n\nKeep frames3–5 the same near-leg hurdle lead, never swap legs in midair. Keep ALL individual frames inside their cells with green margin. One actor percell exactly8. PUREGREEN#00FF00, no text, motionlines, ground, sand, hurdle or shadows. Preserve 1774x887 canvas. The focus is contralateral anatomy: leading right leg with LEFT arm forward, then the opposite left-leg/right-arm run-out.",
+          "status": "selected frame7 only;2–5 arms unchanged;8 remained foreground-leading thigh"
+        },
+        {
+          "source": "generated_images/exec-fbd6d8d5-20a6-482b-8819-c6b2bed06d10.png",
+          "prompt": "Precise hand-only edit. Preserve this entire eight-frame HURDLE animation sheet, all head/body/arm/leg geometry and near/far limb overlap EXACTLY. The existing pose anatomy is correct: near/right leading leg toward RIGHT and near/right arm BACK toward LEFT, far/left arm FORWARD to right. DO NOT move or redraw arms, elbows, shoulders, legs, torso, heads. DO NOT introduce a forearm across chest or belly. Keep all8 frames in4x2, original1774x887 dimensions.\n\nCorrect ONLY white glove finger shapes and palm orientation. Each leftward/back glove becomes a gently CLOSED RUNNER FIST, not a dangling fan. Smooth BACK/DORSAL surface faces camera, palm faces inward toward torso. Four fingers curled together into palm (four small knuckle lobes on leading edge), plus one short correctly placed thumb across the curled fingers on inward/upper side. Thumb is naturally attached to its own hand, no reversed wrist. Preserve each blue wristband and hand position/overall size. Front/rightward FAR-hand fist has complementary handedness, inner palm naturally turned toward body, four curved fingers plus thumb. No finger fan, no palm-up gesture, no duplicated hand. Keep exactly2 hands and2 arms. Top-left painted shading, whitecreamgloves and navyoutline.\n\nEverything else unchanged: sideRIGHTcamera, narrow blankglassvisor, propeller cap, headphones, head scale, body short proportions, full jump arc/poses, pure#00FF00, no labels/text/guides/shadows/terrain/hurdle. Change the hands only; do not change any limb position.",
+          "status": "selected frames1–6; preserves verified near-leg lead/opposite-arm flight"
+        },
+        {
+          "source": "generated_images/exec-7d2f3843-aa81-4215-9329-bff86dbd49a7.png",
+          "status": "selected RIGHT actor as frame8; parent verified actual near/right trailing thigh and far/left lead, near/right arm forward",
+          "prompt_reference": "parent sprint pair1 generation"
+        }
+      ],
+      "qa_notes": [
+        "Actual selected1–7 have near/right foreground lead leg and near/right arm backward; far/left arm forward. Near-right lead remains fixed through flight and landing.",
+        "Frame7 near/right forward foot lands down, no raised-knee landing substitute.",
+        "Generated96e2 frame8 rejected because front thigh remained foreground despite arm swap. Verified parent sprint pair1 RIGHT actor used for genuine far/left forward step with near/right thigh behind.",
+        "Flight source cap-to-chin approximately170px; frame7 approximately150–155px; frame8 uses large2-pose source. Normalize whole actors to134px head, never distort parts.",
+        "Selected near hands show dorsal/back surfaces and closed runner fingers; far fingers curve inward toward body. Exactly2arms2legs2hands.",
+        "Blank side-profile visor, no obstacle/sand/effects/text, margins intact before finishing."
+      ]
+    },
+    {
+      "name": "05_tropeco_queda",
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-0bfc0939-22ad-4a0b-acb5-e243765fe124.png",
+      "generation_mode": "built-in imagegen",
+      "source_size": [
+        1774,
+        887
+      ],
+      "revision": "v2 hand anatomy",
+      "parent_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-873e6ea5-7557-468f-ad4c-9f6a386797ec.png",
+      "prompts": [
+        {
+          "purpose": "Palm-down bracing and proper dorsal surfaces",
+          "prompt": "Use case: precise-object-edit. Redo the HAND ANATOMY of all eight sprites in image1. Image2 is the only valid character MODEL. Keep the existing strict RIGHT-FACING SIDE PROFILE camera, same head size, cream head, blank narrow edge visor, blue/cyan side headphone, striped cap/propeller, egg body, short limbs, thick dark navy outline and hand-painted style. Keep the same 4 columns by2 rows of8frames, framing and poses. Background stays perfectly flat #00FF00.\n\nPRIMARY CORRECTION: In image1 several hands look flipped palm-up or mirror-inverted. Carefully redraw BOTH hands in EACH frame as anatomically correct left and right human-cartoon hands. Exactly TWO arms and TWO white-gloved hands, each with exactly FIVE digits: four fingers plus one thumb. Fingers and wrist belong to the proper arm; no reversed wrist, no extra fingers, no long fingers. Both thumbs point MEDIALLY toward the other hand/body center, never both outward as if the same hand had been duplicated. Hands may overlap in strict side view, but show both with a slight depth offset.\n\nFrames1–4: tripping and reaching forward to brace a fall. BOTH hands point forward toward screen RIGHT with four fingers extended together/slightly spread. Their PALMS face DOWN and a little FORWARD in anticipation of landing. The NEAR hand shows the BACK of the glove, not an upward-facing palm. Wrist is naturally aligned with the forearm. Far hand is a proper opposite handedness. The hands must look like someone reaching to catch themselves on the ground, not holding a tray or offering palms to the viewer.\nFrames5–7: faceplant, slide, prone. Both hands contact the same invisible horizontal ground plane as the face/belly. PALMS face DOWN flat against the floor, finger pads DOWN; fingers point FORWARD RIGHT. Show the TOP/BACK of each glove above the ground with four finger shapes leading right and the thumb on the inward side. Do not show palm creases toward the camera, upward palms, or fingertips pointing backward left.\nFrame8: pushing upper body up with two anatomically correct hands supporting weight. Both PALMS press DOWN on the invisible ground, DORSAL surfaces visible above, fingers pointing forward RIGHT, thumbs inward. Both wrists are above the hands, forearms connect directly into wrists; elbows bend naturally backwards. Keep the short model arm lengths; body low enough to reach ground without stretching.\n\nKeep the trip sequence: frame1 right leg supports while left foot catches, frame2 failed recovery with opposite leg, frames3–4 short legs trail naturally during forward dive, frame5 feet lifted at impact,6slide,7prone,8knees behind during push-up. Do not introduce an artificial running-leg swap in frames3–8. No change to head yaw/scale or pose sequence. Exactly two legs, two feet. Every sprite must remain complete with green space around it. No sand, ground, dust, shadows, motionlines, text, numbers, borders, scenery or props; game adds sand. Blank dark glass visor, never eyes/mouth.",
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-d4721e43-61e5-4c06-9ce2-cfe6d76508ad.png"
+        },
+        {
+          "purpose": "Five digit refinement",
+          "prompt": "Precise local anatomy edit of image1: fix ONLY the white-gloved hands in all8frames so each glove has FIVE DIGITS, clearly four forward fingers PLUS a small separate inward thumb. Current first-image hands read as four fingers with absent thumbs. Preserve their palm-DOWN bracing/weightbearing orientation! Do not turn palms upward or toward camera. The backs of the gloves stay visible. Exactly two hands each frame, no duplication.\n\nFor the near hand in each frame, show all four forward-pointing fingers and add the fifth short thumb on the MEDIAL side nearest the other hand. For the far hand do the anatomical opposite so its thumb points inward toward the near hand. Separate the inward thumb from the four-finger group with a small curved notch. Slightly stagger the two hands in depth to make both thumbs visible WITHOUT rotating either wrist unnaturally. Use the second image MODEL's 5-finger glove anatomy, rotated appropriately for palms facing down.\n\nFrames1–4: palms angled down/forward as he reaches right to catch his fall. Four fingers point to screen right, a small inward thumb branches from the side of each hand near the wrist. Frames5–8: palms and all fingerpads point DOWN against invisible ground, four fingers extend right and smallthumb lies medial; show dorsal top ofglove, no palm creases towardviewer. F8 hands bearweight.\nEverything except hand digit silhouettes remains EXACTLY unchanged: bothshortarms,forearmangles,bluewristbands,legposes,headshapes/positions,profilecamera,blankvisor,propellers,celllayout,background. Same8frames4columns2rows,1774x887 puregreen#00FF00,thicknavyoutline,paintedstyle. No text, shadows, sand, motionlines, guides, props or addedobjects.",
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-ac7a9ec4-e775-42de-a46f-c4a6cc685155.png"
+        },
+        {
+          "purpose": "Distinct short thumbs",
+          "prompt": "Precise hand-only correction. The sprite sheet has8frames4columns2rows. In TOP ROW frames1–4 the NEAR foreground glove shows only FOUR long finger lobes, with NO THUMB. Keep ALL FOUR of those existing finger lobes exactly, and ADD a fifth digit: one SHORT thumb branching from the upper/inner side of the glove beside the wrist, pointing diagonally toward the farther glove. Give it its own dark outline and a notch separating it from the indexfinger. Do not replace an existing finger with thumb: count FOUR finger tips PLUS ONE NEW short thumb tip=FIVE. The FAR background gloves in top row already have five appendages; preserve them.\n\nIn BOTTOM ROW frames5–8 BOTH foreground and background gloves show just FOUR fingers. Retain their existing four fingers and ADD one separate SHORT inward thumb to EACH glove near its wrist. The shortthumb branches sideways at a different angle from the fourforwardfingers, and is visibly outlined with a notch. Stagger hand angles slightly only if needed to show thumb. Palms remain DOWN pressed on invisibleground; visible surfaces are backs ofgloves, NOT palms. Never turn palm up. Fingers point forwardRIGHT, thumbs medialtowardotherhand.\n\nNo other edits. Preserve every head, body, arm length, forearm position, leg, pose, cap, blank profilevisor,8spritepositions,size,greenbackground and color from source. Keep two arms,twohands,twolegs, noextras. Hand-painted navy-outline cartoon. No text,numbers,lines,effects,sand,shadow.",
+          "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-a9a4e5fd-bf6e-4a2f-aa31-23aea55b4f37.png"
+        }
+      ],
+      "technical_assembly": {
+        "base": "exec-a9a4e5fd-bf6e-4a2f-aa31-23aea55b4f37.png",
+        "restore_original_torso_from": "exec-ac7a9ec4-e775-42de-a46f-c4a6cc685155.png",
+        "restore_boxes": [
+          [
+            1435,
+            302,
+            1502,
+            342
+          ],
+          [
+            145,
+            689,
+            211,
+            738
+          ],
+          [
+            586,
+            686,
+            649,
+            740
+          ],
+          [
+            1029,
+            694,
+            1105,
+            744
+          ]
+        ],
+        "reason": "Imagegen thumb pass also introduced stray thumb-like marks on torsos; original torso areas restored from prior correct body image, no hand drawing by code."
+      },
+      "qa": {
+        "frames": 8,
+        "layout": "4x2",
+        "camera": "strict side right",
+        "visor": "blank",
+        "effects": "none",
+        "hands": "Complementary handedness: near RIGHT thumb on upper/away medial edge; far LEFT thumb on lower/near medial edge, partly occluded. Dorsal glove surfaces visible, palms down. Four fingers and one thumb, with perspective overlap.",
+        "limbs": "Exactly two arms, two hands, two legs and feet. Fall poses remain coherent without running swaps during dive/prone.",
+        "limitations": "Rawsource requires commonuniformscale and actorcomponentextraction toguide. Somefarhanddigits overlap inprofiledepth.",
+        "faceplant": "Heads5–7 pitched downward, visor at invisibleground; frame8headraises duringpush-up.",
+        "independent_review": {
+          "reviewer": "/root/run_hurdle",
+          "result": "Inspected finalsource and handcloseup. Complementary handedness nowreads correctly; palm-down surfacesretained; headpitch5–7 unmistakablefaceplant; no newmaterialflawfound."
+        }
+      },
+      "superseded_v2_source": "/workspace/scratch/ab2b2a31203b/work/running_v2/05_fall_hands_corrected_source.png",
+      "selected_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-0bfc0939-22ad-4a0b-acb5-e243765fe124.png",
+      "handedness_pitch_corrections": {
+        "far_left_prompt": "Precisely correct LEFT-versus-RIGHT HAND anatomy in the FIRST image, an 8-frame4x2sprite sheet. Change ONLY the FAR LEFT hand in EACH frame: this is the BACKGROUND glove positioned farther to the RIGHT in the image, at the end of the farther arm. Do NOT change the nearer foreground hand (the glove farther LEFT). Both gloves currently have thumbs on the same upper edge, so they are duplicated RIGHT hands; make the far glove a genuine LEFT hand.\n\nEXACT CHANGE for all8rightmost/far gloves: REMOVE the current small thumb bump at the UPPER-LEFT edge next to the wrist. That upper contour becomes a simple smooth dorsal/pinky-side contour leading to the four fingers. KEEP all FOUR existing forward fingers pointing RIGHT. ADD its single SHORT thumb at the LOWER-LEFT edge of the glove next to the wrist, pointing diagonally DOWN toward the nearer foreground glove/camera. This changes handedness, not palm orientation. The far LEFT thumb is on the LOWER edge; the near RIGHT thumb stays on the UPPER edge. They point toward each other in depth. Exactly FOUR finger lobes PLUS ONE thumb per hand. No six-digit hands, no amputated digits.\n\nFrames1–4: both palms still face DOWN/forward while reaching right to bracefall. Frame5–8: both palms still press DOWN on the invisibleground, visible surfaces are gloveBACKS, fingers pointing RIGHT. The far-hand thumb can partly overlap behind the nearer glove, but it must be on the lower/near edge, not duplicated on upperedge. Do not flip the hand vertically or turn palm upward. Keep wrist and forearm anatomy, bluewristbands, limbpositions, head/profilecamera/blankvisor, allposes and allotherpixels unchanged. Only redraw farhandthumb edge+smalladjacentglovearea. Keep exactly2hands,2arms,2legs. No new bodybumps or straydigits anywhere else. Samecanvas1774x887,8frames4columns2rows,puregreen#00FF00,no text,no sand,no dust,no shadows,no motionlines.",
+        "far_left_raw_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-4946e2d2-34b9-4f8a-b430-a3a57b724649.png",
+        "technical_shoe_restore": {
+          "source": "/workspace/scratch/ab2b2a31203b/work/running_v2/05_fall_hands_corrected_source.png",
+          "boxes": [
+            [
+              1300,
+              240,
+              1455,
+              350
+            ],
+            [
+              15,
+              625,
+              145,
+              740
+            ],
+            [
+              445,
+              660,
+              585,
+              775
+            ],
+            [
+              895,
+              680,
+              1030,
+              790
+            ]
+          ],
+          "result": "/workspace/scratch/ab2b2a31203b/work/running_v2/05_fall_left_hand_source.png",
+          "reason": "Restore unrelated white finger-like artifacts from imagegen on trailing shoes."
+        },
+        "faceplant_pitch_prompt": "Make ONE precise pose correction to this8-frame fall sprite sheet. Change ONLY the HEAD PITCH in frames5,6,7 (bottom-row first,second,third cells). They are currently chin-first with uprightcaps. Instead these three are FACE-DOWN faceplant, sliding face-down, lyingface-down. Rotate each ENTIRE head/cap/headphone/propeller assembly DOWNWARD roughly70degrees toward the invisibleground while preserving its actual shape/size and strict sideview yaw. The front of the head and BLANK visor must point DOWN at the floor, not horizontally right. The visor lies at the BOTTOM/front of the head close to the ground. The cap brim angles DOWN-RIGHT. The near cyan-ringheadphone remains visible from the side but moves toward the UPPER side of the nowpitchedhead. Propeller rotates with head, do notdetach it. Same round cream head size, samecap, nogrowth/stretch. Keep neck connection natural and headcontact atsamegroundplane as hands/belly. Gentle cartoonlanding,noinjury.\n\nDo NOT change any hands, fingers, forearms, bodies, legs, shoes or their positions. Their latest complementary left/right hand orientations are final and must be preserved exactly. Do NOT change anypart of frames1,2,3,4,8. Frame8 is correctly liftinghead duringpush-up. Preserve ALL outside the three bottom-row heads. No addedfingers, limbs, bumps, marks or effects. Same8sprites4columns2rows,1774x887,flatpuregreen#00FF00background,navyoutlines,paintedcartoonlightfromtopleft. No sand,dust,shadows,text,numbers,borders,scenery. Visor remainsblank,noeyes/mouth.",
+        "candidate": "/workspace/scratch/ab2b2a31203b/generated_images/exec-0bfc0939-22ad-4a0b-acb5-e243765fe124.png"
+      }
+    },
+    {
+      "sheet": "06_out_of_breath",
+      "version": 2,
+      "tool": "built-in image_gen",
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-d839a3e2-69dc-45bf-bf9e-cd9a8993abb8.png",
+      "rejected_source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-f0624ac5-660e-4c2f-9c42-8b6483c6d631.png",
+      "references": [
+        "/workspace/scratch/ab2b2a31203b/upload/cc66a16c-45bf-4bcc-a8cb-9f616a5b2f4c.png",
+        "/workspace/scratch/ab2b2a31203b/upload/1f0346ea-4db2-49d8-8430-76b4bbc25a86.png",
+        "/workspace/scratch/ab2b2a31203b/generated_images/exec-f3ce827e-79af-414a-b347-528aaf7bae06.png"
+      ],
+      "prompts": [
+        "Use case: precise-object-edit. This is a REQUIRED ANATOMICAL CORRECTION of the two hands in ALL EIGHT breathing animation frames in reference image1. Reference2 is exact character MODEL, reference3 is GUIDE. Keep same eight OUT OF BREATH poses, strict SIDE VIEW facing RIGHT, same fixed feet and head size/proportions, white shoe soles, blank dark visor, blue propeller cap/headphones, pure green background and 4x2 layout.\nREDRAW BOTH HANDS AND WRIST ORIENTATION FROM SCRATCH in EVERY frame so he actually supports his weight on his KNEES. His arms descend from shoulders and angle slightly forward toward his bent knees. Each forearm connects through the blue cuff to its anatomically correct wrist. Each PALM FACES DOWN, presses against the TOP/front of the corresponding KNEE. The BACK OF THE WHITE GLOVE faces up/toward the camera. Four joined anatomical fingers curve forward and down over the front of the knee, their backs visible; the thumb is on the INNER/MEDIAL side of the knee. Hand is tilted forward, not hanging limp vertically. Show a clear curved knuckle/back-of-hand surface. No palm creases facing the camera. No upside-down palms. No detached ghost fingers, no extra hands, no duplicated thumbs, no reverse elbow, no twisted wrists. Exactly TWO arms, TWO hands, FIVE fingers per hand (four fingers plus one thumb, with natural occlusion on the far hand). Keep near and far hands distinct and attached to their matching arms; do not merge them. Small far-hand depth offset allowed.\nKeep the two short legs in their SAME planted bent-knee stance. Hands belong on the knee area ABOVE the blue shoe ankle cuffs, NOT on the ankles or feet. Make the knee contact clear without increasing arm or leg length. Compact egg torso unchanged. Maintain eight distinct subtle shoulder rises/falls through a breathing cycle: neutral inhale, higher, high, lowering, neutral exhale, lower, low, rising. Frame8 flows1. Head remains big and round at exact model proportion, no squashing or resizing individual body parts.\nEverything other than the necessary hands/wrists/knee-contact correction is preserved: exact head silhouettes and view, each body pose, same rendering, lighting top-left, thick navy outlines, 1774x887 canvas, 4 columns2rows eight sprites, all margins. No numbers, guides, ground, sand, dust, motion lines, sweat, shadows, eyes or mouth. Pureflat#00FF00. Correct anatomical palm-down knee support is the primary objective.",
+        "Correct the HAND POSE in ALL EIGHT frames of this sheet. Existing dangling vertical hands are WRONG. Replace them with compact hands planted FLAT PALMS DOWN across the tops of clearly visible CREAM KNEES: the glove back is nearly HORIZONTAL or diagonally down-forward toward the RIGHT, wrist at the LEFT/BACK of the hand, knuckles at the RIGHT/FRONT. Four fingers together curl RIGHT and slightly DOWN around the front kneecap. Thumb curls along the INNER side of the knee; near-hand thumb is mostly hidden behind the knee and far hand has mirror-handed thumb position. NO fingers pointing backward left; NO palm-up hand. NO dangling open gloves beside shins. Draw small cream bent kneecap under each palm with a visible short cream shin below down to blue ankle cuff. Keep original limb segment lengths by adjusting elbows naturally. The TWO palms must visibly contact TWO knees and the two arms must connect to corresponding shoulders through wrists. This is a person catching their breath leaning on knees, not resting hands on ankles. Both feet fixed planted, no gaitcycle. Preserve exact head positions,size,camera strict SIDE RIGHT, propeller/headphones/blank dark screen, white shoe soles and eight subtle breathing phases. Pure green#00FF00,4x2equalcells, samecanvas, no text/lines/effects/shadow. Anatomical five-digit gloves; backs visible and palms pressing downward. Make this local anatomical pose change clearly visible."
+      ],
+      "qa": [
+        "Hands visibly redrawn after user rejection, now compact palm-down knee support, not hanging at ankle cuffs.",
+        "Both cream shins and knee tops separate and visible beneath hands; four fingers drape down over knee fronts with thumbs medial/partly occluded.",
+        "Exactly two arms, two hands and two planted shoes throughout; no gait alternation applicable to breathing.",
+        "Eight subtle sequential shoulder/body breathing poses retained, strict right-facing side head and blank visor.",
+        "White soles, pure green field, no effects/text/grid. Root to normalize head scale and ground using guide."
+      ]
+    }
+  ]
+}

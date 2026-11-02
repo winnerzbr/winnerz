@@ -1,0 +1,57 @@
+IAmiguinho — corrida na areia — revisão de anatomia
+
+Conteúdo
+6 pranchas PNG, 8 quadros cada, em 4 colunas × 2 linhas.
+48 quadros PNG separados, 6 prévias WebP animadas e atlas.json.
+prompts_geracao.json contém as instruções anteriores.
+revisao_sprint_v3.json registra a revisão das fases intermediárias do sprint.
+
+01_sprint: ciclo de corrida rápida.
+02_trote_leve: ciclo de trote leve.
+03_largada: espera agachada, elevação e saída para corrida.
+04_salto_barreira: aproximação, salto, aterrissagem e retomada.
+05_tropeco_queda: tropeço, mergulho, faceplant e apoio nas mãos.
+06_sem_folego: respiração com mãos nos joelhos.
+
+Revisão de movimento
+Os ciclos foram remontados a partir de pares de fases opostas, acompanhando
+a perna próxima da câmera desde o quadril até o tênis e o braço desde o ombro.
+O braço próximo faz o contramovimento da perna próxima. Os apoios das mãos
+usam palmas voltadas para o chão ou joelhos, com polegares complementares.
+Na queda, a cabeça gira para baixo nos quadros 5–7.
+No sprint, a revisão 3 acrescenta as poses compactas de passagem nos quadros
+2 e 6: o joelho de apoio flexiona e a perna livre passa sob o quadril. Os braços
+passam por uma posição intermediária junto à cintura. As fases seguem
+contato → apoio/passagem → impulsão → voo, depois repetem com as pernas
+trocadas. Cada fase tem pose própria; não há quadro de contato repetido
+apenas com deslocamento vertical. As outras cinco pranchas são idênticas às
+da revisão anterior.
+
+Importação
+Pranchas de 1776 × 888 pixels; células de 444 × 444 pixels.
+Ordem esquerda→direita, de cima para baixo. Chão y406; pivô comum x222,y406.
+O guia de 1774 × 887 foi normalizado para células inteiras de mesmo tamanho.
+Fundo opaco RGB #00FF00 para chroma key. Sem rosto, guias, chão ou efeitos.
+Tamanho nominal da cabeça: 134 px do topo do boné ao queixo; ajustes uniformes
+na figura inteira. Cabeças inclinadas têm projeção diferente sem esticar partes.
+O jogo adiciona rosto, areia, poeira, linha de largada e barreiras.
+
+Reprodução
+Loops: 01, 02 e 06. Sequências de ação: 03, 04 e 05.
+Os quadros 1–3 da largada podem ser usados como espera antes do quadro 4.
+As prévias repetem também as ações para inspeção, a cerca de 12 fps.
+A duração no jogo é configurável: a 60 fps, 5 ticks por sprite equivalem a 12 fps
+de animação. Os quadros aéreos já contêm deslocamento vertical na célula;
+considere-o ao combinar a arte com a trajetória controlada pelo jogo.
+
+Verificação
+Revisão visual de quadris, ombros, orientação dos punhos e mãos e ordem das
+fases. Dimensões, margens, bordas RGB #00FF00 e correspondência dos recortes
+com as pranchas verificadas por código. Sem teste dentro de um motor de jogo.
+Na largada, permanece pequena diferença de cerca de 6 px entre o joelho e as
+pontas dos dedos nos quadros 1–3; nos quadros 1–4, a cabeça está um pouco mais
+voltada para a câmera que na saída. Dedos sobrepostos ou fechados podem ficar
+ocultos pela perspectiva.
+
+Arte criada pelo gerador de imagens integrado, com acabamento técnico de
+escala uniforme, registro, composição dos quadros e limpeza do chroma key.

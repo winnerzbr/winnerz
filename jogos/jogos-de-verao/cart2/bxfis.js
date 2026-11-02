@@ -118,7 +118,7 @@
       return [best, nx, ny, bx, by];
     },
     passo(dt, I) {
-      const F = BXF, L = I.l || (I.ax || 0) < -.35, Rr = I.r || (I.ax || 0) > .35, dir = (L ? 1 : 0) - (Rr ? 1 : 0);
+      const F = BXF, L = I.l || (I.ax || 0) < -.35, Rr = I.r || (I.ax || 0) > .35, dir = (L ? 1 : 0) - (Rr ? 1 : 0); this.dirIn = dir; // para o desenho
       let fx = 0, fy = -F.G * F.M, tq = 0;
       const anyC = this.cont[0] || this.cont[1];
       this.pumping = false;
@@ -187,7 +187,7 @@
       if (anyC && I.pu && !this.air) {
         const imp = this.carga >= BXF.CARGA, v = imp ? BXF.HOP2 : BXF.HOP;
         this.vy += v; this.w += 1.2; // o pulo empurra para cima (não para trás): na ponta da rampa, voa mais alto sem perder velocidade this.carga = 0; this.py += 1;
-        sfx.jump(); if (imp) sfx.whoosh(); this.puff(this.x, this.h(this.x), 5);
+        sfx.jump(); if (imp) sfx.whoosh(); this.puff(this.x, this.h(this.x), 5); this.hopT = this.t;
       }
       const x0 = this.x, n = 4;
       for (let k = 0; k < n && this.crashT <= 0; k++) this.passo(dt / n, I);

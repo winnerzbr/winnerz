@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: Corrida na areia pintada e movimentos novos da BMX
+- **O dono mandou:** as pranchas da Corrida (6 do IAmiguinho, 4 do Amiguinho), objetos e cenário de dia; depois manhã, pôr do sol, noite e luzes. E os 8 movimentos novos da BMX.
+- **Feito:** Corrida na areia toda pintada (corredores, obstáculos, largada, chegada, bandeirinhas e a praia nos 4 horários). BMX com os 8 movimentos novos (manobras seguradas, bunny hop, mortal encolhido, empinando, corpo no ar, desequilíbrio). Tudo na Prévia; pedidos marcados como entregues. A página passou do limite de arquivos: as imagens pequenas agora ficam embutidas.
+- **Pendente:** o dono testar.
+
+---
+
 ## 02/11/2026: BMX com manobras seguradas e pedidos da trilha nova
 - **O dono disse:** "Agora sim! Ficou muito bom!" Pediu manobras que se mantêm segurando o botão (como no skate), combinando com o giro, e os prompts dos cenários, das peças da pista e dos movimentos do IAmiguinho, numa seção separada.
 - **Feito:** Superman e Sem mãos seguram a pose cheia, Tailwhip repete (duplo, triplo), tudo combinável com o mortal e valendo mais pelo tempo segurado. Guia nova "BMX · trilha nova" na página de pedidos com 29 pedidos. Publicado na página do Claude e no site.

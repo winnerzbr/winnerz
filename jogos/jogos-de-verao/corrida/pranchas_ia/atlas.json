@@ -1,0 +1,599 @@
+{
+  "sheet_size": [
+    1776,
+    888
+  ],
+  "frame_size": [
+    444,
+    444
+  ],
+  "columns": 4,
+  "rows": 2,
+  "frame_order": "left-to-right, top-to-bottom",
+  "ground_y_in_cell": 406,
+  "chroma_key": "#00FF00",
+  "preview_duration_ms": 83,
+  "frames_per_sheet": 8,
+  "sheets": [
+    {
+      "name": "01_sprint",
+      "file": "pranchas/01_sprint.png",
+      "loop": true,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Contato da perna próxima (direita)"
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Apoio compacto e passagem: apoio próximo, recuperação distante"
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Impulsão próxima e joelho distante à frente"
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Voo com alcance distante"
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Contato da perna distante (esquerda)"
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Apoio compacto e passagem: apoio distante, recuperação próxima"
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Impulsão distante e joelho próximo à frente"
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ],
+          "phase": "Voo com alcance próximo"
+        }
+      ],
+      "revision": 3,
+      "preview_duration_ms": 83
+    },
+    {
+      "name": "02_trote_leve",
+      "file": "pranchas/02_trote_leve.png",
+      "loop": true,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03_largada",
+      "file": "pranchas/03_largada.png",
+      "loop": false,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04_salto_barreira",
+      "file": "pranchas/04_salto_barreira.png",
+      "loop": false,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05_tropeco_queda",
+      "file": "pranchas/05_tropeco_queda.png",
+      "loop": false,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06_sem_folego",
+      "file": "pranchas/06_sem_folego.png",
+      "loop": true,
+      "frames": [
+        {
+          "index": 1,
+          "x": 0,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 2,
+          "x": 444,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 3,
+          "x": 888,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 4,
+          "x": 1332,
+          "y": 0,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 5,
+          "x": 0,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 6,
+          "x": 444,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 7,
+          "x": 888,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        },
+        {
+          "index": 8,
+          "x": 1332,
+          "y": 444,
+          "w": 444,
+          "h": 444,
+          "pivot": [
+            222,
+            406
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@
     ctx.drawImage(im, f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h); ctx.restore();
   }
   // IAmiguinho na bike: em pé pedalando, da roda ao alto da hélice = 56 (a mesma altura do desenho de 16 bits)
-  const BXK5 = MBX ? 56 / MBX.a.pedal.f[0].ay : 1;
+  const BXK5 = MBX ? 56 / MBX.a.pedal.f[0].ay : 1, BXW_X = 12.85; // BXW_X: a roda de trás fica a 12,85 do meio da bike
   let FTBX = null;
   (window.__fr = window.__fr || {})['bx'] = frameBx;
   function frameBx(an, k, ex, mirror) {
@@ -121,16 +121,32 @@
       const g = v.h(v.x), th = Math.atan(v.slope(v.x)), diff = Math.abs(((v.ang - th) % TAU + TAU * 1.5) % TAU - Math.PI);
       ex = v.y - g < 26 && diff > BX.CLEAN ? 3 : tr ? 5 : 2;
     } else if (v.landT > 0) ex = 2; else if (v.pumping) ex = 5;
-    let an = 'pedal', k = Math.floor((v.pedal || 0) * 1.4) % 8; // pedalando: ~1,5 volta por segundo; descansando, devagar
+    // 02/11: com o pacote dos movimentos novos. Segurando a manobra: Superman e Sem mãos segurados e o Tailwhip contínuo (em laço);
+    // pulo (▲): o bunny hop (agachando com ▼ antes: os quadros 1-2; saindo do chão: 3 a 8); girando rápido sem manobra: o mortal
+    // encolhido; ◀ ▶ no ar: corpo para trás (1-4) ou para frente (5-8); empinando no chão: o wheelie, preso na roda de trás;
+    // pouso torto: o desequilíbrio.
+    const MBA = MBX.a, tem = (n) => !!MBA[n];
+    let an = 'pedal', k = Math.floor((v.pedal || 0) * 1.4) % 8, wh = false; // pedalando: ~1,5 volta por segundo; descansando, devagar
     if (v.air) {
-      const q = tr && tr.hold > 0 && tr.t >= tr.d * .5 - 1e-6 ? [3, 4, 5, 4][Math.floor(tr.hold * 8) % 4] : Math.min(7, Math.floor(pr * 8)); // segurando: a pose cheia balançando
-      if (tr && tr.k === 'superman') { an = 'super'; k = q; }
-      else if (tr && tr.k === 'semmao') { an = 'semmao'; k = q; }
-      else if (tr && tr.k === 'tailwhip') { an = 'tail'; k = q; }
-      else { an = 'salto'; const hg = v.y - v.h(v.x); k = v.airT < .18 ? Math.min(2, Math.floor(v.airT / .18 * 3)) : v.vy > 60 ? 3 : v.vy > -40 ? (v.vy > 0 ? 4 : 5) : hg < 34 ? 7 : 6; }
-    } else if (v.landT > 0) { an = 'pouso'; k = Math.min(7, Math.floor((1 - v.landT / .3) * 8)); }
+      const segura = tr && tr.hold > 0 && tr.t >= tr.d * .5 - 1e-6, q = Math.min(7, Math.floor(pr * 8)), dh = v.hopT != null ? v.t - v.hopT : 9;
+      if (tr && tr.k === 'superman') { if (segura && tem('superH')) { an = 'superH'; k = Math.floor(tr.hold * 10) % 8; } else { an = 'super'; k = q; } }
+      else if (tr && tr.k === 'semmao') { if (segura && tem('semmaoH')) { an = 'semmaoH'; k = Math.floor(tr.hold * 10) % 8; } else { an = 'semmao'; k = q; } }
+      else if (tr && tr.k === 'tailwhip') { if ((tr.n || 1) > 1 && tem('tailC')) { an = 'tailC'; k = q; } else { an = 'tail'; k = q; } }
+      else if (dh < .4 && tem('hop')) { an = 'hop'; k = Math.min(7, 2 + Math.floor(dh / .4 * 6)); }
+      else if (Math.abs(v.w) > 3.2 && tem('tuck')) { an = 'tuck'; k = Math.floor(v.t * 10) % 8; }
+      else if (v.dirIn && tem('corpo')) { v.corpoT = (v.corpoT || 0) + 1 / 60; const j = Math.min(3, Math.floor(v.corpoT * 10)); an = 'corpo'; k = v.dirIn > 0 ? j : 4 + j; }
+      else { v.corpoT = 0; an = 'salto'; const hg = v.y - v.h(v.x); k = v.airT < .18 ? Math.min(2, Math.floor(v.airT / .18 * 3)) : v.vy > 60 ? 3 : v.vy > -40 ? (v.vy > 0 ? 4 : 5) : hg < 34 ? 7 : 6; }
+      if (an !== 'corpo') v.corpoT = 0;
+    } else if (v.wobT > 0 && tem('deseq')) { an = 'deseq'; k = Math.min(7, Math.floor((1 - v.wobT / .5) * 8)); }
+    else if (v.landT > 0) { an = 'pouso'; k = Math.min(7, Math.floor((1 - v.landT / .3) * 8)); }
+    else if (v.carga > .05 && tem('hop')) { an = 'hop'; k = v.carga > .18 ? 1 : 0; }
+    else if (tem('wheelie') && v.cont && v.cont[0] && !v.cont[1] && v.ang - Math.atan(v.slope(v.x)) > .25) { an = 'wheelie'; k = Math.floor(v.t * 8) % 8; wh = true; }
     else if (v.pumping) { an = 'pump'; k = Math.floor(tt * 12) % 8; }
     const sus = v.pen ? (v.pen[0] + v.pen[1]) / 2 : 0; // a roda afunda um pouco no chão (suspensão): o desenho sobe junto
+    if (wh) { // empinando: o ponto da roda de trás do desenho preso na roda de trás da física, girando só o que falta
+      const f = MBA.wheelie.f[k], c = Math.cos(v.ang), s2 = Math.sin(v.ang), rx = sx - BXW_X * c, ry = sy + BXW_X * s2;
+      ctx.save(); ctx.translate(rx, ry - (v.pen ? v.pen[0] : 0)); ctx.rotate(-(v.ang - f.tilt)); ctx.translate(-f.rx * BXK5, 0); frameBx('wheelie', k, ex, false); ctx.restore(); return;
+    }
     ctx.save(); ctx.translate(sx, sy); ctx.rotate(-(v.ang + lean) + wob); ctx.translate(0, -sus); frameBx(an, k, ex, false); ctx.restore();
   }
   if (typeof bmx !== 'undefined') {

@@ -1,0 +1,19 @@
+Use case: stylized-concept. Production game sprite sheet: IAmiguinho on his exact approved red BMX, AIR BODY CONTROL, exactly EIGHT frames in a wide 2:1 canvas, 4 equal columns by 2 equal rows, target1776x888 pixels, each cell444x444. Do NOT copy the reference's 4-row layout: final has ONLY TWO ROWS. Input1 character MODEL SHEET identity/proportions; input2 GUIDE alignment; input3 APPROVED BMX character/bicycle/scale/painting; input4 BIKE MODEL.
+
+Match the approved BMX artwork closely: big cream round head with plain EMPTY dark-glass visor, blue/cream cap and spinning blue propeller, blue headphones cyan rings; tiny cream egg torso, short thin cream arms/legs, white five-finger gloves with blue cuffs, big blue sneakers white soles. Thick dark navy organic outline, painted cartoon brush texture, top-left light. Exactly2arms2hands2legs, natural bend, four fingers plus thumb per hand. No expression inside visor.
+
+Same RED BMX in every frame: red tubular triangular frame, navy-black saddle, chunky black tires, gray spoked rims, silver crank and chain, BLUE grips and pedals, small blank WHITE handlebar plate. Physical bike size and wheel diameters never change. At final scale, side-on bicycle spans about354px, tire outerdiameter122px, wheelbase228px. Character head captop-to-chin134px (41% of325px neutral standing height), small body necktofeet156px, propeller36px. Do not stretch arms/legs/body; articulate compact model naturally. Entire rider and bicycle have generous green clearance inside every cell.
+
+This sheet contains TWO separate progressions for airborne body control, all side view facing RIGHT. Always upright, head up. BOTH HANDS ON GRIPS and BOTH FEET ON PEDALS in ALL EIGHT FRAMES. Same rider/bike anchor in each cell: the game moves the drawing through air. No dramatic flying arcs. Flat pure green#00FF00 behind every sprite.
+
+TOP ROW frames1–4, gradually leaning BACK:
+1 normal neutral air riding pose, elbows/knees slightly bent, bicycle approximately level;
+2 lean back a little, hips shift back, bend elbows pulling grips closer to chest, bicycle nose a little up;
+3 stronger backward lean, hips farther back, bar nearer chest, bike nose higher;
+4 strongest backward air control, body leans back and slightly down, arms pulling handlebars near chest, bike visibly nose UP about25degrees. Keep head upright and proportional.
+BOTTOM ROW frames5–8, gradually leaning FORWARD:
+5 RESTART exactly the SAME NEUTRAL AIR POSE as frame1, bicycle level, not a continuation of frame4;
+6 slight forward lean, extend arms a little pushing grips away, chest moves over bars, bicycle nose slightly down;
+7 stronger forward lean, torso closer to bars, arms pushing away, nose farther down;
+8 strongest forward air control, chest above handlebars, hips up/back just enough for compact posture, bike visibly nose DOWN about20degrees.
+Each row changes smoothly in small successive increments. The first frame of BOTH rows is the identical normal air pose. Final frame of each row is strongest directional lean. Do NOT draw setup, landing, hands off bars, feet off pedals, actual flips, upside-down rider, or spinning camera. Propeller can spin subtly. No visible guide lines, cell borders, labels, numbers, text, shadows, scenery, particles, motion lines, speed marks, water or extra props.

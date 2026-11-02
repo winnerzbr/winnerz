@@ -322,7 +322,7 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 ## Páginas publicadas (Claude)
 | Página | Endereço | Para quê |
 |---|---|---|
-| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (vôlei, skate, surfe, basquete, patins e pingue-pongue pintados) |
+| Jogos de Verão | https://claude.ai/artifact/2dFTqQJ77p3TJovNPM7v9v | o jogo em desenvolvimento (vôlei, skate, surfe, basquete, patins, pingue-pongue, BMX e corrida na areia pintados) |
 | Jogos de Verão 16 bits | https://claude.ai/artifact/KATSnXhZbmXS4ptNGZKRcx | backup congelado em 16 bits |
 | Prévia das pranchas | https://claude.ai/artifact/4JU4Gtd5ri3iU786ezarkP | toda prancha nova toca em loop com o veredito antes de entrar no jogo |
 | Moveset do Vôlei | https://claude.ai/artifact/1dXVWLrYSy4Z9z9pCrnZAf | pedidos das pranchas do vôlei (IAmiguinho e Amiguinho) |
@@ -431,7 +431,19 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
   - Cenário: os 4 horários de cada camada empilhados numa imagem só (limite de arquivos): fundo (anda a 30%), dunas do plano médio (55%, o pé atrás da pista) e a faixa de terra, que acompanha o perfil do chão em colunas de 2 (embaixo, a cor da terra do horário). De noite, as luzes por cima. Vala: o miolo da peça pintada (borda de trás, água, borda da frente) no fundo do vão entre as rampas; a tábua da peça foi separada e fica na ponta da rampa (2 antes do vão), girando com a rampa; a peça da vala só veio de dia, então o jogo escurece de noite e avermelha no pôr do sol. Bandeiras quadriculadas a cada 160 e a poeira pintada nos pousos.
   - Prévia: as 8 entraram (`previa_bx.py`). Teste: `testes/bxpintado.cjs` (cada situação, a vala, os 4 horários e uma partida).
 - **Pendente:** o dono testar.
-- **Arquivos da página publicada:** 503 (480 imagens, 22 músicas e a página), limite 511.
+- **Movimentos novos (02/11, pacote do dono, `bmx/pranchas2`):** Superman segurado, Sem mãos segurado, Tailwhip contínuo, bunny hop, mortal encolhido, empinando (wheelie), corpo para trás/para frente e desequilíbrio, no `mvbx.py` (K 1,08). Quando aparecem: segurando ○/□ depois do meio da manobra, as poses seguradas (em laço); Tailwhip do 2º giro em diante, o contínuo; pulo (▲): agachado com ▼ antes os quadros 1-2 e, saindo do chão, 3 a 8; girando rápido sem manobra, o encolhido; ◀ ▶ no ar, corpo para trás (1-4) ou para frente (5-8); no chão só com a roda de trás, o wheelie (preso na roda de trás, inclinação medida em cada quadro); pouso torto sem cair, o desequilíbrio. A física não mudou. Prévia: `previa_bx2.py`. Teste: `testes/bxnovos.cjs`.
+- **Arquivos da página publicada:** limite 511 por versão. Em 02/11 passou do limite (528); desde então as imagens de até 4 KB ficam embutidas na página (`build3.py`) e sobraram 409 imagens + 22 músicas + a página.
+
+## Corrida na areia pintada (02/11/2026)
+- **Chegou do dono:** 6 pranchas do IAmiguinho (correndo forte, trotando, largada, pulo da barreira, tropeço, sem fôlego; `corrida/pranchas_ia`), 4 do Amiguinho (correndo, largada, pulo, tropeço; `corrida/pranchas_amiguinho`), obstáculos, largada/chegada/bandeira e a Praia da Maré Baixa de dia (`corrida/arte`); logo depois, manhã, pôr do sol, noite e as luzes da noite (`corrida/arte_horas`).
+- **No jogo** (a prova passou a `paint: true`; a corrida em si não mudou):
+  - IAmiguinho: `cart2/mvcr.py` → `mvcr.js` (window.MVCR), K 1,08 em todas (o pacote veio com a escala igual). Em pé, 46 na raia da frente. Quando aparece: contagem, largada 1-3; primeiro meio segundo, 4-8; ▶ (rápido) correndo forte, senão trotando; no ar, o pulo 2-7 (a altura vem do jogo); batendo/escorregando, o tropeço; sem fôlego e no fim (quem não ganhou), o cansado; ganhando a bateria, a festa do vôlei.
+  - Amiguinhos: `cart2/mvbcr.py` → `mvbcr.js` (crSprint, crLargada, crSalto, crQueda em window.MVB, na cor de cada um), escala 1,10, 30 de altura na frente; no fim, festa/tristeza/parado do vôlei.
+  - Cenário: `cart2/crcen.py` → `crcen.js` (window.CRC); desenho em `cart2/crp.js`. Fundo quase parado (5%), meio-plano (guarda-sóis com a torcida e o posto) a 50%, repetindo a cada 1000; areia das raias tirada da parte de baixo do fundo (emendada) andando junto; bandeirinhas a cada 20 m; marca da largada em cada raia; faixa de chegada atrás da última raia e a linha quadriculada no chão. Cada camada tem os 4 horários empilhados numa imagem só. De noite, a lua e a luz do posto somadas por cima e um azulado leve sobre tudo.
+  - Obstáculos: em pé, a altura antiga manda e a largura segue o desenho; poça, areia fofa (montinhos lado a lado) e a marca de largada esticam.
+  - Testes: `testes/crpintado.cjs` (cada situação e os horários), `testes/crvitrine.cjs` (fotos grandes), `testes/crfluxo.cjs` (as 3 baterias no automático, sem erro).
+- **Pedidos:** a guia da Corrida na página de pedidos ficou como entregue.
+- **Pendente:** o dono testar.
 
 ## Basquete pintado: IAmiguinho (01/11/2026)
 - **Chegou do dono:** 12 pranchas do IAmiguinho no basquete (mais tentativas que pedidos: 5 de andar, 2 de espera, 2 de carregar). Originais em `basquete/pranchas`.

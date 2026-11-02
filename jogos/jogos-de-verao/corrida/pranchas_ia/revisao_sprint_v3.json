@@ -1,0 +1,104 @@
+{
+  "revision": 3,
+  "method": "built-in image_gen; technical chroma, uniform scaling and assembly",
+  "phases": [
+    "Contato da perna próxima (direita)",
+    "Apoio compacto e passagem: apoio próximo, recuperação distante",
+    "Impulsão próxima e joelho distante à frente",
+    "Voo com alcance distante",
+    "Contato da perna distante (esquerda)",
+    "Apoio compacto e passagem: apoio distante, recuperação próxima",
+    "Impulsão distante e joelho próximo à frente",
+    "Voo com alcance próximo"
+  ],
+  "frames": [
+    {
+      "old_frame": 1,
+      "dy": 0
+    },
+    {
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-8f6348c4-8118-40ab-9b4c-12c741e81287.png",
+      "box": [
+        0,
+        0,
+        887,
+        887
+      ],
+      "crop_bounds": [
+        304,
+        197,
+        717,
+        808
+      ],
+      "scale": 0.5037593984962406,
+      "paste": [
+        133,
+        99
+      ],
+      "target_bottom": 406
+    },
+    {
+      "old_frame": 2,
+      "dy": 0
+    },
+    {
+      "old_frame": 3,
+      "dy": 0
+    },
+    {
+      "old_frame": 5,
+      "dy": 0
+    },
+    {
+      "source": "/workspace/scratch/ab2b2a31203b/generated_images/exec-8f6348c4-8118-40ab-9b4c-12c741e81287.png",
+      "box": [
+        887,
+        0,
+        1774,
+        887
+      ],
+      "crop_bounds": [
+        269,
+        197,
+        667,
+        808
+      ],
+      "scale": 0.5037593984962406,
+      "paste": [
+        136,
+        99
+      ],
+      "target_bottom": 406
+    },
+    {
+      "old_frame": 6,
+      "dy": 0
+    },
+    {
+      "old_frame": 7,
+      "dy": 0
+    }
+  ],
+  "prompt": {
+    "method": "built-in image_gen",
+    "revision": 3,
+    "scope": "01_sprint only; compact passing support in frames2/6",
+    "initial_prompt": "Use case: precise-object-edit. Animation in-between correction for a game sprite.\nInput image: two opposite contact poses of IAmiguinho. Preserve exact character design, painterly blue/cream palette, thick dark navy outline, strict RIGHT-facing SIDE profile, blank dark visor, small egg torso and SHORT thin limbs, five-finger white gloves, blue cuffs, blue/white-soled sneakers, headphones/cap/propeller. Same scale and head size as input. Lighting top left.\nGenerate ONLY TWO full-body sprites side by side on a pure flat #00FF00 canvas, 2:1 aspect ratio, ample green space around each. These are NEW COMPACT PASSING/DOWN IN-BETWEENS, immediately after the two input contact poses. NOT extended split-stride poses.\nLEFT SPRITE: anatomical RIGHT leg nearest viewer is now the SUPPORTING leg. Its knee bends forward modestly and its shin is almost vertical; the flat right shoe is directly UNDER the hip on the invisible ground, not far forward. The far LEFT recovering leg is folded tightly, heel lifted close beneath and just behind the pelvis, moving forward past the support leg. Both thighs are close together under the torso. Foreground support thigh must visibly overlap the far folded thigh at the hip.\nRIGHT SPRITE: exactly the opposite limb support. The far anatomical LEFT leg supports, bent knee and almost vertical shin, flat left shoe UNDER the hip. The near RIGHT recovering thigh passes in FRONT OF and visibly overlaps the far support thigh; knee advances a little, lower leg folded back so the near shoe is lifted under the pelvis, not extended far ahead. This is actual leg swap, not renaming identical silhouettes.\nBoth sprites: compressed weight-bearing body, head and shoulders slightly lower than input but no rescaling or stretching of the head. Keep torso leaning slightly forward. Knees bend like real knees. Arms are midway through their counter-swing: elbows bent about90 degrees, compact fists beside waist, not full forward/back extremes. Near arm is coming forward in LEFT sprite and returning back in RIGHT sprite. Preserve correct right/left thumbs and coherent wrists, naturally inward palms, dorsal surface of near glove. Five fingers anatomically even when curled; no extra limbs.\nDo not copy the original extended leg positions. The decisive visual is the two feet clustered vertically near the body's center: one grounded below the hip, the other tucked up, distinct from a split stride. No face, text, lines, ground, shadows, sand, labels, props, borders or numbers.",
+    "refinement_prompt": "Precise animation in-between refinement of the attached TWO sprites. Preserve their correct compact passing leg identities exactly: LEFT actor near/right leg is grounded under the hip and far/left leg is tucked up; RIGHT actor far/left leg is grounded and near/right thigh and tucked shoe overlap in front. Do not swap these legs or open them into split strides. Keep exact head design, head size, strict right side camera, colors, five-finger white gloves, blank visor, clothing, style, framing, flat pure #00FF00.\nChange ONLY the arms and a very small weight-bearing compression.\nThe arms currently repeat the full BACK/FORWARD extremes of contact. Bring BOTH actors' NEAR upper arms DOWN close beside the body, approximately vertical from shoulder toward waist; bend elbow about90 degrees so near forearm points forward but the fist stays at WAIST level, beside the lower belly, not at chest level. This is a compact MID-SWING, with shoulders relaxed and hands neither far ahead nor far behind. Far elbow/fist stays partly visible on the far side, slightly behind waist. Do not extend arm length. Show coherent anatomical right/left hands with correct thumbs and knuckle/dorsal surfaces; palms naturally face inward, no inverted wrists.\nAlso deepen the supporting knee bend just slightly to lower the pelvis, torso and unchanged head together about15 pixels while keeping the grounded shoe in its exact position and scale. Whole head stays rigid and same size. No stretch or scaling body parts; compression comes only from joint flexion.\nNo extra limbs, text, ground, shadow, dust, borders or guides. Output the same two sprites in the same layout.",
+    "selected_source": "generated_images/exec-8f6348c4-8118-40ab-9b4c-12c741e81287.png",
+    "frame_map": [
+      "old01",
+      "new_passing_near_support",
+      "old02",
+      "old03",
+      "old05",
+      "new_passing_far_support",
+      "old06",
+      "old07"
+    ]
+  },
+  "source_notes": [
+    "Frames 2 and 6 are new compact passing poses; all other sprint poses are reordered from the delivered revision.",
+    "All other five sheets and their frames/previews are byte-identical."
+  ]
+}

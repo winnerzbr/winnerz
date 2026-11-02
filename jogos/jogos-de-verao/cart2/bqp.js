@@ -111,6 +111,9 @@
       const E = SPR.eb_obj, k = clamp(v.wind / 40, -1, 1), f = E.fr[Math.abs(k) > .4 ? 'biruta1' : 'biruta2'], dir = k < -.05 ? -1 : 1;
       ctx.save(); ctx.translate(pc, top - 10); ctx.scale(dir, 1); ctx.drawImage(sImg('eb_obj'), f.x, f.y, f.w, f.h, -4.5, -f.h / 2, f.w / 2, f.h / 2); ctx.restore();
     }
+  }
+  // 02/11 (pedido do dono): a rede e o aro são desenhados depois da bola que está passando pela cesta (ela fica por dentro da rede)
+  function bqRede(v, tt, rx, ry) {
     // rede: parada · chuá (esticada, logo que a bola passa) · balançando depois; o aro por cima
     const nt = v.net;
     // 01/11 (pedido do dono): a rede presa no aro. A parada vai no ponto de encaixe do pacote (antes estava 1,4 abaixo e ficava solta);
@@ -142,6 +145,10 @@ function bqDraw(tt) {
       const rx = this.rx, ry = this.ry, BX = this.bx(), art = sReady('bq_obj');
       // 01/11: a linha de três é a linha do meio pintada na quadra (BQ_LINHA3); o jogo não desenha outra
       bqHoop(this, tt, BX, rx, ry);
+      // 02/11: a bola dentro da cesta (entre as bordas do aro, do aro até o fim da rede) vai antes da rede: fica por trás dela
+      const naCesta = (b) => Math.abs(b.x - rx) < BQ.RR && b.y > ry - 9 && b.y < ry + 30;
+      for (const b of this.balls) if (naCesta(b)) this.ball(b.x, b.y, b.spin, b.fire && !b.done, b.vx);
+      bqRede(this, tt, rx, ry);
       // marcação (Amiguinho rosa)
       const D = this.def;
       if (D.on && sReady('am_rosa')) {
@@ -165,7 +172,7 @@ function bqDraw(tt) {
       }
       // bolas no ar e fogo
       for (const f of this.fx) R(f.x, f.y, 2, 2, f.fire ? (f.t < .12 ? '#fff3b0' : f.t < .24 ? '#ffb020' : '#e8443a') : '#ffffff');
-      for (const b of this.balls) this.ball(b.x, b.y, b.spin, b.fire && !b.done, b.vx);
+      for (const b of this.balls) if (!naCesta(b)) this.ball(b.x, b.y, b.spin, b.fire && !b.done, b.vx);
       // medidor de força: só mostra quanta força você está colocando (enche e esvazia); o ponto certo é com você
       if (this.charging || this.shootT > 0) {
         const p = this.charging ? this.p : this.lastP, bh = 40, bw = 4, x0 = Math.round(this.px - 23), y0 = VGY - 62, Y = (q) => y0 + bh - Math.round(q * bh);

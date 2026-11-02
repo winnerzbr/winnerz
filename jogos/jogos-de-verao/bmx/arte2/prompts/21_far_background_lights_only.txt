@@ -1,0 +1,4 @@
+Use case: background-extraction / precise-object-edit.
+Edit target: the attached FINAL NIGHT panorama, exactly 2048x768.
+Create a matching LIGHTS-ONLY additive game layer at exactly the same dimensions and framing. Show ONLY the brightest small stars and the moon's shimmering reflection ON THE SEA, each at exactly its existing pixel position with a soft small glow. Keep the stars' true small scale. Include the concentrated silvery horizontal glints in the sea beneath the crescent, around x1435,y526. Do NOT include the crescent moon itself; this layer request is the moon reflection and brightest stars only.
+Everything else must be flat pure black #000000: no visible sky, clouds, horizon, land, trees, dunes, sand, or blue ambient background. Do not add lights or change their positions. Do not shift or stretch the image. No text, letters, borders or labels. Output one 2048x768 RGB image on black.

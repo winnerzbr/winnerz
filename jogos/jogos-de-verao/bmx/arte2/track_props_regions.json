@@ -1,0 +1,178 @@
+{
+  "distance_sign": {
+    "atlas_rect": [
+      58,
+      423,
+      368,
+      837
+    ],
+    "part_size": [
+      355,
+      460
+    ],
+    "crop_from_raw": [
+      25,
+      283,
+      276,
+      608
+    ]
+  },
+  "start_gate": {
+    "atlas_rect": [
+      446,
+      158,
+      1287,
+      836
+    ],
+    "part_size": [
+      887,
+      723
+    ],
+    "crop_from_raw": [
+      299,
+      96,
+      926,
+      607
+    ]
+  },
+  "checkered_flag_01": {
+    "atlas_rect": [
+      1382,
+      253,
+      1685,
+      836
+    ],
+    "part_size": [
+      348,
+      628
+    ],
+    "crop_from_raw": [
+      961,
+      163,
+      1207,
+      607
+    ]
+  },
+  "checkered_flag_02": {
+    "atlas_rect": [
+      1733,
+      253,
+      2018,
+      836
+    ],
+    "part_size": [
+      348,
+      628
+    ],
+    "crop_from_raw": [
+      1209,
+      163,
+      1455,
+      607
+    ]
+  },
+  "hay_bale": {
+    "atlas_rect": [
+      41,
+      1081,
+      479,
+      1344
+    ],
+    "part_size": [
+      484,
+      308
+    ],
+    "crop_from_raw": [
+      13,
+      748,
+      355,
+      966
+    ]
+  },
+  "three_tires": {
+    "atlas_rect": [
+      543,
+      1013,
+      847,
+      1355
+    ],
+    "part_size": [
+      349,
+      388
+    ],
+    "crop_from_raw": [
+      368,
+      700,
+      615,
+      974
+    ]
+  },
+  "cone_01": {
+    "atlas_rect": [
+      912,
+      1117,
+      1120,
+      1352
+    ],
+    "part_size": [
+      253,
+      280
+    ],
+    "crop_from_raw": [
+      629,
+      774,
+      808,
+      972
+    ]
+  },
+  "cone_02": {
+    "atlas_rect": [
+      1165,
+      1134,
+      1363,
+      1349
+    ],
+    "part_size": [
+      243,
+      260
+    ],
+    "crop_from_raw": [
+      808,
+      786,
+      980,
+      970
+    ]
+  },
+  "rope_fence": {
+    "atlas_rect": [
+      1437,
+      1095,
+      1996,
+      1352
+    ],
+    "part_size": [
+      604,
+      303
+    ],
+    "crop_from_raw": [
+      1000,
+      758,
+      1427,
+      972
+    ]
+  },
+  "rope_fence_repeat": {
+    "part_size": [
+      470,
+      294
+    ],
+    "raw_crop": [
+      1048,
+      762,
+      1380,
+      970
+    ],
+    "repeat_axis": "x",
+    "shared_post_center_at_edges": true
+  }
+}

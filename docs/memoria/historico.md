@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: sonoplastia em todas as provas, água do surfe animada, bola por dentro da rede e cenários novos
+- **O dono pediu:** bola por trás da rede no basquete; água e tubo do surfe animados; efeitos sonoros em todos os jogos. Mandou o pacote do cenário da trilha nova da BMX e as peças a mais da praia da Corrida (manhã, pôr do sol, noite e luzes).
+- **Feito:** 73 sons feitos em código, tocando em todas as 19 provas (passos, rodas, motores, água, bolas, torcida...); água do surfe ondulando com reflexos; bola por dentro da rede; BMX com o cenário novo (terra, beirada, bico da rampa, objetos, poeira, fundo e dunas estendidos); Corrida com quiosque, coqueiros e rede de vôlei.
+- **Pendente:** o dono ouvir e dizer o que ajustar; a versão de DIA das peças da praia (de dia está usando a manhã).
+
+---
+
 ## 02/11/2026: Corrida na areia: contato no início do obstáculo e pulo mais longo
 - **O dono pediu:** o contato no início do desenho do obstáculo (parecia no meio) e um pulo mais longo (caía demais); e aceitou os pedidos de peças a mais para o meio-plano.
 - **Feito:** cada obstáculo bate a partir do início do desenho; pulo mais longo e mais alto (0,85 s); os Amiguinhos pulam na hora certa. Pedidos do quiosque de coco, coqueiros e rede de vôlei (4 horários e luzes) na guia da Corrida.

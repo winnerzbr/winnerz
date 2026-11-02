@@ -49,7 +49,9 @@
     const hh = h, ww = CR_DEIT.has(nm) ? w : h * f.w / f.h;
     ctx.drawImage(im, f.x, 0, f.w, f.h, cx - ww / 2, by - hh, ww, hh);
   }
-  const CR_MEIO = [{ i: 0, h: 44, x: 40 }, { i: 1, h: 59, x: 300 }, { i: 0, h: 44, x: 560 }, { i: 1, h: 59, x: 790 }], CR_MW = 1000; // meio-plano: repete a cada 1000
+  // meio-plano: guarda-sóis com a torcida (0), posto (1), quiosque de coco (2), coqueiros (3), rede de vôlei (4); repete a cada 1500.
+  // Altura pela prancha (0,1026 por pixel da prancha de 1672, a escala do meio-plano aprovado).
+  const CR_MEIO = [{ i: 0, x: 40 }, { i: 3, x: 250 }, { i: 1, x: 400 }, { i: 2, x: 640 }, { i: 4, x: 860 }, { i: 3, x: 1150 }, { i: 0, x: 1290 }], CR_MW = 1500;
   if (typeof obstaculos !== 'undefined') {
     const draw16 = obstaculos.draw, runner16 = obstaculos.runner, ob16 = obstaculos.ob;
     obstaculos.ob = function (nm, cx, by, w, h) { if (!CROK()) return ob16.call(this, nm, cx, by, w, h); crPeca(nm, cx, by, w, h); };
@@ -113,11 +115,11 @@
       // meio-plano: guarda-sóis com a torcida atrás da corda e o posto de salva-vidas, pela metade da velocidade
       const LM = night > .01 && crImg('lm', CRC.lm);
       for (const q of CR_MEIO) {
-        const M = CRC.m[q.i], w = q.h * M.w / M.h, MS = crImg('ms', CRC.ms);
+        const M = CRC.m[q.i], qh = (M.hs || 429) * .1026, w = qh * M.w / M.h, MS = crImg('ms', CRC.ms);
         let x = ((q.x - om) % CR_MW + CR_MW) % CR_MW - 120; if (x > W) continue;
-        for (const [h, a] of P) { ctx.globalAlpha = a; ctx.drawImage(MS, M.x, CRC.row[h] * 300, M.w, 300, x, 128 - q.h, w, q.h); }
+        for (const [h, a] of P) { ctx.globalAlpha = a; ctx.drawImage(MS, M.x, CRC.row[h] * 300, M.w, 300, x, 128 - qh, w, qh); }
         ctx.globalAlpha = 1;
-        if (LM && q.i === 1) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.8 + .15 * Math.sin(tt * 3.1)); ctx.drawImage(LM, x, 128 - q.h, w, q.h); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+        const LI = q.i === 1 ? LM : q.i === 2 && night > .01 ? crImg('lk', CRC.lk) : null; if (LI) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.8 + .15 * Math.sin(tt * 3.1 + q.i)); ctx.drawImage(LI, x, 128 - qh, w, qh); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
       }
       // bandeirinhas vermelhas a cada 20 m, atrás da última raia (e na largada)
       for (let m = 0; m * OB.PXM <= this.L - 1; m += 20) { const sx = m * OB.PXM - cam; if (sx > -20 && sx < W + 20) crPeca('bandeira', sx + 3, 129, 0, 24); }

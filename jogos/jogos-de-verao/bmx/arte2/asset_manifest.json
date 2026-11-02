@@ -1,0 +1,488 @@
+{
+  "main_pngs": 21,
+  "all_pngs": 51,
+  "files": [
+    {
+      "file": "01_dirt_day.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1826081,
+      "sha256": "5371a5cb76073440fda7a373958c1ec02c289ac0264659fdb46a8881044bc55c",
+      "horizontal_seam_max_error": 0,
+      "vertical_seam_max_error": 0
+    },
+    {
+      "file": "02_trail_edge_day.png",
+      "size": [
+        2048,
+        256
+      ],
+      "bytes": 461120,
+      "sha256": "01d316bca585a4b8243f58e7f55860f2e636b39ccbe7afbbe3fd13d3b3f86500",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "03_kicker_lip.png",
+      "size": [
+        1024,
+        768
+      ],
+      "bytes": 338505,
+      "sha256": "4b594a4137c24deff34221a9487d2417f4423ce21fe5c7821caac91c78b4f879"
+    },
+    {
+      "file": "04_track_props.png",
+      "size": [
+        2048,
+        1536
+      ],
+      "bytes": 1191590,
+      "sha256": "d6668d5f5ca1fb61fc3e8b18285d64d2572769ada3e4fea7e1c6f71b02abedca"
+    },
+    {
+      "file": "05_dust_effects.png",
+      "size": [
+        2048,
+        1152
+      ],
+      "bytes": 307749,
+      "sha256": "dc194de72fb1241db927aae36babdad9c725902f3cca199d460179ac9edb6238"
+    },
+    {
+      "file": "06_dirt_morning.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1952449,
+      "sha256": "9dfeaf4a448fd2d0974a41c7b4f97e2b44fd075daba71234f33433c2f6ece427",
+      "horizontal_seam_max_error": 0,
+      "vertical_seam_max_error": 0
+    },
+    {
+      "file": "07_trail_edge_morning.png",
+      "size": [
+        2048,
+        256
+      ],
+      "bytes": 453871,
+      "sha256": "3945ae037bcea2459d178ced2f4baa118d502dbc7b924ae760d5e8594b52b84f",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "08_dirt_sunset.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1842348,
+      "sha256": "0ff264e08b69d00e239b362ab9e8120862a97b1f380ad3aa1622591caf0ef5b0",
+      "horizontal_seam_max_error": 0,
+      "vertical_seam_max_error": 0
+    },
+    {
+      "file": "09_trail_edge_sunset.png",
+      "size": [
+        2048,
+        256
+      ],
+      "bytes": 421178,
+      "sha256": "1679daebe263869f89d5594e17cba16f8d16caef3af12e764c8ece85a485057a",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "10_dirt_night.png",
+      "size": [
+        1024,
+        1024
+      ],
+      "bytes": 1639216,
+      "sha256": "8ba6cc9466967fcde72912a84d87ea6df26ac8ee8f3dd18c3d73fea3c60899ca",
+      "horizontal_seam_max_error": 0,
+      "vertical_seam_max_error": 0
+    },
+    {
+      "file": "11_trail_edge_night.png",
+      "size": [
+        2048,
+        256
+      ],
+      "bytes": 406258,
+      "sha256": "b41ec7b545b5bc9709a5c76409e4c9d96c2d9f3af2eb93920a5638e01e082aae",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "12_dunes_day.png",
+      "size": [
+        2100,
+        700
+      ],
+      "bytes": 1612665,
+      "sha256": "235cae9335c9a81c261a1b13b0bd9355585adffc4cd999cb2c20c4b0b4ac269d",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "13_far_background_day.png",
+      "size": [
+        2048,
+        768
+      ],
+      "bytes": 1453878,
+      "sha256": "fca746f040f692ffb420d95e3315ccec648e9e3e54d56f5eaee23eb56e539f86",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "14_dunes_morning.png",
+      "size": [
+        2100,
+        700
+      ],
+      "bytes": 1652646,
+      "sha256": "b3f62de5444c9d5a526faf067126b38c1d5fd1518ca5832a5deb8ae3f3a8aa0d",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "15_far_background_morning.png",
+      "size": [
+        2048,
+        768
+      ],
+      "bytes": 1586232,
+      "sha256": "9757fe13c7200ef63f7ad7ca53e2ba00addff775b5cacf114924808a2aae49d2",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "16_dunes_sunset.png",
+      "size": [
+        2100,
+        700
+      ],
+      "bytes": 1512383,
+      "sha256": "b8e68a27e1d9e9b65da59228812c9579f3be9fb77e7d1bb02ff876bb27032615",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "17_far_background_sunset.png",
+      "size": [
+        2048,
+        768
+      ],
+      "bytes": 1668482,
+      "sha256": "a8be79266433ac1cd8d6d9f884b9fe8f9954262578b4eb29f2cce1ccccc32524",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "18_dunes_night.png",
+      "size": [
+        2100,
+        700
+      ],
+      "bytes": 1383419,
+      "sha256": "90208fb2bd0992246557a465779935d0759b66aa2f389f6d889f85ab97f810f2",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "19_far_background_night.png",
+      "size": [
+        2048,
+        768
+      ],
+      "bytes": 1638204,
+      "sha256": "04e8e63540f4cd9a284db6d372c2e6b4b7eaea2b56abb7f84fcfceac48dc8ffb",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "20_dunes_lights_only.png",
+      "size": [
+        2100,
+        700
+      ],
+      "bytes": 43093,
+      "sha256": "fb1e9ae45c2bc9751696013be4e779401a199f74bdb1169cff36aa9039282199",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "21_far_background_lights_only.png",
+      "size": [
+        2048,
+        768
+      ],
+      "bytes": 22702,
+      "sha256": "20ce9817792a029e2826e13005ae6af464fbc3607cf408925baa92260e20e0ab",
+      "horizontal_seam_max_error": 0
+    },
+    {
+      "file": "effect_frames/clods_01.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 14678,
+      "sha256": "10f259362b3ebf4d563224eba1e5ac61680e3d266a34f9f9805a4303df76c505"
+    },
+    {
+      "file": "effect_frames/clods_02.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 11607,
+      "sha256": "32aeadaf4dee61d48f511bf2ef59987bb1a548f2cd7b869772600dfd5a387358"
+    },
+    {
+      "file": "effect_frames/clods_03.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 5628,
+      "sha256": "a1c505e2c6933b8c2892876eec9b7e934c531f65d8cd18d5b2409410617eb349"
+    },
+    {
+      "file": "effect_frames/landing_01.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 72134,
+      "sha256": "b0bbdd53c3e1463667f89a00c32c634510980a6e5f5e1cede196837961dcd8fa"
+    },
+    {
+      "file": "effect_frames/landing_02.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 96925,
+      "sha256": "69ee7ae29a1b0cbafab396b602a0814b53a5df5d49e2ba5c22e89f33de4710f2"
+    },
+    {
+      "file": "effect_frames/landing_03.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 67391,
+      "sha256": "0ffc0f60ec3cc291a921c4be55504be732070a1a650c41537d27aca03cb198eb"
+    },
+    {
+      "file": "effect_frames/landing_04.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 24354,
+      "sha256": "ba552cfc63bd4969999114ac73472bc038f3486b7591fd825e65713d74914bfe"
+    },
+    {
+      "file": "effect_frames/skid_01.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 7434,
+      "sha256": "18433bc4c6e78c3f7816b899ace22378306ef65535ecc58896554a9e090f7f29"
+    },
+    {
+      "file": "effect_frames/skid_02.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 7624,
+      "sha256": "f120689f2207a4b29ad0a966cd36edcfad22c23d0291f249bb3f1b47c60843e2"
+    },
+    {
+      "file": "effect_frames/skid_03.png",
+      "size": [
+        512,
+        384
+      ],
+      "bytes": 3699,
+      "sha256": "bced4a9cc3b0d52f2bdfb9645ad2530acb82c157134c53a84a190f47e4018859"
+    },
+    {
+      "file": "game_scale_props/checkered_flag_01.png",
+      "size": [
+        157,
+        283
+      ],
+      "bytes": 31304,
+      "sha256": "401d398ce2f6856e170533b0f61a3a4a9df7ca700f3a38f1edfeef15025e9d04"
+    },
+    {
+      "file": "game_scale_props/checkered_flag_02.png",
+      "size": [
+        157,
+        283
+      ],
+      "bytes": 30443,
+      "sha256": "e79b2be81474a3104e8b28910a89d97cf5b4ab7175c7c0f78a19b8639a261689"
+    },
+    {
+      "file": "game_scale_props/cone_01.png",
+      "size": [
+        114,
+        126
+      ],
+      "bytes": 12600,
+      "sha256": "081ef5f8e9f191cda4f815d63e8c61bf44f95256187823e466e54099df182a64"
+    },
+    {
+      "file": "game_scale_props/cone_02.png",
+      "size": [
+        109,
+        117
+      ],
+      "bytes": 10842,
+      "sha256": "e931727a33d1734ce1042c5162ed49a93172c3712f76cb045bdbc7c9a1f3e580"
+    },
+    {
+      "file": "game_scale_props/distance_sign.png",
+      "size": [
+        160,
+        207
+      ],
+      "bytes": 24668,
+      "sha256": "c66b4c8e4b8e6f7361c6e547019db599ec000e85528e40b36444a5017823f490"
+    },
+    {
+      "file": "game_scale_props/hay_bale.png",
+      "size": [
+        218,
+        139
+      ],
+      "bytes": 48460,
+      "sha256": "8c41881e36611abd0f8cf781d127a382285ce3a8e02c4aaad016dee3d13ef02c"
+    },
+    {
+      "file": "game_scale_props/rope_fence.png",
+      "size": [
+        272,
+        136
+      ],
+      "bytes": 28922,
+      "sha256": "a1024481477af403ee8ddd796e443d7c7911d3e9c37b0f932cd4be1a18af10ce"
+    },
+    {
+      "file": "game_scale_props/rope_fence_repeat.png",
+      "size": [
+        212,
+        132
+      ],
+      "bytes": 19788,
+      "sha256": "8f02976e727b43ad10b1ea0801b469bc2e1f184bc6f6b929c81f771390a05acc"
+    },
+    {
+      "file": "game_scale_props/start_gate.png",
+      "size": [
+        798,
+        651
+      ],
+      "bytes": 213185,
+      "sha256": "7524d967a04cf7a5b1b79066dae859842ac8d6678c7c4928a12c5cbe294699e7"
+    },
+    {
+      "file": "game_scale_props/three_tires.png",
+      "size": [
+        157,
+        175
+      ],
+      "bytes": 43325,
+      "sha256": "f1516b8f1626c0b7b23a3fbe0e488dfb94465c09cab5fa0d4ed5726d61ff5c55"
+    },
+    {
+      "file": "track_prop_parts/checkered_flag_01.png",
+      "size": [
+        348,
+        628
+      ],
+      "bytes": 121442,
+      "sha256": "0a87899cd53dc3e11819e178fb30dcd67e3c60da227e04a10ce950091b79c26e"
+    },
+    {
+      "file": "track_prop_parts/checkered_flag_02.png",
+      "size": [
+        348,
+        628
+      ],
+      "bytes": 117824,
+      "sha256": "802d97d205e811076a3166d12f83563afd346433b9b0f62e91ff2bec94810a5f"
+    },
+    {
+      "file": "track_prop_parts/cone_01.png",
+      "size": [
+        253,
+        280
+      ],
+      "bytes": 49977,
+      "sha256": "280f363901f6fdbafdb4c270bc446d0d3c6f5d176a7e65717516460ff53c26ef"
+    },
+    {
+      "file": "track_prop_parts/cone_02.png",
+      "size": [
+        243,
+        260
+      ],
+      "bytes": 43186,
+      "sha256": "d5fa2895e1b428c41bed732030d265fcbb423023220569e843290dda214b6f92"
+    },
+    {
+      "file": "track_prop_parts/distance_sign.png",
+      "size": [
+        355,
+        460
+      ],
+      "bytes": 95841,
+      "sha256": "d09b325178c96becccae3d4ec3d424d7fa571a7b82fabbf9fbad467e8983a92e"
+    },
+    {
+      "file": "track_prop_parts/hay_bale.png",
+      "size": [
+        484,
+        308
+      ],
+      "bytes": 198978,
+      "sha256": "1e611075a338ef442b7847b9f43301193c068f0f90db55c9f9f09046ddf3269f"
+    },
+    {
+      "file": "track_prop_parts/rope_fence.png",
+      "size": [
+        604,
+        303
+      ],
+      "bytes": 118399,
+      "sha256": "8ca08fc7a9a8c1e038a139c998998a9908b8304756070995e0d9ea0de0f3d4db"
+    },
+    {
+      "file": "track_prop_parts/rope_fence_repeat.png",
+      "size": [
+        470,
+        294
+      ],
+      "bytes": 81566,
+      "sha256": "3f1569d12d8c34aea9820776eaebdca9229c545fb7da5b136541d7b217632d53"
+    },
+    {
+      "file": "track_prop_parts/start_gate.png",
+      "size": [
+        887,
+        723
+      ],
+      "bytes": 250462,
+      "sha256": "26154a8d8c6b6bd418b70bce6f2a1ab1b018a4fbcd5aeb34f2c0df084804521e"
+    },
+    {
+      "file": "track_prop_parts/three_tires.png",
+      "size": [
+        349,
+        388
+      ],
+      "bytes": 174664,
+      "sha256": "c4327ae48c3bb92aa25d424b7297e179c87a5efe503fd893539bb87054d58aa7"
+    }
+  ],
+  "validation": "Full PNG decode; required sizes; exact opposing edge pixels; fixed chroma masks; read-only visual repeat and registration review."
+}

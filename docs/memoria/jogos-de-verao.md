@@ -450,6 +450,25 @@ O dono reprovou a 1ª versão (andar sozinho até a bola e acertar o tempo exato
 - **Correndo e trotando com a cabeça em 3/4 (02/11, pacote novo do dono, revisão 5):** as duas pranchas foram trocadas em `corrida/pranchas_ia/pranchas` (as de perfil ficaram em `corrida/pranchas_ia/perfil`); mesma escala (K 1,08). As outras 4 vieram iguais.
 - **Pendente:** o dono testar.
 
+## Sonoplastia (02/11/2026, pedido do dono: "efeitos sonoros diversos em todos os jogos")
+- **Os sons:** 73 sons feitos em código (`som/foley.cx.js`, ferramenta chirp; sem rede para instalar o gerador de prévias, ele foi trocado por um vazio). `som/som.py` iguala o volume (batidas -20 dB, contínuos -24 dB, pico até -2) e junta tudo em `musica/foley.mp3` (1,1 MB, mono 96k) + o mapa `som/foley.json`; os contínuos entram duas vezes seguidas e o jogo repete o trecho do meio (a emenda não depende do atraso do mp3).
+- **Como tocam** (`cart2/foley.js`, entra antes de `let cur` no `build3.py`; o passo do jogo chama `window.__folHook`): `FOL.play(nome, vol, velocidade, lado)` (nomes com variações _1, _2... sorteiam) e `FOL.loop(id, nome, vol, velocidade)` chamado a cada passo (some em 0,15 s quando param de chamar: pausa, fim, troca de situação). Volume = 0,85 × o dos efeitos nas opções. O som destrava no primeiro toque/tecla. Se o arquivo não carregar, ficam os bipes de antes.
+- **Bipes trocados** (`FOL_TROCA`): os de ação (pulo, pouso, queda, chute, aro...) viram o som de verdade de cada prova; os de placar, contagem, menu e medalha continuam. Pingue-pongue e bocha: raquete, mesa, chão, bolas batendo e tábua no lugar dos bipes diretos.
+- **Por prova** (`FOL_PASSO`): corrida (passos na areia, na areia fofa e na poça pelo passo da animação; Amiguinhos com "plof" baixinho; apito na largada, torcida, festa ao vencer); BMX (terra pela velocidade, catraca sem pedalar, vento no ar); skate e patins (rodas pela velocidade, grind, vento); surfe (mar, água cortando, tubo, gaivotas, splash ao pousar e ao cair); basquete (quicando andando, quique no chão, aro, chuá, torcida); futebol, vôlei, embaixadinha (toque, chute, bola na areia, trave, rede, torcida); bocha (rolando, batendo, caindo na areia); frisbee (disco voando); arco (puxar e soltar a corda, flecha no alvo, balão); duelo (jato de água, pingos, splash); canoagem (rio, remada pelo lado, batida); natação (braçada, mergulho, apito, torcida); jet ski, bugue e teco-teco (motor pela velocidade, água ou areia, turbo, derrapada, pouso; o bugue mais perto também).
+- Teste `testes/somtodos.cjs`: joga cada prova uns segundos e lista os sons tocados (todas tocam, sem erros). O dono ainda não ouviu: ajustar volumes e timbres pelo que ele disser.
+
+## Basquete: a bola por dentro da rede (02/11)
+- A bola entre as bordas do aro, do aro até o fim da rede, é desenhada antes da rede e do aro (`bqRede` em `cart2/bqp.js`): passando pela cesta, fica por trás da rede. Foto: `testes/bqrede.cjs`.
+
+## Surfe: água e tubo animados (02/11, pedido do dono)
+- Em `cart2/sfp.js`: `sfOndula` desenha a imagem em faixas finas, cada uma deslocada para os lados por uma onda que anda (o mar lá atrás: mais forte perto da onda; a parede: mais forte embaixo; o tubo: mais forte no teto que despenca); `sfBrilho` passa a própria imagem por cima em "luz suave", andando (os reflexos correm pela água). Gravação: `testes/sfagua.cjs`.
+
+## BMX: cenário da trilha nova (02/11, pacote do dono `bmx/arte2`)
+- `cart2/bxcen2.py` → `bxcen2.js` (window.BXC2); desenho em `bxScene2` (`cart2/bxp.js`), que entra no lugar do cenário antigo quando carrega. 4 horários por camada, empilhados. Fundo estendido 8:3 (o céu pintado continua para cima nos saltos), dunas estendidas 3:1 (a encosta continua para baixo), terra pintada (ladrilho de 92 unidades) dentro do contorno, a beirada de cima da trilha dobrada ao longo do contorno em pedaços de 3 girados (pelo comprimento do caminho, guardado em `v.__arc`), o bico pintado em cada ponta de rampa (girado para a inclinação), objetos (portal na largada, placa a cada 100 m com a distância escrita, bandeiras quadriculadas a cada 160, cone no começo de cada rampa, fardo, pneus ou cerca no vale antes dela) e a poeira pintada (decolando: derrapada; pouso: nuvem; tombo e pouso forte: torrões). Luzes da noite do fundo e das dunas somadas.
+
+## Corrida: peças a mais no meio-plano (02/11)
+- Quiosque de coco (com as lampadinhas acesas de noite), coqueiros e rede de vôlei (`corrida/props`), na mesma escala do meio-plano (0,1026 por pixel da prancha de 1672). O meio-plano repete a cada 1500: torcida, coqueiros, posto, quiosque, rede, coqueiros, torcida. **Falta o dia**: de dia usa a manhã.
+
 ## Basquete pintado: IAmiguinho (01/11/2026)
 - **Chegou do dono:** 12 pranchas do IAmiguinho no basquete (mais tentativas que pedidos: 5 de andar, 2 de espera, 2 de carregar). Originais em `basquete/pranchas`.
 - **Escolhidas pela régua** (a cabeça mais constante): andar `bq_andar_d` (1,5%), espera `bq_espera_b` (1%), carregando `bq_carrega_b` (6,8%); arremesso, comemorar e errou vieram uma de cada. As outras ficam guardadas.

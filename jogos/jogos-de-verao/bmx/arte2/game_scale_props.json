@@ -1,0 +1,82 @@
+{
+  "checkered_flag_01.png": {
+    "size": [
+      157,
+      283
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "checkered_flag_02.png": {
+    "size": [
+      157,
+      283
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "cone_01.png": {
+    "size": [
+      114,
+      126
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "cone_02.png": {
+    "size": [
+      109,
+      117
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "distance_sign.png": {
+    "size": [
+      160,
+      207
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "hay_bale.png": {
+    "size": [
+      218,
+      139
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "rope_fence.png": {
+    "size": [
+      272,
+      136
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "rope_fence_repeat.png": {
+    "size": [
+      212,
+      132
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  },
+  "start_gate.png": {
+    "size": [
+      798,
+      651
+    ],
+    "scale_from_source_part": 0.9,
+    "standing_character_reference_height": 325
+  },
+  "three_tires.png": {
+    "size": [
+      157,
+      175
+    ],
+    "scale_from_source_part": 0.45,
+    "standing_character_reference_height": 325
+  }
+}

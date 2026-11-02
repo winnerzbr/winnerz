@@ -52,6 +52,22 @@
   const SF_MARCOR = { dia: '#1f62b8', manha: '#2a6aa8', tarde: '#2b3a80', noite: '#0d1b48' };
   const SF_ONDAW = 444, SF_ONDAH = 111, SF_CRISTA = 4; // a faixa da onda, em unidades do jogo
   const SF_TK = .30; // unidades por pixel guardado nos módulos do tubo
+  // 02/11 (pedido do dono: a água e o tubo eram imagens paradas): a imagem desenhada em faixas finas na horizontal, cada faixa
+  // deslocada para os lados por uma onda que anda (sen), com a força (amp) crescendo de a0 (em cima) até a1 (embaixo): a água ondula.
+  function sfOndula(im, sx, sy, sw, sh, dx, dy, dw, dh, tt, a0, a1, vel, freq, fase = 0, faixa = 2.5) {
+    const n = Math.max(1, Math.ceil(dh / faixa)), fh = dh / n, sfh = sh / n;
+    for (let j = 0; j < n; j++) {
+      const q = (j + .5) / n, a = a0 + (a1 - a0) * q, ox = a * Math.sin(tt * vel + (dy + j * fh) * freq + fase) + a * .45 * Math.sin(tt * vel * 1.7 - (dy + j * fh) * freq * 2.3 + fase * 2);
+      ctx.drawImage(im, sx, sy + j * sfh, sw, sfh, dx + ox, dy + j * fh, dw, fh + .45);
+    }
+  }
+  // brilho que anda: a própria imagem por cima, deslocada e mais clara, só um pouco (os reflexos passam pela água)
+  function sfBrilho(im, sx, sy, sw, sh, dx, dy, dw, dh, tt, vel, al) {
+    ctx.save(); ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha *= al; const o = (tt * vel) % dw;
+    ctx.beginPath(); ctx.rect(dx, dy, dw, dh); ctx.clip();
+    for (const k of [-1, 0]) ctx.drawImage(im, sx, sy, sw, sh, dx + o + k * dw, dy + Math.sin(tt * .9) * 1.5, dw, dh);
+    ctx.restore();
+  }
   function sfDraw(ev, tt) {
     const cam = ev.x - SXP, SL = Math.round(ev.lip);
     let P = sfPesos().filter(([, w]) => w > .001);
@@ -59,11 +75,16 @@
     ctx.save(); ctx.imageSmoothingEnabled = true;
     // mar e céu (parados; sobem um pouco junto com a crista)
     const oy = Math.min(0, SL - 30 - SFC.hz * H);
-    for (const [v, w] of P) { const im = sfImg('f_' + v, SFC.f[v]); if (im) { ctx.globalAlpha = w; ctx.drawImage(im, 0, oy, W, H); } } ctx.globalAlpha = 1;
+    // o mar lá atrás ondula de leve (mais perto da onda, mais forte); o céu fica parado
+    const hz = SFC.hz * H;
+    for (const [v, w] of P) { const im = sfImg('f_' + v, SFC.f[v]); if (!im) continue; ctx.globalAlpha = w; const kh = im.height / H, cut = hz + 2;
+      ctx.drawImage(im, 0, 0, im.width, cut * kh, -1, oy, W + 2, cut); sfOndula(im, 0, cut * kh, im.width, im.height - cut * kh, -2, oy + cut, W + 4, H - cut, tt, .25, 1.8, 1.3, .55); } ctx.globalAlpha = 1;
     const lf = night > .01 && sfImg('lf', SFC.lf); if (lf) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.35 + .08 * Math.sin(tt * 1.7)); ctx.drawImage(lf, 0, oy, W, H); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; }
     // a parede da onda, andando com você (a faixa repete)
     const y0 = SL - SF_CRISTA, off = ((cam % SF_ONDAW) + SF_ONDAW) % SF_ONDAW;
-    for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w; for (let x = -off; x < W; x += SF_ONDAW) ctx.drawImage(im, x, y0, SF_ONDAW + .6, Math.max(SF_ONDAH, H - y0 + 1)); } // 01/11: a água vai até o pé da tela
+    // 02/11: a parede ondula (mais embaixo, mais forte) e os reflexos sobem e passam por ela
+    for (const [v, w] of P) { const im = sfImg('o_' + v, SFC.o[v]); if (!im) continue; ctx.globalAlpha = w; const hh = Math.max(SF_ONDAH, H - y0 + 1);
+      for (let x = -off; x < W; x += SF_ONDAW) { sfOndula(im, 0, 0, im.width, im.height, x, y0, SF_ONDAW + .6, hh, tt, .6, 2.2, 2.1, .32); sfBrilho(im, 0, 0, im.width, im.height, x, y0, SF_ONDAW + .6, hh, tt, 26, .32); } } // 01/11: a água vai até o pé da tela
     ctx.globalAlpha = 1;
     // correnteza (01/11, arte do dono: 04_corrente_repetivel_vertical): a água descendo, na cor do horário, com os lados macios
     // (na peça) e o alto e o pé sumindo em fatias; a textura anda para baixo.
@@ -85,9 +106,11 @@
       const m0 = ex + tw('entrada'), n = Math.max(1, Math.round((fx0 - m0) / tw('meio'))), wm = (fx0 - m0) / n, f0 = m0 + n * wm;
       for (const [h, w] of P) {
         ctx.globalAlpha = w;
-        for (let i = 0; i < n; i++) { const x = m0 + i * wm; if (x < W && x + wm > 0) sfPartH(h, 'meio', x - .3, top, wm + .6, th, true); }
-        if (ex < W && ex + tw('entrada') > 0) sfPartH(h, 'entrada', ex, top, tw('entrada') + .4, th, true);
-        if (f0 < W && f0 + tw('fecha') > 0) sfPartH(h, 'fecha', f0 - .4, top, tw('fecha'), th, true);
+        // 02/11: o tubo ondula (o teto que despenca mexe mais) e os reflexos correm por dentro
+        const T = SFC.th[h], im = sfImg('th_' + h, T.src), pt = (nm, x, ww) => { const f = T.p[nm]; if (!f || !im) return; sfOndula(im, f.x, 0, f.w, f.h, x, top, ww, th, tt, 1.8, .6, 2.6, .28, x * .05); sfBrilho(im, f.x, 0, f.w, f.h, x, top, ww, th, tt, 18, .26); };
+        for (let i = 0; i < n; i++) { const x = m0 + i * wm; if (x < W && x + wm > 0) pt('meio', x - .3, wm + .6); }
+        if (ex < W && ex + tw('entrada') > 0) pt('entrada', ex, tw('entrada') + .4);
+        if (f0 < W && f0 + tw('fecha') > 0) pt('fecha', f0 - .4, tw('fecha'));
       }
       ctx.globalAlpha = 1;
     }

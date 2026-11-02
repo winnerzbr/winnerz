@@ -1,0 +1,203 @@
+{
+  "sheet": "05_dust_effects.png",
+  "size": [
+    2048,
+    1152
+  ],
+  "cell_size": [
+    512,
+    384
+  ],
+  "frames": [
+    {
+      "name": "landing_01",
+      "row": 0,
+      "column": 0,
+      "cell": [
+        0,
+        0,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        46,
+        173,
+        420,
+        158
+      ]
+    },
+    {
+      "name": "landing_02",
+      "row": 0,
+      "column": 1,
+      "cell": [
+        512,
+        0,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        31,
+        158,
+        450,
+        173
+      ]
+    },
+    {
+      "name": "landing_03",
+      "row": 0,
+      "column": 2,
+      "cell": [
+        1024,
+        0,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        36,
+        139,
+        440,
+        192
+      ]
+    },
+    {
+      "name": "landing_04",
+      "row": 0,
+      "column": 3,
+      "cell": [
+        1536,
+        0,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        41,
+        164,
+        430,
+        167
+      ]
+    },
+    {
+      "name": "clods_01",
+      "row": 1,
+      "column": 0,
+      "cell": [
+        0,
+        384,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        171,
+        266,
+        170,
+        65
+      ]
+    },
+    {
+      "name": "clods_02",
+      "row": 1,
+      "column": 1,
+      "cell": [
+        512,
+        384,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        143,
+        215,
+        225,
+        116
+      ]
+    },
+    {
+      "name": "clods_03",
+      "row": 1,
+      "column": 2,
+      "cell": [
+        1024,
+        384,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        148,
+        242,
+        215,
+        89
+      ]
+    },
+    {
+      "name": "skid_01",
+      "row": 2,
+      "column": 0,
+      "cell": [
+        0,
+        768,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        191,
+        293,
+        130,
+        38
+      ]
+    },
+    {
+      "name": "skid_02",
+      "row": 2,
+      "column": 1,
+      "cell": [
+        512,
+        768,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        166,
+        299,
+        180,
+        32
+      ]
+    },
+    {
+      "name": "skid_03",
+      "row": 2,
+      "column": 2,
+      "cell": [
+        1024,
+        768,
+        512,
+        384
+      ],
+      "baseline_local_y": 330,
+      "art_bounds_local": [
+        171,
+        303,
+        170,
+        28
+      ]
+    }
+  ],
+  "empty_cells": [
+    [
+      3,
+      1
+    ],
+    [
+      3,
+      2
+    ]
+  ]
+}

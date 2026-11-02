@@ -25,6 +25,95 @@
     ctx.save(); ctx.imageSmoothingEnabled = true; ctx.translate(x, y); if (rot) ctx.rotate(rot); ctx.scale(u * k * sx, u * k);
     ctx.drawImage(im, f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h); ctx.restore();
   }
+  /* ---------- 02/11: o pacote do cenário da trilha nova (bxcen2.py -> window.BXC2). Quando carrega, entra no lugar do cenário antigo:
+     fundo estendido (o céu continua para cima nos saltos), dunas estendidas (a encosta continua para baixo), terra pintada dentro do
+     contorno da trilha, a beirada de cima da trilha dobrada ao longo do contorno (pedacinhos girados, pelo comprimento do caminho),
+     o bico pintado em cada ponta de rampa, objetos da pista (portal da largada, placa a cada 100 m, bandeiras, cones, fardos, pneus)
+     e a poeira pintada (pouso, torrões e derrapada). De noite, as luzes do fundo e das dunas por cima. */
+  const BXC2 = window.BXC2;
+  const b2 = (k) => bxImg('v2_' + k, k === 'bico' ? BXC2.bico.src : BXC2[k]);
+  const BXC2OK = () => !!BXC2 && ['f', 'm', 't', 'b', 'l', 'ld', 'atl', 'bico'].every((k) => !!b2(k));
+  window.__BXC2OK = BXC2OK;
+  function bxPart2(name, x, y, k = 1, sx = 1, rot = 0) {
+    const f = BXC2.p[name]; if (!f) return; const u = 1 / BXC2.u, im = b2('atl');
+    ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot); ctx.scale(u * k * sx, u * k);
+    ctx.drawImage(im, f.x, 0, f.w, f.h, -f.ax, -f.ay, f.w, f.h); ctx.restore();
+  }
+  const BX2_B = .18; // beirada: unidades por pixel guardado (repete a cada 184)
+  function bx2Faixa(h) { // a beirada do horário, duas vezes lado a lado (o pedaço que passa da ponta continua no começo)
+    const k = 'faixa_' + h; if (BXI[k]) return BXI[k];
+    const im = b2('b'), c = document.createElement('canvas'); c.width = BXC2.bw * 2; c.height = BXC2.bh; const g = c.getContext('2d'), r = BXC2.horas.indexOf(h);
+    for (const x of [0, BXC2.bw]) g.drawImage(im, 0, r * BXC2.bh, BXC2.bw, BXC2.bh, x, 0, BXC2.bw, BXC2.bh);
+    return (BXI[k] = c);
+  }
+  function bx2Arco(v, wx) { // comprimento do caminho até wx (em passos de 4, guardado; recomeça quando a partida recomeça)
+    let A = v.__arc; if (!A || wx < A.x0 - 1) { A = v.__arc = { x0: Math.floor(wx / 4) * 4 - 40, s: [0] }; }
+    while (A.x0 + (A.s.length - 1) * 4 < wx + 4) { const i = A.s.length - 1, x = A.x0 + i * 4; A.s.push(A.s[i] + Math.hypot(4, v.h(x + 4) - v.h(x))); }
+    const f = (wx - A.x0) / 4, i = Math.max(0, Math.floor(f)); return A.s[i] + (A.s[Math.min(i + 1, A.s.length - 1)] - A.s[i]) * (f - i);
+  }
+  function bxScene2(v, tt) {
+    const C = BXC2, cam = v.x - BX.SX, P = bxPesos().filter(([, w]) => w > .001), night = P.reduce((a, [h, w]) => a + (h === 'noite' ? w : 0), 0), row = (h) => C.horas.indexOf(h);
+    ctx.save(); ctx.imageSmoothingEnabled = true;
+    // fundo distante, anda a 30%; o pé dele fica no pé da tela e o céu pintado continua para cima quando a câmera sobe
+    const F = b2('f'), FW = 800, FH = 300, of = ((cam * .3) % FW + FW) % FW, cy = v.camH || 0, ca = cy - (v.camG ?? cy), fy = ca * .6 + H - FH;
+    for (const [h, w] of P) { ctx.globalAlpha = w; if (fy > 0) R(0, 0, W, fy + 1, C.ceu[h]); for (let x = -of; x < W; x += FW) ctx.drawImage(F, 0, row(h) * C.fh, C.fw, C.fh, x, fy, FW + .6, FH); }
+    if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.85 + .1 * Math.sin(tt * 1.7)); for (let x = -of; x < W; x += FW) ctx.drawImage(b2('l'), x, fy, FW + .6, FH); ctx.globalCompositeOperation = 'source-over'; }
+    ctx.restore(); ctx.save(); ctx.translate(0, ca * .9); ctx.imageSmoothingEnabled = true;
+    // dunas, anda a 55%: o alto (dunas, cercas, bandeiras) no mesmo lugar de antes; a encosta pintada continua para baixo
+    const M = b2('m'), MW = 480, MH = 160, om = ((cam * .55) % MW + MW) % MW, my = BX.GY + 4 - 80;
+    for (const [h, w] of P) { ctx.globalAlpha = w; for (let x = -om; x < W; x += MW) ctx.drawImage(M, 0, row(h) * C.mh, C.mw, C.mh, x, my, MW + .6, MH); R(0, my + MH - 1, W, 400, C.duna[h]); }
+    if (night > .01) { ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = night * (.85 + .15 * Math.sin(tt * 2.3 + 1)); for (let x = -om; x < W; x += MW) ctx.drawImage(b2('ld'), x, my, MW + .6, MH); ctx.globalCompositeOperation = 'source-over'; }
+    ctx.globalAlpha = 1; ctx.restore(); ctx.save();
+    // daqui para baixo, tudo anda com a câmera (mesmo zoom de antes)
+    const z = v.zoom || 1, XA = BX.SX - BX.SX / z - 6, XB = BX.SX + (W - BX.SX) / z + 6;
+    ctx.translate(BX.SX, BX.GY); ctx.scale(z, z); ctx.translate(-BX.SX, -BX.GY); ctx.translate(0, cy); ctx.imageSmoothingEnabled = true;
+    const top = (sx) => BX.GY - v.h(sx + cam), perfil = () => { ctx.beginPath(); ctx.moveTo(XA, top(XA)); for (let sx = XA + 2; sx <= XB; sx += 3) ctx.lineTo(sx, top(sx)); ctx.lineTo(XB, top(XB)); };
+    // terra pintada (ladrilho de 92 unidades, preso no mundo)
+    const T = b2('t'), TK = 92 / C.tw;
+    for (const [h, w] of P) {
+      if (!BXI['pat2_' + h]) { const c = document.createElement('canvas'); c.width = C.tw; c.height = C.tw; c.getContext('2d').drawImage(T, 0, row(h) * C.tw, C.tw, C.tw, 0, 0, C.tw, C.tw); BXI['pat2_' + h] = ctx.createPattern(c, 'repeat'); }
+      const pat = BXI['pat2_' + h]; pat.setTransform(new DOMMatrix([TK, 0, 0, TK, -(((cam % 92) + 92) % 92), 0]));
+      ctx.globalAlpha = w; perfil(); ctx.lineTo(XB, H / z + 900 - cy); ctx.lineTo(XA, H / z + 900 - cy); ctx.closePath(); ctx.fillStyle = pat; ctx.fill();
+    }
+    // beirada: a faixa pintada dobrada ao longo da trilha, em pedaços de 3 girados com o chão (pelo comprimento do caminho)
+    const M0 = ctx.getTransform(), RAD = 180 / Math.PI, BH = C.bh * BX2_B, BY = C.by * BX2_B;
+    for (const [h, w] of P) {
+      const FX = bx2Faixa(h); ctx.globalAlpha = w;
+      for (let sx = XA; sx < XB; sx += 3) {
+        const y0 = top(sx), y1 = top(sx + 3), L = Math.hypot(3, y1 - y0), s0 = bx2Arco(v, sx + cam) / BX2_B % C.bw;
+        ctx.setTransform(M0.translate(sx, y0).rotate(Math.atan2(y1 - y0, 3) * RAD)); ctx.drawImage(FX, s0, 0, L / BX2_B + .5, C.bh, 0, -BY, L + .35, BH);
+      }
+    }
+    ctx.setTransform(M0); ctx.globalAlpha = 1; perfil(); ctx.strokeStyle = NAVY; ctx.lineWidth = 1.1; ctx.lineJoin = 'round'; ctx.stroke();
+    // o bico pintado em cada ponta de rampa (a ponta do desenho na ponta da física, girado para a inclinação dela)
+    const BI = C.bico, BK = .12;
+    for (const s of v.tr) {
+      if (!s.lip) continue; const lx = s.x1, sx = lx - cam; if (sx < XA - 40 || sx > XB + 40) continue;
+      ctx.save(); ctx.translate(sx, top(sx)); ctx.rotate(BI.ang - Math.atan(v.slope(lx - 2))); ctx.scale(BK, BK); ctx.drawImage(b2('bico'), -BI.tx, -BI.ty, BI.w, BI.h); ctx.restore();
+    }
+    // objetos da pista (atrás do IAmiguinho): portal na largada, placa a cada 100 m, bandeiras a cada 160, cone no começo de cada
+    // rampa, fardo de feno ou pneus no vale antes dela (só onde o chão é quase plano)
+    const plano = (wx) => Math.abs(v.slope(wx)) < .35, perto = (wx) => wx - cam > XA - 60 && wx - cam < XB + 60;
+    if (perto(110)) bxPart2('start_gate', 110 - cam, top(110 - cam) + 1, 1);
+    for (let k = Math.max(1, Math.floor((cam + XA) / 1000)); k <= (cam + XB) / 1000 + 1; k++) {
+      const wx = k * 1000 + 20; if (!perto(wx)) continue; const sx = wx - cam, y = top(sx) + 1;
+      bxPart2('distance_sign', sx, y, .8); ctx.save(); ctx.fillStyle = NAVY; ctx.font = 'bold 5px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(`${k * 100} m`, sx, y - 19.5); ctx.restore();
+    }
+    for (let k = Math.floor((cam + XA) / 160); k < (cam + XB) / 160 + 1; k++) { const wx = k * 160 + 40; if (!perto(wx) || v.pitAt(wx) || !plano(wx)) continue; bxPart2(Math.floor(tt * 3 + k) % 2 ? 'checkered_flag_01' : 'checkered_flag_02', wx - cam, top(wx - cam) + 1, .62); }
+    let n = 0;
+    for (const s of v.tr) {
+      if (!s.lip) continue; n++; const a = s.x0 + 6; if (perto(a)) bxPart2(n % 2 ? 'cone_01' : 'cone_02', a - cam, top(a - cam) + 1, .55);
+      const b = s.x0 - 26; if (perto(b) && plano(b)) bxPart2(n % 3 === 0 ? 'three_tires' : n % 3 === 1 ? 'hay_bale' : 'rope_fence_repeat', b - cam, top(b - cam) + 1, .62);
+    }
+  }
+  function bx2Poeira(v, cam) { // poeira pintada: derrapada (decolando), nuvem do pouso e torrões (tombo e pouso forte)
+    for (const p of v.puffs) {
+      const k = clamp(p.t / p.d, 0, .999), nm = p.k === 'p0' || p.k === 'p1' ? 'skid_0' + (1 + Math.floor(k * 3)) : 'landing_0' + (1 + Math.floor(k * 4));
+      ctx.globalAlpha = clamp(1.25 - k * 1.1, 0, 1); bxPart2(nm, p.x - cam, p.y + 1, p.k === 'p3' ? 1.15 : p.k === 'p2' ? .95 : .8, p.sx);
+      if (p.k === 'p3' || p.k === 'p2') bxPart2('clods_0' + (1 + Math.floor(k * 3)), p.x - cam + 6 * p.sx, p.y - 2 - k * 6, p.k === 'p3' ? 1 : .7, p.sx);
+      ctx.globalAlpha = 1;
+    }
+  }
   // IAmiguinho na bike: em pé pedalando, da roda ao alto da hélice = 56 (a mesma altura do desenho de 16 bits)
   const BXK5 = MBX ? 56 / MBX.a.pedal.f[0].ay : 1, BXW_X = 12.85; // BXW_X: a roda de trás fica a 12,85 do meio da bike
   let FTBX = null;
@@ -48,6 +137,7 @@
   }
   const BX_FW = 800, BX_MW = 480, BX_MH = 80, BX_PW = 360, BX_PH = 60; // fundo (na altura da tela), plano médio e faixa da pista, em unidades
   function bxScene(v, tt) {
+    if (BXC2OK()) return bxScene2(v, tt); // 02/11: o cenário da trilha nova
     const cam = v.x - BX.SX, P = bxPesos().filter(([, w]) => w > .001), night = P.reduce((a, [h, w]) => a + (h === 'noite' ? w : h === 'tarde' ? w * .2 : 0), 0);
     const F = bxImg('f', BXC.f), M = bxImg('m', BXC.m), L = bxImg('l', BXC.l), fw = BXC.fw, fh = BXC.fh, mw = BXC.mw, mh = BXC.mh;
     ctx.save(); ctx.imageSmoothingEnabled = true;
@@ -158,7 +248,7 @@
       // respingos, poeira pintada e grãos de areia
       if (sReady('sf_fx')) for (const e of this.fx) { const f = SPR.sf_fx.fr[e.k], w = f.w / 2, h = f.h / 2; ctx.globalAlpha = clamp(1.4 - e.t / e.d * 1.4, 0, 1); ctx.drawImage(sImg('sf_fx'), f.x, f.y, f.w, f.h, half(e.x - cam - w / 2), half(e.y - h), w, h); ctx.globalAlpha = 1; }
       const PUF = { p0: 'dust_01', p1: 'dust_02', p2: 'dust_03', p3: 'dust_04' };
-      for (const p of this.puffs) { const k = p.t / p.d; ctx.globalAlpha = clamp(1.3 - k * 1.3, 0, 1); bxPart(PUF[p.k] || 'dust_01', p.x - cam, p.y + 1, .8 + k * .5, p.sx); ctx.globalAlpha = 1; }
+      if (BXC2OK()) bx2Poeira(this, cam); else for (const p of this.puffs) { const k = p.t / p.d; ctx.globalAlpha = clamp(1.3 - k * 1.3, 0, 1); bxPart(PUF[p.k] || 'dust_01', p.x - cam, p.y + 1, .8 + k * .5, p.sx); ctx.globalAlpha = 1; }
       for (const p of this.dust) R(p.x - cam, p.y, 2, 2, p.t < .2 ? '#f6d6ae' : '#d9a066');
       bxRider(this, tt);
       ctx.restore(); // fim da câmera (aberta em bxScene)

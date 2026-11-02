@@ -64,15 +64,26 @@ def meio(path):
         bb = Image.fromarray(p).getbbox(); out.append(((sl[1].start + bb[0], sl[0].start + bb[1], sl[1].start + bb[2], sl[0].start + bb[3]), p[bb[1]:bb[3], bb[0]:bb[2]]))
     return sorted(out, key=lambda q: q[0][0])
 BOX = None; MS = []
+# 02/11: mais 3 peças (quiosque de coco, coqueiros, rede de vôlei; ../corrida/props). Vieram manhã, pôr do sol, noite e luzes;
+# o dia ainda não: de dia usa a manhã. Mesma escala da prancha antiga (a prancha nova tem 1536 de largura, a antiga 1672).
+PR = '../corrida/props/Costa_WinnerZ_Props_Praia_'
+PROPS = {'dia': PR + 'Manha', 'manha': PR + 'Manha', 'tarde': PR + 'Por_do_Sol', 'noite': PR + 'Noite'}
+KBOX = None
 for h, (_, fm) in HORAS.items():
-    ims = []
+    ims = []; hs = []
     for bx, p in meio(fm + '.png'):
-        im = Image.fromarray(p); ims.append(im.resize((round(im.width * 300 / im.height), 300), Image.LANCZOS))
+        ims.append(Image.fromarray(p)); hs.append(p.shape[0] * 1.0)
         if h == 'noite': BOX = bx
-    row = Image.new('RGBA', (ims[0].width + ims[1].width + 4, 300)); row.paste(ims[0], (0, 0)); row.paste(ims[1], (ims[0].width + 4, 0)); MS.append(row)
-    OUT['m'] = [{'x': 0, 'w': ims[0].width, 'h': 300}, {'x': ims[0].width + 4, 'w': ims[1].width, 'h': 300}]
+    for bx, p in meio(PROPS[h] + '.png'):
+        ims.append(Image.fromarray(p)); hs.append(p.shape[0] * 1672 / 1536)
+        if h == 'noite' and len(ims) == 3: KBOX = bx
+    ims = [im.resize((round(im.width * 300 / im.height), 300), Image.LANCZOS) for im in ims]
+    row = Image.new('RGBA', (sum(im.width + 4 for im in ims), 300)); x = 0; OUT['m'] = []
+    for im, hh in zip(ims, hs): row.paste(im, (x, 0)); OUT['m'].append({'x': x, 'w': im.width, 'h': 300, 'hs': round(hh)}); x += im.width + 4
+    MS.append(row)
 OUT['ms'] = uri(pilha(MS), q=86)
 lm = Image.open(B + '08_Luzes_Intermediaria_Noite.png').convert('RGB').crop(BOX); OUT['lm'] = uri(lm.resize((OUT['m'][1]['w'], 300), Image.LANCZOS), q=84)
+lk = Image.open(PR + 'Luzes.png').convert('RGB').crop(KBOX); OUT['lk'] = uri(lk.resize((OUT['m'][2]['w'], 300), Image.LANCZOS), q=84)
 open('crcen.js', 'w').write('window.CRC = ' + json.dumps(OUT) + ';\n')
-print('crcen.js', len(open('crcen.js').read()) // 1024, 'KB', atl.size, {k: (v['w'], v['h']) for k, v in meta.items()}, OUT['m'], BOX)
+print('crcen.js', len(open('crcen.js').read()) // 1024, 'KB', atl.size, {k: (v['w'], v['h']) for k, v in meta.items()}, OUT['m'], BOX, KBOX)
 atl.save('/tmp/claude-0/-home-claude/e0bf145e-a626-5d21-b81a-9d762c809f56/scratchpad/cr_atl.png')

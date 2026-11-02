@@ -27,6 +27,7 @@ Faça o commit junto com o trabalho.
 ## Regras que valem sempre
 - Pode publicar mudanças do site e das páginas sem perguntar antes.
 - Só planos gratuitos (Vercel, Supabase, GitHub etc.).
+- O Vercel grátis tem 10 GB para todas as versões do site: enviar ao `main` uma vez por rodada de trabalho e não pôr em `public/` arquivo grande que o site não usa (detalhes em `site.md`).
 - Linguagem neutra de gênero nos textos do site e dos jogos.
 - Nada com "cara de IA": nada de layout genérico de site feito por IA nem arte com aparência de IA.
 - Jogos funcionam igual no computador, no controle e no celular.

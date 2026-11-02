@@ -12,6 +12,10 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 ## Situação
 - O site fica fechado até o WinnerZ Awards estar pronto para divulgar. Antes disso, só convidados.
 - Supabase e Vercel nos planos gratuitos. O e-mail sai pelo Resend.
+- **Espaço no Vercel:** o grátis guarda até 10 GB somando todas as versões do site, e cada versão ocupa uns 75 MB (quase tudo é o Jogos de Verão).
+  - O `vercel.json` só deixa montar uma versão nova quando muda algo do site (`scripts/vercel-pular.sh`).
+  - Enviar ao `main` uma vez por rodada de trabalho, não a cada commit.
+  - Arquivos grandes que não vão para o site ficam fora de `public/`.
 - Fase atual: refinar o site. Antes de cada etapa, o dono quer ver como vai ficar.
 
 ## Visual

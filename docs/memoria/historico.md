@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: espaço do Vercel (aviso de 100% dos 10 GB)
+- **O dono mandou:** o e-mail do Vercel dizendo que a conta grátis usou 100% dos 10 GB de "Deployment Storage".
+- **Causa:** o Vercel guarda uma cópia inteira do site a cada envio ao `main`. Com o Jogos de Verão (68 MB) e o teste do vôlei no Godot (41 MB) dentro de `public/demo`, cada cópia passou de 110 MB, e houve cerca de 100 envios entre 30/10 e 02/11. Só 36 de 113 commits desse período mudaram o site de verdade; o resto era memória, fontes dos jogos e artes.
+- **Feito:**
+  - o teste do vôlei no Godot saiu do site e foi para `jogos/volei-godot/exportado/`; ninguém linkava a página, e o site caiu de 115 MB para 74 MB por versão;
+  - nova regra no `vercel.json` (`scripts/vercel-pular.sh`): o Vercel só monta uma versão nova quando muda algo do site (`src`, `public`, `api` e arquivos de montagem). Commits só de `docs/`, `jogos/`, `art/` etc. não publicam.
+- **Decidido:** juntar as mudanças e enviar ao `main` uma vez por rodada de trabalho; arquivos grandes que não são do site ficam fora de `public/`. Pela regra nova do Vercel para o plano grátis, ao passar de 10 GB ele apaga sozinho as versões antigas. Ficam as 3 últimas, a que está no ar e a última prévia de cada ramo. O número no painel demora alguns dias para baixar.
+- **Pendente:** nada do dono. Se o Vercel bloquear um envio por falta de espaço, apagar versões antigas em Deployments no painel (o Claude não entra na conta).
+
+---
+
 ## 02/11/2026: sonoplastia em todas as provas, água do surfe animada, bola por dentro da rede e cenários novos
 - **O dono pediu:** bola por trás da rede no basquete; água e tubo do surfe animados; efeitos sonoros em todos os jogos. Mandou o pacote do cenário da trilha nova da BMX e as peças a mais da praia da Corrida (manhã, pôr do sol, noite e luzes).
 - **Feito:** 73 sons feitos em código, tocando em todas as 19 provas (passos, rodas, motores, água, bolas, torcida...); água do surfe ondulando com reflexos; bola por dentro da rede; BMX com o cenário novo (terra, beirada, bico da rampa, objetos, poeira, fundo e dunas estendidos); Corrida com quiosque, coqueiros e rede de vôlei.

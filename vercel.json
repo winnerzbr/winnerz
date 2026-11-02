@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "sh scripts/vercel-pular.sh",
   "rewrites": [
     {
       "source": "/twitch/volta",

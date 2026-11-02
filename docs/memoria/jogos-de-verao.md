@@ -4,7 +4,7 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
 
 ## Decisões em vigor
 - **Plataforma:** continua no navegador.
-  - O Godot foi testado: o vôlei foi refeito nele e está em `/demo/volei-godot`, com o código em `jogos/volei-godot`.
+  - O Godot foi testado: o vôlei foi refeito nele, com o código em `jogos/volei-godot` e a página exportada em `jogos/volei-godot/exportado/` (saiu do site em 02/11/2026 para economizar espaço no Vercel).
   - O Unity foi avaliado e descartado.
 - **Estilo:** desenho animado pintado no jogo inteiro, incluindo menus e HUD.
   - Os personagens seguem a ficha de modelo, com a grade-guia de proporções.

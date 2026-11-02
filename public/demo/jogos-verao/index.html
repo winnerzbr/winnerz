@@ -11362,7 +11362,7 @@ function wzStatus(t) { const e = document.getElementById('wz-st'); if (e) e.text
 const el = (tag, at = {}, ...kids) => { const e = document.createElement(tag); for (const [k, v] of Object.entries(at)) { if (k === 'on') for (const [ev, f] of Object.entries(v)) e.addEventListener(ev, f); else if (k === 'class') e.className = v; else if (k in e && k !== 'list') e[k] = v; else e.setAttribute(k, v); } for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); return e; };
 
 // linha de conferência (embaixo do título do editor): de onde veio o que está no jogo e no editor
-const WZ_BUILD = '01/11 23:45';
+const WZ_BUILD = '01/11 23:50';
 function wzDiag() {
   const D = WZDB.DIAG || {}, i = WZDB.info || {}, a = D.aplicado, r = D.rascunho, j = D.jogo;
   const nq = (o) => (o && o.cfg ? Object.keys(o.cfg.rostos || {}).length : 0);
@@ -15999,6 +15999,9 @@ function bqDraw(tt) {
       const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - 8, hh = H - y0 + 2;
       R(xa, y0 + hh - 2, xb - xa, H, base);
       ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(bxImg('atl', BXC.atl), V.x + sx0, sy0, sx1 - sx0, sy1 - sy0, xa, y0, xb - xa, hh); ctx.restore();
+      // a peça da vala só veio de dia: escurece com o horário (noite azulada, pôr do sol avermelhado)
+      { const nt = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0), td = P.reduce((q, [h, w]) => q + (h === 'tarde' ? w : h === 'manha' ? w * .5 : 0), 0);
+        if (nt > .01) R(xa, y0, xb - xa, hh, `rgba(12,18,58,${.6 * nt})`); if (td > .01) R(xa, y0, xb - xa, hh, `rgba(90,30,40,${.28 * td})`); }
     }
     // terra: a faixa da pista acompanha o perfil do chão (2 unidades por coluna); embaixo continua a cor da terra
     const pr = BX_PW / (mw), ri = P.map(([h, w]) => [4 + bxRow(h), w]);

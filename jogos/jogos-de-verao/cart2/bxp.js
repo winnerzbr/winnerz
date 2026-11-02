@@ -69,6 +69,9 @@
       const sx0 = VO.o0 - 40, sx1 = VO.o1 + 40, sy0 = 95, sy1 = V.h, y0 = BX.GY - 8, hh = H - y0 + 2;
       R(xa, y0 + hh - 2, xb - xa, H, base);
       ctx.save(); ctx.imageSmoothingEnabled = true; ctx.drawImage(bxImg('atl', BXC.atl), V.x + sx0, sy0, sx1 - sx0, sy1 - sy0, xa, y0, xb - xa, hh); ctx.restore();
+      // a peça da vala só veio de dia: escurece com o horário (noite azulada, pôr do sol avermelhado)
+      { const nt = P.reduce((q, [h, w]) => q + (h === 'noite' ? w : 0), 0), td = P.reduce((q, [h, w]) => q + (h === 'tarde' ? w : h === 'manha' ? w * .5 : 0), 0);
+        if (nt > .01) R(xa, y0, xb - xa, hh, `rgba(12,18,58,${.6 * nt})`); if (td > .01) R(xa, y0, xb - xa, hh, `rgba(90,30,40,${.28 * td})`); }
     }
     // terra: a faixa da pista acompanha o perfil do chão (2 unidades por coluna); embaixo continua a cor da terra
     const pr = BX_PW / (mw), ri = P.map(([h, w]) => [4 + bxRow(h), w]);

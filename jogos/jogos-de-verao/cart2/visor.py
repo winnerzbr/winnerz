@@ -2,6 +2,7 @@
 import numpy as np, cv2
 from scipy import ndimage
 ROUND = False  # ligado só para as pranchas do skate
+SOLID = False  # ligado na BMX: com ROUND, só vale mancha cheia (o pneu é um anel)
 def visor(a, blob=False):
     al = a[..., 3] > 200; rgb = a[..., :3].astype(float); lum = rgb.mean(2); H = a.shape[0]
     mx, mn = rgb.max(2), rgb.min(2); sat = (mx - mn) / np.maximum(mx, 1)
@@ -14,8 +15,16 @@ def visor(a, blob=False):
         for i, sl in enumerate(ndimage.find_objects(lab)):
             if sz[i] < sz.max() * .25: continue
             h, w = sl[0].stop - sl[0].start, sl[1].stop - sl[1].start
-            if max(h, w) / max(1, min(h, w)) < 2.2: ok.append(i)
+            if max(h, w) / max(1, min(h, w)) >= 2.2: continue
+            ok.append(i)
         if ok: b = max(ok, key=lambda i: sz[i]) + 1
+        # 02/11 (BMX): o pneu da frente levantado (empinando) também é redondo, escuro e grande; a tela é a mancha mais perto do fone (o anel ciano)
+        r_, g_, b_ = rgb[..., 0], rgb[..., 1], rgb[..., 2]; fone = (b_ > 200) & (g_ > 150) & (r_ < 130) & al
+        if SOLID and ok and fone.sum() > 200:
+            fy, fx = np.argwhere(fone).mean(0)
+            def dist(i):
+                cy, cx = ndimage.center_of_mass(lab == i + 1); return (cy - fy) ** 2 + (cx - fx) ** 2
+            b = min(ok, key=dist) + 1
     core = ndimage.binary_fill_holes(ndimage.binary_closing(lab == b, iterations=2))
     # vidro iluminado: tons médios azulados/acinzentados, nem a placa creme nem o azul forte do boné/fone
     plate = (lum > 175) & (sat < .35)

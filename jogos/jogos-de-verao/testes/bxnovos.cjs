@@ -17,7 +17,7 @@ const { chromium } = require('playwright'); const fs = require('fs');
     ['hop', 'B.py += 30; B.sync(); Object.assign(B, { air: true, hopT: B.t - .15 });'],
     ['tuck', 'B.py += 60; B.a = 1.2; B.sync(); Object.assign(B, { air: true, w: 6 });'],
     ['corpo', 'B.py += 60; B.sync(); Object.assign(B, { air: true, dirIn: 1, corpoT: .5 });'],
-    ['wheelie', 'B.a = Math.atan(B.slope(B.x)) + .55; Object.assign(B, { cont: [true, false] }); B.sync();'],
+    ['wheelie', 'B.a = Math.atan(B.slope(B.x)) + .55; Object.assign(B, { cont: [true, false], dirIn: 1 }); B.sync();'],
     ['deseq', 'Object.assign(B, { wobT: .3 });'],
   ];
   for (const [nm, js] of cenas) { await p.evaluate(base + js); await p.waitForTimeout(150); await p.screenshot({ path: `amg/bxn_${nm}.png`, clip: r }); }

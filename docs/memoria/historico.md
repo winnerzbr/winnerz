@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 02/11/2026: BMX: desenho maior e visor apagado na ponta da rampa
+- **O dono viu:** no salto aparecia um quadro diferente do IAmiguinho, maior e com o visor apagado.
+- **Feito:** era o empinando (e o quadro 4 do corpo para trás): a prancha veio ~8% maior e o pneu da frente levantado era confundido com a tela do rosto. Escala corrigida, rosto aceso no lugar certo, e o empinando só aparece segurando ◀ no chão.
+- **Pendente:** o dono testar.
+
+---
+
 ## 02/11/2026: Corrida na areia pintada e movimentos novos da BMX
 - **O dono mandou:** as pranchas da Corrida (6 do IAmiguinho, 4 do Amiguinho), objetos e cenário de dia; depois manhã, pôr do sol, noite e luzes. E os 8 movimentos novos da BMX.
 - **Feito:** Corrida na areia toda pintada (corredores, obstáculos, largada, chegada, bandeirinhas e a praia nos 4 horários). BMX com os 8 movimentos novos (manobras seguradas, bunny hop, mortal encolhido, empinando, corpo no ar, desequilíbrio). Tudo na Prévia; pedidos marcados como entregues. A página passou do limite de arquivos: as imagens pequenas agora ficam embutidas.

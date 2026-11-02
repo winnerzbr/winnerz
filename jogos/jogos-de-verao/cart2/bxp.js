@@ -140,7 +140,7 @@
     } else if (v.wobT > 0 && tem('deseq')) { an = 'deseq'; k = Math.min(7, Math.floor((1 - v.wobT / .5) * 8)); }
     else if (v.landT > 0) { an = 'pouso'; k = Math.min(7, Math.floor((1 - v.landT / .3) * 8)); }
     else if (v.carga > .05 && tem('hop')) { an = 'hop'; k = v.carga > .18 ? 1 : 0; }
-    else if (tem('wheelie') && v.cont && v.cont[0] && !v.cont[1] && v.ang - Math.atan(v.slope(v.x)) > .25) { an = 'wheelie'; k = Math.floor(v.t * 8) % 8; wh = true; }
+    else if (tem('wheelie') && v.dirIn > 0 && v.cont && v.cont[0] && !v.cont[1] && v.ang - Math.atan(v.slope(v.x)) > .25) /* 02/11: só empinando de propósito (segurando ◀); na ponta da rampa a roda da frente sai antes e aparecia o empinando */ { an = 'wheelie'; k = Math.floor(v.t * 8) % 8; wh = true; }
     else if (v.pumping) { an = 'pump'; k = Math.floor(tt * 12) % 8; }
     const sus = v.pen ? (v.pen[0] + v.pen[1]) / 2 : 0; // a roda afunda um pouco no chão (suspensão): o desenho sobe junto
     if (wh) { // empinando: o ponto da roda de trás do desenho preso na roda de trás da física, girando só o que falta

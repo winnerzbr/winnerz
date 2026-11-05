@@ -87,7 +87,9 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
       .filter((x) => x.g);
   }, [s.events, s.games, s.journeys]);
   const next = upcoming.slice(0, 2);
-  if (!past.length && !next.length) return null;
+  // Dia de lançamento: o jogo do seu Radar que sai hoje fica no próprio "Hoje" da linha.
+  const launch = useRadarSoon().filter((x) => x.n === 0);
+  if (!past.length && !next.length && !launch.length) return null;
   const today = capitalize(new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: TZ }).replace(/\./g, ''));
   const slots: ReactNode[] = [null, null, null, null];
   past.forEach(({ e, g }, i) => {
@@ -122,10 +124,22 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
         <span className="hz__glow" aria-hidden="true" />
         {slots[0] ?? <span className="hz__item hz__item--far" />}
         {slots[1] ?? <span className="hz__item" />}
-        <div className="hz__item hz__item--today">
-          <span className="hz__label hz__label--today"><span className="t hz__today">Hoje</span>{focusGame && nextSession ? <span className="hz__sub">Seu recado espera por você</span> : null}</span>
-          <span className="hz__mk hz__mk--today" aria-hidden="true" />
-        </div>
+        {launch.length ? (
+          <Link to={`/jogos/${launch[0].g.slug}`} className="hz__item hz__item--today hz__item--launch">
+            <span className="hz__label hz__label--today">
+              <span className="hz__cover hz__cover--launch"><CoverArt game={launch[0].g} /></span>
+              <span className="t hz__today">Hoje</span>
+              <span className="hz__title">{launch[0].g.title}</span>
+              <span className="hz__sub hz__sub--launch">{launch[0].i.status === 'lancado' ? 'Saiu hoje' : 'Sai hoje'}{launch.length > 1 ? ` · e mais ${launch.length - 1}` : ''} · No seu Radar</span>
+            </span>
+            <span className="hz__mk hz__mk--today" aria-hidden="true" />
+          </Link>
+        ) : (
+          <div className="hz__item hz__item--today">
+            <span className="hz__label hz__label--today"><span className="t hz__today">Hoje</span>{focusGame && nextSession ? <span className="hz__sub">Seu recado espera por você</span> : null}</span>
+            <span className="hz__mk hz__mk--today" aria-hidden="true" />
+          </div>
+        )}
         {slots[2] ?? <span className="hz__item" />}
         {slots[3] ?? <span className="hz__item hz__item--far" />}
       </div>
@@ -145,40 +159,6 @@ function NextRelease({ u }: { u?: Upcoming }) {
         <span className="next-release__days"><span className="t">{u.days}</span><span className="kicker">dias</span></span>
       </span>
     </Link>
-  );
-}
-
-/** Dia de lançamento: quando um jogo do seu Radar sai hoje, ele ganha uma faixa inteira no Início, só nesse dia.
- *  Âmbar porque é o agora; o fio do horizonte acende embaixo. */
-function LaunchDay() {
-  const today = useRadarSoon().filter((x) => x.n === 0);
-  if (!today.length) return null;
-  const [{ g, i }, ...more] = today;
-  const plats = i.platforms.slice(0, 4).join(' · ');
-  return (
-    <section className="lday on-photo" aria-labelledby="lday-t">
-      <Backdrop game={g} className="lday__bg kb" />
-      <span className="lday__shade" aria-hidden="true" />
-      <div className="page lday__row">
-        <div className="lday__text">
-          <p className="kicker kicker--now lday__kicker">Hoje · Dia de lançamento no seu Radar</p>
-          <h2 id="lday-t" className="t lday__title">{g.title}</h2>
-          <p className="lday__lead">{i.status === 'lancado' ? 'Saiu hoje.' : 'Sai hoje.'}{plats ? <span className="lday__plats"> {plats}</span> : null}</p>
-          <div className="lday__actions">
-            <PlayButton gameId={g.id} idle="Começar a jogar" />
-            <Link className="btn ghost lg" to={`/jogos/${g.slug}`}>Ver o jogo</Link>
-          </div>
-          {more.length > 0 && (
-            <p className="lday__more">Também sai hoje: {more.map((x, k) => <span key={x.g.id}>{k > 0 ? ', ' : ''}<Link to={`/jogos/${x.g.slug}`}>{x.g.title}</Link></span>)}</p>
-          )}
-        </div>
-        <div className="lday__stamp" aria-hidden="true">
-          <span className="t lday__day">Hoje</span>
-          <span className="lday__date">{stamp(i.day + 'T15:00:00Z')}</span>
-        </div>
-      </div>
-      <span className="lday__horizon" aria-hidden="true" />
-    </section>
   );
 }
 
@@ -308,8 +288,6 @@ function HomeDefault() {
       )}
 
       {j && <div className="page home-fit"><FitCard journeyId={j.id} /></div>}
-
-      <LaunchDay />
 
       <Horizon s={s} upcoming={upcoming} focusGame={game} nextSession={note?.note ? nSessions + 1 : undefined} />
 

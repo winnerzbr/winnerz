@@ -902,39 +902,10 @@ body:has(.login__art) .site-footer__in > svg, body:has(.login__art) .site-footer
 .dica__txt { width: auto; white-space: nowrap; }
 @media (max-width: 900px) { .jhero__top .jhero__prog { flex-basis: 100%; max-width: none; } }
 
-/* ---- Início: dia de lançamento ------------------------------------------------------------
-   Quando um jogo do Radar sai hoje, ele ganha uma faixa inteira, só nesse dia. É o "agora": âmbar
-   no rótulo e no HOJE, e o fio do horizonte acende embaixo, com um brilho que corre na inclinação do Z. */
-.lday { position: relative; overflow: hidden; margin-top: 40px; background: #07080a; color: #f2f4f6; }
-.lday__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 30%; }
-.lday__shade { position: absolute; inset: 0; background:
-  linear-gradient(90deg, rgba(7, 8, 10, 0.94) 0%, rgba(7, 8, 10, 0.7) 42%, rgba(7, 8, 10, 0.15) 78%),
-  linear-gradient(0deg, rgba(7, 8, 10, 0.85), rgba(7, 8, 10, 0) 45%),
-  linear-gradient(180deg, var(--bg), rgba(var(--bg-rgb), 0) 18%); }
-.lday__row { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 32px; min-height: 460px; padding-top: 80px; padding-bottom: 52px; }
-.lday__text { flex: 1 1 520px; max-width: 760px; display: flex; flex-direction: column; min-width: 0; }
-.lday .lday__kicker { margin: 0 0 18px; font-size: 15px; color: var(--now); }
-.lday .lday__kicker::before { opacity: 1; box-shadow: 0 0 10px rgba(255, 178, 91, 0.7); animation: lday-blink 1.6s ease-in-out infinite; }
-.lday__title { font-size: clamp(38px, 5vw, 72px); color: #f2f4f6; }
-.lday__lead { margin: 20px 0 0; font-size: 18px; font-weight: 600; color: #f2f4f6; }
-.lday__plats { font-weight: 400; color: rgba(230, 233, 237, 0.72); }
-.lday__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
-.lday__more { margin: 18px 0 0; font-size: 14px; color: rgba(230, 233, 237, 0.72); }
-.lday__more a { color: #f2f4f6; font-weight: 600; }
-.lday__more a:hover { color: var(--now); }
-.lday__stamp { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex: none; }
-.lday__day { font-size: clamp(64px, 9.5vw, 148px); line-height: 0.7; color: var(--now); text-shadow: 0 0 40px rgba(255, 178, 91, 0.28); }
-.lday__date { font: 700 15px/1 var(--font-ui); color: rgba(230, 233, 237, 0.8); letter-spacing: 0.02em; }
-.lday__horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; overflow: hidden; background: var(--now); box-shadow: 0 0 14px rgba(255, 178, 91, 0.6); }
-.lday__horizon::after { content: ''; position: absolute; top: 0; bottom: 0; left: -30%; width: 22%; background: linear-gradient(90deg, rgba(255, 243, 224, 0), #fff3e0, rgba(255, 243, 224, 0)); transform: skewX(-22deg); animation: lday-run 3.6s var(--fr-ease) infinite; }
-@keyframes lday-blink { 50% { opacity: 0.35; } }
-@keyframes lday-run { to { left: 110%; } }
-@media (max-width: 760px) {
-  .lday { margin-top: 28px; }
-  .lday__row { min-height: 0; padding-top: 120px; padding-bottom: 36px; gap: 20px; flex-direction: column-reverse; align-items: flex-start; }
-  .lday__stamp { flex-direction: row; align-items: baseline; gap: 12px; }
-  .lday__text { flex-basis: auto; }
-  .lday__shade { background: linear-gradient(0deg, rgba(7, 8, 10, 0.96) 0%, rgba(7, 8, 10, 0.75) 55%, rgba(7, 8, 10, 0.2) 100%), linear-gradient(180deg, var(--bg), rgba(var(--bg-rgb), 0) 18%); }
-  .lday__actions .btn { white-space: nowrap; font-size: 13.5px; padding: 0 14px; }
-}
-@media (prefers-reduced-motion: reduce) { .lday .lday__kicker::before, .lday__horizon::after { animation: none; } }
+/* ---- Início: dia de lançamento na linha do horizonte ----------------------------------------
+   Quando um jogo do Radar sai hoje, ele fica no próprio "Hoje" da linha: capa, nome e "Saiu hoje". */
+.hz__item--launch .hz__label--today { gap: 6px; }
+.hz__cover--launch { width: 52px; margin-bottom: 4px; box-shadow: 0 0 26px rgba(255, 178, 91, 0.32); }
+.hz__item--launch .hz__title { white-space: normal; text-align: center; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-wrap: balance; }
+.hz__sub--launch { color: var(--now-ink); font-weight: 600; }
+@media (max-width: 760px) { .hz__cover.hz__cover--launch { display: block; width: 40px; } }

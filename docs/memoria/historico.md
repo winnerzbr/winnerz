@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 05/11/2026: Início: o lançamento do dia vai para o "Hoje" da linha do horizonte
+- **O dono pediu:** a faixa grande de dia de lançamento "não ficou legal"; o jogo deve ser só mais um elemento da linha do tempo, no ponto "Hoje".
+- **Feito:**
+  - a faixa saiu;
+  - no dia em que um jogo do Radar sai, o "Hoje" da linha do horizonte mostra a capa dele, o HOJE, o nome e "Saiu hoje · No seu Radar" em âmbar, e leva à página do jogo. Se sair mais de um, aparece "e mais N";
+  - nos outros dias, o "Hoje" continua como antes;
+  - o jogo do dia continua fora do quadrinho "No seu Radar" da coluna Próximo, para não repetir.
+- **Decisão:** nada de faixa grande para lançamento. O lugar do lançamento do dia é o "Hoje" da linha do horizonte.
+
+---
+
 ## 05/11/2026: Início: destaque para o jogo do Radar que sai no dia
 - **O dono pediu:** dar mais destaque, na página inicial, ao jogo do Radar que está sendo lançado no dia (Zelda: Ocarina of Time aparecia só como uma linha pequena, "Saiu hoje.", menor que o card do GTA VI, que sai daqui a 14 dias).
 - **Feito:**

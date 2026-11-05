@@ -30,7 +30,7 @@ export function useRadarSoon(): RadarSoon[] {
 }
 
 /** No Início, só quando há motivo: algo do seu Radar sai nesta semana (ou saiu ontem). Sem contagem regressiva.
- *  O que sai hoje fica de fora: ganha a faixa grande do dia de lançamento (LaunchDay, no Início). */
+ *  O que sai hoje fica de fora: ele aparece no "Hoje" da linha do horizonte, no Início. */
 export function RadarNotice() {
   const today = localDay();
   const soon = useRadarSoon().filter((x) => x.n !== 0);

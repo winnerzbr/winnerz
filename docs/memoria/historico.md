@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 05/11/2026: Início: sem o HOJE embaixo da capa do lançamento
+- **O dono pediu:** tirar o "HOJE" que ficava embaixo da capa do jogo no ponto "Hoje" da linha do horizonte.
+- **Feito:** no dia de lançamento, o ponto mostra só a capa, o nome e "Saiu hoje · No seu Radar". O "Hoje" continua na legenda de cima da linha.
+
+---
+
 ## 05/11/2026: Início: o lançamento do dia vai para o "Hoje" da linha do horizonte
 - **O dono pediu:** a faixa grande de dia de lançamento "não ficou legal"; o jogo deve ser só mais um elemento da linha do tempo, no ponto "Hoje".
 - **Feito:**

@@ -128,7 +128,6 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
           <Link to={`/jogos/${launch[0].g.slug}`} className="hz__item hz__item--today hz__item--launch">
             <span className="hz__label hz__label--today">
               <span className="hz__cover hz__cover--launch"><CoverArt game={launch[0].g} /></span>
-              <span className="t hz__today">Hoje</span>
               <span className="hz__title">{launch[0].g.title}</span>
               <span className="hz__sub hz__sub--launch">{launch[0].i.status === 'lancado' ? 'Saiu hoje' : 'Sai hoje'}{launch.length > 1 ? ` · e mais ${launch.length - 1}` : ''} · No seu Radar</span>
             </span>

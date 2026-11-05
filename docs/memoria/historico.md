@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 05/11/2026: Início: destaque para o jogo do Radar que sai no dia
+- **O dono pediu:** dar mais destaque, na página inicial, ao jogo do Radar que está sendo lançado no dia (Zelda: Ocarina of Time aparecia só como uma linha pequena, "Saiu hoje.", menor que o card do GTA VI, que sai daqui a 14 dias).
+- **Feito:**
+  - nova faixa larga "Dia de lançamento" no Início, logo abaixo do topo da Jornada e antes da linha do horizonte. Só aparece no dia em que um jogo do Radar sai;
+  - traz a imagem do jogo, o nome grande, "Saiu hoje." com as plataformas, os botões "Começar a jogar" e "Ver o jogo", e um HOJE grande em âmbar com a data;
+  - o fio do horizonte acende em âmbar embaixo da faixa, com um brilho que corre na inclinação do Z (linguagem Fresta);
+  - se sair mais de um jogo no mesmo dia, o primeiro ganha a faixa e os outros aparecem numa linha "Também sai hoje";
+  - o jogo do dia sai do quadrinho "No seu Radar" da coluna Próximo, para não aparecer duas vezes. O quadrinho continua para o resto da semana.
+- **Pendente:** o dono conferir no site; se quiser, a faixa pode ir para o topo da página no dia do lançamento.
+
+---
+
 ## 02/11/2026: o jogo no Godot ganhou repositório próprio
 - **O dono pediu:** receber as versões novas sem baixar e importar sempre.
 - **Feito:**

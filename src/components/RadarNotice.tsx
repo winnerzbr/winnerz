@@ -4,10 +4,13 @@ import { useStore } from '../data/store';
 import { CoverArt } from './CoverArt';
 import { loadRadar, daysUntil, whenSoon, type RadarInfo } from '../lib/radar';
 import { localDay } from '../lib/dates';
+import type { Game } from '../data/types';
 import { radarGames } from '../pages/Radar';
 
-/** No Início, só quando há motivo: algo do seu Radar sai nesta semana (ou saiu ontem). Sem contagem regressiva. */
-export function RadarNotice() {
+export type RadarSoon = { g: Game; i: RadarInfo; n: number };
+
+/** Os jogos do seu Radar que saem nesta semana (ou saíram ontem), com os dias até a data (0 = hoje). */
+export function useRadarSoon(): RadarSoon[] {
   const s = useStore((x) => x);
   const games = useMemo(() => radarGames(s).filter((g) => g.igdbId), [s]);
   const [info, setInfo] = useState<Record<number, RadarInfo>>({});
@@ -20,9 +23,17 @@ export function RadarNotice() {
   }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   const today = localDay();
   // A data do IGDB é meia-noite UTC: à noite, em Brasília, "lançado" pode ainda ser amanhã. Vale o dia daqui.
-  const soon = games.map((g) => ({ g, i: info[g.igdbId!] }))
+  return games.map((g) => ({ g, i: info[g.igdbId!] }))
     .filter(({ i }) => i?.day && (i.status === 'previsto' || i.status === 'lancado') && daysUntil(i.day, today) <= 7 && daysUntil(i.day, today) >= (i.status === 'lancado' ? -1 : 0))
-    .sort((a, b) => a.i!.day!.localeCompare(b.i!.day!));
+    .sort((a, b) => a.i!.day!.localeCompare(b.i!.day!))
+    .map(({ g, i }) => ({ g, i: i!, n: daysUntil(i!.day!, today) }));
+}
+
+/** No Início, só quando há motivo: algo do seu Radar sai nesta semana (ou saiu ontem). Sem contagem regressiva.
+ *  O que sai hoje fica de fora: ganha a faixa grande do dia de lançamento (LaunchDay, no Início). */
+export function RadarNotice() {
+  const today = localDay();
+  const soon = useRadarSoon().filter((x) => x.n !== 0);
   if (!soon.length) return null;
   return (
     <section className="card aside-card radar-home" aria-labelledby="radar-home">

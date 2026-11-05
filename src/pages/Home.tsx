@@ -4,7 +4,7 @@ import { actions, useStore, getState, currentHistory, lastNote, activeWaypoints,
 import type { Game, State } from '../data/types';
 import { PlayButton } from '../components/PlayButton';
 import { WhatToPlay } from '../components/WhatToPlay';
-import { RadarNotice } from '../components/RadarNotice';
+import { RadarNotice, useRadarSoon } from '../components/RadarNotice';
 import { WeekCard, AnniversaryCard } from './Memory';
 import { ago, capitalize, dayMonthYear, longDay } from '../lib/format';
 import { CoverArt } from '../components/CoverArt';
@@ -148,6 +148,40 @@ function NextRelease({ u }: { u?: Upcoming }) {
   );
 }
 
+/** Dia de lançamento: quando um jogo do seu Radar sai hoje, ele ganha uma faixa inteira no Início, só nesse dia.
+ *  Âmbar porque é o agora; o fio do horizonte acende embaixo. */
+function LaunchDay() {
+  const today = useRadarSoon().filter((x) => x.n === 0);
+  if (!today.length) return null;
+  const [{ g, i }, ...more] = today;
+  const plats = i.platforms.slice(0, 4).join(' · ');
+  return (
+    <section className="lday on-photo" aria-labelledby="lday-t">
+      <Backdrop game={g} className="lday__bg kb" />
+      <span className="lday__shade" aria-hidden="true" />
+      <div className="page lday__row">
+        <div className="lday__text">
+          <p className="kicker kicker--now lday__kicker">Hoje · Dia de lançamento no seu Radar</p>
+          <h2 id="lday-t" className="t lday__title">{g.title}</h2>
+          <p className="lday__lead">{i.status === 'lancado' ? 'Saiu hoje.' : 'Sai hoje.'}{plats ? <span className="lday__plats"> {plats}</span> : null}</p>
+          <div className="lday__actions">
+            <PlayButton gameId={g.id} idle="Começar a jogar" />
+            <Link className="btn ghost lg" to={`/jogos/${g.slug}`}>Ver o jogo</Link>
+          </div>
+          {more.length > 0 && (
+            <p className="lday__more">Também sai hoje: {more.map((x, k) => <span key={x.g.id}>{k > 0 ? ', ' : ''}<Link to={`/jogos/${x.g.slug}`}>{x.g.title}</Link></span>)}</p>
+          )}
+        </div>
+        <div className="lday__stamp" aria-hidden="true">
+          <span className="t lday__day">Hoje</span>
+          <span className="lday__date">{stamp(i.day + 'T15:00:00Z')}</span>
+        </div>
+      </div>
+      <span className="lday__horizon" aria-hidden="true" />
+    </section>
+  );
+}
+
 function AwardsNotice({ award }: { award: Award | null }) {
   if (!award) return null;
   const p = phaseOf(award);
@@ -274,6 +308,8 @@ function HomeDefault() {
       )}
 
       {j && <div className="page home-fit"><FitCard journeyId={j.id} /></div>}
+
+      <LaunchDay />
 
       <Horizon s={s} upcoming={upcoming} focusGame={game} nextSession={note?.note ? nSessions + 1 : undefined} />
 

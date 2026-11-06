@@ -4,6 +4,21 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 06/11/2026: o ChatGPT também vai trabalhar no site
+- **O dono pediu:** um documento com tudo sobre o site para passar ao ChatGPT, que vai trabalhar em paralelo com o Claude, e como o ChatGPT pode acessar o site para fazer mudanças.
+- **Feito:**
+  - o documento "WinnerZ — guia do site para o ChatGPT" (um doc do Claude, para exportar e anexar no ChatGPT), sem chaves, sem e-mail e sem resultados do Awards;
+  - o `AGENTS.md` na raiz, que o Codex (o ChatGPT que mexe no código) lê sozinho: manda seguir o `CLAUDE.md` e esta memória.
+- **Decisões:**
+  - o ChatGPT entra pelo Codex (chatgpt.com/codex), ligado ao GitHub só no repositório `winnerz`;
+  - ele não envia direto para o `main`: cada mudança é um pull request que o dono aprova, depois de olhar a prévia do Vercel;
+  - não se cadastram chaves no ambiente do Codex: ele testa em modo demonstração;
+  - ao terminar, o ChatGPT escreve no topo deste histórico com "(ChatGPT)" no título e atualiza o `site.md`;
+  - o dono combina quem faz o quê, para os dois não mexerem na mesma tela ao mesmo tempo.
+- **Pendente:** o dono ligar o "Keep my email addresses private" no GitHub antes do primeiro pull request do ChatGPT, e conectar o Codex.
+
+---
+
 ## 05/11/2026: Início: sem o HOJE embaixo da capa do lançamento
 - **O dono pediu:** tirar o "HOJE" que ficava embaixo da capa do jogo no ponto "Hoje" da linha do horizonte.
 - **Feito:** no dia de lançamento, o ponto mostra só a capa, o nome e "Saiu hoje · No seu Radar". O "Hoje" continua na legenda de cima da linha.

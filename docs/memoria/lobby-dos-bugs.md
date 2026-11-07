@@ -14,6 +14,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - **Editor de sprites:** um programa de pintura de pixel art em que o dono redesenha cada elemento e personagem, com o botão "Trocar no jogo".
 - **Ordem:** começar pelo documento do jogo.
 - **Nome:** "Lobby dos Bugs" é provisório; o nome definitivo será escolhido mais para frente.
+- **Ateliê:** nunca será liberado para os jogadores; é ferramenta só do dono (sem Oficina Steam). As skins são desenhadas pelo dono e desbloqueadas jogando.
 - **Primeira campanha:** tema "a internet de casa caiu" (5 fases: lan house abandonada, ruas do bairro à noite, esgoto de cabos, data center, servidor central).
 - **Trocas no ponto seguro:** começa com 1 troca por ponto seguro e a 2ª é desbloqueada depois.
 - **Dash:** além de andar, a pessoa tem um dash (arrancada rápida com tempo de recarga).

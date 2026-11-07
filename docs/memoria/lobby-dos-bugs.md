@@ -13,6 +13,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - **Visual:** estilo 8 bits. Os gráficos começam gerados por código, e o dono ajusta e faz os sprites dele.
 - **Editor de sprites:** um programa de pintura de pixel art em que o dono redesenha cada elemento e personagem, com o botão "Trocar no jogo".
 - **Ordem:** começar pelo documento do jogo.
+- **Nome:** "Lobby dos Bugs" é provisório; o nome definitivo será escolhido mais para frente.
 
 ## Proposto no documento (aguarda o dono)
 - **Itens:** cerca de 30 armas base e 30 acessórios base, com variações sorteadas e uma "nota de poder" que mantém o sorteio justo.

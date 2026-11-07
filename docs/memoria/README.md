@@ -7,6 +7,7 @@ Esta pasta guarda o que foi feito, decidido e mudado no site, nas lives e nos jo
 | `historico.md` | Diário em ordem de data: o que foi feito, decidido ou mudado em cada sessão. A entrada mais nova fica em cima. |
 | `site.md` | O site: partes, decisões de visual e de funcionamento, o que está no ar e o que vem depois. |
 | `jogos-de-verao.md` | O jogo IAmiguinho: Jogos de Verão: provas, estilo pintado, como as pranchas viram jogo, páginas publicadas e pendências. |
+| `lobby-dos-bugs.md` | O jogo Lobby dos Bugs para o Steam: decisões do dono, propostas do documento do jogo e onde fica cada coisa. |
 | `lives.md` | As lives e o IAmiguinho na live: personalidade, voz, overlay. |
 | `ideias.md` | Ideias do dono guardadas para fazer depois, e as que viraram trabalho (ex.: o teaser de apresentação do IAmiguinho, em produção; programas em `videos/teaser-iamiguinho/`). |
 

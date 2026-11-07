@@ -4,6 +4,31 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 07/11/2026: Lobby dos Bugs vira projeto de jogo para o Steam (documento do jogo)
+- **O dono pediu:** transformar o Lobby dos Bugs em jogo próprio para vender no Steam, misturando Vampire Survivors com Left 4 Dead. A proposta inclui fases fixas, ponto seguro com troca de itens, chefões e subchefes, e centenas de itens e inimigos.
+- **Visual:** 8 bits, com gráficos gerados por código que o dono ajusta. O dono também quer um editor de sprites com o botão "Trocar no jogo".
+- **Feito:** documento do jogo publicado ("Lobby dos Bugs: documento do jogo", artefato a59fb9dc-3875-42a6-a7c6-d1b4aab39290), com:
+  - visão geral e jeito de jogar;
+  - ponto seguro e troca;
+  - itens com nota de poder;
+  - inimigos;
+  - fases e o "Diretor";
+  - progresso;
+  - visual e Ateliê;
+  - som;
+  - tecnologia (Godot);
+  - Steam e mercado;
+  - plano em etapas;
+  - decisões em aberto.
+- **Resposta sobre o editor no Godot:** é possível. A proposta é o Ateliê ficar dentro do próprio jogo, que lê os desenhos de uma pasta e troca na hora.
+- **Recomendado:** nada de arte gerada por IA dentro do jogo (aviso obrigatório no Steam e rejeição do público).
+- **Pendente:**
+  - o dono ler o documento e responder às decisões em aberto;
+  - depois disso, o protótipo de uma fase completa.
+- **Memória:** novo arquivo `lobby-dos-bugs.md`.
+
+---
+
 ## 07/11/2026: Arcade do IAmiguinho com 10 jogos novos (23 no total)
 - **O dono pediu:** sugestões de jogos originais baseados em mecânicas consagradas de celular, no estilo do Arcade e com o IAmiguinho do Arcade. Escolheu **todas** as 10.
 - **Feito:** os 10 jogos entraram no Arcade (tela de pixel 320×360, IAmiguinho de 14×16 com hélice, trilha chiptune própria, ranking da semana de exemplo):

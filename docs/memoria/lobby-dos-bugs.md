@@ -14,6 +14,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - **Editor de sprites:** um programa de pintura de pixel art em que o dono redesenha cada elemento e personagem, com o botão "Trocar no jogo".
 - **Ordem:** começar pelo documento do jogo.
 - **Nome:** "Lobby dos Bugs" é provisório; o nome definitivo será escolhido mais para frente.
+- **Jogar junto:** até 4 pessoas no mesmo PC entra já no lançamento.
 - **Prioridade:** os dois jogos (este e os Jogos de Verão) recebem a mesma atenção. Este será lançado antes, por ser mais fácil de animar; os Jogos de Verão exigem mais trabalho e mecânicas.
 
 ## Proposto no documento (aguarda o dono)

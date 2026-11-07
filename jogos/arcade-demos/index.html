@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcade do IAmiguinho · testes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Press+Start+2P&display=swap">
+<style>
+  :root { --bg:#07080a; --bg2:#101318; --bg3:#181c22; --ink:#f2f4f6; --ink2:#c9ced4; --muted:#8e959e; --now:#ffb25b; --line:#262b33; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: Archivo, "Segoe UI", system-ui, sans-serif; }
+  body { min-height: 100vh; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 28px 64px; display: grid; grid-template-columns: 300px 1fr; gap: 48px; }
+  .side { position: sticky; top: 40px; align-self: start; }
+  .kicker { font-weight: 700; font-size: 14px; color: var(--now); display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
+  .kicker::before { content: ''; width: 5px; height: 16px; background: currentColor; transform: skewX(-22deg); }
+  .px { font-family: 'Press Start 2P', monospace; font-weight: 400; text-transform: uppercase; letter-spacing: 0; }
+  h1 { margin: 0; font-size: 30px; line-height: 1.25; }
+  .lead { color: var(--ink2); font-size: 16px; line-height: 1.5; margin: 18px 0 0; }
+  .week { margin-top: 18px; font-size: 13px; color: var(--muted); }
+  #mascote { display: block; width: 220px; height: 242px; margin-top: 18px; image-rendering: pixelated; }
+  .list { display: flex; flex-direction: column; gap: 4px; }
+  .game { position: relative; display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 22px; padding: 22px 34px 22px 22px; color: inherit; text-decoration: none;
+    background: var(--bg2); clip-path: polygon(0 0, 100% 0, calc(100% - 26px) 100%, 0 100%); transition: background .18s, transform .18s; outline: none; }
+  .game:hover, .game:focus-visible, .game.on { background: var(--bg3); transform: translateX(6px); }
+  .game.on::after, .game:focus-visible::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--now); box-shadow: 0 0 14px rgba(255,178,91,.7); }
+  .num { font-size: 22px; color: var(--muted); }
+  .game.on .num, .game:hover .num { color: var(--now); }
+  .t, .d { display: block; }
+  .t { font-size: 17px; line-height: 1.3; }
+  .d { color: var(--ink2); font-size: 15px; line-height: 1.45; margin-top: 6px; }
+  .rec { text-align: right; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .rec b { display: block; color: var(--ink); font-size: 12px; margin-top: 8px; }
+  .rec.empty b { color: var(--muted); font-size: 10px; }
+  .foot { grid-column: 1 / -1; color: var(--muted); font-size: 13px; line-height: 1.6; border-top: 1px solid var(--line); padding-top: 18px; }
+  @media (max-width: 860px) {
+    .wrap { grid-template-columns: 1fr; gap: 26px; padding: 28px 16px 48px; }
+    .side { position: static; display: grid; grid-template-columns: 1fr 110px; align-items: end; gap: 12px; }
+    #mascote { width: 110px; height: 121px; margin: 0; }
+    h1 { font-size: 20px; }
+    .game { grid-template-columns: 40px 1fr; gap: 14px; padding: 18px 30px 18px 16px; }
+    .num { font-size: 15px; }
+    .t { font-size: 13px; }
+    .rec { grid-column: 2; text-align: left; }
+    .rec b { display: inline; margin-left: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side">
+    <div>
+      <p class="kicker">WinnerZ · testes</p>
+      <h1 class="px">Arcade do IAmiguinho</h1>
+      <p class="lead">Seis minijogos para testar. Cada um vale para o ranking da semana; aqui, por enquanto, fica só o seu recorde neste aparelho.</p>
+      <p class="week" id="week"></p>
+    </div>
+    <canvas id="mascote" width="60" height="66" aria-hidden="true"></canvas>
+  </aside>
+  <main class="list" id="list"></main>
+  <p class="foot">Funciona no teclado, no controle e no celular. Neste menu: setas ou direcional para escolher, espaço ou A para abrir. Dentro do jogo, M liga e desliga o som.</p>
+</div>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  const jogos = [
+    { id: 'relampago', file: 'relampago.html', t: 'Temporada Relâmpago', d: 'Microjogos de 4 segundos, cada vez mais rápidos. Quantos em sequência?', fmt: (v) => v + ' microjogos' },
+    { id: 'balacaxi', file: 'balacaxi.html', t: 'Fábrica de Balacaxi', d: 'Prense bala com abacaxi no ritmo da esteira. Abacabala vale mais.', fmt: (v) => Math.round(v).toLocaleString('pt-BR') + ' pontos' },
+    { id: 'bone', file: 'bone.html', t: 'Pega o Boné', d: 'O boné saiu voando pelos telhados. Corra, pule e se abaixe até alcançar.', fmt: (v) => v.toFixed(1).replace('.', ',') + ' s', low: true },
+    { id: 'pinball', file: 'pinball.html', t: 'Pinball WinnerZ', d: 'Rampa do Zênite, alvos do Radar e o IAmiguinho de bumper.', fmt: (v) => Math.round(v).toLocaleString('pt-BR') + ' pontos' },
+    { id: 'cabo', file: 'cabo.html', t: 'Cabo Enrolado', d: 'Desembarace os fios do controle em cinco níveis, contra o relógio.', fmt: (v) => { const m = Math.floor(v / 60), s = v - m * 60; return m + ':' + s.toFixed(1).padStart(4, '0').replace('.', ','); }, low: true },
+    { id: 'lag', file: 'lag.html', t: 'Lag', d: 'Tênis de mesa contra o IAmiguinho, com a internet mais instável do Brasil.', fmt: (v) => Math.round(v).toLocaleString('pt-BR') + ' pontos' },
+  ];
+  const wk = A.week();
+  document.getElementById('week').textContent = 'Semana ' + wk.split('-S')[1] + ' de ' + wk.split('-S')[0] + '. Os recordes zeram toda segunda.';
+  const list = document.getElementById('list');
+  jogos.forEach((j, i) => {
+    const v = parseFloat(A.store.get('arcade:' + j.id + ':' + wk));
+    const a = document.createElement('a');
+    a.className = 'game'; a.href = j.file;
+    a.innerHTML = '<span class="num px">' + String(i + 1).padStart(2, '0') + '</span>' +
+      '<span><span class="t px"></span><span class="d"></span></span>' +
+      '<span class="rec' + (isNaN(v) ? ' empty' : '') + '">Seu recorde<b class="px"></b></span>';
+    a.querySelector('.t').textContent = j.t;
+    a.querySelector('.d').textContent = j.d;
+    a.querySelector('b').textContent = isNaN(v) ? 'ainda não jogou' : j.fmt(v);
+    a.addEventListener('mouseenter', () => focus(i));
+    list.appendChild(a);
+  });
+  const items = [...list.children];
+  let sel = -1;
+  function focus(i) { sel = (i + items.length) % items.length; items.forEach((el, k) => el.classList.toggle('on', k === sel)); }
+  function open() { if (sel >= 0) location.href = items[sel].href; }
+  addEventListener('keydown', (e) => {
+    if (['ArrowDown', 'KeyS'].includes(e.code)) { focus(sel + 1); items[sel].scrollIntoView({ block: 'nearest' }); e.preventDefault(); }
+    else if (['ArrowUp', 'KeyW'].includes(e.code)) { focus(sel - 1); items[sel].scrollIntoView({ block: 'nearest' }); e.preventDefault(); }
+    else if (['Space', 'Enter', 'KeyZ'].includes(e.code) && sel >= 0) { open(); e.preventDefault(); }
+  });
+  // controle
+  let prev = {};
+  function poll() {
+    const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+    const now = {};
+    for (const g of gps) {
+      if (!g) continue;
+      const b = (k) => !!(g.buttons[k] && g.buttons[k].pressed);
+      now.down = now.down || b(13) || (g.axes[1] || 0) > 0.5;
+      now.up = now.up || b(12) || (g.axes[1] || 0) < -0.5;
+      now.a = now.a || b(0);
+    }
+    if (now.down && !prev.down) { focus(sel + 1); items[sel].scrollIntoView({ block: 'nearest' }); }
+    if (now.up && !prev.up) { focus(sel - 1); items[sel].scrollIntoView({ block: 'nearest' }); }
+    if (now.a && !prev.a) { if (sel < 0) focus(0); else open(); }
+    prev = now;
+    requestAnimationFrame(poll);
+  }
+  requestAnimationFrame(poll);
+  // IAmiguinho ao lado, em pixels de 8 bits
+  const cv = document.getElementById('mascote'), c = cv.getContext('2d', { willReadFrequently: true });
+  function draw(ts) {
+    const t = ts / 1000;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height);
+    c.fillStyle = '#2a2116'; c.fillRect(14, 62, 32, 2);
+    c.setTransform(1 / A.PIX, 0, 0, 1 / A.PIX, 0, 0);
+    A.drawIAmiguinho(c, 90, 186, 1.45, { pose: sel >= 0 ? 'cheer' : 'idle', t, spin: sel >= 0 ? 2.5 : 0.7, face: sel >= 0 ? 'wow' : 'smile' });
+    const img = c.getImageData(0, 0, cv.width, cv.height), d = img.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 110 ? 0 : 255;
+    c.putImageData(img, 0, 0);
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

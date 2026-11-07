@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cabo Enrolado · Arcade do IAmiguinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C;
+  // Celular em pé: a mesa fica em pé também. O nível é o mesmo (as posições são guardadas de 0 a 1).
+  const PORTRAIT = window.innerHeight > window.innerWidth * 1.1;
+  const GW = PORTRAIT ? 540 : 960, GH = PORTRAIT ? 960 : 540;
+  const RECT = PORTRAIT ? { x: 51, y: 111, w: 438, h: 690 } : { x: 162, y: 102, w: 738, h: 408 };
+  const IA = PORTRAIT ? { x: 78, y: 948, s: 0.95 } : { x: 74, y: 522, s: 0.95 };
+  const SIZES = [6, 7, 9, 11, 13];
+  const WIRE = [['#f87858', '#fca044'], ['#3cbcfc', '#a4e4fc'], ['#58d854', '#b8f8b8'], ['#f878f8', '#f8b8f8'],
+    ['#f8b800', '#f8d878'], ['#00e8d8', '#b8f8d8'], ['#9878f8', '#d8b8f8'], ['#bcbcbc', '#fcfcfc']];
+  const P = A.PIX;
+
+  // ---------- Geometria ----------
+  function cross(ax, ay, bx, by, cx, cy) { return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax); }
+  function segHit(p1, p2, p3, p4) {
+    const d1 = cross(p3.x, p3.y, p4.x, p4.y, p1.x, p1.y), d2 = cross(p3.x, p3.y, p4.x, p4.y, p2.x, p2.y);
+    const d3 = cross(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y), d4 = cross(p1.x, p1.y, p2.x, p2.y, p4.x, p4.y);
+    return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+  }
+  function segPoint(p1, p2, p3, p4) {
+    const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+    if (Math.abs(den) < 1e-9) return null;
+    const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+    return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+  }
+  function distSeg(p, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy || 1;
+    const t = A.clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / l2, 0, 1);
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }
+
+  // ---------- Níveis (iguais para todo mundo na semana) ----------
+  function connected(n, edges) {
+    const adj = Array.from({ length: n }, () => []);
+    edges.forEach(([a, b]) => { adj[a].push(b); adj[b].push(a); });
+    const seen = new Set([0]), st = [0];
+    while (st.length) { const v = st.pop(); for (const w of adj[v]) if (!seen.has(w)) { seen.add(w); st.push(w); } }
+    return seen.size === n;
+  }
+  function makeLevel(n, r) {
+    // pontos espalhados (posições da solução, de 0 a 1)
+    const pts = [];
+    let guard = 0;
+    while (pts.length < n && guard++ < 5000) {
+      const p = { x: 0.08 + r() * 0.84, y: 0.08 + r() * 0.84 };
+      if (pts.every((q) => Math.hypot(p.x - q.x, p.y - q.y) > 0.62 / Math.sqrt(n))) pts.push(p);
+    }
+    while (pts.length < n) pts.push({ x: 0.08 + r() * 0.84, y: 0.08 + r() * 0.84 });
+    // ligações sem cruzar: das mais curtas para as mais longas
+    const cand = [];
+    for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) cand.push([i, j, Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y)]);
+    cand.sort((a, b) => a[2] - b[2]);
+    let edges = [];
+    for (const [i, j] of cand) {
+      const ok = edges.every(([a, b]) => a === i || a === j || b === i || b === j || !segHit(pts[i], pts[j], pts[a], pts[b]))
+        && pts.every((q, k) => k === i || k === j || distSeg(q, pts[i], pts[j]) > 0.035);
+      if (ok) edges.push([i, j]);
+    }
+    // tira algumas ligações, sem deixar ninguém solto
+    const target = Math.round(n * 1.6);
+    const order = edges.map((e, i) => i).sort(() => r() - 0.5);
+    const removed = new Set();
+    for (const idx of order) {
+      if (edges.length - removed.size <= target) break;
+      const e = edges[idx];
+      const rest = edges.filter((x, i) => i !== idx && !removed.has(i));
+      const deg = (v) => rest.filter(([a, b]) => a === v || b === v).length;
+      if (deg(e[0]) >= 2 && deg(e[1]) >= 2 && connected(n, rest)) removed.add(idx);
+    }
+    edges = edges.filter((x, i) => !removed.has(i));
+    // embaralha em roda até começar bem enrolado
+    let start = null, best = -1;
+    for (let k = 0; k < 60; k++) {
+      const perm = Array.from({ length: n }, (_, i) => i).sort(() => r() - 0.5);
+      const off = r() * Math.PI * 2;
+      const pos = new Array(n);
+      perm.forEach((v, i) => { const a = off + (i / n) * Math.PI * 2; pos[v] = { x: 0.5 + Math.cos(a) * 0.43, y: 0.5 + Math.sin(a) * 0.43 }; });
+      const cr = countCross(pos, edges);
+      if (cr > best) { best = cr; start = pos; }
+      if (cr >= Math.max(3, Math.ceil(n * 0.7))) break;
+    }
+    const colors = edges.map(() => Math.floor(r() * WIRE.length));
+    return { n, sol: pts, start, edges, colors };
+  }
+  function countCross(pos, edges) {
+    let c = 0;
+    for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
+      const [a, b] = edges[i], [p, q] = edges[j];
+      if (a === p || a === q || b === p || b === q) continue;
+      if (segHit(pos[a], pos[b], pos[p], pos[q])) c++;
+    }
+    return c;
+  }
+  let LEVELS = null;
+  function buildLevels() { const r = A.rng(A.weekSeed('cabo')); LEVELS = SIZES.map((n) => makeLevel(n, r)); }
+  buildLevels();
+  const toGame = (p) => ({ x: RECT.x + p.x * RECT.w, y: RECT.y + p.y * RECT.h });
+
+  // ---------- Estado ----------
+  let lvl = 0, nodes = [], edges = [], colors = [], total = 0, phase = 'in', phaseT = 0;
+  let heldBy = '';
+  let held = -1, grabDX = 0, grabDY = 0, cursor = { x: GW / 2, y: GH / 2 }, hover = -1;
+  let bad = new Set(), sparks = [], badNodes = new Set();
+  let talk = '', talkT = 0, levelTimes = [];
+  const say = (s, t) => { talk = s; talkT = t || 3.2; };
+
+  const START_LINES = [
+    'Meu controle é sem fio.\nTecnologia, já ouviu falar?',
+    'Quem enrolou isso?\nNão olha pra mim, kkkk',
+    'Puxa que sai.\nOu arrebenta.',
+    'Eu resolvia em 2 segundos.\nSe eu quisesse.',
+    'Esse aí é o cabo do\nseu backlog, hahaha',
+  ];
+  const DONE_LINES = [
+    'Organizado!\nAgora arruma meu quarto.',
+    'Bonito. Igualzinho o meu\nque é sem fio, lol',
+    'Cabo de controle: o verdadeiro\nchefão final.',
+    'Viu? Era só não ter\ncomprado com fio, kkkk',
+    'Desenrolou mais rápido que\na fila do lançamento.',
+  ];
+
+  function loadLevel(i) {
+    const L = LEVELS[i];
+    edges = L.edges; colors = L.colors;
+    nodes = L.start.map((p) => { const g = toGame(p); return { x: GW / 2, y: GH / 2, tx: g.x, ty: g.y, sx: GW / 2, sy: GH / 2, pop: 0 }; });
+    held = -1; phase = 'in'; phaseT = 0; sparks = [];
+    say(START_LINES[i % START_LINES.length], 3.4);
+    A.sfx('whoosh');
+  }
+
+  function evaluate() {
+    bad = new Set(); badNodes = new Set(); const pts = [];
+    for (let i = 0; i < edges.length; i++) for (let j = i + 1; j < edges.length; j++) {
+      const [a, b] = edges[i], [p, q] = edges[j];
+      if (a === p || a === q || b === p || b === q) continue;
+      if (segHit(nodes[a], nodes[b], nodes[p], nodes[q])) { bad.add(i); bad.add(j); const s = segPoint(nodes[a], nodes[b], nodes[p], nodes[q]); if (s) pts.push(s); }
+    }
+    // plugue em cima de um fio que não é dele também não vale
+    nodes.forEach((nd, k) => {
+      edges.forEach(([a, b], i) => { if (a !== k && b !== k && distSeg(nd, nodes[a], nodes[b]) < 13) { bad.add(i); badNodes.add(k); } });
+    });
+    sparks = pts;
+    return bad.size === 0;
+  }
+
+  function nearest(x, y, rad) {
+    let bi = -1, bd = rad;
+    nodes.forEach((n, i) => { const d = Math.hypot(n.x - x, n.y - y); if (d < bd) { bd = d; bi = i; } });
+    return bi;
+  }
+  const clampNode = (n) => { n.x = A.clamp(n.x, RECT.x + 8, RECT.x + RECT.w - 8); n.y = A.clamp(n.y, RECT.y + 8, RECT.y + RECT.h - 8); };
+
+  function solved() {
+    phase = 'done'; phaseT = 0; held = -1;
+    levelTimes.push(total);
+    nodes.forEach((n) => A.burst(n.x, n.y, [C.now, C.nowHi, '#fff'], 7, 180, 0.6, 4));
+    A.tone(523, 0.1, 'triangle', 0.22); A.tone(784, 0.1, 'triangle', 0.22, null, 0.08); A.tone(1047, 0.25, 'triangle', 0.22, null, 0.16);
+    A.noise(0.08, 0.2, 3000, 0, 'highpass');
+    if (lvl < SIZES.length - 1) say(DONE_LINES[lvl % DONE_LINES.length], 2.2);
+  }
+
+  const fmt = (s) => {
+    s = Math.round(s * 10) / 10;
+    const m = Math.floor(s / 60), sec = s - m * 60;
+    return m + ':' + sec.toFixed(1).padStart(4, '0').replace('.', ',');
+  };
+
+  // ---------- Desenho em pixels (8 bits) ----------
+  // Mesa, fios e faíscas são pintados pixel a pixel numa camada do tamanho da tela de arte (1 pixel = A.PIX unidades)
+  // e colados sem suavizar. Plugues, mira e controle são sprites de blocos.
+  const PW = Math.round(GW / P), PH = Math.round(GH / P);
+  const pc = document.createElement('canvas'); pc.width = PW; pc.height = PH;
+  const pctx = pc.getContext('2d'), pimg = pctx.createImageData(PW, PH), p32 = new Uint32Array(pimg.data.buffer);
+  const U32 = {};
+  const u = (hex) => U32[hex] || (U32[hex] = ((255 << 24) | (parseInt(hex.slice(5, 7), 16) << 16) | (parseInt(hex.slice(3, 5), 16) << 8) | parseInt(hex.slice(1, 3), 16)) >>> 0);
+  const put = (x, y, c) => { if (x >= 0 && y >= 0 && x < PW && y < PH) p32[y * PW + x] = c; };
+  const BR_OUT = [], BR_BODY = [];
+  for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) if (!(Math.abs(dx) === 2 && Math.abs(dy) === 2)) BR_OUT.push(dx, dy);
+  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) BR_BODY.push(dx, dy);
+  const stamp = (pts, br, c) => { for (let i = 0; i < pts.length; i += 2) for (let k = 0; k < br.length; k += 2) put(pts[i] + br[k], pts[i + 1] + br[k + 1], c); };
+  const blink = (hz, off) => Math.floor(A.time * hz + (off || 0)) % 2 === 0;
+
+  function wirePts(a, b) {
+    const ax = a.x / P, ay = a.y / P, bx = b.x / P, by = b.y / P;
+    const len = Math.hypot(bx - ax, by - ay), sag = Math.min(16, len * P * 0.07) / P;
+    const mx = (ax + bx) / 2, my = (ay + by) / 2 + sag;
+    const n = Math.ceil(len * 1.5) + 1, pts = [];
+    let lx = 1e9, ly = 1e9;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, v = 1 - t;
+      const x = Math.round(v * v * ax + 2 * v * t * mx + t * t * bx), y = Math.round(v * v * ay + 2 * v * t * my + t * t * by);
+      if (x !== lx || y !== ly) { pts.push(x, y); lx = x; ly = y; }
+    }
+    return pts;
+  }
+  function paintTable() {
+    p32.fill(u(C.bg));
+    const x0 = (RECT.x - 21) / P, y0 = (RECT.y - 21) / P, w = (RECT.w + 42) / P, h = (RECT.h + 42) / P, cut = 10;
+    const cTab = u(C.bg2), cLine = u(C.bg3), cEdge = u(C.line);
+    for (let y = 0; y < h; y++) {
+      const xe = x0 + w - Math.round(cut * y / h);
+      for (let x = x0; x < xe; x++) {
+        const edge = y === 0 || y === h - 1 || x === x0 || x === xe - 1;
+        put(x, y0 + y, edge ? cEdge : ((x + Math.floor(y * 0.4)) % 7 === 0 ? cLine : cTab));
+      }
+    }
+  }
+  function paintWires(glow) {
+    const paths = edges.map(([i, j]) => wirePts(nodes[i], nodes[j]));
+    const out = u('#07080a');
+    paths.forEach((pts) => stamp(pts, BR_OUT, out));
+    const ph = blink(5), gph = blink(8);
+    const order = edges.map((_, k) => k).sort((a, b) => (bad.has(b) ? 1 : 0) - (bad.has(a) ? 1 : 0));
+    for (const k of order) {
+      const pts = paths[k], [i, j] = edges[k];
+      let body, hi;
+      if (glow) { body = gph ? '#ffb25b' : '#f8b800'; hi = gph ? '#fce0a8' : '#ffb25b'; }
+      else if (bad.has(k)) { body = ph ? '#a81000' : '#881400'; hi = ph ? '#f83800' : '#a81000'; }
+      else { body = WIRE[colors[k]][0]; hi = WIRE[colors[k]][1]; }
+      stamp(pts, BR_BODY, u(body));
+      const horiz = Math.abs(nodes[j].x - nodes[i].x) > Math.abs(nodes[j].y - nodes[i].y);
+      stamp(pts, horiz ? [0, -1] : [-1, 0], u(hi));
+    }
+  }
+  function paintSparks() {
+    sparks.forEach((s, i) => {
+      const x = Math.round(s.x / P), y = Math.round(s.y / P), f = Math.floor(A.time * 14 + i * 1.7) % 3;
+      const W_ = u('#fcfcfc'), Y = u('#f8b800'), O = u('#fca044');
+      if (f === 0) { put(x, y, W_); for (let r = 1; r <= 2; r++) { put(x + r, y, Y); put(x - r, y, Y); put(x, y + r, Y); put(x, y - r, Y); } }
+      else if (f === 1) { put(x, y, Y); for (let r = 1; r <= 2; r++) { put(x + r, y + r, W_); put(x - r, y - r, W_); put(x + r, y - r, W_); put(x - r, y + r, W_); } }
+      else { put(x, y, W_); put(x + 3, y, O); put(x - 3, y, O); put(x, y + 3, O); put(x, y - 3, O); put(x + 2, y - 2, Y); put(x - 2, y + 2, Y); }
+    });
+  }
+  function flush(c) {
+    pctx.putImageData(pimg, 0, 0);
+    c.save(); c.imageSmoothingEnabled = false; c.drawImage(pc, 0, 0, GW, GH); c.restore();
+  }
+  // sprite de blocos: rows = linhas de letras, pal = letra -> cor; (px, py) = canto em pixels de arte
+  function spr(c, rows, pal, px, py) {
+    for (let y = 0; y < rows.length; y++) for (let x = 0; x < rows[y].length; x++) {
+      const col = pal[rows[y][x]]; if (!col) continue;
+      c.fillStyle = col; c.fillRect((px + x) * P, (py + y) * P, P, P);
+    }
+  }
+  const box = (c, px, py, w, h, col) => { c.fillStyle = col; c.fillRect(px * P, py * P, w * P, h * P); };
+
+  const PLUG = [
+    '.#######.',
+    '#bbbbbbb#',
+    '#bffffbe#',
+    '#bffffbb#',
+    '#bbbbbbb#',
+    '#bpbpbpb#',
+    '#bpbpbpb#',
+    '#bbbbbbb#',
+    '.#######.',
+  ];
+  function drawPlug(c, n, i, glow) {
+    const isHeld = i === held, isHover = i === hover && held < 0, isBad = badNodes.has(i);
+    const cx = Math.round(n.x / P), cy = Math.round(n.y / P) - (isHeld ? 1 : 0) - (n.pop > 0.5 ? 1 : 0);
+    if (isHeld) box(c, cx - 3, cy + 5, 7, 1, '#07080a');
+    const pal = glow
+      ? { '#': '#07080a', b: '#f8b800', f: '#fce0a8', p: '#ac7c00', e: blink(8) ? '#fcfcfc' : '#fce0a8' }
+      : { '#': isHeld ? '#ffb25b' : '#07080a', b: '#7c7c7c', f: '#bcbcbc', p: '#262b33', e: isBad ? (blink(6) ? '#f83800' : '#881400') : isHeld ? '#ffb25b' : '#58d854' };
+    spr(c, PLUG, pal, cx - 4, cy - 4);
+    if (isHeld || isHover) {
+      const col = isHeld ? (blink(6) ? '#ffb25b' : '#fcfcfc') : '#bcbcbc', r = 7;
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        const x = cx + sx * r, y = cy + sy * r;
+        box(c, sx < 0 ? x : x - 1, y, 2, 1, col);
+        box(c, x, sy < 0 ? y : y - 1, 1, 2, col);
+      }
+    }
+  }
+  const PAD = [
+    '..#########..',
+    '.#ggggggggg#.',
+    '#ggwgggggagg#',
+    '#gwwwgggbgcg#',
+    '#ggwgg###ggg#',
+    '#ggg#...#ggg#',
+    '.###.....###.',
+  ];
+  const WAVES = ['.#####.', '#.....#', '..###..', '.#...#.'];
+  function drawController(c, x, y) {
+    const px = Math.round(x / P) - 6, py = Math.round(y / P) - 3;
+    spr(c, PAD, { '#': '#07080a', g: '#262b33', w: '#bcbcbc', a: '#ffb25b', b: '#3cbcfc', c: '#58d854' }, px, py);
+    if (blink(2)) spr(c, WAVES, { '#': '#8be9ff' }, px + 3, py - 6);
+  }
+  function drawIA(c, face, pose) {
+    A.drawIAmiguinho(c, IA.x, IA.y, IA.s, { pose: pose || 'idle', t: A.time, face: face || 'smug', spin: 0.8 });
+    if (pose !== 'cheer') drawController(c, IA.x + 2, IA.y - 40 * IA.s);
+  }
+  function drawCursor(c) {
+    if (!(A.lastDevice === 'teclado' || A.lastDevice === 'controle')) return;
+    const cx = Math.round(cursor.x / P), cy = Math.round(cursor.y / P), h = held >= 0;
+    const r0 = h ? 3 : 4, r1 = h ? 5 : 7, col = h ? (blink(6) ? '#ffb25b' : '#fcfcfc') : '#ffb25b';
+    const arm = (dx, dy) => { for (let r = r0; r <= r1; r++) box(c, cx + dx * r - (dy ? 1 : 0), cy + dy * r - (dx ? 1 : 0), dy ? 3 : 1, dx ? 3 : 1, '#07080a'); };
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => arm(dx, dy));
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { for (let r = r0; r <= r1; r++) box(c, cx + dx * r, cy + dy * r, 1, 1, col); });
+    if (!h) box(c, cx, cy, 1, 1, col);
+  }
+  function drawScene(c, glow) {
+    paintTable();
+    paintWires(glow);
+    if (!glow) paintSparks();
+    flush(c);
+    nodes.forEach((n, i) => { if (i !== held) drawPlug(c, n, i, glow); });
+    if (held >= 0) drawPlug(c, nodes[held], held, glow);
+  }
+
+  // Desenho da tela de início: um bolo de fios parado
+  let titleLevel = null;
+  function drawTitle(c) {
+    if (!titleLevel) titleLevel = makeLevel(10, A.rng(7));
+    const save = { nodes, edges, colors, bad, sparks, badNodes, held, hover };
+    nodes = titleLevel.start.map((p) => toGame(p));
+    edges = titleLevel.edges; colors = titleLevel.colors; held = -1; hover = -1; evaluate();
+    drawScene(c, false);
+    ({ nodes, edges, colors, bad, sparks, badNodes, held, hover } = save);
+  }
+
+  A.game({
+    id: 'cabo', title: 'Cabo Enrolado', tagline: 'Nenhum fio pode cruzar outro.',
+    w: GW, h: GH, lowerIsBetter: true, format: fmt, unit: '',
+    drawTitle,
+    start() {
+      A.tapAction = null; A.setTouchButtons([]);
+      lvl = 0; total = 0; levelTimes = []; cursor = { x: GW / 2, y: GH / 2 };
+      loadLevel(0);
+    },
+    update(dt) {
+      if (talkT > 0) talkT -= dt;
+      phaseT += dt;
+      nodes.forEach((n) => { n.pop = Math.max(0, n.pop - dt * 4); });
+      if (phase === 'in') {
+        const k = Math.min(1, phaseT / 0.45), e = 1 - Math.pow(1 - k, 3);
+        nodes.forEach((n) => { n.x = A.lerp(n.sx, n.tx, e); n.y = A.lerp(n.sy, n.ty, e); });
+        if (k >= 1) { phase = 'play'; evaluate(); }
+        return;
+      }
+      if (phase === 'done') {
+        if (phaseT > 1.5) {
+          if (lvl < SIZES.length - 1) { lvl++; loadLevel(lvl); }
+          else {
+            const t = total;
+            const line = t < 60 ? 'Menos de um minuto?\nTá treinando escondido, né' : t < 120 ? 'Nada mal. Eu fazia em 30s.\nMentira, hahaha' : 'Demorou, mas desenrolou.\nIgual minhas lives, kkkk';
+            A.end(t, { line, sub: '5 níveis' });
+          }
+        }
+        return;
+      }
+      total += dt;
+      // cursor de teclado e controle
+      let vx = (A.held('right') ? 1 : 0) - (A.held('left') ? 1 : 0), vy = (A.held('down') ? 1 : 0) - (A.held('up') ? 1 : 0);
+      if (A.pad.lx || A.pad.ly) { vx = A.pad.lx; vy = A.pad.ly; }
+      if (vx || vy) {
+        const sp = 500; cursor.x = A.clamp(cursor.x + vx * sp * dt, 10, GW - 10); cursor.y = A.clamp(cursor.y + vy * sp * dt, 60, GH - 10);
+      }
+      const usingCursor = A.lastDevice === 'teclado' || A.lastDevice === 'controle';
+      if (A.pressed('a')) {
+        if (held >= 0) { held = -1; A.sfx('blip'); }
+        else { const i = nearest(cursor.x, cursor.y, 60); if (i >= 0) { held = i; heldBy = 'cursor'; grabDX = nodes[i].x - cursor.x; grabDY = nodes[i].y - cursor.y; nodes[i].pop = 1; A.sfx('tick'); } }
+      }
+      // mouse e toque
+      if (A.ptr.pressed && !usingCursor) {
+        const rad = A.lastDevice === 'toque' ? 78 : 42;
+        const i = nearest(A.ptr.x, A.ptr.y, rad);
+        if (i >= 0) { held = i; grabDX = nodes[i].x - A.ptr.x; grabDY = nodes[i].y - A.ptr.y; grabDX *= 0.3; grabDY *= 0.3; nodes[i].pop = 1; A.sfx('tick'); heldBy = 'ptr'; }
+      }
+      if (held >= 0) {
+        const n = nodes[held];
+        if (heldBy === 'ptr' && !usingCursor) {
+          if (!A.ptr.down) { held = -1; heldBy = ''; A.sfx('blip'); }
+          else { n.x = A.ptr.x + grabDX; n.y = A.ptr.y + grabDY; }
+        } else if (usingCursor) { n.x = cursor.x + grabDX; n.y = cursor.y + grabDY; }
+        if (held >= 0) clampNode(n);
+      }
+      if (A.ptr.pressed && usingCursor) { /* clicou depois de usar teclado: passa a valer o mouse no próximo quadro */ }
+      hover = usingCursor ? nearest(cursor.x, cursor.y, 60) : nearest(A.ptr.x, A.ptr.y, A.lastDevice === 'toque' ? 0 : 42);
+      if (evaluate()) solved();
+    },
+    draw(c, state) {
+      const glow = phase === 'done';
+      drawScene(c, glow);
+      A.text(c, fmt(total), GW / 2, 48, { size: 24, wide: true, align: 'center', color: C.ink });
+      A.text(c, 'Nível ' + (lvl + 1) + '/' + SIZES.length, GW / 2, 72, { size: 12, align: 'center', color: C.now });
+      if (state !== 'over') drawIA(c, glow ? 'wow' : 'smug', glow ? 'cheer' : 'idle');
+      if (talkT > 0 && state === 'play') A.bubble(c, IA.x + 8, IA.y - 108 * IA.s, talk, { size: 12, align: 'left' });
+      if (state === 'play' && phase !== 'in') drawCursor(c);
+    },
+  });
+  // para os testes automáticos: põe o nível atual na posição da solução
+  window.__teste = {
+    resolver() { const L = LEVELS[lvl]; nodes.forEach((n, i) => { const g = toGame(L.sol[i]); n.x = g.x; n.y = g.y; }); },
+    nos() { return nodes.map((n) => ({ x: Math.round(n.x), y: Math.round(n.y) })); },
+    info() { return { lvl, phase, total: +total.toFixed(2), cruz: bad.size, nos: nodes.length, ligacoes: edges.length, estado: A.state }; },
+  };
+})();
+</script>
+</body>
+</html>

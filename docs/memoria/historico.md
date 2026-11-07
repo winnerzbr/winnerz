@@ -4,6 +4,25 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 07/11/2026: Arcade do IAmiguinho, demos jogáveis em 8 bits
+- **O dono pediu:** novas sugestões de minigames para o Arcade. Escolheu seis para testar e pediu tudo em **estilo 8 bits**.
+- **Feito:** seis demos jogáveis, publicadas como página no Claude ("Arcade do IAmiguinho · testes", com menu). O código fica em `jogos/arcade-demos/`:
+  - **Temporada Relâmpago:** 8 microjogos de 4 s que aceleram a cada 4 vencidos (cartucho, spoiler, cabo, cacetinho, "mais um jogo zerado", chat, parar no Z, boné). 3 pilhas de vida. A pontuação são os microjogos vencidos em sequência;
+  - **Fábrica de Balacaxi:** jogo de ritmo com um botão. Bala + abacaxi = Balacaxi (100), o contrário = Abacabala (150), metades iguais não se prensam. Combos, 3 vidas e turno de 90 s;
+  - **Pega o Boné:** corrida nos telhados à noite, só com pular e abaixar. Rota igual para todos na semana; menor tempo vence (cerca de 64 s numa corrida limpa);
+  - **Pinball WinnerZ:** mesa em pé com o corredor do Zênite (letras Z-Ê-N-I-T-E), alvos do Radar e o IAmiguinho de bumper. 3 bolas;
+  - **Cabo Enrolado:** desembaraçar fios em 5 níveis, iguais para todos na semana; menor tempo vence;
+  - **Lag:** tênis de mesa contra o IAmiguinho, com atraso de comando que muda (medidor de ping). Pontuação: seus pontos × 100 + bônus se vencer.
+- **Base comum (`arcade.js`):**
+  - **Visual 8 bits:** tela de 320x180 pixels ampliada, com paleta de cores de console antigo mais os tons do WinnerZ. A letra é própria, em pixels (só maiúsculas, com acentos);
+  - **Personagens:** o IAmiguinho e os Amiguinhos são desenhados em pixels;
+  - **Controles:** teclado, controle e toque (botões na tela só no celular);
+  - **Telas e recorde:** telas de início e de resultado com uma frase do IAmiguinho. O recorde da semana fica guardado só no aparelho.
+- **Ainda não feito:** música (só efeitos), ranking da semana de verdade (online) e a entrada do Arcade no site.
+- **Pendente:** o dono testar e dizer quais jogos entram no Arcade.
+
+---
+
 ## 06/11/2026: o ChatGPT também vai trabalhar no site
 - **O dono pediu:** um documento com tudo sobre o site para passar ao ChatGPT, que vai trabalhar em paralelo com o Claude, e como o ChatGPT pode acessar o site para fazer mudanças.
 - **Feito:**

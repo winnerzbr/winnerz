@@ -43,6 +43,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - **IAmiguinho:** é o mascote e o guia do site, com perfil próprio, @iamiguinho.
 - **Museu:** a primeira versão é a visita guiada. O museu jogável vem depois, como novidade.
 - **Arcade do IAmiguinho e Fase da Semana:** aprovados. O Minigolfe saiu dos Jogos de Verão e vai entrar no Arcade, com os gráficos do Arcade.
+  - **Estilo do Arcade: 8 bits** (pedido do dono em 07/11/2026). Demos de teste em `jogos/arcade-demos/`, publicadas como página no Claude: Temporada Relâmpago, Fábrica de Balacaxi, Pega o Boné, Pinball WinnerZ, Cabo Enrolado e Lag. Base comum em `arcade.js` (tela 320x180, letra própria em pixels, controles, recorde da semana). O dono ainda vai escolher quais entram.
 - **IAmiguinho: Jogos de Verão:** no ar em `/jogos-de-verao` (tela inteira) e `/studio/jogos-de-verao` (com o editor, só administração). Guarda o editor na tabela `jogo_dados` e as imagens pintadas na pasta `jogos` do Storage (migração 0097, o dono roda no SQL Editor). Detalhes em `jogos-de-verao.md`.
 - **Álbum de figurinhas:** deixado de lado por causa de direitos autorais. Nada de figurinhas com arte de IA.
 - **Cartas Vivas** (cartas no estilo super trunfo): guardada para depois. Não usar o nome "Super Trunfo", que é marca da Grow.

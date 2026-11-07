@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pinball WinnerZ · Arcade do IAmiguinho</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C;
+  const W = 540, H = 960;
+  const R = 11;                 // raio da bola
+  const GRAV = 1100;            // gravidade da mesa inclinada
+  const SUB = 12;               // subpassos por quadro
+  const VMAX = 2400;
+
+  // ---------- Mesa ----------
+  // Paredes: polilinhas. Cada segmento vira { ax, ay, bx, by, kick?, radar? }.
+  const segs = [];
+  function poly(pts, o = {}) {
+    for (let i = 0; i < pts.length - 1; i++) segs.push(Object.assign({ ax: pts[i][0], ay: pts[i][1], bx: pts[i + 1][0], by: pts[i + 1][1] }, o.each ? o.each(i) : {}));
+  }
+  // contorno: parede esquerda, arco do alto, parede direita (faixa do lançador)
+  const arc = [];
+  const ECX = 270, ECY = 330, ERX = 240, ERY = 230;
+  for (let i = 0; i <= 28; i++) { const th = Math.PI + (Math.PI * i) / 28; arc.push([ECX + ERX * Math.cos(th), ECY + ERY * Math.sin(th)]); }
+  const outer = [[30, 990], [30, 330], ...arc.slice(1, -1), [510, 330], [510, 990]];
+  poly(outer);
+  // parede de dentro da faixa do lançador
+  poly([[470, 990], [470, 330]]);
+  // separadores das saídas laterais + guias até as palhetas
+  poly([[70, 690], [70, 756], [167, 837]]);
+  poly([[430, 690], [430, 756], [333, 837]]);
+  // estilingues (a aresta inclinada chuta)
+  const slingL = [[110, 668], [110, 760], [156, 790]];
+  const slingR = [[390, 668], [390, 760], [344, 790]];
+  poly([slingL[0], slingL[1], slingL[2]]);
+  segs.push({ ax: slingL[2][0], ay: slingL[2][1], bx: slingL[0][0], by: slingL[0][1], kick: 'L' });
+  poly([slingR[0], slingR[1], slingR[2]]);
+  segs.push({ ax: slingR[2][0], ay: slingR[2][1], bx: slingR[0][0], by: slingR[0][1], kick: 'R' });
+  // corredor do Zênite (no alto, à esquerda)
+  const zL = [[124, 352], [98, 214]], zR = [[184, 358], [160, 216]];
+  poly(zL); poly(zR);
+  const sensor = { ax: 108, ay: 280, bx: 170, by: 286 };
+  // banco do Radar (à direita, encostado na faixa do lançador)
+  poly([[470, 360], [448, 376]]);
+  segs.push({ ax: 448, ay: 376, bx: 448, by: 500, radar: true });
+  poly([[448, 500], [470, 516]]);
+
+  // defletores nas laterais (devolvem a bola que desce colada na parede)
+  const deflL = [[30, 540], [74, 592]], deflR = [[470, 584], [430, 630]];
+  poly(deflL); poly(deflR);
+
+  // pára-choques
+  const bumpers = [
+    { x: 296, y: 446, r: 40, ami: true, flash: 0, cd: 0 },
+    { x: 244, y: 338, r: 24, flash: 0, cd: 0 },
+    { x: 352, y: 334, r: 24, flash: 0, cd: 0 },
+  ];
+  // alvos do Radar
+  const targets = [{ y: 398, up: true, flash: 0 }, { y: 438, up: true, flash: 0 }, { y: 478, up: true, flash: 0 }];
+
+  // palhetas
+  const FL = 74;
+  const A_REST = 0.5, A_UP = -0.46;
+  const flips = [
+    { side: 'L', px: 160, py: 845, a: A_REST, w: 0 },
+    { side: 'R', px: 340, py: 845, a: A_REST, w: 0 },
+  ];
+  function flipTip(f) { const dx = f.side === 'L' ? Math.cos(f.a) : -Math.cos(f.a); return [f.px + dx * FL, f.py + Math.sin(f.a) * FL]; }
+
+  // ---------- Estado ----------
+  let S = null;
+  const LETTERS = ['Z', 'Ê', 'N', 'I', 'T', 'E'];
+  const AMI_LINES = [
+    'Opa! Cuidado com o visor.', 'Pode bater, eu sou o chefe da fase.', 'Eu deixei você me acertar.',
+    'Hahaha nem senti.', 'Essa vai pro meu clipe.', 'Calma, eu sou patrimônio do site.',
+    'Mais uma dessa e eu cobro ingresso.', 'kkkk errou a mira e acertou o craque.', 'Essa bola tem ping alto.',
+    'Bate com carinho, sou caro.', 'lol, achou que ia me derrubar?',
+  ];
+  function newBallState() {
+    S.ball = { x: 490, y: 930 - R, vx: 0, vy: 0, inLane: true, live: false };
+    S.pull = 0; S.armed = false; S.saveUsed = false; S.playT = 0; S.stuckT = 0;
+  }
+  function say(text, x, y, dur) { S.say = { text, x, y, t: dur || 1.8 }; }
+  function add(p, x, y) {
+    const v = p * S.mult; S.score += v;
+    if (x != null) A.float(x, y, '+' + v.toLocaleString('pt-BR'), C.now, v >= 10000 ? 26 : 18);
+  }
+
+  // ---------- Física ----------
+  function closest(ax, ay, bx, by, px, py) {
+    const dx = bx - ax, dy = by - ay; const l2 = dx * dx + dy * dy;
+    let t = l2 ? ((px - ax) * dx + (py - ay) * dy) / l2 : 0; t = Math.max(0, Math.min(1, t));
+    return [ax + dx * t, ay + dy * t, t];
+  }
+  function collideSeg(b, s, dt) {
+    const [qx, qy] = closest(s.ax, s.ay, s.bx, s.by, b.x, b.y);
+    let dx = b.x - qx, dy = b.y - qy; let d = Math.hypot(dx, dy);
+    if (d >= R) return;
+    if (d < 1e-6) { dx = -(s.by - s.ay); dy = s.bx - s.ax; d = Math.hypot(dx, dy); }
+    const nx = dx / d, ny = dy / d;
+    b.x = qx + nx * R; b.y = qy + ny * R;
+    const vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) {
+      const e = s.kick ? 0.5 : 0.42;
+      b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+      if (s.kick && -vn > 70) {
+        b.vx += nx * 620; b.vy += ny * 620;
+        S.slingFlash[s.kick] = 0.15; add(100); A.sfx('bump');
+      }
+      if (s.radar) hitRadar(qy, -vn);
+    }
+  }
+  function hitRadar(y, speed) {
+    for (const t of targets) {
+      if (t.up && Math.abs(y - t.y) < 20 && speed > 40) {
+        t.up = false; t.flash = 0.3; add(1500, 420, t.y); A.sfx('coin'); A.shake(2, 0.12);
+        if (targets.every((x) => !x.up)) {
+          add(12000, 360, 440); S.radarClears++; A.sfx('win'); A.shake(4, 0.25);
+          A.burst(448, 438, [C.now, C.nowHi, C.ink], 26, 320);
+          say('Radar limpo!\nEu mandei bem, né?', bumpers[0].x, bumpers[0].y - 44, 2);
+          S.radarReset = 1.4;
+        }
+        return;
+      }
+    }
+  }
+  function collideBumper(b, k) {
+    const dx = b.x - k.x, dy = b.y - k.y; const d = Math.hypot(dx, dy);
+    if (d >= R + k.r || d < 1e-6) return;
+    const nx = dx / d, ny = dy / d;
+    b.x = k.x + nx * (R + k.r); b.y = k.y + ny * (R + k.r);
+    const vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; }
+    const sp = Math.hypot(b.vx, b.vy); const want = Math.max(sp, 760);
+    b.vx += nx * 260; b.vy += ny * 260;
+    const sp2 = Math.hypot(b.vx, b.vy); b.vx *= want / sp2; b.vy *= want / sp2;
+    if (k.cd <= 0) {
+      k.cd = 0.08; k.flash = 0.2;
+      add(k.ami ? 1000 : 500, k.x, k.y - k.r - 6);
+      A.sfx('bump'); A.burst(k.x + nx * k.r, k.y + ny * k.r, k.ami ? [C.light, C.now] : [C.blueHi, C.ink], 8, 200, 0.35, 3);
+      if (k.ami) {
+        S.amiHits++; S.amiFace = 0.6;
+        if (S.lineCd <= 0) { say(A.pick(AMI_LINES), k.x, k.y - 40, 1.7); S.lineCd = 4.5; }
+      }
+    }
+  }
+  function collideFlip(b, f) {
+    const [tx, ty] = flipTip(f);
+    const [qx, qy, t] = closest(f.px, f.py, tx, ty, b.x, b.y);
+    const rr = 11 - 5 * t;
+    let dx = b.x - qx, dy = b.y - qy; let d = Math.hypot(dx, dy);
+    if (d >= R + rr) return;
+    if (d < 1e-6) { dx = 0; dy = -1; d = 1; }
+    const nx = dx / d, ny = dy / d;
+    b.x = qx + nx * (R + rr); b.y = qy + ny * (R + rr);
+    // velocidade do ponto de contato da palheta
+    const Om = f.side === 'L' ? f.w : -f.w;
+    const rx = qx - f.px, ry = qy - f.py;
+    const fvx = -Om * ry, fvy = Om * rx;
+    const rvx = b.vx - fvx, rvy = b.vy - fvy;
+    const vn = rvx * nx + rvy * ny;
+    if (vn < 0) {
+      const e = 0.38;
+      b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+    }
+  }
+  function sensorCross(px, py, b) {
+    const s = sensor;
+    const sx = s.bx - s.ax, sy = s.by - s.ay;
+    const c0 = sx * (py - s.ay) - sy * (px - s.ax);
+    const c1 = sx * (b.y - s.ay) - sy * (b.x - s.ax);
+    if (c0 > 0 && c1 <= 0 && b.vy < 0) {
+      const [, , t] = closest(s.ax, s.ay, s.bx, s.by, b.x, b.y);
+      if (t > 0 && t < 1) return true;
+    }
+    return false;
+  }
+  function lightLetter() {
+    if (S.zCd > 0) return;
+    S.zCd = 0.6;
+    S.lit++;
+    add(3000, 140, 260); A.sfx('coin');
+    if (S.lit >= LETTERS.length) {
+      S.lit = 0; S.zenites++; S.mult = Math.min(5, S.mult + 1);
+      add(25000, 282, 200); S.trophy = 3.2; A.sfx('win'); A.shake(6, 0.35);
+      A.burst(282, 220, [C.gold, '#f8d878', C.now], 40, 380, 0.9, 6);
+      say('ZÊNITE ACESO!\nJá pode ensaiar o discurso.', 250, 600, 2.4);
+    }
+  }
+
+  function step(dt, inLeft, inRight) {
+    // palhetas
+    for (const f of flips) {
+      const on = f.side === 'L' ? inLeft : inRight;
+      const target = on ? A_UP : A_REST;
+      const sp = on ? 32 : 15;
+      const old = f.a;
+      if (f.a > target) f.a = Math.max(target, f.a - sp * dt); else f.a = Math.min(target, f.a + sp * dt);
+      f.w = (f.a - old) / dt;
+    }
+    const b = S.ball;
+    if (!b.live) return;
+    const px = b.x, py = b.y;
+    b.vy += GRAV * dt;
+    b.vx *= 1 - 0.04 * dt; b.vy *= 1 - 0.04 * dt;
+    const sp = Math.hypot(b.vx, b.vy); if (sp > VMAX) { b.vx *= VMAX / sp; b.vy *= VMAX / sp; }
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    for (const s of segs) collideSeg(b, s, dt);
+    for (const k of bumpers) collideBumper(b, k);
+    for (const f of flips) collideFlip(b, f);
+    if (sensorCross(px, py, b)) lightLetter();
+  }
+
+  // ---------- Partida ----------
+  function start() {
+    S = { score: 0, balls: 3, ballNo: 1, mult: 1, lit: 0, zenites: 0, radarClears: 0, amiHits: 0, say: null, lineCd: 0, zCd: 0,
+      trophy: 0, radarReset: 0, slingFlash: { L: 0, R: 0 }, nextBall: 0, amiFace: 0, msg: null, over: false };
+    for (const t of targets) t.up = true;
+    newBallState();
+    A.tapAction = null;
+    A.setTouchButtons([]);
+  }
+
+  function touchSides() {
+    let l = false, r = false, any = false;
+    for (const p of A.pointers()) { if (!p.touch) continue; any = true; if (p.x < W / 2) l = true; else r = true; }
+    return { l, r, any };
+  }
+
+  function update(dt) {
+    const T = touchSides();
+    const inLeft = A.held('left') || A.held('l') || T.l;
+    const inRight = A.held('right') || A.held('r') || T.r;
+    if ((A.pressed('left') || A.pressed('l')) || (A.pressed('right') || A.pressed('r'))) A.sfx('flip');
+    if (A.ptr.pressed && A.isTouch && !S.ball.inLane) A.sfx('flip');
+    // timers
+    S.lineCd -= dt; S.zCd -= dt; S.amiFace -= dt;
+    if (S.say) { S.say.t -= dt; if (S.say.t <= 0) S.say = null; }
+    if (S.trophy > 0) S.trophy -= dt;
+    S.slingFlash.L -= dt; S.slingFlash.R -= dt;
+    for (const k of bumpers) { k.flash -= dt; k.cd -= dt; }
+    for (const t of targets) t.flash -= dt;
+    if (S.radarReset > 0) { S.radarReset -= dt; if (S.radarReset <= 0) { for (const t of targets) { t.up = true; t.flash = 0.3; } A.sfx('blip'); } }
+    if (S.msg) { S.msg.t -= dt; if (S.msg.t <= 0) S.msg = null; }
+
+    const b = S.ball;
+    // esperando a próxima bola
+    if (S.nextBall > 0) {
+      S.nextBall -= dt;
+      if (S.nextBall <= 0) {
+        if (S.balls <= 0) { finish(); return; }
+        newBallState();
+      }
+      for (let i = 0; i < SUB; i++) step(dt / SUB, inLeft, inRight);
+      return;
+    }
+    // lançador
+    if (b.inLane && !b.live) {
+      const pulling = A.held('a') || A.held('down') || T.any;
+      if (!S.armed) { if (!pulling) S.armed = true; }
+      else if (pulling) {
+        S.pull = Math.min(1, S.pull + dt / 0.9);
+        if (Math.floor(S.pull * 10) !== Math.floor((S.pull - dt / 0.9) * 10)) A.sfx('tick');
+      } else if (S.pull > 0) {
+        b.live = true; b.vx = 0; b.vy = -(820 + 1700 * S.pull);
+        A.sfx('whoosh'); S.pull = 0;
+      }
+      b.y = 930 - R + S.pull * 34;
+      for (let i = 0; i < SUB; i++) step(dt / SUB, inLeft, inRight);
+      return;
+    }
+    for (let i = 0; i < SUB; i++) step(dt / SUB, inLeft, inRight);
+    // saiu da faixa do lançador
+    if (b.inLane && b.x < 468 && b.y < 330) { b.inLane = false; S.playT = 0; }
+    if (!b.inLane) S.playT += dt;
+    // voltou para a faixa do lançador
+    if (b.x > 471 && b.y > 900) { b.live = false; b.inLane = true; b.vx = b.vy = 0; b.x = 490; S.pull = 0; S.armed = false; return; }
+    if (b.x > 470 && b.y > 330) b.inLane = true;
+    // segurança: se escapar da mesa, volta ao lançador sem perder
+    if (b.x < 18 || b.x > 522 || b.y < 80 || !isFinite(b.x + b.y)) { newBallState(); return; }
+    // bola parada demais (fora das palhetas)
+    if (!b.inLane && Math.hypot(b.vx, b.vy) < 8 && b.y < 800) { S.stuckT += dt; if (S.stuckT > 3) { b.vx = A.rand(-300, 300); b.vy = -500; S.stuckT = 0; A.shake(3, 0.2); } } else S.stuckT = 0;
+    // perdeu a bola
+    if (b.y > 975) {
+      if (!S.saveUsed && S.playT < 5) {
+        S.saveUsed = true;
+        newBallState(); S.saveUsed = true; S.armed = false;
+        S.msg = { text: 'Bola salva', t: 1.6 };
+        say('Essa não contou. De nada.', 270, 600, 1.8);
+        A.sfx('ok');
+        return;
+      }
+      b.live = false;
+      S.balls--; A.sfx('lose'); A.shake(3, 0.2);
+      S.msg = { text: S.balls > 0 ? 'Bola perdida' : 'Fim de jogo', t: 1.4 };
+      if (S.balls > 0) { S.ballNo++; S.nextBall = 1.3; }
+      else S.nextBall = 1.1;
+      b.x = -100; b.y = -100;
+    }
+  }
+
+  function finish() {
+    const sc = S.score;
+    let line;
+    if (S.zenites > 0) line = 'Acendeu o Zênite!\nVou fingir que eu te ensinei.';
+    else if (sc < 20000) line = 'Pinball é física.\nVocê fez arte abstrata kkkk';
+    else if (sc < 60000) line = 'Nada mal. Eu faria o dobro,\nmas tô de folga.';
+    else if (sc < 120000) line = 'Tá, essa foi bonita.\nQuase no meu nível.';
+    else line = 'Ok, respeito.\nMas a mesa é minha.';
+    const parts = [];
+    if (S.zenites) parts.push('Zênite ' + S.zenites + 'x');
+    if (S.radarClears) parts.push('Radar ' + S.radarClears + 'x');
+    A.end(sc, { line, sub: parts.join(' · ') });
+  }
+
+  // ---------- Desenho (8 bits: cores chapadas, contorno de 1 pixel de arte = 3 unidades) ----------
+  const P = {
+    floor: '#101318', dots: '#181c22', wall: '#262b33', wallHi: '#7c7c7c', dark: '#07080a', out: '#07080a',
+    amber: '#ffb25b', amberHi: '#f8d878', gold: '#d9b45a', goldHi: '#f8d878', copper: '#e45c10', brown: '#3a2a1a', brown2: '#5a3a20',
+    blue: '#0078f8', blueHi: '#3cbcfc', white: '#f8f8f8', gray: '#bcbcbc', cream: '#f1e6cf', creamSh: '#d6c6a6', light: '#8be9ff',
+  };
+  const px = (v) => Math.round(v / 3) * 3;
+  const blinkOn = (hz) => Math.floor(A.time * hz) % 2 === 0;
+  function box(c, x, y, w, h, fill, line) {
+    x = px(x); y = px(y); w = px(w); h = px(h);
+    if (line) { c.fillStyle = line; c.fillRect(x - 3, y - 3, w + 6, h + 6); }
+    c.fillStyle = fill; c.fillRect(x, y, w, h);
+  }
+  function disc(c, x, y, r, fill, line) {
+    if (line) { c.fillStyle = line; c.beginPath(); c.arc(x, y, r + 3, 0, 7); c.fill(); }
+    c.fillStyle = fill; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+  }
+
+  function drawZenite(c, x, y, lit) {
+    // troféu Zênite em blocos: base de mármore negro, figura lapidada dourada, braço erguido, mastro de cobre e bandeira
+    const on = lit > 0;
+    const g1 = on ? P.goldHi : P.brown2, g2 = on ? P.gold : P.brown;
+    if (on && blinkOn(6)) { box(c, x - 33, y - 99, 66, 105, P.amber); box(c, x - 30, y - 96, 60, 99, P.floor); }
+    box(c, x - 21, y - 12, 42, 12, P.dark, P.wall);
+    box(c, x - 15, y - 6, 9, 3, P.copper); box(c, x + 3, y - 9, 9, 3, P.copper);
+    box(c, x - 6, y - 36, 12, 24, g2, P.out);           // pernas/corpo
+    box(c, x - 3, y - 33, 3, 18, g1);                    // faceta
+    box(c, x - 6, y - 51, 12, 15, g1, P.out);            // tronco
+    box(c, x - 3, y - 60, 6, 6, g1, P.out);              // cabeça
+    box(c, x + 6, y - 63, 6, 18, g2, P.out);             // braço erguido
+    box(c, x + 12, y - 87, 3, 42, P.copper);             // mastro
+    box(c, x + 15, y - 87, 21, 15, on ? P.amber : P.brown2, P.out); // bandeira
+    const st = on ? P.white : P.gray;                    // estrela de 8 pontas
+    box(c, x + 24, y - 84, 3, 9, st); box(c, x + 21, y - 81, 9, 3, st);
+  }
+
+  function drawFloor(c) {
+    c.fillStyle = P.dark; c.fillRect(0, 0, W, H);
+    c.save();
+    c.beginPath(); c.moveTo(30, 990); c.lineTo(30, 330); for (const p of arc) c.lineTo(p[0], p[1]); c.lineTo(510, 990); c.closePath();
+    c.fillStyle = P.floor; c.fill();
+    c.clip();
+    // pontilhado na inclinação do Z
+    c.fillStyle = P.dots;
+    const k = Math.tan(22 * Math.PI / 180);
+    for (let row = 96; row < 990; row += 18) for (let col = -240; col < 560; col += 36) { const x = px(col + (990 - row) * k % 36 + (row / 18 % 2) * 18); c.fillRect(x, row, 3, 3); }
+    // faixa do lançador
+    c.fillStyle = P.dark; c.fillRect(471, 330, 39, 660);
+    c.restore();
+  }
+
+  function drawLetters(c) {
+    for (let i = 0; i < LETTERS.length; i++) {
+      const x = px(198 + i * 33), y = 141;
+      const on = i < S.lit || (S.trophy > 0 && blinkOn(8));
+      box(c, x - 15, y - 15, 30, 30, on ? P.amber : P.dots, on ? P.out : P.wall);
+      A.text(c, LETTERS[i], x + 1, y + 10, { size: 18, align: 'center', color: on ? P.dark : P.wall, shadow: false });
+    }
+    // setas do corredor (piscam enquanto o Zênite não acende)
+    const on = S.lit < LETTERS.length;
+    const k = Math.floor(A.time * 5) % 3;
+    for (let j = 0; j < 2; j++) {
+      const col = on && k === j ? P.amber : P.brown;
+      const yy = 336 - j * 30, xx = 150 - j * 5;
+      c.fillStyle = col;
+      for (let r = 0; r < 4; r++) c.fillRect(px(xx - r * 3), yy - 9 + r * 3 * 1, r * 6 + 3, 3);
+    }
+  }
+
+  function strokePoly(c, pts, w, col) { c.strokeStyle = col; c.lineWidth = w; c.lineCap = 'square'; c.lineJoin = 'miter'; c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]))); c.stroke(); }
+  function drawWalls(c) {
+    const lines = [outer, [[470, 990], [470, 330]], [[70, 690], [70, 756], [167, 837]], [[430, 690], [430, 756], [333, 837]], zL, zR, deflL, deflR];
+    for (const L of lines) strokePoly(c, L, 12, P.wall);
+    for (const L of lines) strokePoly(c, L, 6, P.wallHi);
+    // estilingues
+    for (const [pts, kk] of [[slingL, 'L'], [slingR, 'R']]) {
+      c.fillStyle = P.dots; c.strokeStyle = P.wall; c.lineWidth = 6; c.lineJoin = 'miter';
+      c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); c.lineTo(pts[1][0], pts[1][1]); c.lineTo(pts[2][0], pts[2][1]); c.closePath(); c.fill(); c.stroke();
+      const on = S.slingFlash[kk] > 0;
+      strokePoly(c, [pts[2], pts[0]], 6, on ? P.white : P.amber);
+    }
+    // banco do Radar
+    c.fillStyle = P.dots; c.strokeStyle = P.wall; c.lineWidth = 6;
+    c.beginPath(); c.moveTo(470, 360); c.lineTo(448, 376); c.lineTo(448, 500); c.lineTo(470, 516); c.closePath(); c.fill(); c.stroke();
+    for (const t of targets) {
+      if (t.up) box(c, 438, t.y - 15, 12, 30, t.flash > 0 && blinkOn(20) ? P.white : P.amber, P.out);
+      else box(c, 444, t.y - 12, 3, 24, P.brown2);
+    }
+    const allDown = !targets.some((t) => t.up);
+    c.save(); c.translate(426, 438); c.rotate(-Math.PI / 2);
+    A.text(c, 'RADAR', 0, 6, { size: 12, align: 'center', color: allDown && blinkOn(8) ? P.amber : P.brown2, shadow: false });
+    c.restore();
+    // linha do sensor do corredor
+    c.fillStyle = P.brown;
+    for (let i = 0; i <= 10; i += 2) { const t = i / 10; c.fillRect(px(sensor.ax + (sensor.bx - sensor.ax) * t), px(sensor.ay + (sensor.by - sensor.ay) * t), 6, 3); }
+  }
+
+  function drawBumpers(c) {
+    for (const k of bumpers) {
+      const on = k.flash > 0;
+      if (k.ami) {
+        disc(c, k.x, k.y, k.r, P.dots, on ? P.light : P.amber);
+        disc(c, k.x, k.y, k.r - 6, P.dark);
+        A.drawIAmiguinho(c, k.x, k.y + 30, 0.64, { pose: S && S.amiFace > 0 ? 'cheer' : 'idle', t: A.time, face: S && S.amiFace > 0 ? 'wow' : 'smug', spin: 2 });
+      } else {
+        disc(c, k.x, k.y, k.r, on ? P.amber : P.blue, P.out);
+        disc(c, k.x, k.y, k.r - 6, on ? P.amberHi : P.blueHi);
+        disc(c, k.x, k.y, k.r - 12, on ? P.amber : P.blue);
+        box(c, k.x - 3, k.y - 3, 6, 6, P.white);
+      }
+    }
+  }
+
+  function drawFlips(c) {
+    for (const f of flips) {
+      const [tx, ty] = flipTip(f);
+      c.lineCap = 'round';
+      c.strokeStyle = P.out; c.lineWidth = 22; c.beginPath(); c.moveTo(f.px, f.py); c.lineTo(tx, ty); c.stroke();
+      c.strokeStyle = P.cream; c.lineWidth = 15; c.beginPath(); c.moveTo(f.px, f.py); c.lineTo(tx, ty); c.stroke();
+      c.strokeStyle = P.creamSh; c.lineWidth = 4; c.beginPath(); c.moveTo(f.px, f.py + 4); c.lineTo(tx, ty + 3); c.stroke();
+      disc(c, f.px, f.py, 6, P.blue, P.out);
+    }
+  }
+
+  function drawPlunger(c) {
+    const py = px(930 + (S ? S.pull * 34 : 0));
+    c.fillStyle = P.wallHi;
+    for (let y = py + 12; y < 975; y += 6) c.fillRect(px((Math.floor(y / 6) % 2) ? 480 : 484), y, 21, 3);
+    box(c, 477, py, 27, 9, S && S.pull > 0 ? P.amber : P.gray, P.out);
+    if (S && S.pull > 0) {
+      box(c, 516, 762, 9, 159, P.brown);
+      const hgt = px(159 * S.pull);
+      box(c, 516, 921 - hgt, 9, hgt, P.amber);
+    }
+  }
+
+  function drawBall(c) {
+    const b = S.ball;
+    if (b.x < 0) return;
+    disc(c, b.x, b.y, R - 2, P.gray, P.out);
+    box(c, b.x - 6, b.y - 6, 6, 6, P.white);
+  }
+
+  function drawHud(c) {
+    A.text(c, S.score.toLocaleString('pt-BR'), W / 2, 54, { size: 30, align: 'center', color: P.white });
+    A.text(c, 'BOLA ' + Math.min(S.ballNo, 3) + '/3', W / 2 - 12, 84, { size: 12, align: 'right', color: '#bcbcbc' });
+    A.text(c, 'x' + S.mult, W / 2 + 12, 84, { size: 12, align: 'left', color: S.mult > 1 ? P.amber : '#bcbcbc' });
+    if (S.msg && (S.msg.t > 0.5 || blinkOn(10))) A.text(c, S.msg.text, 250, 640, { size: 24, wide: true, align: 'center', color: P.amber, stroke: P.out, strokeW: 6 });
+    if (S.say) A.bubble(c, S.say.x, S.say.y, S.say.text, { size: 12, align: 'center' });
+  }
+
+  function drawTable(c) {
+    drawFloor(c);
+    drawZenite(c, 282, 270, S ? S.trophy : 0);
+    if (S) drawLetters(c);
+    drawWalls(c);
+    drawBumpers(c);
+    drawPlunger(c);
+    drawFlips(c);
+  }
+
+  // estado mínimo para a tela de início
+  start();
+
+  A.game({
+    id: 'pinball',
+    title: 'Pinball WinnerZ',
+    tagline: 'Acenda o Zênite. Limpe o Radar.',
+    w: W, h: H,
+    unit: 'pontos',
+    start,
+    update,
+    draw(c) { drawTable(c); drawBall(c); drawHud(c); },
+    drawTitle(c) { drawTable(c); },
+    idle(dt) { for (const f of flips) { f.a = A_REST; } },
+  });
+
+  // para testes
+  window.__pb = { get S() { return S; }, step, segs, bumpers, flips, targets, update, start, closest, R };
+})();
+</script>
+</body>
+</html>

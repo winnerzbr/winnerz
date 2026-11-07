@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fábrica de Balacaxi · Arcade do IAmiguinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C;
+  const W = 960, H = 540;
+  const CX = 480;            // centro da prensa
+  const BELT_Y = 352;        // topo das esteiras de baixo
+  const PIECE_Y = 326;       // centro das peças
+  const TOP_Y = 150;         // topo da esteira de saída
+  const SPEED = 300;         // px/s das esteiras
+  const LEAD = 1.95;         // tempo que a peça leva da borda até a prensa
+  const WIN = 0.16;          // janela para prensar (s)
+  const PERF = 0.055;        // janela do "Perfeito"
+  const SHIFT = 90;          // duração do turno (s)
+  const HEAD_UP = 168, HEAD_DOWN = 262;
+  const BALA_CORES = ['#f85898', '#3cbcfc', '#58d854', '#9878f8'];
+
+  let S;
+
+  const bpmAt = (t) => 90 + 70 * A.clamp(t / 80, 0, 1);
+
+  function reset() {
+    S = {
+      t: 0, score: 0, lives: 3, combo: 0, maxCombo: 0, nBA: 0, nAB: 0,
+      pairs: [], products: [], beats: [], goo: [],
+      nextBeat: 2.2, beatIdx: 0, beatFlash: 0, beatNo: 0,
+      pressT: 99, ending: null, lastBpmTalk: 0,
+      iam: { pose: 'idle', face: 'smug', until: 0 },
+      talk: null, talkCd: 0,
+      rng: A.rng((Math.random() * 1e9) | 0),
+    };
+  }
+
+  // ---------- falas ----------
+  const FALAS = {
+    start: ['Turno começou. Tô de olho, hein.', 'Bora produzir. Eu supervisiono,\nvocê trabalha.'],
+    combo5: ['Combo! Eu que treinei você.', 'Isso é talento meu\npassando por osmose.'],
+    combo10: ['Funcionário do mês?\nCalma, o cargo é meu.', 'Que ritmo! Tá até\nparecendo eu, kkkk'],
+    ab: ['Abacabala?? Isso devia ser\nproibido. Prensa mais.', 'Isso é controle de qualidade,\nconfia.', 'Abacabala, a receita secreta.\nNinguém pediu, hahaha'],
+    goo: ['Gororoba de novo?\nVou descontar do salário kkkk', 'Prensou bala com bala.\nCriatividade, né?', 'Isso aí vai pro\nbrinde de Natal, lol'],
+    miss: ['Deixou passar?\nTava esperando convite?', 'A esteira não espera\nninguém, hahaha', 'Era só apertar.\nUm botão. UM.'],
+    empty: ['Prensou o ar.\nAr prensado, produto premium.', 'Calma, ainda nem chegou\nnada, ansiedade.'],
+    fast: ['Acelerando! Agora é\nfábrica de verdade.', 'Aumentei a esteira.\nSó pra ver você suar, kkkk'],
+  };
+  function say(key, force) {
+    if (!force && S.t < S.talkCd) return;
+    S.talk = { text: A.pick(FALAS[key], S.rng), until: S.t + 2.4 };
+    S.talkCd = S.t + 5.5;
+  }
+  function react(pose, face, dur) { S.iam = { pose, face, until: S.t + (dur || 0.8) }; }
+
+  // ---------- ritmo e peças ----------
+  function scheduleBeat(bt, i) {
+    S.beats.push(bt);
+    if (i < 2) return;
+    let spawn;
+    if (bt < 20) spawn = i % 2 === 0;
+    else if (bt < 50) spawn = i % 2 === 0 || S.rng() < 0.35;
+    else spawn = S.rng() < 0.78;
+    if (!spawn) return;
+    let L, R;
+    if (bt < 12) { L = 'bala'; R = 'abacaxi'; }
+    else {
+      const r = S.rng();
+      if (r < 0.45) { L = 'bala'; R = 'abacaxi'; }
+      else if (r < 0.64) { L = 'abacaxi'; R = 'bala'; }
+      else if (r < 0.82) { L = 'bala'; R = 'bala'; }
+      else { L = 'abacaxi'; R = 'abacaxi'; }
+    }
+    S.pairs.push({ tArr: bt, L, R, cL: A.pick(BALA_CORES, S.rng), cR: A.pick(BALA_CORES, S.rng), state: 'come', y: PIECE_Y, vy: 0, rot: 0 });
+  }
+
+  const kindOf = (p) => (p.L === p.R ? 'same' : p.L === 'bala' ? 'BA' : 'AB');
+
+  function press() {
+    S.pressT = 0;
+    A.sfx('press');
+    let best = null, bd = 1e9;
+    for (const p of S.pairs) {
+      if (p.state !== 'come') continue;
+      const d = Math.abs(S.t - p.tArr);
+      if (d <= WIN && d < bd) { bd = d; best = p; }
+    }
+    if (!best) {
+      S.combo = 0;
+      A.float(CX, 246, 'Vazio!', C.muted, 18);
+      react('idle', 'smug', 0.8);
+      say('empty');
+      return;
+    }
+    const k = kindOf(best);
+    S.pairs.splice(S.pairs.indexOf(best), 1);
+    if (k === 'same') {
+      S.lives--; S.combo = 0;
+      S.goo.push({ t0: S.t, c: best.L === 'bala' ? best.cL : '#f8b800' });
+      A.burst(CX, PIECE_Y, ['#503000', '#ac7c00', '#881400', best.L === 'bala' ? best.cL : '#f8b800'], 26, 260, 0.8, 6);
+      A.noise(0.35, 0.35, 260, 0, 'lowpass'); A.tone(180, 0.3, 'sawtooth', 0.14, 70);
+      A.shake(7, 0.3);
+      A.float(CX, 246, 'Gororoba!', C.red, 24);
+      react('idle', 'angry', 1.1);
+      say('goo', true);
+      return;
+    }
+    S.combo++; S.maxCombo = Math.max(S.maxCombo, S.combo);
+    const mult = S.combo >= 10 ? 3 : S.combo >= 5 ? 2 : 1;
+    const perfect = bd <= PERF;
+    const base = k === 'AB' ? 150 : 100;
+    const pts = (base + (perfect ? 50 : 0)) * mult;
+    S.score += pts;
+    if (k === 'AB') S.nAB++; else S.nBA++;
+    S.products.push({ kind: k, cL: best.cL, cR: best.cR, phase: 'arc', k: 0, x: CX, y: PIECE_Y, t0: S.t, perfect });
+    A.float(CX, 240, '+' + pts, perfect ? C.nowHi : C.now, 24);
+    if (perfect) { A.float(CX, 210, 'Perfeito', C.ink, 18); A.burst(CX, PIECE_Y, [C.now, C.nowHi, '#fcfcfc'], 18, 300, 0.5, 6); }
+    if (k === 'AB') {
+      A.tone(300, 0.25, 'sawtooth', 0.13, 900); A.tone(900, 0.22, 'square', 0.08, 180, 0.12); A.tone(450, 0.15, 'triangle', 0.15, 700, 0.3);
+      react('cheer', 'wow', 1.0);
+      say('ab', S.combo === 1);
+    } else {
+      A.sfx('coin');
+      if (perfect) A.tone(1568, 0.12, 'square', 0.08, null, 0.12);
+      react(S.combo >= 5 ? 'cheer' : 'idle', 'smile', 0.6);
+    }
+    if (S.combo === 5) say('combo5', true);
+    if (S.combo === 10) say('combo10', true);
+  }
+
+  function update(dt) {
+    S.t += dt;
+    const t = S.t;
+    // agenda as batidas e as peças com antecedência
+    while (S.nextBeat - t < LEAD && S.nextBeat < SHIFT) {
+      scheduleBeat(S.nextBeat, S.beatIdx);
+      S.beatIdx++;
+      S.nextBeat += 60 / bpmAt(S.nextBeat);
+    }
+    // metrônomo: bumbo em toda batida, tic acentuado a cada 4, chimbal no contratempo
+    while (S.beats.length && S.beats[0] <= t) {
+      S.beats.shift();
+      S.beatNo++;
+      S.beatFlash = 1;
+      if (S.ending) continue;
+      A.tone(125, 0.13, 'sine', 0.38, 45);
+      A.tone(S.beatNo % 4 === 1 ? 1320 : 990, 0.025, 'square', 0.045);
+      const half = 30 / bpmAt(t);
+      A.noise(0.035, 0.05, 7500, half, 'highpass');
+    }
+    S.beatFlash = Math.max(0, S.beatFlash - dt * 4);
+    if (t - S.lastBpmTalk > 28 && t > 30 && t < 80) { S.lastBpmTalk = t; say('fast'); }
+
+    // entrada
+    if (!S.ending && A.anyPressed()) press();
+    S.pressT += dt;
+
+    // pares que passaram da janela
+    for (const p of S.pairs) {
+      if (p.state === 'come' && t > p.tArr + WIN) {
+        p.state = 'drop'; p.vy = 40;
+        const k = kindOf(p);
+        if (k === 'same') {
+          S.combo++; S.maxCombo = Math.max(S.maxCombo, S.combo);
+          const mult = S.combo >= 10 ? 3 : S.combo >= 5 ? 2 : 1;
+          S.score += 20 * mult;
+          A.float(CX, 246, 'Boa!', C.green, 18);
+          A.tone(520, 0.06, 'triangle', 0.15); A.tone(780, 0.08, 'triangle', 0.12, null, 0.05);
+          if (S.combo === 5) say('combo5', true);
+          if (S.combo === 10) say('combo10', true);
+        } else if (!S.ending) {
+          S.lives--; S.combo = 0;
+          A.sfx('bad'); A.shake(4, 0.2);
+          A.float(CX, 246, 'Passou!', C.red, 24);
+          react('idle', 'sad', 1.0);
+          say('miss', true);
+        }
+      }
+      if (p.state === 'drop') { p.vy += 1500 * dt; p.y += p.vy * dt; p.rot += dt * 4; }
+    }
+    S.pairs = S.pairs.filter((p) => p.y < H + 80);
+
+    // produtos saindo para a caixa
+    for (const pr of S.products) {
+      if (pr.phase === 'arc') {
+        pr.k += dt / 0.5;
+        const k = Math.min(1, pr.k), a = { x: CX, y: PIECE_Y }, c1 = { x: 540, y: 30 }, b = { x: 600, y: TOP_Y - 20 };
+        pr.x = (1 - k) * (1 - k) * a.x + 2 * (1 - k) * k * c1.x + k * k * b.x;
+        pr.y = (1 - k) * (1 - k) * a.y + 2 * (1 - k) * k * c1.y + k * k * b.y;
+        if (pr.k >= 1) pr.phase = 'belt';
+      } else if (pr.phase === 'belt') {
+        pr.x += 170 * dt; pr.y = TOP_Y - 20;
+        if (pr.x > 872) { pr.phase = 'in'; pr.vy = -120; }
+      } else if (pr.phase === 'in') {
+        pr.vy += 900 * dt; pr.y += pr.vy * dt; pr.x += 30 * dt;
+        if (pr.y > TOP_Y + 10) { pr.phase = 'done'; A.tone(260, 0.05, 'triangle', 0.08); }
+      }
+    }
+    S.products = S.products.filter((p) => p.phase !== 'done');
+    S.goo = S.goo.filter((g) => t - g.t0 < 1.6);
+
+    if (S.iam.until && t > S.iam.until) S.iam = { pose: 'idle', face: 'smug', until: 0 };
+    if (S.talk && t > S.talk.until) S.talk = null;
+
+    // fim
+    if (!S.ending) {
+      if (S.lives <= 0) {
+        S.ending = { t0: t, reason: 'vidas' };
+        react('fall', 'sad', 9);
+      } else if (t >= SHIFT && !S.pairs.some((p) => p.state === 'come')) {
+        S.ending = { t0: t, reason: 'turno' };
+        for (let i = 0; i < 5; i++) A.tone(i % 2 ? 620 : 840, 0.28, 'triangle', 0.14, i % 2 ? 840 : 620, i * 0.28);
+        react('cheer', 'smile', 9);
+      }
+    } else if (t - S.ending.t0 > 1.6) {
+      let line;
+      if (S.ending.reason === 'vidas') line = A.pick(['Três gororobas. Recorde\nda fábrica. Ao contrário, kkkk', 'Fábrica fechada por\nexcesso de criatividade.', 'Calma, eu também comecei\nassim. Mentira, eu já era bom.']);
+      else if (S.score >= 9000) line = A.pick(['Funcionário do mês.\nDepois de mim, óbvio.', 'Produziu mais que eu.\nEu deixei, tá?']);
+      else if (S.score >= 4500) line = A.pick(['Dá pra contratar.\nCom supervisão minha.', 'Turno decente.\nO mérito é do supervisor.']);
+      else line = A.pick(['Estagiário eterno,\nhahaha', 'Turno encerrado.\nO RH vai te chamar, lol']);
+      A.end(S.score, { line, sub: `${S.nBA} Balacaxis · ${S.nAB} Abacabalas · maior combo ${S.maxCombo}` });
+    }
+  }
+
+  // ---------- desenho das peças (pixel art: 1 pixel de arte = 3 unidades) ----------
+  const P = 3;
+  const R = (c, col, x, y, w, h) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
+  // Metade "canônica": o lado cortado fica em x = 0 e a peça cresce para a esquerda (x negativo).
+  function halfBala(c, col) {
+    const O = C.out;
+    // ponta torcida do papel (degraus)
+    R(c, O, -63, -21, 9, 42);
+    R(c, col, -60, -18, 6, 36);
+    R(c, O, -54, -12, 9, 24);
+    R(c, col, -54, -9, 6, 18);
+    R(c, '#fcfcfc', -60, -15, 3, 6);
+    // nó do papel
+    R(c, O, -48, -9, 9, 18); R(c, col, -45, -6, 6, 12);
+    // corpo com cantos em degrau
+    R(c, O, -42, -15, 42, 30); R(c, O, -39, -21, 39, 42); R(c, O, -36, -24, 36, 48);
+    R(c, col, -39, -15, 39, 30); R(c, col, -36, -18, 36, 36); R(c, col, -33, -21, 33, 42);
+    // listras
+    for (let x = -30; x < -6; x += 12) R(c, '#fcfcfc', x, -21, 6, 42);
+    R(c, '#fcfcfc', -39, -9, 3, 12);
+    // face cortada (recheio)
+    R(c, '#f8b8f8', -6, -21, 6, 42); R(c, O, -3, -24, 3, 48);
+  }
+  function halfAbacaxi(c) {
+    const O = C.out, Y = '#f8b800', D = '#ac7c00', G1 = '#58d854', G2 = '#00a800';
+    // coroa (metade): folhas em degrau
+    R(c, O, -18, -45, 9, 24); R(c, G2, -15, -42, 3, 21);
+    R(c, O, -30, -36, 12, 9); R(c, O, -24, -30, 9, 9); R(c, G1, -27, -33, 6, 3); R(c, G1, -21, -27, 3, 6);
+    R(c, O, -9, -51, 9, 30); R(c, G1, -6, -48, 6, 27);
+    // corpo
+    R(c, O, -36, -15, 36, 42); R(c, O, -33, -21, 33, 54); R(c, O, -27, -24, 27, 60);
+    R(c, Y, -33, -15, 33, 39); R(c, Y, -30, -18, 30, 45); R(c, Y, -24, -21, 24, 51);
+    // casca em losangos: pontos alternados
+    for (let y = -15; y < 27; y += 9) for (let x = -30 + ((y / 9) & 1 ? 0 : 6); x < -6; x += 12) { R(c, D, x, y, 3, 3); R(c, D, x + 3, y + 3, 3, 3); }
+    // face cortada (polpa e miolo)
+    R(c, '#fce0a8', -6, -21, 6, 51); R(c, '#f8d878', -3, -12, 3, 33); R(c, O, -3, -24, 3, 57);
+  }
+  /** side: -1 = peça da esquerda (cresce para a esquerda), +1 = da direita. */
+  function drawHalf(c, kind, side, x, y, col, s, rot, sq) {
+    c.save(); c.translate(Math.round(x / P) * P, Math.round(y / P) * P); if (rot) c.rotate(rot); c.scale(side < 0 ? s : -s, s * (sq || 1));
+    if (kind === 'bala') halfBala(c, col); else halfAbacaxi(c);
+    c.restore();
+  }
+  function drawProduct(c, pr) {
+    const L = pr.kind === 'BA' ? 'bala' : 'abacaxi', Rk = pr.kind === 'BA' ? 'abacaxi' : 'bala';
+    let y = pr.y, rot = 0;
+    if (pr.kind === 'AB') { const ph = (S.t - pr.t0) * 11; y -= Math.abs(Math.sin(ph)) * 24; rot = Math.round(Math.sin(ph * 0.5) * 2) * 0.25; }
+    else if (pr.phase === 'arc') rot = Math.round(pr.k * 3) * 0.25;
+    const s = pr.phase === 'arc' ? (pr.k < 0.5 ? 1 : 0.67) : 0.67;
+    c.save(); c.translate(Math.round(pr.x / P) * P, Math.round(y / P) * P); c.rotate(rot);
+    drawHalf(c, L, -1, 0, 0, pr.cL, s);
+    drawHalf(c, Rk, 1, 0, 0, pr.cR, s);
+    c.restore();
+  }
+
+  // ---------- cenário ----------
+  function scene(c, t, beat) {
+    const lit = beat > 0.45;
+    R(c, C.bg, 0, 0, W, H);
+    // parede de placas com rebites
+    for (let x = 0; x < W; x += 120) {
+      R(c, C.bg2, x + 3, 66, 114, 285);
+      R(c, '#181c22', x + 3, 66, 114, 3);
+      for (const yy of [75, 339]) { R(c, '#262b33', x + 9, yy, 3, 3); R(c, '#262b33', x + 108, yy, 3, 3); }
+    }
+    // faixa de tijolos baixa
+    for (let y = 300; y < 351; y += 12) for (let x = ((y / 12) & 1) * 18; x < W; x += 36) R(c, '#14171c', x, y, 33, 9);
+    // cano
+    R(c, '#262b33', 0, 96, W, 12); R(c, '#3a414b', 0, 96, W, 3);
+    for (let x = 60; x < W; x += 180) R(c, '#3a414b', x, 90, 12, 24);
+    // lâmpadas de parede que piscam na batida
+    for (let i = 0; i < 4; i++) {
+      const lx = 78 + i * 260;
+      R(c, '#262b33', lx - 3, 108, 6, 12);
+      R(c, C.out, lx - 9, 120, 18, 15);
+      R(c, lit ? C.now : '#3a2a1a', lx - 6, 123, 12, 9);
+      if (lit) { R(c, C.nowHi, lx - 3, 123, 3, 3); R(c, C.now, lx - 18, 126, 6, 3); R(c, C.now, lx + 12, 126, 6, 3); R(c, C.now, lx - 1, 138, 3, 6); R(c, C.now, lx - 15, 138, 3, 3); R(c, C.now, lx + 12, 138, 3, 3); }
+    }
+    // chão com faixa de alerta
+    R(c, '#0d0f12', 0, 429, W, H - 429);
+    for (let x = 0; x < W; x += 24) { R(c, C.now, x, 429, 12, 9); R(c, '#101318', x + 12, 429, 12, 9); }
+    for (let x = 0; x < W; x += 48) R(c, '#101318', x + 6, 450, 24, 3);
+    // calha de rejeito
+    R(c, '#000000', CX - 45, 399, 90, 141);
+    A.text(c, 'Rejeito', CX, 480, { size: 12, align: 'center', color: '#3a414b', shadow: false });
+    // esteiras de baixo
+    belt(c, 0, 441, BELT_Y, t, 1);
+    belt(c, 519, 960, BELT_Y, t, -1);
+    // mesa da prensa
+    R(c, C.out, CX - 42, BELT_Y, 84, 48);
+    R(c, '#3a414b', CX - 39, BELT_Y + 3, 78, 42);
+    R(c, lit ? C.now : '#5a3a20', CX - 39, BELT_Y + 3, 78, 6);
+    for (let x = CX - 33; x < CX + 33; x += 15) R(c, '#262b33', x, BELT_Y + 18, 9, 3);
+    // esteira de saída e caixa
+    belt(c, 588, 858, TOP_Y, t * 0.57, 1, true);
+    box(c);
+    // passarela do IAmiguinho
+    R(c, C.out, 228, 225, 174, 15); R(c, '#3a414b', 231, 228, 168, 9);
+    R(c, '#3a414b', 234, 195, 162, 3);
+    for (let x = 234; x <= 393; x += 27) R(c, '#3a414b', x, 195, 3, 30);
+    R(c, '#262b33', 249, 240, 9, 112); R(c, '#262b33', 372, 240, 9, 112);
+  }
+  function belt(c, x0, x1, y, t, dir, small) {
+    const h = small ? 15 : 24;
+    R(c, C.out, x0, y, x1 - x0, h);
+    R(c, '#181c22', x0, y + 3, x1 - x0, h - 6);
+    const off = Math.round((((t * SPEED * dir) % 18) + 18) % 18 / P) * P;
+    c.save(); c.beginPath(); c.rect(x0, y + 3, x1 - x0, h - 6); c.clip();
+    for (let x = x0 - 18 + off; x < x1 + 18; x += 18) { R(c, '#3a414b', x, y + 3, 6, h - 6); }
+    c.restore();
+    for (let x = x0 + 30; x < x1 - 10; x += 90) {
+      R(c, C.out, x - 6, y + h, 12, 12); R(c, '#3a414b', x - 3, y + h + 3, 6, 6);
+      if (!small) R(c, '#14171c', x - 3, y + h + 12, 6, 429 - (y + h + 12));
+    }
+  }
+  function box(c) {
+    const x = 858, y = TOP_Y - 36, w = 96;
+    R(c, '#2b3038', x - 6, y + 72, w + 12, 9);
+    R(c, '#262b33', x + 6, y + 81, 9, 429 - (y + 81)); R(c, '#262b33', x + w - 15, y + 81, 9, 429 - (y + 81));
+    // abas
+    R(c, C.out, x - 12, y - 9, 24, 15); R(c, '#503000', x - 9, y - 6, 18, 9);
+    R(c, C.out, x + w - 12, y - 12, 24, 18); R(c, '#503000', x + w - 9, y - 9, 18, 12);
+    // caixa
+    R(c, C.out, x, y + 3, w, 69); R(c, '#ac7c00', x + 3, y + 6, w - 6, 63);
+    R(c, '#503000', x + 3, y + 6, w - 6, 6); R(c, '#503000', x + 3, y + 30, w - 6, 3);
+    A.text(c, 'WinnerZ', x + w / 2, y + 54, { size: 12, align: 'center', color: '#000000', shadow: false });
+  }
+  function pressMachine(c, headY, beat) {
+    const O = C.out, hy = Math.round(headY / P) * P;
+    // colunas e viga
+    R(c, O, 405, 60, 24, BELT_Y - 60); R(c, '#3a414b', 408, 63, 18, BELT_Y - 63); R(c, '#262b33', 420, 63, 6, BELT_Y - 63);
+    R(c, O, 531, 60, 24, BELT_Y - 60); R(c, '#3a414b', 534, 63, 18, BELT_Y - 63); R(c, '#262b33', 546, 63, 6, BELT_Y - 63);
+    R(c, O, 393, 54, 174, 39); R(c, '#3a414b', 396, 57, 168, 33); R(c, '#262b33', 396, 84, 168, 6);
+    A.text(c, 'Prensa', CX, 81, { size: 12, align: 'center', color: '#bcbcbc', shadow: false });
+    // pistão
+    R(c, O, CX - 9, 93, 18, hy - 93); R(c, '#bcbcbc', CX - 6, 93, 12, hy - 93); R(c, '#7c7c7c', CX + 3, 93, 3, hy - 93);
+    // cabeça com faixa de alerta
+    R(c, O, CX - 63, hy, 126, 51);
+    R(c, '#3a414b', CX - 60, hy + 3, 120, 27);
+    R(c, '#262b33', CX - 60, hy + 24, 120, 6);
+    for (let x = CX - 60, i = 0; x < CX + 60; x += 12, i++) R(c, i % 2 ? '#000000' : C.now, x, hy + 30, 12, 18);
+    R(c, beat > 0.45 ? C.now : '#5a3a20', CX - 6, hy + 9, 12, 9);
+  }
+  function headPos() {
+    const p = S ? S.pressT : 99;
+    if (p < 0.06) return A.lerp(HEAD_UP, HEAD_DOWN, p / 0.06);
+    if (p < 0.14) return HEAD_DOWN;
+    if (p < 0.36) return A.lerp(HEAD_DOWN, HEAD_UP, (p - 0.14) / 0.22);
+    return HEAD_UP;
+  }
+
+  function hud(c) {
+    // lâmpadas de vida
+    for (let i = 0; i < 3; i++) {
+      const x = 156 + i * 36, on = i < S.lives;
+      R(c, '#3a414b', x - 1, 0, 3, 15);
+      R(c, '#3a414b', x - 6, 15, 12, 6);
+      R(c, C.out, x - 12, 21, 24, 21);
+      R(c, on ? C.now : '#262b33', x - 9, 24, 18, 15);
+      if (on) R(c, C.nowHi, x - 6, 27, 6, 3);
+    }
+    // pontos e combo
+    A.text(c, S.score.toLocaleString('pt-BR'), CX, 42, { size: 24, align: 'center', color: C.ink });
+    const mult = S.combo >= 10 ? 3 : S.combo >= 5 ? 2 : 1;
+    if (S.combo >= 2) A.text(c, (mult > 1 ? 'x' + mult + ' ' : '') + 'combo ' + S.combo, 690, 57, { size: 12, color: mult > 1 ? C.now : C.ink2 });
+    // turno
+    const left = A.clamp(1 - S.t / SHIFT, 0, 1);
+    A.text(c, 'Turno', 618, 33, { size: 12, color: C.muted });
+    R(c, C.out, 687, 21, 159, 15);
+    R(c, '#262b33', 690, 24, 153, 9);
+    R(c, left < 0.15 && Math.floor(S.t * 6) % 2 ? C.red : C.now, 690, 24, Math.round(153 * left / P) * P, 9);
+  }
+
+  function draw(c, state) {
+    const t = S ? S.t : A.time;
+    const beat = S ? S.beatFlash : 0;
+    scene(c, t, beat);
+    // poças de gororoba
+    for (const g of S.goo) {
+      const a = 1 - (S.t - g.t0) / 1.6;
+      if (a < 0.3 && Math.floor(S.t * 20) % 2) continue;
+      R(c, '#503000', CX - 42, BELT_Y - 6, 84, 6); R(c, '#503000', CX - 30, BELT_Y - 9, 54, 3);
+      R(c, g.c, CX - 18, BELT_Y - 6, 18, 3); R(c, '#ac7c00', CX + 9, BELT_Y - 6, 12, 3);
+    }
+    // peças nas esteiras
+    for (const p of S.pairs) {
+      const d = Math.max(0, p.tArr - S.t) * SPEED;
+      let xl = CX - d, xr = CX + d;
+      const sq = p.state === 'come' && Math.abs(S.t - p.tArr) < 0.06 && S.pressT < 0.14 ? 0.8 : 1;
+      c.save();
+      c.beginPath(); c.rect(0, 0, W, H); c.clip();
+      if (p.state === 'drop') { xl = CX - 2; xr = CX + 2; }
+      drawHalf(c, p.L, -1, xl, p.y, p.cL, 1.18, p.state === 'drop' ? -p.rot : 0, sq);
+      drawHalf(c, p.R, 1, xr, p.y, p.cR, 1.18, p.state === 'drop' ? p.rot : 0, sq);
+      c.restore();
+    }
+    pressMachine(c, headPos(), beat);
+    for (const pr of S.products) drawProduct(c, pr);
+    // IAmiguinho na passarela
+    const iam = S.iam;
+    A.drawIAmiguinho(c, 318, 228, 1.05, { pose: iam.pose, face: iam.face, t: S.t, spin: iam.pose === 'cheer' ? 3 : 0.8 + beat });
+    if (S.talk && state === 'play') A.bubble(c, 300, 120, S.talk.text, { size: 12, align: 'right' });
+    if (state !== 'title') hud(c);
+  }
+
+  // cenário parado para a tela de início
+  function drawTitle(c, t) {
+    if (!S) reset();
+    S.t = t;
+    scene(c, t, Math.max(0, Math.sin(t * Math.PI * 3)));
+    pressMachine(c, HEAD_UP, 0);
+    drawHalf(c, 'bala', -1, CX - 150, PIECE_Y, '#f85898', 1.18);
+    drawHalf(c, 'abacaxi', 1, CX + 150, PIECE_Y, '#3cbcfc', 1.18);
+    drawProduct(c, { kind: 'BA', cL: '#58d854', cR: '#58d854', phase: 'belt', x: 700, y: TOP_Y - 20, t0: 0 });
+    drawProduct(c, { kind: 'AB', cL: '#9878f8', cR: '#9878f8', phase: 'belt', x: 790, y: TOP_Y - 20, t0: 0.3 });
+  }
+
+  window.__balacaxi = () => S; // usado só nos testes automáticos
+  reset();
+  A.game({
+    id: 'balacaxi',
+    title: 'Fábrica de Balacaxi',
+    tagline: 'Metade bala, metade abacaxi, inteiro no ritmo.',
+    w: W, h: H,
+    unit: 'pontos',
+    start() {
+      A.setTouchButtons([]);
+      A.tapAction = 'a';
+      reset();
+      say('start', true);
+    },
+    update,
+    draw,
+    drawTitle,
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Temporada Relâmpago · Arcade do IAmiguinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C;
+  // Celular em pé ganha uma tela em pé; o resto, paisagem.
+  const PORTRAIT = window.innerHeight > window.innerWidth * 1.1;
+  const W = PORTRAIT ? 540 : 960, H = PORTRAIT ? 900 : 540;
+  const cx = W / 2, GY = PORTRAIT ? H * 0.66 : H * 0.8;
+  const S = PORTRAIT ? 1.3 : 1.2;
+
+  // ---------- estado da partida ----------
+  let rng, bag = [], lastId = '';
+  let lives, wins, phase, pt, cur, m, speed, dur, beatT, beatN, resWon, resLine, resFaster, showLine;
+
+  const pickR = (arr) => arr[Math.floor(rng() * arr.length)];
+  const rr = (a, b) => a + rng() * (b - a);
+
+  function nextMicro() {
+    if (!bag.length) {
+      bag = MICROS.slice();
+      for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [bag[i], bag[j]] = [bag[j], bag[i]]; }
+      if (bag[bag.length - 1].id === lastId) { const t = bag[0]; bag[0] = bag[bag.length - 1]; bag[bag.length - 1] = t; }
+    }
+    return bag.pop();
+  }
+
+  function setControls(lr) {
+    if (lr) {
+      const y = PORTRAIT ? H - 110 : H - 72;
+      A.setTouchButtons([
+        { act: 'left', x: PORTRAIT ? 90 : 80, y, r: PORTRAIT ? 52 : 44, label: '◀' },
+        { act: 'right', x: PORTRAIT ? 220 : 190, y, r: PORTRAIT ? 52 : 44, label: '▶' },
+        { act: 'a', x: W - (PORTRAIT ? 100 : 90), y: y - 4, r: PORTRAIT ? 64 : 56, label: 'A' },
+      ]);
+      A.tapAction = null;
+    } else { A.setTouchButtons([]); A.tapAction = 'a'; }
+  }
+
+  function startMicro() {
+    cur = nextMicro(); lastId = cur.id;
+    speed = 1 + Math.floor(wins / 4) * 0.17;
+    dur = Math.max(2.4, 4.2 / Math.pow(speed, 0.85));
+    m = { t: 0, done: null, doneT: 0 };
+    cur.init(m);
+    phase = 'cmd'; pt = 0; beatT = 0; beatN = 0;
+    setControls(cur.lr);
+    A.sfx('blip');
+  }
+
+  function win() { if (m.done) return; m.done = 'win'; m.doneT = 0; A.sfx('ok'); }
+  function lose() { if (m.done) return; m.done = 'lose'; m.doneT = 0; A.sfx('bad'); A.shake(5, 0.2); }
+
+  const LINES_WIN = ['Esse eu deixei\npra você.', 'kkkk foi no susto', 'Clutch!', 'Aprendeu comigo,\nné?'];
+  const LINES_LOSE = ['kkkkkk', 'Lag. Certeza\nque foi lag.', 'Tava fácil, hein?', 'hahaha\nnão acredito'];
+
+  function toResult(won) {
+    phase = 'result'; pt = 0; resWon = won;
+    if (won) { wins++; resFaster = wins % 4 === 0; } else { lives--; resFaster = false; }
+    showLine = Math.random() < 0.35;
+    resLine = won ? A.pick(LINES_WIN) : A.pick(LINES_LOSE);
+    if (resFaster) A.sfx('start');
+  }
+
+  function endLine() {
+    if (wins < 4) return A.pick(['Perdeu pra um cartucho\nempoeirado. kkkkk', 'Isso foi o aquecimento,\nné? Né?', 'Até eu de AFK\nfazia mais.']);
+    if (wins < 10) return A.pick(['Temporada curta,\nigual às lives. hahaha', 'Nada mal pra quem\njogou de luva.', 'Deu pro gasto.\nEu faria o dobro.']);
+    if (wins < 18) return A.pick(['Ok, respeito.\nMas eu faria 30.', 'Isso já dá pra\nchamar de temporada.', 'Tá ficando perigoso.\nPra você, não pra mim.']);
+    return A.pick(['Bom MESMO. Suspeito.\nTá usando IA?', 'Tá. Agora joga\ncontra mim. lol', 'Temporada completa.\nRaridade.']);
+  }
+
+  // ---------- desenhos comuns ----------
+  // Fundo: faixas inclinadas (a inclinação do Z) num tom só um pouco mais claro, andando de 3 em 3.
+  function drawBg(c) {
+    c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
+    c.fillStyle = C.bg2;
+    const off = Math.floor((A.time * 30) % 162 / 3) * 3;
+    for (let x = -H; x < W + H; x += 162) { c.beginPath(); c.moveTo(x + off, 0); c.lineTo(x + off + 60, 0); c.lineTo(x + off + 60 - H * 0.4, H); c.lineTo(x + off - H * 0.4, H); c.fill(); }
+  }
+  // Chão de tijolinhos com a linha âmbar em cima.
+  function drawGround(c, x0, x1) {
+    x0 = x0 || 0; x1 = x1 == null ? W : x1;
+    c.fillStyle = C.bg3; c.fillRect(x0, GY, x1 - x0, H - GY);
+    c.fillStyle = C.line;
+    for (let row = 0, y = GY + 12; y < H; row++, y += 18) {
+      c.fillRect(x0, y, x1 - x0, 3);
+      for (let x = (row % 2 ? 0 : 27); x < x1; x += 54) if (x >= x0) c.fillRect(x, y + 3, 3, 15);
+    }
+    c.fillStyle = C.now; c.fillRect(x0, GY, x1 - x0, 3);
+  }
+  function battery(c, x, y, on) {
+    c.save(); c.lineWidth = 2.5; c.strokeStyle = on ? C.ink : C.line;
+    A.rr(c, x, y, 34, 18, 3); c.stroke();
+    c.fillStyle = on ? C.ink : C.line; c.fillRect(x + 34, y + 5, 4, 8);
+    if (on) { c.fillStyle = C.now; c.fillRect(x + 4, y + 4, 26, 10); }
+    c.restore();
+  }
+  function drawHud(c) {
+    const y = PORTRAIT ? 92 : 36;
+    A.text(c, String(wins).padStart(2, '0'), cx, y + 12, { size: 30, align: 'center', color: C.ink });
+    const bx = PORTRAIT ? cx - 62 : cx + 70;
+    for (let i = 0; i < 3; i++) battery(c, PORTRAIT ? bx + i * 44 : bx + i * 44, PORTRAIT ? y + 26 : y - 12, i < lives);
+    if (speed > 1.01) A.text(c, 'x' + speed.toFixed(2).replace('.', ','), PORTRAIT ? cx : cx - 70, PORTRAIT ? y - 40 : y + 6, { size: 12, align: PORTRAIT ? 'center' : 'right', color: C.now });
+  }
+  function drawTimer(c) {
+    if (phase !== 'micro') return;
+    const f = A.clamp(1 - pt / dur, 0, 1);
+    c.fillStyle = C.out; c.fillRect(0, H - 9, W, 9);
+    c.fillStyle = f < 0.25 && Math.floor(pt * 8) % 2 ? C.red : C.now; c.fillRect(0, H - 9, Math.round(W * f / 3) * 3, 9);
+  }
+
+  // ---------- os microjogos ----------
+  const MICROS = [
+    { // 1. Sopre o cartucho
+      id: 'sopre', cmd: 'SOPRE!', lr: false, survive: false,
+      init(m) { m.hits = 0; m.need = Math.round(8 + (speed - 1) * 6); m.puffs = []; m.dust = []; for (let i = 0; i < 18; i++) m.dust.push({ x: rr(-10, 16), y: rr(-70, 70), r: rr(5, 11) }); },
+      update(dt, m) {
+        if (!m.done && A.pressed('a')) {
+          m.hits++; A.noise(0.14, 0.22, 1600); m.puffs.push({ t: 0 });
+          A.burst(cx + (PORTRAIT ? -40 : 0), GY - 110, ['#9a8f7a', '#6f6757', '#bdb29a'], 7, 220, 0.5, 6);
+          if (m.hits >= m.need) { win(); A.burst(cx + 40, GY - 110, C.now, 20, 260, 0.6, 5); }
+        }
+        m.puffs.forEach((p) => { p.t += dt; }); m.puffs = m.puffs.filter((p) => p.t < 0.35);
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        const kx = PORTRAIT ? cx - 15 : cx + 60, ky = GY - 110;
+        // cartucho deitado, contatos virados para o IAmiguinho
+        c.save(); c.translate(kx, ky); if (PORTRAIT) c.scale(0.8, 0.8); c.lineWidth = 3; c.strokeStyle = C.out;
+        c.fillStyle = '#5d636c'; A.rr(c, -10, -80, 190, 160, 12); c.fill(); c.stroke();
+        c.fillStyle = '#4a4f57'; for (let i = 0; i < 5; i++) c.fillRect(150, -60 + i * 26, 22, 12);
+        c.fillStyle = C.cream; A.rr(c, 20, -58, 110, 116, 6); c.fill(); c.stroke();
+        c.fillStyle = C.now; c.beginPath(); c.moveTo(70, -36); c.lineTo(92, -36); c.lineTo(66, 8); c.lineTo(84, 8); c.lineTo(52, 42); c.lineTo(64, 0); c.lineTo(48, 0); c.closePath(); c.fill();
+        c.fillStyle = '#3a3e45'; c.fillRect(-26, -70, 20, 140); c.strokeRect(-26, -70, 20, 140);
+        c.fillStyle = C.gold; for (let i = 0; i < 9; i++) c.fillRect(-30, -62 + i * 15, 10, 8);
+        // poeira
+        const left = Math.ceil(m.dust.length * (1 - m.hits / m.need));
+        for (let i = 0; i < left; i++) { const d = m.dust[i]; c.fillStyle = i % 2 ? '#7c7c7c' : '#ac7c00'; c.fillRect(-27 + Math.round(d.x / 3) * 3, Math.round(d.y / 3) * 3, Math.round(d.r / 3) * 3 + 3, Math.round(d.r / 3) * 3 + 3); }
+        c.restore();
+        // IAmiguinho soprando
+        const ix = PORTRAIT ? cx - 190 : cx - 220;
+        A.drawIAmiguinho(c, ix, GY, S, { pose: m.done === 'win' ? 'cheer' : 'idle', t: A.time, face: m.done === 'win' ? 'smile' : 'wow' });
+        for (const p of m.puffs) {
+          const px = Math.round((ix + 30 + p.t * 260) / 3) * 3;
+          c.fillStyle = C.light;
+          for (let k = -1; k <= 1; k++) c.fillRect(px + Math.abs(k) * 6, ky - 9 + k * 15, 24, 3);
+        }
+      },
+    },
+    { // 2. Desvie do spoiler
+      id: 'desvie', cmd: 'DESVIE!', lr: true, survive: true,
+      init(m) { m.x = cx; m.drops = []; m.sp = 0.2; m.moving = false; },
+      update(dt, m) {
+        if (!m.done) {
+          const d = (A.held('right') ? 1 : 0) - (A.held('left') ? 1 : 0);
+          m.x = A.clamp(m.x + d * 440 * dt, 40, W - 40); m.moving = d !== 0; m.flip = d < 0 ? true : d > 0 ? false : m.flip;
+          m.sp -= dt;
+          if (m.sp <= 0) { m.sp = 0.42 / speed; const near = rng() < 0.45; m.drops.push({ x: near ? A.clamp(m.x + rr(-60, 60), 70, W - 70) : rr(70, W - 70), y: PORTRAIT ? 150 : 60, vy: 250 * speed * rr(0.9, 1.25) }); }
+        }
+        for (const d of m.drops) {
+          d.y += d.vy * dt;
+          if (!m.done && Math.abs(d.x - m.x) < 70 && d.y + 16 > GY - 100 * S && d.y - 16 < GY) { lose(); A.sfx('hit'); }
+        }
+        m.drops = m.drops.filter((d) => d.y < GY + 40);
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        for (const d of m.drops) {
+          c.save(); c.fillStyle = C.red; c.strokeStyle = C.out; c.lineWidth = 3;
+          A.cut(c, d.x - 60, d.y - 17, 120, 34, 12); c.fill(); c.stroke();
+          c.beginPath(); c.moveTo(d.x - 10, d.y + 16); c.lineTo(d.x - 18, d.y + 30); c.lineTo(d.x + 4, d.y + 16); c.fill();
+          A.text(c, 'SPOILER', d.x - 6, d.y + 6, { size: 12, align: 'center', color: C.ink, shadow: false });
+          c.restore();
+        }
+        A.drawIAmiguinho(c, m.x, GY, S, { pose: m.done === 'lose' ? 'fall' : m.moving ? 'run' : 'idle', t: A.time, face: m.done === 'lose' ? 'sad' : 'wow', flip: m.flip });
+      },
+    },
+    { // 3. Encaixe o cabo
+      id: 'encaixe', cmd: 'ENCAIXE!', lr: false, survive: false,
+      init(m) { m.port = rr(W * 0.28, W * 0.72); m.ph = rr(0, 6.28); m.state = 'swing'; m.py = PORTRAIT ? 260 : 150; m.x = cx; },
+      update(dt, m) {
+        if (m.state === 'swing') {
+          m.ph += dt * 2.3 * speed; m.x = cx + Math.sin(m.ph) * W * 0.36;
+          if (A.pressed('a') && !m.done) { m.state = 'drop'; A.sfx('whoosh'); }
+        } else if (m.state === 'drop') {
+          m.py += 1100 * dt;
+          const top = GY - 92;
+          if (m.py >= top) {
+            m.py = top; m.state = 'hit';
+            if (Math.abs(m.x - m.port) < 24) { m.py = top + 22; win(); A.burst(m.x, top + 20, [C.now, C.light], 18, 240, 0.5, 4); }
+            else { lose(); A.sfx('bump'); }
+          }
+        } else if (m.state === 'hit' && m.done === 'lose') { m.py -= 120 * dt; }
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        // aparelho com a porta
+        c.save(); c.lineWidth = 3; c.strokeStyle = C.out;
+        c.fillStyle = '#2b3038'; A.rr(c, 40, GY - 70, W - 80, 70, 10); c.fill(); c.stroke();
+        c.fillStyle = '#1b1f25'; c.fillRect(70, GY - 50, 120, 10);
+        c.fillStyle = C.green; c.beginPath(); c.arc(W - 80, GY - 44, 6, 0, 7); c.fill();
+        c.fillStyle = '#0c0e11'; A.rr(c, m.port - 22, GY - 72, 44, 26, 4); c.fill(); c.stroke();
+        c.fillStyle = Math.floor(A.time * 6) % 2 ? C.now : C.gold; c.fillRect(m.port - 15, GY - 78, 30, 6);
+        c.restore();
+        // cabo
+        c.save(); c.strokeStyle = C.line; c.lineWidth = 9;
+        c.beginPath(); c.moveTo(cx, -10); c.quadraticCurveTo((cx + m.x) / 2, m.py * 0.4, m.x, m.py - 30); c.stroke();
+        c.strokeStyle = C.out; c.lineWidth = 3; c.fillStyle = '#7b828c';
+        A.rr(c, m.x - 17, m.py - 40, 34, 40, 6); c.fill(); c.stroke();
+        c.fillStyle = '#c9ced4'; c.fillRect(m.x - 10, m.py, 20, 18); c.strokeRect(m.x - 10, m.py, 20, 18);
+        c.restore();
+        if (m.done === 'win') A.drawIAmiguinho(c, PORTRAIT ? 90 : 110, GY - 70, S * 0.9, { pose: 'cheer', t: A.time, face: 'wow' });
+      },
+    },
+    { // 4. Pegue o cacetinho
+      id: 'pao', cmd: 'PEGUE!', lr: true, survive: false,
+      init(m) { m.bx = cx; m.x = rr(90, W - 90); m.y = PORTRAIT ? 150 : 70; m.rot = rr(-1, 1); m.v = (GY - 60 - m.y) / (dur * 0.72); m.sw = rr(0, 6); },
+      update(dt, m) {
+        const d = (A.held('right') ? 1 : 0) - (A.held('left') ? 1 : 0);
+        if (!m.done) { m.bx = A.clamp(m.bx + d * 480 * dt, 50, W - 50); m.moving = d !== 0; if (d) m.flip = d < 0; }
+        if (m.done === 'win') { m.y = GY - 92 * S; m.x = m.bx; return; }
+        if (m.done === 'lose') return;
+        m.y += m.v * dt; m.sw += dt * 2.2; m.x = A.clamp(m.x + Math.sin(m.sw) * 70 * dt, 50, W - 50); m.rot += dt * 2;
+        const catchY = GY - 90 * S;
+        if (m.y >= catchY && m.y < catchY + 24 && Math.abs(m.x - m.bx) < 62) { win(); A.sfx('coin'); A.burst(m.bx, catchY, C.now, 12, 180, 0.4, 4); }
+        else if (m.y >= GY - 10) { m.y = GY - 10; m.rot = 0; lose(); }
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        A.drawIAmiguinho(c, m.bx, GY, S, { pose: m.moving && !m.done ? 'run' : m.done === 'win' ? 'cheer' : 'idle', t: A.time, face: m.done === 'lose' ? 'sad' : 'wow', flip: m.flip });
+        // cesta acima da cabeça
+        const by = GY - 118 * S;
+        c.save(); c.lineWidth = 3; c.strokeStyle = C.out; c.fillStyle = '#a8743f';
+        c.beginPath(); c.moveTo(m.bx - 58, by - 8); c.lineTo(m.bx + 58, by - 8); c.lineTo(m.bx + 44, by + 26); c.lineTo(m.bx - 44, by + 26); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = '#7d5530'; c.lineWidth = 2; for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(m.bx + i * 22, by - 6); c.lineTo(m.bx + i * 17, by + 24); c.stroke(); }
+        c.restore();
+        // cacetinho
+        c.save(); c.translate(m.x, m.done === 'win' ? by - 10 : m.y); c.rotate(m.done === 'win' ? 0 : Math.sin(m.rot) * 0.6);
+        c.lineWidth = 3; c.strokeStyle = C.out; c.fillStyle = '#d99a4e';
+        c.beginPath(); c.ellipse(0, 0, 46, 15, 0, 0, 7); c.fill(); c.stroke();
+        c.fillStyle = '#f0c27e'; c.beginPath(); c.ellipse(-4, -4, 36, 7, 0, 0, 7); c.fill();
+        c.strokeStyle = '#a8662a'; c.lineWidth = 3; for (let i = -1; i <= 1; i++) { c.beginPath(); c.moveTo(i * 20 - 8, -6); c.lineTo(i * 20 + 8, 4); c.stroke(); }
+        c.restore();
+      },
+    },
+    { // 5. Pule!
+      id: 'pule', cmd: 'PULE!', lr: false, survive: false,
+      init(m) { m.x = W * 0.12; m.y = 0; m.vy = 0; m.air = false; m.jumped = false; m.hole = W * 0.55 + rr(-40, 40); m.hw = PORTRAIT ? 80 : 96; m.vx = (m.hole - m.x) / (dur * 0.42); m.falling = false; m.cleared = false; },
+      update(dt, m) {
+        if (m.done === 'win') { m.x += m.vx * 0.4 * dt; return; }
+        m.x += (m.falling ? 0.3 : 1) * m.vx * dt;
+        if (!m.done && !m.jumped && A.pressed('a')) { m.vy = -650; m.air = true; m.jumped = true; A.sfx('jump'); }
+        if (m.air || m.falling) { m.vy += 1800 * dt; m.y += m.vy * dt; }
+        const overHole = m.x > m.hole + 10 && m.x < m.hole + m.hw - 10;
+        if (!m.air && !m.falling && overHole) { m.falling = true; A.sfx('lose'); }
+        if (m.air && m.y >= 0) { if (overHole) { m.air = false; m.falling = true; } else { m.y = 0; m.vy = 0; m.air = false; } }
+        if (m.falling && m.y > 120 && !m.done) lose();
+        if (!m.done && !m.air && !m.falling && m.x > m.hole + m.hw + 30) { win(); A.float(cx, GY - 170 * S, 'MAIS UM JOGO ZERADO!', C.now, PORTRAIT ? 18 : 24); A.sfx('coin'); }
+      },
+      draw(c, m) {
+        drawBg(c);
+        drawGround(c, 0, m.hole); drawGround(c, m.hole + m.hw, W);
+        // bandeira de "zerado"
+        const fx = W * 0.88;
+        c.fillStyle = C.ink2; c.fillRect(fx, GY - 132, 6, 132);
+        for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) { c.fillStyle = (i + j) % 2 ? C.ink : C.out; c.fillRect(fx + 6 + i * 12, GY - 132 + j * 12, 12, 12); }
+        const pose = m.falling ? 'fall' : m.air ? 'jump' : m.done === 'win' ? 'cheer' : 'run';
+        c.save();
+        if (m.falling) { c.beginPath(); c.rect(0, 0, W, GY + 4); c.rect(m.hole, GY, m.hw, H); c.clip(); }
+        A.drawIAmiguinho(c, m.x, GY + m.y, S, { pose, t: A.time, face: m.falling ? 'wow' : 'smile' });
+        c.restore();
+      },
+    },
+    { // 6. Acorde o chat
+      id: 'chat', cmd: 'ACORDE O CHAT!', lr: false, survive: false,
+      init(m) { m.v = 0.22; m.line = 0.82; m.msgs = []; },
+      update(dt, m) {
+        if (m.done) return;
+        m.v = Math.max(0, m.v - 0.1 * speed * dt);
+        if (A.pressed('a')) {
+          m.v += 0.08; A.tone(600 + m.v * 600, 0.05, 'square', 0.1);
+          m.msgs.push({ n: pickR(NOMES), t: pickR(MSGS), c: pickR(A.AMIGUINHO_CORES) }); if (m.msgs.length > 7) m.msgs.shift();
+        }
+        if (m.v >= m.line) { win(); A.burst(chatMeter().x + 20, chatMeter().y, C.now, 16, 220, 0.5, 4); }
+      },
+      draw(c, m) {
+        drawBg(c);
+        const px = PORTRAIT ? 40 : cx - 140, py = PORTRAIT ? 170 : 90, pw = PORTRAIT ? W - 150 : 380, ph = PORTRAIT ? 420 : 340;
+        c.save(); c.lineWidth = 3; c.strokeStyle = C.out;
+        c.fillStyle = C.bg2; A.rr(c, px, py, pw, ph, 10); c.fill(); c.stroke();
+        c.fillStyle = C.bg3; c.fillRect(px + 2, py + 2, pw - 4, 40);
+        A.text(c, 'CHAT DA LIVE', px + 15, py + 27, { size: 12, color: C.ink2 });
+        c.fillStyle = m.v > 0.4 ? C.red : C.muted; c.beginPath(); c.arc(px + pw - 22, py + 21, 6, 0, 7); c.fill();
+        m.msgs.forEach((ms, i) => {
+          const y = py + 74 + i * 38;
+          const w = A.text(c, ms.n, px + 15, y, { size: 12, color: ms.c });
+          A.text(c, ms.t, px + 27 + w, y, { size: 12, color: C.ink });
+        });
+        if (!m.msgs.length) A.text(c, 'Zzz...', px + pw / 2, py + ph / 2, { size: 18, align: 'center', color: C.muted });
+        c.restore();
+        // medidor
+        const mt = chatMeter();
+        c.save(); c.lineWidth = 3; c.strokeStyle = C.out; c.fillStyle = C.bg3; A.rr(c, mt.x, mt.y, 40, mt.h, 8); c.fill(); c.stroke();
+        const fh = (mt.h - 8) * A.clamp(m.v, 0, 1);
+        c.fillStyle = m.v >= m.line ? C.green : C.now; c.fillRect(mt.x + 4, mt.y + mt.h - 4 - fh, 32, fh);
+        const ly = mt.y + mt.h - 4 - (mt.h - 8) * m.line;
+        c.fillStyle = C.ink; c.fillRect(mt.x - 8, ly - 2, 56, 4);
+        c.restore();
+        if (!PORTRAIT) A.drawIAmiguinho(c, px - 120, GY, S, { pose: m.done === 'win' ? 'cheer' : 'idle', t: A.time, face: m.v < 0.3 ? 'sad' : m.done === 'win' ? 'wow' : 'smile' });
+      },
+    },
+    { // 7. Pare no Z
+      id: 'parez', cmd: 'PARE NO Z!', lr: false, survive: false,
+      init(m) { m.a = Math.PI + 0.1; m.dir = 1; m.zw = 0.34 / Math.pow(speed, 0.4); m.za = rr(Math.PI + 0.5, Math.PI * 2 - 0.5); m.stop = false; },
+      update(dt, m) {
+        if (!m.stop) {
+          m.a += m.dir * 2.9 * speed * dt;
+          if (m.a > Math.PI * 2 - 0.08) { m.a = Math.PI * 2 - 0.08; m.dir = -1; A.sfx('tick'); }
+          if (m.a < Math.PI + 0.08) { m.a = Math.PI + 0.08; m.dir = 1; A.sfx('tick'); }
+          if (!m.done && A.pressed('a')) { m.stop = true; if (Math.abs(m.a - m.za) <= m.zw / 2) { win(); A.burst(dialX() + Math.cos(m.a) * 150, dialY() + Math.sin(m.a) * 150, C.now, 16, 200, 0.5, 4); } else lose(); }
+        }
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        const x = dialX(), y = dialY(), R = PORTRAIT ? 190 : 170;
+        c.save(); c.lineCap = 'butt';
+        c.strokeStyle = C.out; c.lineWidth = 39; c.beginPath(); c.arc(x, y, R, Math.PI, Math.PI * 2); c.stroke();
+        c.strokeStyle = C.bg3; c.lineWidth = 33; c.beginPath(); c.arc(x, y, R, Math.PI, Math.PI * 2); c.stroke();
+        c.strokeStyle = C.now; c.beginPath(); c.arc(x, y, R, m.za - m.zw / 2, m.za + m.zw / 2); c.stroke();
+        c.strokeStyle = C.line; c.lineWidth = 3;
+        for (let i = 0; i <= 12; i++) { const a = Math.PI + (i / 12) * Math.PI; c.beginPath(); c.moveTo(x + Math.cos(a) * (R - 30), y + Math.sin(a) * (R - 30)); c.lineTo(x + Math.cos(a) * (R - 22), y + Math.sin(a) * (R - 22)); c.stroke(); }
+        A.text(c, 'Z', x + Math.cos(m.za) * (R + 44), y + Math.sin(m.za) * (R + 44) + 12, { size: 30, align: 'center', color: C.now });
+        // agulha
+        c.strokeStyle = m.done === 'lose' ? C.red : C.ink; c.lineWidth = 6; c.lineCap = 'butt';
+        c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(m.a) * (R + 10), y + Math.sin(m.a) * (R + 10)); c.stroke();
+        c.fillStyle = C.ink; c.strokeStyle = C.out; c.lineWidth = 3; c.beginPath(); c.arc(x, y, 14, 0, 7); c.fill(); c.stroke();
+        c.restore();
+      },
+    },
+    { // 8. Pegue o boné
+      id: 'bone', cmd: 'PEGUE O BONÉ!', lr: true, survive: false,
+      init(m) { m.x = cx; m.jy = 0; m.vy = 0; m.air = false; m.ph = rr(0, 6); m.cx = cx; m.cy = GY - 200; },
+      update(dt, m) {
+        if (m.done === 'win') { m.cx = m.x; m.cy = GY + m.jy - 86 * S - 6; if (m.air) { m.vy += 1800 * dt; m.jy += m.vy * dt; if (m.jy >= 0) { m.jy = 0; m.air = false; } } return; }
+        const d = (A.held('right') ? 1 : 0) - (A.held('left') ? 1 : 0);
+        if (!m.done) { m.x = A.clamp(m.x + d * 470 * dt, 40, W - 40); m.moving = d !== 0; if (d) m.flip = d < 0; }
+        if (!m.done && !m.air && A.pressed('a')) { m.vy = -720; m.air = true; A.sfx('jump'); }
+        if (m.air) { m.vy += 1800 * dt; m.jy += m.vy * dt; if (m.jy >= 0) { m.jy = 0; m.vy = 0; m.air = false; } }
+        m.ph += dt;
+        m.cx = cx + Math.sin(m.ph * 1.35 * speed) * W * 0.36;
+        m.cy = GY - 205 * (S / 1.2) + Math.sin(m.ph * 3.1) * 24;
+        const hx = m.x, hy = GY + m.jy - 86 * S;
+        if (!m.done && Math.hypot(hx - m.cx, hy - m.cy) < 50) { win(); A.burst(m.cx, m.cy, [C.blue, C.ink, C.now], 16, 200, 0.5, 4); }
+      },
+      draw(c, m) {
+        drawBg(c); drawGround(c);
+        A.drawIAmiguinho(c, m.x, GY + m.jy, S, { pose: m.air ? 'jump' : m.moving ? 'run' : m.done === 'win' ? 'cheer' : 'idle', t: A.time, noCap: m.done !== 'win', face: m.done === 'win' ? 'smile' : 'wow', flip: m.flip });
+        if (m.done !== 'win') A.drawCap(c, m.cx, m.cy, S, A.time, 4);
+      },
+    },
+  ];
+  const NOMES = ['@pixel', '@lagado', '@zeradinho', '@amiguinho42', '@balacaxi', '@splatzao', '@abacabala', '@sofazeiro'];
+  const MSGS = ['kkkkk', 'acorda', 'GG', '?', 'oi', 'primeiro', 'F', 'LOL', 'bora', 'temporada 2?', 'hahaha', 'cadê a live', 'pog'];
+  function chatMeter() { return PORTRAIT ? { x: W - 80, y: 170, h: 420 } : { x: cx + 280, y: 90, h: 340 }; }
+  function dialX() { return cx; }
+  function dialY() { return PORTRAIT ? GY - 40 : GY - 30; }
+
+  // ---------- o jogo ----------
+  A.game({
+    id: 'relampago',
+    title: 'Temporada Relâmpago',
+    tagline: 'Microjogos de 4 segundos.',
+    w: W, h: H,
+    unit: 'microjogos',
+    start() {
+      rng = A.rng(A.weekSeed('relampago'));
+      bag = []; lastId = ''; lives = 3; wins = 0; speed = 1;
+      startMicro();
+    },
+    update(dt) {
+      pt += dt;
+      if (phase === 'cmd') {
+        if (pt >= Math.max(0.45, 0.7 / Math.sqrt(speed))) { phase = 'micro'; pt = 0; }
+        return;
+      }
+      if (phase === 'micro') {
+        m.t += dt;
+        cur.update(dt, m);
+        // batida
+        beatT -= dt;
+        if (beatT <= 0) { beatT = 0.5 / speed; beatN++; const late = pt > dur - 1; A.tone(late ? (beatN % 2 ? 880 : 660) : (beatN % 2 ? 220 : 330), 0.06, 'triangle', late ? 0.14 : 0.1); }
+        if (m.done) { m.doneT += dt; if (m.doneT > 0.5) toResult(m.done === 'win'); }
+        else if (pt >= dur) {
+          if (cur.survive) { win(); A.burst(cx, GY - 60, C.now, 16, 220, 0.5, 4); }
+          else lose();
+        }
+        return;
+      }
+      if (phase === 'result') {
+        if (pt >= Math.max(0.8, (resFaster ? 1.5 : 1.05) / Math.sqrt(speed))) {
+          if (lives <= 0) { A.setTouchButtons([]); A.tapAction = 'a'; A.end(wins, { line: endLine() }); }
+          else startMicro();
+        }
+      }
+    },
+    draw(c, state) {
+      if (phase === 'result' || state === 'over') {
+        drawBg(c);
+        drawGround(c);
+        const big = resWon ? (resFaster ? 'MAIS RÁPIDO!' : 'BOA!') : 'ERROU!';
+        const col = resFaster ? (Math.floor(pt * 8) % 2 ? C.now : C.ink) : resWon ? C.ink : C.red;
+        A.text(c, big, cx, PORTRAIT ? H * 0.3 : H * 0.36, { size: PORTRAIT ? 36 : 48, align: 'center', color: col, stroke: C.out, strokeW: 9 });
+        A.drawIAmiguinho(c, cx, GY, S * 1.1, { pose: resWon ? 'cheer' : 'fall', t: A.time, face: resWon ? 'wow' : 'smug', spin: resWon ? 3 : 0.4 });
+        if (showLine && state !== 'over') A.bubble(c, cx + 20, GY - 130 * S, resLine);
+        drawHud(c);
+        return;
+      }
+      // Durante a palavra de comando, só o cenário (os textos do microjogo ficariam por cima da faixa).
+      if (phase === 'cmd') { drawBg(c); drawGround(c); } else cur.draw(c, m);
+      drawHud(c);
+      drawTimer(c);
+      if (phase === 'cmd') {
+        const size = Math.min(48, Math.floor((W - 48) / cur.cmd.length / 6) * 6);
+        const by = Math.round(H * 0.45 / 3) * 3;
+        c.fillStyle = C.out; c.fillRect(0, by - size - 30, W, size + 54);
+        c.fillStyle = C.now; c.fillRect(0, by - size - 30, W, 3); c.fillRect(0, by + 21, W, 3);
+        A.text(c, cur.cmd, cx, by, { size, align: 'center', color: Math.floor(pt * 10) % 2 ? C.now : C.nowHi, stroke: C.out, strokeW: 6 });
+      }
+    },
+    drawTitle(c, t) {
+      c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
+      c.fillStyle = '#3a2a1a';
+      const off = Math.floor((t * 120) % 222 / 3) * 3;
+      for (let x = -H; x < W + H; x += 222) { c.beginPath(); c.moveTo(x + off, 0); c.lineTo(x + off + 30, 0); c.lineTo(x + off + 30 - H * 0.4, H); c.lineTo(x + off - H * 0.4, H); c.fill(); }
+    },
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lag · Arcade do IAmiguinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C;
+  // Celular em pé ganha a tela em pé; no resto, paisagem. A mesa é sempre vertical (você embaixo, IAmiguinho em cima).
+  const PORTRAIT = window.innerHeight > window.innerWidth;
+  const W = PORTRAIT ? 540 : 960, H = PORTRAIT ? 960 : 540;
+  const T = PORTRAIT
+    ? { cx: W / 2, tw: 400, top: 396, bot: 882, pw: 96, ph: 15, ias: 1.45 }
+    : { cx: W / 2, tw: 270, top: 150, bot: 498, pw: 66, ph: 12, ias: 1.0 };
+  T.left = T.cx - T.tw / 2; T.right = T.cx + T.tw / 2; T.len = T.bot - T.top;
+  T.pY = T.bot + (PORTRAIT ? 22 : 18); // linha da sua raquete
+  T.aY = T.top - (PORTRAIT ? 10 : 8);  // linha da raquete do IAmiguinho
+  const K = T.len / 348;               // escala de velocidades
+  const R = PORTRAIT ? 9 : 7;          // raio da bola
+  const WIN = 11;
+
+  const FALA_PERDEU = [
+    'Meu roteador tá\nde sacanagem.', 'Isso foi lag.\nTodo mundo viu.', 'O vizinho tá\nbaixando torrent.',
+    'Ping de 900.\nAssim não dá.', 'Deixei você fazer\nesse. Generosidade.', 'Quem desligou\no wi-fi??', 'Pacote perdido.\nO ponto também.',
+    'A hélice tapou\na visão.', 'Vou abrir chamado\nna operadora.', 'Não conta. Tava\natualizando.',
+  ];
+  const FALA_GANHOU = [
+    'kkkkk que isso', 'Ping alto é desculpa\nde quem perde, lol', 'Jogando no 3G\ndo ônibus?', 'hahaha nem suei',
+    'Esse foi aula.\nDe graça.', 'Reinicia o modem\nque melhora kkkk', 'Calma. Culpa\na operadora.', 'Faltou rebater,\nlmao',
+  ];
+  const FALA_FORA = ['Fora! A mesa é\nesse retângulo.', 'Mirou na\narquibancada? kkkk', 'Bola no vizinho.\nPonto meu.'];
+  const FALA_PICO = ['Ixi, seu ping\nsubiu. kkkk', 'Opa, travou aí?\nhahaha', 'Internet de\nhotel fazenda?'];
+
+  let S; // estado da partida
+  function novoEstado() {
+    const r = A.rng(Date.now() & 0xffffffff);
+    return {
+      r, you: 0, ai: 0, server: 'you', phase: 'serve', phaseT: 0,
+      ball: { x: T.cx, y: T.pY - 20, vx: 0, vy: 0, curve: 0, y0: 0, y1: 0, live: false, bounced: false, last: 'you' },
+      target: T.cx, paddle: T.cx, pVel: 0, hist: [], clock: 0,
+      lag: 60, lagGoal: 60, spikeT: 0, nextSpike: 4 + r() * 4, freezeT: 0, nextFreeze: 9 + r() * 8, lagLog: [],
+      aiX: T.cx, aiVel: 0, aiErr: 0, aiReact: 0, aiFace: 'smile', aiPose: 'idle',
+      say: null, sayT: 0, hits: 0, flash: 0, banner: null, bannerT: 0, endT: 0, lastPtrX: null,
+    };
+  }
+  function fala(list, chance) {
+    if (chance != null && S.r() > chance) return;
+    if (S.sayT > 0.6 && S.say) return;
+    S.say = A.pick(list, S.r); S.sayT = 2.4;
+  }
+
+  // ---------- atraso ----------
+  function atualizaLag(dt) {
+    S.nextSpike -= dt; S.nextFreeze -= dt;
+    if (S.spikeT > 0) { S.spikeT -= dt; if (S.spikeT <= 0) S.lagGoal = 30 + S.r() * 80; }
+    else if (S.nextSpike <= 0) {
+      S.spikeT = 1.4 + S.r() * 1.8; S.lagGoal = 200 + S.r() * 150; S.nextSpike = 4 + S.r() * 6;
+      if (S.lagGoal > 280) { fala(FALA_PICO, 0.5); }
+      A.tone(140, 0.08, 'sawtooth', 0.06, 90);
+    } else if (S.r() < dt * 0.7) S.lagGoal = A.clamp(S.lagGoal + (S.r() - 0.5) * 60, 30, 130);
+    S.lag += (S.lagGoal - S.lag) * Math.min(1, dt * (S.spikeT > 0 ? 9 : 2.5));
+    if (S.freezeT > 0) S.freezeT -= dt;
+    else if (S.nextFreeze <= 0 && S.phase === 'rally') { S.freezeT = 0.3; S.nextFreeze = 8 + S.r() * 10; A.noise(0.12, 0.08, 3000); }
+    S.lagLog.push(S.freezeT > 0 ? 400 : S.lag);
+    if (S.lagLog.length > 180) S.lagLog.shift();
+  }
+
+  // ---------- sua raquete ----------
+  function minX() { return T.left - 26; }
+  function maxX() { return T.right + 26; }
+  function atualizaAlvo(dt) {
+    let dir = 0;
+    if (A.held('left')) dir -= 1;
+    if (A.held('right')) dir += 1;
+    if (A.pad.lx) dir = A.pad.lx;
+    if (dir) S.target += dir * 560 * K * dt;
+    // toque: arrastar o dedo
+    const ps = A.pointers();
+    const touch = ps.find((p) => p.touch);
+    if (touch) S.target = touch.x;
+    else if (A.lastDevice === 'mouse' && (A.ptr.moved || A.ptr.down)) S.target = A.ptr.x;
+    S.target = A.clamp(S.target, minX(), maxX());
+    S.hist.push({ t: S.clock, x: S.target });
+    while (S.hist.length > 2 && S.hist[1].t < S.clock - 1.2) S.hist.shift();
+  }
+  function alvoAtrasado() {
+    const tt = S.clock - S.lag / 1000;
+    const h = S.hist;
+    if (!h.length) return S.target;
+    if (tt <= h[0].t) return h[0].x;
+    for (let i = h.length - 1; i > 0; i--) {
+      if (h[i - 1].t <= tt) { const a = h[i - 1], b = h[i]; const f = b.t > a.t ? (tt - a.t) / (b.t - a.t) : 1; return A.lerp(a.x, b.x, A.clamp(f, 0, 1)); }
+    }
+    return h[h.length - 1].x;
+  }
+  function atualizaRaquete(dt) {
+    const old = S.paddle;
+    if (S.freezeT <= 0) {
+      const want = alvoAtrasado();
+      S.paddle += (want - S.paddle) * Math.min(1, dt * 30);
+    }
+    S.pVel = (S.paddle - old) / dt;
+  }
+
+  // ---------- IAmiguinho ----------
+  function atualizaIA(dt) {
+    const b = S.ball;
+    let want = T.cx;
+    if (b.live && b.vy < 0) {
+      S.aiReact -= dt;
+      if (S.aiReact <= 0) {
+        const t = (b.y - T.aY) / -b.vy;
+        want = b.x + b.vx * t + b.curve * t * t * 0.5 + S.aiErr;
+      } else want = S.aiX;
+    } else if (S.phase === 'serve' && S.server === 'ai') want = T.cx + Math.sin(S.phaseT * 3) * 10;
+    want = A.clamp(want, T.left - 40, T.right + 40);
+    const sp = 330 * K * (1 + Math.min(S.hits, 12) * 0.03);
+    const d = want - S.aiX;
+    const mv = A.clamp(d, -sp * dt, sp * dt);
+    S.aiX += mv; S.aiVel = mv / dt;
+  }
+  function preparaIA() {
+    // define o erro dele para esta bola: às vezes ele erra de propósito (ou "por causa da internet")
+    const missP = A.clamp(0.1 + S.hits * 0.025 + (S.ai - S.you) * 0.02, 0.06, 0.42);
+    S.aiErr = S.r() < missP ? (S.r() < 0.5 ? -1 : 1) * T.pw * (0.75 + S.r() * 0.4) : (S.r() - 0.5) * T.pw * 0.55;
+    S.aiReact = 0.08 + S.r() * 0.12;
+  }
+
+  // ---------- bola ----------
+  function velocidade() { return Math.min(760, 340 + S.hits * 22) * K; }
+  function lanca(from, x, vx) {
+    const b = S.ball;
+    const sp = velocidade();
+    b.x = x; b.live = true; b.bounced = false; b.last = from; b.curve = 0;
+    if (from === 'you') { b.y = T.pY - 4; b.vy = -sp; b.y0 = T.pY; b.y1 = T.aY; }
+    else { b.y = T.aY + 4; b.vy = sp; b.y0 = T.aY; b.y1 = T.pY; }
+    b.vx = vx;
+  }
+  function saque() {
+    const b = S.ball;
+    S.phase = 'rally'; S.hits = 0;
+    if (S.server === 'you') {
+      const aim = T.left + T.tw * (0.25 + S.r() * 0.5);
+      lanca('you', S.paddle, (aim - S.paddle) / (T.len / (velocidade())));
+      preparaIA();
+    } else {
+      const aim = T.left + T.tw * (0.2 + S.r() * 0.6);
+      lanca('ai', S.aiX, (aim - S.aiX) / (T.len / velocidade()));
+    }
+    A.tone(620, 0.05, 'square', 0.12);
+    b.live = true;
+  }
+  function ponto(quem, motivo) {
+    const b = S.ball;
+    b.live = false;
+    if (quem === 'you') {
+      S.you++; A.sfx('ok'); S.flash = 0.5; S.aiFace = 'angry'; S.aiPose = 'idle';
+      fala(FALA_PERDEU);
+      S.banner = 'Ponto seu'; A.burst(b.x, A.clamp(b.y, T.aY - 20, T.top + 20), [C.now, C.nowHi, C.ink], 16, 240);
+    } else {
+      S.ai++; A.sfx('bad'); S.aiFace = 'smug'; S.aiPose = 'cheer';
+      fala(motivo === 'fora' ? FALA_FORA : FALA_GANHOU);
+      S.banner = motivo === 'fora' ? 'Fora' : 'Ponto dele';
+      A.shake(4, 0.2);
+    }
+    S.bannerT = 1.1;
+    S.phase = 'point'; S.phaseT = 0;
+    S.server = S.server === 'you' ? 'ai' : 'you';
+    if (S.you >= WIN || S.ai >= WIN) { S.phase = 'done'; S.endT = 0; }
+  }
+  function atualizaBola(dt) {
+    const b = S.ball;
+    if (!b.live) return;
+    const py = b.y;
+    b.vx += b.curve * dt; b.curve *= Math.pow(0.4, dt);
+    b.x += b.vx * dt; b.y += b.vy * dt;
+    // quique no lado de quem recebe (70% do caminho)
+    const p = (b.y - b.y0) / (b.y1 - b.y0);
+    if (!b.bounced && p >= 0.7) {
+      b.bounced = true;
+      if (b.x < T.left - R * 0.5 || b.x > T.right + R * 0.5) { ponto(b.last === 'you' ? 'ai' : 'you', 'fora'); return; }
+      A.tone(b.vy > 0 ? 520 : 460, 0.035, 'triangle', 0.18);
+    }
+    // sua raquete
+    if (b.vy > 0 && py < T.pY && b.y >= T.pY) {
+      const off = (b.x - S.paddle) / (T.pw / 2 + R);
+      if (Math.abs(off) <= 1 && S.freezeT <= 0.15) {
+        S.hits++;
+        const sp = velocidade();
+        let vx = off * 0.52 * sp + S.pVel * 0.18;
+        vx = A.clamp(vx, -sp * 0.75, sp * 0.75);
+        lanca('you', b.x, vx);
+        b.curve = A.clamp(S.pVel * 0.55, -260 * K, 260 * K);
+        A.tone(760 + Math.min(S.hits, 10) * 30, 0.045, 'square', 0.16);
+        A.burst(b.x, T.pY - 6, [C.now, C.ink], 6, 140, 0.3, 3);
+        preparaIA();
+        S.aiFace = Math.abs(off) > 0.7 ? 'wow' : 'smile'; S.aiPose = 'idle';
+        return;
+      }
+    }
+    if (b.vy > 0 && b.y > T.pY + 46) { ponto('ai'); return; }
+    // raquete do IAmiguinho
+    if (b.vy < 0 && py > T.aY && b.y <= T.aY) {
+      const off = (b.x - S.aiX) / (T.pw / 2 + R);
+      if (Math.abs(off) <= 1) {
+        S.hits++;
+        const aim = T.left + T.tw * (0.12 + S.r() * 0.76);
+        const sp = velocidade();
+        lanca('ai', b.x, (aim - b.x) / (T.len / sp));
+        b.curve = A.clamp(S.aiVel * 0.3, -160 * K, 160 * K);
+        A.tone(680, 0.045, 'square', 0.14);
+        A.burst(b.x, T.aY + 6, [C.blueHi, C.ink], 6, 140, 0.3, 3);
+        return;
+      }
+    }
+    if (b.vy < 0 && b.y < T.aY - 46) ponto('you');
+  }
+
+  // ---------- desenho (8 bits: tudo em blocos de A.PIX) ----------
+  const P = A.PIX;
+  const px = (v) => Math.round(v / P) * P;
+  function bloco(c, x, y, w, h, cor) { c.fillStyle = cor; c.fillRect(px(x), px(y), Math.max(P, px(w)), Math.max(P, px(h))); }
+  function caixa(c, x, y, w, h, cor, borda) { bloco(c, x - P, y - P, w + 2 * P, h + 2 * P, borda || C.out); bloco(c, x, y, w, h, cor); }
+  function fundo(c) {
+    c.fillStyle = C.bg; c.fillRect(0, 0, W, H);
+    // faixas inclinadas no ângulo do Z, em degraus de pixel
+    c.fillStyle = C.bg3;
+    for (let x0 = -H; x0 < W + H; x0 += 72) {
+      for (let y = 0; y < H; y += P * 2) { const x = px(x0 + (H - y) * 0.4); c.fillRect(x, y, 18, P * 2); }
+    }
+  }
+  function mesa(c) {
+    bloco(c, T.left + 9, T.top + 9, T.tw, T.len, '#000000');
+    caixa(c, T.left, T.top, T.tw, T.len, '#004058');
+    bloco(c, T.left, T.top, T.tw, P, '#008888');
+    // linhas brancas
+    const L = '#f8f8f8';
+    bloco(c, T.left + 6, T.top + 6, T.tw - 12, P, L); bloco(c, T.left + 6, T.bot - 9, T.tw - 12, P, L);
+    bloco(c, T.left + 6, T.top + 6, P, T.len - 12, L); bloco(c, T.right - 9, T.top + 6, P, T.len - 12, L);
+    bloco(c, T.cx - 1, T.top + 6, P, T.len - 12, L);
+    // rede
+    const ny = px((T.top + T.bot) / 2);
+    bloco(c, T.left - 12, ny + 3, T.tw + 24, P * 2, '#000000');
+    caixa(c, T.left - 12, ny - 3, T.tw + 24, P * 2, '#bcbcbc');
+    for (let x = T.left - 9; x < T.right + 12; x += P * 3) bloco(c, x, ny, P, P, '#7c7c7c');
+    caixa(c, T.left - 18, ny - 9, P * 2, P * 5, C.now); caixa(c, T.right + 12, ny - 9, P * 2, P * 5, C.now);
+  }
+  function raquete(c, x, y, cor, cabo, claro) {
+    const w = T.pw, h = T.ph;
+    const ch = PORTRAIT ? 18 : 12;
+    if (cabo > 0) caixa(c, x - 3, y + h / 2, 6, ch, '#881400'); else caixa(c, x - 3, y - h / 2 - ch, 6, ch, '#881400');
+    caixa(c, x - w / 2, y - h / 2, w, h, cor);
+    bloco(c, x - w / 2 + P, y - h / 2, w - 2 * P, P, claro);
+  }
+  function fantasma(c) {
+    if (Math.abs(S.target - S.paddle) < 4 && S.freezeT <= 0) return;
+    if (Math.floor(A.time * 8) % 2) return; // pisca
+    const x0 = px(S.target - T.pw / 2), y0 = px(T.pY - T.ph / 2), w = px(T.pw), h = px(T.ph);
+    c.fillStyle = C.ink2;
+    for (let x = x0; x <= x0 + w; x += P * 2) { c.fillRect(x, y0 - P, P, P); c.fillRect(x, y0 + h, P, P); }
+    for (let y = y0; y < y0 + h; y += P * 2) { c.fillRect(x0 - P, y, P, P); c.fillRect(x0 + w, y, P, P); }
+  }
+  function bola(c) {
+    const b = S.ball;
+    let bx = b.x, by = b.y, z = 0;
+    if (S.phase === 'serve') {
+      bx = S.server === 'you' ? S.paddle : S.aiX;
+      by = S.server === 'you' ? T.pY - 18 : T.aY + 18;
+      z = Math.abs(Math.sin(S.phaseT * 6)) * 18 * K;
+    } else if (b.live) {
+      const p = A.clamp((b.y - b.y0) / (b.y1 - b.y0), 0, 1);
+      z = p < 0.7 ? Math.sin((p / 0.7) * Math.PI) * 27 * K : Math.sin(((p - 0.7) / 0.3) * Math.PI) * 15 * K;
+    } else return;
+    const d = px(R * 2) + (z > 18 ? P : 0);
+    // sombra
+    bloco(c, bx - d / 2 + z * 0.3, by - P, d, P * 2, '#000000');
+    const x0 = px(bx - d / 2), y0 = px(by - z - d / 2);
+    // bola de pixel: quadrado com cantos cortados e contorno
+    c.fillStyle = C.out;
+    c.fillRect(x0 + P, y0 - P, d - 2 * P, d + 2 * P); c.fillRect(x0 - P, y0 + P, d + 2 * P, d - 2 * P); c.fillRect(x0, y0, d, d);
+    c.fillStyle = '#fcfcfc';
+    c.fillRect(x0 + P, y0, d - 2 * P, d); c.fillRect(x0, y0 + P, d, d - 2 * P);
+    c.fillStyle = C.now; c.fillRect(x0 + d - 2 * P, y0 + d - 2 * P, P, P);
+  }
+  function iamiguinho(c) {
+    const x = S.aiX, y = T.top - 2;
+    const pose = S.aiPose === 'cheer' && S.phase !== 'rally' ? 'cheer' : Math.abs(S.aiVel) > 40 ? 'run' : 'idle';
+    A.drawIAmiguinho(c, x, y, T.ias, { pose, t: A.time, face: S.aiFace, spin: pose === 'cheer' ? 3 : 0.8, flip: S.aiVel < -40 });
+  }
+  function placar(c) {
+    if (PORTRAIT) {
+      const y = 96;
+      A.text(c, 'Você', 30, y, { size: 12, color: C.muted });
+      A.text(c, S.you, 30, y + 54, { size: 42, color: C.now });
+      A.text(c, 'IAmiguinho', 150, y, { size: 12, color: C.muted });
+      A.text(c, S.ai, 150, y + 54, { size: 42, color: C.ink });
+    } else {
+      const x = 48, y = 192;
+      A.text(c, 'Você', x, y, { size: 12, color: C.muted });
+      A.text(c, S.you, x, y + 60, { size: 48, color: C.now });
+      A.text(c, 'IAmiguinho', x, y + 108, { size: 12, color: C.muted });
+      A.text(c, S.ai, x, y + 168, { size: 48, color: C.ink });
+      A.text(c, 'Até ' + WIN, x, y + 210, { size: 12, color: C.muted });
+    }
+  }
+  function medidor(c) {
+    const travou = S.freezeT > 0;
+    const ms = travou ? null : Math.round(S.lag + Math.sin(A.time * 37) * 3);
+    const lvl = travou ? 3 : S.lag > 220 ? 3 : S.lag > 130 ? 2 : 1;
+    const cor = lvl === 3 ? '#f83800' : lvl === 2 ? C.now : '#58d854';
+    const bw = PORTRAIT ? 198 : 186, bh = PORTRAIT ? 84 : 138;
+    const bx = PORTRAIT ? W - bw - 18 : W - bw - 36, by = PORTRAIT ? 60 : 150;
+    caixa(c, bx, by, bw, bh, C.bg2, lvl === 3 && Math.floor(A.time * 6) % 2 ? cor : C.line);
+    A.text(c, 'Ping', bx + 12, by + 24, { size: 12, color: C.muted });
+    const ativas = travou ? 0 : 5 - lvl - (lvl === 3 ? 1 : 0);
+    for (let i = 0; i < 4; i++) {
+      const hh = P * (2 + i * 2);
+      bloco(c, bx + bw - 66 + i * 12, by + 27 - hh, P * 2, hh, i < ativas ? cor : C.line);
+    }
+    const nw = A.text(c, travou ? '---' : ms, bx + 12, by + 60, { size: 24, color: cor });
+    if (!travou) A.text(c, 'ms', bx + 18 + nw, by + 60, { size: 12, color: cor });
+    if (!PORTRAIT) {
+      const gx = bx + 12, gy = by + 126, gw = bw - 24, gh = 30;
+      bloco(c, gx, gy, gw, P, C.line);
+      const n = Math.floor(gw / P);
+      c.fillStyle = cor;
+      for (let i = 0; i < n; i++) {
+        const v = S.lagLog[Math.floor((i / n) * S.lagLog.length)];
+        if (v == null) continue;
+        c.fillRect(px(gx) + i * P, px(gy - Math.min(v, 400) / 400 * gh) - P, P, P);
+      }
+    }
+    if (lvl === 3 && Math.floor(A.time * 6) % 2 === 0) {
+      A.text(c, travou ? 'Travou!' : 'Ping alto', PORTRAIT ? bx + bw : bx + 12, by + (PORTRAIT ? bh + 24 : 88), { size: 12, color: '#f83800', align: PORTRAIT ? 'right' : 'left' });
+    }
+  }
+  function falaDraw(c) {
+    if (!S.say || S.sayT <= 0 || A.state !== 'play') return;
+    if (PORTRAIT) { A.bubble(c, S.aiX + 12, T.top - 166, S.say, { size: 18, align: 'center' }); return; }
+    // paisagem: balão ao lado da cabeça (em cima não cabe)
+    const size = 12, pad = 12;
+    const lines = S.say.split('\n');
+    const w = px(Math.max(...lines.map((l) => A.measure(c, l, { size }))) + pad * 2);
+    const h = px(lines.length * (size + 6) + pad * 2 - 6);
+    const headY = px(T.top - 2 - 70 * T.ias);
+    const right = S.aiX < T.cx + 30;
+    const bx = px(right ? S.aiX + 42 : S.aiX - 42 - w);
+    const by = px(A.clamp(headY - h / 2, 12, H - h - 12));
+    c.fillStyle = C.ink;
+    // ponta em degraus
+    for (let i = 0; i < 4; i++) {
+      const xx = right ? bx - P * (i + 1) : bx + w + P * i;
+      c.fillRect(xx, headY - P + (i > 1 ? P : 0), P, P * (i > 1 ? 1 : 3));
+    }
+    A.cut(c, bx, by, w, h, 12); c.fill();
+    lines.forEach((l, i) => A.text(c, l, bx + pad, by + pad + size - 1 + i * (size + 6), { size, color: C.bg, shadow: false }));
+  }
+  function banner(c) {
+    if (!S.banner || S.bannerT <= 0) return;
+    const a = Math.min(1, S.bannerT * 3);
+    const y = (T.top + T.bot) / 2 + (S.banner === 'Ponto seu' ? T.len * 0.22 : -T.len * 0.22);
+    c.save(); c.globalAlpha = a;
+    A.text(c, S.banner, T.cx, y, { size: PORTRAIT ? 30 : 18, wide: true, align: 'center', color: S.banner === 'Ponto seu' ? C.now : C.ink, stroke: C.out, strokeW: 6 });
+    c.restore();
+  }
+
+  function cena(c, comJogo) {
+    fundo(c);
+    mesa(c);
+    if (!comJogo) return;
+    iamiguinho(c);
+    raquete(c, S.aiX, T.aY, C.blue, -1, '#3cbcfc');
+    bola(c);
+    fantasma(c);
+    raquete(c, S.paddle, T.pY, C.now, 1, '#fce0a8');
+    placar(c);
+    medidor(c);
+    banner(c);
+    falaDraw(c);
+    if (S.flash > 0 && Math.floor(S.flash * 16) % 2 === 0) {
+      c.fillStyle = C.now; const m = P * 2;
+      c.fillRect(px(T.left) - m * 2, px(T.top) - m * 2, px(T.tw) + m * 4, m); c.fillRect(px(T.left) - m * 2, px(T.bot) + m, px(T.tw) + m * 4, m);
+      c.fillRect(px(T.left) - m * 2, px(T.top) - m * 2, m, px(T.len) + m * 4); c.fillRect(px(T.right) + m, px(T.top) - m * 2, m, px(T.len) + m * 4);
+    }
+  }
+
+  A.game({
+    id: 'lag',
+    title: 'Lag',
+    tagline: 'Tênis de mesa. O lag é seu.',
+    w: W, h: H,
+    unit: 'pontos',
+    start() { S = novoEstado(); S.say = 'Pode vir. Minha\ninternet é fibra.'; S.sayT = 2.2; },
+    update(dt) {
+      S.clock += dt; S.phaseT += dt;
+      if (S.sayT > 0) S.sayT -= dt;
+      if (S.bannerT > 0) S.bannerT -= dt;
+      if (S.flash > 0) S.flash -= dt;
+      atualizaLag(dt);
+      atualizaAlvo(dt);
+      atualizaRaquete(dt);
+      atualizaIA(dt);
+      if (S.phase === 'serve') { if (S.phaseT > 1) saque(); }
+      else if (S.phase === 'rally') atualizaBola(dt);
+      else if (S.phase === 'point') { if (S.phaseT > 0.9) { S.phase = 'serve'; S.phaseT = 0; S.aiPose = 'idle'; S.aiFace = 'smile'; } }
+      else if (S.phase === 'done') {
+        S.endT += dt;
+        if (S.endT > 1.3) {
+          const venceu = S.you >= WIN;
+          const score = S.you * 100 + (venceu ? (WIN - S.ai) * 100 : 0);
+          const line = venceu
+            ? A.pick(['Minha internet caiu.\nFato.', 'Exijo revanche.\nCom cabo de rede.', 'Vou abrir chamado\nna operadora.'])
+            : A.pick([WIN + ' a ' + S.you + '. Nem\na fibra salva kkkk', 'Joga com cabo da\npróxima, hahaha', 'Era só rebater,\nlol']);
+          A.end(score, { line, sub: 'Você ' + S.you + ' × ' + S.ai + ' IAmiguinho' });
+        }
+      }
+    },
+    draw(c) { cena(c, true); },
+    drawTitle(c) { cena(c, false); },
+  });
+
+  // Modo de teste: window.__lag dá acesso ao estado.
+  window.__lag = { get S() { return S; }, T };
+})();
+</script>
+</body>
+</html>

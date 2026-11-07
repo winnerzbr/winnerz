@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pega o Boné · Arcade do IAmiguinho</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+</head>
+<body>
+<script src="arcade.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = A.C, W = 960, H = 540;
+  const L = 25000;          // comprimento do percurso (px); ~64 s numa corrida limpa
+  const PX = 230;           // posição do IAmiguinho na tela
+  const S = 0.8;            // escala do IAmiguinho
+  const H_STAND = 66, H_DUCK = 44, HALF_W = 12;
+
+  // ---------- Percurso da semana ----------
+  const SIGNS = ['PASTEL 24H', 'CONSERTO', 'LAN HOUSE', 'BALACAXI', 'FLIPERAMA', 'CACETINHO', 'JOGOS', 'CARTUCHO'];
+  function gen() {
+    const r = A.rng(A.weekSeed('bone'));
+    const roofs = [], obs = [];
+    let x = 900, y = 400, i = 1;
+    roofs.push({ x0: -600, x1: x, y, i: 0, hue: 0.3, safeX: 0 });
+    while (x < L - 200) {
+      const prog = x / L;
+      x += 70 + r() * 70 + prog * 60;
+      y = A.clamp(y + (r() - 0.5) * 110, 330, 440);
+      const last = x > L - 1700;
+      const len = last ? L - x + 1000 : 520 + r() * 620;
+      const roof = { x0: x, x1: x + len, y, i: i++, hue: r(), safeX: x + 30 };
+      roofs.push(roof);
+      if (!last) {
+        let ox = x + 150 + r() * 90;
+        while (ox < roof.x1 - 170) {
+          const k = r();
+          const type = k < 0.38 ? 'box' : k < 0.6 ? 'sign' : k < 0.8 ? 'varal' : 'bird';
+          const o = { type, x: ox, roof, hit: false, seed: r() };
+          if (type === 'box') {
+            o.sub = A.pick(['chamine', 'caixa', 'caixote'], r);
+            o.w = o.sub === 'chamine' ? 34 : o.sub === 'caixa' ? 58 : 44;
+            o.h = o.sub === 'chamine' ? 56 : o.sub === 'caixa' ? 62 : 40;
+            o.rx0 = ox; o.rx1 = ox + o.w; o.ry0 = y - o.h; o.ry1 = y;
+          } else if (type === 'sign') {
+            o.w = 156 + r() * 36; o.text = A.pick(SIGNS, r);
+            o.rx0 = ox; o.rx1 = ox + o.w; o.ry0 = y - 600; o.ry1 = y - 54;
+          } else if (type === 'varal') {
+            o.w = 150 + r() * 70;
+            o.rx0 = ox + 12; o.rx1 = ox + o.w - 12; o.ry0 = y - 600; o.ry1 = y - 54;
+          } else {
+            o.w = 34;
+            o.rx0 = ox; o.rx1 = ox + 34; o.ry0 = y - 76; o.ry1 = y - 52;
+          }
+          obs.push(o);
+          roof.safeX = Math.max(roof.safeX, ox + o.w + 30);
+          ox += o.w + 240 + r() * 260 - prog * 50;
+        }
+      }
+      x += len;
+    }
+    return { roofs, obs };
+  }
+
+  // Cidade ao fundo (determinística)
+  function skyline(seed, n, minW, maxW, minH, maxH) {
+    const r = A.rng(seed), out = []; let x = 0;
+    for (let i = 0; i < n; i++) { const w = minW + r() * (maxW - minW); out.push({ x, w, h: minH + r() * (maxH - minH), ant: r() < 0.3, lit: r() }); x += w + r() * 10; }
+    return { list: out, len: x };
+  }
+  const FAR = skyline(11, 40, 50, 130, 80, 220), MID = skyline(23, 30, 70, 160, 60, 170);
+  const STARS = (() => { const r = A.rng(5); return Array.from({ length: 70 }, () => ({ x: r() * W, y: r() * 260, s: r() })); })();
+
+  // ---------- Estado ----------
+  let course, p, cap, phase, phaseT, timer, camX, bub, said, prevJump, runPh, endLine;
+  function bubble(text, dur) { bub = { text, t: dur || 1.8 }; }
+  A.setTouchButtons([]);
+
+  function start() {
+    course = gen();
+    p = { x: 0, y: course.roofs[0].y, vy: 0, ground: true, coy: 0, buf: 0, duck: false, slow: 1, stumble: 0, lastRoof: course.roofs[0], sadT: 0 };
+    cap = { x: 0, y: p.y - 80, spin: 1, onHead: true };
+    phase = 'intro'; phaseT = 0; timer = 0; camX = p.x - PX; bub = null; said = {}; prevJump = true; runPh = 0;
+    A.tapAction = null;
+    A.setTouchButtons([
+      { act: 'down', x: 84, y: H - 84, r: 54, label: '▼' },
+      { act: 'up', x: W - 84, y: H - 84, r: 54, label: '▲' },
+    ]);
+  }
+
+  function roofAt(x) { for (const r of course.roofs) if (x >= r.x0 - 6 && x <= r.x1 + 6) return r; return null; }
+
+  function readInput() {
+    let jump = A.held('up') || A.held('a');
+    let duck = A.held('down') || A.held('b');
+    for (const q of A.pointers()) {
+      if (q.onUi) continue;
+      if (q.touch) { if (q.x < W / 2) duck = true; else jump = true; }
+      else jump = true;
+    }
+    if (window.__bot) { const b = botInput(); jump = b.jump; duck = b.duck; }
+    return { jump, duck };
+  }
+  // Piloto automático: só para teste (window.__bot = true)
+  function botInput() {
+    let jump = false, duck = false;
+    const r = roofAt(p.x);
+    if (p.ground && r && r.x1 - p.x < 40 + p.slow * 30) jump = true;
+    if (!p.ground && p.vy < 0) jump = true;
+    for (const o of course.obs) {
+      if (o.hit || o.rx1 < p.x - HALF_W) continue;
+      const d = o.rx0 - (p.x + HALF_W);
+      if (d > 150) break;
+      if (o.type === 'box' && d < 70) jump = true;
+      if ((o.type === 'sign' || o.type === 'varal' || o.type === 'bird') && d < 90) duck = true;
+      break;
+    }
+    if (duck) jump = false;
+    return { jump, duck };
+  }
+
+  function stumble(bird) {
+    p.slow = 0.35; p.stumble = 0.35;
+    A.sfx('hit'); A.shake(5, 0.2);
+    if (bird) A.burst(p.x - camX + 20, p.y - 60, ['#c9ced4', '#8e959e'], 10, 180, 0.6, 5);
+    if (!bub && Math.random() < 0.55) bubble(A.pick(bird ? ['Pombo folgado!', 'Sai, passarinho!', 'Pombo com\nplano de saúde?'] : ['Quem pôs isso aqui?!', 'Eu vi. Só testei\na física.', 'kkkk ninguém\nviu isso', 'Foi de propósito, tá?']));
+  }
+
+  function step(dt) {
+    phaseT += dt;
+    const inp = readInput();
+    const jumpPressed = inp.jump && !prevJump; prevJump = inp.jump;
+    if (bub) { bub.t -= dt; if (bub.t <= 0) bub = null; }
+
+    if (phase === 'intro') {
+      cap.spin = 1 + phaseT * 8;
+      if (phaseT > 0.55) { cap.onHead = false; const k = phaseT - 0.55; cap.x = p.x + k * 260; cap.y = p.y - 80 - k * 180; }
+      if (phaseT > 0.55 && !said.intro) { said.intro = 1; A.sfx('whoosh'); bubble('Ei! Volta aqui!', 1.4); }
+      if (phaseT > 1.35) { phase = 'run'; phaseT = 0; }
+      camX = p.x - PX;
+      return;
+    }
+
+    if (phase === 'catch') {
+      const k = Math.min(1, phaseT / 0.45);
+      cap.x = A.lerp(cap.x, p.x, k * 0.3); cap.y = A.lerp(cap.y, p.y - 80, k * 0.3);
+      if (phaseT > 0.45 && !cap.onHead) {
+        cap.onHead = true; A.sfx('coin'); A.burst(p.x - camX, p.y - 80, [C.now, C.blue, '#fff'], 22, 260, 0.8, 5);
+        bubble('Pronto.\nEstilo restaurado.', 1.6);
+      }
+      if (phaseT > 1.9) A.end(timer, { line: endLine, sub: 'Rota da semana ' + A.week().split('-')[1] });
+      return;
+    }
+
+    // ---- corrida ----
+    timer += dt;
+    const prog = A.clamp(p.x / L, 0, 1);
+    p.slow = Math.min(1, p.slow + dt * 1.1);
+    if (p.stumble > 0) p.stumble -= dt;
+    if (p.sadT > 0) p.sadT -= dt;
+    const v = (300 + 200 * prog) * p.slow;
+    runPh += dt * v / 330;
+
+    // horizontal, com paredes de prédios mais altos
+    let nx = p.x + v * dt;
+    for (const r of course.roofs) {
+      if (r.x0 > nx + 40) break;
+      if (p.x + HALF_W <= r.x0 && nx + HALF_W > r.x0 && p.y > r.y + 2) {
+        if (p.y - r.y < 28) { p.y = r.y; p.vy = 0; p.ground = true; p.lastRoof = r; stumble(false); }
+        else nx = r.x0 - HALF_W;
+      }
+    }
+    p.x = nx;
+
+    // pulo (com tolerância na borda e pulo guardado)
+    if (jumpPressed) p.buf = 0.12;
+    if (p.buf > 0) p.buf -= dt;
+    if (p.buf > 0 && (p.ground || p.coy > 0) && !inp.duck) {
+      p.vy = -660; p.ground = false; p.coy = 0; p.buf = 0; A.sfx('jump');
+    }
+    let g = inp.jump && p.vy < 0 ? 1400 : 2700;
+    if (inp.duck && !p.ground) g = 4400;
+    const wasGround = p.ground;
+    p.vy += g * dt;
+    const py0 = p.y;
+    p.y += p.vy * dt;
+    p.ground = false;
+    const under = roofAt(p.x);
+    if (under && py0 <= under.y + 1 && p.y >= under.y) { p.y = under.y; p.vy = 0; p.ground = true; p.lastRoof = under; if (!wasGround) A.tone(160, 0.05, 'triangle', 0.12); }
+    if (wasGround && !p.ground) p.coy = 0.1; else if (p.coy > 0) p.coy -= dt;
+    p.duck = inp.duck && p.ground;
+
+    // obstáculos
+    const top = p.y - (p.duck ? H_DUCK : H_STAND);
+    for (const o of course.obs) {
+      if (o.rx0 > p.x + 60) break;
+      if (o.hit || o.rx1 < p.x - 40) continue;
+      const oy0 = o.type === 'bird' ? o.ry0 + Math.sin(A.time * 4 + o.seed * 6) * 3 : o.ry0;
+      const oy1 = o.type === 'bird' ? o.ry1 + Math.sin(A.time * 4 + o.seed * 6) * 3 : o.ry1;
+      if (p.x + HALF_W > o.rx0 && p.x - HALF_W < o.rx1 && p.y > oy0 && top < oy1) {
+        o.hit = true; timer += 0.0; stumble(o.type === 'bird');
+        if (o.type === 'box' && p.ground) { /* tropeça por cima */ }
+      }
+    }
+
+    // caiu no vão
+    if (p.y > H + 90) {
+      const r = p.lastRoof;
+      p.x = r.safeX; p.y = r.y; p.vy = 0; p.ground = true; p.slow = 0.5; p.sadT = 1.2;
+      timer += 3;
+      A.sfx('bad'); A.float(PX, r.y - 114, '+3 s', C.red, 24);
+      bubble(A.pick(['Lag. Foi lag.', 'Atalho errado, normal.', 'Isso foi\nestratégia, tá?', 'Quem cavou\nesse buraco?']), 1.8);
+    }
+
+    // falas no meio do caminho
+    if (prog > 0.25 && !said.q1 && !bub) { said.q1 = 1; bubble('Esse boné tem\nplano de fuga, lol', 1.8); }
+    if (prog > 0.5 && !said.q2 && !bub) { said.q2 = 1; bubble('Metade do caminho.\nFácil demais.', 1.8); }
+    if (prog > 0.78 && !said.q3 && !bub) { said.q3 = 1; bubble('Hélice traíra...\njá cansou, hahaha', 1.8); }
+
+    // boné: foge à frente; perto do fim perde força e desce no último telhado
+    const lastRoof = course.roofs[course.roofs.length - 1];
+    const endZone = p.x > L - 900;
+    let tx, ty;
+    if (!endZone) {
+      tx = p.x + 320 + Math.sin(A.time * 1.3) * 30;
+      const rr = roofAt(tx) || { y: p.y };
+      ty = Math.min(rr.y, p.y) - 150 + Math.sin(A.time * 2.1) * 14;
+      cap.spin = 4;
+    } else {
+      const k = A.clamp((p.x - (L - 900)) / 700, 0, 1);
+      tx = Math.min(p.x + 320 - k * 120, L);
+      ty = A.lerp(Math.min(lastRoof.y, p.y) - 150, lastRoof.y - 8, k) + Math.sin(A.time * 2.1) * 14 * (1 - k);
+      cap.spin = A.lerp(4, 0.4, k);
+    }
+    cap.x += (tx - cap.x) * Math.min(1, dt * 5);
+    cap.y += (ty - cap.y) * Math.min(1, dt * 4);
+    if (cap.spin > 1 && Math.floor(A.time * 6) !== Math.floor((A.time - dt) * 6)) A.tone(1800 + Math.random() * 200, 0.02, 'square', 0.015);
+
+    if (endZone && p.x >= cap.x - 26 && p.ground) {
+      phase = 'catch'; phaseT = 0;
+      endLine = timer < 68 ? 'Rápido assim só\nporque eu quis. hahaha' : timer < 80 ? 'Boné de volta.\nHélice de castigo.' : 'Demorei pra dar\nemoção, sacou? kkkk';
+    }
+
+    camX = p.x - PX;
+  }
+
+  // ---------- Desenho ----------
+  function drawBg(c, cx) {
+    // céu em faixas chapadas
+    c.fillStyle = '#07080a'; c.fillRect(0, 0, W, H);
+    // brilho da cidade no horizonte, em pontilhado
+    c.fillStyle = '#101318';
+    for (let y = 222; y < 270; y += 3) { const step = y < 246 ? 9 : 6; for (let x = ((y / 3) % 2) * 3; x < W; x += step) c.fillRect(x, y, 3, 3); }
+    c.fillRect(0, 270, W, H);
+    for (const s2 of STARS) {
+      const x = Math.floor((((s2.x - cx * 0.03) % W + W) % W) / 3) * 3, y = Math.floor(s2.y / 3) * 3;
+      const tw = Math.sin(A.time * 2 + s2.x) > 0.7 - s2.s;
+      c.fillStyle = tw ? '#dfe6ff' : '#5a6078';
+      c.fillRect(x, y, 3, 3);
+      if (s2.s > 0.9 && tw) { c.fillRect(x - 3, y, 9, 3); c.fillRect(x, y - 3, 3, 9); }
+    }
+    // lua (crescente em pixel)
+    const mx = Math.floor((760 - cx * 0.01) / 3) * 3;
+    c.fillStyle = '#f3ecd8'; c.beginPath(); c.arc(mx, 93, 33, 0, 7); c.fill();
+    c.fillStyle = '#07080a'; c.beginPath(); c.arc(mx + 15, 84, 30, 0, 7); c.fill();
+    drawSky(c, FAR, cx * 0.22, 330, '#14171c', '#3a2a1a');
+    drawSky(c, MID, cx * 0.45, 380, '#181c22', '#5a3a20');
+  }
+  function drawSky(c, layer, off, base, col, win) {
+    const len = layer.len;
+    let o = -((off % len) + len) % len;
+    o = Math.floor(o / 3) * 3;
+    for (let rep = 0; rep < 3; rep++, o += len) {
+      for (const b of layer.list) {
+        const x = Math.floor((o + b.x) / 3) * 3, bw = Math.floor(b.w / 3) * 3, bh = Math.floor(b.h / 3) * 3;
+        if (x > W || x + bw < 0) continue;
+        c.fillStyle = col; c.fillRect(x, base - bh, bw, H - base + bh);
+        if (b.ant) {
+          c.fillRect(x + Math.floor(bw * 0.6 / 3) * 3, base - bh - 27, 3, 27);
+          c.fillStyle = Math.sin(A.time * 3 + b.x) > 0 ? C.red : '#4a1c22';
+          c.fillRect(x + Math.floor(bw * 0.6 / 3) * 3 - 3, base - bh - 30, 9, 6);
+        }
+        c.fillStyle = win;
+        for (let yy = base - bh + 12; yy < H; yy += 18) for (let xx = x + 9; xx < x + bw - 9; xx += 15) { if (((xx * 7 + yy * 13 + b.x) | 0) % 9 === 0) c.fillRect(xx, yy, 6, 6); }
+      }
+    }
+  }
+
+  const BCOL = ['#262b33', '#262b33', '#262b33', '#262b33'];
+  function drawRoof(c, r, cx) {
+    const x0 = r.x0 - cx, x1 = r.x1 - cx;
+    if (x1 < -20 || x0 > W + 20) return;
+    c.fillStyle = BCOL[Math.floor(r.hue * BCOL.length)];
+    c.fillRect(x0, r.y, x1 - x0, H - r.y + 10);
+    c.strokeStyle = C.out; c.lineWidth = 3; c.strokeRect(x0, r.y, x1 - x0, H - r.y + 20);
+    // janelas
+    const rnd = A.rng(r.i * 977 + 3);
+    for (let yy = Math.floor((r.y + 33) / 3) * 3; yy < H; yy += 45) {
+      for (let xx = x0 + 22; xx < x1 - 30; xx += 48) {
+        const lit = rnd() < 0.3;
+        if (xx < -30 || xx > W) continue;
+        const wx = Math.floor(xx / 3) * 3;
+        c.fillStyle = lit ? C.now : '#14171c';
+        c.fillRect(wx, yy, 21, 24);
+        if (lit) { c.fillStyle = '#b8742f'; c.fillRect(wx + 9, yy, 3, 24); c.fillRect(wx, yy + 12, 21, 3); }
+      }
+    }
+    // beiral
+    c.fillStyle = '#181c22'; c.fillRect(x0 - 6, r.y - 6, x1 - x0 + 12, 12);
+    c.fillStyle = '#7c7c7c'; c.fillRect(x0 - 6, r.y - 6, x1 - x0 + 12, 3);
+    c.fillStyle = C.out; c.fillRect(x0 - 6, r.y + 6, x1 - x0 + 12, 3);
+  }
+
+  function drawObs(c, o, cx) {
+    const x = o.x - cx, y = o.roof.y;
+    if (x > W + 60 || x + o.w < -60) return;
+    c.save(); c.lineWidth = 3; c.strokeStyle = C.out; c.lineJoin = 'round';
+    if (o.type === 'box') {
+      if (o.sub === 'chamine') {
+        c.fillStyle = '#7a4a3c'; c.fillRect(x, y - o.h, o.w, o.h); c.strokeRect(x, y - o.h, o.w, o.h);
+        c.fillStyle = '#5b362c'; for (let yy = y - o.h + 10; yy < y; yy += 12) c.fillRect(x + 2, yy, o.w - 4, 2);
+        c.fillStyle = '#3a3f48'; c.fillRect(x - 5, y - o.h - 8, o.w + 10, 9); c.strokeRect(x - 5, y - o.h - 8, o.w + 10, 9);
+        for (let k = 0; k < 3; k++) {
+          const ph = (A.time * 0.6 + k / 3) % 1, sz = Math.floor((6 + ph * 9) / 3) * 3;
+          c.fillStyle = ph < 0.5 ? '#5a6068' : '#353a43';
+          c.fillRect(Math.floor((x + o.w / 2 + ph * 14 - sz / 2) / 3) * 3, Math.floor((y - o.h - 18 - ph * 46) / 3) * 3, sz, sz);
+        }
+      } else if (o.sub === 'caixa') {
+        c.fillStyle = '#3a4250';
+        c.fillRect(x + 6, y - 18, 4, 18); c.fillRect(x + o.w - 10, y - 18, 4, 18);
+        c.fillStyle = '#5d7e9c'; A.rr(c, x, y - o.h, o.w, o.h - 16, 8); c.fill(); c.stroke();
+        c.fillStyle = '#4a6782'; c.fillRect(x + 3, y - o.h + 14, o.w - 6, 4); c.fillRect(x + 3, y - o.h + 30, o.w - 6, 4);
+        c.fillStyle = '#7fa0bd'; A.rr(c, x - 3, y - o.h - 6, o.w + 6, 10, 4); c.fill(); c.stroke();
+      } else {
+        c.fillStyle = '#8a6a45'; c.fillRect(x, y - o.h, o.w, o.h); c.strokeRect(x, y - o.h, o.w, o.h);
+        c.strokeStyle = '#5e4630'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 4, y - o.h + 4); c.lineTo(x + o.w - 4, y - 4); c.moveTo(x + o.w - 4, y - o.h + 4); c.lineTo(x + 4, y - 4); c.stroke();
+        c.strokeStyle = C.out; c.strokeRect(x, y - o.h, o.w, o.h);
+      }
+    } else if (o.type === 'sign') {
+      const by = y - 54, ty = by - 64;
+      c.strokeStyle = '#3a404a'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(x + 14, ty); c.lineTo(x + 14, 0); c.moveTo(x + o.w - 14, ty); c.lineTo(x + o.w - 14, 0); c.stroke();
+      c.lineWidth = 3; c.strokeStyle = C.out;
+      c.fillStyle = '#14171c'; A.cut(c, x, ty, o.w, by - ty, 18); c.fill(); c.stroke();
+      const on = Math.sin(A.time * 9 + o.seed * 20) > -0.92;
+      c.strokeStyle = on ? C.now : '#5a4630'; c.lineWidth = 3; A.cut(c, x + 6, ty + 6, o.w - 12, by - ty - 12, 13); c.stroke();
+      A.text(c, o.text, x + o.w / 2 - 6, ty + 39, { size: 12, weight: 800, align: 'center', color: on ? C.nowHi : '#6b5a44' });
+    } else if (o.type === 'varal') {
+      const ry = y - 128;
+      c.fillStyle = '#4a515c';
+      c.fillRect(x, ry - 6, 5, y - ry + 6); c.strokeRect(x, ry - 6, 5, y - ry + 6);
+      c.fillRect(x + o.w - 5, ry - 6, 5, y - ry + 6); c.strokeRect(x + o.w - 5, ry - 6, 5, y - ry + 6);
+      c.strokeStyle = '#9aa1aa'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(x + 3, ry); c.quadraticCurveTo(x + o.w / 2, ry + 16, x + o.w - 3, ry); c.stroke();
+      const cols = ['#ff7ab8', '#5b93ff', '#5fdc8a', '#ffb25b', '#f2f4f6', '#c9a3d8'];
+      const n = Math.floor(o.w / 34); const rr = A.rng(Math.floor(o.seed * 1e6));
+      c.lineWidth = 3; c.strokeStyle = C.out;
+      for (let k = 0; k < n; k++) {
+        const cx2 = x + 20 + k * ((o.w - 40) / Math.max(1, n - 1));
+        const t = (cx2 - x) / o.w; const sag = ry + 16 * 4 * t * (1 - t);
+        const sw = Math.sin(A.time * 2.4 + k + o.seed * 9) * 0.08;
+        c.save(); c.translate(cx2, sag); c.rotate(sw);
+        c.fillStyle = cols[Math.floor(rr() * cols.length)];
+        const kind = rr();
+        if (kind < 0.5) { // camiseta
+          c.beginPath(); c.moveTo(-14, 0); c.lineTo(14, 0); c.lineTo(20, 12); c.lineTo(13, 15); c.lineTo(12, 70 - 6); c.lineTo(-12, 70 - 6); c.lineTo(-13, 15); c.lineTo(-20, 12); c.closePath(); c.fill(); c.stroke();
+        } else if (kind < 0.8) { // bermuda
+          c.beginPath(); c.moveTo(-13, 0); c.lineTo(13, 0); c.lineTo(15, 64 - 8); c.lineTo(2, 64 - 8); c.lineTo(0, 22); c.lineTo(-2, 64 - 8); c.lineTo(-15, 64 - 8); c.closePath(); c.fill(); c.stroke();
+        } else { // meia comprida
+          c.beginPath(); c.moveTo(-6, 0); c.lineTo(6, 0); c.lineTo(6, 52); c.lineTo(14, 60); c.lineTo(14, 68 - 2); c.lineTo(-6, 68 - 2); c.closePath(); c.fill(); c.stroke();
+        }
+        c.fillStyle = '#c9ced4'; c.fillRect(-2, -3, 4, 6);
+        c.restore();
+      }
+    } else { // pombo
+      const by = y - 64 + Math.sin(A.time * 4 + o.seed * 6) * 3;
+      const flap = Math.sin(A.time * 22 + o.seed * 10);
+      c.save(); c.translate(x + 17, by); c.scale(-1, 1);
+      c.fillStyle = '#8e959e';
+      c.beginPath(); c.ellipse(0, 0, 15, 9, 0, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#6b727c'; c.beginPath(); c.moveTo(-2, -2); c.lineTo(-14, -4 - flap * 14); c.lineTo(6, -2); c.closePath(); c.fill(); c.stroke();
+      c.fillStyle = '#9aa7b0'; c.beginPath(); c.arc(13, -5, 6.5, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#5fbf9f'; c.fillRect(8, 0, 6, 3);
+      c.fillStyle = C.now; c.beginPath(); c.moveTo(19, -6); c.lineTo(25, -4); c.lineTo(19, -2); c.closePath(); c.fill();
+      c.fillStyle = C.out; c.beginPath(); c.arc(15, -6, 1.6, 0, 7); c.fill();
+      c.fillStyle = '#8e959e'; c.beginPath(); c.moveTo(-14, 0); c.lineTo(-22, -3); c.lineTo(-22, 5); c.closePath(); c.fill(); c.stroke();
+      c.restore();
+    }
+    c.restore();
+  }
+
+  function drawWorld(c) {
+    const cx = camX;
+    drawBg(c, cx);
+    for (const r of course.roofs) drawRoof(c, r, cx);
+    // bandeirinha de chegada no último telhado
+    for (const o of course.obs) if (o.type === 'varal' || o.type === 'sign') drawObs(c, o, cx);
+    for (const o of course.obs) if (o.type === 'box') drawObs(c, o, cx);
+    // IAmiguinho
+    const sx = p.x - cx;
+    let pose = 'run', face = 'angry', t = runPh / 14 * 14 / 14;
+    if (phase === 'intro') { pose = phaseT < 0.55 ? 'idle' : 'jump'; face = 'wow'; t = A.time; }
+    else if (phase === 'catch') { pose = cap.onHead ? 'cheer' : 'idle'; face = cap.onHead ? 'smug' : 'wow'; t = A.time; }
+    else {
+      t = runPh;
+      if (!p.ground) pose = 'jump';
+      else if (p.duck) pose = 'duck';
+      if (p.stumble > 0) { pose = 'fall'; face = 'wow'; }
+      if (p.sadT > 0) face = 'sad';
+      if (p.x > L - 900) face = 'smug';
+    }
+    // sombra
+    const rr = roofAt(p.x);
+    if (rr && phase !== 'intro') { const sw = Math.floor(16 * (1 - Math.min(0.6, (rr.y - p.y) / 200)) / 3) * 3; c.fillStyle = '#0b0d10'; c.fillRect(sx - sw, rr.y - 3, sw * 2, 3); }
+    A.drawIAmiguinho(c, sx, p.y, S, { pose, t, face, noCap: !cap.onHead, spin: cap.spin, rot: p.stumble > 0 ? -0.25 : 0 });
+    if (!cap.onHead) A.drawCap(c, cap.x - cx, cap.y, 0.9, A.time, cap.spin);
+    for (const o of course.obs) if (o.type === 'bird') drawObs(c, o, cx);
+    if (bub && bub.t > 0.08) A.bubble(c, sx + 9, p.y - 81, bub.text, { size: 12 });
+  }
+
+  function fmt(s) { return s.toFixed(1).replace('.', ',') + ' s'; }
+
+  function drawHud(c) {
+    if (phase === 'intro') return;
+    A.text(c, fmt(timer), W / 2, 42, { size: 24, weight: 800, align: 'center', color: C.ink, stroke: C.out, strokeW: 6 });
+    const bw = 339, bx = 312, by = 57;
+    const k = A.clamp(p.x / L, 0, 1);
+    c.fillStyle = C.bg2; c.fillRect(bx - 6, by - 3, bw + 18, 15);
+    c.fillStyle = C.line; c.fillRect(bx, by + 3, bw, 6);
+    c.fillStyle = C.now; c.fillRect(bx, by + 3, Math.floor(bw * k / 3) * 3, 6);
+    c.fillStyle = C.nowHi; c.fillRect(Math.floor((bx + bw * k) / 3) * 3 - 3, by, 9, 12);
+    // boné no fim da barra
+    A.drawCap(c, bx + bw + 4, by + 9, 0.32, A.time, cap.spin);
+  }
+
+  A.game({
+    id: 'bone',
+    title: 'Pega o Boné',
+    tagline: 'A hélice disparou. O boné fugiu.',
+    lowerIsBetter: true,
+    format: (s) => s.toFixed(1).replace('.', ','),
+    unit: 'segundos',
+    start,
+    update(dt) {
+      const n = window.__turbo || 1;
+      for (let i = 0; i < n && A.state === 'play'; i++) step(dt);
+    },
+    draw(c) { drawWorld(c); drawHud(c); },
+    drawTitle(c, t) {
+      if (!course) { course = gen(); p = { x: 0, y: course.roofs[0].y }; }
+      camX = t * 60 - PX;
+      drawBg(c, camX);
+      for (const r of course.roofs) drawRoof(c, r, camX);
+      for (const o of course.obs) drawObs(c, o, camX);
+      A.drawCap(c, W * 0.62, 330 + Math.sin(t * 2) * 12, 1.4, t, 4);
+    },
+  });
+})();
+</script>
+</body>
+</html>

@@ -14,6 +14,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - **Editor de sprites:** um programa de pintura de pixel art em que o dono redesenha cada elemento e personagem, com o botão "Trocar no jogo".
 - **Ordem:** começar pelo documento do jogo.
 - **Nome:** "Lobby dos Bugs" é provisório; o nome definitivo será escolhido mais para frente.
+- **Trocas no ponto seguro:** começa com 1 troca por ponto seguro e a 2ª é desbloqueada depois.
 - **Dash:** além de andar, a pessoa tem um dash (arrancada rápida com tempo de recarga).
 - **Jogar junto:** até 4 pessoas no mesmo PC entra já no lançamento.
 - **Prioridade:** os dois jogos (este e os Jogos de Verão) recebem a mesma atenção. Este será lançado antes, por ser mais fácil de animar; os Jogos de Verão exigem mais trabalho e mecânicas.

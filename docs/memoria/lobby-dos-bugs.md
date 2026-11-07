@@ -14,6 +14,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - **Editor de sprites:** um programa de pintura de pixel art em que o dono redesenha cada elemento e personagem, com o botão "Trocar no jogo".
 - **Ordem:** começar pelo documento do jogo.
 - **Nome:** "Lobby dos Bugs" é provisório; o nome definitivo será escolhido mais para frente.
+- **Primeira campanha:** tema "a internet de casa caiu" (5 fases: lan house abandonada, ruas do bairro à noite, esgoto de cabos, data center, servidor central).
 - **Trocas no ponto seguro:** começa com 1 troca por ponto seguro e a 2ª é desbloqueada depois.
 - **Dash:** além de andar, a pessoa tem um dash (arrancada rápida com tempo de recarga).
 - **Jogar junto:** até 4 pessoas no mesmo PC entra já no lançamento.
@@ -22,7 +23,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 ## Proposto no documento (aguarda o dono)
 - **Itens:** cerca de 30 armas base e 30 acessórios base, com variações sorteadas e uma "nota de poder" que mantém o sorteio justo.
 - **Inimigos:** comportamentos combinados com aparências, inimigos especiais avisados pelo som e um "Diretor" que dosa as hordas.
-- **Campanha:** 5 fases de 6 a 10 minutos, com o tema "a internet de casa caiu".
+- **Campanha:** 5 fases de 6 a 10 minutos.
 - **Ateliê:** o editor de sprites fica dentro do próprio jogo (Godot), com os botões "Trocar no jogo", "Voltar ao padrão" e "Tornar oficial". O Godot consegue ler desenhos novos de uma pasta e trocar na hora.
 - **Arte gerada por IA:** nenhuma dentro do jogo. O Steam exige aviso na página e parte do público rejeita.
 - **Jogar junto:** até 4 pessoas no mesmo PC. Online fica para depois; o Remote Play Together do Steam cobre parte.

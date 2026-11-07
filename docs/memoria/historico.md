@@ -4,6 +4,31 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 07/11/2026: Arcade do IAmiguinho com 10 jogos novos (23 no total)
+- **O dono pediu:** sugestões de jogos originais baseados em mecânicas consagradas de celular, no estilo do Arcade e com o IAmiguinho do Arcade. Escolheu **todas** as 10.
+- **Feito:** os 10 jogos entraram no Arcade (tela de pixel 320×360, IAmiguinho de 14×16 com hélice, trilha chiptune própria, ranking da semana de exemplo):
+  - **Jato de Refri** (mochila a jato): segurar para voar pelo depósito de uma loja de games;
+  - **Ladeira do Rolimã** (subida de morro com física): a bateria é a gasolina;
+  - **Fuga do Spoiler** (corrida em 3 faixas, vista de trás): o Amiguinho do megafone persegue;
+  - **Rumo à Loja** (travessia de ruas, trilhos e canal): madrugada de lançamento;
+  - **Torre do Backlog** (pulo infinito para cima): pilha de jogos não zerados;
+  - **Queda do Disco** (torre que gira): torre de discos com partes arranhadas;
+  - **Gancho do Cabo** (balanço com gancho): 5 fases, um botão;
+  - **Lobby dos Bugs** (sobrevivência contra hordas): sobreviver 5 minutos escolhendo poderes;
+  - **Defesa da Live** (defesa em faixas): trolls invadindo o chat;
+  - **Derruba o Backlog** (estilingue e torres): 10 fases e depois fases sorteadas.
+- **Publicação:** este ambiente não consegue alterar o artefato antigo do Arcade (de outra conversa). O Arcade completo, com os 23 jogos, foi publicado como **nova página "Arcade do IAmiguinho"** (artefato a7133e84-99f5-4677-b39d-4b4b8fce46f9). A antiga, com 13 jogos, ficou como estava.
+- **Código no repositório:** `jogos/arcade/`
+  - `index.html`: o Arcade de 13 jogos, como veio;
+  - `novos/<id>.js`: um arquivo por jogo novo;
+  - `montar.py`: junta tudo em `build/index.html`;
+  - `teste.cjs`: testa cada jogo;
+  - `BRIEF.md`: regras para fazer jogos novos.
+- **Também hoje:** as 6 demos em 8 bits (`jogos/arcade-demos/`) seguem como página de testes à parte.
+- **Pendente:** o dono testar os 10 jogos novos e dizer o que ajustar.
+
+---
+
 ## 07/11/2026: Arcade do IAmiguinho, demos jogáveis em 8 bits
 - **O dono pediu:** novas sugestões de minigames para o Arcade. Escolheu seis para testar e pediu tudo em **estilo 8 bits**.
 - **Feito:** seis demos jogáveis, publicadas como página no Claude ("Arcade do IAmiguinho · testes", com menu). O código fica em `jogos/arcade-demos/`:

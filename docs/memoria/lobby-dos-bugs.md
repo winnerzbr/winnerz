@@ -43,6 +43,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - Decidido pelo dono: o IAmiguinho mira e atira (analógico direito, mouse ou setas, ou dois analógicos no toque); 1 arma primária (tiro sem fim) e 1 secundária no L2 com cargas; menos bugs, mais perigosos e atirando (hordas grandes só nos eventos); níveis e cartas continuam.
 - Gráficos: pixel art detalhada no estilo Enter the Gungeon no lugar do 8 bits (nada copiado; o dono redesenha no Ateliê). Guia em `docs/estilo.md` do repositório do jogo.
 - Feito no mesmo dia: controles, as 15 armas, inimigos e ritmo, IAmiguinho novo (20 × 26, 5 vistas pela mira), interface e Lan house redesenhados. Faltam os desenhos dos 15 chefões no estilo novo.
+- Outra conversa fez, ao mesmo tempo, artes PNG 4× e um trecho "Lan house 2.5D" com ataque automático. O dono escolheu: pixel art estilo Gungeon e combate com mira; da outra, só o IAmiguinho do ChatGPT (boné azul com hélice, corpo bege, olhos ciano), reduzido para o quadro de 24 × 32 do jogo. O resto foi arquivado no repositório do jogo, sem apagar.
 
 ## Chefões da comunidade gamer (07/11/2026)
 - Pedidos pelo dono: Ceifador de Mídia Física (o fim dos jogos em disco em 2028), Magnata Ganancioso, ReMaster (chefe antigo em 16 bits), D.L.C. (completo aos poucos, uma parte por fase), Bugger.

@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 08/11/2026: Lobby dos Bugs: IAmiguinho do ChatGPT e fim das duas direções
+- **O dono decidiu:** visual em pixel art estilo Enter the Gungeon e combate com mira; da outra conversa, fica só o IAmiguinho feito pelo ChatGPT.
+- **Feito (no repositório do jogo):** o modelo do ChatGPT virou os quadros do jogo (ferramenta `ferramentas/ia_gpt.py`); artes 4× e trecho 2.5D arquivados; testes passando. Detalhes em `docs/memoria/historico.md` do repositório `winnerzbr/lobby-dos-bugs`.
+
 ## 07/11/2026: Lobby dos Bugs: começo do desenvolvimento (Godot)
 - **O dono pediu:** "pode começar o desenvolvimento do jogo"; criou o repositório `winnerzbr/lobby-dos-bugs`.
 - **Feito:** projeto Godot 4.7.2 com a fase 1 jogável do começo ao ponto seguro (horda, Diretor, eventos de horda, subchefe, chefão, cartas de melhoria, troca no ponto seguro), piloto automático de testes e memória própria em `docs/memoria/` do repositório do jogo.

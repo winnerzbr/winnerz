@@ -1,6 +1,6 @@
 /**
  * Etapa 2 da revisão: as partes da nova Jornada do jogo.
- * - Retomar: "Onde você parou", com o último recado em destaque, a última foto e os pontos para voltar.
+ * - Retomar: "Onde você parou": o lugar, o último recado e a última foto num bloco só; os pontos para voltar ficam recolhidos.
  * - Registros: a consulta rápida da História, do mais recente ao mais antigo, com busca e as sessões sem anotação juntas.
  * - DiasJogados: o calendário do mês, sem contador de sequência (lembrança, não meta).
  * - BlocoCampanha: notas fixas da campanha (build, o que não vender, missão), separadas do recado de cada sessão.
@@ -12,6 +12,7 @@ import { durLabel } from '../lib/format';
 import { awayLabel } from '../lib/recap';
 import { Icon } from './Icon';
 import { Link } from '../lib/router';
+import { track } from '../lib/track';
 import { useBridges, PROVIDER_NAME, type Provider } from '../data/bridgeApi';
 
 const tz = 'America/Sao_Paulo';
@@ -26,37 +27,41 @@ const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
 const FONTE: Record<string, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
 
 /* ---- Onde você parou ------------------------------------------------------------------------------------------- */
-export function Retomar({ last, note, where, waypoints, photo, away, onCapsule, hasCapsule, onPhoto, onLastPhoto, history, translateHref, extra = [] }: {
+export function Retomar({ last, note, where, next, waypoints, photo, away, far, onPhoto, onLastPhoto, history, extra = [] }: {
   last: Session | null; note: Session | null; where?: string; waypoints: TimelineEvent[]; photo?: { src: string; at: string };
-  away: number | null; onCapsule: () => void; hasCapsule: boolean; onPhoto: (i: number) => void; onLastPhoto?: () => void; history: History; translateHref: string;
-  /** O que a Cápsula guardou além do lugar (o que fazia, o próximo passo, o que lembrar). */
+  /** O próximo passo guardado no resumo para voltar (manda sobre o recado). */
+  next?: string;
+  away: number | null; onPhoto: (i: number) => void; onLastPhoto?: () => void; history: History;
+  /** Uma semana ou mais longe: o bloco diz há quanto tempo e vira o ponto de chegada do link "Preparar a volta". */
+  far?: boolean;
+  /** O que o resumo para voltar guardou além do lugar e do próximo passo. */
   extra?: { label: string; text: string }[];
 }) {
   const [novo, setNovo] = useState('');
   const [adding, setAdding] = useState(false);
-  // O recado mais recente manda; sem recado, o lugar onde parou; sem nada, a última sessão (nunca um bloco vazio).
-  const recado = note?.note;
-  const fonte = recado ? note! : last;
-  const meta = fonte ? [`${recado ? 'Seu recado' : 'Última sessão'} · ${diaLongo(fonte.startedAt)}`, fonte.minutes ? `sessão de ${durLabel(fonte.minutes)}` : '', away != null && away > 1 ? awayLabel(away) : ''].filter(Boolean).join(' · ') : '';
+  useEffect(() => { if (far) track('jornada.preparar-volta'); }, [far]);
+  // O próximo passo do resumo manda; sem ele, o recado mais recente; sem nada, a última sessão (nunca um bloco vazio).
+  const recado = next ?? note?.note;
+  const fonte = note?.note && !next ? note : last;
+  const meta = fonte ? [`${next ? 'Seu resumo para voltar' : note?.note ? 'Seu recado' : 'Última sessão'} · ${diaLongo(fonte.startedAt)}`, fonte.minutes ? `sessão de ${durLabel(fonte.minutes)}` : ''].filter(Boolean).join(' · ') : '';
   const add = () => { const t = novo.trim(); if (t) actions.addWaypoint(history.id, t); setNovo(''); setAdding(false); };
   const comFoto = waypoints.filter((w) => w.image);
   return (
-    <section className="jret" aria-labelledby="jret-h">
+    <section id="voltar" className={`jret${photo ? '' : ' jret--solo'}`} aria-labelledby="jret-h">
       <div className="jret__main">
-        <h2 id="jret-h" className="jret__k"><span className="tr now" aria-hidden="true" />Onde você parou</h2>
+        <h2 id="jret-h" className="jret__k"><span className="tr now" aria-hidden="true" />Onde você parou{away != null && away > 1 ? <span className="jret__ago">{far ? 'última vez ' : ''}{awayLabel(away)}</span> : null}</h2>
+        {where && <p className="t jret__where">{where}</p>}
         {recado ? <p className="jret__note">“{recado}”</p>
-          : where ? <p className="jret__note jret__note--where">Parou em {where}.</p>
-          : last ? <p className="jret__none">Sem recado da última vez. No fim da próxima sessão, deixe uma frase para a próxima vez.</p>
+          : last ? <p className="jret__none">{where ? 'Sem recado da última vez.' : 'Sem recado nem lugar da última vez.'} No fim da próxima sessão, deixe uma frase para a próxima vez.</p>
           : <p className="jret__none">Nada registrado ainda. Comece uma sessão: no fim, você deixa um recado para a próxima vez.</p>}
         {meta && <span className="jret__meta">{meta}</span>}
-        {(recado && where) || extra.length ? (
+        {extra.length > 0 && (
           <dl className="jret__caps">
-            {recado && where && <div><dt>Lugar</dt><dd>{where}</dd></div>}
             {extra.map((x) => <div key={x.label}><dt>{x.label}</dt><dd>{x.text}</dd></div>)}
           </dl>
-        ) : null}
-        <div className="jret__wps">
-          {waypoints.length > 0 && <span className="jret__k2">Pontos para voltar · {waypoints.length}</span>}
+        )}
+        <details className="jret__wps" open={adding || undefined}>
+          <summary><span className="jret__k2">{waypoints.length ? `Pontos para voltar · ${waypoints.length}` : 'Pontos para voltar'}</span><Icon name="avancar" size={14} /></summary>
           {waypoints.map((w) => (
             <label key={w.id} className="jret__wp">
               <input type="checkbox" onChange={() => actions.resolveWaypoint(w.id)} aria-label={`Resolvido: ${w.title}`} />
@@ -71,18 +76,14 @@ export function Retomar({ last, note, where, waypoints, photo, away, onCapsule, 
               <button className="btn quiet sm" type="button" onClick={() => { setAdding(false); setNovo(''); }}>Cancelar</button>
             </form>
           ) : <button type="button" className="linklike jret__plus" onClick={() => setAdding(true)}>+ Adicionar ponto para voltar</button>}
-        </div>
+        </details>
       </div>
-      <aside className="jret__side">
-        {photo && (
-          <figure className="jret__photo">
-            <button type="button" onClick={onLastPhoto} disabled={!onLastPhoto} aria-label="Ver sua última foto deste jogo"><img src={photo.src} alt="" /></button>
-            <figcaption>Sua última foto · {diaCurto(photo.at)}</figcaption>
-          </figure>
-        )}
-        <button type="button" className="btn ghost sm" onClick={onCapsule}>{hasCapsule ? 'Atualizar o resumo para voltar' : 'Preparar um resumo para voltar'}</button>
-        <a className="btn quiet sm" href={translateHref}>Traduzir a tela</a>
-      </aside>
+      {photo && (
+        <figure className="jret__photo">
+          <button type="button" onClick={onLastPhoto} disabled={!onLastPhoto} aria-label="Ver sua última foto deste jogo"><img src={photo.src} alt="" /></button>
+          <figcaption>Sua última foto · {diaCurto(photo.at)}</figcaption>
+        </figure>
+      )}
     </section>
   );
 }

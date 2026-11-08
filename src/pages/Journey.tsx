@@ -30,7 +30,7 @@ import { ActionToast } from '../components/Toast';
 import { PastButton } from '../components/PastPlay';
 import { CoverArt } from '../components/CoverArt';
 import { useBackdrop } from '../components/Backdrop';
-import { FitCard, ComebackBlock, COMEBACK_AFTER_DAYS } from '../components/Comeback';
+import { FitCard, COMEBACK_AFTER_DAYS } from '../components/Comeback';
 import { OutlineSheet } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
 import { isOpenWorld, partAt, partsTimeline, unitOf, type OutlinePart } from '../lib/outline';
@@ -163,7 +163,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const histLabel = (h: History) => [`História ${h.ordinal}`, h.title && !/^hist[óo]ria \d/i.test(h.title) ? h.title : null, h.state === 'concluida' ? 'Zerada' : h.state === 'dropada' ? 'Largada' : h.state === 'encerrada' ? 'Encerrada' : null].filter(Boolean).join(' · ');
   const nSessSel = selHist ? sessionsOf(s, selHist.id).length : s.sessions.filter((x) => x.journeyId === journeyId).length;
   const where = current.capsule?.where ?? last?.whereStopped;
-  const extra = CAPSULE_FIELDS.filter((f) => f.key !== 'where' && current.capsule?.[f.key]);
+  const extra = CAPSULE_FIELDS.filter((f) => f.key !== 'where' && f.key !== 'next' && current.capsule?.[f.key]);
   const away = daysAway(s, journeyId);
   // Uma semana longe: "Onde você parou" vira o bloco de volta (a antiga página "Preparar a volta").
   const back = away != null && away >= COMEBACK_AFTER_DAYS && isOpenState(current.state);
@@ -277,6 +277,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const regSessions = selHist ? sessionsOf(s, selHist.id) : s.sessions.filter((x) => x.journeyId === journeyId);
   const jSessions = s.sessions.filter((x) => x.journeyId === journeyId);
   const pedeConfirmar = openState && zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress);
+  const hasCapsule = !!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember);
   const acoes: MoreItem[] = [
     ...(openState ? [
       { key: 'foco', label: isFocus ? 'Tirar de “Jogando agora”' : 'Pôr em “Jogando agora”', on: isFocus, onSelect: toggleFocus },
@@ -285,10 +286,12 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       { key: 'largar', label: 'Largar', onSelect: () => { actions.setHistoryState(current.id, 'dropada'); stateChanged(current.id, current.state === 'ativa' ? 'Largado, sem culpa. Dá para retomar quando quiser.' : 'Largado, sem culpa.'); } },
       { key: 'encerrar', label: 'Encerrar sem zerar', onSelect: () => { actions.setHistoryState(current.id, 'encerrada'); stateChanged(current.id, 'Encerrado do seu jeito.'); } },
       { key: 'progresso', label: 'Ajustar o progresso', onSelect: () => irPara('detalhes', 'progresso') },
+      { key: 'resumo', label: hasCapsule ? 'Atualizar o resumo para voltar' : 'Preparar um resumo para voltar', onSelect: () => setCapsuleOpen(true) },
     ] : []),
+    { key: 'traduzir', label: 'Traduzir a tela do jogo', onSelect: () => navigate(`/jogos/${game.slug}/traduzir`) },
     { key: 'mais', label: 'Mais opções…', onSelect: () => setMenu(true) },
   ];
-  const tabs: [Aba, string][] = [['registros', 'Registros'], ['capitulos', structured ? (openWorld ? 'Regiões' : u.title) : 'Linha do tempo'], ['detalhes', 'Detalhes']];
+  const tabs: [Aba, string][] = [['registros', 'Diário'], ['capitulos', structured ? (openWorld ? 'Regiões' : u.title) : 'Linha do tempo'], ['detalhes', 'Detalhes']];
 
   return (
     <main className="journey">
@@ -318,7 +321,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <button className={`btn ${playCta.now ? 'now' : 'primary'} jhero__play`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}
               </button>
-              {!openHere && current.state !== 'concluida' && <PastSessionButton gameId={game.id} className="btn ghost jhero__past" label="Sessão passada" />}
+              {!openHere && current.state !== 'concluida' && <PastSessionButton gameId={game.id} className="btn ghost jhero__past" label="Anotar sessão já jogada" />}
               <MoreActions items={acoes} label="Ações" showLabel className="btn ghost jhero__acoes" align="right" />
             </div>
           </div>
@@ -389,13 +392,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                   </section>
                 )}
               </div>
-            ) : current.state === 'dropada' || current.state === 'encerrada' ? null : back ? (
-              <ComebackBlock journeyId={journeyId} game={game} history={current} onCapsule={() => setCapsuleOpen(true)} onViewWaypoint={(i) => i >= 0 && setWpViewer(i)} />
-            ) : (
-              <Retomar last={last ?? null} note={note ?? null} where={where} waypoints={waypoints} photo={lastPhoto?.image ? { src: lastPhoto.image, at: lastPhoto.at } : undefined}
-                away={away} onCapsule={() => setCapsuleOpen(true)} hasCapsule={!!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember)}
+            ) : current.state === 'dropada' || current.state === 'encerrada' ? null : (
+              <Retomar last={last ?? null} note={note ?? null} where={where} next={current.capsule?.next} waypoints={waypoints}
+                photo={lastPhoto?.image ? { src: lastPhoto.image, at: lastPhoto.at } : undefined} away={away} far={back}
                 onPhoto={(i) => setWpViewer(Math.max(0, i))} onLastPhoto={lastPhoto?.image ? () => setFoto({ src: lastPhoto.image!, title: lastPhoto.title }) : undefined}
-                history={current} translateHref={`/jogos/${game.slug}/traduzir`} extra={extra.map((f) => ({ label: f.label, text: current.capsule![f.key] as string }))} />
+                history={current} extra={extra.map((f) => ({ label: f.label, text: current.capsule![f.key] as string }))} />
             )}
 
             <section className="jtabs" aria-label="A História da campanha">
@@ -493,6 +494,11 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                     </ul>
                     {platform && <p className="faint">Plataforma do seu exemplar: {platform}. Muda na Coleção.</p>}
                   </section>
+                  <BlocoCampanha history={current} />
+                  <div className="jdet__duo">
+                    <DiasJogados sessions={jSessions} title={game.title} />
+                    <RegistroAuto sessions={jSessions} />
+                  </div>
                   <div><button className="btn ghost sm" onClick={() => setMenu(true)}><Icon name="maisAcoes" size={16} />Mais opções</button></div>
                 </div>
               )}
@@ -500,11 +506,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
             </section>
           </div>
 
-          <aside className="jgrid__side" aria-label="Sobre a campanha">
-            <BlocoCampanha history={current} />
-            <DiasJogados sessions={jSessions} title={game.title} />
-            <RegistroAuto sessions={jSessions} />
-          </aside>
         </div>
       </div>
 

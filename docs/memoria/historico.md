@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 08/11/2026: Jornada, página do jogo mais simples
+- **O dono pediu:** achou a página do jogo na Jornada confusa e trouxe uma proposta do ChatGPT (uma coluna, bloco "Onde parei", uma ação principal). Pediu a mudança numa versão separada (PR) antes de publicar.
+- **Conferido:** "Começar sessão" liga o relógio da sessão (não é diário). O botão "Continuar" do bloco "Onde você parou" fazia a mesma coisa, repetido.
+- **Feito:**
+  - um botão principal no topo, "Começar sessão"; o antigo "Sessão passada" virou "Anotar sessão já jogada"; o "Continuar" repetido saiu;
+  - "Onde você parou" virou um bloco só: o lugar em letra grande, o recado (ou o próximo passo do resumo para voltar), uma foto e os pontos para voltar recolhidos numa linha que abre ao tocar. Saíram o "Anteriormente" (repetia o Diário) e o aviso "Montado com o que você registrou";
+  - o bloco grande de "Voltar a um jogo" (depois de 7 dias longe) deixou de ser outro bloco: é o mesmo, com "última vez há X";
+  - "Preparar um resumo para voltar" (a Cápsula) e "Traduzir a tela do jogo" foram para o menu Ações;
+  - a coluna do lado (Bloco da campanha, Dias jogados, Registro automático) foi para a aba Detalhes; a página ficou com uma coluna;
+  - a aba "Registros" virou "Diário".
+- **Não mudou:** a lista de jogos da Jornada (já abre em "Em andamento" com a linha de onde parou).
+- **Pendente:** o dono aprovar a versão separada para publicar.
+
 ## 07/11/2026: Lobby dos Bugs vira projeto de jogo para o Steam (documento do jogo)
 - **O dono pediu:** transformar o Lobby dos Bugs em jogo próprio para vender no Steam, misturando Vampire Survivors com Left 4 Dead. A proposta inclui fases fixas, ponto seguro com troca de itens, chefões e subchefes, e centenas de itens e inimigos.
 - **Visual:** 8 bits, com gráficos gerados por código que o dono ajusta. O dono também quer um editor de sprites com o botão "Trocar no jogo".

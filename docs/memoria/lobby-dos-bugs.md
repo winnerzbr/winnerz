@@ -41,6 +41,7 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 
 ## Virada para roguelike (08/11/2026, 11h30)
 - O dono largou as hordas sem fim: andares de salas feitas à mão e sorteadas, portas que trancam até a última onda, baús com senha, loja, subchefe, chefão e elevador. Cristais viram níveis que abrem a janela Upar (arma, acessório ou vida) quando a sala fica limpa. Arma nova chega no nível do andar. Vida em corações. Câmera 2× mais perto.
+- 08/11 (tarde): andar 1 jogável (salas sorteadas, baús com senha, corações, janela Upar, minimapa). O dono pediu que seja DIFÍCIL como Gungeon e Hades: o piloto sem proteção passa o andar 1 em cerca de 2 de cada 3 tentativas; os andares seguintes ficam mais fortes.
 - Documento: "Lobby dos Bugs: virada para roguelike" no Claude (https://claude.ai/artifact/9cRje3R8WDipicv2M5xQNb). Detalhes em `docs/memoria/jogo.md` do repositório do jogo.
 
 ## Virada para o estilo Enter the Gungeon (08/11/2026)

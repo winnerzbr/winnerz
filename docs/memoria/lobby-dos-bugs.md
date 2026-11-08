@@ -39,6 +39,11 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
   6. Lançamento.
 - **Decisões em aberto:** estão listadas no fim do documento.
 
+## Virada para o estilo Enter the Gungeon (08/11/2026)
+- Decidido pelo dono: o IAmiguinho mira e atira (analógico direito, mouse ou setas, ou dois analógicos no toque); 1 arma primária (tiro sem fim) e 1 secundária no L2 com cargas; menos bugs, mais perigosos e atirando (hordas grandes só nos eventos); níveis e cartas continuam.
+- Gráficos: pixel art detalhada no estilo Enter the Gungeon no lugar do 8 bits (nada copiado; o dono redesenha no Ateliê). Guia em `docs/estilo.md` do repositório do jogo.
+- Feito no mesmo dia: controles, as 15 armas, inimigos e ritmo, IAmiguinho novo (20 × 26, 5 vistas pela mira), interface e Lan house redesenhados. Faltam os desenhos dos 15 chefões no estilo novo.
+
 ## Chefões da comunidade gamer (07/11/2026)
 - Pedidos pelo dono: Ceifador de Mídia Física (o fim dos jogos em disco em 2028), Magnata Ganancioso, ReMaster (chefe antigo em 16 bits), D.L.C. (completo aos poucos, uma parte por fase), Bugger.
 - Sugeridos e aprovados ("Gostei de todas as ideias"): Review Bomb, Passe de Batalha, Downgrade, Patch do Dia 1, Rage Quit, Tutorial Infinito, Speedrunner, Sempre Online.

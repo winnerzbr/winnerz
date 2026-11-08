@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 07/11/2026: Lobby dos Bugs: começo do desenvolvimento (Godot)
+- **O dono pediu:** "pode começar o desenvolvimento do jogo"; criou o repositório `winnerzbr/lobby-dos-bugs`.
+- **Feito:** projeto Godot 4.7.2 com a fase 1 jogável do começo ao ponto seguro (horda, Diretor, eventos de horda, subchefe, chefão, cartas de melhoria, troca no ponto seguro), piloto automático de testes e memória própria em `docs/memoria/` do repositório do jogo.
+- **Decidido (técnico):** tela de 640 × 360 pixels; IAmiguinho do Arcade.
+- **Feito depois, na mesma noite:** 15 armas, 15 acessórios, 6 bugs, subchefe e chefão da fase 1, mapa de verdade da Lan house, Ateliê, músicas e sons, e os 13 chefões da comunidade gamer (ver `lobby-dos-bugs.md`). O dono jogou a fase 1 e achou um defeito (preso na porta da arena), corrigido. O histórico detalhado do jogo fica no repositório dele.
+
+---
+
 ## 07/11/2026: Lobby dos Bugs vira projeto de jogo para o Steam (documento do jogo)
 - **O dono pediu:** transformar o Lobby dos Bugs em jogo próprio para vender no Steam, misturando Vampire Survivors com Left 4 Dead. A proposta inclui fases fixas, ponto seguro com troca de itens, chefões e subchefes, e centenas de itens e inimigos.
 - **Visual:** 8 bits, com gráficos gerados por código que o dono ajusta. O dono também quer um editor de sprites com o botão "Trocar no jogo".

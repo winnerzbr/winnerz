@@ -39,5 +39,14 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
   6. Lançamento.
 - **Decisões em aberto:** estão listadas no fim do documento.
 
+## Chefões da comunidade gamer (07/11/2026)
+- Pedidos pelo dono: Ceifador de Mídia Física (o fim dos jogos em disco em 2028), Magnata Ganancioso, ReMaster (chefe antigo em 16 bits), D.L.C. (completo aos poucos, uma parte por fase), Bugger.
+- Sugeridos e aprovados ("Gostei de todas as ideias"): Review Bomb, Passe de Batalha, Downgrade, Patch do Dia 1, Rage Quit, Tutorial Infinito, Speedrunner, Sempre Online.
+- Regra: sem nome nem logo de empresa ou jogo real.
+- Sugestão que aguarda o dono: 2ª campanha com o tema "A indústria". Por enquanto, todos jogáveis na "Sala de chefões (teste)".
+
 ## Onde fica o código
-- Ainda não existe. Será um repositório próprio no GitHub, feito no Godot.
+- Repositório próprio: `winnerzbr/lobby-dos-bugs` (Godot 4.7.2, Compatibility), criado pelo dono em 07/11/2026. A memória do jogo fica lá, em `docs/memoria/` (histórico e retrato do projeto), e o `CLAUDE.md` de lá diz como trabalhar.
+- Tela de 640 × 360 pixels (o dobro do Arcade), ampliada em números inteiros; quadradinhos de 16 px; o IAmiguinho é o do Arcade (14 × 16).
+- O dono joga pelo GitHub Desktop (Fetch origin → Pull origin) e abre no Godot 4.7.2.
+- Etapa 1 do plano (protótipo de uma fase completa) começou em 07/11/2026.

@@ -1,12 +1,11 @@
 /**
  * Etapa 2 da revisão: as partes da nova Jornada do jogo.
  * - Retomar: "Onde você parou": o lugar, o último recado e a última foto num bloco só; os pontos para voltar ficam recolhidos.
- * - Registros: a consulta rápida da História, do mais recente ao mais antigo, com busca e as sessões sem anotação juntas.
  * - DiasJogados: o calendário do mês, sem contador de sequência (lembrança, não meta).
  * - BlocoCampanha: notas fixas da campanha (build, o que não vender, missão), separadas do recado de cada sessão.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { EventKind, History, Session, TimelineEvent } from '../data/types';
+import type { History, Session, TimelineEvent } from '../data/types';
 import { actions } from '../data/store';
 import { durLabel } from '../lib/format';
 import { awayLabel } from '../lib/recap';
@@ -23,8 +22,6 @@ const diaCurto = (iso: string) => {
   return `${wd.charAt(0).toUpperCase()}${wd.slice(1, 3)} ${p.day} ${p.month}`;
 };
 const diaLongo = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', timeZone: tz }).replace(/\./g, '');
-const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const FONTE: Record<string, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
 
 /* ---- Onde você parou ------------------------------------------------------------------------------------------- */
 export function Retomar({ last, note, where, next, waypoints, photo, away, far, onPhoto, onLastPhoto, history, extra = [] }: {
@@ -85,122 +82,6 @@ export function Retomar({ last, note, where, next, waypoints, photo, away, far, 
         </figure>
       )}
     </section>
-  );
-}
-
-/* ---- Registros -------------------------------------------------------------------------------------------------- */
-type Linha =
-  | { t: 'sessao'; at: string; s: Session; evs: TimelineEvent[] }
-  | { t: 'evento'; at: string; e: TimelineEvent }
-  | { t: 'vazias'; at: string; list: Session[] };
-
-const FILTROS: [string, string][] = [['tudo', 'Tudo'], ['recados', 'Recados'], ['momentos', 'Momentos'], ['marcos', 'Marcos'], ['pontos', 'Pontos']];
-const KINDS: Record<string, EventKind[]> = { momentos: ['momento', 'carta'], marcos: ['inicio', 'marco'], pontos: ['ponto'] };
-
-export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Session[]; events: TimelineEvent[]; onEdit: (eventId: string) => void; onPhoto: (src: string, title: string) => void }) {
-  const [q, setQ] = useState('');
-  const [f, setF] = useState('tudo');
-  const [abertas, setAbertas] = useState<Set<string>>(() => new Set());
-  const linhas = useMemo(() => {
-    const porSessao = new Map<string, TimelineEvent[]>();
-    const soltos: TimelineEvent[] = [];
-    for (const e of events) {
-      if (e.kind === 'sessao') continue;
-      if (e.sessionId && sessions.some((x) => x.id === e.sessionId)) { const l = porSessao.get(e.sessionId) ?? []; l.push(e); porSessao.set(e.sessionId, l); }
-      else soltos.push(e);
-    }
-    const todas: Linha[] = [
-      ...sessions.filter((x) => x.endedAt || x.minutes).map((x) => ({ t: 'sessao' as const, at: x.startedAt, s: x, evs: porSessao.get(x.id) ?? [] })),
-      ...soltos.map((e) => ({ t: 'evento' as const, at: e.at, e })),
-    ].sort((a, b) => b.at.localeCompare(a.at));
-    const busca = semAcento(q.trim());
-    const textoDe = (l: Linha) => l.t === 'sessao' ? [l.s.note, l.s.whereStopped, l.s.feeling, l.s.goal, ...(l.s.companions ?? []), ...(l.s.tags ?? []), ...l.evs.flatMap((e) => [e.title, e.text, e.quote])].filter(Boolean).join(' ') : l.t === 'evento' ? [l.e.title, l.e.text, l.e.quote].filter(Boolean).join(' ') : '';
-    const passa = (l: Linha) => {
-      if (busca && !semAcento(textoDe(l)).includes(busca)) return false;
-      if (f === 'tudo') return true;
-      if (f === 'recados') return l.t === 'sessao' && !!(l.s.note || l.s.whereStopped);
-      const ks = KINDS[f];
-      return l.t === 'sessao' ? l.evs.some((e) => ks.includes(e.kind)) : l.t === 'evento' && ks.includes(l.e.kind);
-    };
-    // Sem recado, sem lugar e sem registros: entra no grupo (a palavra do fim da sessão aparece ao abrir).
-    const vazia = (l: Linha) => l.t === 'sessao' && !l.s.note && !l.s.whereStopped && !l.evs.length;
-    const out: Linha[] = [];
-    for (const l of todas.filter(passa)) {
-      // Sessões sem nada escrito ficam juntas numa linha só (dá para abrir), quando a consulta é "Tudo" e sem busca.
-      if (f === 'tudo' && !busca && l.t === 'sessao' && vazia(l)) {
-        const prev = out.at(-1);
-        if (prev?.t === 'vazias') { prev.list.push(l.s); continue; }
-        out.push({ t: 'vazias', at: l.at, list: [l.s] });
-        continue;
-      }
-      out.push(l);
-    }
-    return out;
-  }, [sessions, events, q, f]);
-
-  const sessaoLinha = (x: Session, evs: TimelineEvent[]) => (
-    <article key={x.id} className="jreg__row">
-      <div className="jreg__when"><b>{diaCurto(x.startedAt)}</b><span>{[x.minutes ? durLabel(x.minutes) : '', x.source ? FONTE[x.source] : ''].filter(Boolean).join(' · ')}</span></div>
-      <div className="jreg__body">
-        {x.note && <p className="jreg__note">{x.note}</p>}
-        {x.whereStopped && <p className="jreg__where">Parou em {x.whereStopped}</p>}
-        {(x.feeling || x.companions?.length) && <p className="jreg__meta">{[x.feeling ? `Foi “${x.feeling}”` : '', x.companions?.length ? `com ${x.companions.join(', ')}` : ''].filter(Boolean).join(' · ')}</p>}
-        {x.tags?.length ? <p className="jreg__tags">{x.tags.map((t) => <span key={t}>{t}</span>)}</p> : null}
-        {evs.map((e) => <Evento key={e.id} e={e} onEdit={onEdit} onPhoto={onPhoto} />)}
-        {!x.note && !x.whereStopped && !x.feeling && !evs.length && <p className="jreg__meta">Sessão sem anotações.</p>}
-      </div>
-    </article>
-  );
-
-  return (
-    <div className="jreg">
-      <div className="jreg__tools">
-        <label className="jreg__search">
-          <Icon name="busca" size={16} />
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar nos recados, momentos e pontos" aria-label="Buscar nos registros" />
-        </label>
-        <div className="chips" role="group" aria-label="Mostrar">
-          {FILTROS.map(([id, l]) => <button key={id} type="button" className="chip" aria-pressed={f === id} onClick={() => setF(id)}>{l}</button>)}
-        </div>
-      </div>
-      {!linhas.length ? <p className="faint jreg__empty">{q ? `Nada com “${q}”.` : 'Nada deste tipo nesta História ainda.'}</p> : linhas.map((l) => {
-        if (l.t === 'sessao') return sessaoLinha(l.s, l.evs);
-        if (l.t === 'evento') return (
-          <article key={l.e.id} className="jreg__row">
-            <div className="jreg__when"><b>{l.e.dateLabel ?? diaCurto(l.e.at)}</b><span>sem sessão</span></div>
-            <div className="jreg__body"><Evento e={l.e} onEdit={onEdit} onPhoto={onPhoto} /></div>
-          </article>
-        );
-        const key = l.list[0].id;
-        const min = l.list.reduce((a, x) => a + (x.minutes ?? 0), 0);
-        const de = l.list.at(-1)!.startedAt, ate = l.list[0].startedAt;
-        if (abertas.has(key)) return <div key={key} className="jreg__group">{l.list.map((x) => sessaoLinha(x, []))}</div>;
-        return (
-          <div key={key} className="jreg__row jreg__row--vazias">
-            <div className="jreg__when"><b>{l.list.length > 1 && diaCurto(de) !== diaCurto(ate) ? `${diaCurto(de)} – ${diaCurto(ate)}` : diaCurto(ate)}</b></div>
-            <button type="button" className="jreg__vazias" onClick={() => setAbertas(new Set([...abertas, key]))}>
-              {l.list.length === 1 ? '1 sessão sem recado' : `${l.list.length} sessões sem recado`}{min ? ` · ${durLabel(min)} registradas` : ''} · ver
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-const ROTULO: Partial<Record<EventKind, string>> = { momento: 'Momento', ponto: 'Ponto para voltar', marco: 'Marco', inicio: 'Começo', carta: 'Carta para o fim' };
-function Evento({ e, onEdit, onPhoto }: { e: TimelineEvent; onEdit: (id: string) => void; onPhoto: (src: string, title: string) => void }) {
-  const lacrada = e.kind === 'carta';
-  return (
-    <div className={`jreg__ev jreg__ev--${e.kind}${e.resolved ? ' is-resolved' : ''}`}>
-      {e.image && <button type="button" className="jreg__img" onClick={() => onPhoto(e.image!, e.title)} aria-label={`Ver foto: ${e.title}`}><img src={e.image} alt="" loading="lazy" /></button>}
-      <div>
-        <span className="jreg__evk">{ROTULO[e.kind] ?? 'Registro'}{e.kind === 'ponto' && e.resolved ? ' · resolvido' : ''}</span>
-        <p className="jreg__evt">{lacrada ? 'Escrita e lacrada até o fim da História.' : e.title}</p>
-        {!lacrada && (e.quote || (e.text && e.text !== e.title)) && <p className="jreg__meta">{e.quote ? `“${e.quote}”` : e.text}</p>}
-      </div>
-      {!lacrada && <button type="button" className="btn quiet sm jreg__edit" onClick={() => onEdit(e.id)}>Editar</button>}
-    </div>
   );
 }
 

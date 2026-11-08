@@ -44,7 +44,7 @@ import { durLabel } from '../lib/format';
 import { shortPlatform } from '../lib/platforms';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { PastSessionButton } from '../components/PastSession';
-import { Retomar, Registros, DiasJogados, BlocoCampanha, RegistroAuto } from '../components/JornadaPartes';
+import { Retomar, DiasJogados, BlocoCampanha, RegistroAuto } from '../components/JornadaPartes';
 
 
 export const eventDate = (e: TimelineEvent, short = true) => e.dateLabel ?? whenLabel(e.at, e.precision, { short });
@@ -117,8 +117,8 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [toast, setToast] = useState<{ id: number; text: string; historyId?: string } | null>(null);
   const [confirmZ, setConfirmZ] = useState(false);
   const [foto, setFoto] = useState<{ src: string; title: string } | null>(null);
-  // Abas da História: Registros (consulta rápida), Capítulos (a linha do tempo de antes) e Detalhes.
-  const [aba, setAbaRaw] = useState<Aba>(() => { try { const v = localStorage.getItem('wz.jornada.aba'); return v === 'capitulos' || v === 'detalhes' ? v : 'registros'; } catch { return 'registros'; } });
+  // Abas da História: Linha do tempo (com capítulos ou regiões, quando o jogo tem) e Detalhes.
+  const [aba, setAbaRaw] = useState<Aba>(() => { try { return localStorage.getItem('wz.jornada.aba') === 'detalhes' ? 'detalhes' : 'capitulos'; } catch { return 'capitulos'; } });
   const setAba = (a: Aba) => { setAbaRaw(a); try { localStorage.setItem('wz.jornada.aba', a); } catch { /* só nesta visita */ } };
   const irPara = (a: Aba, id: string) => { setAba(a); setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60); };
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
@@ -274,7 +274,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const minutosTotais = s.sessions.filter((x) => x.journeyId === journeyId).reduce((n, x) => n + (x.minutes ?? 0), 0);
   const curEvents = allEvents.filter((e) => e.historyId === current.id);
   const lastPhoto = [...curEvents].reverse().find((e) => e.image && e.kind !== 'carta');
-  const regSessions = selHist ? sessionsOf(s, selHist.id) : s.sessions.filter((x) => x.journeyId === journeyId);
   const jSessions = s.sessions.filter((x) => x.journeyId === journeyId);
   const pedeConfirmar = openState && zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress);
   const hasCapsule = !!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember);
@@ -291,7 +290,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     { key: 'traduzir', label: 'Traduzir a tela do jogo', onSelect: () => navigate(`/jogos/${game.slug}/traduzir`) },
     { key: 'mais', label: 'Mais opções…', onSelect: () => setMenu(true) },
   ];
-  const tabs: [Aba, string][] = [['registros', 'Diário'], ['capitulos', structured ? (openWorld ? 'Regiões' : u.title) : 'Linha do tempo'], ['detalhes', 'Detalhes']];
+  const tabs: [Aba, string][] = [['capitulos', 'Linha do tempo'], ['detalhes', 'Detalhes']];
 
   return (
     <main className="journey">
@@ -412,12 +411,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                     }}>{label}</button>
                 ))}
               </div>
-
-              {aba === 'registros' && (
-                <div id="jpanel-registros" role="tabpanel" aria-labelledby="jtab-registros" className="jtabs__panel">
-                  <Registros sessions={regSessions} events={events} onEdit={setEditEvent} onPhoto={(src, title) => setFoto({ src, title })} />
-                </div>
-              )}
 
               {aba === 'capitulos' && (
                 <div id="jpanel-capitulos" role="tabpanel" aria-labelledby="jtab-capitulos" className="jtabs__panel jline">
@@ -546,7 +539,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 }
 
 type PlayCta = { label: string; now: boolean; onClick: () => void; hint?: string };
-type Aba = 'registros' | 'capitulos' | 'detalhes';
+type Aba = 'capitulos' | 'detalhes';
 
 /**
  * Retomada: depois de um mês longe do jogo, o IAmiguinho dá as boas-vindas com os dias reais (no máximo uma vez por

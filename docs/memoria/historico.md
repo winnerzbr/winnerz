@@ -13,7 +13,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - o bloco grande de "Voltar a um jogo" (depois de 7 dias longe) deixou de ser outro bloco: é o mesmo, com "última vez há X";
   - "Preparar um resumo para voltar" (a Cápsula) e "Traduzir a tela do jogo" foram para o menu Ações;
   - a coluna do lado (Bloco da campanha, Dias jogados, Registro automático) foi para a aba Detalhes; a página ficou com uma coluna;
-  - a aba "Registros" virou "Diário".
+  - a aba "Registros" saiu (o dono: repetia a linha do tempo). Ficaram só duas abas: "Linha do tempo" (com capítulos ou regiões, quando o jogo tem) e "Detalhes". A busca por texto que existia só em Registros saiu junto.
 - **Não mudou:** a lista de jogos da Jornada (já abre em "Em andamento" com a linha de onde parou).
 - **Pendente:** o dono aprovar a versão separada para publicar.
 

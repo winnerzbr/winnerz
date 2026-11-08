@@ -39,6 +39,10 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
   6. Lançamento.
 - **Decisões em aberto:** estão listadas no fim do documento.
 
+## Virada para roguelike (08/11/2026, 11h30)
+- O dono largou as hordas sem fim: andares de salas feitas à mão e sorteadas, portas que trancam até a última onda, baús com senha, loja, subchefe, chefão e elevador. Cristais viram níveis que abrem a janela Upar (arma, acessório ou vida) quando a sala fica limpa. Arma nova chega no nível do andar. Vida em corações. Câmera 2× mais perto.
+- Documento: "Lobby dos Bugs: virada para roguelike" no Claude (https://claude.ai/artifact/9cRje3R8WDipicv2M5xQNb). Detalhes em `docs/memoria/jogo.md` do repositório do jogo.
+
 ## Virada para o estilo Enter the Gungeon (08/11/2026)
 - Decidido pelo dono: o IAmiguinho mira e atira (analógico direito, mouse ou setas, ou dois analógicos no toque); 1 arma primária (tiro sem fim) e 1 secundária no L2 com cargas; menos bugs, mais perigosos e atirando (hordas grandes só nos eventos); níveis e cartas continuam.
 - Gráficos: pixel art detalhada no estilo Enter the Gungeon no lugar do 8 bits (nada copiado; o dono redesenha no Ateliê). Guia em `docs/estilo.md` do repositório do jogo.

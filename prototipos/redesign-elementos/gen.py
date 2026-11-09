@@ -16,8 +16,9 @@ THEMES = {
     'T': ('Transmissão', 'Transmissao'),
     'C': ('Cromo', 'Cromo'),
     'X': ('Impacto + Ímã', 'ImpactoIma'),
+    'Y': ('Impacto + Ímã com contorno', 'ImpactoImaContorno'),
 }
-CHAIN = {'X': ['I', 'X']}
+CHAIN = {'X': ['I', 'X'], 'Y': ['I', 'X', 'Y']}
 ONLY = os.environ.get('ONLY', '')
 
 LOGO = ('<svg viewBox="0 0 506 280" width="{w}" height="{h}" role="img" aria-label="WinnerZ"><defs><linearGradient id="lg{u}" x1="0" y1="0" x2="0" y2="1">'
@@ -309,6 +310,7 @@ DESC = {
     'T': 'O site vestido como o pacote gráfico de uma live: tarjas, letreiro de LED correndo no topo, números em pontos de LED, linhas de tela, cortinas que passam nos botões e varredura nas capas.',
     'C': 'Metal espelhado e laca negra. Reflexos que correm pelo botão e pelas molduras, brilho de quina ao passar o mouse, títulos cromados que mudam de luz e ouro espelhado só no Awards.',
     'X': 'Tudo da Impacto, com os botões da Ímã: duas peças inclinadas a 22° que se afastam e se cravam. No impacto, a costura acende, as faíscas saem da emenda e o botão treme.',
+    'Y': 'A Impacto + Ímã com outra versão de cards: contorno sólido em volta do card inteiro, platina nos comuns, âmbar no que está acontecendo agora e ouro no Awards. Ao passar o mouse, o contorno dá um pulso.',
     'I': 'A vinheta do WinnerZ virou interface. As peças se cravam inclinadas a 22°, a luz diagonal corta os botões, o pulso sai das bordas, faíscas saltam no principal e partículas sobem no topo das páginas.',
 }
 
@@ -352,7 +354,7 @@ def main():
         for mode in ('dark', 'light'):
             ml = 'escuro' if mode == 'dark' else 'claro'
             pages = list(PAGES)
-            if t in ('N', 'I', 'G', 'T', 'C', 'X'):
+            if t in ('N', 'I', 'G', 'T', 'C', 'X', 'Y'):
                 pages = [('Elementos', 'Todos os elementos', lambda t=t, tname=tname: p_elementos(tname, DESC[t]))] + pages
             for key, label, fn in pages:
                 body, h = fn()

@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: teste de cards com contorno na Impacto + Ímã
+- **O dono comentou no canvas:** testar uma versão de cards com contorno sólido em volta do card inteiro, platina ou âmbar conforme o card, com pulso ao passar o mouse.
+- **Feito:** a página "Impacto + Ímã · cards com contorno" no canvas da revisão, com elementos e as 8 páginas nos dois modos. A original ficou como estava.
+  - Contorno platina nos cards comuns (preto no modo claro).
+  - Âmbar no card do agora, que pulsa sozinho.
+  - Ouro no card do Awards.
+  - Pulso para fora no hover.
+  - O canto cortado saiu, para o contorno fechar a peça.
+- **Código:** `themes/Y.css`, que entra depois do `I.css` e do `X.css`.
+- **Pendente:** o dono comparar com a original; se quiser o Awards também em platina, trocar.
+
+---
+
 ## 09/11/2026: direção 9, Impacto + Ímã
 - **O dono pediu:** mais um exemplo misturando a Impacto com os efeitos dos botões da Ímã.
 - **Feito:** a direção "Impacto + Ímã" no canvas da revisão, com página própria, o quadro com todos os elementos e as 8 páginas do site nos dois modos.

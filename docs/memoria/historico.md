@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: luz dos cards para depois de duas voltas
+- **O dono pediu:** a luz que gira no vão dos cards não deve ficar em looping (tira muito a atenção). Depois de duas voltas, ela vira um preenchimento completo do vão enquanto o mouse estiver em cima.
+- **Feito:** em `impacto.css`, a volta roda 2 vezes (1,4 s cada) e em seguida o vão acende por inteiro em meio segundo, na cor da luz (platina no escuro, grafite no claro). Ao tirar o mouse, apaga. Conferido no site no ar.
+- **Canvas:** o quadro "Impacto + Ímã · cards com contorno" continua com a volta sem fim; só o site mudou.
+
+---
+
 ## 09/11/2026: linha do tempo do Início no visual Impacto
 - **O dono apontou:** a linha do tempo do Início não tinha mudado (ela tem estilo próprio e não estava em nenhuma parte).
 - **Feito:** parte nova `linha` em `impacto.css` e em `PARTES` (`src/lib/visual.ts`), seguindo o quadro "Impacto + Ímã · cards com contorno" do canvas:

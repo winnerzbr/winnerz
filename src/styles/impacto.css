@@ -32,6 +32,7 @@
 .on-photo { --vi-seam: #FFFFFF; --vi-seamG: rgba(255, 255, 255, 0.8); --vi-chunk: #2c3036; --vi-glow: rgba(255, 255, 255, 0.28); }
 
 @property --vi-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@property --vi-fc { syntax: '<color>'; inherits: false; initial-value: transparent; }
 
 /* ---- fundo: feixes de luz diagonais que passam devagar ---------------------------------------- */
 .vi-fundo body::before {
@@ -199,20 +200,22 @@
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco)::after {
   content: ''; position: absolute; z-index: 1; inset: -5px; padding: 5px; pointer-events: none; opacity: 0;
-  background: conic-gradient(from var(--vi-a), transparent 0deg 230deg, var(--vi-ringG) 300deg, var(--vi-ring) 352deg, transparent 360deg);
+  background: linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 230deg, var(--vi-ringG) 300deg, var(--vi-ring) 352deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):hover::after {
-  opacity: 1; animation: vi-orbit 1.4s linear infinite;
+  opacity: 1; animation: vi-orbit 1.4s linear 2, vi-fill 0.5s ease-out 2.45s forwards;
 }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):focus-visible { outline-color: var(--ink); }
 @keyframes vi-orbit { to { --vi-a: 360deg; } }
+/* Depois de duas voltas, a luz enche o vão inteiro e fica acesa enquanto o mouse estiver em cima (sem repetir a volta). */
+@keyframes vi-fill { to { --vi-fc: var(--vi-ring); } }
 /* Estes cards cortam o que passa da borda (por causa da foto), então a luz que gira não aparece neles: no hover, o contorno acende. */
 .vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card) { transition: outline-color 0.3s; }
 .vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card):hover { outline-color: var(--vi-ring); }

@@ -37,7 +37,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - **Visual em uso desde 09/11/2026: "Impacto + Ímã · cards com contorno"**, escolhido pelo dono no canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb):
   - botões em duas peças inclinadas (o texto e a seta) que se afastam e se cravam no hover, com a emenda acendendo; o botão "agora" (âmbar) repete o impacto sozinho;
   - abas, filtros e etiquetas em blocos inclinados, rótulos em caixa alta larga;
-  - cards com contorno discreto (escuro no modo escuro, cinza no claro) e um vão vazado de 5px; no hover, uma luz dá a volta dentro do vão. Os cards com foto que corta nas bordas (`rcard`, `evcard`, `hwcard`, `review`, `trail-card`) só acendem o contorno. Esse contorno com vão foi pedido pelo dono e não conta como "card cinza com contorno fino";
+  - cards com contorno discreto (escuro no modo escuro, cinza no claro) e um vão vazado de 5px; no hover, uma luz dá duas voltas dentro do vão e depois enche o vão inteiro, que fica aceso enquanto o mouse estiver em cima (a volta sem fim tirava a atenção). Os cards com foto que corta nas bordas (`rcard`, `evcard`, `hwcard`, `review`, `trail-card`) só acendem o contorno. Esse contorno com vão foi pedido pelo dono e não conta como "card cinza com contorno fino";
   - feixes de luz diagonais no fundo; o logo pulsa de tempos em tempos;
   - capas sem a inclinação com ponto de luz: sobem, a moldura acende e uma luz diagonal corta;
   - campos com o traço inclinado na frente e brilho no foco; interruptor inclinado;

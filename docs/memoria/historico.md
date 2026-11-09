@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: revisão de design dos elementos (proposta "Fresta 2")
+- **O dono pediu:** uma revisão de design dos elementos do site (botões, cards e o resto), com sugestões de redesign num canvas, para deixar tudo mais exclusivo, estilizado e bonito.
+- **Feito:** o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), com 6 quadros:
+  - **00 Hoje:** os elementos como estão, copiados do código, com 7 pontos fracos numerados. Por exemplo: a mesma peça cinza para quase tudo, filtro ligado branco como o botão principal, card liso, capa que inclina, campo só com a linha embaixo e foco em âmbar;
+  - **01 Botões "Forja":** platina escovada, a lasca que crava na peça como o W e o Z da vinheta, secundário "Aresta" (o fio corre e acende o canto), botões lado a lado que se encaixam, lendário em ouro só no Awards, desativado com hachura e foco com fio platina;
+  - **02 Cards "Placa":** canto cortado a 22°, fio de luz no topo, partes separadas por frestas e progresso em traços; variações Agora, Lendário, Vazio, Número, Postagem e Lista; capas "Vitrine", com o canto cortado e o estado numa lasca;
+  - **03 Régua e lascas:** abas com o traço platina embaixo, alternador em trilho, fichas de filtro que acendem o traço, etiquetas de estado, nota com a média da Galera e medidores de LEDs;
+  - **04 Fenda:** campos escavados com o canto cortado, interruptor com lasca no trilho, caixas de marcar, escolha única em traço, controle deslizante, aviso com contagem em LEDs, dica e menu;
+  - **05 Aplicado:** o topo da página de um jogo com tudo junto (dados de exemplo).
+- **Nada mudou no site ainda.** É só a proposta para o dono ver antes de qualquer etapa.
+- **Pendente:** o dono olhar o canvas e dizer o que aprova, o que muda e o que descarta. Depois disso, aplicar em etapas.
+
+---
+
 ## 09/11/2026: o site ganha uma conversa só dele
 - **O dono decidiu:** a conversa em que o Claude cuidava do site e do jogo IAmiguinho: Jogos de Verão (repositório
   `winnerzbr/iamiguinho-jogos-de-verao`) vira só do jogo. O site passa para uma conversa nova, com este repositório.

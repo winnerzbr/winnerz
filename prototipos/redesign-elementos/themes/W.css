@@ -1,0 +1,51 @@
+/* Lâmina: tudo é cortado. O botão tem um corte diagonal e as duas partes escorregam ao longo dele; o card perde uma lasca do canto,
+   a capa abre uma fenda de luz e as abas e filtros são lâminas. (Vem depois de I, X, Y e Y2.) */
+@property --wg{syntax:'<length>';inherits:false;initial-value:0px}
+.A .btn:not(.quiet):not(.off):not(.icon){padding:0 88px 0 30px}
+.A .btn.lg:not(.quiet):not(.off):not(.icon){padding:0 94px 0 34px}
+.A .btn.sm:not(.quiet):not(.off):not(.icon){padding:0 74px 0 20px}
+.A .btn:not(.quiet):not(.off):not(.icon)::before{right:36px;clip-path:polygon(0 0,100% 0,calc(100% - 26px) 100%,0 100%)}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__ar{width:58px;justify-content:flex-end;padding-right:15px;clip-path:polygon(26px 0,100% 0,100% 100%,0 100%)}
+.A .btn:not(.quiet):not(.off):not(.icon)::after{top:-36%;bottom:-36%;right:46px;width:2px;rotate:28deg}
+.A .btn.lg:not(.quiet):not(.off):not(.icon)::after{rotate:25deg}
+.A .btn.sm:not(.quiet):not(.off):not(.icon)::after{rotate:34deg}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__led{right:47px}
+.A .btn:not(.quiet):not(.off):not(.icon):hover::before,.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__t{animation:wL .7s cubic-bezier(.3,0,.2,1)}
+.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__ar{animation:wR .7s cubic-bezier(.3,0,.2,1)}
+.A .btn.now:not(.icon)::before,.A .btn.now:not(.icon) .btn__t{animation:wL 1.8s cubic-bezier(.3,0,.2,1) infinite}
+.A .btn.now:not(.icon) .btn__ar{animation:wR 1.8s cubic-bezier(.3,0,.2,1) infinite}
+@keyframes wL{0%{translate:0 0}38%{translate:5px -9px}52%{translate:-1px 2px}62%{translate:0 -1px}72%,100%{translate:0 0}}
+@keyframes wR{0%{translate:0 0}38%{translate:-5px 9px}52%{translate:1px -2px}62%{translate:0 1px}72%,100%{translate:0 0}}
+
+/* cards: uma lasca cortada no canto; no hover ela se solta e um risco de luz passa pelo corte */
+.A .card > .part:first-child{clip-path:polygon(0 0,calc(100% - 46px) 0,100% 34px,100% 100%,0 100%)}
+.A .card .part.head:first-child{padding-right:50px}
+.A .card::after{content:'';position:absolute;top:5px;right:5px;width:40px;height:29px;background:var(--b3);clip-path:polygon(0 0,100% 0,100% 100%);transition:translate .4s cubic-bezier(.2,.9,.2,1);pointer-events:none}
+.A .card.au::after{background:linear-gradient(200deg,#C9985C,#5a4220)}
+.A .card.now::after{background:var(--now)}
+.A .card.empty::after{background:var(--b2)}
+.A .card::before{content:'';position:absolute;z-index:2;top:21px;right:-51px;width:148px;height:2px;rotate:36.6deg;background:var(--seam);box-shadow:0 0 12px 2px var(--seamGlow);opacity:0;pointer-events:none}
+.A .card:hover::after{translate:6px -6px}
+.A .card:hover::before{animation:wFl .55s ease-out}
+.A .card.empty:hover::after{translate:0 0}.A .card.empty:hover::before{animation:none}
+@keyframes wFl{0%{opacity:0;scale:.1 1}35%{opacity:1;scale:1 1}100%{opacity:0;scale:1.25 1}}
+
+/* capas: um corte diagonal abre e a luz passa pela fenda */
+.A .cover__img{background:var(--lc)}
+.A .cover__bg{-webkit-mask-image:linear-gradient(118deg,#000 calc(50% - var(--wg)),transparent calc(50% - var(--wg)) calc(50% + var(--wg)),#000 calc(50% + var(--wg)));mask-image:linear-gradient(118deg,#000 calc(50% - var(--wg)),transparent calc(50% - var(--wg)) calc(50% + var(--wg)),#000 calc(50% + var(--wg)));transition:--wg .4s cubic-bezier(.2,.9,.2,1),transform .5s cubic-bezier(.2,.9,.2,1)}
+.A .cover:hover .cover__bg{--wg:3px}
+
+/* abas, filtros e etiquetas: lâminas (um lado reto, o outro cortado) */
+.A .tabs{gap:8px 5px;padding-left:0}
+.A .tabs a{transform:none;padding:0 38px 0 22px;clip-path:polygon(0 0,100% 0,calc(100% - 20px) 100%,0 100%)}
+.A .tabs a + a{margin-left:-14px;padding-left:36px;clip-path:polygon(20px 0,100% 0,calc(100% - 20px) 100%,0 100%)}
+.A .tabs a > span,.A .tabs a > .tabs__c,.A .chip > span,.A .chip > small,.A .tag > span{transform:none}
+.A .chips{gap:8px 4px;padding-left:0}
+.A .chip{transform:none;padding:0 28px 0 16px;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%)}
+.A .chip + .chip{margin-left:-12px;padding-left:28px;clip-path:polygon(16px 0,100% 0,calc(100% - 16px) 100%,0 100%)}
+.A .chips.vert{padding-left:0}
+.A .chips.vert .chip,.A .chips.vert .chip + .chip{margin-left:0;padding:0 30px 0 16px;clip-path:polygon(0 0,100% 0,calc(100% - 18px) 100%,0 100%)}
+.A .tag{transform:none;margin-left:0;padding:0 18px 0 10px;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.A .cover__img .tag{left:0}
+.A .meter{gap:4px}
+.A .meter i{width:3px;height:15px}

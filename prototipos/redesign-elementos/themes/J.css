@@ -1,0 +1,47 @@
+/* Forja: chapas grossas de metal forjado. As peças têm chanfro, o botão leva uma martelada, a emenda fica incandescente e esfria devagar,
+   as faíscas caem, e o vão do card acende no golpe e esfria até ficar em brasa. (Vem depois de I, X, Y e Y2.) */
+@property --jf{syntax:'<color>';inherits:false;initial-value:transparent}
+.A.dark,.A .photo{--bvH:rgba(255,255,255,.42);--bvL:rgba(0,0,0,.5);--hot:#FFFFFF;--hotG:rgba(255,255,255,.7);--warm:rgba(242,244,246,.3)}
+.A.light{--bvH:rgba(255,255,255,.6);--bvL:rgba(0,0,0,.28);--hot:#07080A;--hotG:rgba(7,8,10,.4);--warm:rgba(7,8,10,.3)}
+.A .btn:not(.quiet):not(.off)::before,.A .btn:not(.quiet):not(.off) .btn__ar{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL)}
+.A .btn.dan::before{box-shadow:inset 3px 0 0 var(--dan),inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL)}
+.A .btn.au::before{box-shadow:inset 0 0 0 1px rgba(226,190,132,.5),inset 0 2px 0 rgba(226,190,132,.55),inset 0 -3px 0 #000}
+.A .btn:not(.quiet):not(.off):not(.icon):hover{animation:jHit .7s linear}
+.A .btn:not(.quiet):not(.off):not(.icon):hover::before{animation:xL .7s cubic-bezier(.3,0,.2,1),jHL 2.4s ease-out forwards}
+.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__ar{animation:xR .7s cubic-bezier(.3,0,.2,1),jHR 2.4s ease-out forwards}
+.A .btn:not(.quiet):not(.off):not(.icon):hover::after{animation:jSeam 2.4s ease-out forwards}
+.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__led{animation:jSp 1.15s ease-in forwards}
+@keyframes jHit{0%,49%{translate:0 0}53%{translate:0 5px}60%{translate:0 -2px}68%,100%{translate:0 0}}
+@keyframes jSeam{0%,14%{opacity:0;transform:scaleY(.4)}16%{opacity:1;transform:scaleY(1.6);box-shadow:0 0 30px 9px var(--seamGlow)}32%{opacity:1;transform:scaleY(1);box-shadow:0 0 18px 4px var(--seamGlow)}100%{opacity:.4;transform:scaleY(1);box-shadow:0 0 7px 1px var(--seamGlow)}}
+@keyframes jHL{0%,14%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset 0 0 0 transparent}16%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset -30px 0 24px -12px var(--hotG)}100%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset -14px 0 14px -10px var(--warm)}}
+@keyframes jHR{0%,14%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset 0 0 0 transparent}16%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset 30px 0 24px -12px var(--hotG)}100%{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL),inset 14px 0 14px -10px var(--warm)}}
+@keyframes jSp{0%,30%{opacity:0;box-shadow:0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp)}33%{opacity:1;box-shadow:0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp)}100%{opacity:0;box-shadow:-16px 62px 0 -1px var(--sp),12px 78px 0 -1px var(--sp),30px 54px 0 -1px var(--sp),-34px 46px 0 -1px var(--sp),5px 96px 0 -1px var(--sp),-9px 70px 0 -1px var(--sp),44px 36px 0 -1px var(--sp),-24px 86px 0 -1px var(--sp)}}
+
+/* cards: o vão acende no golpe e esfria até ficar em brasa */
+.A .card{border-width:3px}
+.A .card .part:first-child{box-shadow:inset 0 2px 0 var(--bvH)}
+.A .card:hover,.A .card.au:hover{transform:none;background:linear-gradient(var(--jf),var(--jf)) padding-box;animation:jCool 2.2s ease-out forwards,jHitC .5s linear}
+.A .card.au:hover{--hot:#FFF0CC;--warm:rgba(226,190,132,.45)}
+.A .card.now,.A .card.now:hover{background:linear-gradient(var(--jf),var(--jf)) padding-box;animation:jEmber 2.2s ease-in-out infinite}
+.A .card.empty:hover{background:transparent;animation:none}
+@keyframes jCool{0%{--jf:transparent}7%{--jf:var(--hot)}100%{--jf:var(--warm)}}
+@keyframes jHitC{0%{translate:0 0}14%{translate:0 5px}34%{translate:0 -2px}55%,100%{translate:0 0}}
+@keyframes jEmber{0%,100%{--jf:rgba(255,178,91,.22)}50%{--jf:rgba(255,178,91,.9)}}
+
+.A .tabs a,.A .chip{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL)}
+.A .tabs a.on{box-shadow:inset 0 2px 0 #fff,inset 0 -3px 0 rgba(0,0,0,.3),0 8px 22px -4px var(--hotG)}
+.A .chip:hover{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--ink)}
+.A .chip.on{box-shadow:inset 0 2px 0 #fff,inset 0 -3px 0 rgba(0,0,0,.3)}
+.A .tag{box-shadow:inset 0 1px 0 var(--bvH),inset 0 -2px 0 var(--bvL)}
+.A .cover:hover .cover__img::after{animation:jFr 1.9s ease-out forwards}
+@keyframes jFr{0%{opacity:1;transform:none;box-shadow:inset 0 0 0 3px var(--hot),inset 0 0 34px 8px var(--hotG)}100%{opacity:1;transform:none;box-shadow:inset 0 0 0 2px var(--lc),inset 0 0 0 0 transparent}}
+.A .cover:hover .cover__img{animation:jHitC .5s linear}
+
+.A .rate__bar i{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -3px 0 var(--bvL)}
+.A .rate__bar i.on{background:linear-gradient(180deg,#FFF3DD,var(--now) 36%,#8A4A0A);box-shadow:0 0 16px rgba(255,178,91,.55),inset 0 2px 0 rgba(255,255,255,.7)}
+.A .rate__bar i.half{background:linear-gradient(0deg,#8A4A0A,var(--now) 44%,#FFF3DD 50%,var(--b3) 50%)}
+.A .meter i.on{box-shadow:inset 0 2px 0 var(--bvH)}
+.A .kick::before{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -2px 0 var(--bvL)}
+.A .sw__t{box-shadow:inset 0 3px 0 var(--bvL),inset 0 -1px 0 var(--bvH)}
+.A .sw__k{box-shadow:inset 0 2px 0 var(--bvH),inset 0 -2px 0 var(--bvL)}
+.A .photo .ttl{padding:.14em 0 .06em;margin:-.14em 0 -.06em;background:linear-gradient(180deg,#fff 16%,#c9ced4 49%,#7c848d 52%,#b9bfc7 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;filter:drop-shadow(0 3px 0 rgba(0,0,0,.65))}

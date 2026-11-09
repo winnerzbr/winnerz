@@ -57,13 +57,13 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   - Para ajustar uma parte, mexer só no bloco dela em `impacto.css`.
   - Celular: há um bloco próprio para botões e fichas até 600 px (o texto quebra em duas linhas). A luz do vão dos cards só existe com mouse.
   - Para revisar o celular: navegador do app em 375 px e um script que mede texto que não cabe e elementos além da borda; comparar com `?visual=fresta`.
-- **Cinco direções novas em avaliação (09/11/2026, pedidas pelo dono; nada aplicado no site):** cada uma tem página própria no canvas, com os elementos e 8 páginas do site, no escuro e no claro.
-  - **Pincel:** peças pintadas à mão, com pinceladas de borda irregular e segunda demão no hover; rótulos pequenos manuscritos (Caveat).
-  - **Figurinha:** peças como figurinhas do Álbum (borda branca recortada, levemente tortas); o canto descola e passa o brilho de holográfica; o que falta é espaço tracejado.
-  - **Estojo:** a coleção física; lombadas na prateleira, disco que sai do botão, card que abre como estojo, capa que abre e mostra o disco.
-  - **Quadrinho:** nanquim grosso, retícula como sombra, linhas de velocidade, cards como quadros com legenda, campos como balões.
-  - **Zênite:** luz vinda de cima; peças sobem para a luz; estados como fases (disco cheio, anel, eclipse com coroa âmbar).
-  - Aguardando a escolha do dono. O visual no ar continua "Impacto + Ímã · cards com contorno".
+- **Em avaliação no canvas (09/11/2026; nada aplicado no site): cinco variações da Impacto + Ímã com contorno.** O dono disse que prefere esta linha. Cada uma tem página própria, com os elementos e 8 páginas do site, no escuro e no claro:
+  - **Engate:** a emenda do botão vira um degrau em Z; cabeçalho e corpo do card engatam; abas, filtros e medidores são elos em seta.
+  - **Lâmina:** corte diagonal no botão, com as partes escorregando; lasca cortada no canto do card; fenda de luz na capa; abas e filtros em lâminas.
+  - **Rastro:** ecos de velocidade nas metades do botão, no card, na capa, no que está escolhido e no título.
+  - **Forja:** peças com chanfro; martelada no botão; emenda incandescente que esfria; vão do card em brasa.
+  - **Carga:** o contorno com vão dos cards em tudo (botões, abas, filtros, capas, campos); a luz dá uma volta e a peça fica carregada.
+- **Descartadas pelo dono (09/11/2026):** Pincel, Figurinha, Estojo, Quadrinho e Zênite, fora da linha Impacto. Ele apagou as páginas do canvas. Não propor de novo direções fora da linha Impacto + Ímã.
 - **As outras direções do canvas** (para consulta): Fresta 2, Monolito, Letreiro, Anamórfico, Impacto, Ímã, Transmissão, Cromo e Impacto + Ímã. Todas aparecem em 8 páginas do site, no modo escuro e no claro. O gerador fica em `prototipos/redesign-elementos/`.
 
 ## WinnerZ Awards

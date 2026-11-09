@@ -15,3 +15,9 @@ Os quadros feitos à mão (Hoje, Botões, Cards, Filtros, Campos, Aplicado, Mono
 - `P.css` e `S.css` são montados por `build_new.py` a partir de `P.tpl` e `S.tpl` (ele calcula as máscaras de pincelada e o contorno recortado do título). Rodar `python3 build_new.py` antes do `gen.py` quando mexer nos `.tpl`.
 - Para gerar só essas: `ONLY=PSEQZ python3 gen.py <pasta de saída>`.
 - A Pincel usa a fonte Caveat (o site já carrega) nos rótulos pequenos.
+
+## Variações da Impacto + Ímã (09/11/2026): Engate, Lâmina, Rastro, Forja e Carga
+- Temas `K`, `W`, `R`, `J` e `U`. Cada um entra depois de `I`, `X`, `Y` e `Y2` (ver `CHAIN` no `gen.py`) e só troca o que muda.
+- `Y2.css`: a luz do card dá duas voltas e enche o vão, como ficou no site.
+- Para gerar só essas: `ONLY=KWRJU python3 gen.py <pasta de saída>`.
+- As páginas Pincel, Figurinha, Estojo, Quadrinho e Zênite foram apagadas do canvas pelo dono; os temas continuam aqui, caso queira ver de novo.

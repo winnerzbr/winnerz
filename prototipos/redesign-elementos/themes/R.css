@@ -1,0 +1,47 @@
+/* Rastro: tudo deixa um rastro de velocidade. As metades do botão voltam deixando ecos, o card e a capa avançam com ecos atrás,
+   o que está escolhido fica com o rastro ligado e o título do topo tem ecos. (Vem depois de I, X, Y e Y2.) */
+.A.dark,.A .photo{--tr1:rgba(242,244,246,.36);--tr2:rgba(242,244,246,.17);--tr3:rgba(242,244,246,.07)}
+.A.light{--tr1:rgba(7,8,10,.34);--tr2:rgba(7,8,10,.16);--tr3:rgba(7,8,10,.07)}
+.A .btn:not(.quiet):not(.off):not(.icon){margin:0 26px}
+.A .btn:not(.quiet):not(.off):not(.icon):hover::before{animation:rL .7s cubic-bezier(.3,0,.2,1) forwards}
+.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__ar{animation:rR .7s cubic-bezier(.3,0,.2,1) forwards}
+.A .btn.now{--tr1:rgba(255,178,91,.45);--tr2:rgba(255,178,91,.22);--tr3:rgba(255,178,91,.09)}
+.A .btn.au{--tr1:rgba(226,190,132,.4);--tr2:rgba(226,190,132,.2);--tr3:rgba(226,190,132,.08)}
+.A .btn.now:not(.icon)::before{animation:rL 1.8s cubic-bezier(.3,0,.2,1) infinite}
+.A .btn.now:not(.icon) .btn__ar{animation:rR 1.8s cubic-bezier(.3,0,.2,1) infinite}
+@keyframes rL{0%{translate:0 0;box-shadow:0 0 0 transparent,0 0 0 transparent,0 0 0 transparent}38%{translate:-13px 0;box-shadow:0 0 0 transparent,0 0 0 transparent,0 0 0 transparent}52%{translate:3px 0;box-shadow:-14px 0 0 var(--tr1),-28px 0 0 var(--tr2),-42px 0 0 var(--tr3)}62%{translate:-1px 0}72%,100%{translate:0 0;box-shadow:-7px 0 0 var(--tr1),-14px 0 0 var(--tr2),-21px 0 0 var(--tr3)}}
+@keyframes rR{0%{translate:0 0;box-shadow:0 0 0 transparent,0 0 0 transparent,0 0 0 transparent}38%{translate:13px 0;box-shadow:0 0 0 transparent,0 0 0 transparent,0 0 0 transparent}52%{translate:-3px 0;box-shadow:14px 0 0 var(--tr1),28px 0 0 var(--tr2),42px 0 0 var(--tr3)}62%{translate:1px 0}72%,100%{translate:0 0;box-shadow:7px 0 0 var(--tr1),14px 0 0 var(--tr2),21px 0 0 var(--tr3)}}
+
+.A .card{transition:transform .35s cubic-bezier(.2,.9,.2,1),box-shadow .35s}
+.A .card:hover{transform:translateX(8px);box-shadow:-9px 0 0 -2px var(--tr1),-18px 0 0 -6px var(--tr2),-27px 0 0 -11px var(--tr3)}
+.A .card.now{box-shadow:-9px 0 0 -2px rgba(255,178,91,.4),-18px 0 0 -6px rgba(255,178,91,.2),-27px 0 0 -11px rgba(255,178,91,.08)}
+.A .card.au:hover{box-shadow:-9px 0 0 -2px rgba(226,190,132,.4),-18px 0 0 -6px rgba(226,190,132,.2),-27px 0 0 -11px rgba(226,190,132,.08)}
+.A .card.empty:hover{transform:none;box-shadow:none}
+
+.A .cover__img{transition:transform .35s cubic-bezier(.2,.9,.2,1),box-shadow .35s}
+.A .cover:hover .cover__img{transform:translateX(8px);box-shadow:-8px 0 0 -3px var(--tr1),-16px 0 0 -8px var(--tr2),-24px 0 0 -13px var(--tr3)}
+
+.A .tabs{gap:8px 22px;padding-left:24px}
+.A .tabs a{overflow:visible;transition:color .25s,background .25s,box-shadow .3s,translate .3s cubic-bezier(.2,.9,.2,1)}
+.A .tabs a::before{content:none}
+.A .tabs a:not(.on):hover{translate:6px 0;box-shadow:-7px 0 0 var(--tr2),-14px 0 0 var(--tr3)}
+.A .tabs a.on{box-shadow:-7px 0 0 var(--tr1),-14px 0 0 var(--tr2),-21px 0 0 var(--tr3)}
+.A .chips{gap:8px 18px;padding-left:18px}
+.A .chip{transition:background .2s,color .2s,box-shadow .3s,translate .3s cubic-bezier(.2,.9,.2,1)}
+.A .chip:not(.on):hover{translate:4px 0;box-shadow:-5px 0 0 var(--tr2),-10px 0 0 var(--tr3)}
+.A .chip.on{box-shadow:-5px 0 0 var(--tr1),-10px 0 0 var(--tr2),-15px 0 0 var(--tr3)}
+.A .chips.vert{padding-left:26px}
+
+.A .kick::before{margin-left:12px;box-shadow:-6px 0 0 var(--tr1),-12px 0 0 var(--tr3)}
+.A .kick.now::before{box-shadow:-6px 0 0 rgba(255,178,91,.45),-12px 0 0 rgba(255,178,91,.18)}
+.A .rate__bar{gap:13px;padding-left:16px}
+.A .rate__bar i.on{box-shadow:-5px 0 0 rgba(255,178,91,.4),-10px 0 0 rgba(255,178,91,.16)}
+.A .hdr nav a.on::after{box-shadow:-9px 0 0 var(--tr1),-18px 0 0 var(--tr2),-27px 0 0 var(--tr3)}
+.A .hz__p.now .hz__dot{box-shadow:-7px 0 0 rgba(255,178,91,.45),-14px 0 0 rgba(255,178,91,.18)}
+.A .hz__dot{left:14px}
+.A .pill{margin-left:18px;box-shadow:-6px 0 0 rgba(255,178,91,.4),-12px 0 0 rgba(255,178,91,.16);animation:none}
+
+/* topo: o título com ecos e riscos de velocidade passando */
+.A .photo .ttl{text-shadow:-11px 0 0 rgba(255,255,255,.22),-22px 0 0 rgba(255,255,255,.1),-33px 0 0 rgba(255,255,255,.045);padding-left:34px;margin-left:-34px}
+.A .photo::after{background-image:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent),linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent),linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent),linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);background-size:300px 1px,190px 1px,380px 2px,240px 1px;background-repeat:no-repeat;opacity:1;animation:rStreak 3.4s linear infinite}
+@keyframes rStreak{from{background-position:-400px 18%,-900px 43%,-600px 66%,-1300px 84%}to{background-position:1700px 18%,1900px 43%,2100px 66%,1500px 84%}}

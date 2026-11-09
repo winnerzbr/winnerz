@@ -1,0 +1,41 @@
+/* Engate: as peças se encaixam. A emenda do botão vira um degrau em Z, o cabeçalho e o corpo do card engatam um no outro,
+   e abas, filtros e medidores são elos em seta que entram um no outro. (Vem depois de I, X, Y e Y2.) */
+.A .btn:not(.quiet):not(.off):not(.icon){--aw:50px;padding:0 84px 0 30px}
+.A .btn.lg:not(.quiet):not(.off):not(.icon){--aw:54px;padding:0 90px 0 34px}
+.A .btn.sm:not(.quiet):not(.off):not(.icon){--aw:42px;padding:0 66px 0 20px}
+.A .btn:not(.quiet):not(.off):not(.icon)::before{right:calc(var(--aw) - 10px);clip-path:polygon(0 0,calc(100% - 14px) 0,calc(100% - 14px) 54%,100% 54%,100% 100%,0 100%)}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__ar{width:var(--aw);padding-left:10px;clip-path:polygon(0 0,100% 0,100% 100%,14px 100%,14px 46%,0 46%)}
+.A .btn:not(.quiet):not(.off):not(.icon)::after{top:0;bottom:0;right:calc(var(--aw) - 15px);width:20px;box-shadow:none;clip-path:polygon(5% 0,25% 0,25% 46%,95% 46%,95% 100%,75% 100%,75% 54%,5% 54%)}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__led{right:calc(var(--aw) - 6px)}
+.A .btn:not(.quiet):not(.off):not(.icon):hover::before,.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__t{animation:kL .7s cubic-bezier(.3,0,.2,1)}
+.A .btn:not(.quiet):not(.off):not(.icon):hover .btn__ar{animation:kR .7s cubic-bezier(.3,0,.2,1)}
+.A .btn.now:not(.icon)::before,.A .btn.now:not(.icon) .btn__t{animation:kL 1.8s cubic-bezier(.3,0,.2,1) infinite}
+.A .btn.now:not(.icon) .btn__ar{animation:kR 1.8s cubic-bezier(.3,0,.2,1) infinite}
+@keyframes kL{0%{translate:0 0}38%{translate:-10px -7px}52%{translate:2px 1px}62%{translate:-1px 0}72%,100%{translate:0 0}}
+@keyframes kR{0%{translate:0 0}38%{translate:10px 7px}52%{translate:-2px -1px}62%{translate:1px 0}72%,100%{translate:0 0}}
+
+/* cards: o cabeçalho e o corpo são duas chapas com emenda em degrau; no hover se soltam e engatam, e a luz do vão passa pela emenda */
+.A .card .part.head{clip-path:polygon(0 0,100% 0,100% calc(100% - 10px),56% calc(100% - 10px),56% 100%,0 100%)}
+.A .card .part.head + .part{margin-top:-6px;padding-top:30px;border-top:0;clip-path:polygon(0 10px,calc(56% + 4px) 10px,calc(56% + 4px) 0,100% 0,100% 100%,0 100%)}
+.A .card:hover .part.head{animation:kU .7s cubic-bezier(.3,0,.2,1)}
+.A .card:hover .part.head + .part{animation:kD .7s cubic-bezier(.3,0,.2,1)}
+@keyframes kU{0%{translate:0 0}38%{translate:-4px -4px}52%{translate:1px 1px}72%,100%{translate:0 0}}
+@keyframes kD{0%{translate:0 0}38%{translate:4px 4px}52%{translate:-1px -1px}72%,100%{translate:0 0}}
+
+/* abas, filtros, medidores e a linha do Radar: elos em seta */
+.A .tabs{gap:8px 0;padding-left:0}
+.A .tabs a{transform:none;padding:0 28px 0 32px;margin-left:-5px;overflow:visible;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%,9px 50%);transition:color .25s,background .25s,translate .25s cubic-bezier(.3,1.6,.5,1)}
+.A .tabs a:first-child{margin-left:0;padding-left:24px;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%)}
+.A .tabs a > span,.A .tabs a > .tabs__c,.A .chip > span,.A .chip > small{transform:none}
+.A .tabs a:not(.on):hover{translate:4px 0}
+.A .chips{gap:8px 0;padding-left:0}
+.A .chip{transform:none;padding:0 20px 0 24px;margin-left:-4px;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,0 100%,7px 50%);transition:background .2s,color .2s,translate .25s cubic-bezier(.3,1.6,.5,1)}
+.A .chip:first-child{margin-left:0;padding-left:16px;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 50%,calc(100% - 7px) 100%,0 100%)}
+.A .chip:not(.on):hover{translate:3px 0;box-shadow:none;background:var(--b3)}
+.A .chips.vert{padding-left:0;gap:6px}
+.A .chips.vert .chip,.A .chips.vert .chip:first-child{margin-left:0;padding:0 24px 0 16px;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 50%,calc(100% - 9px) 100%,0 100%)}
+.A .meter{gap:0}
+.A .meter i{transform:none;width:14px;height:12px;margin-left:-3px;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 50%,calc(100% - 5px) 100%,0 100%,5px 50%)}
+.A .meter i:first-child{margin-left:0}
+.A .hz__dot{transform:none;width:15px;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 50%,calc(100% - 6px) 100%,0 100%,6px 50%)}
+.A .hz__p.now .hz__dot{animation:iBeat2 1.6s ease-in-out infinite}

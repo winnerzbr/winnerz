@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: cinco variações da Impacto + Ímã no canvas
+- **O dono disse:** das 5 direções novas (Pincel, Figurinha, Estojo, Quadrinho, Zênite), prefere algo mais no estilo Impacto e Ímã. Ele apagou essas 5 páginas do canvas.
+- **Feito:** 5 páginas novas, todas partindo da Impacto + Ímã com contorno (o visual no ar): Engate, Lâmina, Rastro, Forja e Carga (90 quadros). Descrição em `site.md`.
+- **Atenção para a próxima vez:** quando o índice do canvas (`canvas.json`) voltar menor do que foi publicado, conferir a lista de arquivos antes de recolocar páginas: o dono pode ter apagado de propósito. Aqui as páginas apagadas chegaram a ser recolocadas no índice por engano e foram retiradas em seguida.
+- **Nada mudou no site.** Aguardando a escolha do dono.
+
+---
+
 ## 09/11/2026: cinco direções novas de redesign no canvas
 - **O dono pediu:** 5 novas sugestões de redesign.
 - **Feito:** 5 páginas novas no canvas "WinnerZ — revisão de design dos elementos": Pincel, Figurinha, Estojo, Quadrinho e Zênite. Cada uma com o quadro de todos os elementos e 8 páginas do site, nos modos escuro e claro (90 quadros). Descrição de cada uma em `site.md`.

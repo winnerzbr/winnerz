@@ -22,8 +22,13 @@ THEMES = {
     'E': ('Estojo', 'Estojo'),
     'Q': ('Quadrinho', 'Quadrinho'),
     'Z': ('Zênite', 'Zenite'),
+    'K': ('Engate', 'Engate'),
+    'W': ('Lâmina', 'Lamina'),
+    'R': ('Rastro', 'Rastro'),
+    'J': ('Forja', 'Forja'),
+    'U': ('Carga', 'Carga'),
 }
-CHAIN = {'X': ['I', 'X'], 'Y': ['I', 'X', 'Y']}
+CHAIN = {'X': ['I', 'X'], 'Y': ['I', 'X', 'Y'], **{t: ['I', 'X', 'Y', 'Y2', t] for t in 'KWRJU'}}
 ONLY = os.environ.get('ONLY', '')
 
 LOGO = ('<svg viewBox="0 0 506 280" width="{w}" height="{h}" role="img" aria-label="WinnerZ"><defs><linearGradient id="lg{u}" x1="0" y1="0" x2="0" y2="1">'
@@ -310,6 +315,11 @@ PAGES = [('Inicio', 'Início', p_inicio), ('Colecao', 'Coleção', p_colecao), (
          ('Awards', 'WinnerZ Awards', p_awards), ('Perfil', 'Perfil', p_perfil), ('Preferencias', 'Preferências', p_pref), ('Jogo', 'Página do jogo', p_jogo)]
 
 DESC = {
+    'K': 'Impacto + Ímã em que as peças se encaixam. A emenda do botão vira um degrau em Z, o cabeçalho e o corpo do card engatam um no outro com a luz do vão passando pela emenda, e abas, filtros e medidores são elos em seta.',
+    'W': 'Impacto + Ímã em que tudo é cortado. As duas partes do botão escorregam ao longo de um corte diagonal, o card perde uma lasca do canto com um risco de luz, a capa abre uma fenda iluminada e abas e filtros são lâminas.',
+    'R': 'Impacto + Ímã com rastro de velocidade. As metades do botão voltam deixando ecos, o card e a capa avançam com ecos atrás, o que está escolhido fica com o rastro ligado e o título do topo tem ecos e riscos passando.',
+    'J': 'Impacto + Ímã em metal forjado. As peças têm chanfro, o botão leva uma martelada, a emenda fica incandescente e esfria devagar, as faíscas caem, e o vão do card acende no golpe e esfria até ficar em brasa.',
+    'U': 'O contorno com vão dos cards vai para tudo: botões, abas, filtros, capas e campos. No hover a luz dá uma volta e a peça fica carregada, com o vão aceso. No medidor, a próxima barra pisca: está carregando.',
     'P': 'Tudo pintado à mão. Cada peça é uma pincelada de borda irregular, e no hover uma segunda demão passa por cima. Os cards são telas cortadas à mão, a nota são cinco toques de pincel e os rótulos pequenos são anotações manuscritas.',
     'S': 'Cada peça é uma figurinha do Álbum: borda branca recortada, levemente torta, como se colada à mão. No hover o canto descola e passa o brilho de figurinha holográfica. O que ainda falta aparece como espaço tracejado.',
     'E': 'A coleção física. Abas e filtros são lombadas na prateleira, e a escolhida é puxada para fora. Um disco sai do botão, o card abre de leve como um estojo e a capa abre na dobradiça e mostra o disco girando.',
@@ -364,7 +374,7 @@ def main():
         for mode in ('dark', 'light'):
             ml = 'escuro' if mode == 'dark' else 'claro'
             pages = list(PAGES)
-            if t in ('N', 'I', 'G', 'T', 'C', 'X', 'Y', 'P', 'S', 'E', 'Q', 'Z'):
+            if t in ('N', 'I', 'G', 'T', 'C', 'X', 'Y', 'P', 'S', 'E', 'Q', 'Z', 'K', 'W', 'R', 'J', 'U'):
                 pages = [('Elementos', 'Todos os elementos', lambda t=t, tname=tname: p_elementos(tname, DESC[t]))] + pages
             for key, label, fn in pages:
                 body, h = fn()

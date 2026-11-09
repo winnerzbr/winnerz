@@ -1,0 +1,7 @@
+/* Como ficou no site: a luz dá duas voltas no vão e depois enche o vão inteiro enquanto o mouse estiver em cima. (Vem depois do Y.css.) */
+@property --yf{syntax:'<color>';inherits:false;initial-value:transparent}
+.card{--yBg:linear-gradient(var(--yf),var(--yf)) padding-box,conic-gradient(from var(--ya),transparent 0deg 230deg,var(--lcG) 300deg,var(--lcc) 352deg,transparent 360deg) padding-box}
+.card:hover,.card.au:hover{background:var(--yBg);animation:yOrbit 1.4s linear 2,yFill .5s ease-out 2.45s forwards}
+.card.au{--lcc:#E2BE84;--lcG:rgba(226,190,132,.35)}
+@keyframes yFill{to{--yf:var(--lcc)}}
+.card.empty:hover{background:transparent;animation:none}

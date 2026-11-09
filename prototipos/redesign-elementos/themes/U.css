@@ -1,0 +1,48 @@
+/* Carga: o contorno com vão dos cards vai para tudo. Botões, abas, filtros, capas e campos têm a borda e o vão;
+   no hover a luz dá uma volta e a peça fica carregada (o vão aceso). No medidor, a próxima barra pisca: está carregando.
+   (Vem depois de I, X, Y e Y2.) */
+.A .btn:not(.quiet):not(.off):not(.icon){--aw:46px;height:56px;padding:0 86px 0 34px;border:2px solid var(--be,var(--edgeC))}
+.A .btn.lg:not(.quiet):not(.off):not(.icon){--aw:50px;height:64px;padding:0 92px 0 38px}
+.A .btn.sm:not(.quiet):not(.off):not(.icon){--aw:38px;height:46px;padding:0 66px 0 24px}
+.A .btn:not(.quiet):not(.off):not(.icon)::before{top:4px;bottom:4px;left:4px;right:calc(var(--aw) + 8px)}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__ar{top:4px;bottom:4px;right:4px;width:var(--aw)}
+.A .btn:not(.quiet):not(.off):not(.icon)::after{top:-6px;bottom:-6px;right:calc(var(--aw) + 4.5px)}
+.A .btn:not(.quiet):not(.off):not(.icon) .btn__led{right:calc(var(--aw) + 6px)}
+.A .btn.pri{--be:var(--mut)}
+.A .btn.now{--be:var(--edgeN);--bl:#FFB25B;--blG:rgba(255,178,91,.35)}
+.A .btn.au{--be:var(--edgeA);--bl:#E2BE84;--blG:rgba(226,190,132,.35)}
+.A .btn.dan{--bl:var(--dan)}
+.A .btn:not(.quiet):not(.off):not(.icon):hover{background:linear-gradient(var(--yf),var(--yf)) padding-box,conic-gradient(from var(--ya),transparent 0deg 200deg,var(--blG,var(--lcG)) 290deg,var(--bl,var(--lc)) 352deg,transparent 360deg) padding-box;animation:xHit .7s linear,yOrbit .7s linear 1,uFill .35s ease-out .7s forwards}
+.A .btn.now:not(.icon){background:conic-gradient(from var(--ya),transparent 0deg 200deg,var(--blG) 290deg,var(--bl) 352deg,transparent 360deg) padding-box;animation:yOrbit 1.8s linear infinite}
+@keyframes uFill{to{--yf:var(--bl,var(--lc))}}
+@keyframes uBlink{50%{opacity:.15}}
+
+.A .tabs{gap:8px 8px}
+.A .tabs a{height:48px;padding:0 20px;border:2px solid var(--edgeC);background:linear-gradient(var(--b1),var(--b1)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat;box-shadow:none}
+.A .tabs a::before{content:none}
+.A .tabs a:not(.on):hover{background:linear-gradient(var(--b1),var(--b1)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat,linear-gradient(var(--yf),var(--yf)),conic-gradient(from var(--ya),transparent 0deg 200deg,var(--lcG) 290deg,var(--lc) 352deg,transparent 360deg);animation:yOrbit .7s linear 1,uFill .35s ease-out .7s forwards}
+.A .tabs a.on{border-color:var(--lc);background:linear-gradient(180deg,var(--pA),var(--pB)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat,linear-gradient(var(--lcG),var(--lcG));box-shadow:0 8px 24px var(--glow)}
+.A .chip{height:38px;padding:0 18px;border:2px solid var(--edgeC);background:linear-gradient(var(--b2),var(--b2)) 3px 3px/calc(100% - 6px) calc(100% - 6px) no-repeat}
+.A .chip:not(.on):hover{box-shadow:none;background:linear-gradient(var(--b2),var(--b2)) 3px 3px/calc(100% - 6px) calc(100% - 6px) no-repeat,linear-gradient(var(--yf),var(--yf)),conic-gradient(from var(--ya),transparent 0deg 200deg,var(--lcG) 290deg,var(--lc) 352deg,transparent 360deg);animation:yOrbit .6s linear 1,uFill .3s ease-out .6s forwards}
+.A .chip.on{border-color:var(--lc);background:linear-gradient(180deg,var(--pA),var(--pB)) 3px 3px/calc(100% - 6px) calc(100% - 6px) no-repeat,linear-gradient(var(--lcG),var(--lcG))}
+.A .chips.vert .chip{height:46px}
+
+.A .cover__img{border:2px solid var(--edgeC);background:transparent}
+.A .cover__bg{inset:4px}
+.A .cover__img::after{content:none}
+.A .cover__img .tag{left:8px;top:14px}
+.A .cover:hover .cover__img{background:linear-gradient(var(--yf),var(--yf)) padding-box,conic-gradient(from var(--ya),transparent 0deg 220deg,var(--lcG) 300deg,var(--lc) 352deg,transparent 360deg) padding-box;animation:yOrbit 1s linear 1,uFill .4s ease-out 1s forwards}
+.A .cover:hover .cover__bg{transform:none}
+
+.A .meter i.on + i:not(.on){background:var(--ink);animation:uBlink 1s steps(2) infinite}
+.A .meter.now i.on + i:not(.on){background:var(--now)}
+.A .meter.au i.on + i:not(.on){background:#E2BE84}
+.A .field__w{height:54px;padding-left:30px;border:2px solid var(--edgeC);background:linear-gradient(var(--b1),var(--b1)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat}
+.A .field__w::after{content:none}
+.A .field__w::before{left:13px;top:15px}
+.A .field.foc .field__w,.A .field__w:focus-within{border-color:var(--lc);background:linear-gradient(var(--b1),var(--b1)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat,linear-gradient(var(--lc),var(--lc))}
+.A .field.err .field__w{border-color:var(--dan);background:linear-gradient(var(--b1),var(--b1)) 4px 4px/calc(100% - 8px) calc(100% - 8px) no-repeat,linear-gradient(var(--dan),var(--dan))}
+.A .sw__t{border:2px solid var(--edgeC);height:32px;background:none}
+.A .sw__k{top:3px;left:3px}
+.A .sw.on .sw__t{border-color:var(--lc);background:var(--lcG);box-shadow:0 0 18px var(--glow)}
+.A .sw.on .sw__k{left:31px}

@@ -66,7 +66,7 @@ body{margin:0;background:#050506}
   <div style="padding: 40px 48px 8px; display: flex; flex-direction: column; gap: 12px; color: #F2F4F6">
     <span class="k" style="color: #9AA1AA">Nota · teste jogável · escala de 0 a 5 e de 0 a 10</span>
     <h1 class="t" style="font-size: 54px">Barras com os efeitos de hoje</h1>
-    <p class="cap" style="max-width: 1000px; color: #C9CED4">Passe o mouse sobre as barras e clique, ou arraste. Também dá para usar as setas do teclado. O número tem largura fixa, então as barras não andam quando a nota muda. O meio ponto corta a barra na horizontal: 4,5 enche a quinta barra só até a metade de baixo. O resto é igual ao site: a cor vai do vermelho ao verde, as barras enchem uma a uma, a barra onde a nota parou pula e solta um pulso, o número conta até o valor novo e, no 5, as barras fazem a onda.</p>
+    <p class="cap" style="max-width: 1000px; color: #C9CED4">Passe o mouse sobre as barras e clique, ou arraste. Também dá para usar as setas do teclado. O número tem largura fixa, então as barras não andam quando a nota muda. O meio ponto corta a barra na horizontal: 4,5 enche a quinta barra só até a metade de baixo. Para escolher, aponte a metade de cima da barra (ponto inteiro) ou a de baixo (meio ponto). O resto é igual ao site: a cor vai do vermelho ao verde, as barras enchem uma a uma, a barra onde a nota parou pula e solta um pulso, o número conta até o valor novo e, no 5, as barras fazem a onda.</p>
   </div>
   <div style="flex: 1; display: flex">
     <sc-for list="{{panels}}" as="p" hint-placeholder-count="2">
@@ -113,22 +113,23 @@ class Component extends DCLogic {
   }
   patch(k, p) { this.setState((st) => ({ [k]: Object.assign({}, st[k], p) })); }
   fromX(e, max) {
-    // As barras são inclinadas a 22°: a posição do ponteiro é "desinclinada" pela altura em que ele está,
-    // para valer só a ponta do ponteiro sobre a barra desenhada, e não a caixa reta em volta dela.
+    // Qual barra: a posição de lado a lado, "desinclinada" pela altura do ponteiro (as barras caem a 22°).
+    // Meio ou inteiro: a altura, como o próprio preenchimento. Metade de cima = ponto inteiro; metade de baixo = meio ponto.
     const row = e.currentTarget, r = row.getBoundingClientRect();
     const bars = row.querySelectorAll('.bar');
     if (!bars.length) return 0;
     const b0 = bars[0];
     const cy = r.top + b0.offsetTop + b0.offsetHeight / 2;
-    const x = (e.clientX - r.left) + Math.tan(22 * Math.PI / 180) * (e.clientY - cy);
-    if (x < b0.offsetLeft - 4) return 0;
-    for (let i = 0; i < bars.length; i++) {
-      const L = bars[i].offsetLeft, W = bars[i].offsetWidth;
-      const nextL = i + 1 < bars.length ? bars[i + 1].offsetLeft : L + W + 40;
-      if (x < L + W / 2) return Math.min(max, i + 0.5);
-      if (x < (L + W + nextL) / 2) return Math.min(max, i + 1);
+    const dy = e.clientY - cy;
+    const x = (e.clientX - r.left) + Math.tan(22 * Math.PI / 180) * dy;
+    if (x < b0.offsetLeft - 6) return 0;
+    let i = bars.length - 1;
+    for (let j = 0; j < bars.length; j++) {
+      const L = bars[j].offsetLeft, W = bars[j].offsetWidth;
+      const nextL = j + 1 < bars.length ? bars[j + 1].offsetLeft : Infinity;
+      if (x < (L + W + nextL) / 2) { i = j; break; }
     }
-    return max;
+    return Math.min(max, dy < 0 ? i + 1 : i + 0.5);
   }
   commit(k, v, src) {
     const s = this.state[k];

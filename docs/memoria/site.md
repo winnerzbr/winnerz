@@ -51,7 +51,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   Já decidido para o redesign:
   - **WinnerZ Awards:** os efeitos da votação ficam como hoje (cena em tela larga, zoom lento, reflexo de lente, luz vazando, granulado, faixas pretas e clarão). Nunca trocar.
-  - **Nota:** barras inclinadas (as da Impacto), com os mesmos efeitos de hoje, nas duas escalas (0 a 5 e 0 a 10). O meio ponto corta a barra na horizontal. O número fica numa caixa de largura fixa, para as barras não andarem.
+  - **Nota:** barras inclinadas (as da Impacto), com os mesmos efeitos de hoje, nas duas escalas (0 a 5 e 0 a 10). O meio ponto corta a barra na horizontal. O número fica numa caixa de largura fixa, para as barras não andarem. Ao apontar: a barra vem da posição de lado a lado (corrigida pela inclinação), e o meio ponto vem da altura: metade de cima = ponto inteiro, metade de baixo = meio ponto.
 
 ## WinnerZ Awards
 - 19 categorias. O dono escolhe os indicados.

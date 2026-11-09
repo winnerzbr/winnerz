@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: nota em barras, meio ponto pela altura do ponteiro
+- **O dono pediu:** ao pôr o ponteiro direto na metade de cima da barra, ela deve ficar cheia (antes ficava pela metade até mexer o mouse).
+- **Feito:**
+  - a barra é escolhida pela posição de lado a lado, corrigida pela inclinação;
+  - o meio ponto ou o inteiro é decidido pela altura, como o preenchimento: metade de cima = ponto inteiro, metade de baixo = meio ponto;
+  - o vão entre barras vai para a barra mais próxima.
+
+  Isso substitui a regra anterior (metade esquerda = meio ponto).
+- **Regra para quando aplicar no site:** a mesma leitura no `StarInput` e no `ScoreSlider`.
+
+---
+
 ## 09/11/2026: nota em barras, pulso de volta
 - **O dono comentou no canvas:** recolocar o efeito de pulso ao aplicar a nota.
 - **Feito:**

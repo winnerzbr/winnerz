@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: Coleção arrumada e borda dos cards mais discreta
+- **O dono apontou:** Formato (Tudo, Físico, Digital) ainda cortava nos filtros; os botões do topo da Coleção estavam desalinhados; a borda acesa dos cards chamava atenção demais.
+- **Feito (`carga.css`):**
+  - Formato: as três opções dividem a largura da coluna, com letra um pouco mais estreita;
+  - botões do topo (computador): grade de duas colunas iguais (Importar e Exportar planilha; Pela câmera e Selecionar) e "Adicionar jogo" embaixo, na largura toda; no celular continua como estava;
+  - campo "Ordem": tinha perdido a setinha de lista com o visual Carga; voltou;
+  - interruptor "Separar por plataforma": não passa mais 2 px da coluna;
+  - borda dos cards no hover: cor a 55% e brilho menor.
+
+---
+
 ## 09/11/2026: nota do modelo, borda dos cards, capas inclinando e filtros da Coleção
 - **O dono pediu, e foi feito:**
   - nota com a animação de aplicar definida no quadro "Nota em barras" do canvas (`impacto.css`, parte `nota`): cor da nota nas barras e no número, pulo da barra onde parou, pulso na mesma cor (dois no máximo), pulinho do número, onda e faíscas quadradas no máximo. As faíscas (`Burst`) não estavam em uso no site; agora saem da última barra em `StarInput` e `ScoreSlider`. As barras deixaram de ser âmbar: seguem a cor da nota, como no modelo;

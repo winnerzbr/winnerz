@@ -28,8 +28,8 @@
 .vc-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard)::after {
-  inset: -7px; padding: 0; border: 2px solid var(--vi-ring); background: none; -webkit-mask: none; mask: none;
-  box-shadow: 0 0 16px var(--vi-ringG), inset 0 0 8px var(--vi-ringG); animation: none !important; transition: opacity 0.3s;
+  inset: -7px; padding: 0; border: 2px solid color-mix(in srgb, var(--vi-ring) 55%, transparent); background: none; -webkit-mask: none; mask: none;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--vi-ringG) 60%, transparent); animation: none !important; transition: opacity 0.3s;
 }
 .vc-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
@@ -97,6 +97,14 @@
   .vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet)::before { left: 0; }
 }
 
+/* Coleção (computador): os botões do topo numa grade de duas colunas iguais; "Adicionar jogo" embaixo, na largura toda. */
+@media (min-width: 641px) {
+  .vc-botoes .page-head:has(.collection__tools) { grid-template-columns: minmax(0, 1fr) fit-content(64%); }
+  .vc-botoes .page-head__side > .collection__tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 26px; width: min(600px, 100%); }
+  .vc-botoes .collection__tools > .btn { width: 100%; margin: 0; justify-content: center; white-space: nowrap; padding-left: 26px; padding-right: 14px; letter-spacing: 0.04em; }
+  .vc-botoes .collection__tools > .btn.primary { grid-column: 1 / -1; }
+}
+
 /* ---- abas e alternadores: borda e vão; a escolhida já fica carregada --------------------------------------- */
 .vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) { min-height: 44px; }
 .vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button)::before {
@@ -112,6 +120,10 @@
   border-color: var(--vi-ring); box-shadow: 0 8px 24px var(--vi-glow); animation: none;
   background: linear-gradient(180deg, var(--primary-hi), var(--primary)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG));
 }
+
+/* Coleção: as três opções de Formato (Tudo, Físico, Digital) cabem na coluna dos filtros. */
+.vc-abas .cfilters .seg { gap: 4px !important; padding-left: 6px !important; overflow: visible; }
+.vc-abas .cfilters .seg button { flex: 1 1 0; min-width: 0; padding: 0 6px !important; letter-spacing: 0.03em; font-stretch: 100% !important; }
 
 /* ---- filtros: o mesmo contorno, menor ---------------------------------------------------------------------- */
 .vc-filtros .chip { min-height: 38px; }
@@ -173,5 +185,10 @@
   animation: vi-orbit 0.7s linear 1, vi-fill 0.3s ease-out 0.7s forwards;
 }
 .vc-campos textarea.field:focus { background-position: 12px 16px, 4px 4px, 0 0, 0 0 !important; }
-.vc-campos .switch { outline: 2px solid var(--vi-edge); outline-offset: 3px; }
+.vc-campos .switch { outline: 2px solid var(--vi-edge); outline-offset: 3px; margin-right: 6px; }
+/* lista de escolha (ex.: Ordem, na Coleção): sem o traço da frente e com a setinha à direita */
+.vc-campos select.field {
+  --vc-acc: linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 24px) 50% / 6px 6px no-repeat, linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 18px) 50% / 6px 6px no-repeat;
+  padding-left: 16px !important; padding-right: 42px !important;
+}
 .vc-campos .switch:checked { outline-color: var(--vi-ring); }

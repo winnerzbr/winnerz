@@ -6,7 +6,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ## 09/11/2026: aviso de pacotes do Álbum
 - **O dono apontou:** o aviso "Você tem N pacotes para abrir" (`alb-note`) estava no layout antigo (fio âmbar em cima).
-- **Feito (`carga.css`):** os avisos do Álbum têm o contorno com vão dos cards; o do agora (pacotes para abrir) tem o contorno âmbar.
+- **Feito (`carga.css`):** os avisos do Álbum têm o contorno com vão dos cards; o do agora (pacotes para abrir) tem o contorno âmbar. Folga de 32 px à direita para a ponta inclinada do botão "Abrir" não passar do card.
 
 ---
 

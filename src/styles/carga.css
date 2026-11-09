@@ -36,7 +36,7 @@
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard):hover::after { opacity: 1; animation: none !important; }
 
 /* Avisos do Álbum (ex.: "Você tem 4 pacotes para abrir"): contorno com vão como os cards; o do agora tem o contorno âmbar */
-.vc-cards .alb-note { outline: 2px solid var(--vi-edge); outline-offset: 5px; margin: 7px 7px 31px; background: var(--surface); }
+.vc-cards .alb-note { outline: 2px solid var(--vi-edge); outline-offset: 5px; margin: 7px 7px 31px; background: var(--surface); padding-right: 32px; }
 .vc-cards .alb-note--now { outline-color: var(--vc-edgeN); background: var(--surface); }
 
 /* ---- botoes: uma moldura inclinada com vão em volta das duas peças -------------------------------------------

@@ -234,6 +234,10 @@
 @keyframes vi-orbit { to { --vi-a: 360deg; } }
 /* Os dois cards da sessão aberta ("Hoje é para…" e "Dá para parar aqui?") ficam lado a lado: a margem dá lugar ao contorno. */
 .vi-cards :is(.goalcard, .stopcard) { margin: 7px; }
+/* O contorno novo substitui a linha fina que o card tinha por dentro; fica só a faixa de cor da resposta. */
+.vi-cards .stopcard--sim { box-shadow: inset 3px 0 0 #4fc283; }
+.vi-cards .stopcard--talvez { box-shadow: inset 3px 0 0 #FFB25B; }
+.vi-cards .stopcard--nao { box-shadow: inset 3px 0 0 #e46d5f; }
 /* Depois de duas voltas, a luz enche o vão inteiro e fica acesa enquanto o mouse estiver em cima (sem repetir a volta). */
 @keyframes vi-fill { to { --vi-fc: var(--vi-ring); } }
 }

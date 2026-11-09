@@ -75,6 +75,11 @@
 .vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet):not(:disabled):hover { animation: none; }
 .vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet):not(:disabled):hover::before { animation: vc-fill 0.25s ease-out forwards !important; }
 .vc-botoes .btn:not(.quiet):focus-visible { outline-offset: 8px; }
+/* texto em duas linhas: linhas equilibradas. Na coluna estreita de "Onde você parou" (Jornada), letra um pouco mais
+   estreita para "Preparar um resumo para voltar" caber em duas linhas com folga. */
+.vc-botoes .btn:not(.quiet) { text-wrap: balance; }
+.vc-botoes .jret__side .btn:not(.quiet) { font-stretch: 100%; letter-spacing: 0.02em; padding: 10px 12px 10px 28px; }
+.vc-botoes .jret__side .btn.quiet { white-space: nowrap; }
 @media (max-width: 600px) {
   .vc-botoes .btn:not(.quiet) { --cbr: 34px; --caw: 22px; --cg: 3px; padding: 6px 12px 6px 24px; }
   .vc-botoes .btn.sm:not(.quiet) { --cbr: 30px; --caw: 19px; padding: 5px 10px 5px 22px; }

@@ -4,6 +4,20 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: ajustes da Carga depois de ir ao ar
+- **O dono pediu, e foi feito (tudo em `carga.css`, salvo onde indicado):**
+  - botão de favoritar e outros só de ícone: no hover a emenda branca cortava o ícone. Agora é uma peça só dentro da moldura;
+  - faixas de luz do fundo: retiradas;
+  - botões: saiu a luz correndo no vão. Ficou só o impacto, com separação maior (11 px para cada lado) e o texto acompanhando a peça; depois do impacto o vão preenche;
+  - nada animado sem hover: o botão âmbar do "agora" (Álbum, "Finalizar sessão") tinha a luz sempre girando; agora fica parado;
+  - cards da sessão aberta (`goalcard`, `stopcard`): entraram na lista de cards com contorno (`impacto.css`);
+  - "Preparar um resumo para voltar": espaço em cima e embaixo do texto e letra mais estreita na coluna de "Onde você parou", para caber em duas linhas;
+  - logo do menu: sem o pulso sozinho.
+- **Regra que fica:** no site, animação só com o mouse em cima (ou no foco). Nada de laço infinito em botão, logo ou fundo.
+- **Conferido no site no ar:** nenhum botão com animação parada no Álbum, na página de jogo e na sessão; hover do favorito; separação no meio da animação; fundo e logo. Os dois cards da sessão foram conferidos com uma cópia montada na página, porque não havia sessão aberta.
+
+---
+
 ## 09/11/2026: visual Carga aplicado no site
 - **O dono pediu:** implantar a Carga em todas as páginas, com a luz do vão dando só uma volta antes de a peça ficar carregada, e as faixas do fundo mais lentas. Com a garantia de voltar atrás ou usar partes avulsas da Fresta ou da Impacto + Ímã anterior.
 - **Feito:**

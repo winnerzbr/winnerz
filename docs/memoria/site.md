@@ -35,13 +35,15 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   Tudo é criado do zero para o WinnerZ.
 - **Notas:** escala de 0 a 5, sem estrelas.
 - **Visual no ar desde 09/11/2026 (noite): "Carga"**, escolhido pelo dono no canvas. É a Impacto + Ímã com o contorno com vão dos cards levado para tudo:
-  - botões: uma moldura inclinada com vão em volta das duas peças; no hover a luz dá uma volta, as peças se afastam e se cravam, e o vão fica aceso ("carregado"); o botão do agora tem a luz âmbar sempre girando;
-  - abas, alternadores e filtros: borda e vão; o escolhido já fica carregado;
+  - botões: uma moldura inclinada com vão em volta das duas peças. **Sem luz correndo no vão.** No hover as peças se afastam bastante (11 px para cada lado, o texto vai junto com a peça da esquerda), se cravam, a emenda acende no impacto e depois o vão preenche e fica aceso. **Nada se mexe sem o mouse em cima**, nem o botão âmbar do "agora" (usado em "Finalizar sessão" e nas ações do Álbum);
+  - botão só de ícone (favoritar, mais ações): uma peça só dentro da moldura, sem emenda no meio; no hover o vão preenche;
+  - abas, alternadores e filtros: borda e vão; no hover a luz dá uma volta e o vão acende; o escolhido já fica carregado;
   - capas: a luz dá uma volta na moldura da capa e ela fica acesa;
   - campos: borda e vão; no foco, uma volta e o vão acende;
-  - cards: a luz dá **uma volta só** e enche o vão (pedido do dono; antes eram duas);
-  - fundo: as faixas de luz passam três vezes mais devagar (54 s por ciclo; antes 18 s);
-  - menu, etiquetas, nota, linha do tempo e avisos ficam como na Impacto + Ímã.
+  - cards: a luz dá **uma volta só** e enche o vão. Os dois cards da sessão aberta ("Hoje é para…" e "Dá para parar aqui?", classes `goalcard` e `stopcard`) entraram na lista de cards com contorno;
+  - fundo: **sem as faixas de luz** (o dono achou que disputavam a atenção);
+  - logo do menu: **não pulsa sozinho**; só a animação do hover;
+  - etiquetas, nota, linha do tempo e avisos ficam como na Impacto + Ímã.
 - **As três camadas do visual (todas inteiras no código):** Fresta (`fresta.css` e os outros) → Impacto + Ímã (`impacto.css`, classes `vi-<parte>`) → Carga (`carga.css`, classes `vc-<parte>`).
   - `src/lib/visual.ts` decide a camada de cada parte:
     - `VISUAL = 'carga'`, `'impacto'` ou `'fresta'` troca tudo;

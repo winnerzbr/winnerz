@@ -59,6 +59,9 @@
   .vi-menu .tabbar__item[aria-current='page']::before { height: 3px; background: var(--ink); box-shadow: 0 0 10px var(--vi-glow); }
 }
 
+/* painel de Aparência (o ícone de tema no menu): fica por cima da linha de baixo do menu */
+.vi-menu .appearance__panel { z-index: 40; }
+
 /* ---- botoes: duas peças inclinadas (o texto e a seta) que se afastam e se cravam ---------------- */
 .vi-botoes .btn {
   --vp: var(--surface-2); --vk: var(--vi-chunk); --vt: var(--ink);
@@ -179,6 +182,9 @@
 .vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'])::before {
   background: linear-gradient(180deg, var(--primary-hi), var(--primary)); box-shadow: 0 8px 24px var(--vi-glow);
 }
+
+/* Escuro/Claro no painel de Aparência: a caixa não corta a ponta inclinada do botão */
+.vi-abas .appearance__panel .seg { overflow: visible; padding-right: 12px !important; }
 
 /* ---- filtros: fichas inclinadas; ligada = platina ---------------------------------------------- */
 .vi-filtros .chip {

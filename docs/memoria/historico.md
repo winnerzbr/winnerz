@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: painel de Aparência
+- **O dono apontou:** o painel de Aparência (ícone de tema no menu) aparecia atrás da linha de baixo do menu, e a ponta do botão "Claro" ficava cortada.
+- **Feito (`impacto.css`):** o painel ganhou prioridade de camada (`z-index`) acima da linha do menu; a caixa de Escuro/Claro deixou de cortar o que passa da borda e ganhou folga à direita. Conferido no site no ar.
+
+---
+
 ## 09/11/2026: Coleção arrumada e borda dos cards mais discreta
 - **O dono apontou:** Formato (Tudo, Físico, Digital) ainda cortava nos filtros; os botões do topo da Coleção estavam desalinhados; a borda acesa dos cards chamava atenção demais.
 - **Feito (`carga.css`):**

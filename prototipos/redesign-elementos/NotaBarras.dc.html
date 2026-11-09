@@ -15,13 +15,17 @@ body{margin:0;background:#050506}
 .wz{font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 .t{font-weight:900;font-stretch:125%;text-transform:uppercase;letter-spacing:-0.01em;line-height:.9;margin:0}
 .k{font:800 11.5px/1 'Archivo';font-stretch:125%;letter-spacing:.12em;text-transform:uppercase}
-.pan{flex:1;padding:44px 48px;display:flex;flex-direction:column;gap:26px}
+.pan{flex:1;padding:36px 48px;display:flex;flex-direction:column;gap:20px}
 .pan.d{background:#050506;color:#F2F4F6;--track:#1b1e22;--mut:#9AA1AA}
 .pan.l{background:#eef0f3;color:#07080A;--track:#dfe2e6;--mut:#555c66}
 .inp{display:flex;align-items:center;gap:30px}
 .row{position:relative;display:flex;gap:14px;padding:14px 12px 14px 22px;margin-left:-12px;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;outline:none}
 .row:focus-visible{box-shadow:0 0 0 2px currentColor}
-.bar{position:relative;flex:none;width:24px;height:70px;transform:skewX(-22deg);background:var(--track)}
+.bar{position:relative;flex:none;width:var(--bw,24px);height:var(--bh,70px);transform:skewX(-22deg);background:var(--track)}
+.row.ten{gap:9px}
+.row.ten .bar{--bw:15px;--bh:54px}
+.inp.ten .num b{font-size:56px}
+.inp.ten{--nw:190px}
 .fill{position:absolute;left:0;right:0;bottom:0;background:currentColor;box-shadow:0 0 16px -2px currentColor;transition-property:height,color;transition-timing-function:cubic-bezier(.25,1.25,.45,1),ease}
 .is-preview .fill{opacity:.85}
 .popA{animation:popA .32s cubic-bezier(.3,1.6,.5,1)}
@@ -44,7 +48,8 @@ body{margin:0;background:#050506}
 .burst.bB i{animation:bB .9s cubic-bezier(.2,.8,.3,1) both}
 @keyframes bA{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-70px) scale(.4)}}
 @keyframes bB{0%{opacity:1;transform:rotate(var(--a)) translateY(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-70px) scale(.4)}}
-.num{display:inline-flex;align-items:baseline;gap:4px;min-width:3.4ch}
+.num{flex:none;display:inline-flex;align-items:baseline;justify-content:flex-end;gap:4px;width:var(--nw,190px)}
+.num b{display:inline-block;text-align:right}
 .num b{font-weight:900;font-stretch:125%;font-size:76px;line-height:.8;transition:color .35s ease}
 .num b.nA{animation:nA .35s cubic-bezier(.3,1.6,.5,1)}
 .num b.nB{animation:nB .35s cubic-bezier(.3,1.6,.5,1)}
@@ -57,31 +62,34 @@ body{margin:0;background:#050506}
 .cap{margin:0;font-size:14px;line-height:1.5;color:var(--mut);max-width:520px}
 </style>
 </helmet>
-<div class="wz" style="width: 1280px; height: 760px; display: flex; flex-direction: column; background: #050506">
+<div class="wz" style="width: 1280px; height: 960px; display: flex; flex-direction: column; background: #050506">
   <div style="padding: 40px 48px 8px; display: flex; flex-direction: column; gap: 12px; color: #F2F4F6">
-    <span class="k" style="color: #9AA1AA">Nota · teste jogável</span>
+    <span class="k" style="color: #9AA1AA">Nota · teste jogável · escala de 0 a 5 e de 0 a 10</span>
     <h1 class="t" style="font-size: 54px">Barras com os efeitos de hoje</h1>
-    <p class="cap" style="max-width: 1000px; color: #C9CED4">Passe o mouse sobre as barras e clique, ou arraste. Também dá para usar as setas do teclado. O meio ponto agora corta a barra na horizontal: 4,5 enche a quinta barra só até a metade de baixo. O resto é igual ao site: a cor vai do vermelho ao verde, as barras enchem uma a uma, a barra onde a nota parou pula e solta um pulso, o número conta até o valor novo e, no 5, as barras fazem a onda.</p>
+    <p class="cap" style="max-width: 1000px; color: #C9CED4">Passe o mouse sobre as barras e clique, ou arraste. Também dá para usar as setas do teclado. O número tem largura fixa, então as barras não andam quando a nota muda. O meio ponto corta a barra na horizontal: 4,5 enche a quinta barra só até a metade de baixo. O resto é igual ao site: a cor vai do vermelho ao verde, as barras enchem uma a uma, a barra onde a nota parou pula e solta um pulso, o número conta até o valor novo e, no 5, as barras fazem a onda.</p>
   </div>
   <div style="flex: 1; display: flex">
     <sc-for list="{{panels}}" as="p" hint-placeholder-count="2">
       <div class="{{p.cls}}">
         <span class="k" style="color: var(--mut)">{{p.label}}</span>
-        <div class="inp">
-          <div class="num"><b class="{{p.numCls}}" style="color: {{p.color}}">{{p.numTxt}}</b><span>/5</span></div>
-          <div class="{{p.rowCls}}" role="slider" tabindex="0" aria-label="Sua nota" aria-valuemin="0" aria-valuemax="5" aria-valuenow="{{p.value}}" aria-valuetext="{{p.valueTxt}}" onPointerDown="{{p.down}}" onPointerMove="{{p.move}}" onPointerUp="{{p.up}}" onPointerLeave="{{p.leave}}" onKeyDown="{{p.key}}">
-            <sc-for list="{{p.bars}}" as="b" hint-placeholder-count="5">
+        <sc-for list="{{p.inputs}}" as="q" hint-placeholder-count="2">
+        <span class="k" style="color: var(--mut); margin-top: 6px">{{q.label}}</span>
+        <div class="{{q.inpCls}}">
+          <div class="num"><b class="{{q.numCls}}" style="color: {{q.color}}">{{q.numTxt}}</b><span>{{q.maxTxt}}</span></div>
+          <div class="{{q.rowCls}}" role="slider" tabindex="0" aria-label="{{q.label}}" aria-valuemin="0" aria-valuemax="{{q.max}}" aria-valuenow="{{q.value}}" aria-valuetext="{{q.valueTxt}}" onPointerDown="{{q.down}}" onPointerMove="{{q.move}}" onPointerUp="{{q.up}}" onPointerLeave="{{q.leave}}" onKeyDown="{{q.key}}">
+            <sc-for list="{{q.bars}}" as="b" hint-placeholder-count="5">
               <span class="{{b.cls}}" style="color: {{b.color}}; --i: {{b.i}}">
                 <i class="fill" style="height: {{b.h}}; transition-duration: {{b.dur}}; transition-delay: {{b.del}}"></i>
                 <sc-if value="{{b.pulse}}" hint-placeholder-val="{{false}}"><span class="{{b.pulseCls}}"></span></sc-if>
                 <sc-if value="{{b.pulse2}}" hint-placeholder-val="{{false}}"><span class="{{b.pulseCls2}}"></span></sc-if>
               </span>
             </sc-for>
-            <sc-if value="{{p.burst}}" hint-placeholder-val="{{false}}">
-              <span class="{{p.burstCls}}" style="left: 190px; color: {{p.color}}"><i style="--a: 0deg"></i><i style="--a: 30deg"></i><i style="--a: 60deg"></i><i style="--a: 90deg"></i><i style="--a: 120deg"></i><i style="--a: 150deg"></i><i style="--a: 180deg"></i><i style="--a: 210deg"></i><i style="--a: 240deg"></i><i style="--a: 270deg"></i><i style="--a: 300deg"></i><i style="--a: 330deg"></i></span>
+            <sc-if value="{{q.burst}}" hint-placeholder-val="{{false}}">
+              <span class="{{q.burstCls}}" style="left: {{q.burstX}}; color: {{q.color}}"><i style="--a: 0deg"></i><i style="--a: 30deg"></i><i style="--a: 60deg"></i><i style="--a: 90deg"></i><i style="--a: 120deg"></i><i style="--a: 150deg"></i><i style="--a: 180deg"></i><i style="--a: 210deg"></i><i style="--a: 240deg"></i><i style="--a: 270deg"></i><i style="--a: 300deg"></i><i style="--a: 330deg"></i></span>
             </sc-if>
           </div>
         </div>
+        </sc-for>
         <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px">
           <span class="k" style="color: var(--mut)">Só leitura, nos cards e nas listas</span>
           <div style="display: flex; gap: 40px; align-items: center">
@@ -95,21 +103,21 @@ body{margin:0;background:#050506}
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":760}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    const base = { value: 4.5, hover: null, drag: false, pop: 0, dir: 1, num: 4.5 };
-    this.state = { d: Object.assign({}, base), l: Object.assign({}, base, { value: 3.5, num: 3.5 }) };
+    const mk = (v) => ({ value: v, hover: null, drag: false, pop: 0, dir: 1, num: v });
+    this.state = { d5: mk(4.5), d10: mk(8.5), l5: mk(3.5), l10: mk(6) };
     this.raf = {};
   }
   patch(k, p) { this.setState((st) => ({ [k]: Object.assign({}, st[k], p) })); }
-  fromX(e) {
+  fromX(e, max) {
     const r = e.currentTarget.getBoundingClientRect();
     const x = Math.max(0, Math.min(r.width, e.clientX - r.left - 12));
     const w = r.width - 24;
     if (x < 6) return 0;
-    return Math.min(5, Math.max(0.5, Math.ceil((x / w) * 10) / 2));
+    return Math.min(max, Math.max(0.5, Math.ceil((x / w) * max * 2) / 2));
   }
   commit(k, v) {
     const s = this.state[k];
@@ -124,48 +132,54 @@ class Component extends DCLogic {
     };
     this.raf[k] = requestAnimationFrame(tick);
   }
-  panel(k, label, light) {
+  input(k, max, light) {
     const s = this.state[k];
     const shown = s.hover !== null ? s.hover : s.value;
     const live = s.drag || s.hover !== null;
-    const hue = Math.round(Math.max(0, Math.min(1, shown / 5)) * 128);
+    const hue = Math.round(Math.max(0, Math.min(1, shown / max)) * 128);
     const color = 'hsl(' + hue + ' 74% ' + (light ? 42 : 58) + '%)';
     const stop = Math.ceil(s.value) - 1;
     const par = s.pop % 2 ? 'A' : 'B';
-    const max = s.value === 5 && !live && s.pop > 0;
-    const bars = [0, 1, 2, 3, 4].map((i) => {
+    const top = s.value === max && !live && s.pop > 0;
+    const step = max === 10 ? 30 : 55;
+    const idx = Array.from({ length: max }, (_, i) => i);
+    const bars = idx.map((i) => {
       const fill = Math.max(0, Math.min(1, shown - i));
       const atStop = s.pop > 0 && !s.drag && i === stop;
       let cls = 'bar';
-      if (max) cls += ' wave' + par; else if (atStop) cls += ' pop' + par;
+      if (top) cls += ' wave' + par; else if (atStop) cls += ' pop' + par;
       return {
         i: i, color: color, cls: cls,
         h: (fill * 100) + '%',
         dur: live ? '.12s' : '.42s',
-        del: live ? '0ms' : ((s.dir > 0 ? i : 4 - i) * 55) + 'ms',
+        del: live ? '0ms' : ((s.dir > 0 ? i : max - 1 - i) * step) + 'ms',
         pulse: atStop, pulseCls: 'pulse p' + par,
-        pulse2: atStop && s.value === 5, pulseCls2: 'pulse n2 p' + par
+        pulse2: atStop && s.value === max, pulseCls2: 'pulse n2 p' + par
       };
     });
     return {
-      cls: light ? 'pan l' : 'pan d', label: label, color: color, bars: bars,
-      rowCls: 'row' + (s.hover !== null && !s.drag ? ' is-preview' : ''),
-      value: s.value, valueTxt: String(s.value).replace('.', ',') + ' de 5',
+      label: max === 10 ? 'Nota de 0 a 10' : 'Nota de 0 a 5', max: max, maxTxt: '/' + max,
+      inpCls: max === 10 ? 'inp ten' : 'inp', color: color, bars: bars,
+      rowCls: 'row' + (max === 10 ? ' ten' : '') + (s.hover !== null && !s.drag ? ' is-preview' : ''),
+      value: s.value, valueTxt: String(s.value).replace('.', ',') + ' de ' + max,
       numTxt: String(s.num).replace('.', ','), numCls: s.pop ? 'n' + par : '',
-      burst: max, burstCls: 'burst b' + par,
-      down: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} const v = this.fromX(e); this.patch(k, { drag: true, hover: v }); this.commit(k, v); },
-      move: (e) => { const v = this.fromX(e); this.patch(k, { hover: v }); if (this.state[k].drag) this.commit(k, v); },
+      burst: top, burstCls: 'burst b' + par, burstX: max === 10 ? '246px' : '190px',
+      down: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} const v = this.fromX(e, max); this.patch(k, { drag: true, hover: v }); this.commit(k, v); },
+      move: (e) => { const v = this.fromX(e, max); this.patch(k, { hover: v }); if (this.state[k].drag) this.commit(k, v); },
       up: (e) => { this.patch(k, { drag: false, hover: e.pointerType !== 'mouse' ? null : this.state[k].hover }); },
       leave: () => { this.patch(k, { hover: null, drag: false }); },
       key: (e) => {
         const v = this.state[k].value;
-        const map = { ArrowRight: v + 0.5, ArrowUp: v + 0.5, ArrowLeft: v - 0.5, ArrowDown: v - 0.5, Home: 0, End: 5 };
-        if (e.key in map) { e.preventDefault(); this.patch(k, { hover: null }); this.commit(k, Math.max(0, Math.min(5, map[e.key]))); }
+        const map = { ArrowRight: v + 0.5, ArrowUp: v + 0.5, ArrowLeft: v - 0.5, ArrowDown: v - 0.5, Home: 0, End: max };
+        if (e.key in map) { e.preventDefault(); this.patch(k, { hover: null }); this.commit(k, Math.max(0, Math.min(max, map[e.key]))); }
       }
     };
   }
   renderVals() {
-    return { panels: [this.panel('d', 'Modo escuro', false), this.panel('l', 'Modo claro', true)] };
+    return { panels: [
+      { cls: 'pan d', label: 'Modo escuro', inputs: [this.input('d5', 5, false), this.input('d10', 10, false)] },
+      { cls: 'pan l', label: 'Modo claro', inputs: [this.input('l5', 5, true), this.input('l10', 10, true)] }
+    ] };
   }
 }
 </script>

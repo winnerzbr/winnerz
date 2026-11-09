@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: nota em barras, número fixo e escala de 0 a 10
+- **O dono comentou no canvas:** o número da nota empurrava as barras para o lado ao mudar; lembrou que o site também tem a escala até 10.
+- **Feito no quadro "Nota: barras com os efeitos de hoje":**
+  - o número fica numa caixa de largura fixa, alinhado à direita, e as barras não andam mais;
+  - entrou a escala de 0 a 10 (10 barras finas, meio em meio ponto, mesmos efeitos, onda no 10, meio ponto cortado na horizontal), nos dois modos.
+- **Regra para quando aplicar no site:** o número da nota nunca pode mudar a posição das barras. A caixa do número tem largura fixa.
+
+---
+
 ## 09/11/2026: redesign, o que não muda (Awards) e a nota em barras
 - **O dono decidiu:**
   - **WinnerZ Awards:** os efeitos especiais da votação de hoje não podem ser trocados. Ficam:

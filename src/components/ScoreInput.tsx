@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
-import { Star, StarPulse } from './Stars';
+import { Star, StarPulse, pickBar } from './Stars';
 import { scoreHue } from '../lib/rating';
 
 const fmt = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1)).replace('.', ',');
@@ -51,6 +51,9 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
   const [hover, setHover] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [pop, setPop] = useState(0);
+  // O pulso sai a cada nota aplicada (toque, clique, teclado); arrastando, uma vez ao soltar.
+  const [pulse, setPulse] = useState(0);
+  const moved = useRef(false);
   const [w, setW] = useState(0);
   const shown = hover ?? value;
   const prev = useRef(value);
@@ -64,21 +67,31 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
   const live = dragging || hover !== null;
   const size = Math.max(18, Math.min(36, Math.floor((w || 360) / 10)));
 
-  const fromX = (clientX: number) => {
+  const fromX = (clientX: number, clientY: number) => {
+    const b = pickBar(box.current!, clientX, clientY, 10);
+    if (b !== null) return b;
     const r = box.current!.getBoundingClientRect();
     const x = Math.max(0, Math.min(r.width, clientX - r.left));
     if (x < r.width * 0.025) return 0; // bem na borda esquerda: zero
     return Math.min(10, Math.max(0.5, Math.ceil((x / r.width) * 20) / 2));
   };
-  const commit = (v: number) => { if (v !== value) { onChange(v); setPop((n) => n + 1); } };
+  const commit = (v: number, src: 'tap' | 'move' = 'tap') => {
+    if (v !== value) { onChange(v); setPop((n) => n + 1); if (src === 'move') moved.current = true; else setPulse((n) => n + 1); }
+  };
   const down = (e: PointerEvent<HTMLDivElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     input.current?.focus({ preventScroll: true });
     setDragging(true);
-    const v = fromX(e.clientX); setHover(v); commit(v);
+    moved.current = false;
+    const v = fromX(e.clientX, e.clientY); setHover(v); commit(v);
   };
-  const move = (e: PointerEvent<HTMLDivElement>) => { const v = fromX(e.clientX); setHover(v); if (dragging) commit(v); };
-  const up = (e: PointerEvent<HTMLDivElement>) => { setDragging(false); if (e.pointerType !== 'mouse') setHover(null); };
+  const move = (e: PointerEvent<HTMLDivElement>) => { const v = fromX(e.clientX, e.clientY); setHover(v); if (dragging) commit(v, 'move'); };
+  const up = (e: PointerEvent<HTMLDivElement>) => {
+    if (dragging && moved.current) setPulse((n) => n + 1);
+    moved.current = false;
+    setDragging(false);
+    if (e.pointerType !== 'mouse') setHover(null);
+  };
   const leave = () => { setHover(null); };
 
   return (
@@ -86,7 +99,7 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
       <input
         ref={input} id={id} className="score-slider__input" type="range" min={0} max={10} step={0.5} value={value}
         aria-valuetext={`${fmt(value)} de 10`}
-        onChange={(e) => { const v = Number(e.target.value); if (v !== value) { onChange(v); setPop((n) => n + 1); } }}
+        onChange={(e) => { const v = Number(e.target.value); if (v !== value) { onChange(v); setPop((n) => n + 1); setPulse((n) => n + 1); } }}
       />
       <div
         ref={box} aria-hidden="true"
@@ -101,7 +114,7 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
             // O traço onde a nota parou "pula" quando a nota muda (a chave nova reinicia a animação).
             <span key={at ? `${i}-${pop}` : i} className={`star-input__cell score-row__cell${pop > 0 && at ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
               <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 9 - i) * 35} />
-              {pop > 0 && !dragging && at && <StarPulse seed={pop} size={size} k={value / 10} big={value === 10} />}
+              {pulse > 0 && at && <StarPulse seed={pulse} size={size} k={value / 10} big={value === 10} />}
             </span>
           );
         })}

@@ -4,6 +4,7 @@ import { initStore, getState, actions } from './data/store';
 import { demoAdapter } from './data/demoAdapter';
 import { SUPABASE_ON } from './lib/env';
 import { iniciarNativo } from './lib/nativo';
+import { aplicarVisual } from './lib/visual';
 import './styles/global.css';
 import './styles/components.css';
 import './styles/pages.css';
@@ -19,6 +20,8 @@ import './styles/tv.css';
 import './styles/live.css';
 import './styles/celular.css';
 import './styles/jornada.css';
+// Visual Impacto + Ímã (por último, por cima da Fresta). Liga e desliga por partes em src/lib/visual.ts.
+import './styles/impacto.css';
 
 
 async function boot() {
@@ -40,6 +43,7 @@ async function boot() {
   }
 }
 
+aplicarVisual();
 createRoot(document.getElementById('root')!).render(<App />);
 // Site instalável (PWA): só no site publicado, para o modo de desenvolvimento não guardar arquivos velhos.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

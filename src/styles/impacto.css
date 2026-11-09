@@ -1,0 +1,259 @@
+/* WinnerZ — visual Impacto + Ímã · cards com contorno (aprovado em 09/11/2026)
+   Uma camada por cima da Fresta. A Fresta continua inteira em fresta.css e nos outros arquivos.
+   Cada parte só vale quando o <html> tem a classe vi-<parte>, que src/lib/visual.ts liga ou desliga:
+   fundo, menu, botoes, abas, filtros, etiquetas, cards, capas, campos, nota, avisos.
+   Sem nenhuma classe vi-*, o site volta a ser a Fresta como era.
+   Títulos (Archivo larga em caixa alta) não mudam. A cena de votação do WinnerZ Awards não muda. */
+
+:root {
+  --vi-edge: #2a2e34;
+  --vi-ring: #F2F4F6;
+  --vi-ringG: rgba(242, 244, 246, 0.35);
+  --vi-beam: rgba(255, 255, 255, 0.022);
+  --vi-seam: #FFFFFF;
+  --vi-seamG: rgba(255, 255, 255, 0.8);
+  --vi-glow: rgba(255, 255, 255, 0.28);
+  --vi-chunk: #262a30;
+}
+:root[data-theme='claro'] {
+  --vi-edge: #c5cad0;
+  --vi-ring: #2a2f36;
+  --vi-ringG: rgba(7, 8, 10, 0.18);
+  --vi-beam: rgba(7, 8, 10, 0.03);
+  --vi-seam: #07080A;
+  --vi-seamG: rgba(7, 8, 10, 0.35);
+  --vi-glow: rgba(7, 8, 10, 0.16);
+  --vi-chunk: #d9dde2;
+}
+.on-photo { --vi-seam: #FFFFFF; --vi-seamG: rgba(255, 255, 255, 0.8); --vi-chunk: #2c3036; --vi-glow: rgba(255, 255, 255, 0.28); }
+
+@property --vi-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+/* ---- fundo: feixes de luz diagonais que passam devagar ---------------------------------------- */
+.vi-fundo body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(112deg, transparent 0 260px, var(--vi-beam) 260px 340px, transparent 340px 420px, var(--vi-beam) 420px 440px);
+  background-size: 200% 100%; animation: vi-beam 18s linear infinite;
+}
+@keyframes vi-beam { from { background-position: 0 0; } to { background-position: -1040px 0; } }
+
+/* ---- menu: seção atual com o traço platina inclinado; o logo pulsa de tempos em tempos -------- */
+.vi-menu .site-header .pillars a { font: 800 12px/1 var(--font-ui); font-stretch: 125%; letter-spacing: 0.08em; text-transform: uppercase; }
+.vi-menu .site-header .pillars a[aria-current='page']::after {
+  left: -6px; right: -6px; height: 4px; background: var(--ink); transform: skewX(-22deg); box-shadow: 0 0 14px var(--vi-glow);
+}
+.vi-menu .site-header__logo:not(:hover):not(:focus-visible) .brand-mark { animation: vi-logo 4.5s ease-in-out infinite; }
+@keyframes vi-logo {
+  0%, 82%, 100% { transform: scale(1); filter: none; }
+  86% { transform: scale(1.1); filter: drop-shadow(0 0 12px rgba(226, 190, 132, 0.85)) brightness(1.25); }
+  90% { transform: scale(0.97); }
+  94% { transform: scale(1); }
+}
+@media (max-width: 760px) {
+  .vi-menu .tabbar__item { text-transform: uppercase; font-weight: 800; font-size: 11.5px; letter-spacing: 0.05em; }
+  .vi-menu .tabbar__item[aria-current='page']::before { height: 3px; background: var(--ink); box-shadow: 0 0 10px var(--vi-glow); }
+}
+
+/* ---- botoes: duas peças inclinadas (o texto e a seta) que se afastam e se cravam ---------------- */
+.vi-botoes .btn {
+  --vp: var(--surface-2); --vk: var(--vi-chunk); --vt: var(--ink);
+  position: relative; isolation: isolate; overflow: visible;
+  clip-path: none !important; border: 0 !important; border-right: 50px solid transparent !important; border-radius: 0;
+  padding: 0 20px 0 26px; background: none !important; box-shadow: none; filter: none; color: var(--vt);
+  font: 800 12.5px/1.1 var(--font-ui); font-stretch: 112%; letter-spacing: 0.06em; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.vi-botoes a.btn, .vi-botoes .btn:hover { color: var(--vt); }
+.vi-botoes .btn::before {
+  content: '' !important; position: absolute; z-index: -1; top: 0; bottom: 0; left: 8px; right: -4px; width: auto; height: auto;
+  background: var(--vp) !important; transform: skewX(-22deg) !important; opacity: 1 !important; clip-path: none;
+  border: 0; box-shadow: none; animation: none; transition: none;
+}
+.vi-botoes .btn::after {
+  content: '\203A' !important; position: absolute; z-index: -1; top: 0; bottom: 0; left: auto; right: -46px; width: 38px; height: auto;
+  display: flex; align-items: center; justify-content: center; padding-bottom: 2px;
+  background: var(--vk) !important; color: var(--vt); font: 900 22px/1 var(--font-ui);
+  transform: skewX(-22deg) !important; opacity: 1 !important; clip-path: none; animation: none; pointer-events: none;
+}
+.vi-botoes .btn:not(:disabled):hover::before { animation: vi-l 0.7s cubic-bezier(0.3, 0, 0.2, 1) !important; }
+.vi-botoes .btn:not(:disabled):hover::after { animation: vi-r 0.7s cubic-bezier(0.3, 0, 0.2, 1) !important; }
+.vi-botoes .btn:not(:disabled):hover { animation: vi-hit 0.7s linear; }
+.vi-botoes .btn:not(:disabled):active { translate: 0 2px; }
+@keyframes vi-l {
+  0% { translate: 0 0; box-shadow: none; }
+  38% { translate: -12px 0; box-shadow: none; }
+  50% { translate: 2px 0; box-shadow: inset -3px 0 0 var(--vi-seam), 6px 0 18px -2px var(--vi-seamG); }
+  64% { translate: -1px 0; box-shadow: inset -3px 0 0 var(--vi-seam), 4px 0 12px -4px var(--vi-seamG); }
+  100% { translate: 0 0; box-shadow: none; }
+}
+@keyframes vi-r { 0% { translate: 0 0; } 38% { translate: 12px 0; } 50% { translate: -2px 0; } 64% { translate: 1px 0; } 100% { translate: 0 0; } }
+@keyframes vi-hit { 0%, 48% { translate: 0 0; } 53% { translate: 0 2px; } 58% { translate: 0 -1px; } 66%, 100% { translate: 0 0; } }
+
+/* principal e ligado: platina (grafite no modo claro) */
+.vi-botoes :is(.btn.primary, .btn[aria-pressed='true'], .btn.is-fav, .btn.is-radar) {
+  --vp: linear-gradient(180deg, var(--primary-hi), var(--primary)); --vk: var(--primary); --vt: var(--on-primary);
+}
+/* agora (sessão aberta, ao vivo): âmbar, e o impacto se repete sozinho */
+.vi-botoes .btn.now { --vp: var(--now); --vk: var(--now); --vt: var(--on-accent); --vi-seam: #FFE2BD; --vi-seamG: rgba(255, 178, 91, 0.85); }
+.vi-botoes .btn.now::before { animation: vi-l 1.8s cubic-bezier(0.3, 0, 0.2, 1) infinite !important; }
+.vi-botoes .btn.now::after { animation: vi-r 1.8s cubic-bezier(0.3, 0, 0.2, 1) infinite !important; }
+/* perigo */
+.vi-botoes .btn.danger { --vt: var(--danger); }
+.vi-botoes .btn.danger-solid { --vp: var(--danger); --vk: var(--danger); --vt: #07080A; }
+/* desativado: hachura, sem impacto */
+.vi-botoes :is(.btn:disabled, .btn[aria-disabled='true']) {
+  --vp: repeating-linear-gradient(90deg, var(--surface-2) 0 6px, var(--surface) 6px 9px); --vk: var(--surface); --vt: var(--faint); animation: none;
+}
+.vi-botoes :is(.btn:disabled, .btn[aria-disabled='true'])::before, .vi-botoes :is(.btn:disabled, .btn[aria-disabled='true'])::after { animation: none !important; }
+/* discreto: só o texto, com // que anda */
+.vi-botoes .btn.quiet { border-right-width: 0 !important; padding: 0 4px; gap: 8px; color: var(--ink-2); text-decoration: none !important; }
+.vi-botoes .btn.quiet::before { content: none !important; }
+.vi-botoes .btn.quiet::after {
+  content: '//' !important; position: static; display: inline; width: auto; padding: 0; background: none !important;
+  transform: none !important; color: var(--faint); font: 800 12px/1 var(--font-ui); transition: transform 0.3s, color 0.3s;
+}
+.vi-botoes .btn.quiet:hover { animation: none; color: var(--ink); }
+.vi-botoes .btn.quiet:hover::after { animation: none !important; transform: translateX(5px) !important; color: var(--ink); }
+.vi-botoes .btn.quiet[aria-pressed='true'] { color: var(--ink); }
+.vi-botoes .btn.quiet:has(> svg:only-child)::after { content: none !important; }
+/* só ícone: um bloco inclinado com a costura no meio */
+.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)) { border-right-width: 0 !important; padding: 0; min-width: 46px; }
+.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child))::before {
+  left: 4px; right: 4px;
+  background: linear-gradient(90deg, var(--surface-2) 0 calc(50% - 2px), transparent calc(50% - 2px) calc(50% + 2px), var(--surface-2) calc(50% + 2px)) !important;
+}
+.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child))::after { content: none !important; }
+.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)):hover::before { animation: none !important; }
+.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)):hover { animation: none; }
+/* tamanhos */
+.vi-botoes .btn.sm { font-size: 11.5px; padding: 0 14px 0 20px; border-right-width: 42px !important; }
+.vi-botoes .btn.sm::after { right: -38px; width: 30px; font-size: 18px; }
+.vi-botoes .btn.lg { font-size: 13.5px; padding: 0 26px 0 32px; border-right-width: 56px !important; }
+.vi-botoes .btn.lg::after { right: -52px; width: 44px; font-size: 24px; }
+/* foco do teclado e do controle: platina, sem âmbar */
+.vi-botoes .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; box-shadow: none; }
+
+/* ---- abas e alternadores: blocos inclinados separados; a ligada é platina com brilho ---------- */
+.vi-abas :is(.seg, .subnav, .what__paths) { gap: 6px !important; padding-left: 8px !important; }
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) {
+  position: relative; isolation: isolate; clip-path: none !important; margin-left: 0 !important; background: none !important;
+  padding: 0 20px !important; min-height: 40px; color: var(--faint); box-shadow: none;
+  font: 800 12px/1.1 var(--font-ui) !important; font-stretch: 112% !important; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button)::before {
+  content: ''; position: absolute; z-index: -1; inset: 0; background: var(--surface); transform: skewX(-22deg); transition: background-color 0.2s, box-shadow 0.25s;
+}
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover { color: var(--ink); }
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover::before { background: var(--surface-2); }
+.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true']) {
+  color: var(--on-primary) !important;
+}
+.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'])::before {
+  background: linear-gradient(180deg, var(--primary-hi), var(--primary)); box-shadow: 0 8px 24px var(--vi-glow);
+}
+
+/* ---- filtros: fichas inclinadas; ligada = platina ---------------------------------------------- */
+.vi-filtros .chip {
+  position: relative; isolation: isolate; clip-path: none !important; background: none !important; padding: 0 15px !important; margin: 0 4px;
+  min-height: 36px; color: var(--muted); font: 800 11.5px/1.1 var(--font-ui); font-stretch: 112%; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.vi-filtros .chip::before { content: ''; position: absolute; z-index: -1; inset: 0; background: var(--surface-2); transform: skewX(-22deg); transition: background-color 0.2s, box-shadow 0.2s; }
+.vi-filtros .chip:hover { color: var(--ink); }
+.vi-filtros .chip:hover::before { box-shadow: inset 0 -2px 0 var(--ink); }
+.vi-filtros .chip[aria-pressed='true'] { color: var(--on-primary); }
+.vi-filtros .chip[aria-pressed='true']::before { background: linear-gradient(180deg, var(--primary-hi), var(--primary)); box-shadow: none; }
+
+/* ---- etiquetas e rótulos ----------------------------------------------------------------------- */
+.vi-etiquetas .kicker { font: 800 11.5px/1.25 var(--font-ui); font-stretch: 125%; letter-spacing: 0.12em; text-transform: uppercase; }
+.vi-etiquetas .kicker::before { width: 7px; height: 12px; opacity: 1; background: var(--line-2); transform: skewX(-22deg); }
+/* No WinnerZ Awards e na revelação os rótulos continuam como são. */
+.vi-etiquetas :is(.awards, .reveal, .rvc, .events .evcard) .kicker { font: 400 12px/1.2 var(--font-mono); font-stretch: 100%; letter-spacing: 0.14em; text-transform: uppercase; }
+.vi-etiquetas :is(.awards, .reveal, .rvc, .events .evcard) .kicker::before { content: none; }
+.vi-etiquetas .ghero__chip {
+  position: relative; isolation: isolate; clip-path: none !important; background: none !important; margin-left: 6px !important; padding: 0 12px !important;
+  font: 800 10.5px/1 var(--font-ui); font-stretch: 112%; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.vi-etiquetas .ghero__chip::before { content: ''; position: absolute; z-index: -1; inset: 0; background: rgba(7, 8, 10, 0.62); transform: skewX(-22deg); }
+
+/* ---- cards: contorno discreto com um vão vazado; no hover, uma luz dá a volta dentro do vão ---- */
+:where(.vi-cards) :where(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco) { position: relative; }
+.vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco) {
+  outline: 2px solid var(--vi-edge); outline-offset: 5px; border-radius: 0; clip-path: none;
+}
+.vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco)::after {
+  content: ''; position: absolute; z-index: 1; inset: -5px; padding: 5px; pointer-events: none; opacity: 0;
+  background: conic-gradient(from var(--vi-a), transparent 0deg 230deg, var(--vi-ringG) 300deg, var(--vi-ring) 352deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+  transition: opacity 0.3s;
+}
+.vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):hover::after {
+  opacity: 1; animation: vi-orbit 1.4s linear infinite;
+}
+.vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):focus-visible { outline-color: var(--ink); }
+@keyframes vi-orbit { to { --vi-a: 360deg; } }
+/* Estes cards cortam o que passa da borda (por causa da foto), então a luz que gira não aparece neles: no hover, o contorno acende. */
+.vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card) { transition: outline-color 0.3s; }
+.vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card):hover { outline-color: var(--vi-ring); }
+.vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card)::after { content: none; }
+
+/* ---- capas: sem a inclinação com ponto de luz; sobe, a moldura acende e a luz diagonal corta ---- */
+.vi-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) { transform: none !important; transition: translate 0.3s, outline-color 0.2s; outline: 2px solid transparent; outline-offset: -2px; }
+.vi-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover) { translate: 0 -5px; outline-color: var(--ink); }
+.vi-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) img { transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1); }
+.vi-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover) img { transform: scale(1.06); }
+.vi-capas .is-ctilt { box-shadow: 0 18px 34px rgba(0, 0, 0, 0.5) !important; }
+.vi-capas .is-ctilt::after {
+  background: linear-gradient(112deg, transparent 38%, rgba(255, 255, 255, 0.45) 50%, transparent 62%) !important; background-size: 260% 100% !important;
+  mix-blend-mode: normal !important; animation: vi-slash 0.6s cubic-bezier(0.3, 0, 0.2, 1) both;
+}
+@keyframes vi-slash { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+/* ---- campos: fenda com o traço na frente; no foco, o fio de baixo e um brilho ---------------- */
+.vi-campos .field {
+  --vi-fa: var(--line-2);
+  border: 0 !important; border-radius: 0 !important; padding-left: 30px !important;
+  background: linear-gradient(112deg, transparent 0 38%, var(--vi-fa) 38% 64%, transparent 64%) 9px 50% / 12px 20px no-repeat, var(--surface) !important;
+  transition: box-shadow 0.3s;
+}
+.vi-campos textarea.field { background-position: 9px 14px, 0 0 !important; }
+.vi-campos .field:focus, .vi-campos .field:focus-visible { --vi-fa: var(--ink); outline: none; box-shadow: inset 0 -2px 0 var(--ink), 0 0 26px var(--vi-glow); }
+.vi-campos .switch { transform: skewX(-22deg); margin-right: 6px; background: var(--surface-2) !important; box-shadow: none !important; }
+.vi-campos .switch::after { clip-path: none !important; background: var(--faint) !important; }
+.vi-campos .switch:checked { box-shadow: 0 0 18px var(--vi-glow) !important; }
+.vi-campos .switch:checked::after { background: linear-gradient(180deg, var(--primary-hi), var(--primary)) !important; }
+
+/* ---- nota: barras inclinadas que enchem de baixo para cima (meio ponto = metade de baixo) ---- */
+.vi-nota .star { width: auto !important; aspect-ratio: 0.42; transform: skewX(-22deg); background: var(--star-off); overflow: hidden; }
+.vi-nota .star svg { display: none !important; }
+.vi-nota .star__on {
+  inset: auto 0 0 0 !important; width: 100% !important; height: calc(var(--f, 0) * 100%);
+  background: var(--star-on); box-shadow: 0 0 12px -3px var(--star-on);
+  transition: height 0.42s cubic-bezier(0.25, 1.25, 0.45, 1), background-color 0.35s ease;
+}
+.vi-nota .star-input.is-live .star__on { transition-duration: 0.12s, 0.12s; transition-delay: 0s !important; }
+.vi-nota .star-pulse svg { display: none; }
+.vi-nota .star-pulse::before, .vi-nota .star-pulse:has(svg + svg)::after {
+  content: ''; position: absolute; top: -2px; bottom: -2px; left: 29%; right: 29%; pointer-events: none;
+  border: 3px solid hsl(var(--score-h, 35) 80% var(--score-l, 58%)); box-shadow: 0 0 14px hsl(var(--score-h, 35) 80% var(--score-l, 58%));
+  transform: skewX(-22deg); opacity: 0; animation: vi-pulse calc(0.55s + 0.45s * var(--k, 0.5)) cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.vi-nota .star-pulse:has(svg + svg)::after { animation-delay: 0.16s; }
+@keyframes vi-pulse { 0% { opacity: 1; transform: skewX(-22deg) scale(1); } 100% { opacity: 0; transform: skewX(-22deg) scale(2, 1.6); } }
+/* o número da nota tem largura fixa: quando muda, as barras não andam */
+.vi-nota .score-num { width: 4.6ch; min-width: 0; justify-content: flex-end; white-space: nowrap; }
+.vi-nota .editor__ten .score-num { width: 5.6ch; }
+
+/* ---- avisos: placa reta com o traço; sem o corte ---------------------------------------------- */
+.vi-avisos .toast { clip-path: none !important; padding-right: 20px; box-shadow: 0 18px 40px var(--shadow); }
+.vi-avisos .toast::before { width: 7px; height: 20px; }

@@ -13,6 +13,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
   - a votação do Awards não mudou.
 - **Conferido:** página de teste com todas as folhas de estilo do site, nos modos escuro e claro e com a Fresta; a versão de teste do Vercel compilou.
 - **Como voltar:** ver "Como a Impacto foi montada" em `site.md`.
+- **Pendente:** o Vercel recusou a publicação no ar (commits `c1cf6a1` e `d6d09a2`), embora a versão de teste do mesmo código tenha compilado e a verificação do GitHub (tipos, testes e build) tenha passado. O motivo só aparece no painel do Vercel, que o Claude não acessa. O site no ar continua na versão de 05/11. Desde 05/11, nenhuma publicação no ar deu certo; até hoje eram só envios de documentos, que o Vercel pula de propósito. Próximo passo: o dono abre Deployments no painel do Vercel e vê o erro da última versão, ou entra na conta no navegador do app para o Claude ler o erro.
 
 ---
 

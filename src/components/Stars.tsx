@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { starFill, scoreHue } from '../lib/rating';
+import { Burst } from './ScoreInput';
 import { usaImpacto } from '../lib/visual';
 
 /** Fresta: cada "estrela" é um traço na inclinação do Z (22°). O preenchimento parcial continua igual. */
@@ -132,6 +133,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
           <span key={Math.ceil(value) === i + 1 ? `${i}-${pop}` : i} className={`star-input__cell${pop > 0 && Math.ceil(value) === i + 1 ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
             <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 4 - i) * 55} />
             {pulse > 0 && Math.ceil(value) === i + 1 && <StarPulse seed={pulse} size={size} k={value / 5} big={value === 5} />}
+            {i === 4 && value === 5 && !live && pulse > 0 && <Burst seed={pulse} left="50%" big k={1} />}
           </span>
         );
       })}

@@ -247,7 +247,7 @@
 .vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card)::after { content: none; }
 
 /* ---- capas: sem a inclinação com ponto de luz; sobe, a moldura acende e a luz diagonal corta ---- */
-.vi-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) { transform: none !important; transition: translate 0.3s, outline-color 0.2s; outline: 2px solid transparent; outline-offset: -2px; }
+.vi-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover):not(.is-fav-run) { transform: none !important; transition: translate 0.3s, outline-color 0.2s; outline: 2px solid transparent; outline-offset: -2px; }
 .vi-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover) { translate: 0 -5px; outline-color: var(--ink); }
 .vi-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) img { transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1); }
 .vi-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover) img { transform: scale(1.06); }
@@ -285,12 +285,30 @@
 .vi-nota .star-input.is-live .star__on { transition-duration: 0.12s, 0.12s; transition-delay: 0s !important; }
 .vi-nota .star-pulse svg { display: none; }
 .vi-nota .star-pulse::before, .vi-nota .star-pulse:has(svg + svg)::after {
-  content: ''; position: absolute; top: -2px; bottom: -2px; left: 29%; right: 29%; pointer-events: none;
-  border: 3px solid hsl(var(--score-h, 35) 80% var(--score-l, 58%)); box-shadow: 0 0 14px hsl(var(--score-h, 35) 80% var(--score-l, 58%));
-  transform: skewX(-22deg); opacity: 0; animation: vi-pulse calc(0.55s + 0.45s * var(--k, 0.5)) cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  content: ''; position: absolute; top: -2px; bottom: -2px; left: calc(29% - 2px); right: calc(29% - 2px); pointer-events: none;
+  border: 3px solid hsl(var(--score-h, 35) 74% var(--score-l, 58%));
+  box-shadow: 0 0 14px hsl(var(--score-h, 35) 74% var(--score-l, 58%)), inset 0 0 10px hsl(var(--score-h, 35) 74% var(--score-l, 58%));
+  transform: skewX(-22deg); opacity: 0; animation: vi-pulse 0.85s cubic-bezier(0.2, 0.7, 0.3, 1) both;
 }
 .vi-nota .star-pulse:has(svg + svg)::after { animation-delay: 0.16s; }
 @keyframes vi-pulse { 0% { opacity: 1; transform: skewX(-22deg) scale(1); } 100% { opacity: 0; transform: skewX(-22deg) scale(2, 1.6); } }
+/* Aplicar a nota, como no quadro "Nota em barras" do canvas (Impacto + Ímã · cards com contorno):
+   - as barras e o número têm a cor da nota (do vermelho ao verde), com brilho;
+   - ao passar o mouse, a prévia fica um pouco mais apagada;
+   - a barra onde a nota parou pula (sobe e cresce) e solta o pulso na mesma cor; no máximo, dois pulsos;
+   - o número dá um pulinho; no máximo, todas as barras fazem a onda e saem faíscas quadradas da última. */
+.vi-nota .star-input { --star-on: hsl(var(--score-h, 35) 74% var(--score-l, 58%)); }
+.vi-nota .star-input .star__on { filter: none; box-shadow: 0 0 16px -2px var(--star-on); }
+.vi-nota .star-input.is-preview:not(.is-dragging) .star__on { opacity: 0.85; }
+.vi-nota .score-num { color: hsl(var(--score-h, 35) 74% var(--score-l, 58%)); text-shadow: none; }
+.vi-nota .score-num .muted { color: var(--faint); }
+.vi-nota .star-input__cell.is-pop { animation: vi-npop 0.32s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes vi-npop { 0%, 100% { transform: none; } 45% { transform: translateY(-7px) scale(1.16); } }
+.vi-nota .star-input.is-max .star-input__cell { animation: vi-nwave 0.7s calc(var(--i) * 70ms + 0.2s) cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+@keyframes vi-nwave { 0%, 100% { transform: none; } 45% { transform: translateY(-11px) scale(1.14); } }
+.vi-nota .score-num__v.is-pop { animation: vi-nnum 0.35s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes vi-nnum { 45% { transform: scale(1.12); } }
+.vi-nota .burst i { border-radius: 0; background: hsl(var(--score-h, 35) 74% var(--score-l, 58%)); }
 /* o número da nota tem largura fixa: quando muda, as barras não andam */
 .vi-nota .score-num { width: 4.6ch; min-width: 0; justify-content: flex-end; white-space: nowrap; }
 .vi-nota .editor__ten .score-num { width: 5.6ch; }

@@ -115,6 +115,7 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
             <span key={at ? `${i}-${pop}` : i} className={`star-input__cell score-row__cell${pop > 0 && at ? ' is-pop' : ''}`} style={{ ['--i' as string]: i } as CSSProperties}>
               <Star size={size} fill={fill} delay={live ? 0 : (dir > 0 ? i : 9 - i) * 35} />
               {pulse > 0 && at && <StarPulse seed={pulse} size={size} k={value / 10} big={value === 10} />}
+              {i === 9 && value === 10 && !live && pulse > 0 && <Burst seed={pulse} left="50%" big k={1} />}
             </span>
           );
         })}

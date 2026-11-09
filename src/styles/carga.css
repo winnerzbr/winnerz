@@ -3,8 +3,8 @@
    Cada parte só vale quando o <html> tem a classe vc-<parte>, que src/lib/visual.ts liga junto com a vi-<parte>.
    Sem a vc-<parte>, a parte volta a ser a Impacto + Ímã; sem a vi-<parte> também, volta a ser a Fresta.
    Partes que mudam aqui: fundo, menu, botoes, abas, filtros, cards, capas, campos. As outras ficam como na Impacto + Ímã.
-   Regra da luz: nos cards, abas, filtros, capas e campos ela dá UMA volta no vão e a peça fica carregada (o vão aceso).
-   Nos botões não há luz correndo: só o impacto, e depois dele o vão preenche. */
+   Regra da luz: em abas, filtros, capas e campos ela dá UMA volta no vão e a peça fica carregada (o vão aceso).
+   Nos cards, no hover só a borda de fora acende. Nos botões não há luz correndo: só o impacto, e depois dele o vão preenche. */
 
 @property --vc-x { syntax: '<length>'; inherits: true; initial-value: 0px; }
 @property --vc-y { syntax: '<length>'; inherits: false; initial-value: 0px; }
@@ -24,8 +24,16 @@
 /* ---- menu: o logo não pulsa sozinho; fica só a animação do hover ------------------------------------------- */
 .vc-menu .site-header__logo:not(:hover):not(:focus-visible) .brand-mark { animation: none; }
 
-/* ---- cards: uma volta só, e o vão acende ------------------------------------------------------------------- */
-.vc-cards { --vi-lap: 1.2s; --vi-laps: 1; --vi-fd: 1.2s; }
+/* ---- cards: sem luz correndo no vão; no hover, só a borda de fora acende -------------------------------------- */
+.vc-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard)::after {
+  inset: -7px; padding: 0; border: 2px solid var(--vi-ring); background: none; -webkit-mask: none; mask: none;
+  box-shadow: 0 0 16px var(--vi-ringG), inset 0 0 8px var(--vi-ringG); animation: none !important; transition: opacity 0.3s;
+}
+.vc-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
+  .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard):hover::after { opacity: 1; animation: none !important; }
 
 /* ---- botoes: uma moldura inclinada com vão em volta das duas peças -------------------------------------------
    A moldura e as duas peças são desenhadas no ::before (as peças são camadas do fundo). O ::after fica só com a seta.
@@ -122,6 +130,19 @@
   background: linear-gradient(180deg, var(--primary-hi), var(--primary)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG));
 }
 @media (max-width: 600px) { .vc-filtros .chips--sm .chip { min-height: 34px; } }
+
+/* ---- capas: voltou a inclinação que segue o ponteiro, com o ponto de luz onde ele está (como na Fresta) ------ */
+.vc-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover):not(.is-fav-run) {
+  transform: perspective(820px) !important; transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.35s, outline-color 0.2s;
+}
+.vc-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover):not(.is-fav-run) {
+  transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-6px) !important; translate: none;
+}
+.vc-capas .is-ctilt:not(.is-fav-run) { transition: transform 0.12s linear, box-shadow 0.35s; box-shadow: 0 24px 44px rgba(0, 0, 0, 0.55) !important; }
+.vc-capas .is-ctilt::after {
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 58%) !important;
+  background-size: auto !important; mix-blend-mode: soft-light !important; animation: none !important;
+}
 
 /* ---- capas: a luz dá uma volta na moldura da capa e ela fica acesa ----------------------------------------- */
 :where(.vc-capas) :where(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) { position: relative; }

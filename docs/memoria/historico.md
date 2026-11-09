@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: pontas cortadas nos grupos de opções
+- **O dono apontou:** "Mais úteis" (ordem das respostas numa conversa) com a ponta cortada, como o "Claro" do painel de Aparência.
+- **Causa:** os grupos de opções (`.seg`, `.subnav`, `.what__paths`) podem rolar para o lado no celular e, por isso, cortam o que passa da borda; a ponta inclinada do último botão ficava de fora.
+- **Feito (`impacto.css`, regra geral):** folga de 10 px à direita em todos esses grupos (à esquerda já havia 8 px).
+
+---
+
 ## 09/11/2026: card dentro de card
 - **O dono apontou:** na página de uma conversa, o card "Na Praça" (`cm-mini`) fica dentro do quadro "Onde está" (`cm-side`), e os dois ganhavam contorno e brilho.
 - **Feito (`impacto.css`, regra geral):** um card dentro de outro card fica sem contorno e sem brilho próprios; só o de fora acende.

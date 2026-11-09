@@ -165,7 +165,8 @@
 }
 
 /* ---- abas e alternadores: blocos inclinados separados; a ligada é platina com brilho ---------- */
-.vi-abas :is(.seg, .subnav, .what__paths) { gap: 6px !important; padding-left: 8px !important; }
+/* folga dos dois lados: a caixa do grupo pode rolar para o lado (celular) e corta o que passa da borda, como as pontas inclinadas */
+.vi-abas :is(.seg, .subnav, .what__paths) { gap: 6px !important; padding-left: 8px !important; padding-right: 10px !important; }
 .vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) {
   position: relative; isolation: isolate; clip-path: none !important; margin-left: 0 !important; background: none !important;
   padding: 0 20px !important; min-height: 40px; color: var(--faint); box-shadow: none;

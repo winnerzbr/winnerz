@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: Ímã, luz dos cards
+- **O dono comentou no canvas:** o feixe de luz que aparecia no meio dos cards da Ímã ficava estranho.
+- **Feito:** o feixe saiu. Agora acendem as emendas entre as partes do card (topo, conteúdo e rodapé) no momento em que elas se cravam, com um brilho rápido em volta. Os 18 quadros da Ímã foram republicados.
+
+---
+
 ## 09/11/2026: mais 3 direções na linha da Impacto (Ímã, Transmissão e Cromo)
 - **O dono disse:** gostou das ideias mais ousadas da Impacto e pediu mais 3 direções na mesma linha de efeitos e inovação.
 - **Feito:** três direções novas no canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb). Cada uma tem página própria no canvas, o quadro com todos os elementos e as 8 páginas do site nos modos escuro e claro:

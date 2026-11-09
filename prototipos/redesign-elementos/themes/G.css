@@ -101,11 +101,11 @@
 .card .part{background:var(--h1);transition:transform .45s cubic-bezier(.3,0,.2,1)}
 .card .part.head{flex-direction:row;justify-content:space-between;align-items:center;background:var(--h2)}
 .card .part.foot{flex-direction:row;align-items:center;justify-content:space-between}
-.card::after{content:'';position:absolute;left:0;right:0;top:50%;height:2px;background:var(--seam);box-shadow:0 0 16px 3px var(--seamGlow);opacity:0;pointer-events:none}
+.card{background:transparent}
 .card:hover .part.head{animation:gL .7s cubic-bezier(.3,0,.2,1)}
 .card:hover .part.foot{animation:gR .7s cubic-bezier(.3,0,.2,1)}
-.card:hover::after{animation:gSeamH .7s ease-out}
-@keyframes gSeamH{0%,46%{opacity:0}52%{opacity:.8}100%{opacity:0}}
+.card:hover{animation:gGap .7s ease-out}
+@keyframes gGap{0%,46%{background-color:transparent;filter:none}52%{background-color:var(--seam);filter:drop-shadow(0 0 10px var(--seamGlow))}100%{background-color:transparent;filter:none}}
 .card.now .part.head{background:var(--now);color:var(--onNow)}
 .card.now .part.head .kick,.card.now .part.head .meta{color:var(--onNow)}
 .card.now .part.head .kick::before,.card.now .part.head .kick::after{background:var(--onNow)}

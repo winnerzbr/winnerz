@@ -206,17 +206,17 @@
 /* ---- cards: contorno discreto com um vão vazado; no hover, uma luz dá a volta dentro do vão ---- */
 :where(.vi-cards) :where(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
-  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco) { position: relative; }
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard) { position: relative; }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
-  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco) {
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard) {
   outline: 2px solid var(--vi-edge); outline-offset: 5px; border-radius: 0; clip-path: none;
 }
 /* A luz do vão só existe com mouse: no celular não há hover, e ela ficava 5px para fora e empurrava a página. */
 @media (hover: hover) {
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
-  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco)::after {
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard)::after {
   content: ''; position: absolute; z-index: 1; inset: -5px; padding: 5px; pointer-events: none; opacity: 0;
   background: linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 230deg, var(--vi-ringG) 300deg, var(--vi-ring) 352deg, transparent 360deg);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
@@ -225,13 +225,15 @@
 }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
-  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):hover::after {
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard):hover::after {
   opacity: 1; animation: vi-orbit var(--vi-lap, 1.4s) linear var(--vi-laps, 2), vi-fill 0.5s ease-out var(--vi-fd, 2.45s) forwards;
 }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
-  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):focus-visible { outline-color: var(--ink); }
+  .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco, .goalcard, .stopcard):focus-visible { outline-color: var(--ink); }
 @keyframes vi-orbit { to { --vi-a: 360deg; } }
+/* Os dois cards da sessão aberta ("Hoje é para…" e "Dá para parar aqui?") ficam lado a lado: a margem dá lugar ao contorno. */
+.vi-cards :is(.goalcard, .stopcard) { margin: 7px; }
 /* Depois de duas voltas, a luz enche o vão inteiro e fica acesa enquanto o mouse estiver em cima (sem repetir a volta). */
 @keyframes vi-fill { to { --vi-fc: var(--vi-ring); } }
 }

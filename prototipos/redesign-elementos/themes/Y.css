@@ -1,12 +1,16 @@
 /* Impacto + Ímã com cards de contorno sólido: platina nos cards comuns, âmbar no agora, ouro no Awards; pulso no hover.
+   Contorno de 4 px. O lado esquerdo do contorno é o próprio traço: liso parado, vira pontilhado que corre no hover.
    (Vem depois do I.css e do X.css.) */
 .A.dark,.A .photo{--edge:#E6E9ED;--edgeP:rgba(230,233,237,.55);--edge0:rgba(230,233,237,0)}
 .A.light{--edge:#07080A;--edgeP:rgba(7,8,10,.35);--edge0:rgba(7,8,10,0)}
-.card{clip-path:none;border:2px solid var(--edge);--pc:var(--edgeP);--pz:var(--edge0)}
+.card{clip-path:none;--ec:var(--edge);border:4px solid var(--ec);border-left-width:0;--pc:var(--edgeP);--pz:var(--edge0)}
+.card::before,.card.now::before,.card.au::before,.card.empty::before{content:'';position:absolute;z-index:3;left:0;top:0;bottom:0;width:4px;background:var(--ec);opacity:1;box-shadow:none;animation:none}
+.card:hover::before{background:repeating-linear-gradient(180deg,var(--ec) 0 8px,transparent 8px 13px);animation:yRun .6s linear infinite}
+@keyframes yRun{from{background-position:0 0}to{background-position:0 13px}}
 .card:hover{transform:translateY(-3px);animation:yPulse .9s ease-out 2}
 @keyframes yPulse{0%{box-shadow:0 0 0 0 var(--pc)}100%{box-shadow:0 0 0 16px var(--pz)}}
-.card.now{border-color:var(--now);box-shadow:none;--pc:rgba(255,178,91,.6);--pz:rgba(255,178,91,0);animation:yPulse 1.6s ease-out infinite}
+.card.now{--ec:var(--now);box-shadow:none;--pc:rgba(255,178,91,.6);--pz:rgba(255,178,91,0);animation:yPulse 1.6s ease-out infinite}
 .card.now:hover{animation:yPulse .9s ease-out infinite}
-.card.au{border-color:#C9985C;--pc:rgba(226,190,132,.55);--pz:rgba(226,190,132,0)}
-.card.empty{border:2px solid var(--ln)}
+.card.au{--ec:#C9985C;--pc:rgba(226,190,132,.55);--pz:rgba(226,190,132,0)}
+.card.empty{--ec:var(--ln)}
 .card.empty:hover{animation:none}

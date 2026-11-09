@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: cards com contorno, contorno mais grosso e pontilhado só no hover
+- **O dono comentou no canvas:** contorno um pouco mais grosso, e os pontilhados só no hover, com o próprio contorno do lado esquerdo virando o pontilhado, na mesma grossura.
+- **Feito (página "Impacto + Ímã · cards com contorno"):**
+  - contorno de 4 px;
+  - o lado esquerdo é liso quando o card está parado;
+  - no hover, o lado esquerdo vira pontilhado de 4 px correndo para baixo, junto com o pulso.
+- **Detalhe:** o quadro de elementos no modo escuro tinha uma edição salva pela página. A troca foi feita só no estilo, sem desfazer essa edição.
+
+---
+
 ## 09/11/2026: teste de cards com contorno na Impacto + Ímã
 - **O dono comentou no canvas:** testar uma versão de cards com contorno sólido em volta do card inteiro, platina ou âmbar conforme o card, com pulso ao passar o mouse.
 - **Feito:** a página "Impacto + Ímã · cards com contorno" no canvas da revisão, com elementos e as 8 páginas nos dois modos. A original ficou como estava.

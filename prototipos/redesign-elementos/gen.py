@@ -15,7 +15,9 @@ THEMES = {
     'G': ('Ímã', 'Ima'),
     'T': ('Transmissão', 'Transmissao'),
     'C': ('Cromo', 'Cromo'),
+    'X': ('Impacto + Ímã', 'ImpactoIma'),
 }
+CHAIN = {'X': ['I', 'X']}
 ONLY = os.environ.get('ONLY', '')
 
 LOGO = ('<svg viewBox="0 0 506 280" width="{w}" height="{h}" role="img" aria-label="WinnerZ"><defs><linearGradient id="lg{u}" x1="0" y1="0" x2="0" y2="1">'
@@ -306,11 +308,12 @@ DESC = {
     'G': 'O W e o Z da vinheta. Cada peça é feita de duas metades que se afastam e se cravam, e a costura entre elas acende no impacto: botões, cards, abas, campos e até o logo do menu.',
     'T': 'O site vestido como o pacote gráfico de uma live: tarjas, letreiro de LED correndo no topo, números em pontos de LED, linhas de tela, cortinas que passam nos botões e varredura nas capas.',
     'C': 'Metal espelhado e laca negra. Reflexos que correm pelo botão e pelas molduras, brilho de quina ao passar o mouse, títulos cromados que mudam de luz e ouro espelhado só no Awards.',
+    'X': 'Tudo da Impacto, com os botões da Ímã: duas peças inclinadas a 22° que se afastam e se cravam. No impacto, a costura acende, as faíscas saem da emenda e o botão treme.',
     'I': 'A vinheta do WinnerZ virou interface. As peças se cravam inclinadas a 22°, a luz diagonal corta os botões, o pulso sai das bordas, faíscas saltam no principal e partículas sobem no topo das páginas.',
 }
 
 def page_file(theme, mode, body, h, title):
-    css = BASE + '\n' + open(os.path.join(HERE, f'themes/{theme}.css'), encoding='utf-8').read()
+    css = BASE + ''.join('\n' + open(os.path.join(HERE, f'themes/{t}.css'), encoding='utf-8').read() for t in CHAIN.get(theme, [theme]))
     css = css.replace('</', '<\\/')
     awards = ' awards' if 'Awards' in title else ''
     grain = '<svg class="grain" aria-hidden="true"><filter id="gn"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#gn)"></rect></svg>'
@@ -349,7 +352,7 @@ def main():
         for mode in ('dark', 'light'):
             ml = 'escuro' if mode == 'dark' else 'claro'
             pages = list(PAGES)
-            if t in ('N', 'I', 'G', 'T', 'C'):
+            if t in ('N', 'I', 'G', 'T', 'C', 'X'):
                 pages = [('Elementos', 'Todos os elementos', lambda t=t, tname=tname: p_elementos(tname, DESC[t]))] + pages
             for key, label, fn in pages:
                 body, h = fn()

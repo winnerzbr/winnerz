@@ -32,7 +32,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   Tudo é criado do zero para o WinnerZ.
 - **Notas:** escala de 0 a 5, sem estrelas.
-- **Redesign dos elementos em avaliação** (09/11/2026): o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb) tem oito direções:
+- **Redesign dos elementos em avaliação** (09/11/2026): o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb) tem nove direções:
   - **Fresta 2:** a Fresta levada aos cards, campos e filtros;
   - **Monolito:** hardware de luxo, com teclas, LEDs e peso;
   - **Letreiro:** créditos de cinema, só tipografia e fios;
@@ -40,7 +40,8 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   - **Impacto:** a vinheta como interface, com luz diagonal, pulso, faíscas e partículas;
   - **Ímã:** peças em duas metades que se afastam e se cravam, com a costura acendendo;
   - **Transmissão:** o pacote gráfico da live, com letreiro de LED, tarjas e cortinas;
-  - **Cromo:** metal espelhado e laca negra, com reflexos que correm.
+  - **Cromo:** metal espelhado e laca negra, com reflexos que correm;
+  - **Impacto + Ímã:** a Impacto com os botões da Ímã (duas peças inclinadas que se cravam, com faíscas na emenda).
 
   O dono gostou mais da linha ousada da Impacto (09/11/2026).
 

@@ -1,0 +1,69 @@
+/* Impacto + Ímã: tudo da Impacto; os botões viram duas peças inclinadas que se afastam e se cravam,
+   com a costura acendendo e as faíscas saindo da emenda. (Este arquivo vem depois do I.css.) */
+.A.dark,.A .photo{--seam:#FFFFFF;--seamGlow:rgba(255,255,255,.8)}
+.A.light{--seam:#07080A;--seamGlow:rgba(7,8,10,.35)}
+
+.btn,.btn.pri,.btn.now,.btn.au,.btn.sec,.btn.dan{background:none;box-shadow:none;padding:0 78px 0 30px}
+.btn::before,.btn.sec::before{content:'';position:absolute;z-index:-1;top:0;bottom:0;left:0;right:50px;width:auto;opacity:1;background:var(--b2);transform:none;animation:none;transition:none}
+.btn__ar{display:flex;position:absolute;z-index:-1;top:0;bottom:0;right:0;width:46px;align-items:center;justify-content:center;background:var(--b3);color:var(--ink)}
+.btn > .btn__ar{transform:none}
+.btn__ar::before{content:'';width:9px;height:9px;margin-left:-4px;border-top:2px solid currentColor;border-right:2px solid currentColor;transform:skewX(22deg) rotate(45deg)}
+.btn::after{content:'';position:absolute;z-index:1;inset:auto;top:-8px;bottom:-8px;left:auto;right:47px;width:3px;border:0;background:var(--seam);box-shadow:0 0 16px 4px var(--seamGlow);opacity:0;transform:none;animation:none}
+.btn .btn__led{display:block;position:absolute;left:auto;right:48px;top:50%;width:4px;height:4px;margin:-2px -2px 0 0;background:var(--sp);opacity:0;transform:none;animation:none}
+
+.btn.pri::before,.btn.pri .btn__ar{background:linear-gradient(180deg,var(--pA),var(--pB))}
+.btn.pri{color:var(--onP)}
+.btn.pri .btn__ar{color:var(--onP)}
+.btn.now::before,.btn.now .btn__ar{background:var(--now)}
+.btn.now,.btn.now .btn__ar{color:var(--onNow)}
+.btn.au::before{background:#0b0b0c;box-shadow:inset 0 0 0 1px rgba(226,190,132,.5)}
+.btn.au .btn__ar{background:linear-gradient(180deg,#FFF0CC,#C9985C);color:#1b1206}
+.btn.au{--seam:#FFE6B0;--seamGlow:rgba(226,190,132,.75)}
+.btn.sec:hover{color:var(--ink)}
+.btn.dan .btn__ar{color:var(--dan)}
+.btn.dan::before{box-shadow:inset 3px 0 0 var(--dan)}
+
+.btn:hover::before,.btn.sec:hover::before,.btn:hover .btn__t{animation:xL .7s cubic-bezier(.3,0,.2,1);transform:none}
+.btn:hover .btn__t{transform:skewX(22deg)}
+.btn:hover .btn__ar{animation:xR .7s cubic-bezier(.3,0,.2,1)}
+.btn:hover::after{animation:xSeam .7s ease-out}
+.btn:hover .btn__led,.btn.pri:hover .btn__led,.btn.au:hover .btn__led{animation:xSp .7s ease-out}
+.btn:hover{animation:xHit .7s linear}
+.btn.pri:hover{box-shadow:none}
+@keyframes xL{0%{translate:0 0}38%{translate:-13px 0}52%{translate:3px 0}62%{translate:-1px 0}72%,100%{translate:0 0}}
+@keyframes xR{0%{translate:0 0}38%{translate:13px 0}52%{translate:-3px 0}62%{translate:1px 0}72%,100%{translate:0 0}}
+@keyframes xSeam{0%,46%{opacity:0;transform:scaleY(.4)}52%{opacity:1;transform:scaleY(1.4)}100%{opacity:0;transform:scaleY(1)}}
+@keyframes xHit{0%,49%{translate:0 0}53%{translate:0 2px}58%{translate:0 -1px}64%,100%{translate:0 0}}
+@keyframes xSp{0%,49%{opacity:0;box-shadow:0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp)}
+  52%{opacity:1;box-shadow:0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp),0 0 0 0 var(--sp)}
+  100%{opacity:0;box-shadow:-34px -40px 0 -1px var(--sp),30px -44px 0 -1px var(--sp),52px -8px 0 -1px var(--sp),-50px 6px 0 -1px var(--sp),22px 40px 0 -1px var(--sp),-26px 44px 0 -1px var(--sp),64px 22px 0 -1px var(--sp),-6px -56px 0 -1px var(--sp)}}
+
+.btn.now::before,.btn.now .btn__t{animation:xL 1.8s cubic-bezier(.3,0,.2,1) infinite}
+.btn.now .btn__ar{animation:xR 1.8s cubic-bezier(.3,0,.2,1) infinite}
+.btn.now::after{animation:xSeam 1.8s ease-out infinite}
+.btn.now .btn__led{animation:xSp 1.8s ease-out infinite}
+.btn.now{--sp:#FFE2BD;--seam:#FFE2BD;--seamGlow:rgba(255,178,91,.85)}
+
+.btn.quiet{padding:6px 0;background:none}
+.btn.quiet .btn__ar,.btn.quiet .btn__led{display:none}
+.btn.quiet:hover .btn__t,.btn.quiet:hover{animation:none}
+.btn.off,.btn.off:hover{padding:0 28px;animation:none}
+.btn.off .btn__ar,.btn.off .btn__led{display:none}
+.btn.off:hover .btn__t{animation:none}
+.btn.icon,.btn.sec.icon{width:52px;padding:0}
+.btn.icon::before,.btn.sec.icon::before{right:0;background:linear-gradient(90deg,var(--b2) 0 calc(50% - 2px),transparent calc(50% - 2px) calc(50% + 2px),var(--b2) calc(50% + 2px))}
+.btn.icon::after{right:calc(50% - 1.5px)}
+.btn.icon:hover::before,.btn.sec.icon:hover::before{animation:none}
+.btn.lg,.btn.lg.pri,.btn.lg.sec,.btn.lg.au,.btn.lg.now{padding:0 84px 0 34px}
+.btn.lg::before{right:54px}
+.btn.lg .btn__ar{width:50px}
+.btn.lg::after{right:51px}
+.btn.lg .btn__led{right:52px}
+.btn.lg.icon{width:58px;padding:0}
+.btn.sm,.btn.sm.pri,.btn.sm.sec,.btn.sm.now{padding:0 60px 0 20px}
+.btn.sm::before{right:42px}
+.btn.sm .btn__ar{width:38px}
+.btn.sm::after{right:39px}
+.btn.sm .btn__led{right:40px}
+.btn.lg.icon::before{right:0}
+.btn.lg.icon::after{right:calc(50% - 1.5px)}

@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: direção 9, Impacto + Ímã
+- **O dono pediu:** mais um exemplo misturando a Impacto com os efeitos dos botões da Ímã.
+- **Feito:** a direção "Impacto + Ímã" no canvas da revisão, com página própria, o quadro com todos os elementos e as 8 páginas do site nos dois modos.
+  - Fica tudo da Impacto: peças a 22°, luz diagonal, fita de LEDs, partículas e títulos que se cravam.
+  - Os botões são os da Ímã, inclinados: duas peças (texto e seta) que se afastam e se cravam. No impacto, a costura acende, faíscas saem da emenda e o botão treme. O botão do "agora" repete o impacto sozinho.
+- **Código:** `themes/X.css` no gerador, que entra depois do `I.css`.
+- **Pendente:** o dono escolher a direção. Nada mudou no site.
+
+---
+
 ## 09/11/2026: Ímã, luz dos cards
 - **O dono comentou no canvas:** o feixe de luz que aparecia no meio dos cards da Ímã ficava estranho.
 - **Feito:** o feixe saiu. Agora acendem as emendas entre as partes do card (topo, conteúdo e rodapé) no momento em que elas se cravam, com um brilho rápido em volta. Os 18 quadros da Ímã foram republicados.

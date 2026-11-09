@@ -145,6 +145,19 @@
 /* foco do teclado e do controle: platina, sem âmbar */
 .vi-botoes .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; box-shadow: none; }
 
+/* ---- celular: botões mais compactos; o texto pode quebrar em duas linhas em vez de ser cortado ---------------- */
+@media (max-width: 600px) {
+  .vi-botoes .btn { border-right-width: 34px !important; padding: 6px 10px 6px 16px; font-size: 12px; font-stretch: 100%; letter-spacing: 0.03em; line-height: 1.15; white-space: normal !important; text-align: center; }
+  .vi-botoes .btn::after { right: -31px; width: 26px; font-size: 18px; }
+  .vi-botoes .btn.sm { border-right-width: 30px !important; padding: 5px 8px 5px 14px; font-size: 11px; }
+  .vi-botoes .btn.sm::after { right: -27px; width: 22px; font-size: 16px; }
+  .vi-botoes .btn.lg { border-right-width: 38px !important; padding: 6px 14px 6px 20px; font-size: 12.5px; }
+  .vi-botoes .btn.lg::after { right: -35px; width: 30px; font-size: 20px; }
+  .vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)) { border-right-width: 0 !important; padding: 0; }
+  .vi-botoes .btn.quiet { border-right-width: 0 !important; padding: 0 4px; }
+  .vi-filtros .chip { padding: 0 11px !important; margin: 0 3px; letter-spacing: 0.05em; }
+}
+
 /* ---- abas e alternadores: blocos inclinados separados; a ligada é platina com brilho ---------- */
 .vi-abas :is(.seg, .subnav, .what__paths) { gap: 6px !important; padding-left: 8px !important; }
 .vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) {
@@ -196,6 +209,8 @@
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco) {
   outline: 2px solid var(--vi-edge); outline-offset: 5px; border-radius: 0; clip-path: none;
 }
+/* A luz do vão só existe com mouse: no celular não há hover, e ela ficava 5px para fora e empurrava a página. */
+@media (hover: hover) {
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco)::after {
@@ -216,6 +231,7 @@
 @keyframes vi-orbit { to { --vi-a: 360deg; } }
 /* Depois de duas voltas, a luz enche o vão inteiro e fica acesa enquanto o mouse estiver em cima (sem repetir a volta). */
 @keyframes vi-fill { to { --vi-fc: var(--vi-ring); } }
+}
 /* Estes cards cortam o que passa da borda (por causa da foto), então a luz que gira não aparece neles: no hover, o contorno acende. */
 .vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card) { transition: outline-color 0.3s; }
 .vi-cards :is(.rcard, .evcard, .hwcard, .review, .trail-card):hover { outline-color: var(--vi-ring); }

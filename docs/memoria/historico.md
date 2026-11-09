@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: revisão do celular (textos cortados e conteúdo pela metade)
+- **O dono apontou:** no celular, vários botões com texto cortado e conteúdos pela metade (visita guiada do Museu, botões da Coleção).
+- **Como foi revisado:** navegador do app em tamanho de celular (375 px), passando por 21 páginas; um script mede cada botão cujo texto não cabe e cada elemento que passa da borda. A mesma varredura com `?visual=fresta` separou o que veio da Impacto do que já existia.
+- **Corrigido:**
+  - botões no celular (`impacto.css`, até 600 px): peça da seta menor, letra um pouco mais estreita, e o texto quebra em duas linhas em vez de ser cortado ou passar por cima da seta (Coleção, Jornada, Preferências);
+  - fichas de filtro mais estreitas no celular;
+  - a luz do vão dos cards só existe em aparelhos com mouse (`@media (hover: hover)`): no celular ela empurrava a página 5 px (Mensagens);
+  - visita guiada do Museu (já acontecia na Fresta): a grade tinha a largura da palavra mais longa do título e a tela ficava com 634 px. Agora tem a largura da tela, e o título é menor no celular (`etapa2.css`);
+  - Preferências (já acontecia na Fresta): a etapa passava da tela; mesma correção.
+- **Ficou de fora:** a nota de 0 a 10 com estrelas, na Fresta, passava um pouco da tela no celular; nas barras da Impacto, não.
+
+---
+
 ## 09/11/2026: luz dos cards para depois de duas voltas
 - **O dono pediu:** a luz que gira no vão dos cards não deve ficar em looping (tira muito a atenção). Depois de duas voltas, ela vira um preenchimento completo do vão enquanto o mouse estiver em cima.
 - **Feito:** em `impacto.css`, a volta roda 2 vezes (1,4 s cada) e em seguida o vão acende por inteiro em meio segundo, na cor da luz (platina no escuro, grafite no claro). Ao tirar o mouse, apaga. Conferido no site no ar.

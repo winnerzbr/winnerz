@@ -55,6 +55,8 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
     - `?fresta=botoes,cards` usa a Fresta só nessas partes;
     - `?visual=padrao` volta ao que está no código.
   - Para ajustar uma parte, mexer só no bloco dela em `impacto.css`.
+  - Celular: há um bloco próprio para botões e fichas até 600 px (o texto quebra em duas linhas). A luz do vão dos cards só existe com mouse.
+  - Para revisar o celular: navegador do app em 375 px e um script que mede texto que não cabe e elementos além da borda; comparar com `?visual=fresta`.
 - **As outras direções do canvas** (para consulta): Fresta 2, Monolito, Letreiro, Anamórfico, Impacto, Ímã, Transmissão, Cromo e Impacto + Ímã. Todas aparecem em 8 páginas do site, no modo escuro e no claro. O gerador fica em `prototipos/redesign-elementos/`.
 
 ## WinnerZ Awards

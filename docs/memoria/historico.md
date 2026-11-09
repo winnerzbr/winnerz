@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: linha do tempo do Início no visual Impacto
+- **O dono apontou:** a linha do tempo do Início não tinha mudado (ela tem estilo próprio e não estava em nenhuma parte).
+- **Feito:** parte nova `linha` em `impacto.css` e em `PARTES` (`src/lib/visual.ts`), seguindo o quadro "Impacto + Ímã · cards com contorno" do canvas:
+  - linha de 3px, trecho âmbar com brilho chegando ao Hoje;
+  - marcadores em barras inclinadas: passado cinza, último registro claro, próximo com contorno âmbar, marco dourado; no hover, a barra estica;
+  - o Hoje é uma barra maior que pulsa;
+  - legenda e datas em caixa alta.
+- **Conferido no site no ar** antes de publicar, na largura da tela do dono (1360 px). Em telas estreitas as datas longas cortam com reticências, como antes.
+- **Pendente:** o dono avisou que há vários ajustes; seguir um de cada vez.
+
+---
+
 ## 09/11/2026: visual Impacto + Ímã · cards com contorno aplicado no site
 - **O dono pediu:** aplicar no site o visual "Impacto + Ímã · cards com contorno", com a garantia de poder reaplicar partes da Fresta ou voltar com ela toda.
 - **Feito:**

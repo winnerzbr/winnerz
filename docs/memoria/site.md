@@ -41,11 +41,12 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   - feixes de luz diagonais no fundo; o logo pulsa de tempos em tempos;
   - capas sem a inclinação com ponto de luz: sobem, a moldura acende e uma luz diagonal corta;
   - campos com o traço inclinado na frente e brilho no foco; interruptor inclinado;
+  - linha do tempo do Início: linha mais grossa, trecho âmbar com brilho chegando ao Hoje, marcadores em barras inclinadas (passado cinza, próximo com contorno âmbar, marco dourado) e o Hoje pulsando;
   - **Nota:** barras inclinadas que enchem de baixo para cima, com os mesmos efeitos de antes, nas duas escalas (0 a 5 e 0 a 10). O meio ponto corta a barra na horizontal. O número fica numa caixa de largura fixa, para as barras não andarem. Ao apontar: a barra vem da posição de lado a lado (corrigida pela inclinação), e o meio ponto vem da altura: metade de cima = ponto inteiro, metade de baixo = meio ponto (`pickBar` em `src/components/Stars.tsx`, usado no `StarInput` e no `ScoreSlider`). O pulso sai a cada nota aplicada.
 - **WinnerZ Awards:** os efeitos da votação ficam como sempre (cena em tela larga, zoom lento, reflexo de lente, luz vazando, granulado, faixas pretas e clarão). Nunca trocar. Os rótulos do Awards, da revelação e dos cards de evento continuam no estilo mono.
 - **Como a Impacto foi montada (reversível):** é uma camada por cima da Fresta. A Fresta continua inteira no código (`fresta.css` e os outros).
   - `src/styles/impacto.css` é carregado por último; cada parte só vale quando o `<html>` tem a classe `vi-<parte>`;
-  - as partes são: `fundo`, `menu`, `botoes`, `abas`, `filtros`, `etiquetas`, `cards`, `capas`, `campos`, `nota`, `avisos`;
+  - as partes são: `fundo`, `menu`, `botoes`, `abas`, `filtros`, `etiquetas`, `cards`, `capas`, `campos`, `nota`, `linha` (a linha do tempo do Início), `avisos`;
   - `src/lib/visual.ts` liga as classes:
     - para voltar à Fresta inteira: `VISUAL = 'fresta'`;
     - para trazer de volta só algumas partes da Fresta: pôr o nome delas em `FRESTA_PARTES` (ex.: `['botoes', 'nota']`).

@@ -13,7 +13,7 @@
  * - ?visual=fresta ou ?visual=impacto troca tudo; ?visual=padrao volta ao que está aqui;
  * - ?fresta=botoes,cards usa a Fresta só nessas partes; ?fresta= (vazio) limpa.
  */
-export const PARTES = ['fundo', 'menu', 'botoes', 'abas', 'filtros', 'etiquetas', 'cards', 'capas', 'campos', 'nota', 'avisos'] as const;
+export const PARTES = ['fundo', 'menu', 'botoes', 'abas', 'filtros', 'etiquetas', 'cards', 'capas', 'campos', 'nota', 'linha', 'avisos'] as const;
 export type Parte = (typeof PARTES)[number];
 
 export const VISUAL: 'impacto' | 'fresta' = 'impacto';

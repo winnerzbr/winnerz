@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: nota do modelo, borda dos cards, capas inclinando e filtros da Coleção
+- **O dono pediu, e foi feito:**
+  - nota com a animação de aplicar definida no quadro "Nota em barras" do canvas (`impacto.css`, parte `nota`): cor da nota nas barras e no número, pulo da barra onde parou, pulso na mesma cor (dois no máximo), pulinho do número, onda e faíscas quadradas no máximo. As faíscas (`Burst`) não estavam em uso no site; agora saem da última barra em `StarInput` e `ScoreSlider`. As barras deixaram de ser âmbar: seguem a cor da nota, como no modelo;
+  - cards (Carga): saiu a luz que percorria o vão; no hover, só a borda de fora acende;
+  - capas (Carga): voltou a inclinação que segue o ponteiro, com o ponto de luz (a da Fresta). A animação de favoritar no Explorar também voltou a funcionar (a Impacto a bloqueava sem querer);
+  - Coleção: os filtros ficavam numa caixa com rolagem na vertical e na horizontal; agora aparecem inteiros, sem rolagem.
+- **Conferido no site no ar:** inclinação da capa com o ponteiro (Coleção), borda do card no hover (Início), nota aplicada em 7 e em 10 com a animação congelada no meio (página de jogo, editor de análise, sem salvar), filtros sem rolagem.
+
+---
+
 ## 09/11/2026: ajustes da Carga depois de ir ao ar
 - **O dono pediu, e foi feito (tudo em `carga.css`, salvo onde indicado):**
   - botão de favoritar e outros só de ícone: no hover a emenda branca cortava o ícone. Agora é uma peça só dentro da moldura;

@@ -871,7 +871,8 @@ html.is-overlay, html.is-overlay body { background: transparent !important; }
 .collection__body { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 40px; margin-top: 8px; align-items: start; }
 .collection__body.is-empty { grid-template-columns: minmax(0, 1fr); }
 .collection__main { min-width: 0; }
-.cfilters { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 4px; max-height: calc(100vh - 120px); overflow: auto; scrollbar-width: thin; padding-right: 4px; }
+/* Os filtros da Coleção ocupam a altura que precisarem, ao lado das capas, sem caixa com rolagem própria (pedido do dono em 09/11/2026). */
+.cfilters { position: static; display: flex; flex-direction: column; gap: 4px; max-height: none; overflow: visible; padding-right: 4px; }
 .cfilters__top { display: flex; gap: 8px; align-items: center; }
 .cfilters__q { position: relative; flex: 1; }
 .cfilters__q svg { position: absolute; left: 16px; top: 50%; margin-top: -8px; color: var(--muted); pointer-events: none; }

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: o site ganha uma conversa só dele
+- **O dono decidiu:** a conversa em que o Claude cuidava do site e do jogo IAmiguinho: Jogos de Verão (repositório
+  `winnerzbr/iamiguinho-jogos-de-verao`) vira só do jogo. O site passa para uma conversa nova, com este repositório.
+- **Ponto de partida da conversa nova:** tudo do site está nesta memória (`site.md`, este histórico, `ideias.md`,
+  `lives.md`) e no `CLAUDE.md`. As entradas mais novas abaixo vêm de outras conversas (o Arcade do IAmiguinho com 23
+  jogos e o Lobby dos Bugs); a última mudança do site feita na conversa do jogo foi a de 06/11 (o ChatGPT no site).
+- **Pendente do site, de antes:** o dono ligar o "Keep my email addresses private" no GitHub antes do primeiro pull
+  request do ChatGPT, e conectar o Codex (entrada de 06/11).
+
 ## 08/11/2026: Lobby dos Bugs: IAmiguinho do ChatGPT e fim das duas direções
 - **O dono decidiu:** visual em pixel art estilo Enter the Gungeon e combate com mira; da outra conversa, fica só o IAmiguinho feito pelo ChatGPT.
 - **Feito (no repositório do jogo):** o modelo do ChatGPT virou os quadros do jogo (ferramenta `ferramentas/ia_gpt.py`); artes 4× e trecho 2.5D arquivados; testes passando. Detalhes em `docs/memoria/historico.md` do repositório `winnerzbr/lobby-dos-bugs`.

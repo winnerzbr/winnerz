@@ -4,6 +4,28 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: mais duas direções de design no canvas (Monolito e Letreiro) e o mesmo pedido ao ChatGPT
+- **O dono pediu:** mais 2 sugestões diferentes, redesenhando tudo, e ajuda para pedir a mesma tarefa ao ChatGPT.
+- **Feito:** no mesmo canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), duas direções novas. Cada uma tem um quadro com todos os elementos e outro aplicado no topo da página de um jogo:
+  - **Direção 2, Monolito (hardware de luxo):**
+    - peças maciças com espessura;
+    - botões que são teclas e afundam quando apertados;
+    - filtro ligado afunda e acende um LED platina;
+    - no "agora", a luz âmbar vaza por baixo da peça;
+    - desativado fica afundado na superfície;
+    - cantos retos;
+    - lendário em mármore negro com ouro, como a base do Zênite;
+  - **Direção 3, Letreiro (créditos de cinema):**
+    - quase sem caixas: a letra larga dos títulos contra uma letra estreita em maiúsculas nos rótulos;
+    - botões são palavras com uma seta longa que cresce, e o texto rola ao passar o mouse;
+    - cards são fichas técnicas com número de índice;
+    - números enormes;
+    - campos em linha, como uma ficha de créditos.
+- **ChatGPT:** o dono recebeu o arquivo `winnerz-estilos-atuais.css` (o `global.css` e o `fresta.css` juntos) e um pedido pronto para colar no ChatGPT, com as regras do site. A orientação é não mostrar o canvas do Claude, para as ideias saírem independentes. O ChatGPT entrega uma página HTML, e o dono pode trazer essa página para cá, para entrar no canvas e ser comparada.
+- **Pendente:** o dono escolher entre Fresta 2, Monolito, Letreiro e o que vier do ChatGPT, ou misturar partes. Nada mudou no site.
+
+---
+
 ## 09/11/2026: revisão de design dos elementos (proposta "Fresta 2")
 - **O dono pediu:** uma revisão de design dos elementos do site (botões, cards e o resto), com sugestões de redesign num canvas, para deixar tudo mais exclusivo, estilizado e bonito.
 - **Feito:** o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), com 6 quadros:

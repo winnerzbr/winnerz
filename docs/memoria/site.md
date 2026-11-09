@@ -32,7 +32,12 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   Tudo é criado do zero para o WinnerZ.
 - **Notas:** escala de 0 a 5, sem estrelas.
-- **Proposta em avaliação, "Fresta 2"** (09/11/2026): é o redesign dos botões, cards, abas, filtros, campos e avisos, feito no canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb). Ainda não foi aprovado nem aplicado. Até o dono decidir, vale o Fresta atual.
+- **Redesign dos elementos em avaliação** (09/11/2026): o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb) tem três direções:
+  - **Fresta 2:** a Fresta levada aos cards, campos e filtros;
+  - **Monolito:** hardware de luxo, com teclas, LEDs e peso;
+  - **Letreiro:** créditos de cinema, só tipografia e fios.
+
+  O ChatGPT também vai propor as dele. Nada foi aprovado nem aplicado: até o dono decidir, vale o Fresta atual.
 
 ## WinnerZ Awards
 - 19 categorias. O dono escolhe os indicados.

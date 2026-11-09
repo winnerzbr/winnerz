@@ -4,6 +4,34 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: mais 3 direções na linha da Impacto (Ímã, Transmissão e Cromo)
+- **O dono disse:** gostou das ideias mais ousadas da Impacto e pediu mais 3 direções na mesma linha de efeitos e inovação.
+- **Feito:** três direções novas no canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb). Cada uma tem página própria no canvas, o quadro com todos os elementos e as 8 páginas do site nos modos escuro e claro:
+  - **Ímã:** tudo é feito de duas metades, o W e o Z, que se afastam e se cravam, e a costura acende no impacto:
+    - botões, cards (topo e rodapé), abas, filtros e campos;
+    - capas que saltam;
+    - o logo, que se estica e se junta;
+  - **Transmissão:** o site como o pacote gráfico de uma live:
+    - letreiro de LED correndo embaixo do menu;
+    - tarjas de TV;
+    - cortina que passa nos botões e nas abas;
+    - nota em pontos de LED, medidores de som e linhas de tela;
+    - varredura nas capas;
+  - **Cromo:** metal espelhado e laca negra:
+    - reflexos que correm e brilho de quina;
+    - títulos e números cromados;
+    - cards de laca com moldura de cromo;
+    - "agora" em cromo âmbar;
+    - ouro espelhado só no Awards.
+- **Corrigido em todas as direções:**
+  - no modo claro, o título e o botão secundário sobre a foto do topo ficavam escuros;
+  - acentos sumiam nos títulos em ouro e cromo;
+  - a parte de baixo dos quadros "Todos os elementos" ficava cortada.
+- **Conferência:** amostras renderizadas no Chrome sem tela (o jeito está no `README.md` do gerador).
+- **Pendente:** o dono escolher entre as 8 direções, ou misturar partes. Nada mudou no site.
+
+---
+
 ## 09/11/2026: canvas do redesign, abas cortadas na Impacto
 - **O dono comentou no canvas:** os textos dos botões de filtro (as abas) apareciam cortados na Impacto.
 - **Causa:** as abas encolhiam para caber na coluna, e os números de índice (01, 02...) apareciam na Impacto.

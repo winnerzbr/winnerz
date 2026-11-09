@@ -96,7 +96,7 @@
 .card.now::after{background:linear-gradient(90deg,transparent,rgba(255,178,91,.12),transparent);animation:iSw 3.2s cubic-bezier(.3,0,.2,1) infinite}
 .card.au{background:#0b0b0c}
 .card.au::before{background:repeating-linear-gradient(180deg,#E2BE84 0 6px,transparent 6px 10px);opacity:.9}
-.card.au .ttl{background:linear-gradient(180deg,#FFF0CC,#C9985C);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card.au .ttl{padding:.18em 0 .08em;margin:-.18em 0 -.08em;background:linear-gradient(180deg,#FFF0CC,#C9985C);-webkit-background-clip:text;background-clip:text;color:transparent}
 .card.au .txt{color:#C9CED4}
 .card.empty{background:repeating-linear-gradient(112deg,var(--b1) 0 10px,var(--b2) 10px 14px)}
 .card.empty::before{opacity:.12}

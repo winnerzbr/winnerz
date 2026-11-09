@@ -12,7 +12,11 @@ THEMES = {
     'L': ('Letreiro', 'Letreiro'),
     'N': ('Anamórfico', 'Anamorfico'),
     'I': ('Impacto', 'Impacto'),
+    'G': ('Ímã', 'Ima'),
+    'T': ('Transmissão', 'Transmissao'),
+    'C': ('Cromo', 'Cromo'),
 }
+ONLY = os.environ.get('ONLY', '')
 
 LOGO = ('<svg viewBox="0 0 506 280" width="{w}" height="{h}" role="img" aria-label="WinnerZ"><defs><linearGradient id="lg{u}" x1="0" y1="0" x2="0" y2="1">'
         '<stop offset="0" style="stop-color: var(--lg1)"></stop><stop offset="1" style="stop-color: var(--lg2)"></stop></linearGradient></defs>'
@@ -111,8 +115,11 @@ def header(active='', pill=False, u='h'):
     R = ['Comunidade', 'Eventos']
     a = lambda t: f'<a href="#" class="{"on" if t == active else ""}">{t}</a>'
     p = '<span class="pill"><span>Jogando · 1h 42</span></span>' if pill else ''
+    tk = ('<span><b>Ao vivo</b> · Splatoon 3 · 1h 42 · GTA VI sai em 10 dias · Votação do WinnerZ Awards em dezembro · 3 novas na Galera · '
+          'Mina the Hollower zerado · Fire Emblem: Fortune\'s Weave nos seus desejos · </span>')
+    tick = f'<div class="tick" aria-hidden="true"><div class="tick__in">{tk}{tk}</div></div>'
     return (f'<header class="hdr"><nav aria-label="Seções">{"".join(a(t) for t in L)}</nav><div class="hdr__logo">{LOGO.format(w=62, h=34, u=u)}</div>'
-            f'<div class="hdr__r"><nav aria-label="Mais seções">{"".join(a(t) for t in R)}</nav><div class="hdr__tools"><span class="srch">Buscar</span>{p}{av("H")}</div></div></header>')
+            f'<div class="hdr__r"><nav aria-label="Mais seções">{"".join(a(t) for t in R)}</nav><div class="hdr__tools"><span class="srch">Buscar</span>{p}{av("H")}</div></div></header>{tick}')
 
 def photo(h, bg, inner, label='IMAGEM DE FUNDO'):
     return (f'<section class="photo" style="height: {h}px"><div class="photo__bg" style="background: {bg}"></div><div class="photo__shade"></div>'
@@ -289,13 +296,16 @@ def p_elementos(name, desc):
     f3 = sec('Campos, escolhas e aviso', field('Seu @', ph='como a Galera te acha') + field('Nome do jogo', 'Ocarina of Time', state='foc') + field('Seu @', 'winnerz', state='err', msg='Esse @ já tem dono')
              + sw('Lembrete de jogo parado', False) + sw('Mostrar a média da Galera', True) + toast('Sessão salva na sua Jornada.'))
     body = head + b + c + cv + f'<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 56px">{f1 + f2}{f3}</div>'
-    return wrap(body, pad='60px 64px', gap=34), 1980
+    return wrap(body, pad='60px 64px', gap=34), 2320
 
 PAGES = [('Inicio', 'Início', p_inicio), ('Colecao', 'Coleção', p_colecao), ('Jornada', 'Jornada', p_jornada), ('Comunidade', 'Comunidade', p_comunidade),
          ('Awards', 'WinnerZ Awards', p_awards), ('Perfil', 'Perfil', p_perfil), ('Preferencias', 'Preferências', p_pref), ('Jogo', 'Página do jogo', p_jogo)]
 
 DESC = {
     'N': 'Cinema de autor. Luz de cena que se move, reflexos de lente anamórfica nos botões e nas linhas, granulado de filme, faixas pretas de cinema no topo e foco que muda: ao passar o mouse numa capa, as outras saem de foco.',
+    'G': 'O W e o Z da vinheta. Cada peça é feita de duas metades que se afastam e se cravam, e a costura entre elas acende no impacto: botões, cards, abas, campos e até o logo do menu.',
+    'T': 'O site vestido como o pacote gráfico de uma live: tarjas, letreiro de LED correndo no topo, números em pontos de LED, linhas de tela, cortinas que passam nos botões e varredura nas capas.',
+    'C': 'Metal espelhado e laca negra. Reflexos que correm pelo botão e pelas molduras, brilho de quina ao passar o mouse, títulos cromados que mudam de luz e ouro espelhado só no Awards.',
     'I': 'A vinheta do WinnerZ virou interface. As peças se cravam inclinadas a 22°, a luz diagonal corta os botões, o pulso sai das bordas, faíscas saltam no principal e partículas sobem no topo das páginas.',
 }
 
@@ -334,10 +344,12 @@ class Component extends DCLogic {{
 def main():
     made = {}
     for t, (tname, slug) in THEMES.items():
+        if ONLY and t not in ONLY:
+            continue
         for mode in ('dark', 'light'):
             ml = 'escuro' if mode == 'dark' else 'claro'
             pages = list(PAGES)
-            if t in ('N', 'I'):
+            if t in ('N', 'I', 'G', 'T', 'C'):
                 pages = [('Elementos', 'Todos os elementos', lambda t=t, tname=tname: p_elementos(tname, DESC[t]))] + pages
             for key, label, fn in pages:
                 body, h = fn()
@@ -348,7 +360,7 @@ def main():
                 with open(os.path.join(OUT, fname), 'w', encoding='utf-8') as fh:
                     fh.write(page_file(t, mode, body, h, title))
                 made[fname] = {'theme': t, 'mode': mode, 'key': key, 'h': h, 'title': title}
-    json.dump(made, open(os.path.join(HERE, 'made.json'), 'w'), ensure_ascii=False, indent=1)
+    json.dump(made, open(os.path.join(HERE, 'made-' + (ONLY or 'all') + '.json'), 'w'), ensure_ascii=False, indent=1)
     print(len(made), 'quadros')
 
 if __name__ == '__main__':

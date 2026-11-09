@@ -3,7 +3,7 @@ body{margin:0}
 .A{position:relative;isolation:isolate;overflow:hidden;font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;background:var(--bg);color:var(--ink)}
 .A a{color:inherit;text-decoration:none}
 .A button{font-family:inherit}
-.fx,.grain{display:none}
+.fx,.grain,.tick{display:none}
 .ttl{font-weight:800;font-stretch:125%;text-transform:uppercase;letter-spacing:-0.01em;line-height:.9;margin:0}
 .lead{margin:0;font-size:16px;line-height:1.5;color:var(--ink2)}
 .txt{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink2)}
@@ -83,7 +83,8 @@ body{margin:0}
 .srch{display:inline-flex;align-items:center;gap:10px;color:var(--fnt);font-size:14.5px}
 .pill{display:inline-flex;align-items:center;gap:9px;height:32px;padding:0 14px;font:700 13px/1 'Archivo';white-space:nowrap}
 
-.photo{position:relative;overflow:hidden}
+.photo{position:relative;overflow:hidden;color:var(--ink)}
+.clipt{padding:.18em 0 .08em;margin:-.18em 0 -.08em}
 .photo__bg{position:absolute;inset:0}
 .photo__shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,var(--bg) 100%)}
 .photo__ph{position:absolute;top:22px;right:48px;font:600 10.5px/1 'Archivo';letter-spacing:.2em;color:rgba(230,233,237,.3);z-index:2}

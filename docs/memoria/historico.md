@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: cards com contorno, borda discreta, vão vazado e luz que dá a volta
+- **O dono comentou no canvas:** borda levemente escura no modo escuro e levemente cinza no claro, ainda visível; um espaço vazado entre o card e a borda; no hover, uma luz percorrendo toda a volta do card dentro desse vão.
+- **Feito (página "Impacto + Ímã · cards com contorno"):**
+  - borda de 2 px discreta (âmbar escuro no agora, dourado escuro no Awards);
+  - vão de 5 px;
+  - luz com rastro girando no vão: platina, ou escura no modo claro; âmbar no agora, onde corre sempre; dourada no Awards.
+  - Saíram o pontilhado e o pulso.
+- **Código:** `themes/Y.css` (usa `@property --ya` para girar a luz).
+
+---
+
 ## 09/11/2026: cards com contorno, contorno mais grosso e pontilhado só no hover
 - **O dono comentou no canvas:** contorno um pouco mais grosso, e os pontilhados só no hover, com o próprio contorno do lado esquerdo virando o pontilhado, na mesma grossura.
 - **Feito (página "Impacto + Ímã · cards com contorno"):**

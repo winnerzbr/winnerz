@@ -1,16 +1,18 @@
-/* Impacto + Ímã com cards de contorno sólido: platina nos cards comuns, âmbar no agora, ouro no Awards; pulso no hover.
-   Contorno de 4 px. O lado esquerdo do contorno é o próprio traço: liso parado, vira pontilhado que corre no hover.
+/* Impacto + Ímã com cards de contorno: borda discreta (escura no modo escuro, cinza no claro), um vão vazado entre o card e a borda,
+   e no hover uma luz que percorre toda a volta do card dentro desse vão. Platina nos comuns, âmbar no agora (sempre correndo), ouro no Awards.
    (Vem depois do I.css e do X.css.) */
-.A.dark,.A .photo{--edge:#E6E9ED;--edgeP:rgba(230,233,237,.55);--edge0:rgba(230,233,237,0)}
-.A.light{--edge:#07080A;--edgeP:rgba(7,8,10,.35);--edge0:rgba(7,8,10,0)}
-.card{clip-path:none;--ec:var(--edge);border:4px solid var(--ec);border-left-width:0;--pc:var(--edgeP);--pz:var(--edge0)}
-.card::before,.card.now::before,.card.au::before,.card.empty::before{content:'';position:absolute;z-index:3;left:0;top:0;bottom:0;width:4px;background:var(--ec);opacity:1;box-shadow:none;animation:none}
-.card:hover::before{background:repeating-linear-gradient(180deg,var(--ec) 0 8px,transparent 8px 13px);animation:yRun .6s linear infinite}
-@keyframes yRun{from{background-position:0 0}to{background-position:0 13px}}
-.card:hover{transform:translateY(-3px);animation:yPulse .9s ease-out 2}
-@keyframes yPulse{0%{box-shadow:0 0 0 0 var(--pc)}100%{box-shadow:0 0 0 16px var(--pz)}}
-.card.now{--ec:var(--now);box-shadow:none;--pc:rgba(255,178,91,.6);--pz:rgba(255,178,91,0);animation:yPulse 1.6s ease-out infinite}
-.card.now:hover{animation:yPulse .9s ease-out infinite}
-.card.au{--ec:#C9985C;--pc:rgba(226,190,132,.55);--pz:rgba(226,190,132,0)}
-.card.empty{--ec:var(--ln)}
-.card.empty:hover{animation:none}
+@property --ya{syntax:'<angle>';inherits:false;initial-value:0deg}
+.A.dark,.A .photo{--edgeC:#2a2e34;--edgeN:#5a4220;--edgeA:#4a3a22;--lc:#F2F4F6;--lcG:rgba(242,244,246,.35)}
+.A.light{--edgeC:#c5cad0;--edgeN:#f2c58f;--edgeA:#dcc7a2;--lc:#2a2f36;--lcG:rgba(7,8,10,.18)}
+.card,.card.now,.card.au,.card.empty{clip-path:none;padding:5px;border:2px solid var(--edgeC);background:transparent;box-shadow:none;--lcc:var(--lc);transition:transform .3s}
+.card::before,.card::after,.card.now::before,.card.now::after,.card.au::before,.card.au::after,.card.empty::before{content:none}
+.card .part{background:var(--b1)}
+.card.au .part{background:#0b0b0c}
+.card.empty .part{background:repeating-linear-gradient(112deg,var(--b1) 0 10px,var(--b2) 10px 14px)}
+.card:hover{transform:translateY(-3px);background:conic-gradient(from var(--ya),transparent 0deg 230deg,var(--lcG) 300deg,var(--lcc) 352deg,transparent 360deg) padding-box;animation:yOrbit 1.4s linear infinite}
+@keyframes yOrbit{to{--ya:360deg}}
+.card.now{border-color:var(--edgeN);--lcc:#FFB25B;background:conic-gradient(from var(--ya),transparent 0deg 230deg,rgba(255,178,91,.35) 300deg,#FFB25B 352deg,transparent 360deg) padding-box;animation:yOrbit 2.6s linear infinite}
+.card.now:hover{background:conic-gradient(from var(--ya),transparent 0deg 230deg,rgba(255,178,91,.35) 300deg,#FFE2BD 352deg,transparent 360deg) padding-box;animation:yOrbit 1.4s linear infinite}
+.card.au{border-color:var(--edgeA)}
+.card.au:hover{background:conic-gradient(from var(--ya),transparent 0deg 230deg,rgba(226,190,132,.35) 300deg,#FFF0CC 352deg,transparent 360deg) padding-box}
+.card.empty:hover{transform:none;background:transparent;animation:none}

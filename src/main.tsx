@@ -22,6 +22,8 @@ import './styles/celular.css';
 import './styles/jornada.css';
 // Visual Impacto + Ímã (por último, por cima da Fresta). Liga e desliga por partes em src/lib/visual.ts.
 import './styles/impacto.css';
+// Visual Carga: terceira camada, por cima da Impacto + Ímã. Liga e desliga em src/lib/visual.ts.
+import './styles/carga.css';
 
 
 async function boot() {

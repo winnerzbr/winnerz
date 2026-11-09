@@ -226,7 +226,7 @@
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,
   .gjs__tile, .theme-card, .share-card, .season__box, .rhythm__card, .iamc__bloco, .live-central__bloco):hover::after {
-  opacity: 1; animation: vi-orbit 1.4s linear 2, vi-fill 0.5s ease-out 2.45s forwards;
+  opacity: 1; animation: vi-orbit var(--vi-lap, 1.4s) linear var(--vi-laps, 2), vi-fill 0.5s ease-out var(--vi-fd, 2.45s) forwards;
 }
 .vi-cards :is(.card, .rate-card, .rcard, .scard, .pd-card, .side-card, .jside-card, .cm-card, .cm-side, .cm-mini, .cm-note, .glist-card,
   .club-tile, .kpi, .jdet__box, .jstate, .jret, .jprog, .jcap, .evcard, .hwcard, .review, .trail-card, .modcard, .praca__tile, .cm-tile, .jog-tile,

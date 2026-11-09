@@ -1,0 +1,158 @@
+/* WinnerZ — visual Carga (aprovado em 09/11/2026): o contorno com vão dos cards vai para tudo.
+   É a terceira camada: Fresta (fresta.css e os outros) → Impacto + Ímã (impacto.css) → Carga (este arquivo).
+   Cada parte só vale quando o <html> tem a classe vc-<parte>, que src/lib/visual.ts liga junto com a vi-<parte>.
+   Sem a vc-<parte>, a parte volta a ser a Impacto + Ímã; sem a vi-<parte> também, volta a ser a Fresta.
+   Partes que mudam aqui: fundo, botoes, abas, filtros, cards, capas, campos. As outras ficam como na Impacto + Ímã.
+   Regra da luz: ela dá UMA volta no vão e a peça fica carregada (o vão aceso) enquanto o mouse estiver em cima. */
+
+@property --vc-l { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --vc-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --vc-s { syntax: '<color>'; inherits: false; initial-value: transparent; }
+:root { --vc-edgeN: #5a4220; --vc-nowG: rgba(255, 178, 91, 0.35); }
+:root[data-theme='claro'] { --vc-edgeN: #e7b877; --vc-nowG: rgba(200, 106, 8, 0.3); }
+@keyframes vc-fill { to { --vi-fc: var(--cring, var(--vi-ring)); } }
+@keyframes vc-fillc { to { --vi-fc: #F2F4F6; } }
+@keyframes vc-pc {
+  0% { --vc-l: 0px; --vc-r: 0px; --vc-s: transparent; }
+  38% { --vc-l: -4px; --vc-r: 4px; --vc-s: transparent; }
+  50% { --vc-l: 1px; --vc-r: -1px; --vc-s: var(--vi-seam); }
+  64% { --vc-l: 0px; --vc-r: 0px; }
+  100% { --vc-l: 0px; --vc-r: 0px; --vc-s: transparent; }
+}
+@keyframes vc-ar { 0% { translate: 0 0; } 38% { translate: 4px 0; } 50% { translate: -1px 0; } 64%, 100% { translate: 0 0; } }
+
+/* ---- fundo: as faixas de luz passam três vezes mais devagar ------------------------------------------------ */
+.vc-fundo body::before { animation-duration: 54s; }
+
+/* ---- cards: uma volta só, e o vão acende ------------------------------------------------------------------- */
+.vc-cards { --vi-lap: 1.2s; --vi-laps: 1; --vi-fd: 1.2s; }
+
+/* ---- botoes: uma moldura inclinada com vão em volta das duas peças -------------------------------------------
+   A moldura e as duas peças são desenhadas no ::before (as peças são camadas do fundo, que se afastam e se cravam).
+   O ::after fica só com a seta. */
+.vc-botoes .btn:not(.quiet) {
+  --cbr: 50px; --caw: 36px; --cg: 4px; --ce: var(--vi-edge);
+  --cp: linear-gradient(var(--surface-2), var(--surface-2)); --ck: linear-gradient(var(--vi-chunk), var(--vi-chunk));
+  padding-left: 32px;
+}
+.vc-botoes .btn.sm:not(.quiet) { --cbr: 42px; --caw: 28px; --cg: 3px; padding-left: 25px; }
+.vc-botoes .btn.lg:not(.quiet) { --cbr: 56px; --caw: 42px; padding-left: 38px; }
+.vc-botoes :is(.btn.primary, .btn[aria-pressed='true'], .btn.is-fav, .btn.is-radar):not(.quiet) {
+  --cp: linear-gradient(180deg, var(--primary-hi), var(--primary)); --ck: linear-gradient(180deg, var(--primary-hi), var(--primary)); --ce: var(--muted);
+}
+.vc-botoes .btn.now { --cp: linear-gradient(var(--now), var(--now)); --ck: linear-gradient(var(--now), var(--now)); --ce: var(--vc-edgeN); --cring: #FFB25B; --cringG: var(--vc-nowG); }
+.vc-botoes .btn.danger { --cring: var(--danger); }
+.vc-botoes .btn.danger-solid { --cp: linear-gradient(var(--danger), var(--danger)); --ck: linear-gradient(var(--danger), var(--danger)); }
+.vc-botoes :is(.btn:disabled, .btn[aria-disabled='true']):not(.quiet) {
+  --cp: repeating-linear-gradient(90deg, var(--surface-2) 0 6px, var(--surface) 6px 9px); --ck: linear-gradient(var(--surface), var(--surface)); --ce: var(--line-2);
+}
+.vc-botoes .btn:not(.quiet)::before {
+  --cbg:
+    linear-gradient(var(--vc-s), var(--vc-s)) right calc(var(--caw) + var(--cg) + 0.5px) top 0 / 3px 100% no-repeat,
+    var(--cp) left calc(var(--cg) + var(--vc-l)) top var(--cg) / calc(100% - var(--caw) - 3 * var(--cg)) calc(100% - 2 * var(--cg)) no-repeat,
+    var(--ck) right calc(var(--cg) - var(--vc-r)) top var(--cg) / var(--caw) calc(100% - 2 * var(--cg)) no-repeat;
+  top: -3px; bottom: -3px; left: 6px; right: calc(-1 * var(--cbr));
+  border: 2px solid var(--ce); background: var(--cbg), linear-gradient(var(--vi-fc), var(--vi-fc)) !important;
+}
+.vc-botoes .btn:not(.quiet)::after { right: calc(6px - var(--cbr)); width: var(--caw); background: none !important; }
+/* escolhido (ligado): já fica carregado */
+.vc-botoes .btn[aria-pressed='true']:not(.quiet)::before { border-color: var(--vi-ring); background: var(--cbg), linear-gradient(var(--vi-ringG), var(--vi-ringG)) !important; }
+/* agora: a luz âmbar gira sem parar */
+.vc-botoes .btn.now::before {
+  background: var(--cbg), linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--cringG) 290deg, var(--cring) 352deg, transparent 360deg) !important;
+  animation: vi-orbit 1.8s linear infinite !important;
+}
+.vc-botoes .btn.now::after { animation: none !important; }
+/* hover: uma volta, as peças se afastam e se cravam, e o vão acende */
+.vc-botoes .btn:not(.quiet):not(:disabled):not([aria-disabled='true']):hover::before {
+  background: var(--cbg), linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--cringG, var(--vi-ringG)) 290deg, var(--cring, var(--vi-ring)) 352deg, transparent 360deg) !important;
+  animation: vi-orbit 0.8s linear 1, vc-fill 0.35s ease-out 0.8s forwards, vc-pc 0.7s cubic-bezier(0.3, 0, 0.2, 1) !important;
+}
+.vc-botoes .btn:not(.quiet):not(:disabled):not([aria-disabled='true']):hover::after { animation: vc-ar 0.7s cubic-bezier(0.3, 0, 0.2, 1) !important; }
+/* só ícone: a moldura em volta das duas metades */
+.vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet) { padding: 0; min-width: 50px; }
+.vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet)::before {
+  --cbg:
+    linear-gradient(var(--surface-2), var(--surface-2)) left var(--cg) top var(--cg) / calc(50% - var(--cg) - 1.5px) calc(100% - 2 * var(--cg)) no-repeat,
+    linear-gradient(var(--surface-2), var(--surface-2)) right var(--cg) top var(--cg) / calc(50% - var(--cg) - 1.5px) calc(100% - 2 * var(--cg)) no-repeat;
+  left: 0; right: 0; background: var(--cbg), linear-gradient(var(--vi-fc), var(--vi-fc)) !important;
+}
+.vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet):not(:disabled):hover::before {
+  background: var(--cbg), linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg) !important;
+  animation: vi-orbit 0.7s linear 1, vc-fill 0.3s ease-out 0.7s forwards !important;
+}
+.vc-botoes .btn:not(.quiet):focus-visible { outline-offset: 8px; }
+@media (max-width: 600px) {
+  .vc-botoes .btn:not(.quiet) { --cbr: 34px; --caw: 22px; --cg: 3px; padding-left: 22px; }
+  .vc-botoes .btn.sm:not(.quiet) { --cbr: 30px; --caw: 19px; padding-left: 20px; }
+  .vc-botoes .btn.lg:not(.quiet) { --cbr: 38px; --caw: 26px; padding-left: 26px; }
+  .vc-botoes .btn:not(.quiet)::before { left: 3px; }
+  .vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet) { padding: 0; }
+  .vc-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):not(.quiet)::before { left: 0; }
+}
+
+/* ---- abas e alternadores: borda e vão; a escolhida já fica carregada --------------------------------------- */
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) { min-height: 44px; }
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button)::before {
+  border: 2px solid var(--vi-edge); box-shadow: none;
+  background: linear-gradient(var(--surface), var(--surface)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc));
+}
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover::before {
+  background: linear-gradient(var(--surface-2), var(--surface-2)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)),
+    conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg);
+  animation: vi-orbit 0.7s linear 1, vi-fill 0.3s ease-out 0.7s forwards;
+}
+.vc-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'])::before {
+  border-color: var(--vi-ring); box-shadow: 0 8px 24px var(--vi-glow); animation: none;
+  background: linear-gradient(180deg, var(--primary-hi), var(--primary)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG));
+}
+
+/* ---- filtros: o mesmo contorno, menor ---------------------------------------------------------------------- */
+.vc-filtros .chip { min-height: 38px; }
+.vc-filtros .chip::before {
+  border: 2px solid var(--vi-edge); box-shadow: none;
+  background: linear-gradient(var(--surface-2), var(--surface-2)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc));
+}
+.vc-filtros .chip:hover::before {
+  box-shadow: none;
+  background: linear-gradient(var(--surface-2), var(--surface-2)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)),
+    conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg);
+  animation: vi-orbit 0.6s linear 1, vi-fill 0.3s ease-out 0.6s forwards;
+}
+.vc-filtros .chip[aria-pressed='true']::before {
+  border-color: var(--vi-ring); animation: none;
+  background: linear-gradient(180deg, var(--primary-hi), var(--primary)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG));
+}
+@media (max-width: 600px) { .vc-filtros .chips--sm .chip { min-height: 34px; } }
+
+/* ---- capas: a luz dá uma volta na moldura da capa e ela fica acesa ----------------------------------------- */
+:where(.vc-capas) :where(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover) { position: relative; }
+.vc-capas :is(.cover-grid__cover, .ctile__cover, .pp-grid__cover, .glist__cover)::before {
+  content: ''; position: absolute; z-index: 3; inset: 0; padding: 4px; pointer-events: none; opacity: 0;
+  background: linear-gradient(var(--vi-fc), var(--vi-fc)), conic-gradient(from var(--vi-a), transparent 0deg 220deg, rgba(242, 244, 246, 0.35) 300deg, #F2F4F6 352deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude;
+}
+.vc-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover) { outline-color: transparent; }
+.vc-capas :is(.cover-grid__cover:hover, .ctile:hover .ctile__cover, .ctile:focus-visible .ctile__cover, .pp-grid__item:hover .pp-grid__cover, .glist__cover:hover)::before {
+  opacity: 1; animation: vi-orbit 0.9s linear 1, vc-fillc 0.35s ease-out 0.9s forwards;
+}
+
+/* ---- campos: borda e vão; no foco, uma volta e o vão acende ------------------------------------------------- */
+.vc-campos .field {
+  --vc-acc: linear-gradient(112deg, transparent 0 38%, var(--vi-fa) 38% 64%, transparent 64%) 12px 50% / 12px 20px no-repeat;
+  border: 2px solid var(--vi-edge) !important; padding-left: 34px !important; min-height: 50px;
+  background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)) !important;
+}
+.vc-campos textarea.field { --vc-acc: linear-gradient(112deg, transparent 0 38%, var(--vi-fa) 38% 64%, transparent 64%) 12px 16px / 12px 20px no-repeat; background-position: 12px 16px, 4px 4px, 0 0, 0 0 !important; }
+.vc-campos :has(> svg) > .field { --vc-acc: linear-gradient(transparent, transparent) 0 0 / 0 0 no-repeat; padding-left: 44px !important;
+  background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)) !important; }
+.vc-campos .field:focus, .vc-campos .field:focus-visible, .vc-campos :has(> svg) > .field:focus {
+  border-color: var(--vi-ring) !important; box-shadow: 0 0 22px var(--vi-glow);
+  background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)),
+    conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg) !important;
+  animation: vi-orbit 0.7s linear 1, vi-fill 0.3s ease-out 0.7s forwards;
+}
+.vc-campos textarea.field:focus { background-position: 12px 16px, 4px 4px, 0 0, 0 0 !important; }
+.vc-campos .switch { outline: 2px solid var(--vi-edge); outline-offset: 3px; }
+.vc-campos .switch:checked { outline-color: var(--vi-ring); }

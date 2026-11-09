@@ -4,6 +4,31 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: duas direções cinematográficas e todas as páginas do site, no escuro e no claro
+- **O dono pediu:** mais 2 sugestões, bem cinematográficas, com designs e efeitos especiais elaborados. Também pediu para mostrar todas as direções em mais páginas do site, no modo escuro e no claro.
+- **Feito:** no canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), agora com uma página do canvas para cada direção:
+  - **Direção 4, Anamórfico (luz de cinema):**
+    - luz de cena que se move;
+    - reflexo de lente anamórfica (linha de luz) nos botões, abas e campos;
+    - granulado de filme e cantos escurecidos;
+    - faixas pretas de cinema e zoom lento na foto do topo;
+    - foco que muda nas capas (as outras saem de foco);
+    - cards de vidro iluminados de cima;
+  - **Direção 5, Impacto (a vinheta como interface):**
+    - peças inclinadas a 22°;
+    - luz diagonal, pulso e faíscas no botão principal;
+    - cor que invade na diagonal no secundário;
+    - fita de LEDs nos cards;
+    - títulos que entram se cravando;
+    - partículas e feixes de luz no fundo;
+    - logo que pulsa;
+  - **As 5 direções** (Fresta 2, Monolito, Letreiro, Anamórfico e Impacto) aparecem em 8 páginas, nos modos escuro e claro: Início, Coleção, Jornada, Comunidade, WinnerZ Awards, Perfil, Preferências e página do jogo. As direções 4 e 5 também têm o quadro com todos os elementos. São 81 quadros novos.
+- **Como foi feito:** um gerador em `prototipos/redesign-elementos/`, com as peças comuns e um arquivo de visual por direção. Dá para refazer ou ajustar tudo de uma vez.
+- **Observação:** no WinnerZ Awards, a cena dos indicados continua a de hoje (decisão anterior); os quadros mostram só os elementos em volta.
+- **Pendente:** o dono escolher a direção, ou misturar partes; a proposta do ChatGPT; nada mudou no site.
+
+---
+
 ## 09/11/2026: mais duas direções de design no canvas (Monolito e Letreiro) e o mesmo pedido ao ChatGPT
 - **O dono pediu:** mais 2 sugestões diferentes, redesenhando tudo, e ajuda para pedir a mesma tarefa ao ChatGPT.
 - **Feito:** no mesmo canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), duas direções novas. Cada uma tem um quadro com todos os elementos e outro aplicado no topo da página de um jogo:

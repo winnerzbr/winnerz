@@ -90,7 +90,6 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
   // Dia de lançamento: o jogo do seu Radar que sai hoje fica no próprio "Hoje" da linha.
   const launch = useRadarSoon().filter((x) => x.n === 0);
   if (!past.length && !next.length && !launch.length) return null;
-  const today = capitalize(new Date().toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: TZ }).replace(/\./g, ''));
   const slots: ReactNode[] = [null, null, null, null];
   past.forEach(({ e, g }, i) => {
     const slot = past.length === 1 ? 1 : i;
@@ -118,7 +117,7 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
   });
   return (
     <section className="page hz" aria-label="Seu horizonte">
-      <div className="hz__legend"><span>← Passado</span><span className="hz__now">Hoje · {today}</span><span>Próximo →</span></div>
+      <div className="hz__legend"><span>← Passado</span><span>Próximo →</span></div>
       <div className="hz__track">
         <span className="hz__line" aria-hidden="true" />
         <span className="hz__glow" aria-hidden="true" />

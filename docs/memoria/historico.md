@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: linha do tempo do Início sem a data de hoje no alto
+- **O dono pediu:** tirar o "Hoje · seg, 09 de nov" do alto da linha do tempo, porque a página já mostra "Hoje" em outros dois lugares.
+- **Feito:** a legenda ficou só com "← Passado" e "Próximo →" (`Home.tsx`, `pages.css`); no celular, onde só a data aparecia, a legenda some.
+
+---
+
 ## 09/11/2026: guias da comunidade e do perfil; nome do perfil
 - **O dono apontou:** nas guias de uma comunidade (Conversas, Destacadas…) o marcador âmbar era de um layout antigo; no perfil, o nome estava grande demais e quebrava no meio da palavra.
 - **Feito:**

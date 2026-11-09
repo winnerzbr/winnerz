@@ -4,6 +4,28 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: redesign, o que não muda (Awards) e a nota em barras
+- **O dono decidiu:**
+  - **WinnerZ Awards:** os efeitos especiais da votação de hoje não podem ser trocados. Ficam:
+    - a arte escolhida abrindo em tela larga com zoom lento;
+    - o reflexo de lente, a luz vazando, o granulado, as faixas pretas e o clarão;
+    - o título que entra espaçado.
+
+    O redesign mexe só nos elementos em volta.
+  - **Nota:** ele gostou das barras da Impacto. A nota passa a ser em barras inclinadas, com os mesmos efeitos de hoje:
+    - prévia ao passar o mouse e arrastar;
+    - cor do vermelho ao verde;
+    - barras enchendo uma a uma;
+    - pulo e pulso na barra onde a nota para;
+    - número contando até o valor novo;
+    - onda no 5.
+
+    O meio ponto passa a cortar a barra na horizontal (enche a metade de baixo), e não mais no meio na vertical.
+- **Feito:** o quadro jogável "Nota: barras com os efeitos de hoje", na página "Impacto + Ímã · cards com contorno" do canvas, nos modos escuro e claro. Uma cópia fica em `prototipos/redesign-elementos/NotaBarras.dc.html`. O código de hoje está em `src/components/Stars.tsx` e `ScoreInput.tsx`.
+- **Pendente:** o dono testar as barras; definir a direção final do redesign.
+
+---
+
 ## 09/11/2026: cards com contorno, borda discreta, vão vazado e luz que dá a volta
 - **O dono comentou no canvas:** borda levemente escura no modo escuro e levemente cinza no claro, ainda visível; um espaço vazado entre o card e a borda; no hover, uma luz percorrendo toda a volta do card dentro desse vão.
 - **Feito (página "Impacto + Ímã · cards com contorno"):**

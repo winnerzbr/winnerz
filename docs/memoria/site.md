@@ -49,6 +49,10 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   O ChatGPT também vai propor as dele. Nada foi aprovado nem aplicado: até o dono decidir, vale o Fresta atual.
 
+  Já decidido para o redesign:
+  - **WinnerZ Awards:** os efeitos da votação ficam como hoje (cena em tela larga, zoom lento, reflexo de lente, luz vazando, granulado, faixas pretas e clarão). Nunca trocar.
+  - **Nota:** barras inclinadas (as da Impacto), com os mesmos efeitos de hoje. O meio ponto corta a barra na horizontal.
+
 ## WinnerZ Awards
 - 19 categorias. O dono escolhe os indicados.
 - Na primeira edição, quem acabou de se cadastrar já pode votar.

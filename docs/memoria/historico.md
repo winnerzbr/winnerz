@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: guias da comunidade e do perfil; nome do perfil
+- **O dono apontou:** nas guias de uma comunidade (Conversas, Destacadas…) o marcador âmbar era de um layout antigo; no perfil, o nome estava grande demais e quebrava no meio da palavra.
+- **Feito:**
+  - guias com traço embaixo (comunidade `club2-tabs` e Jornada `jtabs__tab`): caixa alta larga e, no escolhido, a barra platina inclinada como no menu (`impacto.css`, parte `abas`);
+  - guias do perfil (`pd-tab`: Visão geral, Jornadas…): também estavam no bloco branco antigo; agora são as abas da Carga (blocos inclinados com borda e vão);
+  - nome do perfil (`.pd-name`, `etapa2.css`): de até 104 px para até 72 px, e só quebra se a palavra sozinha não couber na tela.
+
+---
+
 ## 09/11/2026: campo de Dificuldade e foco dos campos
 - **O dono pediu:** padronizar a caixa de Dificuldade (Jornada) e tirar a luz que corria ao clicar nela.
 - **Feito (`carga.css`):**

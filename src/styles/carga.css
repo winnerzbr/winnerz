@@ -106,17 +106,17 @@
 }
 
 /* ---- abas e alternadores: borda e vão; a escolhida já fica carregada --------------------------------------- */
-.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) { min-height: 44px; }
-.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button)::before {
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab) { min-height: 44px; }
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab)::before {
   border: 2px solid var(--vi-edge); box-shadow: none;
   background: linear-gradient(var(--surface), var(--surface)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc));
 }
-.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover::before {
+.vc-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab):hover::before {
   background: linear-gradient(var(--surface-2), var(--surface-2)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)),
     conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg);
   animation: vi-orbit 0.7s linear 1, vi-fill 0.3s ease-out 0.7s forwards;
 }
-.vc-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'])::before {
+.vc-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'], .pd-tab[aria-current='page'])::before {
   border-color: var(--vi-ring); box-shadow: 0 8px 24px var(--vi-glow); animation: none;
   background: linear-gradient(180deg, var(--primary-hi), var(--primary)) 3px 3px / calc(100% - 6px) calc(100% - 6px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG));
 }

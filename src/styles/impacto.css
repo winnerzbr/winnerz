@@ -167,25 +167,34 @@
 /* ---- abas e alternadores: blocos inclinados separados; a ligada é platina com brilho ---------- */
 /* folga dos dois lados: a caixa do grupo pode rolar para o lado (celular) e corta o que passa da borda, como as pontas inclinadas */
 .vi-abas :is(.seg, .subnav, .what__paths) { gap: 6px !important; padding-left: 8px !important; padding-right: 10px !important; }
-.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button) {
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab) {
   position: relative; isolation: isolate; clip-path: none !important; margin-left: 0 !important; background: none !important;
   padding: 0 20px !important; min-height: 40px; color: var(--faint); box-shadow: none;
   font: 800 12px/1.1 var(--font-ui) !important; font-stretch: 112% !important; letter-spacing: 0.06em; text-transform: uppercase;
 }
-.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button)::before {
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab)::before {
   content: ''; position: absolute; z-index: -1; inset: 0; background: var(--surface); transform: skewX(-22deg); transition: background-color 0.2s, box-shadow 0.25s;
 }
-.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover { color: var(--ink); }
-.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button):hover::before { background: var(--surface-2); }
-.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true']) {
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab):hover { color: var(--ink); }
+.vi-abas :is(.seg button, .subnav a, .subnav button, .what__paths button, .pd-tab):hover::before { background: var(--surface-2); }
+.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'], .pd-tab[aria-current='page']) {
   color: var(--on-primary) !important;
 }
-.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'])::before {
+.vi-abas :is(.seg button[aria-pressed='true'], .seg button[aria-selected='true'], .subnav a[aria-current='page'], .subnav a[aria-current='true'], .subnav button[aria-current='true'], .what__paths button[aria-selected='true'], .pd-tab[aria-current='page'])::before {
   background: linear-gradient(180deg, var(--primary-hi), var(--primary)); box-shadow: 0 8px 24px var(--vi-glow);
 }
 
 /* Escuro/Claro no painel de Aparência: a caixa não corta a ponta inclinada do botão */
 .vi-abas .appearance__panel .seg { overflow: visible; padding-right: 12px !important; }
+
+/* Guias com traço embaixo (comunidade, Jornada): o traço do escolhido é a barra platina inclinada, como no menu */
+.vi-abas :is(.club2-tabs button, .jtabs__tab) { position: relative; border-bottom-color: transparent !important; box-shadow: none !important; font: 800 12.5px/1 var(--font-ui); font-stretch: 125%; letter-spacing: 0.08em; text-transform: uppercase; }
+.vi-abas :is(.club2-tabs button[aria-selected='true'], .jtabs__tab[aria-selected='true'])::after {
+  content: ''; position: absolute; left: 4px; right: 4px; bottom: 0; height: 4px; background: var(--ink); transform: skewX(-22deg); box-shadow: 0 0 12px var(--vi-glow);
+}
+/* Guias do perfil: a fileira dá espaço para as pontas inclinadas */
+.vi-abas .pd-tabs__row { gap: 6px; padding-top: 12px; padding-bottom: 12px; }
+.vi-abas .pd-tabs__row > .pd-tab:first-child { margin-left: 8px !important; }
 
 /* ---- filtros: fichas inclinadas; ligada = platina ---------------------------------------------- */
 .vi-filtros .chip {

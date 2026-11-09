@@ -9,7 +9,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - **Como foi revisado:** navegador do app em tamanho de celular (375 px), passando por 21 páginas; um script mede cada botão cujo texto não cabe e cada elemento que passa da borda. A mesma varredura com `?visual=fresta` separou o que veio da Impacto do que já existia.
 - **Corrigido:**
   - botões no celular (`impacto.css`, até 600 px): peça da seta menor, letra um pouco mais estreita, e o texto quebra em duas linhas em vez de ser cortado ou passar por cima da seta (Coleção, Jornada, Preferências);
-  - fichas de filtro mais estreitas no celular;
+  - fichas de filtro mais estreitas no celular; as fichas pequenas (Prioridade, na página do jogo) ficam ainda menores e podem quebrar linha, porque empurravam o card "Sua relação com este jogo" para fora da tela;
   - a luz do vão dos cards só existe em aparelhos com mouse (`@media (hover: hover)`): no celular ela empurrava a página 5 px (Mensagens);
   - visita guiada do Museu (já acontecia na Fresta): a grade tinha a largura da palavra mais longa do título e a tela ficava com 634 px. Agora tem a largura da tela, e o título é menor no celular (`etapa2.css`);
   - Preferências (já acontecia na Fresta): a etapa passava da tela; mesma correção.

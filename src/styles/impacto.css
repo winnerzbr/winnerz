@@ -156,6 +156,9 @@
   .vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)) { border-right-width: 0 !important; padding: 0; }
   .vi-botoes .btn.quiet { border-right-width: 0 !important; padding: 0 4px; }
   .vi-filtros .chip { padding: 0 11px !important; margin: 0 3px; letter-spacing: 0.05em; }
+  /* fichas pequenas (ex.: Prioridade na página do jogo) não empurram o card para fora da tela */
+  .vi-filtros .chips--sm .chip { padding: 0 9px !important; margin: 0 2px; min-height: 32px; font-size: 10.5px; letter-spacing: 0.04em; }
+  .vi-filtros .chips { flex-wrap: wrap; }
 }
 
 /* ---- abas e alternadores: blocos inclinados separados; a ligada é platina com brilho ---------- */

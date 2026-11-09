@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: card dentro de card
+- **O dono apontou:** na página de uma conversa, o card "Na Praça" (`cm-mini`) fica dentro do quadro "Onde está" (`cm-side`), e os dois ganhavam contorno e brilho.
+- **Feito (`impacto.css`, regra geral):** um card dentro de outro card fica sem contorno e sem brilho próprios; só o de fora acende.
+
+---
+
 ## 09/11/2026: painel de Aparência
 - **O dono apontou:** o painel de Aparência (ícone de tema no menu) aparecia atrás da linha de baixo do menu, e a ponta do botão "Claro" ficava cortada.
 - **Feito (`impacto.css`):** o painel ganhou prioridade de camada (`z-index`) acima da linha do menu; a caixa de Escuro/Claro deixou de cortar o que passa da borda e ganhou folga à direita. Conferido no site no ar.

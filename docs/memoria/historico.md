@@ -14,6 +14,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - **Conferido:** página de teste com todas as folhas de estilo do site, nos modos escuro e claro e com a Fresta; a versão de teste do Vercel compilou.
 - **Como voltar:** ver "Como a Impacto foi montada" em `site.md`.
 - **Publicação travada e destravada:** desde 05/11 nenhuma versão ia ao ar. O atalho `scripts/vercel-pular.sh` comparava com a versão de 05/11, que o Vercel já não baixa (ele baixa só os envios recentes). O git dava erro (código 128), e o Vercel trata qualquer resposta diferente de 0 ou 1 como falha. O dono mandou a tela do erro; o atalho agora manda montar quando a versão anterior não está na cópia.
+- **No ar e conferido no site de verdade (09/11, navegador do app):** Início, Coleção, página de jogo (nota de 0 a 10: metade de cima = ponto inteiro, metade de baixo = meio ponto, pulso ao aplicar), Eventos, Awards (cena de votação intacta, rótulos mono) e Comunidade. Corrigido depois de ver no ar:
+  - botão com ícone e texto (o "Continuar") era tratado como botão só de ícone. Agora "só ícone" = classe `icon`, ou `aria-label` com um ícone sozinho;
+  - os botões mais largos espremiam o texto do cabeçalho das páginas (Coleção): a coluna dos botões tem limite e eles quebram linha;
+  - no campo com lupa (busca), o traço inclinado ficava em cima do ícone: nesses campos, o ícone ocupa o lugar do traço.
 
 ---
 

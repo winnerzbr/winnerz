@@ -115,21 +115,28 @@
 .vi-botoes .btn.quiet:hover { animation: none; color: var(--ink); }
 .vi-botoes .btn.quiet:hover::after { animation: none !important; transform: translateX(5px) !important; color: var(--ink); }
 .vi-botoes .btn.quiet[aria-pressed='true'] { color: var(--ink); }
-.vi-botoes .btn.quiet:has(> svg:only-child)::after { content: none !important; }
-/* só ícone: um bloco inclinado com a costura no meio */
-.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)) { border-right-width: 0 !important; padding: 0; min-width: 46px; }
-.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child))::before {
+.vi-botoes .btn.quiet[aria-label]:has(> svg:only-child)::after { content: none !important; }
+/* só ícone: um bloco inclinado com a costura no meio. Só ícone = classe icon, ou descrição escondida (aria-label) e um ícone
+   como único elemento; o texto não conta para o :only-child, por isso o aria-label (botões com texto não têm). */
+.vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)) { border-right-width: 0 !important; padding: 0; min-width: 46px; }
+.vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child))::before {
   left: 4px; right: 4px;
   background: linear-gradient(90deg, var(--surface-2) 0 calc(50% - 2px), transparent calc(50% - 2px) calc(50% + 2px), var(--surface-2) calc(50% + 2px)) !important;
 }
-.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child))::after { content: none !important; }
-.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)):hover::before { animation: none !important; }
-.vi-botoes :is(.btn.icon, .btn:not(.quiet):has(> svg:only-child)):hover { animation: none; }
+.vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child))::after { content: none !important; }
+.vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):hover::before { animation: none !important; }
+.vi-botoes :is(.btn.icon, .btn[aria-label]:not(.quiet):has(> svg:only-child)):hover { animation: none; }
 /* tamanhos */
 .vi-botoes .btn.sm { font-size: 11.5px; padding: 0 14px 0 20px; border-right-width: 42px !important; }
 .vi-botoes .btn.sm::after { right: -38px; width: 30px; font-size: 18px; }
 .vi-botoes .btn.lg { font-size: 13.5px; padding: 0 26px 0 32px; border-right-width: 56px !important; }
 .vi-botoes .btn.lg::after { right: -52px; width: 44px; font-size: 24px; }
+/* Os botões ficaram mais largos (a seta é uma peça à parte): no cabeçalho das páginas, a coluna dos botões tem um limite
+   e eles quebram linha, para não espremer o texto ao lado. */
+@media (min-width: 641px) {
+  .vi-botoes .page-head { grid-template-columns: minmax(0, 1fr) fit-content(58%); }
+  .vi-botoes .page-head__side > .collection__tools { justify-content: flex-end; }
+}
 /* foco do teclado e do controle: platina, sem âmbar */
 .vi-botoes .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; box-shadow: none; }
 
@@ -227,6 +234,8 @@
   transition: box-shadow 0.3s;
 }
 .vi-campos textarea.field { background-position: 9px 14px, 0 0 !important; }
+/* Campo com ícone na frente (a lupa da busca): o ícone fica no lugar do traço. */
+.vi-campos :has(> svg) > .field { padding-left: 42px !important; background: var(--surface) !important; }
 .vi-campos .field:focus, .vi-campos .field:focus-visible { --vi-fa: var(--ink); outline: none; box-shadow: inset 0 -2px 0 var(--ink), 0 0 26px var(--vi-glow); }
 .vi-campos .switch { transform: skewX(-22deg); margin-right: 6px; background: var(--surface-2) !important; box-shadow: none !important; }
 .vi-campos .switch::after { clip-path: none !important; background: var(--faint) !important; }

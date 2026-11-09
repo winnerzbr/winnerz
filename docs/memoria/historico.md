@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: nota em barras, pulso de volta
+- **O dono comentou no canvas:** recolocar o efeito de pulso ao aplicar a nota.
+- **Feito:**
+  - o pulso sai a cada nota aplicada (clique, toque, teclado), no mesmo instante;
+  - arrastando, sai uma vez, na barra onde solta;
+  - contorno mais grosso, com brilho na cor da nota;
+  - na nota máxima, dois pulsos.
+- **Regra para quando aplicar no site:** o pulso não pode depender de soltar o botão.
+
+---
+
 ## 09/11/2026: nota em barras, ponteiro acompanhando a inclinação
 - **O dono comentou no canvas:** na metade de cima da barra, o ponteiro um pouco à direita acionava a barra seguinte.
 - **Causa:** a leitura usava só a posição horizontal, como se as barras fossem retas.

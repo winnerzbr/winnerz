@@ -32,12 +32,12 @@ body{margin:0;background:#050506}
 .popB{animation:popB .32s cubic-bezier(.3,1.6,.5,1)}
 @keyframes popA{0%{transform:skewX(-22deg)}45%{transform:skewX(-22deg) translateY(-7px) scale(1.16)}100%{transform:skewX(-22deg)}}
 @keyframes popB{0%{transform:skewX(-22deg)}45%{transform:skewX(-22deg) translateY(-7px) scale(1.16)}100%{transform:skewX(-22deg)}}
-.pulse{position:absolute;inset:0;border:2px solid currentColor;opacity:0;pointer-events:none;filter:drop-shadow(0 0 6px currentColor)}
+.pulse{position:absolute;z-index:2;inset:-2px;border:3px solid currentColor;opacity:0;pointer-events:none;box-shadow:0 0 14px currentColor,inset 0 0 10px currentColor}
 .pulse.pA{animation:puA .85s cubic-bezier(.2,.7,.3,1) both}
 .pulse.pB{animation:puB .85s cubic-bezier(.2,.7,.3,1) both}
 .pulse.n2{animation-delay:.16s}
-@keyframes puA{0%{opacity:.95;transform:scale(1)}100%{opacity:0;transform:scale(1.7,1.4)}}
-@keyframes puB{0%{opacity:.95;transform:scale(1)}100%{opacity:0;transform:scale(1.7,1.4)}}
+@keyframes puA{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2,1.6)}}
+@keyframes puB{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2,1.6)}}
 .waveA{animation:wvA .7s cubic-bezier(.3,1.5,.5,1) both}
 .waveB{animation:wvB .7s cubic-bezier(.3,1.5,.5,1) both}
 @keyframes wvA{0%,100%{transform:skewX(-22deg)}45%{transform:skewX(-22deg) translateY(-11px) scale(1.14)}}
@@ -107,7 +107,7 @@ body{margin:0;background:#050506}
 class Component extends DCLogic {
   constructor(props) {
     super(props);
-    const mk = (v) => ({ value: v, hover: null, drag: false, pop: 0, dir: 1, num: v });
+    const mk = (v) => ({ value: v, hover: null, drag: false, pop: 0, dir: 1, num: v, pulse: 0, pulseAt: -1 });
     this.state = { d5: mk(4.5), d10: mk(8.5), l5: mk(3.5), l10: mk(6) };
     this.raf = {};
   }
@@ -130,10 +130,13 @@ class Component extends DCLogic {
     }
     return max;
   }
-  commit(k, v) {
+  commit(k, v, src) {
     const s = this.state[k];
     if (v === s.value) return;
-    this.patch(k, { value: v, pop: s.pop + 1, dir: v > s.value ? 1 : -1 });
+    // O pulso sai ao aplicar a nota (clique, toque ou teclado); arrastando, só no fim.
+    const p = { value: v, pop: s.pop + 1, dir: v > s.value ? 1 : -1 };
+    if (src !== 'move') { p.pulse = s.pulse + 1; p.pulseAt = Math.ceil(v) - 1; }
+    this.patch(k, p);
     const from = s.num, t0 = performance.now(), dur = 380;
     cancelAnimationFrame(this.raf[k]);
     const tick = (t) => {
@@ -149,23 +152,23 @@ class Component extends DCLogic {
     const live = s.drag || s.hover !== null;
     const hue = Math.round(Math.max(0, Math.min(1, shown / max)) * 128);
     const color = 'hsl(' + hue + ' 74% ' + (light ? 42 : 58) + '%)';
-    const stop = Math.ceil(s.value) - 1;
     const par = s.pop % 2 ? 'A' : 'B';
+    const ppar = s.pulse % 2 ? 'A' : 'B';
     const top = s.value === max && !live && s.pop > 0;
     const step = max === 10 ? 30 : 55;
     const idx = Array.from({ length: max }, (_, i) => i);
     const bars = idx.map((i) => {
       const fill = Math.max(0, Math.min(1, shown - i));
-      const atStop = s.pop > 0 && !s.drag && i === stop;
+      const atStop = s.pulse > 0 && i === s.pulseAt;
       let cls = 'bar';
-      if (top) cls += ' wave' + par; else if (atStop) cls += ' pop' + par;
+      if (top) cls += ' wave' + par; else if (atStop) cls += ' pop' + ppar;
       return {
         i: i, color: color, cls: cls,
         h: (fill * 100) + '%',
         dur: live ? '.12s' : '.42s',
         del: live ? '0ms' : ((s.dir > 0 ? i : max - 1 - i) * step) + 'ms',
-        pulse: atStop, pulseCls: 'pulse p' + par,
-        pulse2: atStop && s.value === max, pulseCls2: 'pulse n2 p' + par
+        pulse: atStop, pulseCls: 'pulse p' + ppar,
+        pulse2: atStop && s.value === max, pulseCls2: 'pulse n2 p' + ppar
       };
     });
     return {
@@ -175,14 +178,14 @@ class Component extends DCLogic {
       value: s.value, valueTxt: String(s.value).replace('.', ',') + ' de ' + max,
       numTxt: String(s.num).replace('.', ','), numCls: s.pop ? 'n' + par : '',
       burst: top, burstCls: 'burst b' + par, burstX: max === 10 ? '246px' : '190px',
-      down: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} const v = this.fromX(e, max); this.patch(k, { drag: true, hover: v }); this.commit(k, v); },
-      move: (e) => { const v = this.fromX(e, max); this.patch(k, { hover: v }); if (this.state[k].drag) this.commit(k, v); },
-      up: (e) => { this.patch(k, { drag: false, hover: e.pointerType !== 'mouse' ? null : this.state[k].hover }); },
+      down: (e) => { try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) {} const v = this.fromX(e, max); this.patch(k, { drag: true, hover: v }); this.commit(k, v, 'click'); },
+      move: (e) => { const v = this.fromX(e, max); this.patch(k, { hover: v }); if (this.state[k].drag) this.commit(k, v, 'move'); },
+      up: (e) => { const st = this.state[k]; const q = { drag: false, hover: e.pointerType !== 'mouse' ? null : st.hover }; if (st.drag && st.pulseAt !== Math.ceil(st.value) - 1) { q.pulse = st.pulse + 1; q.pulseAt = Math.ceil(st.value) - 1; } this.patch(k, q); },
       leave: () => { this.patch(k, { hover: null, drag: false }); },
       key: (e) => {
         const v = this.state[k].value;
         const map = { ArrowRight: v + 0.5, ArrowUp: v + 0.5, ArrowLeft: v - 0.5, ArrowDown: v - 0.5, Home: 0, End: max };
-        if (e.key in map) { e.preventDefault(); this.patch(k, { hover: null }); this.commit(k, Math.max(0, Math.min(max, map[e.key]))); }
+        if (e.key in map) { e.preventDefault(); this.patch(k, { hover: null }); this.commit(k, Math.max(0, Math.min(max, map[e.key])), 'key'); }
       }
     };
   }

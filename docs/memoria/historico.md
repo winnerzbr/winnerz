@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: campo de Dificuldade e foco dos campos
+- **O dono pediu:** padronizar a caixa de Dificuldade (Jornada) e tirar a luz que corria ao clicar nela.
+- **Feito (`carga.css`):**
+  - Dificuldade: com o visual Carga ela ganhou a moldura, mas manteve a altura do sublinhado antigo e ficou espremida; agora tem o tamanho dos outros campos;
+  - foco de todos os campos: saiu a luz que dava uma volta; a borda acende e o vão fica aceso na hora.
+- **Limite:** a lista de sugestões (Normal, Difícil, Muito difícil, Máximo) é desenhada pelo navegador e não aceita o visual do site. Para ter o visual do site, seria preciso trocar por uma lista feita pelo site.
+
+---
+
 ## 09/11/2026: pontas cortadas nos grupos de opções
 - **O dono apontou:** "Mais úteis" (ordem das respostas numa conversa) com a ponta cortada, como o "Claro" do painel de Aparência.
 - **Causa:** os grupos de opções (`.seg`, `.subnav`, `.what__paths`) podem rolar para o lado no celular e, por isso, cortam o que passa da borda; a ponta inclinada do último botão ficava de fora.

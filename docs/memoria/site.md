@@ -39,7 +39,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
   - botão só de ícone (favoritar, mais ações): uma peça só dentro da moldura, sem emenda no meio; no hover o vão preenche;
   - abas, alternadores e filtros: borda e vão; no hover a luz dá uma volta e o vão acende; o escolhido já fica carregado;
   - capas: a capa inclina seguindo o ponteiro, com o ponto de luz onde ele está (a animação da Fresta, de volta em 09/11), e a luz dá uma volta na moldura e ela fica acesa;
-  - campos: borda e vão; no foco, uma volta e o vão acende;
+  - campos: borda e vão; no foco, a borda acende e o vão fica aceso, **sem luz correndo** (pedido do dono, 09/11); o campo de Dificuldade da Jornada tem o mesmo tamanho dos outros;
   - cards: **sem luz correndo no vão**; no hover só a borda de fora acende, discreta (borda a 55% e brilho leve; pedido do dono, 09/11 à noite). Os dois cards da sessão aberta ("Hoje é para…" e "Dá para parar aqui?", classes `goalcard` e `stopcard`) entraram na lista de cards com contorno;
   - fundo: **sem as faixas de luz** (o dono achou que disputavam a atenção);
   - logo do menu: **não pulsa sozinho**; só a animação do hover;

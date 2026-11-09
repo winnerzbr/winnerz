@@ -169,7 +169,7 @@
   opacity: 1; animation: vi-orbit 0.9s linear 1, vc-fillc 0.35s ease-out 0.9s forwards;
 }
 
-/* ---- campos: borda e vão; no foco, uma volta e o vão acende ------------------------------------------------- */
+/* ---- campos: borda e vão; no foco, a borda acende e o vão fica aceso (sem luz correndo) -------------------- */
 .vc-campos .field {
   --vc-acc: linear-gradient(112deg, transparent 0 38%, var(--vi-fa) 38% 64%, transparent 64%) 12px 50% / 12px 20px no-repeat;
   border: 2px solid var(--vi-edge) !important; padding-left: 34px !important; min-height: 50px;
@@ -179,11 +179,12 @@
 .vc-campos :has(> svg) > .field { --vc-acc: linear-gradient(transparent, transparent) 0 0 / 0 0 no-repeat; padding-left: 44px !important;
   background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)) !important; }
 .vc-campos .field:focus, .vc-campos .field:focus-visible, .vc-campos :has(> svg) > .field:focus {
-  border-color: var(--vi-ring) !important; box-shadow: 0 0 22px var(--vi-glow);
-  background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-fc), var(--vi-fc)),
-    conic-gradient(from var(--vi-a), transparent 0deg 200deg, var(--vi-ringG) 290deg, var(--vi-ring) 352deg, transparent 360deg) !important;
-  animation: vi-orbit 0.7s linear 1, vi-fill 0.3s ease-out 0.7s forwards;
+  border-color: var(--vi-ring) !important; box-shadow: 0 0 18px var(--vi-glow); animation: none;
+  background: var(--vc-acc), linear-gradient(var(--surface), var(--surface)) 4px 4px / calc(100% - 8px) calc(100% - 8px) no-repeat, linear-gradient(var(--vi-ringG), var(--vi-ringG)) !important;
 }
+/* Dificuldade (Jornada): campo do mesmo tamanho dos outros, ao lado do rótulo */
+.vc-campos .feats__dif--inline { align-items: center; }
+.vc-campos .feats__dif--inline .field { width: 24ch; min-height: 44px; padding: 8px 14px 8px 34px !important; font-size: 14.5px; font-weight: 500; color: var(--ink); }
 .vc-campos textarea.field:focus { background-position: 12px 16px, 4px 4px, 0 0, 0 0 !important; }
 .vc-campos .switch { outline: 2px solid var(--vi-edge); outline-offset: 3px; margin-right: 6px; }
 /* lista de escolha (ex.: Ordem, na Coleção): sem o traço da frente e com a setinha à direita */

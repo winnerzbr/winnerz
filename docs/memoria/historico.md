@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: cinco direções novas de redesign no canvas
+- **O dono pediu:** 5 novas sugestões de redesign.
+- **Feito:** 5 páginas novas no canvas "WinnerZ — revisão de design dos elementos": Pincel, Figurinha, Estojo, Quadrinho e Zênite. Cada uma com o quadro de todos os elementos e 8 páginas do site, nos modos escuro e claro (90 quadros). Descrição de cada uma em `site.md`.
+- **De onde vieram as ideias:** do próprio WinnerZ: a pintura do dono (Pincel), o Álbum (Figurinha), a coleção física (Estojo), a linha ousada da Impacto (Quadrinho) e o troféu Zênite (Zênite).
+- **Gerador:** temas `P`, `S`, `E`, `Q`, `Z` em `prototipos/redesign-elementos/` (ver o README de lá).
+- **Conferido:** quadro de elementos de cada direção nos dois modos, com e sem hover, e a página Início, em Chrome sem tela. As fontes do Google não carregam nesse teste; no canvas carregam.
+- **Nada mudou no site.** Aguardando a escolha do dono.
+
+---
+
 ## 09/11/2026: revisão do celular (textos cortados e conteúdo pela metade)
 - **O dono apontou:** no celular, vários botões com texto cortado e conteúdos pela metade (visita guiada do Museu, botões da Coleção).
 - **Como foi revisado:** navegador do app em tamanho de celular (375 px), passando por 21 páginas; um script mede cada botão cujo texto não cabe e cada elemento que passa da borda. A mesma varredura com `?visual=fresta` separou o que veio da Impacto do que já existia.

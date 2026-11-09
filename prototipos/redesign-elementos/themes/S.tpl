@@ -1,0 +1,140 @@
+/* Figurinha: cada peça é uma figurinha do Álbum. Borda branca recortada, levemente torta como se colada à mão;
+   no hover o canto descola e passa o brilho de figurinha holográfica. O que falta é um espaço tracejado. */
+@property --pc{syntax:'<length>';inherits:true;initial-value:0px}
+.A.dark,.A .photo{--bg:#0a0b0d;--b1:#14161a;--b2:#1b1e23;--b3:#282c33;--s2:#1b1e23;--ink:#F2F4F6;--ink2:#C9CED4;--mut:#9AA1AA;--fnt:#7D848D;--ln:#3a3f47;--hair:rgba(242,244,246,.09);--dc:#F2F4F6;--onDc:#07080A;--foil:linear-gradient(120deg,#eceff2,#c0c9d3 28%,#f6f1e8 50%,#c9c9df 72%,#eceff2);--onFoil:#07080A;--back:linear-gradient(225deg,#8d949d,#dfe3e8 60%,#aab1ba);--now:#FFB25B;--nowI:#FFB25B;--onNow:#1b1206;--au1:#FFF0CC;--au2:#C9985C;--auI:#E2BE84;--dan:#F0A496;--sh:rgba(0,0,0,.6);--lg1:#FFF0CC;--lg2:#C9985C}
+.A.light{--bg:#e2e5e9;--b1:#f8f9fa;--b2:#eef0f3;--b3:#d2d7dd;--s2:#d2d7dd;--ink:#07080A;--ink2:#2a2f36;--mut:#555c66;--fnt:#636a74;--ln:#aeb5bd;--hair:rgba(7,8,10,.08);--dc:#ffffff;--onDc:#07080A;--foil:linear-gradient(120deg,#1d2126,#3b424c 28%,#2a2933 50%,#3b4150 72%,#16191d);--onFoil:#ffffff;--back:linear-gradient(225deg,#b9bfc7,#ffffff 60%,#d5dae0);--now:#E08A1E;--nowI:#9A5205;--onNow:#1b1206;--au1:#C9985C;--au2:#7A5427;--auI:#8A6234;--dan:#A8322A;--sh:rgba(7,8,10,.28);--lg1:#B7884E;--lg2:#6E4A20}
+.A{--holo:linear-gradient(115deg,transparent 34%,rgba(150,205,255,.55) 44%,rgba(255,238,200,.7) 50%,rgba(215,185,255,.5) 56%,transparent 66%);--die:inset 0 0 0 3px var(--dc),inset 0 0 0 4px rgba(7,8,10,.22)}
+
+.fx{display:block;position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(var(--hair) 1.2px,transparent 1.6px) 0 0/24px 24px}
+
+.kick{gap:9px;font-size:13.5px;font-weight:700}
+.kick::before{content:'';width:13px;height:13px;border-radius:50%;background:var(--b3);box-shadow:inset 0 0 0 2.5px var(--dc);rotate:-8deg}
+.kick.now{color:var(--nowI)}.kick.now::before{background:var(--now);animation:sWob 1.8s ease-in-out infinite}
+.kick.au{color:var(--auI)}.kick.au::before{background:linear-gradient(170deg,var(--au1),var(--au2));box-shadow:inset 0 0 0 2.5px #0b0b0c,0 0 0 1px #E2BE84}
+@keyframes sWob{0%,100%{rotate:-4deg}50%{rotate:5deg}}
+@keyframes sFoil{from{background-position:130% 0}to{background-position:-30% 0}}
+
+/* botões: figurinhas; no hover levantam, o canto descola e o brilho passa. Ao clicar, colam de volta */
+.btn{--pc:0px;height:48px;padding:0 24px;border-radius:9px;rotate:-1deg;background:var(--face,var(--b3));box-shadow:var(--die);clip-path:polygon(0 0,calc(100% - var(--pc)) 0,100% var(--pc),100% 100%,0 100%);font:800 13.5px/1 'Archivo';font-stretch:112%;transition:--pc .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1),rotate .3s}
+.btn:nth-child(even){rotate:.9deg}
+.btn::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:inherit;background:var(--holo) 130% 0/260% 100% no-repeat;mix-blend-mode:var(--hb,screen);pointer-events:none}
+.btn::after{content:'';position:absolute;top:0;right:0;width:var(--pc);height:var(--pc);border-bottom-left-radius:5px;background:var(--back);clip-path:polygon(0 0,100% 100%,0 100%);filter:drop-shadow(-2px 2px 2px rgba(0,0,0,.4));pointer-events:none}
+.btn:hover{--pc:19px;transform:translateY(-3px);rotate:-2.2deg}
+.btn:nth-child(even):hover{rotate:2deg}
+.btn:hover::before{animation:sFoil .9s cubic-bezier(.4,0,.2,1)}
+.btn:active{--pc:0px;transform:scale(.97);rotate:0deg}
+.btn.pri{--face:var(--foil);color:var(--onFoil);box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 4px rgba(7,8,10,.3)}
+.btn.now{--face:var(--now);color:#1b1206;animation:sWob 1.8s ease-in-out infinite}
+.btn.now::before{animation:sFoil 2.6s cubic-bezier(.4,0,.2,1) infinite}
+.btn.au{--face:#0b0b0c;color:#E2BE84;box-shadow:inset 0 0 0 3px #E2BE84,inset 0 0 0 4px #0b0b0c}
+.btn.dan{color:var(--dan);box-shadow:inset 0 0 0 3px var(--dan)}
+.btn.quiet{height:auto;padding:7px 0;border-radius:0;rotate:0deg;background:none;box-shadow:none;clip-path:none;color:var(--ink2)}
+.btn.quiet::before{inset:auto 0 0 0;height:2px;border-radius:0;background:repeating-linear-gradient(90deg,var(--fnt) 0 5px,transparent 5px 9px);mix-blend-mode:normal;transition:background .2s}
+.btn.quiet::after,.btn.off::before,.btn.off::after{display:none}
+.btn.quiet:hover{--pc:0px;transform:none;rotate:0deg;color:var(--ink)}
+.btn.quiet:hover::before{animation:none;background:var(--ink)}
+.btn.off,.btn.off:hover{--pc:0px;rotate:0deg;transform:none;background:none;box-shadow:none;outline:2px dashed var(--ln);outline-offset:-2px;clip-path:none;color:var(--fnt);cursor:not-allowed}
+.btn.icon{width:48px;padding:0}.btn.icon.lg{width:56px}
+.btn.lg{height:56px;padding:0 30px;border-radius:11px;font-size:14.5px}
+.btn.sm{height:38px;padding:0 17px;border-radius:8px;font-size:12px}
+.btn.sm:hover{--pc:14px}
+
+/* abas: os separadores do álbum */
+.tabs{gap:0 5px;padding-top:8px;overflow:hidden;border-bottom:3px solid var(--dc)}
+.tabs a{height:42px;padding:0 20px;border-radius:11px 11px 0 0;background:var(--b2);color:var(--mut);font:800 13px/1 'Archivo';font-stretch:108%;transform:translateY(7px);transition:transform .3s cubic-bezier(.2,.8,.2,1),color .2s}
+.tabs__n{display:inline;font:700 10.5px/1 'Archivo';opacity:.55}
+.tabs a:hover{transform:translateY(2px);color:var(--ink)}
+.tabs a.on{transform:none;background:var(--dc);color:var(--onDc)}
+.tabs__c{min-width:20px;height:20px;padding:0 5px;justify-content:center;border-radius:10px;background:var(--now);color:#1b1206;box-shadow:inset 0 0 0 2px #fff;font:800 10.5px/1 'Archivo';rotate:8deg}
+
+.chip{height:34px;padding:0 14px;border-radius:17px;background:var(--b2);font:700 12.5px/1 'Archivo';transition:rotate .25s,transform .25s,color .2s}
+.chip:hover{rotate:1.5deg;transform:translateY(-2px);color:var(--ink)}
+.chip.on{rotate:-1.8deg;background:var(--foil);color:var(--onFoil);box-shadow:inset 0 0 0 2.5px #fff,inset 0 0 0 3.5px rgba(7,8,10,.25)}
+.chip.on:nth-child(even){rotate:1.4deg}
+.chip.on small{color:var(--onFoil);opacity:.65}
+.chips.vert .chip{height:44px;border-radius:10px;justify-content:space-between}
+
+.tag{height:24px;padding:0 10px;border-radius:12px;rotate:-2deg;background:var(--b3);color:var(--ink);box-shadow:inset 0 0 0 2px var(--dc);font:800 11px/1 'Archivo'}
+.tag:nth-child(even){rotate:1.6deg}
+.tag.z{background:var(--foil);color:var(--onFoil);box-shadow:inset 0 0 0 2px #fff}
+.tag.j{background:var(--now);color:#1b1206;animation:sWob 1.8s ease-in-out infinite}
+.tag.s{color:var(--dan);box-shadow:inset 0 0 0 2px var(--dan)}
+.tag.p{background:none;box-shadow:none;outline:1.5px dashed var(--ln);outline-offset:-1.5px;color:var(--fnt)}
+.tag.au{background:#0b0b0c;color:#E2BE84;box-shadow:inset 0 0 0 2px #E2BE84}
+.cover__img .tag{left:10px;top:12px}
+
+/* cards: figurinhas grandes; o canto de cima descola */
+.card{--pc:0px;border-radius:14px;background:var(--b1);box-shadow:inset 0 0 0 3px var(--cdc,var(--dc)),inset 0 0 0 4px rgba(7,8,10,.2),0 14px 24px -16px var(--sh);rotate:-.5deg;transition:--pc .4s cubic-bezier(.2,.8,.2,1),transform .4s cubic-bezier(.2,.8,.2,1),rotate .4s}
+.grid > .card:nth-child(even),.sect > .card:nth-child(even){rotate:.45deg}
+.card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:var(--holo) 130% 0/260% 100% no-repeat;mix-blend-mode:var(--hb,screen);opacity:.6;pointer-events:none}
+.card::after{content:'';position:absolute;z-index:2;top:-1px;right:-1px;width:var(--pc);height:var(--pc);background:linear-gradient(225deg,var(--bg) 50%,transparent 50%),var(--back);border-bottom-left-radius:8px;filter:drop-shadow(-3px 3px 3px rgba(0,0,0,.35));pointer-events:none}
+.card:hover{--pc:38px;transform:translateY(-4px);rotate:.3deg}
+.card:hover::before{animation:sFoil 1.1s cubic-bezier(.4,0,.2,1)}
+.part + .part{border-top:2px dashed var(--hair)}
+.card .part.head,.card .part.foot{flex-direction:row;align-items:center;justify-content:space-between}
+.card.now{--cdc:var(--now)}
+.card.now::before{animation:sFoil 3.2s cubic-bezier(.4,0,.2,1) infinite}
+.card.au{--cdc:#E2BE84;background:#0b0b0c}
+.card.au .ttl{padding:.18em 0 .08em;margin:-.18em 0 -.08em;background:linear-gradient(180deg,#FFF0CC,#C9985C);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card.au .txt{color:#C9CED4}
+.card.empty,.card.empty:hover{--pc:0px;rotate:0deg;transform:none;background:none;box-shadow:none;outline:2.5px dashed var(--ln);outline-offset:-3px}
+.card.empty::before{display:none}
+
+/* capas: figurinhas coladas tortas */
+.cover{gap:14px}
+.cover__img{--pc:0px;border-radius:9px;background:var(--dc);clip-path:polygon(0 0,calc(100% - var(--pc)) 0,100% var(--pc),100% 100%,0 100%);rotate:-1.3deg;transition:--pc .35s cubic-bezier(.2,.8,.2,1),transform .35s cubic-bezier(.2,.8,.2,1),rotate .35s}
+.grid > .cover:nth-child(even) .cover__img{rotate:1deg}
+.grid > .cover:nth-child(3n) .cover__img{rotate:-.5deg}
+.cover__bg{inset:4px;border-radius:6px}
+.cover__img::before{content:'';position:absolute;z-index:3;inset:0;background:var(--holo) 130% 0/260% 100% no-repeat;mix-blend-mode:screen;pointer-events:none}
+.cover__img::after{content:'';position:absolute;z-index:4;top:0;right:0;width:var(--pc);height:var(--pc);border-bottom-left-radius:6px;background:var(--back);clip-path:polygon(0 0,100% 100%,0 100%);filter:drop-shadow(-3px 3px 3px rgba(0,0,0,.5));pointer-events:none}
+.cover:hover .cover__img{--pc:30px;transform:translateY(-5px);rotate:1.6deg}
+.cover:hover .cover__img::before{animation:sFoil .9s cubic-bezier(.4,0,.2,1)}
+
+/* nota e medidores: espaços do álbum; o que conta está colado */
+.rate__bar{gap:6px}
+.rate__bar i{width:30px;height:38px;border-radius:7px;outline:2px dashed var(--ln);outline-offset:-2px}
+.rate__bar i.on,.rate__bar i.half{outline:0;background:var(--now);box-shadow:inset 0 0 0 2.5px #fff,inset 0 0 0 3.5px rgba(7,8,10,.2);rotate:-3deg}
+.rate__bar i.on:nth-child(even){rotate:2.5deg}
+.rate__bar i.half{clip-path:inset(50% 0 0 0);rotate:4deg}
+.rate__avg b{color:var(--ink2)}
+.meter{gap:4px}
+.meter i{height:16px;border-radius:5px;outline:1.5px dashed var(--ln);outline-offset:-1.5px}
+.meter i.on{outline:0;background:var(--mc,var(--dc));box-shadow:inset 0 0 0 1px rgba(7,8,10,.25);rotate:-4deg}
+.meter i.on:nth-child(even){rotate:3deg}
+.meter.now{--mc:var(--now)}
+.meter.au{--mc:linear-gradient(170deg,#FFF0CC,#C9985C)}
+
+/* campos: um espaço para colar */
+.field__w{border-radius:11px;outline:2px dashed var(--ln);outline-offset:-2px;transition:background .25s}
+.field.foc .field__w,.field__w:focus-within{outline:3px solid var(--dc);outline-offset:-3px;background:var(--b1);box-shadow:0 10px 18px -12px var(--sh)}
+.field.err .field__w{outline:3px solid var(--dan);outline-offset:-3px}
+
+.sw__t{width:58px;height:30px;border-radius:15px;outline:2px dashed var(--ln);outline-offset:-2px}
+.sw__k{width:22px;height:22px;border-radius:50%;background:var(--b3);box-shadow:inset 0 0 0 2.5px var(--dc);transition:left .3s cubic-bezier(.3,1.4,.5,1),rotate .3s}
+.sw.on .sw__t{outline:0;background:var(--b2)}
+.sw.on .sw__k{left:32px;rotate:12deg;background:var(--foil);box-shadow:inset 0 0 0 2.5px #fff,inset 0 0 0 3.5px rgba(7,8,10,.25)}
+
+.toast{position:relative;display:flex;align-items:center;gap:14px;padding:15px 20px;border-radius:14px;rotate:-.6deg;background:var(--b2);box-shadow:var(--die),0 14px 22px -14px var(--sh)}
+
+.hdr{background:var(--bg);border-bottom:2px dashed var(--ln)}
+.hdr nav a{font-size:14.5px;font-weight:700;transition:color .2s}
+.hdr nav a:hover{color:var(--ink)}
+.hdr nav a.on{color:var(--onDc)}
+.hdr nav a.on::before{content:'';position:absolute;z-index:-1;left:-13px;right:-13px;top:22px;bottom:22px;border-radius:18px;background:var(--dc);rotate:-2deg}
+.pill{border-radius:16px;rotate:2deg;background:var(--now);color:#1b1206;box-shadow:inset 0 0 0 2.5px #fff;animation:sWob 1.8s ease-in-out infinite}
+
+/* topo das páginas: o título é uma figurinha recortada */
+.photo .ttl{rotate:-1.5deg;transform-origin:0 100%;color:#0b0c0e;text-shadow:@@RING@@;letter-spacing:.01em}
+.photo .lead{margin-top:10px}
+
+.hz__line{top:12px;height:0;border-top:2px dashed var(--ln)}
+.hz__dot{top:-31px;width:20px;height:20px;border-radius:50%;background:var(--b3);box-shadow:inset 0 0 0 2.5px var(--dc);rotate:-8deg}
+.hz__p.now .hz__dot{background:var(--now);box-shadow:inset 0 0 0 2.5px #fff;animation:sWob 1.8s ease-in-out infinite}
+.list__it{padding:9px 0}
+.list__it + .list__it{border-top:2px dashed var(--hair)}
+.list__th{border-radius:5px;box-shadow:inset 0 0 0 2px var(--dc);rotate:-3deg}
+.list__it:nth-child(even) .list__th{rotate:2deg}
+.A.light{--hb:multiply}
+.A.light .btn.pri,.A.light .btn.au,.A.light .card.au{--hb:screen}
+.A.light .meter:not(.now):not(.au){--mc:var(--ink)}

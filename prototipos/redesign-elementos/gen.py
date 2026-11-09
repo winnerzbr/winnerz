@@ -17,6 +17,11 @@ THEMES = {
     'C': ('Cromo', 'Cromo'),
     'X': ('Impacto + Ímã', 'ImpactoIma'),
     'Y': ('Impacto + Ímã com contorno', 'ImpactoImaContorno'),
+    'P': ('Pincel', 'Pincel'),
+    'S': ('Figurinha', 'Figurinha'),
+    'E': ('Estojo', 'Estojo'),
+    'Q': ('Quadrinho', 'Quadrinho'),
+    'Z': ('Zênite', 'Zenite'),
 }
 CHAIN = {'X': ['I', 'X'], 'Y': ['I', 'X', 'Y']}
 ONLY = os.environ.get('ONLY', '')
@@ -305,6 +310,11 @@ PAGES = [('Inicio', 'Início', p_inicio), ('Colecao', 'Coleção', p_colecao), (
          ('Awards', 'WinnerZ Awards', p_awards), ('Perfil', 'Perfil', p_perfil), ('Preferencias', 'Preferências', p_pref), ('Jogo', 'Página do jogo', p_jogo)]
 
 DESC = {
+    'P': 'Tudo pintado à mão. Cada peça é uma pincelada de borda irregular, e no hover uma segunda demão passa por cima. Os cards são telas cortadas à mão, a nota são cinco toques de pincel e os rótulos pequenos são anotações manuscritas.',
+    'S': 'Cada peça é uma figurinha do Álbum: borda branca recortada, levemente torta, como se colada à mão. No hover o canto descola e passa o brilho de figurinha holográfica. O que ainda falta aparece como espaço tracejado.',
+    'E': 'A coleção física. Abas e filtros são lombadas na prateleira, e a escolhida é puxada para fora. Um disco sai do botão, o card abre de leve como um estojo e a capa abre na dobradiça e mostra o disco girando.',
+    'Q': 'Traço grosso de nanquim. A sombra é retícula (os pontinhos de impressão), o botão bate na própria sombra e solta linhas de velocidade, os cards são quadros com legenda e os campos são balões de fala.',
+    'Z': 'A luz vem de cima, como no troféu Zênite. Cada peça tem a borda de cima iluminada, sobe para a luz no hover e deixa um reflexo no chão. Os estados são fases: disco cheio para zerado, anel para backlog, eclipse com coroa âmbar para o agora.',
     'N': 'Cinema de autor. Luz de cena que se move, reflexos de lente anamórfica nos botões e nas linhas, granulado de filme, faixas pretas de cinema no topo e foco que muda: ao passar o mouse numa capa, as outras saem de foco.',
     'G': 'O W e o Z da vinheta. Cada peça é feita de duas metades que se afastam e se cravam, e a costura entre elas acende no impacto: botões, cards, abas, campos e até o logo do menu.',
     'T': 'O site vestido como o pacote gráfico de uma live: tarjas, letreiro de LED correndo no topo, números em pontos de LED, linhas de tela, cortinas que passam nos botões e varredura nas capas.',
@@ -330,7 +340,7 @@ def page_file(theme, mode, body, h, title):
 <x-dc>
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&amp;family=Caveat:wght@500..700&amp;display=swap" rel="stylesheet">
 <style>
 {css}
 </style>
@@ -354,7 +364,7 @@ def main():
         for mode in ('dark', 'light'):
             ml = 'escuro' if mode == 'dark' else 'claro'
             pages = list(PAGES)
-            if t in ('N', 'I', 'G', 'T', 'C', 'X', 'Y'):
+            if t in ('N', 'I', 'G', 'T', 'C', 'X', 'Y', 'P', 'S', 'E', 'Q', 'Z'):
                 pages = [('Elementos', 'Todos os elementos', lambda t=t, tname=tname: p_elementos(tname, DESC[t]))] + pages
             for key, label, fn in pages:
                 body, h = fn()

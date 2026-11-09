@@ -9,3 +9,9 @@ Gerador dos quadros do canvas "WinnerZ — revisão de design dos elementos" (ar
 - `layout.py`: organiza o `canvas.json` (uma página do canvas por direção, fileira escura em cima e clara embaixo).
 
 Os quadros feitos à mão (Hoje, Botões, Cards, Filtros, Campos, Aplicado, Mono*, Letreiro*) ficam só no canvas.
+
+## Direções de 09/11/2026 (segunda leva): Pincel, Figurinha, Estojo, Quadrinho e Zênite
+- Temas `P`, `S`, `E`, `Q` e `Z` em `themes/`.
+- `P.css` e `S.css` são montados por `build_new.py` a partir de `P.tpl` e `S.tpl` (ele calcula as máscaras de pincelada e o contorno recortado do título). Rodar `python3 build_new.py` antes do `gen.py` quando mexer nos `.tpl`.
+- Para gerar só essas: `ONLY=PSEQZ python3 gen.py <pasta de saída>`.
+- A Pincel usa a fonte Caveat (o site já carrega) nos rótulos pequenos.

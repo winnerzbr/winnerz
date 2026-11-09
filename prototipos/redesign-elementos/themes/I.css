@@ -54,12 +54,13 @@
 
 .tabs{gap:6px;padding-left:10px}
 .tabs a{transform:skewX(-22deg);height:44px;padding:0 22px;background:var(--b1);color:var(--fnt);font:800 12.5px/1 'Archivo';font-stretch:125%;letter-spacing:.06em;text-transform:uppercase;overflow:hidden;transition:color .25s,background .25s}
-.tabs a > *,.chip > *,.tag > *,.pill > *{display:inline-block;transform:skewX(22deg)}
+.tabs a > span,.tabs a > .tabs__c,.chip > span,.chip > small,.tag > span,.pill > span{display:inline-block;transform:skewX(22deg)}
 .tabs a::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(90deg,transparent,var(--slash),transparent);opacity:0}
 .tabs a:hover{color:var(--ink)}
 .tabs a:hover::before{animation:iSl .55s cubic-bezier(.3,0,.2,1)}
 .tabs a.on{background:linear-gradient(180deg,var(--pA),var(--pB));color:var(--onP);box-shadow:0 8px 24px var(--glow)}
-.tabs__c{min-width:18px;height:16px;padding:0 5px;justify-content:center;background:var(--now);color:var(--onNow);font:800 10.5px/1 'Archivo';animation:iBeat2 1.6s ease-in-out infinite}
+.tabs a > .tabs__c{display:inline-flex;align-items:center;align-self:center}
+.tabs__c{min-width:18px;height:16px;padding:0 5px;justify-content:center;background:var(--now);color:var(--onNow);font:800 10.5px/1 'Archivo';animation:iGl 1.6s ease-in-out infinite}
 @keyframes iBeat2{0%,100%{transform:scale(1)}12%{transform:scale(1.25)}24%{transform:scale(1)}}
 
 .chips{gap:6px;padding-left:8px}

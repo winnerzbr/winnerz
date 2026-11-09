@@ -23,8 +23,8 @@ body{margin:0}
 .btn.icon.lg{width:54px}
 .btn svg{flex:none;display:block}
 
-.tabs{position:relative;display:flex;align-items:stretch}
-.tabs a{position:relative;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;cursor:pointer}
+.tabs{position:relative;display:flex;flex-wrap:wrap;row-gap:8px;align-items:stretch}
+.tabs a{position:relative;flex:none;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;cursor:pointer}
 .tabs__n{display:none;font-style:normal}
 .tabs__c{display:inline-flex;align-items:center;font-style:normal}
 

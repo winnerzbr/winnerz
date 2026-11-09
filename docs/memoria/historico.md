@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: canvas do redesign, abas cortadas na Impacto
+- **O dono comentou no canvas:** os textos dos botões de filtro (as abas) apareciam cortados na Impacto.
+- **Causa:** as abas encolhiam para caber na coluna, e os números de índice (01, 02...) apareciam na Impacto.
+- **Feito:**
+  - as abas não encolhem mais e passam para a linha de baixo quando falta espaço;
+  - o índice voltou a ficar escondido;
+  - o contador da aba "Galera" ficou centralizado.
+  - A correção vale para as 5 direções, e os 81 quadros foram republicados.
+
+---
+
 ## 09/11/2026: duas direções cinematográficas e todas as páginas do site, no escuro e no claro
 - **O dono pediu:** mais 2 sugestões, bem cinematográficas, com designs e efeitos especiais elaborados. Também pediu para mostrar todas as direções em mais páginas do site, no modo escuro e no claro.
 - **Feito:** no canvas da revisão (artefato 3c961142-dafa-4536-8fab-836d3f514cdb), agora com uma página do canvas para cada direção:

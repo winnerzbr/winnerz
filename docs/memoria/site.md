@@ -14,6 +14,8 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - Supabase e Vercel nos planos gratuitos. O e-mail sai pelo Resend.
 - **Espaço no Vercel:** o grátis guarda até 10 GB somando todas as versões do site, e cada versão ocupa uns 75 MB (quase tudo é o Jogos de Verão).
   - O `vercel.json` só deixa montar uma versão nova quando muda algo do site (`scripts/vercel-pular.sh`).
+  - Esse atalho compara com a última versão que deu certo, que pode ser uma prévia de outro ramo. Se o código passou por uma prévia e o último commit enviado ao `main` só muda `docs/`, o site no ar não muda (aconteceu em 09/11/2026). Mandar o código e a memória no mesmo commit.
+  - No GitHub, as versões puladas aparecem como "Deployment has failed". É normal quando o commit não muda o site.
   - Enviar ao `main` uma vez por rodada de trabalho, não a cada commit.
   - Arquivos grandes que não vão para o site ficam fora de `public/`.
 - **Autor dos commits:** `Claude <noreply@anthropic.com>`, que o GitHub reconhece. Com outro e-mail, o Vercel mostra o aviso "GitHub user not found". O aviso não bloqueia nada, mas é bom evitar.

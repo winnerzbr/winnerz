@@ -32,26 +32,27 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   Tudo é criado do zero para o WinnerZ.
 - **Notas:** escala de 0 a 5, sem estrelas.
-- **Redesign dos elementos em avaliação** (09/11/2026): o canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb) tem nove direções:
-  - **Fresta 2:** a Fresta levada aos cards, campos e filtros;
-  - **Monolito:** hardware de luxo, com teclas, LEDs e peso;
-  - **Letreiro:** créditos de cinema, só tipografia e fios;
-  - **Anamórfico:** luz de cinema, reflexo de lente, granulado e foco que muda;
-  - **Impacto:** a vinheta como interface, com luz diagonal, pulso, faíscas e partículas;
-  - **Ímã:** peças em duas metades que se afastam e se cravam, com a costura acendendo;
-  - **Transmissão:** o pacote gráfico da live, com letreiro de LED, tarjas e cortinas;
-  - **Cromo:** metal espelhado e laca negra, com reflexos que correm;
-  - **Impacto + Ímã:** a Impacto com os botões da Ímã (duas peças inclinadas que se cravam, com faíscas na emenda).
-
-  O dono gostou mais da linha ousada da Impacto (09/11/2026).
-
-  Todas aparecem em 8 páginas do site, no modo escuro e no claro. O gerador fica em `prototipos/redesign-elementos/`.
-
-  O ChatGPT também vai propor as dele. Nada foi aprovado nem aplicado: até o dono decidir, vale o Fresta atual.
-
-  Já decidido para o redesign:
-  - **WinnerZ Awards:** os efeitos da votação ficam como hoje (cena em tela larga, zoom lento, reflexo de lente, luz vazando, granulado, faixas pretas e clarão). Nunca trocar.
-  - **Nota:** barras inclinadas (as da Impacto), com os mesmos efeitos de hoje, nas duas escalas (0 a 5 e 0 a 10). O meio ponto corta a barra na horizontal. O número fica numa caixa de largura fixa, para as barras não andarem. Ao apontar: a barra vem da posição de lado a lado (corrigida pela inclinação), e o meio ponto vem da altura: metade de cima = ponto inteiro, metade de baixo = meio ponto.
+- **Visual em uso desde 09/11/2026: "Impacto + Ímã · cards com contorno"**, escolhido pelo dono no canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb):
+  - botões em duas peças inclinadas (o texto e a seta) que se afastam e se cravam no hover, com a emenda acendendo; o botão "agora" (âmbar) repete o impacto sozinho;
+  - abas, filtros e etiquetas em blocos inclinados, rótulos em caixa alta larga;
+  - cards com contorno discreto (escuro no modo escuro, cinza no claro) e um vão vazado de 5px; no hover, uma luz dá a volta dentro do vão. Os cards com foto que corta nas bordas (`rcard`, `evcard`, `hwcard`, `review`, `trail-card`) só acendem o contorno. Esse contorno com vão foi pedido pelo dono e não conta como "card cinza com contorno fino";
+  - feixes de luz diagonais no fundo; o logo pulsa de tempos em tempos;
+  - capas sem a inclinação com ponto de luz: sobem, a moldura acende e uma luz diagonal corta;
+  - campos com o traço inclinado na frente e brilho no foco; interruptor inclinado;
+  - **Nota:** barras inclinadas que enchem de baixo para cima, com os mesmos efeitos de antes, nas duas escalas (0 a 5 e 0 a 10). O meio ponto corta a barra na horizontal. O número fica numa caixa de largura fixa, para as barras não andarem. Ao apontar: a barra vem da posição de lado a lado (corrigida pela inclinação), e o meio ponto vem da altura: metade de cima = ponto inteiro, metade de baixo = meio ponto (`pickBar` em `src/components/Stars.tsx`, usado no `StarInput` e no `ScoreSlider`). O pulso sai a cada nota aplicada.
+- **WinnerZ Awards:** os efeitos da votação ficam como sempre (cena em tela larga, zoom lento, reflexo de lente, luz vazando, granulado, faixas pretas e clarão). Nunca trocar. Os rótulos do Awards, da revelação e dos cards de evento continuam no estilo mono.
+- **Como a Impacto foi montada (reversível):** é uma camada por cima da Fresta. A Fresta continua inteira no código (`fresta.css` e os outros).
+  - `src/styles/impacto.css` é carregado por último; cada parte só vale quando o `<html>` tem a classe `vi-<parte>`;
+  - as partes são: `fundo`, `menu`, `botoes`, `abas`, `filtros`, `etiquetas`, `cards`, `capas`, `campos`, `nota`, `avisos`;
+  - `src/lib/visual.ts` liga as classes:
+    - para voltar à Fresta inteira: `VISUAL = 'fresta'`;
+    - para trazer de volta só algumas partes da Fresta: pôr o nome delas em `FRESTA_PARTES` (ex.: `['botoes', 'nota']`).
+  - Teste sem mexer no código (vale só no aparelho que abre o link e fica guardado nele):
+    - `?visual=fresta` ou `?visual=impacto` troca tudo;
+    - `?fresta=botoes,cards` usa a Fresta só nessas partes;
+    - `?visual=padrao` volta ao que está no código.
+  - Para ajustar uma parte, mexer só no bloco dela em `impacto.css`.
+- **As outras direções do canvas** (para consulta): Fresta 2, Monolito, Letreiro, Anamórfico, Impacto, Ímã, Transmissão, Cromo e Impacto + Ímã. Todas aparecem em 8 páginas do site, no modo escuro e no claro. O gerador fica em `prototipos/redesign-elementos/`.
 
 ## WinnerZ Awards
 - 19 categorias. O dono escolhe os indicados.

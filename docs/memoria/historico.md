@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: visual Impacto + Ímã · cards com contorno aplicado no site
+- **O dono pediu:** aplicar no site o visual "Impacto + Ímã · cards com contorno", com a garantia de poder reaplicar partes da Fresta ou voltar com ela toda.
+- **Feito:**
+  - `src/styles/impacto.css`: uma camada por cima da Fresta, dividida em 11 partes (fundo, menu, botões, abas, filtros, etiquetas, cards, capas, campos, nota, avisos);
+  - `src/lib/visual.ts`: a chave geral e a lista de partes que ficam na Fresta;
+  - nota em barras no `StarInput` e no `ScoreSlider`, com a leitura do ponteiro pela altura e o pulso a cada nota aplicada;
+  - a votação do Awards não mudou.
+- **Conferido:** página de teste com todas as folhas de estilo do site, nos modos escuro e claro e com a Fresta; a versão de teste do Vercel compilou.
+- **Como voltar:** ver "Como a Impacto foi montada" em `site.md`.
+
+---
+
 ## 09/11/2026: nota em barras, meio ponto pela altura do ponteiro
 - **O dono pediu:** ao pôr o ponteiro direto na metade de cima da barra, ela deve ficar cheia (antes ficava pela metade até mexer o mouse).
 - **Feito:**

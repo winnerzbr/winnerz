@@ -18,7 +18,7 @@ export const PARTES = ['fundo', 'menu', 'botoes', 'abas', 'filtros', 'etiquetas'
 export type Parte = (typeof PARTES)[number];
 export type Nivel = 'carga' | 'impacto' | 'fresta';
 
-export const VISUAL: Nivel = 'impacto';
+export const VISUAL: Nivel = 'carga';
 export const IMPACTO_PARTES: Parte[] = [];
 export const FRESTA_PARTES: Parte[] = [];
 

@@ -34,7 +34,22 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
   Tudo é criado do zero para o WinnerZ.
 - **Notas:** escala de 0 a 5, sem estrelas.
-- **Visual em uso desde 09/11/2026: "Impacto + Ímã · cards com contorno"**, escolhido pelo dono no canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb):
+- **Visual no ar desde 09/11/2026 (noite): "Carga"**, escolhido pelo dono no canvas. É a Impacto + Ímã com o contorno com vão dos cards levado para tudo:
+  - botões: uma moldura inclinada com vão em volta das duas peças; no hover a luz dá uma volta, as peças se afastam e se cravam, e o vão fica aceso ("carregado"); o botão do agora tem a luz âmbar sempre girando;
+  - abas, alternadores e filtros: borda e vão; o escolhido já fica carregado;
+  - capas: a luz dá uma volta na moldura da capa e ela fica acesa;
+  - campos: borda e vão; no foco, uma volta e o vão acende;
+  - cards: a luz dá **uma volta só** e enche o vão (pedido do dono; antes eram duas);
+  - fundo: as faixas de luz passam três vezes mais devagar (54 s por ciclo; antes 18 s);
+  - menu, etiquetas, nota, linha do tempo e avisos ficam como na Impacto + Ímã.
+- **As três camadas do visual (todas inteiras no código):** Fresta (`fresta.css` e os outros) → Impacto + Ímã (`impacto.css`, classes `vi-<parte>`) → Carga (`carga.css`, classes `vc-<parte>`).
+  - `src/lib/visual.ts` decide a camada de cada parte:
+    - `VISUAL = 'carga'`, `'impacto'` ou `'fresta'` troca tudo;
+    - `IMPACTO_PARTES = ['botoes']` deixa só essas partes como na Impacto + Ímã; `FRESTA_PARTES = ['nota']` deixa só essas na Fresta.
+  - Partes: `fundo`, `menu`, `botoes`, `abas`, `filtros`, `etiquetas`, `cards`, `capas`, `campos`, `nota`, `linha`, `avisos`.
+  - Teste sem mexer no código (vale só no aparelho que abre o link e fica guardado nele): `?visual=carga|impacto|fresta`, `?impacto=botoes,cards`, `?fresta=nota`, `?visual=padrao` para desfazer.
+  - Para lançar um visual novo sem risco: publicar desligado, conferir com `?visual=...` no site no ar e só depois trocar o `VISUAL`.
+- **A camada de baixo, "Impacto + Ímã · cards com contorno"** (no ar em 09/11/2026 até a Carga), escolhido pelo dono no canvas "WinnerZ — revisão de design dos elementos" (artefato 3c961142-dafa-4536-8fab-836d3f514cdb):
   - botões em duas peças inclinadas (o texto e a seta) que se afastam e se cravam no hover, com a emenda acendendo; o botão "agora" (âmbar) repete o impacto sozinho;
   - abas, filtros e etiquetas em blocos inclinados, rótulos em caixa alta larga;
   - cards com contorno discreto (escuro no modo escuro, cinza no claro) e um vão vazado de 5px; no hover, uma luz dá duas voltas dentro do vão e depois enche o vão inteiro, que fica aceso enquanto o mouse estiver em cima (a volta sem fim tirava a atenção). Os cards com foto que corta nas bordas (`rcard`, `evcard`, `hwcard`, `review`, `trail-card`) só acendem o contorno. Esse contorno com vão foi pedido pelo dono e não conta como "card cinza com contorno fino";
@@ -47,22 +62,11 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - **Como a Impacto foi montada (reversível):** é uma camada por cima da Fresta. A Fresta continua inteira no código (`fresta.css` e os outros).
   - `src/styles/impacto.css` é carregado por último; cada parte só vale quando o `<html>` tem a classe `vi-<parte>`;
   - as partes são: `fundo`, `menu`, `botoes`, `abas`, `filtros`, `etiquetas`, `cards`, `capas`, `campos`, `nota`, `linha` (a linha do tempo do Início), `avisos`;
-  - `src/lib/visual.ts` liga as classes:
-    - para voltar à Fresta inteira: `VISUAL = 'fresta'`;
-    - para trazer de volta só algumas partes da Fresta: pôr o nome delas em `FRESTA_PARTES` (ex.: `['botoes', 'nota']`).
-  - Teste sem mexer no código (vale só no aparelho que abre o link e fica guardado nele):
-    - `?visual=fresta` ou `?visual=impacto` troca tudo;
-    - `?fresta=botoes,cards` usa a Fresta só nessas partes;
-    - `?visual=padrao` volta ao que está no código.
+  - Quem liga as classes é `src/lib/visual.ts` (ver "As três camadas do visual").
   - Para ajustar uma parte, mexer só no bloco dela em `impacto.css`.
   - Celular: há um bloco próprio para botões e fichas até 600 px (o texto quebra em duas linhas). A luz do vão dos cards só existe com mouse.
   - Para revisar o celular: navegador do app em 375 px e um script que mede texto que não cabe e elementos além da borda; comparar com `?visual=fresta`.
-- **Em avaliação no canvas (09/11/2026; nada aplicado no site): cinco variações da Impacto + Ímã com contorno.** O dono disse que prefere esta linha. Cada uma tem página própria, com os elementos e 8 páginas do site, no escuro e no claro:
-  - **Engate:** a emenda do botão vira um degrau em Z; cabeçalho e corpo do card engatam; abas, filtros e medidores são elos em seta.
-  - **Lâmina:** corte diagonal no botão, com as partes escorregando; lasca cortada no canto do card; fenda de luz na capa; abas e filtros em lâminas.
-  - **Rastro:** ecos de velocidade nas metades do botão, no card, na capa, no que está escolhido e no título.
-  - **Forja:** peças com chanfro; martelada no botão; emenda incandescente que esfria; vão do card em brasa.
-  - **Carga:** o contorno com vão dos cards em tudo (botões, abas, filtros, capas, campos); a luz dá uma volta e a peça fica carregada.
+- **Variações da Impacto + Ímã no canvas (09/11/2026):** Engate, Lâmina, Rastro, Forja e Carga. O dono escolheu a **Carga**, que foi para o site. As outras quatro ficam no canvas para consulta.
 - **Descartadas pelo dono (09/11/2026):** Pincel, Figurinha, Estojo, Quadrinho e Zênite, fora da linha Impacto. Ele apagou as páginas do canvas. Não propor de novo direções fora da linha Impacto + Ímã.
 - **As outras direções do canvas** (para consulta): Fresta 2, Monolito, Letreiro, Anamórfico, Impacto, Ímã, Transmissão, Cromo e Impacto + Ímã. Todas aparecem em 8 páginas do site, no modo escuro e no claro. O gerador fica em `prototipos/redesign-elementos/`.
 

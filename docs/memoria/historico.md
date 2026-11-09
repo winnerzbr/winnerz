@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: visual Carga aplicado no site
+- **O dono pediu:** implantar a Carga em todas as páginas, com a luz do vão dando só uma volta antes de a peça ficar carregada, e as faixas do fundo mais lentas. Com a garantia de voltar atrás ou usar partes avulsas da Fresta ou da Impacto + Ímã anterior.
+- **Feito:**
+  - `src/styles/carga.css`: terceira camada, por cima da `impacto.css`; mexe em fundo, botões, abas, filtros, cards, capas e campos;
+  - `src/lib/visual.ts`: três níveis por parte (`carga`, `impacto`, `fresta`), com `IMPACTO_PARTES` e `FRESTA_PARTES`, e os testes por `?visual=`, `?impacto=` e `?fresta=`;
+  - `impacto.css`: o número de voltas da luz dos cards virou ajustável (a Carga usa 1; a Impacto + Ímã continua com 2);
+  - faixas do fundo: de 18 s para 54 s por ciclo.
+- **Como foi lançado:** primeiro publicado desligado; conferido no site no ar com `?visual=carga`; só depois virou o padrão.
+- **Conferido no site no ar:** levantamento de botões, abas, filtros e cards com nome próprio em 22 páginas (as páginas usam as mesmas peças); varredura de texto cortado e conteúdo fora da tela em 21 páginas, no celular (375 px) e no computador (1360 px), sem nenhum problema; hover do botão e da capa; Coleção, página de jogo, Preferências e Comunidade olhadas de perto.
+- **Ficaram como estavam (têm desenho próprio):** a cena de votação do Awards, a visita guiada do Museu, as reações da Comunidade, as regiões da Jornada e o menu lateral das Preferências.
+
+---
+
 ## 09/11/2026: cinco variações da Impacto + Ímã no canvas
 - **O dono disse:** das 5 direções novas (Pincel, Figurinha, Estojo, Quadrinho, Zênite), prefere algo mais no estilo Impacto e Ímã. Ele apagou essas 5 páginas do canvas.
 - **Feito:** 5 páginas novas, todas partindo da Impacto + Ímã com contorno (o visual no ar): Engate, Lâmina, Rastro, Forja e Carga (90 quadros). Descrição em `site.md`.

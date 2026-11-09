@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: aviso de pacotes do Álbum
+- **O dono apontou:** o aviso "Você tem N pacotes para abrir" (`alb-note`) estava no layout antigo (fio âmbar em cima).
+- **Feito (`carga.css`):** os avisos do Álbum têm o contorno com vão dos cards; o do agora (pacotes para abrir) tem o contorno âmbar.
+
+---
+
 ## 09/11/2026: linha do tempo do Início sem a data de hoje no alto
 - **O dono pediu:** tirar o "Hoje · seg, 09 de nov" do alto da linha do tempo, porque a página já mostra "Hoje" em outros dois lugares.
 - **Feito:** a legenda ficou só com "← Passado" e "Próximo →" (`Home.tsx`, `pages.css`); no celular, onde só a data aparecia, a legenda some.

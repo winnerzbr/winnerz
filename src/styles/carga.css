@@ -192,3 +192,4 @@
   padding-left: 16px !important; padding-right: 42px !important;
 }
 .vc-campos .switch:checked { outline-color: var(--vi-ring); }
+.vc-campos .cfilters .switch { margin-right: 8px !important; }

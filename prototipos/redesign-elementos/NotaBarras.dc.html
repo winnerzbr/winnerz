@@ -113,11 +113,22 @@ class Component extends DCLogic {
   }
   patch(k, p) { this.setState((st) => ({ [k]: Object.assign({}, st[k], p) })); }
   fromX(e, max) {
-    const r = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(r.width, e.clientX - r.left - 12));
-    const w = r.width - 24;
-    if (x < 6) return 0;
-    return Math.min(max, Math.max(0.5, Math.ceil((x / w) * max * 2) / 2));
+    // As barras são inclinadas a 22°: a posição do ponteiro é "desinclinada" pela altura em que ele está,
+    // para valer só a ponta do ponteiro sobre a barra desenhada, e não a caixa reta em volta dela.
+    const row = e.currentTarget, r = row.getBoundingClientRect();
+    const bars = row.querySelectorAll('.bar');
+    if (!bars.length) return 0;
+    const b0 = bars[0];
+    const cy = r.top + b0.offsetTop + b0.offsetHeight / 2;
+    const x = (e.clientX - r.left) + Math.tan(22 * Math.PI / 180) * (e.clientY - cy);
+    if (x < b0.offsetLeft - 4) return 0;
+    for (let i = 0; i < bars.length; i++) {
+      const L = bars[i].offsetLeft, W = bars[i].offsetWidth;
+      const nextL = i + 1 < bars.length ? bars[i + 1].offsetLeft : L + W + 40;
+      if (x < L + W / 2) return Math.min(max, i + 0.5);
+      if (x < (L + W + nextL) / 2) return Math.min(max, i + 1);
+    }
+    return max;
   }
   commit(k, v) {
     const s = this.state[k];

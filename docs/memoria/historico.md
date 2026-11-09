@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 09/11/2026: nota em barras, ponteiro acompanhando a inclinação
+- **O dono comentou no canvas:** na metade de cima da barra, o ponteiro um pouco à direita acionava a barra seguinte.
+- **Causa:** a leitura usava só a posição horizontal, como se as barras fossem retas.
+- **Feito:** a posição do ponteiro é corrigida pela altura (22°), e vale a barra desenhada sob a ponta. Metade esquerda = meio ponto, metade direita = ponto inteiro, e o vão entre barras é dividido ao meio. Vale para as escalas de 0 a 5 e de 0 a 10.
+- **Regra para quando aplicar no site:** usar a mesma correção pela inclinação no `StarInput` e no `ScoreSlider`.
+
+---
+
 ## 09/11/2026: nota em barras, número fixo e escala de 0 a 10
 - **O dono comentou no canvas:** o número da nota empurrava as barras para o lado ao mudar; lembrou que o site também tem a escala até 10.
 - **Feito no quadro "Nota: barras com os efeitos de hoje":**

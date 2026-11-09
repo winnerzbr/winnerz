@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /api/
+Disallow: /studio
+Disallow: /sessao
+Disallow: /overlay/
+Disallow: /preferencias
+Disallow: /entrar

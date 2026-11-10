@@ -539,7 +539,7 @@
 .fx-arrow--l { left: 16px; } .fx-arrow--r { right: 16px; }
 .fx-arrow:hover:not(:disabled), .fx-arrow:focus-visible { background: #F2F4F6; color: #050506; outline: none; }
 .fx-arrow:disabled { opacity: .22; cursor: default; }
-.fx-count { font: 600 13px/1 var(--font-mono); letter-spacing: .14em; color: #9AA1AA; margin-left: 6px; }
+.fx-count { font: 600 13px/1 var(--font-mono); letter-spacing: .14em; color: #9AA1AA; margin-left: 6px; white-space: nowrap; }
 .fx-count b { color: #F2F4F6; font-size: 18px; }
 .fx.is-reduced .fx-sc, .fx.is-reduced .fx-edge, .fx.is-reduced .fx-sc .fx-bg, .fx.is-reduced .fx-sc .fx-pn > * { animation: none !important; }
 .fx.is-reduced .fx-sc.is-was { visibility: hidden; }

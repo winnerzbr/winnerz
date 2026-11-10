@@ -74,7 +74,7 @@ export function GlobalTimelinePage() {
   const [goTo, setGoTo] = useState<number | null>(null);
   useEffect(() => { track('jornada.linha-geral'); }, []);
   const ehMomento = (x: GlobalItem) => x.kind === 'jornada' && (x.ev === 'momento' || x.ev === 'marco' || x.ev === 'inicio' || !!x.image);
-  const ehZerou = (x: GlobalItem) => x.ev === 'marco' && /^zerou/i.test(x.title);
+  const ehZerou = (x: GlobalItem) => x.ev === 'marco' && /^zerou$/i.test(x.title.trim());
   const list = all.filter((x) => kind === 'tudo' || (kind === 'momentos' ? ehMomento(x) : x.kind === kind));
   const shown = list.slice(0, limit);
   const yearOf = (it: GlobalItem) => (it.precision === 'desconhecida' ? null : new Date(it.at).getFullYear());

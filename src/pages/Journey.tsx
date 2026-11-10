@@ -44,7 +44,7 @@ import { durLabel } from '../lib/format';
 import { shortPlatform } from '../lib/platforms';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
 import { PastSessionSheet } from '../components/PastSession';
-import { Retomar, Registros, DiasJogados, BlocoCampanha, Trilha, diasDeJogo } from '../components/JornadaPartes';
+import { Retomar, Registros, DiasJogados, BlocoCampanha, Trilha, diasDeJogo, Previsao, CurvaEmocoes } from '../components/JornadaPartes';
 
 
 export const eventDate = (e: TimelineEvent, short = true) => e.dateLabel ?? whenLabel(e.at, e.precision, { short });
@@ -491,8 +491,10 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                         <span>Arraste para informar. Chegar a 100% não marca Zerou sozinho.</span>
                         <span className="jprog__saved" aria-live="polite">{saved > 0 && <span key={saved} className="ok-flash">Salvo</span>}</span>
                       </p>
+                      {!light && <Previsao sessions={sessionsOf(s, current.id)} progress={progress} />}
                     </section>
                   )}
+                  {!light && <CurvaEmocoes sessions={sessionsOf(s, current.id)} />}
                   <section className="jdet__box">
                     <DifficultyField key={current.id} history={current} inline />
                     {!light && (

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: Jornada, rodada 2 (curva de emoções e previsão no seu ritmo)
+- **Curva "Como foi, dia a dia"** na aba Detalhes da página do jogo: uma linha com o "como foi a jogatina?" de cada dia de jogo (Adorei, Quero continuar, Foi suficiente, Não encaixou) e uma frase de resumo. Só aparece com 3 dias ou mais respondidos.
+- **Previsão "no seu ritmo"**, opcional, embaixo do progresso em Detalhes: começa desligada ("Mostrar uma previsão no seu ritmo"). Conta com o tempo que cada 1% levou e com o que se jogou nas últimas 4 semanas. Precisa de 1 hora registrada e 10% de progresso; sem isso, avisa que ainda não dá. A escolha fica guardada no aparelho.
+- **Já existiam (a revisão errou ao tratar como novidade):**
+  - "Anteriormente na sua Jornada…" já aparece sozinho na tela da sessão e, depois de 7 dias longe, o bloco "Voltar a um jogo" entra na página do jogo;
+  - os **ecos das amizades** já mostram, na linha do tempo, os momentos de quem joga o mesmo jogo, só até o ponto em que você está (sem spoiler).
+- **Falta:** live da Twitch virando sessão sozinha. É a maior: precisa de uma migração nova no Supabase e de um teste com live de verdade. A ligação da conta da Twitch já existe (pontes).
+- Arquivos: `src/components/JornadaPartes.tsx` (`Previsao`, `previsaoRitmo`, `CurvaEmocoes`), `src/pages/Journey.tsx`, fim de `src/styles/jornada.css`.
+
 ## 10/11/2026: Jornada, rodada 1 da revisão (simplificar e organizar)
 O dono aprovou todas as sugestões da revisão, **menos** os palpites lacrados e a figurinha por região.
 **Decisão:** o álbum de figurinhas fica em espera e só será lançado um tempo depois da estreia do site.

@@ -335,3 +335,68 @@ export function RegistroAuto({ sessions }: { sessions: Session[] }) {
     </section>
   );
 }
+
+/* ---- Previsão "no seu ritmo" (opcional; só com o que a pessoa registrou) ----------------------------------------- */
+const horasAprox = (min: number) => (min < 90 ? `${Math.max(1, Math.round(min / 10) * 10)} min` : `${Math.round(min / 60)} h`);
+/** Conta simples: o tempo que cada 1% levou até aqui, e quanto se jogou por semana nas últimas quatro. Sem dado bastante, não chuta. */
+export function previsaoRitmo(sessions: Session[], progress: number, now = Date.now()): { falta: number; semanas: number | null } | null {
+  const feitas = sessions.filter((x) => x.minutes);
+  const total = feitas.reduce((a, x) => a + (x.minutes ?? 0), 0);
+  if (progress < 10 || progress >= 100 || total < 60) return null;
+  const falta = Math.round((total / progress) * (100 - progress));
+  const mes = feitas.filter((x) => now - new Date(x.startedAt).getTime() < 28 * 86400000).reduce((a, x) => a + (x.minutes ?? 0), 0);
+  const porSemana = mes / 4;
+  return { falta, semanas: porSemana >= 20 ? Math.max(1, Math.round(falta / porSemana)) : null };
+}
+export function Previsao({ sessions, progress }: { sessions: Session[]; progress: number }) {
+  const [on, setOn] = useState(() => { try { return localStorage.getItem('wz.jornada.previsao') === '1'; } catch { return false; } });
+  const troca = (v: boolean) => { setOn(v); try { localStorage.setItem('wz.jornada.previsao', v ? '1' : '0'); } catch { /* só nesta visita */ } };
+  const p = previsaoRitmo(sessions, progress);
+  if (!on) return <p className="jprev"><button type="button" className="linklike" onClick={() => troca(true)}>Mostrar uma previsão no seu ritmo</button></p>;
+  return (
+    <p className="jprev">
+      {p ? <>No seu ritmo, faltam umas <b>{horasAprox(p.falta)}</b> de jogo{p.semanas ? <>, perto de <b>{p.semanas === 1 ? '1 semana' : `${p.semanas} semanas`}</b></> : ''}. É só uma conta com o que você registrou, sem prazo nenhum. </>
+        : <>Ainda não dá para prever: precisa de pelo menos 1 hora registrada e 10% de progresso. </>}
+      <button type="button" className="linklike" onClick={() => troca(false)}>Esconder</button>
+    </p>
+  );
+}
+
+/* ---- Curva de emoções: como foi cada dia de jogo ----------------------------------------------------------------- */
+const NIVEL: Record<string, number> = { 'Adorei': 3, 'Quero continuar': 2, 'Foi suficiente por hoje': 1, 'Não encaixou': 0 };
+const NIVEIS = ['Não encaixou', 'Foi suficiente', 'Quero continuar', 'Adorei'];
+export function CurvaEmocoes({ sessions }: { sessions: Session[] }) {
+  const pts = useMemo(() => {
+    const dias = new Map<string, { at: string; soma: number; n: number }>();
+    for (const x of [...sessions].sort((a, b) => a.startedAt.localeCompare(b.startedAt))) {
+      const v = x.feeling ? NIVEL[x.feeling] : undefined;
+      if (v == null) continue;
+      const k = diaKey(x.startedAt); const d = dias.get(k) ?? { at: x.startedAt, soma: 0, n: 0 };
+      d.soma += v; d.n += 1; dias.set(k, d);
+    }
+    return [...dias.values()].map((d) => ({ at: d.at, v: d.soma / d.n }));
+  }, [sessions]);
+  if (pts.length < 3) return null;
+  const W = 640, H = 150, L = 8, R = 8, T = 12, B = 12;
+  const x = (i: number) => L + (i * (W - L - R)) / (pts.length - 1);
+  const y = (v: number) => T + ((3 - v) * (H - T - B)) / 3;
+  const media = pts.reduce((a, p) => a + p.v, 0) / pts.length;
+  const alto = pts.reduce((a, p) => (p.v > a.v ? p : a));
+  const baixo = pts.reduce((a, p) => (p.v < a.v ? p : a));
+  const resumo = `Na média, ficou perto de “${NIVEIS[Math.round(media)]}”.${alto.v !== baixo.v ? ` O ponto mais alto foi ${diaCurto(alto.at).toLowerCase()}; o mais baixo, ${diaCurto(baixo.at).toLowerCase()}.` : ''}`;
+  return (
+    <section className="jdet__box jcurva" aria-labelledby="jcurva-h">
+      <h2 id="jcurva-h" className="jside__k">Como foi, dia a dia</h2>
+      <div className="jcurva__plot">
+        <div className="jcurva__eixo" aria-hidden="true">{[...NIVEIS].reverse().map((n) => <span key={n}>{n}</span>)}</div>
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={resumo}>
+          {[0, 1, 2, 3].map((v) => <line key={v} x1={0} x2={W} y1={y(v)} y2={y(v)} className="jcurva__g" />)}
+          <polyline points={pts.map((p, i) => `${x(i)},${y(p.v)}`).join(' ')} className="jcurva__l" />
+          {pts.map((p, i) => <rect key={p.at} x={x(i) - 4} y={y(p.v) - 4} width={8} height={8} className={`jcurva__p${i === pts.length - 1 ? ' is-now' : ''}`}><title>{`${diaCurto(p.at)}: ${NIVEIS[Math.round(p.v)]}`}</title></rect>)}
+        </svg>
+      </div>
+      <div className="jcurva__datas" aria-hidden="true"><span>{diaCurto(pts[0].at)}</span><span>{diaCurto(pts.at(-1)!.at)}</span></div>
+      <p className="jcurva__r">{resumo}</p>
+    </section>
+  );
+}

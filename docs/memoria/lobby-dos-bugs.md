@@ -66,3 +66,9 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 
 ## 10/11/2026: caderno de ideias
 O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadilhas, salas de sobrevivência, salas 2D de plataforma, cerca de 200 inimigos e 50 chefões, armas, melhorias, identidade das salas, satisfação de arma nova, easter eggs, documentos). Estão anotadas, com sugestões, em `docs/memoria/ideias.md` do repositório do jogo e na página "Lobby dos Bugs: caderno de ideias" no Claude (https://claude.ai/artifact/EJrAtEjDqAdLrgYk9tfEkP). Nada mudou no jogo. Falta o documento com tudo do jogo.
+
+## 10/11/2026: rodadas do dia e o estudo do estilo gráfico (em aberto)
+- Feito no repositório do jogo (detalhes em `docs/memoria/historico.md` de lá): corredores mais curtos; quebráveis arrumados; botão de ação (quadrado/X, F) para baú e itens; Upar por botão (triângulo/Y, Tab); acesso ao chefão pelo desenho do andar (sem chave); minimapa com a planta real, ícones, mapa grande e viagem rápida; menos travadinhas; objetos destacados do chão; IAmiguinho novo pelas 6 vistas do dono; 8 objetos do cenário redesenhados.
+- **Em aberto: o estilo gráfico.** O dono perguntou por gráficos mais definidos. Há uma prévia jogável no menu de teste ("Prévia: estilos") com a mesma sala e câmera em 4 estilos: hoje (16 pontos), 16 caprichado, 32 pontos (bonecos feitos de retratos do modelo 3D do dono) e 3D estilo PS2 (com o modelo 3D do IAmiguinho do dono). Até ele escolher, vale a pixel art de 16 pontos.
+- Ainda a responder pelo dono: a lore (ele vai pensar).
+

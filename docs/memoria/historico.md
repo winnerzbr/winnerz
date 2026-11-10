@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: Lobby dos Bugs, estudo do estilo gráfico (no repositório do jogo)
+- O dono pediu gráficos mais definidos e exemplos de vários estilos. No repositório `winnerzbr/lobby-dos-bugs` há agora a "Prévia: estilos" (menu de teste): hoje (16 pontos), 16 caprichado, 32 pontos e 3D estilo PS2, na mesma sala e câmera. Decisão do estilo: EM ABERTO (aguarda o dono jogar).
+- Resumo atualizado em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 10/11/2026: linha do tempo, rodada 2 (linha geral, lembranças, sessões do dia, nomes dos capítulos)
 Itens 1, 2, 6 e 7 da lista aprovada:
 - **Linha geral** (Jornada → Linha do tempo) agrupada por mês e, dentro do mês, por jogo: capa, dias de jogo, momentos, a frase mais recente, até 4 fotos (cada uma abre a cena certa) e "Ver os registros". "Zerou" ganha cartão grande. O que chegou à coleção fica em linhas discretas. Filtro novo **"Só momentos"**.

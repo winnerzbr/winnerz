@@ -253,7 +253,7 @@ export interface Session {
   goal?: string;
   goalDone?: 'sim' | 'quase' | 'nao';
   /** Sessão que veio de uma ponte (lida na Steam ou no RetroAchievements). */
-  source?: 'steam' | 'ra' | 'playnite';
+  source?: 'steam' | 'ra' | 'playnite' | 'twitch' | 'youtube';
   /** "Hoje é para…": a intenção escolhida antes e, no fim, se funcionou. */
   intent?: 'descansar' | 'divertir' | 'avancar' | 'desafio';
   intentMet?: 'sim' | 'meio' | 'nao';

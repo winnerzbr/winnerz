@@ -49,7 +49,7 @@ async function autoRegister() {
     }
     if (!acc?.auto) continue;
     const mapped = b.maps[`${it.provider}:${it.extGame}`];
-    const gameId = mapped ?? (it.provider === 'steam' ? it.gameId : null);
+    const gameId = mapped ?? (it.provider === 'steam' || it.provider === 'twitch' || it.provider === 'youtube' ? it.gameId : null);
     if (!gameId || !s.games[gameId]) continue;
     const j = journeyForGame(s, gameId);
     const h = j ? currentHistory(s, j.id) : null;
@@ -169,13 +169,13 @@ export function BridgeInbox() {
     <section className="card bridge-inbox" aria-labelledby="bridge-h">
       <div className="bridge-inbox__head">
         <h2 id="bridge-h" className="kicker">Vindo das pontes</h2>
-        <p className="muted">Sessões que a Steam e o RetroAchievements viram. Registre na Jornada ou ignore.</p>
+        <p className="muted">Sessões que as suas pontes viram. Registre na Jornada ou ignore.</p>
       </div>
       <ul className="bridge-list">
         {items.slice(0, 8).map((it) => {
           const mapped = b?.maps[`${it.provider}:${it.extGame}`];
           const game = s.games[mapped ?? it.gameId ?? ''] ?? Object.values(s.games).find((g) => it.igdbId && g.igdbId === it.igdbId);
-          const guess = it.provider !== 'steam' && !mapped && !it.confirmed;
+          const guess = it.provider !== 'steam' && it.provider !== 'twitch' && !mapped && !it.confirmed;
           return (
             <li key={it.id} className="bridge-item">
               <span className="bridge-item__cover">{game ? <CoverArt game={game} /> : <Icon name="jogos" size={20} />}</span>
@@ -219,6 +219,8 @@ export function BridgeSettings() {
       <BridgeRow provider="steam" placeholder="Link do seu perfil (steamcommunity.com/id/…)" hint="O perfil e os “Detalhes do jogo” precisam estar públicos na Steam. Para trazer também a biblioteca para a estante, use Coleção → Importar → Conectar a Steam: faz as duas coisas de uma vez." />
       <BridgeRow provider="ra" placeholder="Seu usuário no RetroAchievements" hint="Conquistas desbloqueadas viram sessões; o status do jogo vira a sugestão de onde você parou." />
       <PlayniteRow />
+      <LiveTwitchRow />
+      <BridgeRow provider="youtube" placeholder="Link do seu canal (youtube.com/@seucanal)" hint="Cada live encerrada no canal vira sessão, com o início e o fim de verdade. O YouTube não diz qual é o jogo: o WinnerZ procura o nome de um jogo da sua Jornada no título da live. A live precisa ficar pública no canal depois de acabar." />
       <TwitchRow />
     </section>
   );
@@ -258,6 +260,41 @@ function BridgeRow({ provider, placeholder, hint }: { provider: Provider; placeh
         </form>
       )}
       <p className="faint bridge-row__hint">{hint}</p>
+      {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
+    </div>
+  );
+}
+
+/** Lives da Twitch: usa a conta da Twitch já ligada (a de baixo). A Twitch avisa o começo e o fim de cada live. */
+function LiveTwitchRow() {
+  const b = useBridges();
+  const acc = b?.accounts.find((a) => a.provider === 'twitch');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const run = async (f: () => Promise<unknown>, ok?: string) => { setBusy(true); setMsg(''); try { await f(); if (ok) setMsg(ok); } catch (e) { setMsg(e instanceof Error ? e.message : 'Não deu.'); } setBusy(false); };
+  return (
+    <div className={`bridge-row${acc ? ' is-on' : ''}`}>
+      <div className="bridge-row__head">
+        <strong>{PROVIDER_NAME.twitch}</strong>
+        {acc ? <span className="chip chip--static">Ligadas{acc.display ? ` no canal ${acc.display}` : ''}</span> : <span className="faint">Desligadas</span>}
+      </div>
+      <p className="muted bridge-row__p">Fez live de um jogo? Ela vira sessão na Jornada, com o início e o fim exatos. Se você trocar de jogo no meio, cada jogo ganha a sua sessão. Categoria que não é jogo (Só na conversa) não conta.</p>
+      {acc ? (
+        <>
+          {acc.error && <p className="form-error" role="alert">{acc.error}</p>}
+          {acc.nowPlaying && <p className="muted bridge-row__p">No ar agora: <b>{acc.nowPlaying.title}</b>.</p>}
+          <label className="motion motion--switch" data-on={acc.auto}>
+            <input type="checkbox" role="switch" className="switch" checked={acc.auto} onChange={(e) => run(() => bridgeApi.setAuto('twitch', e.target.checked))} />
+            <span><strong>Registrar sozinho nas Jornadas em andamento</strong><span className="muted">Desligado, tudo espera em “Vindo das pontes”, na Jornada, para você confirmar.</span></span>
+          </label>
+          <div className="bridge-row__actions">
+            <button className="btn quiet sm danger" disabled={busy} onClick={() => run(() => bridgeApi.unlink('twitch'), 'Desligadas.')}>Desligar</button>
+          </div>
+        </>
+      ) : (
+        <div className="bridge-row__actions"><button className="btn primary sm" disabled={busy} onClick={() => run(() => bridgeApi.link('twitch', ''), 'Ligadas. A próxima live de um jogo vira sessão.')}>{busy ? 'Ligando…' : 'Ligar as lives'}</button></div>
+      )}
+      <p className="faint bridge-row__hint">Precisa da sua conta da Twitch ligada, logo abaixo.</p>
       {msg && <p className="muted bridge-row__msg" role="status">{msg}</p>}
     </div>
   );

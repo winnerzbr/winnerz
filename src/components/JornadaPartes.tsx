@@ -23,7 +23,7 @@ const diaCurto = (iso: string) => {
 };
 const diaLongo = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'short', timeZone: tz }).replace(/\./g, '');
 const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const FONTE: Record<string, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
+const FONTE: Record<string, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite', twitch: 'live na Twitch', youtube: 'live no YouTube' };
 
 /* ---- Onde você parou ------------------------------------------------------------------------------------------- */
 export function Retomar({ last, note, where, waypoints, photo, away, onPhoto, onLastPhoto, history, extra = [] }: {

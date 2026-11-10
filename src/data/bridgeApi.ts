@@ -11,7 +11,7 @@ import { setupNote } from '../lib/setupNote';
 
 const outlineCache = (gameId: string) => outlineApi.peek(gameId);
 
-export type Provider = 'steam' | 'ra' | 'playnite';
+export type Provider = 'steam' | 'ra' | 'playnite' | 'twitch' | 'youtube';
 export type NowPlaying = { provider: Provider; extGame: string; title: string; console?: string | null; detail?: string | null; igdbId?: number | null; gameId?: string | null };
 export type BridgeAccount = { provider: Provider; display?: string | null; auto: boolean; lastSyncAt?: string | null; error?: string | null; nowPlaying?: NowPlaying | null };
 export type BridgeItem = {
@@ -20,8 +20,8 @@ export type BridgeItem = {
 };
 export type Bridges = { accounts: BridgeAccount[]; items: BridgeItem[]; maps: Record<string, string> };
 
-export const PROVIDER_NAME: Record<Provider, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite' };
-export const BY: Record<Provider, string> = { steam: 'pela Steam', ra: 'pelo RetroAchievements', playnite: 'pelo Playnite' };
+export const PROVIDER_NAME: Record<Provider, string> = { steam: 'Steam', ra: 'RetroAchievements', playnite: 'Playnite', twitch: 'Lives da Twitch', youtube: 'Lives do YouTube' };
+export const BY: Record<Provider, string> = { steam: 'pela Steam', ra: 'pelo RetroAchievements', playnite: 'pelo Playnite', twitch: 'em live na Twitch', youtube: 'em live no YouTube' };
 /** Onde baixar a extensão do Playnite (compilada pelo GitHub a cada mudança). */
 export const PLAYNITE_DOWNLOAD = 'https://github.com/winnerzbr/winnerz/releases/download/playnite/WinnerZ.pext';
 
@@ -48,6 +48,8 @@ function demoSeed(p: Provider): BridgeItem[] {
     { id: 'demo-st-1', provider: 'steam', extGame: '2531310', title: 'The Last of Us Part II Remastered', console: 'PC (Steam)', gameId: 'tlou2', confirmed: true, startedAt: ago(27.5), endedAt: ago(26), minutes: 90, status: 'pendente' },
     { id: 'demo-st-2', provider: 'steam', extGame: '1245620', title: 'ELDEN RING', console: 'PC (Steam)', gameId: 'elden', confirmed: true, startedAt: ago(4), endedAt: ago(2.2), minutes: 108, status: 'pendente' },
   ];
+  if (p === 'twitch' || p === 'youtube') return [{ id: `demo-${p}-1`, provider: p, extGame: p === 'twitch' ? '512953' : 'demo-video', title: 'ELDEN RING', gameId: 'elden', confirmed: p === 'twitch', startedAt: ago(20), endedAt: ago(18), minutes: 120,
+    detail: p === 'twitch' ? 'Live na Twitch' : 'Live no YouTube: ELDEN RING #12, enfim o Morgott', status: 'pendente' }];
   return [{ id: 'demo-ra-1', provider: 'ra', extGame: '2721', title: 'Metal Gear Solid 2: Sons of Liberty', console: 'PlayStation 2', gameId: 'mgs2', confirmed: false, startedAt: ago(30), endedAt: ago(29), minutes: 62,
     detail: '3 conquistas: Tanker, Olga Gurlukovich, Sem alarmes', presence: 'Plant · Strut E · 2 rações', status: 'pendente' }];
 }
@@ -82,13 +84,13 @@ export const bridgeApi = {
   async link(provider: Provider, value: string): Promise<string | null> {
     if (!supa()) {
       const d = demoLoad();
-      const name = provider === 'steam' ? 'voce_na_steam' : value.trim() || 'voce';
+      const name = provider === 'steam' ? 'voce_na_steam' : provider === 'twitch' ? 'voce_na_twitch' : value.trim() || 'voce';
       d.accounts = [...d.accounts.filter((a) => a.provider !== provider), { provider, display: name, auto: true, lastSyncAt: new Date().toISOString(), nowPlaying: provider === 'steam' ? { provider, extGame: '1245620', title: 'ELDEN RING', gameId: 'elden' } : null }];
       d.items = [...d.items.filter((i) => i.provider !== provider), ...demoSeed(provider)];
       demoSave(d); await bridgeApi.status();
       return name;
     }
-    const r = await api({ link: provider, value });
+    const r = await api({ link: provider === 'twitch' ? 'twitch-live' : provider, value });
     await bridgeApi.status();
     return r.display ?? null;
   },

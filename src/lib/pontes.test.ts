@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo, linksDe, moderar, preencher, falasDoBot, ehMencao, type BotCfg } from '../../api/pontes';
+import { raCleanTitle, raClusters, playniteSession, achRows, achMoves, achPrompt, enderecoAvisos, mensagemTwitch, mensagemYoutube, faltaEscopo, linksDe, moderar, preencher, falasDoBot, ehMencao, ytCanalDe, jogoNoTitulo, liveSessao, type BotCfg } from '../../api/pontes';
 
 test('títulos do RetroAchievements viram nomes buscáveis', () => {
   assert.equal(raCleanTitle('Legend of Zelda, The: A Link to the Past'), 'The Legend of Zelda: A Link to the Past');
@@ -205,4 +205,15 @@ test('etapa 4a: quem chama o IAmiguinho', () => {
   assert.equal(ehMencao('@iamiguinhoo'), false);
   assert.equal(ehMencao('@robo_do_canal oi', 'robo_do_canal'), true);
   assert.equal(ehMencao('@robo_do_canal oi', 'x;y'), false);
+});
+
+test('lives viram sessão: canal do YouTube, jogo no título e duração da live', () => {
+  assert.deepEqual(ytCanalDe('https://www.youtube.com/@WinnerZ'), { handle: 'WinnerZ' });
+  assert.deepEqual(ytCanalDe('youtube.com/channel/UCabcdefghijklmnopqrstuv'), { id: 'UCabcdefghijklmnopqrstuv' });
+  assert.equal(ytCanalDe('nome com espaço'), null);
+  assert.equal(jogoNoTitulo('ELDEN RING #12 - Finalmente o Morgott!', [{ title: 'Ring' }, { title: 'Elden Ring' }])?.title, 'Elden Ring');
+  assert.equal(jogoNoTitulo('Pokémon Violet ao vivo', [{ title: 'Pokemon Violet' }])?.title, 'Pokemon Violet');
+  assert.equal(jogoNoTitulo('bate-papo de domingo', [{ title: 'Elden Ring' }]), undefined);
+  assert.equal(liveSessao('2026-11-10T10:00:00Z', Date.parse('2026-11-10T11:30:00Z'))?.minutes, 90);
+  assert.equal(liveSessao('2026-11-10T10:00:00Z', Date.parse('2026-11-10T10:03:00Z')), null);
 });

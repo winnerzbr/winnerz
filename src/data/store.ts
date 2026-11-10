@@ -855,7 +855,7 @@ export const actions = {
     return actions.addInferredSession(gameId, { startedAt: d.startedAt, endedAt, minutes, whereStopped: d.whereStopped, note: d.note });
   },
 
-  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source?: 'steam' | 'ra' | 'playnite'; detail?: string | null; whereStopped?: string | null; note?: string }, opts: { onlyOpen?: boolean } = {}): ID | null {
+  addInferredSession(gameId: ID, d: { startedAt: string; endedAt: string; minutes: number; source?: 'steam' | 'ra' | 'playnite' | 'twitch' | 'youtube'; detail?: string | null; whereStopped?: string | null; note?: string }, opts: { onlyOpen?: boolean } = {}): ID | null {
     let journey = journeyForGame(state, gameId);
     let history = journey ? currentHistory(state, journey.id) : null;
     if (opts.onlyOpen && (!history || history.state !== 'ativa')) return null;
@@ -872,7 +872,7 @@ export const actions = {
       if (isNew) dispatch({ type: 'journey.create', journey, history, event }); else dispatch({ type: 'history.create', history, event });
     }
     const before = sessionsOf(state, history.id).filter((x) => x.startedAt < d.startedAt).length;
-    const by = !d.source ? 'Lançada depois' : d.source === 'steam' ? 'Pela Steam' : d.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements';
+    const by = !d.source ? 'Lançada depois' : d.source === 'steam' ? 'Pela Steam' : d.source === 'playnite' ? 'Pelo Playnite' : d.source === 'twitch' ? 'Em live na Twitch' : d.source === 'youtube' ? 'Em live no YouTube' : 'Pelo RetroAchievements';
     const where = d.whereStopped?.trim().slice(0, 140) || undefined;
     const note = d.note?.trim().slice(0, 500) || undefined;
     const session: Session = { id: uid(), journeyId: journey.id, historyId: history.id, startedAt: d.startedAt, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where, note, source: d.source, progress: history.progress };
@@ -889,7 +889,7 @@ export const actions = {
     const where = d.whereStopped?.trim().slice(0, 140) || ses.whereStopped;
     dispatch({ type: 'session.update', session: { ...ses, endedAt: d.endedAt, minutes: Math.max(1, Math.round(d.minutes)), whereStopped: where } });
     const ev = state.events.find((e) => e.sessionId === sessionId && e.kind === 'sessao');
-    if (ev) dispatch({ type: 'event.update', eventId: ev.id, patch: { at: d.endedAt, text: [`${ses.source === 'ra' ? 'Pelo RetroAchievements' : ses.source === 'playnite' ? 'Pelo Playnite' : 'Pela Steam'}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') } });
+    if (ev) dispatch({ type: 'event.update', eventId: ev.id, patch: { at: d.endedAt, text: [`${ses.source === 'ra' ? 'Pelo RetroAchievements' : ses.source === 'playnite' ? 'Pelo Playnite' : ses.source === 'twitch' ? 'Em live na Twitch' : ses.source === 'youtube' ? 'Em live no YouTube' : 'Pela Steam'}.`, where ? `Parou em: ${where}.` : '', d.detail ? `${d.detail}.` : ''].filter(Boolean).join(' ') } });
   },
 
   /** "Estou neste capítulo": guarda o capítulo e leva o progresso para o começo dele. Sem capítulo, só tira a marca. */

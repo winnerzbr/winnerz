@@ -5,6 +5,7 @@
  *   POST /api/pontes (com login) { link: "ra", value: "<usuário>" }            → liga o RetroAchievements
  *   POST /api/pontes (com login) { link: "playnite" }                         → gera a chave pessoal da extensão do Playnite (mostrada uma vez)
  *   POST /api/pontes (extensão do Playnite, cabeçalho X-WinnerZ-Token) { playnite: { event: "start" | "stop", game, startedAt?, endedAt? } }
+ *   POST /api/pontes (com login) { link: "twitch-live" } | { link: "youtube", value: "<canal>" } → lives viram sessão (migração 0098)
  *   POST /api/pontes (com login) { sync: true, force?: true }                  → busca agora (no máximo a cada 10 minutos; com force, a cada 1)
  *   POST /api/pontes (com login) { achievements: "<jogo>" }                   → C3: liga as conquistas do jogo à lista agora (se ainda não tem)
  *   GET  /api/pontes?cron=1  (agendado pela Vercel, uma vez por dia)           → busca de todo mundo que ligou alguma ponte
@@ -48,7 +49,7 @@
 
 type Req = { method?: string; body?: unknown; query?: Record<string, string | string[] | undefined>; headers?: Record<string, string | string[] | undefined> };
 type Res = { status: (n: number) => Res; json: (b: unknown) => void; setHeader: (k: string, v: string) => void; send?: (b: string) => void; end?: (b?: string) => void };
-type Account = { user_id: string; provider: 'steam' | 'ra' | 'playnite'; external_id: string; display?: string | null; last_sync_at?: string | null };
+type Account = { user_id: string; provider: 'steam' | 'ra' | 'playnite' | 'twitch' | 'youtube'; external_id: string; display?: string | null; last_sync_at?: string | null };
 type Row = Record<string, unknown>;
 
 const SYNC_EVERY_MIN = 10;
@@ -1206,6 +1207,9 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
     return res.send ? res.send(String(msg.challenge ?? '')) : res.end?.(String(msg.challenge ?? ''));
   }
   if (type === 'revocation') {
+    // Inscrição de live de outra pessoa (ponte): não mexe no estado do canal do site.
+    const dono = String((msg.subscription as { condition?: { broadcaster_user_id?: string } } | undefined)?.condition?.broadcaster_user_id ?? '');
+    if (dono && dono !== (await canalDoSite())) return done204(res);
     await marcarInscricao(msg.subscription?.id, `revogada: ${msg.subscription?.status ?? '?'}`);
     await patch('twitch_channel', 'id=eq.1', { sub_status: `revogada: ${msg.subscription?.status ?? '?'}`.slice(0, 60), updated_at: new Date().toISOString() }).catch(() => null);
     return done204(res);
@@ -1224,8 +1228,15 @@ async function twitchEvent(req: Req, res: Res, raw: string) {
     return done204(res);
   }
   // A live começou: os créditos e a conversa passam a contar daqui.
-  if (type === 'notification' && msg.subscription?.type === 'stream.online') {
-    await patch('live_painel', 'id=eq.1', { inicio: new Date().toISOString(), updated_at: new Date().toISOString() }).catch(() => null);
+  const tipoLive = type === 'notification' ? msg.subscription?.type ?? '' : '';
+  if (LIVE_TIPOS.some(([t]) => t === tipoLive)) {
+    const ev = (msg.event ?? {}) as Record<string, unknown>;
+    // Pontes: a live de quem ligou "lives da Twitch" vira sessão (migração 0098).
+    await liveEvento(tipoLive, ev).catch(() => console.error('pontes: a live não virou sessão'));
+    if (tipoLive === 'stream.online') {
+      const canal = await canalDoSite();
+      if (!canal || canal === String(ev.broadcaster_user_id ?? '')) await patch('live_painel', 'id=eq.1', { inicio: new Date().toISOString(), updated_at: new Date().toISOString() }).catch(() => null);
+    }
     return done204(res);
   }
   // Sistema de live: seguidor, inscrição, renovação, presente, bits e raid viram alerta (o id da mensagem evita repetir).
@@ -1311,12 +1322,183 @@ async function playniteEvent(token: string, body: { playnite?: { event?: string;
   return { status: 200, json: { ok: true, minutes: ses.minutes } };
 }
 
+/* ---- Lives viram sessão (migração 0098) ---------------------------------------------------- */
+// Twitch: quem ligou "lives" recebe três inscrições do EventSub (a live começou, acabou, mudou de categoria). Enquanto
+// a live está no ar, o jogo e a hora de início ficam em linked_accounts.now_playing; no fim (ou na troca de categoria)
+// o trecho vira uma linha em inferred_sessions, como nas outras pontes. Categoria que não é jogo (Só na conversa) não vira nada.
+// YouTube: a pessoa informa o canal; a busca lê os envios mais recentes e aproveita as lives já encerradas (início e fim
+// de verdade). O YouTube não diz qual é o jogo: procura o nome de um jogo da pessoa no título do vídeo.
+const MIG98 = 'Falta rodar a migração 0098 no Supabase.';
+const LIVE_TIPOS: [string, string][] = [['stream.online', '1'], ['stream.offline', '1'], ['channel.update', '2']];
+type LiveAgora = { provider: 'twitch'; extGame: string; title: string; igdbId: number | null; gameId: string | null; since: string };
+async function helixApp(caminho: string, init?: { method?: string; body?: string }): Promise<Response | null> {
+  const tk = await appToken();
+  if (!tk) return null;
+  return fetch(`https://api.twitch.tv/helix/${caminho}`, { ...init, headers: { 'Client-Id': process.env.TWITCH_CLIENT_ID!, Authorization: `Bearer ${tk}`, 'Content-Type': 'application/json' } }).catch(() => null);
+}
+async function canalDoSite(): Promise<string | null> {
+  return (await sel<{ broadcaster_id: string | null }>('twitch_channel?select=broadcaster_id&id=eq.1').catch(() => []))[0]?.broadcaster_id ?? null;
+}
+/** Cria as três inscrições da pessoa. "Já existe" (409) conta como certo: o canal do site pode ter a mesma. */
+async function liveInscrever(req: Req, b: string): Promise<boolean> {
+  const transport = { method: 'webhook', callback: AVISOS(req), secret: await eventsubSecret(serverSecret()) };
+  let ok = 0;
+  for (const [type, version] of LIVE_TIPOS) {
+    const r = await helixApp('eventsub/subscriptions', { method: 'POST', body: JSON.stringify({ type, version, condition: { broadcaster_user_id: b }, transport }) });
+    if (r && (r.ok || r.status === 409)) ok += 1;
+  }
+  return ok === LIVE_TIPOS.length;
+}
+/** Apaga as inscrições de live de quem desligou (menos as que o canal do site usa). */
+async function liveDesinscrever(b: string) {
+  const canal = await canalDoSite();
+  const r = await helixApp(`eventsub/subscriptions?user_id=${encodeURIComponent(b)}`);
+  const lista = r?.ok ? (((await r.json().catch(() => ({}))) as { data?: { id: string; type: string }[] }).data ?? []) : [];
+  for (const x of lista) {
+    if (!LIVE_TIPOS.some(([t]) => t === x.type) || (canal === b && x.type === 'stream.online')) continue;
+    await helixApp(`eventsub/subscriptions?id=${encodeURIComponent(x.id)}`, { method: 'DELETE' });
+  }
+}
+/** O jogo de uma categoria da Twitch: o número do IGDB vem da própria Twitch. Sem ele, não é jogo. */
+async function liveJogo(catId: string, catNome: string, since: string): Promise<LiveAgora | null> {
+  if (!/^\d+$/.test(catId)) return null;
+  const r = await helixApp(`games?id=${catId}`);
+  const g = r?.ok ? (((await r.json().catch(() => ({}))) as { data?: { name?: string; igdb_id?: string }[] }).data ?? [])[0] : undefined;
+  const igdbId = Number(g?.igdb_id) || null;
+  if (!igdbId) return null;
+  const gameId = (await gameIdsByIgdb([igdbId])).get(igdbId) ?? null;
+  return { provider: 'twitch', extGame: catId, title: String(g?.name ?? catNome).slice(0, 160), igdbId, gameId, since };
+}
+export function liveSessao(since: string, fim: number): { start: number; minutes: number } | null {
+  const start = Date.parse(since);
+  if (!Number.isFinite(start) || start >= fim) return null;
+  const minutes = Math.round((fim - start) / 60_000);
+  return minutes < MIN_DELTA ? null : { start, minutes: Math.min(1440, minutes) };
+}
+async function liveFechar(user: string, st: LiveAgora | null, fim: number) {
+  const ses = st?.since ? liveSessao(st.since, fim) : null;
+  if (!st || !ses) return;
+  await upsert('inferred_sessions', [{ user_id: user, provider: 'twitch', key: `tw:${st.extGame}:${Math.floor(ses.start / 1000)}`, ext_game: st.extGame, title: st.title, console: null,
+    igdb_id: st.igdbId, game_id: st.gameId, started_at: new Date(ses.start).toISOString(), ended_at: new Date(ses.start + ses.minutes * 60_000).toISOString(), minutes: ses.minutes, detail: 'Live na Twitch' }], 'user_id,key', true);
+}
+async function liveGravar(user: string, st: LiveAgora | null) {
+  const at = new Date().toISOString();
+  await patch('linked_accounts', `user_id=eq.${user}&provider=eq.twitch`, { now_playing: st, now_at: st ? at : null, last_sync_at: at, last_error: null });
+}
+/** Um aviso da Twitch sobre a live de alguém que ligou a ponte. Sem ponte ligada, apaga as inscrições que sobraram. */
+async function liveEvento(tipo: string, ev: Record<string, unknown>) {
+  const b = String(ev.broadcaster_user_id ?? '');
+  if (!/^\d{1,20}$/.test(b)) return;
+  const acc = (await sel<{ user_id: string; now_playing: LiveAgora | null }>(`linked_accounts?select=user_id,now_playing&provider=eq.twitch&external_id=eq.${b}&limit=1`).catch(() => []))[0];
+  if (!acc) { if ((await canalDoSite()) !== b) await liveDesinscrever(b); return; }
+  const agora = Date.now();
+  const atual = acc.now_playing?.provider === 'twitch' && acc.now_playing.since ? acc.now_playing : null;
+  if (tipo === 'stream.offline') { await liveFechar(acc.user_id, atual, agora); await liveGravar(acc.user_id, null); return; }
+  if (tipo === 'stream.online') {
+    const r = await helixApp(`channels?broadcaster_id=${b}`);
+    const c = r?.ok ? (((await r.json().catch(() => ({}))) as { data?: { game_id?: string; game_name?: string }[] }).data ?? [])[0] : undefined;
+    const since = Number.isFinite(Date.parse(String(ev.started_at ?? ''))) ? String(ev.started_at) : new Date(agora).toISOString();
+    await liveGravar(acc.user_id, await liveJogo(String(c?.game_id ?? ''), String(c?.game_name ?? ''), since));
+    return;
+  }
+  // Mudou a categoria: só interessa com a live no ar (now_at marca que ela está).
+  const noAr = (await sel<{ now_at: string | null }>(`linked_accounts?select=now_at&provider=eq.twitch&user_id=eq.${acc.user_id}`).catch(() => []))[0]?.now_at;
+  const cat = String(ev.category_id ?? '');
+  if (!atual && !noAr) return;
+  if (atual?.extGame === cat) return;
+  await liveFechar(acc.user_id, atual, agora);
+  const prox = await liveJogo(cat, String(ev.category_name ?? ''), new Date(agora).toISOString());
+  // Fora de jogo (Só na conversa): guarda só que a live segue no ar, para a próxima troca de categoria contar.
+  const at = new Date().toISOString();
+  await patch('linked_accounts', `user_id=eq.${acc.user_id}&provider=eq.twitch`, { now_playing: prox, now_at: at, last_sync_at: at });
+}
+async function linkTwitchLive(req: Req, user: string) {
+  const tl = (await sel<{ twitch_id: string; login: string | null }>(`twitch_links?select=twitch_id,login&user_id=eq.${user}`).catch(() => []))[0];
+  if (!tl?.twitch_id) return { error: 'Ligue primeiro a sua conta da Twitch (logo abaixo, em “Twitch”) e volte aqui.' };
+  const at = new Date().toISOString();
+  try { await upsert('linked_accounts', [{ user_id: user, provider: 'twitch', external_id: tl.twitch_id, display: tl.login ?? 'Twitch', last_sync_at: at, last_error: null, now_playing: null, now_at: null }], 'user_id,provider'); }
+  catch { return { error: MIG98 }; }
+  if (!(await liveInscrever(req, tl.twitch_id))) {
+    await patch('linked_accounts', `user_id=eq.${user}&provider=eq.twitch`, { last_error: 'A Twitch não aceitou o pedido de aviso das lives. Desligue e ligue de novo.' }).catch(() => null);
+    return { error: 'A Twitch não aceitou o pedido de aviso das lives. Tente de novo em alguns minutos.' };
+  }
+  // Se a live já está no ar agora, começa a contar daqui.
+  const r = await helixApp(`streams?user_id=${tl.twitch_id}`);
+  const st = r?.ok ? (((await r.json().catch(() => ({}))) as { data?: { game_id?: string; game_name?: string; started_at?: string }[] }).data ?? [])[0] : undefined;
+  if (st?.started_at) await liveGravar(user, await liveJogo(String(st.game_id ?? ''), String(st.game_name ?? ''), at)).catch(() => null);
+  return { ok: true, display: tl.login ?? 'Twitch' };
+}
+
+/** Uma leitura pública do YouTube: com a chave do servidor (YOUTUBE_API_KEY) ou com a autorização do canal do site. */
+async function ytPublico(caminho: string): Promise<any | null> {
+  const key = process.env.YOUTUBE_API_KEY;
+  let headers: Record<string, string> = {};
+  if (!key) {
+    const row = await ytLinha().catch(() => null);
+    const tk = row ? await acessoYoutube(row) : null;
+    if (!tk) throw new Error('O YouTube ainda não foi ligado no servidor. A administração liga o canal na Central da live.');
+    headers = { Authorization: `Bearer ${tk}` };
+  }
+  const r = await fetch(`${YT}/${caminho}${key ? `&key=${encodeURIComponent(key)}` : ''}`, { headers }).catch(() => null);
+  if (!r?.ok) return null;
+  return r.json().catch(() => null);
+}
+export function ytCanalDe(valor: string): { id?: string; handle?: string } | null {
+  const v = valor.trim();
+  const id = /(UC[\w-]{22})(?![\w-])/.exec(v)?.[1];
+  if (id) return { id };
+  const h = /(?:^|\/)@([\w.-]{3,30})/.exec(v)?.[1] ?? (/^[\w.-]{3,30}$/.test(v) ? v : undefined);
+  return h ? { handle: h } : null;
+}
+async function linkYoutube(user: string, value: string) {
+  const alvo = ytCanalDe(value);
+  if (!alvo) return { error: 'Cole o link do seu canal (youtube.com/@seucanal) ou o @ do canal.' };
+  let j: any;
+  try { j = await ytPublico(`channels?part=snippet&${alvo.id ? `id=${alvo.id}` : `forHandle=${encodeURIComponent(`@${alvo.handle}`)}`}`); }
+  catch (e) { return { error: e instanceof Error ? e.message : 'O YouTube não respondeu.' }; }
+  const c = j?.items?.[0];
+  if (!c?.id || !/^UC[\w-]{22}$/.test(c.id)) return { error: 'Não achei esse canal no YouTube. Confira o link.' };
+  const display = String(c.snippet?.title ?? 'YouTube').slice(0, 60);
+  try { await upsert('linked_accounts', [{ user_id: user, provider: 'youtube', external_id: c.id, display, last_sync_at: new Date().toISOString(), last_error: null, now_playing: null, now_at: null }], 'user_id,provider'); }
+  catch { return { error: MIG98 }; }
+  return { ok: true, display };
+}
+const soLetras = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+/** O jogo da pessoa cujo nome aparece no título do vídeo (o nome mais comprido ganha). */
+export function jogoNoTitulo<T extends { title: string }>(titulo: string, jogos: T[]): T | undefined {
+  const t = ` ${soLetras(titulo)} `;
+  return jogos.filter((g) => { const n = soLetras(g.title); return n.length >= 3 && t.includes(` ${n} `); }).sort((a, b) => b.title.length - a.title.length)[0];
+}
+async function syncYoutube(acc: Account): Promise<{ added: number; now: Row | null }> {
+  if (!/^UC[\w-]{22}$/.test(acc.external_id)) throw new Error('Canal inválido. Desligue e ligue de novo.');
+  // Só o que acabou depois da última busca: o que veio antes de ligar não entra.
+  const desde = acc.last_sync_at ? Date.parse(acc.last_sync_at) - 60_000 : Date.now();
+  const pl = await ytPublico(`playlistItems?part=contentDetails&maxResults=10&playlistId=UU${acc.external_id.slice(2)}`);
+  const ids: string[] = (pl?.items ?? []).map((x: any) => String(x?.contentDetails?.videoId ?? '')).filter((x: string) => /^[\w-]{6,20}$/.test(x));
+  if (!ids.length) return { added: 0, now: null };
+  const vs = await ytPublico(`videos?part=snippet,liveStreamingDetails&id=${ids.join(',')}`);
+  const lives = ((vs?.items ?? []) as any[]).map((v) => ({ id: String(v.id), titulo: String(v.snippet?.title ?? '').slice(0, 160), ini: Date.parse(v.liveStreamingDetails?.actualStartTime ?? ''), fim: Date.parse(v.liveStreamingDetails?.actualEndTime ?? '') }))
+    .filter((v) => Number.isFinite(v.ini) && Number.isFinite(v.fim) && v.fim > desde && v.fim - v.ini >= MIN_DELTA * 60_000);
+  if (!lives.length) return { added: 0, now: null };
+  const meus = (await sel<{ game_id: string }>(`journeys?select=game_id&user_id=eq.${acc.user_id}&limit=500`).catch(() => [])).map((x) => x.game_id).filter((x) => /^[\w-]{1,80}$/.test(x));
+  const jogos = meus.length ? await sel<{ id: string; title: string; igdb_id: number | null }>(`games?select=id,title,igdb_id&id=in.(${[...new Set(meus)].map((x) => `"${x}"`).join(',')})`).catch(() => []) : [];
+  const fresh: Row[] = [];
+  for (const v of lives) {
+    const g = jogoNoTitulo(v.titulo, jogos);
+    const minutes = Math.min(1440, Math.round((v.fim - v.ini) / 60_000));
+    fresh.push({ user_id: acc.user_id, provider: 'youtube', key: `yt:${v.id}`, ext_game: v.id, title: g?.title ?? v.titulo, console: null, igdb_id: g?.igdb_id ?? null, game_id: g?.id ?? null,
+      started_at: new Date(v.ini).toISOString(), ended_at: new Date(v.ini + minutes * 60_000).toISOString(), minutes, detail: `Live no YouTube: ${v.titulo}`.slice(0, 200) });
+  }
+  await upsert('inferred_sessions', fresh, 'user_id,key', true);
+  return { added: fresh.length, now: null };
+}
+
 /* ---- Busca ------------------------------------------------------------------------------- */
 async function syncOne(acc: Account): Promise<number> {
-  if (acc.provider === 'playnite') return 0; // o Playnite avisa sozinho; não há o que buscar
+  if (acc.provider === 'playnite' || acc.provider === 'twitch') return 0; // o Playnite e a Twitch avisam sozinhos; não há o que buscar
   const startedAt = new Date().toISOString();
   try {
-    const r = acc.provider === 'steam' ? await syncSteam(acc) : await syncRa(acc);
+    const r = acc.provider === 'steam' ? await syncSteam(acc) : acc.provider === 'youtube' ? await syncYoutube(acc) : await syncRa(acc);
     await patch('linked_accounts', `user_id=eq.${acc.user_id}&provider=eq.${acc.provider}`, { last_sync_at: startedAt, last_error: null, now_playing: r.now, now_at: r.now ? startedAt : null });
     return r.added;
   } catch (e) {
@@ -1436,6 +1618,10 @@ export default async function handler(req: Req, res: Res) {
       return res.status(200).json({ url: r.url });
     }
     if (body.link === 'playnite') return res.status(200).json(await linkPlaynite(user));
+    if (body.link === 'twitch-live' || body.link === 'youtube') {
+      const r = body.link === 'youtube' ? await linkYoutube(user, String(body.value ?? '').slice(0, 200)) : await linkTwitchLive(req, user);
+      return res.status('error' in r ? 400 : 200).json(r);
+    }
     if (body.link === 'steam' || body.link === 'ra') {
       const r = body.link === 'steam' ? await linkSteam(user, String(body.value ?? '')) : await linkRa(user, String(body.value ?? ''));
       return res.status('error' in r ? 400 : 200).json(r);

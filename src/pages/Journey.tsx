@@ -500,7 +500,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
                     {!light && (
                       <p className="jstats-line">
                         {totalSessions > 0
-                          ? <>Você jogou <b>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}</b>{minutosTotais > 0 && <> (<b>{durLabel(minutosTotais)}</b>)</>}{histories.length > 1 && <> em <b>{histories.length} histórias</b></>}{moments > 0 && <> e guardou <b>{moments} {moments === 1 ? 'momento' : 'momentos'}</b></>}.</>
+                          ? <>Você jogou <b>{diasJogo > 0 ? `${diasJogo} ${diasJogo === 1 ? 'dia' : 'dias'}` : `${totalSessions} ${totalSessions === 1 ? 'sessão' : 'sessões'}`}</b>{minutosTotais > 0 && <> (<b>{durLabel(minutosTotais)}</b>)</>}{histories.length > 1 && <> em <b>{histories.length} histórias</b></>}{moments > 0 && <> e guardou <b>{moments} {moments === 1 ? 'momento' : 'momentos'}</b></>}.</>
                           : <>Nenhuma sessão ainda.</>}
                       </p>
                     )}

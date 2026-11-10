@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: Jornada, rodada 3 (lives da Twitch e do YouTube viram sessão)
+- **Frases iguais:** em Detalhes a frase agora conta dias, como o topo ("Você jogou 8 dias (4 h 05)").
+- **Duas pontes novas** em Preferências → Pontes, ao lado da Steam, RetroAchievements e Playnite:
+  - **Lives da Twitch:** usa a conta da Twitch já ligada. A Twitch avisa o começo, o fim e a troca de categoria; cada jogo da live vira uma sessão com início e fim exatos. Categoria que não é jogo não conta. Live com menos de 5 min não conta.
+  - **Lives do YouTube:** a pessoa cola o link do canal. A busca (ao abrir o site e uma vez por dia) lê as lives encerradas. O YouTube não informa o jogo: o servidor procura o nome de um jogo da Jornada da pessoa no título da live; sem achar, o item fica em "Vindo das pontes" só com a opção de ignorar. A live precisa ficar pública no canal.
+  - As duas entram pelo caminho das outras pontes (`inferred_sessions`), com o botão "Registrar sozinho" e a caixa "Vindo das pontes".
+- **Para funcionar falta o dono:**
+  1. rodar a migração `supabase/migrations/0098_lives_viram_sessao.sql` no Supabase;
+  2. YouTube: o canal do site precisa estar ligado na Central da live (já usado para o chat) **ou** haver uma `YOUTUBE_API_KEY` na Vercel (cadastrada direto no painel, nunca na conversa);
+  3. testar com uma live curta (mais de 5 min) em cada serviço. **Ainda não foi testado com live de verdade.**
+- **Não entrou:** clipes da live virarem momentos.
+- Arquivos: `api/pontes.ts` (bloco "Lives viram sessão"), `src/components/Bridges.tsx` (`LiveTwitchRow`), `src/data/bridgeApi.ts`, teste em `src/lib/pontes.test.ts`.
+
 ## 10/11/2026: Jornada, rodada 2 (curva de emoções e previsão no seu ritmo)
 - **Curva "Como foi, dia a dia"** na aba Detalhes da página do jogo: uma linha com o "como foi a jogatina?" de cada dia de jogo (Adorei, Quero continuar, Foi suficiente, Não encaixou) e uma frase de resumo. Só aparece com 3 dias ou mais respondidos.
 - **Previsão "no seu ritmo"**, opcional, embaixo do progresso em Detalhes: começa desligada ("Mostrar uma previsão no seu ritmo"). Conta com o tempo que cada 1% levou e com o que se jogou nas últimas 4 semanas. Precisa de 1 hora registrada e 10% de progresso; sem isso, avisa que ainda não dá. A escolha fica guardada no aparelho.

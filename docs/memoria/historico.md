@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: "Por região", quatro propostas no canvas (aguardando escolha)
+- Página nova "Por região" no canvas da linha do tempo (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), quatro quadros que funcionam no Play, com as regiões do Elden Ring:
+  - R · Em cenas, com o corte em lâmina (igual à linha do tempo aprovada);
+  - Q · Rota: regiões como paradas num caminho, a câmera viaja e a linha acende;
+  - S · Trilho lateral: lista de regiões à esquerda e a cena à direita;
+  - T · Mosaico: todas as regiões de uma vez; tocar abre em tela inteira.
+- Em todas: item com spoiler coberto, região atual em âmbar, regiões à frente escondidas.
+- Falta o dono escolher; só então aplicar no site (`RegionView`).
+- Cuidado para a próxima vez: ler o `canvas.json` do canvas antes de publicar; nesta publicação havia uma versão salva que não era minha e o índice foi regravado.
+
 ## 10/11/2026: linha do tempo, rodada 3 (antes e depois, selos, capa do capítulo, legenda depois, compartilhar capítulo)
 - **Antes e depois:** cena nova, logo antes do "Hoje", com a primeira e a última foto lado a lado (precisa de 2 fotos em dias diferentes; só na linha por data).
 - **Selos automáticos** nas cenas: "Sua maior sessão" ou "O dia em que você mais jogou", "Voltou depois de N dias" (depois de 7 dias ou mais sem jogar) e "Sua primeira foto".

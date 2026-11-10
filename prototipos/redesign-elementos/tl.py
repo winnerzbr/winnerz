@@ -314,6 +314,64 @@ CSS = r'''
 @keyframes p-ping{0%{opacity:.9;transform:scale(.96)}100%{opacity:0;transform:scale(1.22)}}
 .flag{position:absolute;left:14px;top:12px;z-index:5}
 
+/* ================= "Por região": quatro propostas ================= */
+.rg h3{margin:0;font-size:44px;font-weight:800;font-stretch:125%;text-transform:uppercase;line-height:.95;color:#fff;text-wrap:balance}
+.rg .fa{font-size:14px;color:#c9ced4}
+.rg .kq{font-size:11.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c9ced4}
+.rg .kq.now{color:var(--now)}
+.ri{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.ri li{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;font-size:13px;font-weight:600;background:rgba(5,5,6,.74);outline:1px solid rgba(255,255,255,.2);color:#e6e9ed}
+.ri li small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#9aa1aa}
+.ri li.d{outline-color:#F2F4F6}
+.ri li.d::before{content:"";width:8px;height:8px;background:#F2F4F6;transform:skewX(-22deg)}
+.ri li.n{outline-color:var(--now);color:var(--now)}
+.ri li.c{color:#8b9199;outline-style:dashed}
+.pg{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(255,255,255,.12);z-index:4}
+.pg i{display:block;height:100%;background:#F2F4F6}
+.sl.aqui .pg i{background:var(--now)}
+.sl.oculta{background:#0b0c0e}
+.sl.oculta .mid{align-items:center;text-align:center}
+.sl.oculta h3{font-size:26px;color:#7d848d}
+.dot b,.dot small{display:none}
+/* Q · rota */
+.v-map .sl .rg h3{font-size:26px}
+.v-map .sl:not(.on) .ri,.v-map .sl:not(.on) .fa,.v-map .sl .ac{display:none}
+.v-map .sl:not(.on) .mid>*{opacity:1;transform:none}
+.v-map .ri li{padding:5px 9px;font-size:12px}
+/* S · trilho lateral */
+.v-rail .cz__track{left:372px;width:860px;top:104px;height:480px}
+.v-rail .cz__rule{left:48px;right:auto;top:104px;bottom:auto;width:300px;height:480px;display:flex;flex-direction:column;gap:6px}
+.v-rail .cz__rule::before,.v-rail .cz__fill,.v-rail .cz__arrow{display:none}
+.v-rail .dot{position:static;margin:0;width:100%;height:auto;flex:1;display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:center;gap:10px;padding:0 14px;text-align:left;background:#0c0d0f;outline:1px solid var(--ln);color:#c9ced4;transition:background .2s,outline-color .2s}
+.v-rail .dot i{position:static;width:10px;height:10px}
+.v-rail .dot span{display:none}
+.v-rail .dot b{display:block;font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v-rail .dot small{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.08em;color:#8b9199}
+.v-rail .dot:hover,.v-rail .dot:focus-visible{outline-color:#F2F4F6;color:#fff}
+.v-rail .dot.on{background:#17191c;outline:2px solid #F2F4F6;color:#fff}
+.v-rail .dot.on i{left:auto;top:auto}
+.v-rail .edge{animation-name:none}
+.v-rail .sl.on .edge{animation:h-edge-r .85s cubic-bezier(.7,0,.2,1) both}
+@keyframes h-edge-r{0%{opacity:1;transform:translateX(0) skewX(-22deg)}92%{opacity:1}100%{opacity:0;transform:translateX(1070px) skewX(-22deg)}}
+/* T · mosaico */
+.v-grid .cz__track{left:48px;top:100px;width:1184px;height:548px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(3,minmax(0,1fr));gap:12px;transform:none!important}
+.v-grid .sl{position:relative;width:auto;height:auto;opacity:1;transform:none;filter:none;transition:none;box-shadow:none}
+.v-grid .sl .bar,.v-grid .sl>.streak{display:none}
+.v-grid .sl .mid{inset:0;padding:0 22px;gap:6px}
+.v-grid .sl:not(.on) .ri,.v-grid .sl:not(.on) .ac,.v-grid .sl:not(.on) .fa{display:none}
+.v-grid .sl:not(.on) h3{font-size:21px}
+.v-grid .sl:not(.on) .mid>*{opacity:1;transform:none}
+.v-grid .sl:not(.on) .tl-ph::before{transition:transform 1.6s cubic-bezier(.2,.6,.2,1)}
+.v-grid .sl:not(.on):hover .tl-ph::before{transform:scale(1.12)}
+.v-grid .sl:not(.on):hover{outline:2px solid #F2F4F6;outline-offset:3px}
+.v-grid .sl.aqui:not(.on){outline:2px solid var(--now);outline-offset:3px}
+.v-grid .sl.on{position:absolute;inset:0;z-index:5;cursor:default;animation:h-wipe .85s cubic-bezier(.7,0,.2,1) both}
+.v-grid .sl.on .mid{padding:0 72px;gap:16px}
+.v-grid .sl.on .rg h3{font-size:58px}
+.v-grid .cz__arrow,.v-grid .cz__rule{display:none}
+.v-grid .sl.on .edge{animation:h-edge-g .85s cubic-bezier(.7,0,.2,1) both}
+@keyframes h-edge-g{0%{opacity:1;transform:translateX(0) skewX(-22deg)}92%{opacity:1}100%{opacity:0;transform:translateX(1470px) skewX(-22deg)}}
+
 '''
 SC = {
  'ouro': 'radial-gradient(ellipse at 62% 34%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)',
@@ -512,17 +570,18 @@ def carrossel(variant='', stack=False, step=816, half=390, extra='', render=slid
 b_carrossel = carrossel()
 
 LOGIC = """class Component extends DCLogic {
-  state = { i: 1, was: -1, play: false };
-  go(n) { const c = Math.max(0, Math.min(NN - 1, n)); if (c !== this.state.i) this.setState({ i: c, was: this.state.i }); }
+  state = { i: INITI, was: -1, play: false };
+  go(n) { const c = Math.max(MINI, Math.min(NN - 1, n)); if (c !== this.state.i) this.setState({ i: c, was: this.state.i }); }
   stop() { if (this.timer) { clearInterval(this.timer); this.timer = null; } }
   componentWillUnmount() { this.stop(); }
   renderVals() {
     const i = this.state.i, was = this.state.was;
     const v = {
-      tx: 'translate(' + (640 - (i * STEP + HALF)) + 'px,' + (-YSARR[i]) + 'px)',
+      tx: 'translate(' + (640 - (Math.max(0, i) * STEP + HALF)) + 'px,' + (-YSARR[Math.max(0, i)]) + 'px)',
       fill: (i / (NN - 1) * 100).toFixed(2) + '%',
       num: String(i + 1).padStart(2, '0'),
       playLabel: this.state.play ? '❚❚ Pausar' : '▶ Passeio',
+      all: () => { this.stop(); this.setState({ play: false, was: this.state.i, i: -1 }); },
       prev: () => { this.stop(); this.setState({ play: false }); this.go(this.state.i - 1); },
       next: () => { this.stop(); this.setState({ play: false }); this.go(this.state.i + 1); },
       toggle: () => {
@@ -557,6 +616,59 @@ EXTRAS = [
  ('Carrossel-Camara.dc.html', 'I · Câmara escura', carrossel('v-dark', False, 816, 390, '', render=slide_papel), 0, 910),
  ('Carrossel-Mergulho.dc.html', 'J · Mergulho', carrossel('v-dive', True, 0, 0, ''), 1360, 910),
 ]
+# ---- "Por região": as mesmas regiões em quatro desenhos (funcionam no Play) ----
+REG = [
+ ('Limgrave', 'mata', 1, 4, '16 – 17 out · 2 dias de jogo', [('área', 'Limgrave', 'd'), ('chefe', '', 'c'), ('chefe', '', 'c'), ('masmorra', '', 'c')]),
+ ('Liurnia dos Lagos', 'neve', 0, 3, 'Ainda sem sessões aqui', [('área', 'Liurnia dos Lagos', ''), ('masmorra', '', 'c'), ('chefe', '', 'c')]),
+ ('Caelid', 'rubro', 0, 2, 'Ainda sem sessões aqui', [('área', 'Caelid', ''), ('chefe', '', 'c')]),
+ ('Planalto Altus', 'ouro', 0, 1, 'Ainda sem sessões aqui', [('área', 'Planalto Altus', '')]),
+ ('Leyndell', 'ouro', 1, 3, '16 – 17 out · 1 dia de jogo', [('chefe', 'Morgott, o Rei Presságio', 'd'), ('chefe', '', 'c'), ('masmorra', '', 'c')]),
+ ('Montanhas dos Gigantes', 'neve', 1, 2, '18 out · 1 dia de jogo', [('área', 'Montanhas dos Gigantes', 'd'), ('chefe', '', 'c')]),
+ ('Farum Azula', 'cinza', 1, 3, '16 out · 1 dia de jogo', [('masmorra', 'Farum Azula em Ruínas', 'd'), ('chefe', '', 'c'), ('chefe', '', 'c')]),
+ ('Leyndell, Capital das Cinzas', 'rubro', 0, 5, 'Desde 5 nov · você está aqui', [('área', 'o próximo', 'n'), ('chefe', '', 'c'), ('chefe', '', 'c'), ('chefe', '', 'c'), ('chefe', '', 'c')]),
+ (None, 'cinza', 0, 0, '', []),
+]
+AQUI = 7
+def regioes(variant='', stack=False, step=816, half=390, extra='', ys=None, links=False, init=AQUI, mini=0, todas=False, cy=158):
+    def fn():
+        import math
+        n = len(REG)
+        yy = ys or [0] * n
+        bgs = ''.join(f'<div class="cz__bg {{{{k{i}}}}}" style="background: {SC[r[1]]}"></div>' for i, r in enumerate(REG))
+        sl = []
+        if links:
+            for i in range(n - 1):
+                dy = yy[i + 1] - yy[i]
+                sl.append(f'<i class="lk {{{{k{i}}}}}" style="left: {i * step + half}px; top: {cy + yy[i]}px; width: {math.hypot(step, dy):.1f}px; transform: rotate({math.degrees(math.atan2(dy, step)):.2f}deg)"></i>')
+        for i, (nome, tone, feito, total, fatos, itens) in enumerate(REG):
+            st = f' style="translate: 0 {yy[i]}px"' if ys else ''
+            if nome is None:
+                sl.append(f'<div class="sl oculta {{{{k{i}}}}}"{st} onClick="{{{{go{i}}}}}"><i class="bar t"></i><i class="bar b"></i>{extra}<div class="mid rg"><span class="kq">Mais regiões à frente</span><h3>Ainda não apareceu para você</h3><span class="fa">Escondidas até você chegar.</span></div></div>')
+                continue
+            aqui = i == AQUI
+            li = ''.join(f'<li class="{c}"><small>{t}</small>{nm if c != "c" else "com spoiler · tocar para ver"}</li>' for t, nm, c in itens)
+            ac = f'<div class="ac">{btn("Começar sessão", "pri")}</div>' if aqui else ''
+            sl.append(f'<div class="sl foto {"aqui " if aqui else ""}{{{{k{i}}}}}"{st} onClick="{{{{go{i}}}}}"><i class="bar t"></i><i class="bar b"></i><i class="streak"></i>{extra}{ph(tone)}<div class="vig"></div>'
+                      f'<div class="mid rg"><span class="kq {"now" if aqui else ""}">Região {i + 1} de 8 · {"você está aqui" if aqui else (f"{feito} de {total} feitos")}</span><h3>{nome}</h3><span class="fa">{fatos}</span><ul class="ri">{li}</ul>{ac}</div>'
+                      f'<span class="pg"><i style="width: {(feito / total * 100) if total else 0:.0f}%"></i></span></div>')
+        dots = ''.join(f'<button type="button" class="dot {"cp" if r[2] else ""} {{{{k{i}}}}}" style="left: {i / (n - 1) * 100:.2f}%" onClick="{{{{go{i}}}}}" aria-label="Região {i + 1}{": " + r[0] if r[0] else ""}"><i></i><span>{i + 1}</span>'
+                       f'<b>{r[0] or "À frente"}</b><small>{f"{r[2]} de {r[3]}" if r[0] else "?"}{" · aqui" if i == AQUI else ""}</small></button>' for i, r in enumerate(REG))
+        tod = '<button type="button" class="btn sec" onClick="{{all}}"><i class="btn__led"></i><span class="btn__t"><span>Todas as regiões</span><span aria-hidden="true">Todas as regiões</span></span><i class="btn__ar"></i></button>' if todas else ''
+        stage = (f'<section class="cz {variant}{" cz--stack" if stack else ""}">' + bgs
+                 + '<div class="cz__top"><div style="display: flex; flex-direction: column; gap: 6px"><a href="#" class="meta">← Elden Ring · Linha do tempo</a><h1 class="ttl" style="font-size: 30px">Por região</h1></div>'
+                   '<div style="display: flex; gap: 14px; align-items: center"><span class="meta">4 de 23 feitos · 39%</span>' + tod + btn('Por data', 'sec') + '</div></div>'
+                 + '<div class="cz__track" style="transform: {{tx}}">' + ''.join(sl) + '</div>'
+                 + '<button type="button" class="cz__arrow l" onClick="{{prev}}" aria-label="Região anterior">‹</button><button type="button" class="cz__arrow r" onClick="{{next}}" aria-label="Próxima região">›</button>'
+                 + '<div class="cz__rule"><i class="cz__fill" style="width: {{fill}}"></i>' + dots + '</div></section>')
+        return header('Jornada') + stage, 790, n, step, half, yy, init, mini
+    return fn
+EXTRAS3 = [
+ ('Regiao-Cenas.dc.html', 'R · Por região em cenas, com o corte em lâmina', regioes('v-blade', True, 0, 0, '<i class="edge"></i>'), 0, 0),
+ ('Regiao-Rota.dc.html', 'Q · Rota: as regiões num caminho', regioes('v-map', False, 700, 280, '<i class="png"></i>', ys=[0, -70, 60, -50, 70, -60, 50, -70, 40], links=True), 1360, 0),
+ ('Regiao-Trilho.dc.html', 'S · Trilho lateral: a lista de regiões ao lado da cena', regioes('v-blade v-rail', True, 0, 0, '<i class="edge"></i>'), 0, 910),
+ ('Regiao-Mosaico.dc.html', 'T · Mosaico: todas as regiões de uma vez', regioes('v-grid', False, 0, 0, '<i class="edge"></i>', init=-1, mini=-1, todas=True), 1360, 910),
+]
+
 EXTRAS2 = [
  ('Carrossel-VHS.dc.html', 'K · Fita VHS', carrossel('v-vhs', False, 816, 390, '<i class="scan"></i><i class="trk"></i><span class="osd">▶ PLAY</span>'), 0, 0),
  ('Carrossel-Persiana.dc.html', 'L · Persiana 22°', carrossel('v-strip', True, 0, 0, '<i class="gl"></i>'), 1360, 0),
@@ -572,7 +684,7 @@ def main():
         html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
         if len(r) > 2:
             a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
-            html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])) + '\n' + html[b:]
+            html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])).replace('INITI', str(r[6] if len(r) > 6 else 1)).replace('MINI', str(r[7] if len(r) > 7 else 0)) + '\n' + html[b:]
         if w != 1280:
             html = html.replace('style="width: 1280px;', f'style="width: {w}px;', 1).replace('"width":1280', f'"width":{w}', 1)
         open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
@@ -583,10 +695,10 @@ def main():
         r = fn(); body, h = r[0], r[1]
         html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
         a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
-        html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])) + '\n' + html[b:]
+        html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])).replace('INITI', str(r[6] if len(r) > 6 else 1)).replace('MINI', str(r[7] if len(r) > 7 else 0)) + '\n' + html[b:]
         open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
         return h
-    for pg, lista in (('carrosseis', EXTRAS), ('carrosseis2', EXTRAS2)):
+    for pg, lista in (('carrosseis', EXTRAS), ('carrosseis2', EXTRAS2), ('regioes', EXTRAS3)):
         for fname, title, fn, ex, ey in lista:
             h = escreve(fname, title, fn, 1280)
             boards[fname] = {'x': ex, 'y': ey, 'w': 1280, 'h': h, 'title': title, 'page': pg, 'is_interactive': True}
@@ -601,10 +713,12 @@ def main():
       'c1': {'x': 2720, 'y': 910, 'w': 760, 'fill': 'purple', 'page': 'carrosseis', 'text': 'F · Rolo de filme: tira de película, o quadro treme e assenta, vazamento de luz laranja, a cor sai do sépia.\n\nG · Profundidade: as cenas ficam em arco, em 3D, com reflexo no chão e um facho de luz na cena do centro.\n\nH · Corte em lâmina: a cena nova entra cortando na diagonal de 22°, com o fio da lâmina aceso; o texto chega com as cores separadas.\n\nI · Câmara escura: fotos em papel; a imagem se revela sob a luz vermelha e a legenda é escrita à mão.\n\nJ · Mergulho: a cena atual passa por você e a próxima vem do fundo, com riscos de velocidade.'},
       'd0': {'x': 0, 'y': -300, 'text': 'Carrosséis 2 · mais seis efeitos (aperte Play em cada um)', 'kind': 'title1', 'maxW': 4000, 'page': 'carrosseis2'},
       'd1': {'x': 4080, 'y': 0, 'w': 700, 'fill': 'teal', 'page': 'carrosseis2', 'text': 'K · Fita VHS: a cena liga como TV antiga, com linhas, faixa de rastreio descendo e "PLAY" na tela.\n\nL · Persiana 22°: a cena abre em tiras diagonais, com os fios acesos.\n\nM · Íris: a cena abre num círculo a partir do centro, com um anel de luz, como nos filmes antigos.\n\nN · Virar a página: cada cena é uma página de um livro que vira.\n\nO · Mosaico: a cena aparece atrás de ladrilhos que acendem e somem, em ordem sorteada.\n\nP · Mapa da jornada: as cenas são paradas num caminho; a câmera viaja de uma a outra e a linha vai acendendo.'},
+      'r0': {'x': 0, 'y': -300, 'text': 'Por região · quatro propostas (aperte Play em cada uma)', 'kind': 'title1', 'maxW': 2640, 'page': 'regioes'},
+      'r1': {'x': 2720, 'y': 0, 'w': 700, 'fill': 'orange', 'page': 'regioes', 'text': 'R · Em cenas: cada região é uma cena grande, igual à linha do tempo aprovada, com o corte em lâmina. A régua embaixo são as regiões.\n\nQ · Rota: as regiões são paradas num caminho; a câmera viaja e a linha acende pelo trecho já percorrido.\n\nS · Trilho lateral: a lista de regiões fica à esquerda, com o que já foi feito em cada uma; a cena troca à direita com o corte em lâmina.\n\nT · Mosaico: todas as regiões de uma vez, como um quadro do mundo; tocar numa abre em tela inteira com o corte em lâmina.\n\nEm todas: item com spoiler fica coberto, a região atual fica em âmbar e as regiões à frente ficam escondidas.'},
       'n4': {'x': 4080, 'y': 1920, 'w': 390, 'fill': 'gray', 'text': 'As fotos aqui são só manchas de cor no lugar das suas capturas de verdade.'},
     }
     idx = {'v': 3, 'createdOnFiles': {'v': 1, 'at': datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}, 'title': 'WinnerZ · Linha do tempo nova (modelo)',
-           'launch': {'view': 'canvas', 'page': 'carrosseis2'}, 'pages': [{'id': 'modelo', 'name': 'Modelo'}, {'id': 'carrosseis', 'name': 'Carrosséis'}, {'id': 'carrosseis2', 'name': 'Carrosséis 2'}], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
+           'launch': {'view': 'canvas', 'page': 'regioes'}, 'pages': [{'id': 'modelo', 'name': 'Modelo'}, {'id': 'carrosseis', 'name': 'Carrosséis'}, {'id': 'carrosseis2', 'name': 'Carrosséis 2'}, {'id': 'regioes', 'name': 'Por região'}], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
     json.dump(idx, open(os.path.join(OUT, 'canvas.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(len(boards), 'quadros')
 main()

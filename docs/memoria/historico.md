@@ -4,6 +4,21 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: lista aprovada da linha do tempo, dois itens novos
+O dono pediu para acrescentar à lista de tarefas aprovadas da linha do tempo:
+- **Redesign da parte "Por região"** (a tela dos jogos de mundo aberto, `RegionView`, que ficou com o visual antigo). Fazer **do mesmo jeito da linha em carrossel**: primeiro várias sugestões num artefato (canvas), ele escolhe, só então aplicar no site.
+- **Corrigir os nomes fracos dos capítulos** criados automaticamente (ex.: "Momento guardado", "Sessão 25"), usando o nome da região quando houver.
+
+**Lista aprovada, o que falta (nesta ordem, salvo ele mudar):**
+1. Linha geral por mês e por jogo, com "Só momentos".
+2. "Neste dia" e "Lembra disso?".
+3. Antes e depois, e mais selos.
+4. Capa do capítulo escolhida pela pessoa e legenda em foto antiga.
+5. Compartilhar um capítulo inteiro como imagem.
+6. Juntar numa cena só as sessões do mesmo dia.
+7. Nomes dos capítulos (corrigir os fracos; usar o nome da região).
+8. "Por região": sugestões de redesign no canvas → escolha dele → aplicar.
+
 ## 10/11/2026: linha do tempo nova no site, rodada 1 (página própria em cenas, corte em lâmina)
 - O dono **aprovou o carrossel "H · Corte em lâmina"** do canvas. Aplicado no site.
 - **Página própria:** `/jornada/<jogo>/linha-do-tempo` (a mesma tela da Jornada do jogo, com `view="linha"`). Tem título, resumo (dias de jogo, tempo, momentos, capítulos), botões "Rever a jornada", "Tela cheia" e "Capturas de tela", os filtros e a chave "Por data / Por região".

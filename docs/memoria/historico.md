@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: linha do tempo nova no site, rodada 1 (página própria em cenas, corte em lâmina)
+- O dono **aprovou o carrossel "H · Corte em lâmina"** do canvas. Aplicado no site.
+- **Página própria:** `/jornada/<jogo>/linha-do-tempo` (a mesma tela da Jornada do jogo, com `view="linha"`). Tem título, resumo (dias de jogo, tempo, momentos, capítulos), botões "Rever a jornada", "Tela cheia" e "Capturas de tela", os filtros e a chave "Por data / Por região".
+- **Entrada em destaque na página do jogo:** botão "Linha do tempo" no topo, ao lado de "Começar sessão", e um cartão grande com as últimas fotos, logo abaixo da trilha. As abas da página do jogo ficaram só com **Diário** e **Detalhes**; a trilha de progresso agora abre a página da linha.
+- **Linha em cenas** (`Faixa` com a opção `blade`): uma cena por vez no centro. Na troca, a cena nova entra cortando na diagonal de 22° com o fio aceso; fecham as faixas pretas, a foto aproxima devagar e o texto chega com as cores separadas. Tudo toca uma vez por cena; com "reduzir movimento" não toca.
+  - navegação: setas na tela, teclado, roda do mouse (uma cena por vez), arrastar, deslizar o dedo, clicar na régua, "Passeio" e "Hoje";
+  - sessão sem nada escrito nem foto não vira cena (a maior sessão fica sempre e ganha o selo "Sua maior sessão");
+  - na cena de sessão, a frente é o recado (ou onde parou), não a duração;
+  - o nome do capítulo perde o "Fez:" do começo.
+- "Rever a jornada" abre em tela cheia, volta ao começo e liga o Passeio (também pelo cartão da página do jogo, com `?rever=1`).
+- Arquivos: `src/components/Faixa.tsx`, `src/pages/Journey.tsx`, `src/App.tsx` (rota), fim de `src/styles/jornada.css`.
+- **Falta da lista aprovada:** linha geral por mês e por jogo com "Só momentos"; "Neste dia"; "Lembra disso?"; antes e depois; capa do capítulo escolhida pela pessoa; legendar foto depois; mais selos; compartilhar um capítulo inteiro; juntar em uma cena as sessões do mesmo dia; conferir o nome com spoiler em "O próximo instante".
+
 ## 10/11/2026: segunda leva de carrosséis da linha do tempo (mais seis)
 - O dono pediu mais sugestões. Página nova "Carrosséis 2" no mesmo canvas (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), seis quadros que funcionam no Play:
   - K · Fita VHS: a cena liga como TV antiga, com linhas, faixa de rastreio e "PLAY" na tela;

@@ -54,7 +54,7 @@ const FILTERS: [string, string, EventKind[] | null][] = [
   ['momento', 'Momentos', ['momento', 'carta', 'inicio', 'marco']], ['ponto', 'Pontos para voltar', ['ponto']],
 ];
 
-export function JourneyPage({ slug }: { slug: string }) {
+export function JourneyPage({ slug, view }: { slug: string; view?: 'linha' }) {
   const s = useStore((x) => x);
   const game = Object.values(s.games).find((g) => g.slug === slug);
   const journey = game ? s.journeys.find((j) => j.gameId === game.id) : undefined;
@@ -73,10 +73,10 @@ export function JourneyPage({ slug }: { slug: string }) {
       </main>
     );
   }
-  return <JourneyView journeyId={journey.id} />;
+  return <JourneyView journeyId={journey.id} view={view} />;
 }
 
-function JourneyView({ journeyId }: { journeyId: string }) {
+function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' }) {
   const s = useStore((x) => x);
   const journey = s.journeys.find((j) => j.id === journeyId)!;
   const game = s.games[journey.gameId];
@@ -118,7 +118,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const [confirmZ, setConfirmZ] = useState(false);
   const [foto, setFoto] = useState<{ src: string; title: string } | null>(null);
   // Abas da História: Registros (consulta rápida), Capítulos (a linha do tempo de antes) e Detalhes.
-  const [aba, setAbaRaw] = useState<Aba>(() => { try { const v = localStorage.getItem('wz.jornada.aba'); return v === 'capitulos' || v === 'detalhes' ? v : 'registros'; } catch { return 'registros'; } });
+  const [aba, setAbaRaw] = useState<Aba>(() => { try { const v = localStorage.getItem('wz.jornada.aba'); return v === 'detalhes' ? v : 'registros'; } catch { return 'registros'; } });
   const setAba = (a: Aba) => { setAbaRaw(a); try { localStorage.setItem('wz.jornada.aba', a); } catch { /* só nesta visita */ } };
   const irPara = (a: Aba, id: string) => { setAba(a); setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60); };
   useEffect(() => setProgress(current.progress ?? 0), [current.id, current.progress]);
@@ -294,17 +294,63 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     ] : []),
     { key: 'mais', label: 'Mais opções…', onSelect: () => setMenu(true) },
   ];
-  // Duas abas: a História (em três jeitos de ver) e os Detalhes.
-  const tabs: [Aba, string][] = [[aba === 'detalhes' ? 'registros' : aba, 'História'], ['detalhes', 'Detalhes']];
-  const vistas: [string, string, () => void][] = [
-    ['registros', 'Diário', () => setAba('registros')],
-    ...(structured ? [['estrutura', openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`, () => { setOrg('estrutura'); setAba('capitulos'); }] as [string, string, () => void]] : []),
-    ['data', 'Linha do tempo', () => { setOrg('data'); setAba('capitulos'); }],
-  ];
-  const vista = aba === 'registros' ? 'registros' : byStructure ? 'estrutura' : 'data';
+  // Duas abas: o Diário e os Detalhes. A linha do tempo tem página própria (/jornada/<jogo>/linha-do-tempo).
+  const tabs: [Aba, string][] = [['registros', 'Diário'], ['detalhes', 'Detalhes']];
+  const linhaUrl = `/jornada/${game.slug}/linha-do-tempo`;
+  const [rever, setRever] = useState(0);
+  const reverJornada = () => { if (org !== 'data') setOrg('data'); setFilter('tudo'); setFull(true); setRever((n) => n + 1); };
+  useEffect(() => { if (view === 'linha' && /[?&]rever=1/.test(window.location.search)) { window.history.replaceState(null, '', window.location.pathname); setTimeout(reverJornada, 300); } }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fotos = events.filter((e) => e.image).map((e) => e.image!).slice(-4).reverse();
+  const nMomentos = events.filter((e) => e.kind === 'momento').length;
+  const nCapitulos = visible.filter((x) => x.type === 'chapter').length;
+  const resumoLinha = [diasJogo > 0 ? `${diasJogo} ${diasJogo === 1 ? 'dia de jogo' : 'dias de jogo'}` : '', minutosTotais > 0 ? durLabel(minutosTotais) : '', nMomentos ? `${nMomentos} ${nMomentos === 1 ? 'momento' : 'momentos'}` : '', nCapitulos ? `${nCapitulos} ${nCapitulos === 1 ? 'capítulo' : 'capítulos'}` : ''].filter(Boolean).join(' · ');
+
+  const linhaTl = (
+    <>
+                  {byStructure && openWorld && outline ? (
+                    <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
+                  ) : !hasEvents && !todayInfo && !byStructure ? (
+                    <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
+                  ) : byStructure ? (
+                    <Faixa blade autoTour={rever} items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
+                  ) : (
+                    <Faixa blade autoTour={rever} items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+                  )}
+    </>
+  );
 
   return (
-    <main className="journey">
+    <main className={`journey${view === 'linha' ? ' journey--linha' : ''}`}>
+      {view === 'linha' ? (
+        <section className="page jtl" aria-labelledby="jtl-h">
+          <Link to={`/jornada/${game.slug}`} className="back">← {game.title}</Link>
+          <div className="jtl__head">
+            <div className="jtl__ttl">
+              <span className="kicker">{game.title}{campanha ? ` · ${campanha}` : ''}</span>
+              <h1 id="jtl-h" className="t jtl__h">Linha do tempo</h1>
+              {resumoLinha && <p className="muted">{resumoLinha}</p>}
+            </div>
+            <div className="jtl__tools">
+              <button className="btn primary" onClick={reverJornada}><Icon name="play" size={14} />Rever a jornada</button>
+              <button className="btn ghost" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
+              <button className="btn quiet" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
+            </div>
+          </div>
+          <div className="jtl__bar">
+            <div className="chips" role="group" aria-label="Mostrar na linha">
+              {FILTERS.map(([id, label]) => <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}
+            </div>
+            {structured && (
+              <div className="seg seg--sm" role="group" aria-label="Organizar a linha do tempo">
+                <button aria-pressed={!byStructure} onClick={() => setOrg('data')}>Por data</button>
+                <button aria-pressed={byStructure} onClick={() => setOrg('estrutura')}>{openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`}</button>
+              </div>
+            )}
+          </div>
+          {linhaTl}
+          {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
+        </section>
+      ) : (<>
       <section className="jhero jhero--compact on-photo" aria-labelledby="jtitle">
         {bg && <img className="jhero__bg" src={bg} alt="" />}
         <div className="jhero__shade" aria-hidden="true" />
@@ -331,6 +377,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <button className={`btn ${playCta.now ? 'now' : 'primary'} jhero__play`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}
               </button>
+              {events.length > 0 && <Link to={linhaUrl} className="btn primary jhero__linha"><Icon name="relogio" size={15} />Linha do tempo</Link>}
               <MoreActions items={acoes} label="Ações" showLabel className="btn ghost jhero__acoes" align="right" />
             </div>
           </div>
@@ -352,7 +399,26 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         {openState && (!selHist || selHist.id === current.id) && (
           <Trilha progress={current.progress ?? 0} rows={partRows} done={openWorld && outline ? doneIds(sessionsOf(s, current.id)) : undefined}
             unit={structured ? (openWorld ? 'região' : u.one.toLowerCase()) : ''}
-            onOpen={() => (structured ? (setOrg('estrutura'), irPara('capitulos', 'jtab-capitulos')) : irPara('detalhes', 'progresso'))} onAdjust={() => irPara('detalhes', 'progresso')} />
+            onOpen={() => (structured ? (setOrg('estrutura'), navigate(linhaUrl)) : irPara('detalhes', 'progresso'))} onAdjust={() => irPara('detalhes', 'progresso')} />
+        )}
+
+        {events.length > 0 && (
+          <section className="jtlcard" aria-labelledby="jtlcard-h">
+            <div className="jtlcard__in">
+              <span className="kicker kicker--now">A sua história com este jogo</span>
+              <h2 id="jtlcard-h" className="t jtlcard__h">Linha do tempo</h2>
+              {resumoLinha && <p className="muted">{resumoLinha}</p>}
+              <div className="jtlcard__go">
+                <Link to={linhaUrl} className="btn primary">Abrir a linha do tempo</Link>
+                <Link to={`${linhaUrl}?rever=1`} className="btn ghost"><Icon name="play" size={13} />Rever a jornada</Link>
+              </div>
+            </div>
+            {fotos.length > 0 && (
+              <Link to={linhaUrl} className={`jtlcard__fotos jtlcard__fotos--${fotos.length}`} aria-label="Abrir a linha do tempo" tabIndex={-1}>
+                {fotos.map((src) => <img key={src} src={src} alt="" loading="lazy" />)}
+              </Link>
+            )}
+          </section>
         )}
 
         <div className="jgrid">
@@ -418,59 +484,20 @@ function JourneyView({ journeyId }: { journeyId: string }) {
 
             <section className="jtabs" aria-label="A História da campanha">
               <div className="jtabs__list" role="tablist" aria-label="Ver">
-                {tabs.map(([id, label]) => {
-                  const on = (id === 'detalhes') === (aba === 'detalhes');
-                  return (
-                    <button key={label} id={`jtab-${id === 'detalhes' ? 'detalhes' : 'historia'}`} type="button" role="tab" aria-selected={on} tabIndex={on ? 0 : -1}
-                      className="jtabs__tab" onClick={() => setAba(id)}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-                        const nx = tabs[id === 'detalhes' ? 0 : 1];
-                        setAba(nx[0]); document.getElementById(`jtab-${nx[0] === 'detalhes' ? 'detalhes' : 'historia'}`)?.focus();
-                      }}>{label}</button>
-                  );
-                })}
+                {tabs.map(([id, label], i) => (
+                  <button key={id} id={`jtab-${id === 'detalhes' ? 'detalhes' : 'historia'}`} type="button" role="tab" aria-selected={aba === id} tabIndex={aba === id ? 0 : -1}
+                    className="jtabs__tab" onClick={() => setAba(id)}
+                    onKeyDown={(e) => {
+                      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                      const nx = tabs[1 - i];
+                      setAba(nx[0]); document.getElementById(`jtab-${nx[0] === 'detalhes' ? 'detalhes' : 'historia'}`)?.focus();
+                    }}>{label}</button>
+                ))}
               </div>
-
-              {aba !== 'detalhes' && (
-                <div className="jvista">
-                  <div className="seg seg--sm" role="group" aria-label="Como ver a História" id="jtab-capitulos">
-                    {vistas.map(([id, label, go]) => <button key={id} aria-pressed={vista === id} onClick={go}>{label}</button>)}
-                  </div>
-                </div>
-              )}
 
               {aba === 'registros' && (
                 <div id="jpanel-registros" role="tabpanel" aria-labelledby="jtab-historia" className="jtabs__panel">
                   <Registros sessions={regSessions} events={events} onEdit={setEditEvent} onPhoto={(src, title) => setFoto({ src, title })} />
-                </div>
-              )}
-
-              {aba === 'capitulos' && (
-                <div id="jpanel-capitulos" role="tabpanel" aria-labelledby="jtab-historia" className="jtabs__panel jline">
-                  <div className="jline__head">
-                    <div>
-                      <h2 id="jline-h" className="t">{selHist ? (selHist.ordinal > 1 || histories.length > 1 ? `A História ${selHist.ordinal}` : 'A sua História') : 'Todas as Histórias'}</h2>
-                      <p className="muted">{selHist ? `${selHist.title && !/^hist/i.test(selHist.title) ? `${selHist.title}. ` : ''}Começou em ${whenLabel(selHist.startedAt, selHist.startedPrecision ?? 'dia')}.` : `Desde ${allEvents[0] ? eventDate(allEvents[0], false) : '—'}.`}{!light ? ` ${nSessSel} ${nSessSel === 1 ? 'sessão' : 'sessões'}, ${events.length} ${events.length === 1 ? 'registro' : 'registros'}.` : ''}</p>
-                    </div>
-                    <div className="jline__tools">
-                      <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
-                      <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
-                    </div>
-                  </div>
-                  <div className="chips jline__filters" role="group" aria-label="Mostrar na linha">
-                    {FILTERS.map(([id, label]) => <button key={id} className="chip" aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}</button>)}
-                  </div>
-
-                  {byStructure && openWorld && outline ? (
-                    <RegionView outline={outline} history={current} sessions={sessionsOf(s, current.id)} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? []), game.cover].filter((x): x is string => !!x)} play={playCta} today={showToday ? { open: !!openHere, note: note?.note } : null} video={videoOf} title={game.title} full={full} onExitFull={() => setFull(false)} onPickPart={pickPart} />
-                  ) : !hasEvents && !todayInfo && !byStructure ? (
-                    <p className="card tl-empty">Nada deste tipo nesta História ainda.</p>
-                  ) : byStructure ? (
-                    <Faixa items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
-                  ) : (
-                    <Faixa items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
-                  )}
                 </div>
               )}
 
@@ -530,6 +557,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           </aside>
         </div>
       </div>
+      </>)}
 
       {celebrating && (
         <Celebration

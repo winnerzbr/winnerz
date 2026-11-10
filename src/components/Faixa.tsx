@@ -60,7 +60,14 @@ function letterLine(l?: { ready: boolean; text?: string }) {
   return l?.ready ? 'Pronta para abrir, no cartão da História concluída' : 'Lacrada até você zerar';
 }
 
-export function Faixa({ items, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters }: {
+/** Sessão sem nada escrito nem foto: não vira cena na linha em cenas (o tempo dela segue nos resumos). */
+const sessaoVazia = (it: TLItem) => it.type === 'event' && it.e.kind === 'sessao' && !it.e.image && !(it.session?.note || it.session?.whereStopped || it.session?.feeling || it.session?.goal);
+
+export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters, blade = false, autoTour = 0 }: {
+  /** Linha em cenas: uma cena por vez no centro, com o corte em lâmina na troca (aprovado em 10/11/2026). */
+  blade?: boolean;
+  /** Muda de valor para começar o Passeio do início ("Rever a jornada"). */
+  autoTour?: number;
   /** A carta de cada História (pela id): pronta para abrir depois de zerar; com o texto quando já foi aberta. */
   letters?: Record<string, { ready: boolean; text?: string }>;
   /** S3 · "Por capítulo": a lista do jogo (a régua vira a linha do horizonte por capítulo) e onde você está (%). */
@@ -86,6 +93,12 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     try { setDraft({ id: c.id, text: await narrate.ask(c, range(c)) }); } catch (err) { setAiErr({ id: c.id, text: err instanceof Error ? err.message : 'A IA não respondeu agora.' }); }
     setAsking(null);
   };
+  // Na linha em cenas, sessão vazia não vira cena; a maior sessão fica sempre e ganha o selo.
+  const maior = useMemo(() => { let id = '', m = 29; for (const it of itemsIn) if (it.type === 'event' && it.e.kind === 'sessao' && (it.session?.minutes ?? 0) > m) { m = it.session!.minutes!; id = it.id; } return id; }, [itemsIn]);
+  const items = useMemo(() => (blade ? itemsIn.filter((it) => !sessaoVazia(it) || it.id === maior) : itemsIn), [itemsIn, blade, maior]);
+  const [was, setWas] = useState(-1);
+  const lastWheel = useRef(0);
+  const touch = useRef<number | null>(null);
   const stage = useRef<HTMLElement>(null);
   const vp = useRef<HTMLDivElement>(null);
   const big = useRef<HTMLDivElement>(null);
@@ -94,7 +107,8 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   // Onde a linha abre: no "Hoje" (os capítulos à frente ficam depois dele), ou no último registro.
   const home = (() => { const t = items.findIndex((x) => x.type === 'today'); return t >= 0 ? t : items.length - 1; })();
   const [focus, setFocus] = useState(home);
-  const [vertical, setVertical] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
+  const [vertRaw, setVertical] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
+  const vertical = vertRaw && !blade;
   const [viewer, setViewer] = useState<number | null>(null);
   const [tour, setTour] = useState(false);
   const focusRef = useRef(focus);
@@ -119,7 +133,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
   // Foco, profundidade e paralaxe a cada rolagem (direto no DOM, sem redesenhar o React).
   const update = useCallback(() => {
     const v = vp.current;
-    if (!v) return;
+    if (!v || blade) return;
     const vert = window.innerWidth <= 640;
     const mid = vert ? v.scrollTop + v.clientHeight / 2 : v.scrollLeft + v.clientWidth / 2;
     let best = 0, bd = Infinity;
@@ -139,21 +153,27 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     if (big.current && !reduced) big.current.style.transform = `translateX(${(-v.scrollLeft * 0.35).toFixed(1)}px)`;
     lastId.current = itemsRef.current[best]?.id ?? null;
     if (best !== focusRef.current) setFocus(best);
-  }, [reduced]);
+  }, [reduced, blade]);
 
   /** Leva o painel i para o centro (ou para "offset" px fora dele). */
   const center = useCallback((i: number, smooth = true, offset = 0) => {
+    if (blade) {
+      const n = Math.max(0, Math.min(itemsRef.current.length - 1, i));
+      if (n !== focusRef.current) { setWas(focusRef.current); setFocus(n); }
+      lastId.current = itemsRef.current[n]?.id ?? null;
+      return;
+    }
     const v = vp.current, el = els.current[i];
     if (!v || !el) return;
     const vert = window.innerWidth <= 640;
     v.scrollTo({ left: vert ? 0 : el.offsetLeft + el.offsetWidth / 2 - v.clientWidth / 2 - offset, top: vert ? el.offsetTop + el.offsetHeight / 2 - v.clientHeight / 2 - offset : 0, behavior: smooth && !reduced ? 'smooth' : 'instant' });
-  }, [reduced]);
+  }, [reduced, blade]);
 
   // Quando a faixa para (soltou o arraste, a roda ou o dedo): se um painel ficou perto do centro, ele se ajeita no
   // centro; senão, a faixa fica exatamente onde você deixou.
   const settle = useCallback(() => {
     const v = vp.current;
-    if (!v || drag.current) return;
+    if (!v || drag.current || blade) return;
     const vert = window.innerWidth <= 640;
     const mid = vert ? v.scrollTop + v.clientHeight / 2 : v.scrollLeft + v.clientWidth / 2;
     let best = -1, bd = Infinity, size = 0;
@@ -164,7 +184,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
       if (ad < bd) { bd = ad; best = i; size = vert ? el.offsetHeight : el.offsetWidth; }
     });
     if (best >= 0 && bd > 2 && bd < Math.min(110, size * 0.2)) center(best);
-  }, [center]);
+  }, [center, blade]);
 
   // Abre no fim (o "Hoje" ou o último registro). Quando a lista muda (chegou um eco, você marcou outro capítulo),
   // continua no mesmo painel: o capítulo à frente que virou o atual ("gp-x" → "po-x") segue em foco.
@@ -193,10 +213,23 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     v.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     // Roda do mouse vira rolagem lateral no computador.
-    const wheel = (e: WheelEvent) => { if (window.innerWidth > 640 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { v.scrollLeft += e.deltaY; e.preventDefault(); } };
+    const wheel = (e: WheelEvent) => {
+      if (blade) {
+        // Em cenas: a roda passa uma cena por vez; nas pontas, a página rola normalmente.
+        const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        const i = focusRef.current;
+        if (Math.abs(d) < 12 || (d > 0 && i >= itemsRef.current.length - 1) || (d < 0 && i <= 0)) return;
+        e.preventDefault();
+        if (Date.now() - lastWheel.current < 700) return;
+        lastWheel.current = Date.now();
+        center(i + (d > 0 ? 1 : -1));
+        return;
+      }
+      if (window.innerWidth > 640 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { v.scrollLeft += e.deltaY; e.preventDefault(); }
+    };
     v.addEventListener('wheel', wheel, { passive: false });
     return () => { v.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); v.removeEventListener('wheel', wheel); cancelAnimationFrame(raf); clearTimeout(still); };
-  }, [update, settle]);
+  }, [update, settle, blade, center]);
 
   // Arrastar com o mouse.
   const drag = useRef<{ x: number; y: number; l: number; t: number; moved: boolean } | null>(null);
@@ -204,28 +237,32 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     if (e.pointerType !== 'mouse' || e.button !== 0 || (e.target as HTMLElement).closest('button,a,input,textarea')) return;
     e.preventDefault(); // sem seleção de texto nem arrastar imagem
     const v = vp.current!;
-    drag.current = { x: e.clientX, y: e.clientY, l: v.scrollLeft, t: v.scrollTop, moved: false };
+    drag.current = { x: e.clientX, y: e.clientY, l: blade ? 0 : v.scrollLeft, t: v.scrollTop, moved: false };
     window.getSelection()?.removeAllRanges();
   };
   const onMove = (e: PointerEvent) => {
     const d = drag.current; if (!d) return;
     const v = vp.current!; const dx = e.clientX - d.x, dy = e.clientY - d.y;
     if (!d.moved && Math.abs(dx) + Math.abs(dy) > 5) { d.moved = true; v.classList.add('is-drag'); }
+    if (d.moved && blade) { d.l = dx; return; }
     if (d.moved) { v.scrollLeft = d.l - dx; v.scrollTop = d.t - dy; }
   };
   const onUp = () => {
     const v = vp.current;
     const moved = !!drag.current?.moved;
     if (v && moved) v.classList.remove('is-drag');
+    if (blade && moved && Math.abs(drag.current!.l) > 60) center(focusRef.current + (drag.current!.l < 0 ? 1 : -1));
     setTimeout(() => { drag.current = null; if (moved) settle(); }, 0);
   };
 
   // Passeio: avança um painel a cada 3,4 s.
   useEffect(() => {
     if (!tour) return;
-    const t = setInterval(() => { const i = focusRef.current; if (i >= items.length - 1) { setTour(false); return; } center(i + 1); }, 3400);
+    const t = setInterval(() => { const i = focusRef.current; if (i >= items.length - 1) { setTour(false); return; } center(i + 1); }, blade ? 4600 : 3400);
     return () => clearInterval(t);
-  }, [tour, items.length, center]);
+  }, [tour, items.length, center, blade]);
+  // "Rever a jornada": volta ao começo e liga o Passeio.
+  useEffect(() => { if (autoTour > 0) { center(0, false); setTour(true); } }, [autoTour]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Poeira dourada (leve; some com "reduzir movimento" e no modo leve).
   useEffect(() => {
@@ -323,7 +360,7 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
         <div className="fx-bg" style={{ backgroundImage: `url(${chapImage(it)})` }} /><div className="fx-sh" />
         <span className="fx-num">{ROMAN[it.n - 1] ?? it.n}</span>
         <span className="fx-k">Capítulo {it.n} · {range(it)}</span>
-        <h3 className="fx-h">{it.name}</h3>
+        <h3 className="fx-h">{blade ? it.name.replace(/^Fez:\s*/i, '') : it.name}</h3>
         {draft?.id === it.id ? (
           <div className="fx-ai" onClick={(ev) => ev.stopPropagation()}>
             <p className="fx-p fx-ai__text">{draft.text}</p>
@@ -479,14 +516,16 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
     const sub = e.kind === 'sessao' && x
       ? [x.source ? (x.source === 'steam' ? 'Pela Steam' : x.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements') : null, x.goal ? `${x.goalDone === 'sim' ? '✓' : x.goalDone === 'quase' ? '≈' : '○'} ${x.goal}` : null, x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
       : e.kind === 'carta' ? letterLine(letters?.[e.historyId]) : e.quote ? `“${e.quote}”` : e.text ?? '';
-    const head = e.kind === 'sessao' && x?.minutes ? durText(x.minutes) : e.title;
+    const fala = blade && e.kind === 'sessao' && x ? (x.note ? `“${x.note}”` : x.whereStopped ? `Parou em ${x.whereStopped.replace(/^Fez:\s*/i, '')}` : x.feeling ? `“${x.feeling}”` : '') : '';
+    const head = fala || (e.kind === 'sessao' && x?.minutes ? durText(x.minutes) : e.title);
     return (
       <article key={it.id} {...common} className={`fx-pn fx-ev fx-${e.kind}${e.image ? ' has-img' : ''}${back ? ' is-back' : ''}`}>
         {e.image && <div className="fx-bg" style={{ backgroundImage: `url(${e.image})` }} />}
         {!e.image && (e.kind === 'inicio' ? <span className="fx-mark"><BrandMark width={40} /></span> : e.kind === 'marco' ? <span className="fx-mark"><Compass size={34} color="#E2BE84" /></span> : <span className={`fx-ic${e.kind === 'ponto' ? ' fx-ic--now' : ''}`}><Icon name={e.kind === 'ponto' ? 'pin' : e.kind === 'carta' ? 'carta' : e.kind === 'momento' ? 'camera' : 'relogio'} size={16} /></span>)}
         <span className={`fx-k${back ? ' fx-k--now' : ''}`}>{KIND[e.kind] ?? e.kind} · {e.dateLabel ?? whenLabel(e.at, e.precision, { short: true })}</span>
         <h3 className="fx-h fx-h--sm">{head}</h3>
-        {e.kind === 'sessao' && head !== e.title && <span className="fx-sub">{e.title}{x?.whereStopped ? ` · parou em ${x.whereStopped}` : ''}</span>}
+        {it.id === maior && blade && <span className="fx-selo"><span>Sua maior sessão</span></span>}
+        {e.kind === 'sessao' && head !== e.title && <span className="fx-sub">{fala && x?.minutes ? `${durText(x.minutes)} · ` : ''}{e.title}{x?.whereStopped && !fala.startsWith('Parou') ? ` · parou em ${x.whereStopped.replace(/^Fez:\s*/i, '')}` : ''}</span>}
         {sub && <p className="fx-p">{sub.length > 140 ? sub.slice(0, 138) + '…' : sub}</p>}
         {on && (
           <div className="fx-actions">
@@ -502,19 +541,34 @@ export function Faixa({ items, bg, images = [], title, play, today, onEdit, onSh
 
   const narr = cur?.type === 'chapter' || cur?.type === 'event' ? curChap : null;
   return (
-    <section ref={stage} tabIndex={-1} onKeyDown={key} className={`fx${full ? ' is-full' : ''}${reduced ? ' is-reduced' : ''}${vertical ? ' is-vert' : ''}${ambients.length ? ' has-imgs' : ''}`} aria-label="Linha do tempo. Use as setas para andar entre os registros.">
+    <section ref={stage} tabIndex={-1} onKeyDown={key} className={`fx${blade ? ' is-blade' : ''}${full ? ' is-full' : ''}${reduced ? ' is-reduced' : ''}${vertical ? ' is-vert' : ''}${ambients.length ? ' has-imgs' : ''}`} aria-label="Linha do tempo. Use as setas para andar entre os registros.">
       <div className="fx-amb" aria-hidden="true">{ambients.map((src) => <div key={src} className={`fx-amb__a${src === ambient ? ' on' : ''}`} style={{ backgroundImage: `url(${src})` }} />)}</div>
       {!vertical && <div ref={big} className="fx-big" aria-hidden="true">{(parts ? opens.map((c) => ({ id: c.id, name: c.part.name })) : chapters).map((c, i) => <span key={c.id} style={{ left: `${i * 1500 + 200}px` }}>{c.name}</span>)}</div>}
       <canvas ref={dust} className="fx-dust" aria-hidden="true" />
       <div className="fx-spot" aria-hidden="true" />
-      <div ref={vp} className="fx-vp" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}>
-        <div className="fx-track">{items.map(panel)}</div>
+      <div ref={vp} className="fx-vp" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}
+        onTouchStart={blade ? (e) => { touch.current = e.touches[0]?.clientX ?? null; } : undefined}
+        onTouchEnd={blade ? (e) => { const a = touch.current, b = e.changedTouches[0]?.clientX; touch.current = null; if (a != null && b != null && Math.abs(b - a) > 50) center(focus + (b < a ? 1 : -1)); } : undefined}>
+        <div className="fx-track">
+          {blade ? items.map((it, i) => (
+            <div key={it.id} className={`fx-sc${i === focus ? ' is-on' : ''}${i === was && i !== focus ? ' is-was' : ''}`} aria-hidden={i !== focus || undefined}>
+              {panel(it, i)}<i className="fx-edge" aria-hidden="true" />
+            </div>
+          )) : items.map(panel)}
+        </div>
       </div>
+      {blade && items.length > 1 && (
+        <>
+          <button type="button" className="fx-arrow fx-arrow--l" onClick={() => { setTour(false); center(focus - 1); }} disabled={focus <= 0} aria-label="Cena anterior">‹</button>
+          <button type="button" className="fx-arrow fx-arrow--r" onClick={() => { setTour(false); center(focus + 1); }} disabled={focus >= items.length - 1} aria-label="Próxima cena">›</button>
+        </>
+      )}
       <div className="fx-glow" aria-hidden="true" /><div className="fx-vig" aria-hidden="true" />
       <div className="fx-top">
         {full && <button className="fx-exit" onClick={onExitFull} aria-label="Sair da tela cheia" title="Sair da tela cheia"><Icon name="sairTela" size={18} /></button>}
         <button className="btn ghost sm fx-btn" onClick={() => setTour(!tour)} aria-pressed={tour}>{tour ? '❚❚ Pausar' : '▶ Passeio'}</button>
         {today && <button className="btn sm fx-btn fx-btn--now" onClick={() => center(home)}>Hoje</button>}
+        {blade && items.length > 1 && <span className="fx-count" aria-hidden="true"><b>{String(Math.min(items.length, focus + 1)).padStart(2, '0')}</b> / {String(items.length).padStart(2, '0')}</span>}
         {full && <span className="fx-title">{title}</span>}
       </div>
       {narr && (

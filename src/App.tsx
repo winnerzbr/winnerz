@@ -114,6 +114,7 @@ function Routes({ path }: { path: string }): ReactNode {
   if ((m = match('/jornada/temporada/:id', path))) return <GoTo to={`/jornada/retrospectivas?p=${encodeURIComponent(m.id)}`} />;
   // "Preparar a volta" virou um bloco dentro da Jornada do jogo (Etapa 2 da revisão).
   if ((m = match('/jornada/:slug/voltar', path))) return <GoTo to={`/jornada/${m.slug}#voltar`} />;
+  if ((m = match('/jornada/:slug/linha-do-tempo', path))) return <JourneyPage slug={m.slug} view="linha" />;
   if ((m = match('/jornada/:slug', path))) return <JourneyPage slug={m.slug} />;
   if (match('/colecao', path)) return <Collection />;
   if (match('/colecao/consoles', path)) return <HardwarePage />;

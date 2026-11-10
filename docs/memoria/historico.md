@@ -4,6 +4,24 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: Jornada, rodada 1 da revisão (simplificar e organizar)
+O dono aprovou todas as sugestões da revisão, **menos** os palpites lacrados e a figurinha por região.
+**Decisão:** o álbum de figurinhas fica em espera e só será lançado um tempo depois da estreia do site.
+Feito nesta rodada:
+- **Lista da Jornada:** "Em andamento" só com jogos que já tiveram sessão; os outros vão para **"Na fila"**. As linhas mostram onde parou (sem "Sem recado"), a porcentagem e uma barra fina de progresso. Na lateral saíram os cartões de registro automático e de lembrete (ficam nas Preferências, com um atalho).
+- **Página do jogo:**
+  - topo com **dois botões** (Começar sessão e Ações); "Sessão passada", "Resumo para voltar" e "Traduzir a tela" foram para Ações;
+  - o topo conta **dias de jogo** (várias sessões no mesmo dia valem uma) em vez de sessões;
+  - **trilha** nova logo abaixo do topo: "Você está em…", parte X de Y (ou feitos, em jogo aberto), a porcentagem e uma barra com uma marca por parte; tocar abre a História por partes;
+  - **duas abas:** História e Detalhes. A História tem uma chave: Diário, Por região/capítulo e Linha do tempo;
+  - **Diário com um bloco por dia**; dias seguidos sem anotação viram uma linha só; sessão de 1 ou 2 min sem nada escrito não vira linha nem conta como dia;
+  - saiu da lateral o aviso repetido de registro automático;
+  - defeito corrigido: em tela média os botões descem de linha em vez de espremer o nome do jogo.
+- **Nomes:** "Marco" passou a aparecer como "Momento" (um filtro só).
+- **Fim de sessão:** já era uma pergunta só, com "Mais detalhes" fechado (a sugestão da revisão estava errada nesse ponto). Novo: em sessão de menos de 3 min sem nada escrito aparece "Abri sem querer: não registrar".
+- Arquivos: `src/pages/JourneyIndex.tsx`, `src/pages/Journey.tsx`, `src/components/JornadaPartes.tsx` (Registros, Trilha, `diasDeJogo`), `src/pages/SessionFinish.tsx`, fim de `src/styles/jornada.css`.
+**Falta (próximas rodadas):** "Anteriormente em…" automático; curva de emoções; recados de amizades por região; live da Twitch virando sessão; previsão "no seu ritmo".
+
 ## 10/11/2026: revisão da Jornada (só sugestões, nada mudou no site)
 O dono pediu uma revisão da Jornada. Sugestões entregues na conversa, aguardando ele escolher:
 - **Simplificar:** separar "Na fila" (começou, sem sessão) de "Em andamento"; linhas da lista mostrarem onde parou e o progresso em vez de "Sem recado"; juntar sessões do mesmo dia e não contar sessões de 1 ou 2 min; fim de sessão com uma pergunta só (onde parou) e o resto em "contar mais"; um botão principal na página do jogo; ajustes de pontes e lembrete saírem da lateral depois de vistos; menos nomes (juntar Momento e Marco).

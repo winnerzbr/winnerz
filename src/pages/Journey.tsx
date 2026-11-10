@@ -33,7 +33,7 @@ import { useBackdrop } from '../components/Backdrop';
 import { FitCard, ComebackBlock, COMEBACK_AFTER_DAYS } from '../components/Comeback';
 import { OutlineSheet } from '../components/Outline';
 import { useOutline } from '../data/outlineApi';
-import { isOpenWorld, partAt, partsTimeline, unitOf, type OutlinePart } from '../lib/outline';
+import { isOpenWorld, partAt, partsTimeline, unitOf, doneIds, type OutlinePart } from '../lib/outline';
 import { useVideos } from '../data/videoApi';
 import { PartVideoButton } from '../components/PartVideo';
 import { RegionView } from '../components/RegionView';
@@ -43,15 +43,15 @@ import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
 import { shortPlatform } from '../lib/platforms';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
-import { PastSessionButton } from '../components/PastSession';
-import { Retomar, Registros, DiasJogados, BlocoCampanha, RegistroAuto } from '../components/JornadaPartes';
+import { PastSessionSheet } from '../components/PastSession';
+import { Retomar, Registros, DiasJogados, BlocoCampanha, Trilha, diasDeJogo } from '../components/JornadaPartes';
 
 
 export const eventDate = (e: TimelineEvent, short = true) => e.dateLabel ?? whenLabel(e.at, e.precision, { short });
 
 const FILTERS: [string, string, EventKind[] | null][] = [
-  ['tudo', 'Tudo', null], ['sessao', 'Sessões', ['sessao']], ['momento', 'Momentos', ['momento', 'carta']],
-  ['ponto', 'Pontos para voltar', ['ponto']], ['marco', 'Marcos', ['inicio', 'marco']],
+  ['tudo', 'Tudo', null], ['sessao', 'Sessões', ['sessao']],
+  ['momento', 'Momentos', ['momento', 'carta', 'inicio', 'marco']], ['ponto', 'Pontos para voltar', ['ponto']],
 ];
 
 export function JourneyPage({ slug }: { slug: string }) {
@@ -276,8 +276,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
   const lastPhoto = [...curEvents].reverse().find((e) => e.image && e.kind !== 'carta');
   const regSessions = selHist ? sessionsOf(s, selHist.id) : s.sessions.filter((x) => x.journeyId === journeyId);
   const jSessions = s.sessions.filter((x) => x.journeyId === journeyId);
+  const temCapsula = !!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember);
   const pedeConfirmar = openState && zereiPedeConfirmacao(minutosDaHistoria(s.sessions, current.id), current.progress);
+  const [pastOpen, setPastOpen] = useState(false);
+  const diasJogo = diasDeJogo(jSessions);
   const acoes: MoreItem[] = [
+    ...(!openHere && current.state !== 'concluida' ? [{ key: 'passada', label: 'Registrar sessão passada', onSelect: () => setPastOpen(true) }] : []),
+    ...(current.state === 'ativa' ? [{ key: 'resumo', label: temCapsula ? 'Atualizar o resumo para voltar' : 'Preparar um resumo para voltar', onSelect: () => setCapsuleOpen(true) }] : []),
+    { key: 'traduzir', label: 'Traduzir a tela', onSelect: () => navigate(`/jogos/${game.slug}/traduzir`) },
     ...(openState ? [
       { key: 'foco', label: isFocus ? 'Tirar de “Jogando agora”' : 'Pôr em “Jogando agora”', on: isFocus, onSelect: toggleFocus },
       { key: 'zerei', label: 'Zerei', onSelect: () => (pedeConfirmar ? setConfirmZ(true) : zerei()) },
@@ -288,7 +294,14 @@ function JourneyView({ journeyId }: { journeyId: string }) {
     ] : []),
     { key: 'mais', label: 'Mais opções…', onSelect: () => setMenu(true) },
   ];
-  const tabs: [Aba, string][] = [['registros', 'Registros'], ['capitulos', structured ? (openWorld ? 'Regiões' : u.title) : 'Linha do tempo'], ['detalhes', 'Detalhes']];
+  // Duas abas: a História (em três jeitos de ver) e os Detalhes.
+  const tabs: [Aba, string][] = [[aba === 'detalhes' ? 'registros' : aba, 'História'], ['detalhes', 'Detalhes']];
+  const vistas: [string, string, () => void][] = [
+    ['registros', 'Diário', () => setAba('registros')],
+    ...(structured ? [['estrutura', openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`, () => { setOrg('estrutura'); setAba('capitulos'); }] as [string, string, () => void]] : []),
+    ['data', 'Linha do tempo', () => { setOrg('data'); setAba('capitulos'); }],
+  ];
+  const vista = aba === 'registros' ? 'registros' : byStructure ? 'estrutura' : 'data';
 
   return (
     <main className="journey">
@@ -305,7 +318,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <p className="jhero__meta">
                 {[platform, campanha].filter(Boolean).map((x) => <span key={x}>{x}<i aria-hidden="true">/</i></span>)}
                 <span>{openHere && <span className="tr now" aria-hidden="true" />}{openHere ? 'Jogando agora' : STATE_LABEL[current.state]}</span>
-                {totalSessions > 0 && <span className="jhero__meta-n"><i aria-hidden="true">/</i>{totalSessions} {totalSessions === 1 ? 'sessão' : 'sessões'}{minutosTotais > 0 ? ` · ${durLabel(minutosTotais)}` : ''}</span>}
+                {totalSessions > 0 && <span className="jhero__meta-n"><i aria-hidden="true">/</i>{diasJogo > 0 ? `${diasJogo} ${diasJogo === 1 ? 'dia de jogo' : 'dias de jogo'}` : `${totalSessions} ${totalSessions === 1 ? 'sessão' : 'sessões'}`}{minutosTotais > 0 ? ` · ${durLabel(minutosTotais)}` : ''}</span>}
               </p>
               {histories.length > 1 && (
                 <nav className="subnav jhero__hists" aria-label="Histórias">
@@ -318,7 +331,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <button className={`btn ${playCta.now ? 'now' : 'primary'} jhero__play`} onClick={playCta.onClick} title={playCta.hint}>
                 {playCta.now ? <span className="session-pill__dot" aria-hidden="true" /> : <Icon name="play" size={14} />}{playCta.label}
               </button>
-              {!openHere && current.state !== 'concluida' && <PastSessionButton gameId={game.id} className="btn ghost jhero__past" label="Sessão passada" />}
               <MoreActions items={acoes} label="Ações" showLabel className="btn ghost jhero__acoes" align="right" />
             </div>
           </div>
@@ -336,6 +348,12 @@ function JourneyView({ journeyId }: { journeyId: string }) {
       <div className="page jbody">
         {isOpenState(current.state) && <BackBuddy journeyId={journeyId} />}
         <FitCard journeyId={journeyId} onPaused={(id) => stateChanged(id, 'Pausado. Ele espera, sem pressa.')} />
+
+        {openState && (!selHist || selHist.id === current.id) && (
+          <Trilha progress={current.progress ?? 0} rows={partRows} done={openWorld && outline ? doneIds(sessionsOf(s, current.id)) : undefined}
+            unit={structured ? (openWorld ? 'região' : u.one.toLowerCase()) : ''}
+            onOpen={() => (structured ? (setOrg('estrutura'), irPara('capitulos', 'jtab-capitulos')) : irPara('detalhes', 'progresso'))} onAdjust={() => irPara('detalhes', 'progresso')} />
+        )}
 
         <div className="jgrid">
           <div className="jgrid__main">
@@ -393,45 +411,49 @@ function JourneyView({ journeyId }: { journeyId: string }) {
               <ComebackBlock journeyId={journeyId} game={game} history={current} onCapsule={() => setCapsuleOpen(true)} onViewWaypoint={(i) => i >= 0 && setWpViewer(i)} />
             ) : (
               <Retomar last={last ?? null} note={note ?? null} where={where} waypoints={waypoints} photo={lastPhoto?.image ? { src: lastPhoto.image, at: lastPhoto.at } : undefined}
-                away={away} onCapsule={() => setCapsuleOpen(true)} hasCapsule={!!(current.capsule?.where || current.capsule?.doing || current.capsule?.next || current.capsule?.remember)}
+                away={away}
                 onPhoto={(i) => setWpViewer(Math.max(0, i))} onLastPhoto={lastPhoto?.image ? () => setFoto({ src: lastPhoto.image!, title: lastPhoto.title }) : undefined}
-                history={current} translateHref={`/jogos/${game.slug}/traduzir`} extra={extra.map((f) => ({ label: f.label, text: current.capsule![f.key] as string }))} />
+                history={current} extra={extra.map((f) => ({ label: f.label, text: current.capsule![f.key] as string }))} />
             )}
 
             <section className="jtabs" aria-label="A História da campanha">
               <div className="jtabs__list" role="tablist" aria-label="Ver">
-                {tabs.map(([id, label]) => (
-                  <button key={id} id={`jtab-${id}`} type="button" role="tab" aria-selected={aba === id} aria-controls={`jpanel-${id}`} tabIndex={aba === id ? 0 : -1}
-                    className="jtabs__tab" onClick={() => setAba(id)}
-                    onKeyDown={(e) => {
-                      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-                      const i = tabs.findIndex((t) => t[0] === aba);
-                      const nx = tabs[(i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length][0];
-                      setAba(nx); document.getElementById(`jtab-${nx}`)?.focus();
-                    }}>{label}</button>
-                ))}
+                {tabs.map(([id, label]) => {
+                  const on = (id === 'detalhes') === (aba === 'detalhes');
+                  return (
+                    <button key={label} id={`jtab-${id === 'detalhes' ? 'detalhes' : 'historia'}`} type="button" role="tab" aria-selected={on} tabIndex={on ? 0 : -1}
+                      className="jtabs__tab" onClick={() => setAba(id)}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                        const nx = tabs[id === 'detalhes' ? 0 : 1];
+                        setAba(nx[0]); document.getElementById(`jtab-${nx[0] === 'detalhes' ? 'detalhes' : 'historia'}`)?.focus();
+                      }}>{label}</button>
+                  );
+                })}
               </div>
 
+              {aba !== 'detalhes' && (
+                <div className="jvista">
+                  <div className="seg seg--sm" role="group" aria-label="Como ver a História" id="jtab-capitulos">
+                    {vistas.map(([id, label, go]) => <button key={id} aria-pressed={vista === id} onClick={go}>{label}</button>)}
+                  </div>
+                </div>
+              )}
+
               {aba === 'registros' && (
-                <div id="jpanel-registros" role="tabpanel" aria-labelledby="jtab-registros" className="jtabs__panel">
+                <div id="jpanel-registros" role="tabpanel" aria-labelledby="jtab-historia" className="jtabs__panel">
                   <Registros sessions={regSessions} events={events} onEdit={setEditEvent} onPhoto={(src, title) => setFoto({ src, title })} />
                 </div>
               )}
 
               {aba === 'capitulos' && (
-                <div id="jpanel-capitulos" role="tabpanel" aria-labelledby="jtab-capitulos" className="jtabs__panel jline">
+                <div id="jpanel-capitulos" role="tabpanel" aria-labelledby="jtab-historia" className="jtabs__panel jline">
                   <div className="jline__head">
                     <div>
                       <h2 id="jline-h" className="t">{selHist ? (selHist.ordinal > 1 || histories.length > 1 ? `A História ${selHist.ordinal}` : 'A sua História') : 'Todas as Histórias'}</h2>
                       <p className="muted">{selHist ? `${selHist.title && !/^hist/i.test(selHist.title) ? `${selHist.title}. ` : ''}Começou em ${whenLabel(selHist.startedAt, selHist.startedPrecision ?? 'dia')}.` : `Desde ${allEvents[0] ? eventDate(allEvents[0], false) : '—'}.`}{!light ? ` ${nSessSel} ${nSessSel === 1 ? 'sessão' : 'sessões'}, ${events.length} ${events.length === 1 ? 'registro' : 'registros'}.` : ''}</p>
                     </div>
                     <div className="jline__tools">
-                      {structured && (
-                        <div className="seg seg--sm" role="group" aria-label="Organizar a linha do tempo">
-                          <button aria-pressed={org === 'estrutura'} onClick={() => setOrg('estrutura')}>{openWorld ? 'Por região' : `Por ${u.one.toLowerCase()}`}</button>
-                          <button aria-pressed={org === 'data'} onClick={() => setOrg('data')}>Por data</button>
-                        </div>
-                      )}
                       <button className="btn quiet sm" onClick={() => setCaptures(true)}><Icon name="camera" size={15} />Capturas de tela</button>
                       <button className="btn ghost sm" onClick={() => setFull(true)}><Icon name="telaCheia" size={15} />Tela cheia</button>
                     </div>
@@ -503,7 +525,6 @@ function JourneyView({ journeyId }: { journeyId: string }) {
           <aside className="jgrid__side" aria-label="Sobre a campanha">
             <BlocoCampanha history={current} />
             <DiasJogados sessions={jSessions} title={game.title} />
-            <RegistroAuto sessions={jSessions} />
           </aside>
         </div>
       </div>
@@ -529,6 +550,7 @@ function JourneyView({ journeyId }: { journeyId: string }) {
         </Celebration>
       )}
       {posZerado && !celebrating && <CameoZerado key={posZerado} historyId={posZerado} journeyId={journeyId} />}
+      {pastOpen && <PastSessionSheet gameId={game.id} onClose={() => setPastOpen(false)} />}
       {listOpen && outline && <OutlineSheet game={game} history={current} outline={outline} onClose={() => setListOpen(false)} />}
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
       {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}

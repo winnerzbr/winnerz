@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { Link } from '../lib/router';
 import { actions, useStore, currentHistory, historiesOf, lastNote, sessionsOf, focusJourneys, activeWaypoints } from '../data/store';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
-import { useBridges, PROVIDER_NAME, type Provider } from '../data/bridgeApi';
 import { navigate } from '../lib/router';
 import { assistiLabel } from '../components/Assisti';
 import type { State, Journey, History } from '../data/types';
@@ -43,7 +42,9 @@ export function JourneyIndex() {
   const goingAll = rows.filter((r) => r.h && r.h.state === 'ativa').sort((a, b) => Number(pinned.has(b.j.id)) - Number(pinned.has(a.j.id)) || recentFirst(a, b));
   const principalId = focus[0]?.journey.id ?? goingAll[0]?.j.id ?? null;
   const destaque = rows.find((r) => r.j.id === principalId && r.h && (r.h.state === 'ativa' || r.h.state === 'pausada')) ?? null;
-  const going = goingAll.filter((r) => r.j.id !== destaque?.j.id);
+  // "Em andamento" é só o que já teve sessão; o que começou e ainda não foi jogado espera em "Na fila".
+  const going = goingAll.filter((r) => r.j.id !== destaque?.j.id && r.last);
+  const queue = goingAll.filter((r) => r.j.id !== destaque?.j.id && !r.last);
   const paused = rows.filter((r) => r.h && r.h.state === 'pausada' && r.j.id !== destaque?.j.id).sort(recentFirst);
   const done = rows.filter((r) => r.h && r.h.state === 'concluida')
     .sort((a, b) => (b.h!.completedAt ?? '').localeCompare(a.h!.completedAt ?? ''));
@@ -93,6 +94,12 @@ export function JourneyIndex() {
                 <ul className="jx__list">{going.map((r) => <Linha key={r.j.id} s={s} r={r} pinned={pinned.has(r.j.id)} onFocus={putInFocus} onPaused={() => say('Pausado. Ele espera, sem pressa.')} />)}</ul>
               </section>
             )}
+            {queue.length > 0 && (
+              <section className="jx" aria-labelledby="jx-fila">
+                <div className="jx__head"><h2 id="jx-fila" className="jx__k">Na fila · {queue.length}</h2><span className="jx__sum">marcados para jogar, ainda sem sessão</span></div>
+                <ul className="jx__list">{queue.map((r) => <Linha key={r.j.id} s={s} r={r} pinned={pinned.has(r.j.id)} onFocus={putInFocus} onPaused={() => say('Pausado. Ele espera, sem pressa.')} />)}</ul>
+              </section>
+            )}
             {!going.length && rows.length > 0 && <div className="jx__head jx__head--solo"><span /><PastSessionButton className="linklike jx__past" label="Joguei sem registrar" /></div>}
             {paused.length > 0 && (
               <details className="jx jx--fold">
@@ -118,10 +125,9 @@ export function JourneyIndex() {
             )}
           </div>
           <aside className="jindex__aside">
-            <Pontes />
-            <ReviewCard />
             {!light && <MonthCard s={s} />}
-            <LembreteAjuste s={s} />
+            <ReviewCard />
+            <Link to="/preferencias#jornada-pref" className="arrow-link jindex__today">Registro automático e lembretes →</Link>
             <Link to="/" className="arrow-link jindex__today">Sem ideia do que jogar? Veja no Início →</Link>
           </aside>
         </div>
@@ -169,8 +175,9 @@ function Linha({ s, r, pinned, onFocus, onPaused }: { s: State; r: Row; pinned: 
   const ended = h.state === 'concluida' || h.state === 'dropada' || h.state === 'encerrada';
   const contexto = ended
     ? `${h.state === 'dropada' ? 'Largou' : h.state === 'encerrada' ? 'Encerrou' : 'Zerou'} ${h.completedPrecision === 'desconhecida' || !h.completedAt ? 'sem data' : `em ${whenLabel(h.completedAt, h.completedPrecision, { short: true })}`}${n > 1 ? ` · ${n} Histórias` : ''}`
-    : note?.note ? `“${note.note}”` : last?.whereStopped ? `Parou em ${last.whereStopped}` : last ? `Sem recado · última sessão${last.minutes ? ` de ${durLabel(last.minutes)}` : ''}` : 'Começou, ainda sem sessões';
-  const lado = [platform, !ended && last ? haDias(diasDesde(last.endedAt ?? last.startedAt)) : ''].filter(Boolean).join(' · ');
+    : note?.note ? `“${note.note}”` : last?.whereStopped ? `Parou em ${last.whereStopped}` : last ? `Última sessão${last.minutes ? ` de ${durLabel(last.minutes)}` : ''}` : 'Ainda sem sessões';
+  const pct = !ended && h.progress ? Math.round(h.progress) : 0;
+  const lado = [platform, pct ? `${pct}%` : '', !ended && last ? haDias(diasDesde(last.endedAt ?? last.startedAt)) : ''].filter(Boolean).join(' · ');
   const itens: MoreItem[] = [
     { key: 'abrir', label: 'Abrir a Jornada', onSelect: () => navigate(`/jornada/${g.slug}`) },
     ...(h.state === 'ativa' ? [
@@ -189,6 +196,7 @@ function Linha({ s, r, pinned, onFocus, onPaused }: { s: State; r: Row; pinned: 
       </Link>
       {lado && <span className="jx__side">{lado}</span>}
       <MoreActions items={itens} label={`Mais opções: ${g.title}`} className="btn quiet icon jx__dots" />
+      {pct > 0 && <span className="jx__bar" aria-hidden="true"><i style={{ width: `${pct}%` }} /></span>}
     </li>
   );
 }
@@ -221,42 +229,6 @@ function LembreteParado({ row, dias, onPaused }: { row: Row; dias: number; onPau
         <button type="button" className="btn quiet sm" onClick={() => { actions.setHistoryState(row.h!.id, 'pausada'); onPaused(); }}>Pausar</button>
         <button type="button" className="btn quiet sm" onClick={adiar}>Agora não</button>
       </div>
-    </section>
-  );
-}
-
-function LembreteAjuste({ s }: { s: State }) {
-  const v = s.prefs.lembreteParado ?? 0;
-  return (
-    <section className="jside-card" aria-labelledby="jlemaj-h">
-      <h2 id="jlemaj-h" className="jx__k">Lembrete de jogo parado</h2>
-      <p>Um aviso discreto aqui na Jornada quando um jogo em andamento fica muito tempo sem sessão.</p>
-      <label className="jside-card__sel">
-        <span className="sr-only">Avisar depois de</span>
-        <select className="field" value={v} onChange={(e) => { const n = Number(e.target.value); actions.setPrefs({ lembreteParado: n === 7 || n === 14 || n === 30 ? n : null }); }}>
-          <option value={0}>Desligado</option>
-          <option value={7}>Depois de 7 dias</option>
-          <option value={14}>Depois de 14 dias</option>
-          <option value={30}>Depois de 30 dias</option>
-        </select>
-      </label>
-    </section>
-  );
-}
-
-/** As pontes que registram sessões sozinhas, com o estado de cada uma. */
-function Pontes() {
-  const b = useBridges();
-  const on = new Set((b?.accounts ?? []).filter((a) => a.auto).map((a) => a.provider));
-  const lista: Provider[] = ['steam', 'playnite', 'ra'];
-  return (
-    <section className="jside-card" aria-labelledby="jpontes-h">
-      <h2 id="jpontes-h" className="jx__k">Registrar sessões automaticamente</h2>
-      <p>Ligue a Steam, o Playnite ou o RetroAchievements e as sessões entram sozinhas na Jornada.</p>
-      <ul className="jside-card__list">
-        {lista.map((p) => <li key={p} className={on.has(p) ? 'is-on' : ''}><span className="tr" aria-hidden="true" />{PROVIDER_NAME[p]} · {on.has(p) ? (p === 'playnite' ? 'ligado' : 'ligada') : (p === 'playnite' ? 'desligado' : 'desligada')}</li>)}
-      </ul>
-      {on.size < 3 && <Link to="/preferencias#pontes" className="linklike">{on.size ? 'Ligar mais →' : 'Ligar →'}</Link>}
     </section>
   );
 }

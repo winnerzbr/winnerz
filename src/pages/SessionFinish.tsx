@@ -28,10 +28,12 @@ const POUCO_RESP = [['sim', 'Sim'], ['quase', 'Passei um pouco'], ['nao', 'Não 
  * opcionais. Onde parou, como foi, objetivo, companhia, progresso e tempo ficam em "Mais detalhes", fechado por padrão
  * (a tela lembra se você costuma abrir). Nada é obrigatório: o botão guarda o que tiver, até sem recado.
  */
-export function FinishFlow({ game, history, sessionNumber, onSavePhoto, progress, startedAt, goal, intent, companions: known, canWho, tagsOn = false, knownTags = [], startAt, onFinish, onZerei, onCancel, onPhoto }: {
+export function FinishFlow({ game, history, sessionNumber, onSavePhoto, progress, startedAt, goal, intent, companions: known, canWho, tagsOn = false, knownTags = [], startAt, onFinish, onZerei, onCancel, onPhoto, onDiscard }: {
   game: Game; history: History; sessionNumber: number; onSavePhoto: (blob: Blob, title: string) => void; progress: number; startedAt: string;
   goal?: string; intent?: string; companions: string[]; canWho: boolean; tagsOn?: boolean; knownTags?: string[]; startAt?: 'recado';
   onFinish: (d: FinishData) => void; onZerei: (d: FinishData) => void; onCancel: () => void; onPhoto: (where: string) => void;
+  /** Sessão de 1 ou 2 minutos sem nada escrito: dá para não registrar. */
+  onDiscard?: () => void;
 }) {
   const [withWho, setWithWho] = useState<string[]>([]);
   const [who, setWho] = useState('');
@@ -248,7 +250,9 @@ export function FinishFlow({ game, history, sessionNumber, onSavePhoto, progress
       </main>
 
       <footer className="ff__foot">
-        <span className="ff__hint">Nada aqui é obrigatório.</span>
+        {onDiscard && !temAlgo && (minutes ?? 0) < 3
+          ? <button type="button" className="ff__link ff__discard" onClick={onDiscard}>Abri sem querer: não registrar</button>
+          : <span className="ff__hint">Nada aqui é obrigatório.</span>}
         <button type="button" className="btn primary lg ff__go" onClick={() => close(onFinish)}>{note.trim() ? 'Guardar' : temAlgo ? 'Guardar sem recado' : 'Guardar sem anotar nada'}</button>
       </footer>
     </div>

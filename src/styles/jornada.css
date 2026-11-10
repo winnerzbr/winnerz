@@ -405,3 +405,42 @@
 .ghero { min-height: 0; }
 .ghero__row { padding-top: 44px; padding-bottom: 48px; }
 @media (max-width: 760px) { .ghero__row { padding-top: 28px; padding-bottom: 32px; } }
+
+/* Lista da Jornada: barra fina de progresso na base de cada linha (10/11/2026) */
+.jx__row { position: relative; }
+.jx__bar { position: absolute; left: 54px; right: 0; bottom: -1px; height: 2px; background: transparent; pointer-events: none; }
+.jx__bar i { display: block; height: 100%; background: var(--ink); opacity: .7; }
+.jx__head .jx__sum { font-size: 13px; color: var(--faint); }
+
+/* ---- Revisão da Jornada, rodada 1 (10/11/2026) ---- */
+/* Topo: os botões descem para a linha de baixo antes de espremer o nome do jogo */
+@media (max-width: 1180px) {
+  .jhero--compact .jhero__row { grid-template-columns: auto minmax(0, 1fr); align-items: end; gap: 16px 18px; }
+  .jhero--compact .jhero__actions { grid-column: 1 / -1; justify-self: start; flex-wrap: wrap; }
+}
+@media (max-width: 900px) { .jhero--compact .jhero__actions { justify-self: stretch; } }
+/* "Onde você parou" sem foto ocupa a largura toda */
+.jret:not(:has(.jret__side)) { grid-template-columns: minmax(0, 1fr); }
+/* Trilha */
+.jtrilha { display: flex; flex-direction: column; gap: 10px; margin: 0 0 22px; }
+.jtrilha__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 18px; flex-wrap: wrap; }
+.jtrilha__k { font-size: 15px; color: var(--ink-2); }
+.jtrilha__k b { color: var(--ink); font-weight: 700; }
+.jtrilha__n { display: inline-flex; align-items: baseline; gap: 14px; font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.jtrilha__pct { all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 18px; letter-spacing: 0; color: var(--ink); font-weight: 600; }
+.jtrilha__pct:hover { text-decoration: underline; text-underline-offset: 4px; }
+.jtrilha__pct:focus-visible, .jtrilha__bar:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.jtrilha__bar { all: unset; box-sizing: border-box; cursor: pointer; display: flex; gap: 3px; width: 100%; height: 12px; padding: 3px 0; }
+.jtrilha__bar i { flex: 1 1 0; min-width: 2px; height: 6px; background: var(--line); transform: skewX(-22deg); transition: background .2s; }
+.jtrilha__bar i.is-done { background: var(--ink); opacity: .78; }
+.jtrilha__bar i.is-now { background: var(--now); height: 10px; margin-top: -2px; }
+.jtrilha__bar:not(.is-stops) { background: linear-gradient(var(--line), var(--line)) 0 50% / 100% 6px no-repeat; }
+.jtrilha__bar .jtrilha__fill { flex: none; min-width: 0; transform: none; background: var(--ink); opacity: .78; }
+.jtrilha__bar:hover i:not(.is-done):not(.is-now):not(.jtrilha__fill) { background: var(--line-2, var(--faint)); }
+/* História: a chave de como ver */
+.jvista { display: flex; justify-content: flex-start; padding: 16px 0 2px; }
+/* Diário: várias sessões do mesmo dia num bloco só */
+.jreg__sess { display: flex; flex-direction: column; gap: 6px; }
+.jreg__sess + .jreg__sess, .jreg__sess + .jreg__ev { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+@media (max-width: 640px) { .jtrilha__k { font-size: 14px; } .jvista .seg { width: 100%; } }
+.ff__discard { font-size: 14px; }

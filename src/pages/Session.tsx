@@ -226,6 +226,7 @@ export function SessionPage() {
           startAt={finishing === 'recado' ? 'recado' : undefined}
           onPhoto={(where) => { prefill.current = where.trim() ? `Onde parei: ${where.trim()}` : 'Onde parei'; pickPhoto('momento'); }}
           onCancel={() => setFinishing(false)}
+          onDiscard={() => { actions.deleteSession(session.id); navigate(`/jornada/${g.slug}`); }}
           companions={knownCompanions(s)}
           canWho={hasV8(s)}
           tagsOn={hasV95(s)}

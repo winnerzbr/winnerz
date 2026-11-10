@@ -165,7 +165,7 @@ export type GlobalItem = {
   resolved?: boolean;
 };
 
-const KIND_LABEL: Record<string, string> = { inicio: 'Começou', sessao: 'Sessão', momento: 'Momento', ponto: 'Ponto para voltar', marco: 'Marco', carta: 'Carta' };
+const KIND_LABEL: Record<string, string> = { inicio: 'Começou', sessao: 'Sessão', momento: 'Momento', ponto: 'Ponto para voltar', marco: 'Momento', carta: 'Carta' };
 
 const copyText = (c: State['copies'][number]) => [c.platform, c.kind === 'fisico' ? 'mídia física' : c.kind === 'digital' ? 'digital' : c.kind === 'assinatura' ? 'assinatura' : ''].filter(Boolean).join(', ');
 

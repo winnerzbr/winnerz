@@ -13,7 +13,7 @@ import { track } from '../lib/track';
 import { useMyHandle } from './Moderation';
 
 const W = 1080, H = 1350;
-export const SNIP_KICKER: Record<string, string> = { momento: 'Momento', marco: 'Marco', inicio: 'Começo', sessao: 'Sessão', ponto: 'Ponto para voltar' };
+export const SNIP_KICKER: Record<string, string> = { momento: 'Momento', marco: 'Momento', inicio: 'Começo', sessao: 'Sessão', ponto: 'Ponto para voltar' };
 
 export interface SnipCardData { kind: string; title: string; at: string; precision?: TimelineEvent['precision'] | null; dateLabel?: string | null; quote?: string | null; text?: string | null; photo?: string | null; game: { title: string; cover?: string | null; backdrop?: string | null }; handle?: string | null }
 

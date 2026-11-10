@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: segunda leva de carrosséis da linha do tempo (mais seis)
+- O dono pediu mais sugestões. Página nova "Carrosséis 2" no mesmo canvas (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), seis quadros que funcionam no Play:
+  - K · Fita VHS: a cena liga como TV antiga, com linhas, faixa de rastreio e "PLAY" na tela;
+  - L · Persiana 22°: a cena abre em tiras diagonais com os fios acesos;
+  - M · Íris: abre num círculo a partir do centro, com anel de luz;
+  - N · Virar a página: cada cena é uma página de livro que vira;
+  - O · Mosaico: ladrilhos acendem e somem em ordem sorteada;
+  - P · Mapa da jornada: as cenas são paradas num caminho, a câmera viaja e a linha vai acendendo.
+- Com o E e os cinco da primeira leva (F a J), são doze opções de carrossel. Falta ele escolher. Nada mudou no site.
+
 ## 10/11/2026: mais cinco carrosséis de linha do tempo no canvas
 - O dono achou "sensacional" a linha do tempo em **carrossel** (quadro E) e pediu mais sugestões em carrossel, com outros efeitos.
 - No mesmo canvas, página nova "Carrosséis" (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), cinco quadros que funcionam no Play:

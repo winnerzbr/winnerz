@@ -240,6 +240,80 @@ CSS = r'''
 .v-dive .ring{display:block;position:absolute;left:50%;top:324px;border:1px solid var(--ln);transform:translate(-50%,-50%) skewX(-12deg);pointer-events:none}
 .v-dive .ring.r1{width:900px;height:520px;opacity:.9}.v-dive .ring.r2{width:1040px;height:600px;opacity:.55}.v-dive .ring.r3{width:1200px;height:690px;opacity:.3}
 
+/* ================= carrosséis, segunda leva ================= */
+/* K · fita VHS */
+.v-vhs .sl{border-radius:12px;filter:saturate(.35) brightness(.4);box-shadow:none}
+.v-vhs .sl.on{filter:none;animation:k-on .55s cubic-bezier(.2,.8,.2,1),k-jit .5s .5s steps(1)}
+.v-vhs .sl .bar,.v-vhs .sl>.streak{display:none}
+.v-vhs .sl .tl-cap{bottom:0}.v-vhs .sl .mid{inset:0}
+@keyframes k-on{0%{clip-path:inset(49.5% 0 49.5% 0);filter:brightness(4)}45%{clip-path:inset(49.5% 0 49.5% 0);filter:brightness(4)}100%{clip-path:inset(0);filter:none}}
+@keyframes k-jit{0%{transform:translateX(-5px)}20%{transform:translateX(4px)}40%{transform:translateX(-2px) skewX(.6deg)}60%{transform:translateX(3px)}80%{transform:translateX(-1px)}100%{transform:none}}
+.scan{position:absolute;inset:0;z-index:6;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.3) 0 2px,transparent 2px 4px);mix-blend-mode:multiply}
+.trk{position:absolute;left:0;right:0;top:-70px;height:60px;z-index:7;pointer-events:none;opacity:0;background:linear-gradient(180deg,transparent,rgba(255,255,255,.22) 30%,rgba(255,255,255,.05) 50%,rgba(255,255,255,.3) 70%,transparent);box-shadow:0 0 0 1px rgba(255,255,255,.08);backdrop-filter:blur(3px) hue-rotate(40deg)}
+.sl.on .trk{animation:k-trk 1.3s .45s cubic-bezier(.3,.2,.5,1)}
+@keyframes k-trk{0%{opacity:1;transform:translateY(0)}100%{opacity:.9;transform:translateY(560px)}}
+.osd{position:absolute;left:20px;top:16px;z-index:8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:17px;font-weight:700;letter-spacing:.1em;color:#eafff0;text-shadow:2px 0 rgba(255,60,60,.8),-2px 0 rgba(60,220,255,.8);opacity:0}
+.sl.on .osd{animation:k-osd 2.8s .5s steps(1) forwards}
+@keyframes k-osd{0%{opacity:1}70%{opacity:1}78%{opacity:0}86%{opacity:1}100%{opacity:.75}}
+.v-vhs .sl.on .tl-cap h3,.v-vhs .sl.on .mid h3,.v-vhs .sl.on .tl-q{text-shadow:1.5px 0 rgba(255,60,60,.7),-1.5px 0 rgba(60,220,255,.7)}
+/* L · persiana 22° */
+@property --pw{syntax:'<length>';inherits:false;initial-value:0px}
+.v-strip .sl{opacity:0;transform:none;filter:none;transition:none;z-index:0;box-shadow:none}
+.v-strip .sl.was{opacity:1;z-index:1;animation:h-out .9s ease-out forwards}
+.v-strip .sl.on{opacity:1;z-index:2;-webkit-mask:repeating-linear-gradient(112deg,#000 0 var(--pw),transparent var(--pw) 78px);mask:repeating-linear-gradient(112deg,#000 0 var(--pw),transparent var(--pw) 78px);animation:l-open .95s cubic-bezier(.65,0,.2,1) both}
+@keyframes l-open{from{--pw:0px}to{--pw:79px}}
+.gl{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:repeating-linear-gradient(112deg,#FFD9A3 0 2px,transparent 2px 78px);filter:drop-shadow(0 0 6px rgba(255,178,91,.9))}
+.sl.on .gl{animation:l-gl .95s ease-out}
+@keyframes l-gl{0%{opacity:1}70%{opacity:.8}100%{opacity:0}}
+/* M · íris */
+.v-iris .sl{opacity:0;transform:none;filter:none;transition:none;z-index:0;box-shadow:none}
+.v-iris .sl.was{opacity:1;z-index:1;animation:h-out 1s ease-out forwards}
+.v-iris .sl.on{opacity:1;z-index:2;animation:m-iris 1.05s cubic-bezier(.6,0,.2,1) both}
+@keyframes m-iris{from{clip-path:circle(0% at 50% 50%)}to{clip-path:circle(75% at 50% 50%)}}
+.irs{position:absolute;left:50%;top:50%;width:950px;height:950px;margin:-475px 0 0 -475px;border-radius:50%;border:4px solid #FFD9A3;box-shadow:0 0 26px 8px rgba(255,178,91,.7),inset 0 0 40px 10px rgba(255,178,91,.35);z-index:8;pointer-events:none;opacity:0}
+.sl.on .irs{animation:m-ring 1.05s cubic-bezier(.6,0,.2,1) both}
+@keyframes m-ring{0%{opacity:1;transform:scale(0)}85%{opacity:1}100%{opacity:0;transform:scale(.99)}}
+.fl{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 50%,rgba(255,244,220,.95),rgba(255,200,130,.4) 22%,transparent 46%);mix-blend-mode:screen}
+.sl.on .fl{animation:m-fl .9s ease-out}
+@keyframes m-fl{0%{opacity:1}100%{opacity:0}}
+/* N · virar a página */
+.v-page .cz__track{perspective:2200px}
+.v-page .cz__track::after{content:"";position:absolute;inset:0;z-index:0;box-shadow:6px 6px 0 -1px #15171a,6px 6px 0 0 var(--ln),12px 12px 0 -1px #111316,12px 12px 0 0 var(--ln),18px 18px 0 -1px #0d0e10,18px 18px 0 0 var(--ln);pointer-events:none}
+.v-page .sl{opacity:0;transform:none;filter:none;transition:none;z-index:1;transform-origin:left center;backface-visibility:hidden;box-shadow:none}
+.v-page .sl.on{opacity:1;z-index:2}
+.v-page .sl.was{opacity:1;z-index:3;pointer-events:none;animation:n-turn 1.15s cubic-bezier(.5,0,.3,1) forwards}
+@keyframes n-turn{0%{transform:rotateY(0);filter:none}45%{transform:rotateY(-78deg) skewY(-2.5deg);filter:brightness(.55)}100%{transform:rotateY(-178deg);filter:brightness(.2)}}
+.v-page .sl.on .tl-cap>*,.v-page .sl.on .mid>*{animation-delay:.75s}
+.v-page .sl.on .tl-cap>*:nth-child(2),.v-page .sl.on .mid>*:nth-child(2){animation-delay:.9s}
+.v-page .sl.on .tl-cap>*:nth-child(3),.v-page .sl.on .mid>*:nth-child(3){animation-delay:1.05s}
+.spine{position:absolute;left:0;top:0;bottom:0;width:26px;z-index:6;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.75),rgba(0,0,0,.15) 60%,transparent)}
+/* O · mosaico */
+.v-mos .sl{opacity:0;transform:none;filter:none;transition:none;z-index:0;box-shadow:none}
+.v-mos .sl.was{opacity:1;z-index:1}
+.v-mos .sl.on{opacity:1;z-index:2}
+.mz{position:absolute;inset:0;z-index:7;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(7,1fr);pointer-events:none}
+.mz i{display:block;background:#050506;outline:1px solid #050506}
+.sl.on .mz i{animation:o-tile .5s var(--d) cubic-bezier(.4,0,.2,1) both}
+@keyframes o-tile{0%{opacity:1;background:#050506;transform:none}45%{opacity:1;background:#FFB25B;transform:scale(.86)}100%{opacity:0;background:#FFB25B;transform:scale(.3)}}
+/* P · mapa da jornada */
+.v-map .cz__track{gap:140px;top:186px}
+.v-map .cz__track::before{content:"";position:absolute;left:-3000px;right:-3000px;top:-900px;bottom:-900px;z-index:-1;background:repeating-linear-gradient(112deg,rgba(255,255,255,.035) 0 1px,transparent 1px 64px),repeating-linear-gradient(22deg,rgba(255,255,255,.03) 0 1px,transparent 1px 64px)}
+.v-map .sl{width:560px;height:316px;transform:scale(.72);opacity:.5;filter:saturate(.4) brightness(.6);z-index:2}
+.v-map .sl.on{transform:scale(1);opacity:1;filter:none;z-index:3}
+.v-map .sl .bar,.v-map .sl>.streak{display:none}
+.v-map .sl .tl-cap{bottom:0;padding:44px 22px 16px}.v-map .sl .tl-cap h3{font-size:24px}.v-map .sl .tl-cap p{font-size:14px}
+.v-map .sl .mid{inset:0;padding:0 34px;gap:10px}
+.v-map .sl.cap .rom{font-size:96px}.v-map .sl.cap h3{font-size:26px}
+.v-map .sl.txt .tl-q{font-size:22px}
+.v-map .sl .ttl{font-size:34px!important}
+.lk{position:absolute;height:3px;z-index:1;transform-origin:left center;background:repeating-linear-gradient(90deg,var(--ln) 0 12px,transparent 12px 22px)}
+.lk::after{content:"";position:absolute;left:0;top:0;bottom:0;width:0;background:var(--now);box-shadow:0 0 12px 2px rgba(255,178,91,.6);transition:width .95s cubic-bezier(.3,.6,.2,1)}
+.lk.p1::after,.lk.p2::after,.lk.pf::after{width:100%}
+.png{position:absolute;left:50%;top:50%;width:560px;height:316px;margin:-158px 0 0 -280px;border:2px solid var(--now);z-index:9;pointer-events:none;opacity:0}
+.sl.on .png{animation:p-ping 1.1s .5s ease-out}
+@keyframes p-ping{0%{opacity:.9;transform:scale(.96)}100%{opacity:0;transform:scale(1.22)}}
+.flag{position:absolute;left:14px;top:12px;z-index:5}
+
 '''
 SC = {
  'ouro': 'radial-gradient(ellipse at 62% 34%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)',
@@ -404,15 +478,25 @@ def slide_papel(i, sd, extra):
         return 'txt', f'<div class="paper"><span class="lb">{a}</span><p class="hq" style="margin: 0">{b}</p><span class="lb">{c}</span></div>'
     return 'txt', f'<div class="paper"><span class="lb">Hoje · Leyndell, Capital das Cinzas · 39%</span><p class="hq" style="margin: 0">O próximo instante…</p><div>{btn("Começar sessão", "sec", "lg")}</div></div>'
 
-def carrossel(variant='', stack=False, step=816, half=390, extra='', render=slide_padrao, numerar=False):
+def carrossel(variant='', stack=False, step=816, half=390, extra='', render=slide_padrao, numerar=False, ys=None, links=False, mosaic=False, cy=158):
     def fn():
         n = len(SLIDES)
         bgs = ''.join(f'<div class="cz__bg {{{{k{i}}}}}" style="background: {SC[s[1]]}"></div><i class="rays {{{{k{i}}}}}"></i>' for i, s in enumerate(SLIDES))
+        import random, math
+        yy = ys or [0] * n
         sl = []
+        if links:
+            for i in range(n - 1):
+                dy = yy[i + 1] - yy[i]
+                sl.append(f'<i class="lk {{{{k{i}}}}}" style="left: {i * step + half}px; top: {cy + yy[i]}px; width: {math.hypot(step, dy):.1f}px; transform: rotate({math.degrees(math.atan2(dy, step)):.2f}deg)"></i>')
         for i, sd in enumerate(SLIDES):
             cls, inner = render(i, sd, extra)
             q = f'<span class="qd">QUADRO {i + 1:02d}</span>' if numerar else ''
-            sl.append(f'<div class="sl {cls} {{{{k{i}}}}}" onClick="{{{{go{i}}}}}">{inner}{q}</div>')
+            if mosaic:
+                rnd = random.Random(i * 7 + 3)
+                q += '<div class="mz" aria-hidden="true">' + ''.join(f'<i style="--d: {0.05 + rnd.random() * 0.75:.2f}s"></i>' for _ in range(84)) + '</div>'
+            st = f' style="translate: 0 {yy[i]}px"' if ys else ''
+            sl.append(f'<div class="sl {cls} {{{{k{i}}}}}"{st} onClick="{{{{go{i}}}}}">{inner}{q}</div>')
         dots = ''.join(f'<button type="button" class="dot {"cp" if s[0] == "cap" else ""} {{{{k{i}}}}}" style="left: {i / (n - 1) * 100:.2f}%" onClick="{{{{go{i}}}}}" aria-label="Ir para {s[2]}: {s[4] if s[0] != "txt" else "recado"}"><i></i>'
                        + (f'<span>{s[2]}</span>' if s[0] in ('cap', 'hoje') else '') + '</button>' for i, s in enumerate(SLIDES))
         stage = (f'<section class="cz {variant}{" cz--stack" if stack else ""}">' + bgs + '<i class="ring r3"></i><i class="ring r2"></i><i class="ring r1"></i>'
@@ -423,7 +507,7 @@ def carrossel(variant='', stack=False, step=816, half=390, extra='', render=slid
                  + '<div class="cz__track" style="transform: {{tx}}">' + ''.join(sl) + '</div>'
                  + '<button type="button" class="cz__arrow l" onClick="{{prev}}" aria-label="Anterior">‹</button><button type="button" class="cz__arrow r" onClick="{{next}}" aria-label="Próximo">›</button>'
                  + '<div class="cz__rule"><i class="cz__fill" style="width: {{fill}}"></i>' + dots + '</div></section>')
-        return header('Jornada') + stage, 790, n, step, half
+        return header('Jornada') + stage, 790, n, step, half, yy
     return fn
 b_carrossel = carrossel()
 
@@ -435,7 +519,7 @@ LOGIC = """class Component extends DCLogic {
   renderVals() {
     const i = this.state.i, was = this.state.was;
     const v = {
-      tx: 'translateX(' + (640 - (i * STEP + HALF)) + 'px)',
+      tx: 'translate(' + (640 - (i * STEP + HALF)) + 'px,' + (-YSARR[i]) + 'px)',
       fill: (i / (NN - 1) * 100).toFixed(2) + '%',
       num: String(i + 1).padStart(2, '0'),
       playLabel: this.state.play ? '❚❚ Pausar' : '▶ Passeio',
@@ -473,6 +557,14 @@ EXTRAS = [
  ('Carrossel-Camara.dc.html', 'I · Câmara escura', carrossel('v-dark', False, 816, 390, '', render=slide_papel), 0, 910),
  ('Carrossel-Mergulho.dc.html', 'J · Mergulho', carrossel('v-dive', True, 0, 0, ''), 1360, 910),
 ]
+EXTRAS2 = [
+ ('Carrossel-VHS.dc.html', 'K · Fita VHS', carrossel('v-vhs', False, 816, 390, '<i class="scan"></i><i class="trk"></i><span class="osd">▶ PLAY</span>'), 0, 0),
+ ('Carrossel-Persiana.dc.html', 'L · Persiana 22°', carrossel('v-strip', True, 0, 0, '<i class="gl"></i>'), 1360, 0),
+ ('Carrossel-Iris.dc.html', 'M · Íris', carrossel('v-iris', True, 0, 0, '<i class="irs"></i><i class="fl"></i>'), 2720, 0),
+ ('Carrossel-Pagina.dc.html', 'N · Virar a página', carrossel('v-page', True, 0, 0, '<i class="spine"></i>'), 0, 910),
+ ('Carrossel-Mosaico.dc.html', 'O · Mosaico', carrossel('v-mos', True, 0, 0, '', mosaic=True), 1360, 910),
+ ('Carrossel-Mapa.dc.html', 'P · Mapa da jornada', carrossel('v-map', False, 700, 280, '<i class="png"></i>', ys=[0, -70, 60, -50, 70, -60, 50, -70, 60, 0], links=True), 2720, 910),
+]
 def main():
     boards, order, x = {}, [], 0
     for fname, title, fn, w in BOARDS:
@@ -480,7 +572,7 @@ def main():
         html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
         if len(r) > 2:
             a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
-            html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])) + '\n' + html[b:]
+            html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])) + '\n' + html[b:]
         if w != 1280:
             html = html.replace('style="width: 1280px;', f'style="width: {w}px;', 1).replace('"width":1280', f'"width":{w}', 1)
         open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
@@ -491,13 +583,14 @@ def main():
         r = fn(); body, h = r[0], r[1]
         html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
         a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
-        html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])) + '\n' + html[b:]
+        html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])).replace('YSARR', json.dumps(r[5])) + '\n' + html[b:]
         open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
         return h
-    for fname, title, fn, ex, ey in EXTRAS:
-        h = escreve(fname, title, fn, 1280)
-        boards[fname] = {'x': ex, 'y': ey, 'w': 1280, 'h': h, 'title': title, 'page': 'carrosseis', 'is_interactive': True}
-        order.append(fname)
+    for pg, lista in (('carrosseis', EXTRAS), ('carrosseis2', EXTRAS2)):
+        for fname, title, fn, ex, ey in lista:
+            h = escreve(fname, title, fn, 1280)
+            boards[fname] = {'x': ex, 'y': ey, 'w': 1280, 'h': h, 'title': title, 'page': pg, 'is_interactive': True}
+            order.append(fname)
     notes = {
       'titulo': {'x': 0, 'y': -300, 'text': 'Linha do tempo nova · modelo', 'kind': 'title1', 'maxW': 4200},
       'n1': {'x': 0, 'y': 1400, 'w': 620, 'fill': 'orange', 'text': 'A · O que muda na página do jogo\n\n• Botão "Linha do tempo" no topo, ao lado de Começar sessão\n• Cartão grande de entrada, com as suas fotos\n• "Neste dia" quando houver lembrança\n• As abas ficam só com Diário e Detalhes'},
@@ -506,10 +599,12 @@ def main():
       'n5': {'x': 4550, 'y': 910, 'w': 620, 'fill': 'purple', 'text': 'E · Em carrossel\n\nAperte Play no quadro para testar.\n• Setas e pontos da régua trocam de cena\n• "Passeio" avança sozinho\n• A cena do centro ganha faixas pretas, zoom lento, risco de luz e o texto subindo\n• As outras ficam apagadas ao lado\n• Os efeitos tocam uma vez por cena, sem ficar em repetição'},
       'c0': {'x': 0, 'y': -300, 'text': 'Carrosséis · cinco efeitos (aperte Play em cada um)', 'kind': 'title1', 'maxW': 4000, 'page': 'carrosseis'},
       'c1': {'x': 2720, 'y': 910, 'w': 760, 'fill': 'purple', 'page': 'carrosseis', 'text': 'F · Rolo de filme: tira de película, o quadro treme e assenta, vazamento de luz laranja, a cor sai do sépia.\n\nG · Profundidade: as cenas ficam em arco, em 3D, com reflexo no chão e um facho de luz na cena do centro.\n\nH · Corte em lâmina: a cena nova entra cortando na diagonal de 22°, com o fio da lâmina aceso; o texto chega com as cores separadas.\n\nI · Câmara escura: fotos em papel; a imagem se revela sob a luz vermelha e a legenda é escrita à mão.\n\nJ · Mergulho: a cena atual passa por você e a próxima vem do fundo, com riscos de velocidade.'},
+      'd0': {'x': 0, 'y': -300, 'text': 'Carrosséis 2 · mais seis efeitos (aperte Play em cada um)', 'kind': 'title1', 'maxW': 4000, 'page': 'carrosseis2'},
+      'd1': {'x': 4080, 'y': 0, 'w': 700, 'fill': 'teal', 'page': 'carrosseis2', 'text': 'K · Fita VHS: a cena liga como TV antiga, com linhas, faixa de rastreio descendo e "PLAY" na tela.\n\nL · Persiana 22°: a cena abre em tiras diagonais, com os fios acesos.\n\nM · Íris: a cena abre num círculo a partir do centro, com um anel de luz, como nos filmes antigos.\n\nN · Virar a página: cada cena é uma página de um livro que vira.\n\nO · Mosaico: a cena aparece atrás de ladrilhos que acendem e somem, em ordem sorteada.\n\nP · Mapa da jornada: as cenas são paradas num caminho; a câmera viaja de uma a outra e a linha vai acendendo.'},
       'n4': {'x': 4080, 'y': 1920, 'w': 390, 'fill': 'gray', 'text': 'As fotos aqui são só manchas de cor no lugar das suas capturas de verdade.'},
     }
     idx = {'v': 3, 'createdOnFiles': {'v': 1, 'at': datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}, 'title': 'WinnerZ · Linha do tempo nova (modelo)',
-           'launch': {'view': 'canvas', 'page': 'carrosseis'}, 'pages': [{'id': 'modelo', 'name': 'Modelo'}, {'id': 'carrosseis', 'name': 'Carrosséis'}], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
+           'launch': {'view': 'canvas', 'page': 'carrosseis2'}, 'pages': [{'id': 'modelo', 'name': 'Modelo'}, {'id': 'carrosseis', 'name': 'Carrosséis'}, {'id': 'carrosseis2', 'name': 'Carrosséis 2'}], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
     json.dump(idx, open(os.path.join(OUT, 'canvas.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(len(boards), 'quadros')
 main()

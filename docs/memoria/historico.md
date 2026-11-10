@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: mais cinco carrosséis de linha do tempo no canvas
+- O dono achou "sensacional" a linha do tempo em **carrossel** (quadro E) e pediu mais sugestões em carrossel, com outros efeitos.
+- No mesmo canvas, página nova "Carrosséis" (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), cinco quadros que funcionam no Play:
+  - F · Rolo de filme: tira de película, o quadro treme e assenta, vazamento de luz, a cor sai do sépia;
+  - G · Profundidade: cenas em arco 3D, reflexo no chão, facho de luz na cena do centro;
+  - H · Corte em lâmina: a cena entra cortando na diagonal de 22° com o fio aceso; o texto chega com as cores separadas;
+  - I · Câmara escura: fotos em papel, imagem que se revela sob luz vermelha, legenda escrita à mão;
+  - J · Mergulho: a cena atual passa pela câmera e a próxima vem do fundo, com riscos de velocidade.
+- Todos tocam o efeito uma vez por cena. Gerador: `prototipos/redesign-elementos/tl.py`.
+- Falta ele escolher o efeito (ou combinação). Nada mudou no site.
+
 ## 10/11/2026: modelo da linha do tempo, versão cinematográfica e carrossel
 - Pedido do dono: a linha do tempo deve ser **cinematográfica, com efeitos especiais**, e ele quer ver também um exemplo **em carrossel**, como a de hoje.
 - No mesmo canvas (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM):

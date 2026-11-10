@@ -139,6 +139,107 @@ CSS = r'''
 .cz__count{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.14em;color:var(--mut)}
 .cz__count b{color:var(--ink);font-size:20px}
 
+/* ================= carrosséis com outros efeitos ================= */
+.cz--stack .cz__track{left:250px;top:104px;width:780px;height:440px;display:block;transform:none!important}
+.cz--stack .sl{position:absolute;inset:0;width:auto;height:auto}
+.rays,.ring{display:none}
+/* F · rolo de filme */
+.v-film .cz__track{gap:16px;top:124px}
+.v-film .cz__track::before,.v-film .cz__track::after{content:"";position:absolute;left:-3000px;right:-3000px;height:32px;background:#0e0e0f repeating-linear-gradient(90deg,#3b3934 0 18px,transparent 18px 44px) 0 9px/auto 14px repeat-x}
+.v-film .cz__track::before{top:-40px}.v-film .cz__track::after{bottom:-40px}
+.v-film .sl{width:700px;height:394px;transform:none;opacity:.6;filter:sepia(.9) brightness(.5) contrast(1.15);box-shadow:none}
+.v-film .sl.on{opacity:1;filter:none;animation:f-weave .7s linear,f-grade 2s ease-out,f-flick .8s steps(1)}
+.v-film .sl .bar,.v-film .sl>.streak{display:none}
+.v-film .sl .tl-cap{bottom:0}
+.v-film .sl .mid{inset:0}
+@keyframes f-weave{0%{transform:translateY(-12px)}18%{transform:translateY(7px)}36%{transform:translateY(-5px)}54%{transform:translateY(3px)}72%{transform:translateY(-1px)}100%{transform:none}}
+@keyframes f-grade{0%{filter:sepia(1) brightness(.6) contrast(1.3)}45%{filter:sepia(.7) brightness(.95) contrast(1.1)}100%{filter:none}}
+@keyframes f-flick{0%{opacity:.55}12%{opacity:1}24%{opacity:.7}36%{opacity:1}52%{opacity:.82}64%{opacity:1}}
+.leak{position:absolute;inset:0;z-index:6;pointer-events:none;opacity:0;mix-blend-mode:screen;background:radial-gradient(ellipse at 0% 50%,rgba(255,170,70,.95),rgba(255,90,30,.55) 28%,transparent 60%)}
+.sl.on .leak{animation:f-leak 1.2s ease-out}
+@keyframes f-leak{0%{opacity:0;transform:translateX(-45%)}22%{opacity:.95}100%{opacity:0;transform:translateX(125%)}}
+.scr{position:absolute;top:0;bottom:0;left:37%;width:1px;background:rgba(255,255,255,.55);opacity:0;z-index:6}
+.scr.b{left:71%}
+.sl.on .scr{animation:f-scr .9s steps(1)}
+.sl.on .scr.b{animation-delay:.15s}
+@keyframes f-scr{0%{opacity:.7;transform:translateX(0)}20%{opacity:0}35%{opacity:.6;transform:translateX(9px)}50%{opacity:0}70%{opacity:.4;transform:translateX(-6px)}85%{opacity:0}}
+.qd{position:absolute;left:16px;top:12px;z-index:4;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.2em;color:rgba(255,235,200,.75)}
+/* G · profundidade */
+.v-3d .cz__track{perspective:1500px;top:92px}
+.v-3d .sl{opacity:0;transform:translateZ(-900px);filter:brightness(.45) saturate(.6);transition:transform 1s cubic-bezier(.2,.7,.2,1),opacity .8s,filter .9s;-webkit-box-reflect:below 12px linear-gradient(transparent 64%,rgba(0,0,0,.3))}
+.v-3d .sl.p1{opacity:.92;z-index:4;transform:translateX(-470px) translateZ(-300px) rotateY(42deg)}
+.v-3d .sl.n1{opacity:.92;z-index:4;transform:translateX(470px) translateZ(-300px) rotateY(-42deg)}
+.v-3d .sl.p2{opacity:.5;z-index:3;transform:translateX(-770px) translateZ(-580px) rotateY(56deg)}
+.v-3d .sl.n2{opacity:.5;z-index:3;transform:translateX(770px) translateZ(-580px) rotateY(-56deg)}
+.v-3d .sl.on{opacity:1;z-index:6;transform:translateZ(60px);filter:none}
+.v-3d .sl .bar{display:none}
+.v-3d .sl .tl-cap{bottom:0}
+.v-3d .sl .mid{inset:0}
+.v-3d .sl.on .tl-ph::before{animation:g-pan 9s cubic-bezier(.2,.5,.3,1) forwards}
+@keyframes g-pan{from{transform:scale(1.14) translateX(-3%)}to{transform:scale(1.14) translateX(3%)}}
+.v-3d .sl.on .tl-cap>*{animation-name:g-rise}
+@keyframes g-rise{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+.beam{position:absolute;left:8%;right:8%;top:0;height:100%;z-index:3;pointer-events:none;opacity:0;mix-blend-mode:screen;background:linear-gradient(180deg,rgba(255,238,205,.5),rgba(255,220,170,.12) 55%,transparent 82%);clip-path:polygon(38% 0,62% 0,100% 100%,0 100%)}
+.sl.on .beam{animation:g-beam 1.6s .3s ease-out forwards}
+@keyframes g-beam{0%{opacity:0}35%{opacity:.9}100%{opacity:.45}}
+.v-3d::after{content:"";position:absolute;left:0;right:0;top:548px;height:1px;background:linear-gradient(90deg,transparent,var(--ln) 20%,var(--ln) 80%,transparent)}
+/* H · corte em lâmina */
+.v-blade .sl{opacity:0;transform:none;filter:none;transition:none;z-index:0;box-shadow:none}
+.v-blade .sl.was{opacity:1;z-index:1;animation:h-out .9s ease-out forwards}
+.v-blade .sl.on{opacity:1;z-index:2;animation:h-wipe .85s cubic-bezier(.7,0,.2,1) both}
+@keyframes h-wipe{from{clip-path:polygon(0 0,0 0,-22.8% 100%,-22.8% 100%)}to{clip-path:polygon(0 0,122.8% 0,100% 100%,-22.8% 100%)}}
+@keyframes h-out{to{filter:brightness(.35) saturate(.4);transform:translateX(-22px)}}
+.edge{position:absolute;left:-14px;top:0;width:7px;height:100%;z-index:8;background:#FFD9A3;box-shadow:0 0 18px 6px rgba(255,178,91,.75),0 0 60px 18px rgba(255,150,60,.35);transform-origin:top;opacity:0;pointer-events:none}
+.sl.on .edge{animation:h-edge .85s cubic-bezier(.7,0,.2,1) both}
+@keyframes h-edge{0%{opacity:1;transform:translateX(0) skewX(-22deg)}92%{opacity:1}100%{opacity:0;transform:translateX(972px) skewX(-22deg)}}
+.v-blade .sl.on .tl-cap>*,.v-blade .sl.on .mid>*{animation-name:h-rgb;animation-duration:.8s}
+.v-blade .sl.on .tl-cap>*:nth-child(1),.v-blade .sl.on .mid>*:nth-child(1){animation-delay:.55s}
+.v-blade .sl.on .tl-cap>*:nth-child(2),.v-blade .sl.on .mid>*:nth-child(2){animation-delay:.68s}
+.v-blade .sl.on .tl-cap>*:nth-child(3),.v-blade .sl.on .mid>*:nth-child(3){animation-delay:.8s}
+@keyframes h-rgb{0%{opacity:0;transform:translateX(-26px) skewX(-22deg);text-shadow:-16px 0 rgba(255,70,70,.85),16px 0 rgba(70,210,255,.85)}60%{opacity:1;text-shadow:-4px 0 rgba(255,70,70,.6),4px 0 rgba(70,210,255,.6)}100%{opacity:1;transform:none;text-shadow:none}}
+.cuts{position:absolute;right:26px;top:52px;z-index:5;display:flex;gap:7px}
+.cuts i{display:block;width:9px;height:34px;background:var(--now);transform:skewX(-22deg) scaleY(0);transform-origin:bottom}
+.sl.on .cuts i{animation:h-cut .45s .7s cubic-bezier(.2,.8,.2,1) forwards}
+.sl.on .cuts i:nth-child(2){animation-delay:.78s}.sl.on .cuts i:nth-child(3){animation-delay:.86s}
+@keyframes h-cut{to{transform:skewX(-22deg) scaleY(1)}}
+/* I · câmara escura */
+.v-dark{background:#0a0606}
+.v-dark .sl{background:#e9e2d3;opacity:.55;transform:scale(.84) rotate(-2.6deg);filter:brightness(.4);transition:opacity .8s,transform 1s cubic-bezier(.2,.7,.2,1),filter .9s;box-shadow:0 18px 50px rgba(0,0,0,.7)}
+.v-dark .sl:nth-child(even){transform:scale(.84) rotate(2.2deg)}
+.v-dark .sl.on{opacity:1;transform:none;filter:none}
+.v-dark .sl .bar,.v-dark .sl>.streak,.v-dark .sl .vig{display:none}
+.v-dark .sl .tl-ph{inset:16px 16px 92px}
+.v-dark .sl.on .tl-ph::before{animation:d-dev 2.8s ease-out both}
+@keyframes d-dev{0%{filter:grayscale(1) brightness(.12) contrast(.6) blur(7px)}45%{filter:grayscale(1) sepia(.5) brightness(.7) contrast(.9) blur(1px)}100%{filter:none}}
+.safe{position:absolute;inset:0;z-index:5;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,rgba(255,40,20,.5),rgba(140,10,0,.78));mix-blend-mode:multiply;opacity:0}
+.sl.on .safe{animation:d-safe 2.6s ease-out both}
+@keyframes d-safe{0%{opacity:1}55%{opacity:.75}100%{opacity:0}}
+.hand{position:absolute;left:26px;right:26px;bottom:18px;z-index:4;display:flex;justify-content:space-between;align-items:baseline;gap:18px;font-family:'Caveat',cursive;font-size:34px;font-weight:600;line-height:1.05;color:#1b1a17}
+.hand small{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.14em;color:#6b6457;white-space:nowrap}
+.sl .hand span{clip-path:inset(0 100% 0 0)}
+.sl.on .hand span{animation:d-write 1.5s 1.1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes d-write{to{clip-path:inset(0 0 0 0)}}
+.v-dark .sl .paper{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:0 70px;color:#1b1a17}
+.v-dark .sl .paper .hq{font-family:'Caveat',cursive;font-size:50px;font-weight:600;line-height:1.08;clip-path:inset(0 100% 0 0)}
+.v-dark .sl.on .paper .hq{animation:d-write 2s .5s cubic-bezier(.4,0,.2,1) forwards}
+.v-dark .sl .paper .lb{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:#6b6457}
+.v-dark .sl .paper.c{align-items:center;text-align:center}
+.v-dark .sl .paper .stamp{font-size:120px;font-weight:800;font-stretch:125%;line-height:.82;color:#a8610f;opacity:0;transform:scale(1.5) rotate(-8deg)}
+.v-dark .sl.on .paper .stamp{animation:d-stamp .35s .5s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes d-stamp{to{opacity:.9;transform:rotate(-4deg)}}
+.v-dark .sl .paper h3{margin:0;font-size:36px;font-weight:800;font-stretch:125%;text-transform:uppercase;letter-spacing:.08em;color:#1b1a17}
+/* J · mergulho */
+.v-dive .sl{opacity:0;transform:scale(.3);filter:blur(12px);transition:none;z-index:0}
+.v-dive .sl.on{z-index:2;animation:j-in 1s cubic-bezier(.2,.7,.2,1) both}
+.v-dive .sl.was{z-index:3;pointer-events:none;animation:j-out .8s cubic-bezier(.6,0,.9,.5) both}
+@keyframes j-in{0%{opacity:0;transform:scale(.28);filter:blur(14px)}100%{opacity:1;transform:none;filter:none}}
+@keyframes j-out{0%{opacity:1;transform:none;filter:none}100%{opacity:0;transform:scale(2.9);filter:blur(18px)}}
+.v-dive .rays{display:block;position:absolute;left:50%;top:324px;width:1700px;height:1700px;margin:-850px 0 0 -850px;z-index:1;pointer-events:none;opacity:0;border-radius:50%;background:repeating-conic-gradient(from 0deg,rgba(255,236,205,.5) 0 .6deg,transparent .6deg 6deg);-webkit-mask:radial-gradient(circle,transparent 0 24%,#000 46%,transparent 70%);mask:radial-gradient(circle,transparent 0 24%,#000 46%,transparent 70%)}
+.v-dive .rays.on{animation:j-rays 1s cubic-bezier(.2,.6,.2,1)}
+@keyframes j-rays{0%{opacity:0;transform:scale(.35) rotate(0)}30%{opacity:.85}100%{opacity:0;transform:scale(1.5) rotate(8deg)}}
+.v-dive .ring{display:block;position:absolute;left:50%;top:324px;border:1px solid var(--ln);transform:translate(-50%,-50%) skewX(-12deg);pointer-events:none}
+.v-dive .ring.r1{width:900px;height:520px;opacity:.9}.v-dive .ring.r2{width:1040px;height:600px;opacity:.55}.v-dive .ring.r3{width:1200px;height:690px;opacity:.3}
+
 '''
 SC = {
  'ouro': 'radial-gradient(ellipse at 62% 34%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)',
@@ -282,61 +383,78 @@ SLIDES = [
  ('txt', 'ouro', '5 nov', 'qui 5 nov · seu recado', '“Abrir o portão principal e subir pela muralha da esquerda.”', 'Voltou depois de 14 dias', '03:48:20'),
  ('hoje', 'ouro', 'hoje', 'Hoje', 'O próximo instante', '', '04:05:00'),
 ]
-def b_carrossel():
-    n = len(SLIDES)
-    bgs = ''.join(f'<div class="cz__bg {{{{k{i}}}}}" style="background: {SC[s[1]]}"></div>' for i, s in enumerate(SLIDES))
-    sl = []
-    for i, (kind, tone, _d, a, b, c, tcode) in enumerate(SLIDES):
-        bars = '<i class="bar t"></i><i class="bar b"></i><i class="streak"></i>'
-        if kind == 'cap':
-            inner = f'<div class="mid"><span class="rom" aria-hidden="true">{a}</span><h3>{b}</h3><span class="tl-day">{c}</span></div>'
-            cls = 'cap'
-        elif kind == 'foto':
-            inner = ph(tone) + f'<div class="vig"></div><div class="tl-cap"><span class="tl-day">{a}</span><h3>{b}</h3><p>{c}</p></div><span class="tc">{tcode}</span>'
-            cls = 'foto'
-        elif kind == 'txt':
-            inner = f'<div class="mid"><span class="tl-day">{a}</span><p class="tl-q">{b}</p><div>{selo(c)}</div></div><span class="tc">{tcode}</span>'
-            cls = 'txt'
-        else:
-            inner = f'<div class="mid" style="align-items: flex-start">{kick(a, "now")}<h3 class="ttl" style="font-size: 54px; color: #fff">{b}</h3><span class="meta">Leyndell, Capital das Cinzas · 39%</span><div>{btn("Começar sessão", "pri", "lg")}</div></div>'
-            cls = 'txt'
-        sl.append(f'<div class="sl {cls} {{{{k{i}}}}}" onClick="{{{{go{i}}}}}">{bars}{inner}</div>')
-    dots = ''.join(f'<button type="button" class="dot {"cp" if s[0] == "cap" else ""} {{{{k{i}}}}}" style="left: {i / (n - 1) * 100:.2f}%" onClick="{{{{go{i}}}}}" aria-label="Ir para {s[2]}: {s[4] if s[0] != "txt" else "recado"}"><i></i>'
-                   + (f'<span>{s[2]}</span>' if s[0] in ('cap', 'hoje') else '') + '</button>' for i, s in enumerate(SLIDES))
-    stage = ('<section class="cz">' + bgs
-             + '<div class="cz__top"><div style="display: flex; flex-direction: column; gap: 6px"><a href="#" class="meta">← Elden Ring</a><h1 class="ttl" style="font-size: 30px">Linha do tempo</h1></div>'
-               '<div style="display: flex; gap: 14px; align-items: center"><span class="cz__count"><b>{{num}}</b> / ' + f'{n:02d}' + '</span>'
-               '<button type="button" class="btn pri" onClick="{{toggle}}"><i class="btn__led"></i><span class="btn__t"><span>{{playLabel}}</span><span aria-hidden="true">{{playLabel}}</span></span><i class="btn__ar"></i></button>'
-               + btn('Tela cheia', 'sec') + '</div></div>'
-             + '<div class="cz__track" style="transform: {{tx}}">' + ''.join(sl) + '</div>'
-             + '<button type="button" class="cz__arrow l" onClick="{{prev}}" aria-label="Anterior">‹</button><button type="button" class="cz__arrow r" onClick="{{next}}" aria-label="Próximo">›</button>'
-             + '<div class="cz__rule"><i class="cz__fill" style="width: {{fill}}"></i>' + dots + '</div></section>')
-    return header('Jornada') + stage, 790, n
+QUADRO = {'cap': '', 'foto': '', 'txt': '', 'hoje': ''}
+def slide_padrao(i, sd, extra):
+    kind, tone, _d, a, b, c, tcode = sd
+    bars = '<i class="bar t"></i><i class="bar b"></i><i class="streak"></i>' + extra
+    if kind == 'cap':
+        return 'cap', bars + f'<div class="mid"><span class="rom" aria-hidden="true">{a}</span><h3>{b}</h3><span class="tl-day">{c}</span></div>'
+    if kind == 'foto':
+        return 'foto', bars + ph(tone) + f'<div class="vig"></div><div class="tl-cap"><span class="tl-day">{a}</span><h3>{b}</h3><p>{c}</p></div><span class="tc">{tcode}</span>'
+    if kind == 'txt':
+        return 'txt', bars + f'<div class="mid"><span class="tl-day">{a}</span><p class="tl-q">{b}</p><div>{selo(c)}</div></div><span class="tc">{tcode}</span>'
+    return 'txt', bars + f'<div class="mid" style="align-items: flex-start">{kick(a, "now")}<h3 class="ttl" style="font-size: 54px; color: #fff">{b}</h3><span class="meta">Leyndell, Capital das Cinzas · 39%</span><div>{btn("Começar sessão", "pri", "lg")}</div></div>'
+def slide_papel(i, sd, extra):
+    kind, tone, d, a, b, c, tcode = sd
+    if kind == 'cap':
+        return 'cap', f'<div class="paper c"><span class="stamp" aria-hidden="true">{a}</span><h3>{b}</h3><span class="lb">{c}</span></div>'
+    if kind == 'foto':
+        return 'foto', ph(tone) + '<i class="safe"></i>' + f'<div class="hand"><span>{b}</span><small>{d}</small></div>'
+    if kind == 'txt':
+        return 'txt', f'<div class="paper"><span class="lb">{a}</span><p class="hq" style="margin: 0">{b}</p><span class="lb">{c}</span></div>'
+    return 'txt', f'<div class="paper"><span class="lb">Hoje · Leyndell, Capital das Cinzas · 39%</span><p class="hq" style="margin: 0">O próximo instante…</p><div>{btn("Começar sessão", "sec", "lg")}</div></div>'
+
+def carrossel(variant='', stack=False, step=816, half=390, extra='', render=slide_padrao, numerar=False):
+    def fn():
+        n = len(SLIDES)
+        bgs = ''.join(f'<div class="cz__bg {{{{k{i}}}}}" style="background: {SC[s[1]]}"></div><i class="rays {{{{k{i}}}}}"></i>' for i, s in enumerate(SLIDES))
+        sl = []
+        for i, sd in enumerate(SLIDES):
+            cls, inner = render(i, sd, extra)
+            q = f'<span class="qd">QUADRO {i + 1:02d}</span>' if numerar else ''
+            sl.append(f'<div class="sl {cls} {{{{k{i}}}}}" onClick="{{{{go{i}}}}}">{inner}{q}</div>')
+        dots = ''.join(f'<button type="button" class="dot {"cp" if s[0] == "cap" else ""} {{{{k{i}}}}}" style="left: {i / (n - 1) * 100:.2f}%" onClick="{{{{go{i}}}}}" aria-label="Ir para {s[2]}: {s[4] if s[0] != "txt" else "recado"}"><i></i>'
+                       + (f'<span>{s[2]}</span>' if s[0] in ('cap', 'hoje') else '') + '</button>' for i, s in enumerate(SLIDES))
+        stage = (f'<section class="cz {variant}{" cz--stack" if stack else ""}">' + bgs + '<i class="ring r3"></i><i class="ring r2"></i><i class="ring r1"></i>'
+                 + '<div class="cz__top"><div style="display: flex; flex-direction: column; gap: 6px"><a href="#" class="meta">← Elden Ring</a><h1 class="ttl" style="font-size: 30px">Linha do tempo</h1></div>'
+                   '<div style="display: flex; gap: 14px; align-items: center"><span class="cz__count"><b>{{num}}</b> / ' + f'{n:02d}' + '</span>'
+                   '<button type="button" class="btn pri" onClick="{{toggle}}"><i class="btn__led"></i><span class="btn__t"><span>{{playLabel}}</span><span aria-hidden="true">{{playLabel}}</span></span><i class="btn__ar"></i></button>'
+                   + btn('Tela cheia', 'sec') + '</div></div>'
+                 + '<div class="cz__track" style="transform: {{tx}}">' + ''.join(sl) + '</div>'
+                 + '<button type="button" class="cz__arrow l" onClick="{{prev}}" aria-label="Anterior">‹</button><button type="button" class="cz__arrow r" onClick="{{next}}" aria-label="Próximo">›</button>'
+                 + '<div class="cz__rule"><i class="cz__fill" style="width: {{fill}}"></i>' + dots + '</div></section>')
+        return header('Jornada') + stage, 790, n, step, half
+    return fn
+b_carrossel = carrossel()
 
 LOGIC = """class Component extends DCLogic {
-  state = { i: 1, play: false };
-  go(n) { this.setState({ i: Math.max(0, Math.min(N - 1, n)) }); }
+  state = { i: 1, was: -1, play: false };
+  go(n) { const c = Math.max(0, Math.min(NN - 1, n)); if (c !== this.state.i) this.setState({ i: c, was: this.state.i }); }
   stop() { if (this.timer) { clearInterval(this.timer); this.timer = null; } }
   componentWillUnmount() { this.stop(); }
   renderVals() {
-    const i = this.state.i;
+    const i = this.state.i, was = this.state.was;
     const v = {
-      tx: 'translateX(' + (640 - (i * 816 + 390)) + 'px)',
-      fill: (i / (N - 1) * 100).toFixed(2) + '%',
+      tx: 'translateX(' + (640 - (i * STEP + HALF)) + 'px)',
+      fill: (i / (NN - 1) * 100).toFixed(2) + '%',
       num: String(i + 1).padStart(2, '0'),
       playLabel: this.state.play ? '❚❚ Pausar' : '▶ Passeio',
       prev: () => { this.stop(); this.setState({ play: false }); this.go(this.state.i - 1); },
       next: () => { this.stop(); this.setState({ play: false }); this.go(this.state.i + 1); },
       toggle: () => {
         if (this.state.play) { this.stop(); this.setState({ play: false }); return; }
-        this.setState({ play: true, i: this.state.i >= N - 1 ? 0 : this.state.i });
+        if (this.state.i >= NN - 1) this.setState({ play: true, i: 0, was: this.state.i }); else this.setState({ play: true });
         this.timer = setInterval(() => {
-          if (this.state.i >= N - 1) { this.stop(); this.setState({ play: false }); return; }
+          if (this.state.i >= NN - 1) { this.stop(); this.setState({ play: false }); return; }
           this.go(this.state.i + 1);
-        }, 4200);
+        }, 4600);
       },
     };
-    for (let k = 0; k < N; k++) { v['k' + k] = k === i ? 'on' : ''; v['go' + k] = () => { this.stop(); this.setState({ play: false }); this.go(k); }; }
+    for (let k = 0; k < NN; k++) {
+      const d = k - i;
+      v['k' + k] = (d === 0 ? 'on' : d === -1 ? 'p1' : d === 1 ? 'n1' : d === -2 ? 'p2' : d === 2 ? 'n2' : d < 0 ? 'pf' : 'nf') + (k === was && k !== i ? ' was' : '');
+      v['go' + k] = () => { this.stop(); this.setState({ play: false }); this.go(k); };
+    }
     return v;
   }
 }"""
@@ -348,6 +466,13 @@ BOARDS = [
  ('Linha-Celular.dc.html', 'D · A linha do tempo do jogo no celular', b_cel, 390),
  ('Linha-Carrossel.dc.html', 'E · Em carrossel, como a de hoje (funciona: setas, régua e Passeio)', b_carrossel, 1280),
 ]
+EXTRAS = [
+ ('Carrossel-Filme.dc.html', 'F · Rolo de filme', carrossel('v-film', False, 716, 350, '<i class="leak"></i><i class="scr"></i><i class="scr b"></i>', numerar=True), 0, 0),
+ ('Carrossel-Profundidade.dc.html', 'G · Profundidade', carrossel('v-3d', True, 0, 0, '<i class="beam"></i>'), 1360, 0),
+ ('Carrossel-Lamina.dc.html', 'H · Corte em lâmina', carrossel('v-blade', True, 0, 0, '<i class="edge"></i><span class="cuts" aria-hidden="true"><i></i><i></i><i></i></span>'), 2720, 0),
+ ('Carrossel-Camara.dc.html', 'I · Câmara escura', carrossel('v-dark', False, 816, 390, '', render=slide_papel), 0, 910),
+ ('Carrossel-Mergulho.dc.html', 'J · Mergulho', carrossel('v-dive', True, 0, 0, ''), 1360, 910),
+]
 def main():
     boards, order, x = {}, [], 0
     for fname, title, fn, w in BOARDS:
@@ -355,23 +480,36 @@ def main():
         html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
         if len(r) > 2:
             a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
-            html = html[:a] + LOGIC.replace('N - 1', str(r[2] - 1)).replace('< N', '< ' + str(r[2])) + '\n' + html[b:]
+            html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])) + '\n' + html[b:]
         if w != 1280:
             html = html.replace('style="width: 1280px;', f'style="width: {w}px;', 1).replace('"width":1280', f'"width":{w}', 1)
         open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
         boards[fname] = {'x': x, 'y': 0, 'w': w, 'h': h, 'title': title}
         if len(r) > 2: boards[fname]['is_interactive'] = True
         order.append(fname); x += w + 80
+    def escreve(fname, title, fn, w):
+        r = fn(); body, h = r[0], r[1]
+        html = gen.page_file('U', 'dark', body, h, title).replace('</style>', CSS.replace('</', '<\\/') + '</style>', 1)
+        a = html.index('class Component extends DCLogic'); b = html.index('</script>', a)
+        html = html[:a] + LOGIC.replace('NN', str(r[2])).replace('STEP', str(r[3])).replace('HALF', str(r[4])) + '\n' + html[b:]
+        open(os.path.join(OUT, fname), 'w', encoding='utf-8').write(html)
+        return h
+    for fname, title, fn, ex, ey in EXTRAS:
+        h = escreve(fname, title, fn, 1280)
+        boards[fname] = {'x': ex, 'y': ey, 'w': 1280, 'h': h, 'title': title, 'page': 'carrosseis', 'is_interactive': True}
+        order.append(fname)
     notes = {
       'titulo': {'x': 0, 'y': -300, 'text': 'Linha do tempo nova · modelo', 'kind': 'title1', 'maxW': 4200},
       'n1': {'x': 0, 'y': 1400, 'w': 620, 'fill': 'orange', 'text': 'A · O que muda na página do jogo\n\n• Botão "Linha do tempo" no topo, ao lado de Começar sessão\n• Cartão grande de entrada, com as suas fotos\n• "Neste dia" quando houver lembrança\n• As abas ficam só com Diário e Detalhes'},
       'n2': {'x': 1360, 'y': 4300, 'w': 620, 'fill': 'green', 'text': 'B · A página própria\n\n• Um cartão por dia\n• Três tamanhos: foto grande, recado médio, dia sem anotação vira um traço\n• Capítulo com o nome da região e resumo\n• Selos automáticos (maior sessão, voltou depois de 14 dias)\n• Foto sem legenda pergunta "o que estava acontecendo aqui?"\n• Antes e depois no fim\n• Cinema: faixas pretas, grão de filme, cartela de título por capítulo\n• Passe o mouse numa foto: zoom lento e um risco de luz\n• "Rever a jornada" abre o passeio em tela cheia'},
       'n3': {'x': 2720, 'y': 2380, 'w': 620, 'fill': 'blue', 'text': 'C · A linha geral\n\n• Agrupada por mês e, dentro do mês, por jogo\n• "Zerou" ganha cartão grande\n• Filtro "Só momentos"\n• O que entrou na coleção vira uma linha discreta'},
       'n5': {'x': 4550, 'y': 910, 'w': 620, 'fill': 'purple', 'text': 'E · Em carrossel\n\nAperte Play no quadro para testar.\n• Setas e pontos da régua trocam de cena\n• "Passeio" avança sozinho\n• A cena do centro ganha faixas pretas, zoom lento, risco de luz e o texto subindo\n• As outras ficam apagadas ao lado\n• Os efeitos tocam uma vez por cena, sem ficar em repetição'},
+      'c0': {'x': 0, 'y': -300, 'text': 'Carrosséis · cinco efeitos (aperte Play em cada um)', 'kind': 'title1', 'maxW': 4000, 'page': 'carrosseis'},
+      'c1': {'x': 2720, 'y': 910, 'w': 760, 'fill': 'purple', 'page': 'carrosseis', 'text': 'F · Rolo de filme: tira de película, o quadro treme e assenta, vazamento de luz laranja, a cor sai do sépia.\n\nG · Profundidade: as cenas ficam em arco, em 3D, com reflexo no chão e um facho de luz na cena do centro.\n\nH · Corte em lâmina: a cena nova entra cortando na diagonal de 22°, com o fio da lâmina aceso; o texto chega com as cores separadas.\n\nI · Câmara escura: fotos em papel; a imagem se revela sob a luz vermelha e a legenda é escrita à mão.\n\nJ · Mergulho: a cena atual passa por você e a próxima vem do fundo, com riscos de velocidade.'},
       'n4': {'x': 4080, 'y': 1920, 'w': 390, 'fill': 'gray', 'text': 'As fotos aqui são só manchas de cor no lugar das suas capturas de verdade.'},
     }
     idx = {'v': 3, 'createdOnFiles': {'v': 1, 'at': datetime.datetime.now(datetime.UTC).strftime('%Y-%m-%dT%H:%M:%SZ')}, 'title': 'WinnerZ · Linha do tempo nova (modelo)',
-           'launch': {'view': 'canvas'}, 'pages': [], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
+           'launch': {'view': 'canvas', 'page': 'carrosseis'}, 'pages': [{'id': 'modelo', 'name': 'Modelo'}, {'id': 'carrosseis', 'name': 'Carrosséis'}], 'boards': boards, 'order': order, 'notes': notes, 'designSystems': []}
     json.dump(idx, open(os.path.join(OUT, 'canvas.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(len(boards), 'quadros')
 main()

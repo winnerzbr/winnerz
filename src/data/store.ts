@@ -1109,6 +1109,16 @@ export const actions = {
     if (first) dispatch({ type: 'event.add', event: { id: uid(), journeyId: h.journeyId, historyId, kind: 'carta', at: nowIso(), title: 'Carta para o fim', text: 'Lacrada até você zerar.' } });
   },
 
+  /** A foto de capa que a pessoa escolheu para um capítulo (vazio volta à capa automática). Fica junto das narrações, com a chave "capa:<capítulo>". */
+  setChapterCover(historyId: ID, chapterId: string, image: string) {
+    const h = state.histories.find((x) => x.id === historyId);
+    if (!h) return;
+    const next = { ...(h.narrations ?? {}) };
+    const k = `capa:${chapterId}`;
+    if (image) next[k] = { text: image.slice(0, 600), at: nowIso() }; else delete next[k];
+    dispatch({ type: 'history.update', history: { ...h, narrations: Object.keys(next).length ? next : undefined } });
+  },
+
   /** Guarda (ou apaga, com texto vazio) a narração da IA de um capítulo. */
   setNarration(historyId: ID, chapterId: string, text: string) {
     const h = state.histories.find((x) => x.id === historyId);

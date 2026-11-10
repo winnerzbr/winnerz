@@ -601,3 +601,27 @@ aside .lemb .lemb__go { padding: 0 18px 14px; }
 .gjg__all[open] > summary { margin-bottom: 10px; }
 .gtl__list--col { margin-top: 14px; opacity: .85; }
 @media (max-width: 640px) { .gjg { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; } .gjg__th { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ==== Linha em cenas, rodada 3: antes e depois, capa do capítulo, legenda depois (10/11/2026) ==== */
+.fx-antes { justify-content: center !important; gap: 16px !important; }
+.fx-antes__par { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: clamp(8px, 2cqw, 22px); min-height: 0; }
+.fx-antes figure { position: relative; margin: 0; overflow: hidden; background: #000; aspect-ratio: 16 / 10; }
+.fx-antes figure img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fx-antes figcaption { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: 2px; padding: 26px 14px 10px; background: linear-gradient(transparent, rgba(0, 0, 0, .88)); }
+.fx-antes figcaption b { font-size: clamp(14px, 2.2cqw, 20px); color: #fff; }
+.fx-antes figcaption small { font-size: 12px; color: #C9CED4; }
+.fx-antes__seta { font-size: clamp(20px, 4cqw, 34px); color: #FFB25B; }
+.fx-sc.is-on .fx-antes .fx-antes__par { animation: fx-rgb .8s .7s backwards; }
+.fx-capas { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; max-width: 100%; }
+.fx-capas button { padding: 0; border: 2px solid transparent; background: #000; cursor: pointer; width: clamp(64px, 12cqw, 104px); aspect-ratio: 16 / 10; overflow: hidden; }
+.fx-capas button img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .8; transition: opacity .2s; }
+.fx-capas button:hover img, .fx-capas button:focus-visible img { opacity: 1; }
+.fx-capas button.is-on { border-color: #FFB25B; }
+.fx-capas button:focus-visible { outline: 2px solid #F2F4F6; outline-offset: 2px; }
+.fx-capas .fx-capas__auto { width: auto; aspect-ratio: auto; border: 0; background: none; color: #E6E9ED; font: 600 13px var(--font-ui); text-decoration: underline; text-underline-offset: 4px; padding: 6px 8px; }
+.fx-leg { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; max-width: 620px; }
+.fx-leg .field { flex: 1 1 240px; min-height: 40px; background: rgba(5, 5, 6, .8); color: #F2F4F6; }
+.fx-leg__ask { align-self: flex-start; padding: 9px 14px; border: 1px dashed rgba(255, 255, 255, .4); background: rgba(5, 5, 6, .7); color: #E6E9ED; font: 500 14px var(--font-ui); cursor: pointer; text-align: left; }
+.fx-leg__ask b { color: #FFB25B; font-weight: 700; margin-left: 4px; }
+.fx-leg__ask:hover, .fx-leg__ask:focus-visible { border-color: #FFB25B; outline: none; }
+@media (max-width: 640px) { .fx-antes__par { grid-template-columns: minmax(0, 1fr); } .fx-antes__seta { display: none; } .fx-antes figure { aspect-ratio: 16 / 8; } }

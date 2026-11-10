@@ -1,4 +1,4 @@
-import { SnipShareSheet } from '../components/SnipShare';
+import { SnipShareSheet, ChapterShareSheet } from '../components/SnipShare';
 import { celebrateSmall } from '../components/MiniCelebration';
 import { TrailerButton } from '../components/Trailer';
 import { discordApi } from '../data/discordApi';
@@ -299,6 +299,12 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
   const tabs: [Aba, string][] = [['registros', 'Diário'], ['detalhes', 'Detalhes']];
   const linhaUrl = `/jornada/${game.slug}/linha-do-tempo`;
   const [rever, setRever] = useState(0);
+  const [shareCap, setShareCap] = useState<{ n: number; name: string; from: string; range: string; summary: string; image?: string } | null>(null);
+  // A capa escolhida de cada capítulo mora junto das narrações, com a chave "capa:<capítulo>".
+  const capas = useMemo(() => ({
+    saved: Object.fromEntries(histories.flatMap((h) => Object.entries(h.narrations ?? {}).filter(([k]) => k.startsWith('capa:')).map(([k, v]) => [k.slice(5), v.text]))),
+    set: (c: ChapterItem, image: string) => actions.setChapterCover(c.historyId, c.id, image),
+  }), [histories]);
   const [cena] = useState(() => { try { return view === 'linha' ? new URLSearchParams(window.location.search).get('cena') ?? undefined : undefined; } catch { return undefined; } });
   useEffect(() => { if (cena && org !== 'data') setOrg('data'); }, [cena]); // eslint-disable-line react-hooks/exhaustive-deps
   const reverJornada = () => { if (org !== 'data') setOrg('data'); setFilter('tudo'); setFull(true); setRever((n) => n + 1); };
@@ -317,7 +323,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
                   ) : byStructure ? (
                     <Faixa blade autoTour={rever} items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
                   ) : (
-                    <Faixa blade autoTour={rever} startId={cena} items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+                    <Faixa blade autoTour={rever} startId={cena} covers={capas} onShareChapter={(c, image, range, summary) => setShareCap({ n: c.n, name: c.name, from: c.from, range, summary, image })} items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
                   )}
     </>
   );
@@ -588,6 +594,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
       {listOpen && outline && <OutlineSheet game={game} history={current} outline={outline} onClose={() => setListOpen(false)} />}
       {menu && <JourneyMenu journeyId={journeyId} onClose={() => setMenu(false)} onEditHistory={setEditHist} onStateChanged={stateChanged} />}
       {editHist && <HistoryEditSheet historyId={editHist} onClose={() => setEditHist(null)} />}
+      {shareCap && <ChapterShareSheet chapter={shareCap} game={game} onClose={() => setShareCap(null)} />}
       {editEvent && <EventEditSheet eventId={editEvent} onClose={() => setEditEvent(null)} />}
       {shareEvent && s.events.some((x) => x.id === shareEvent) && <SnipShareSheet event={s.events.find((x) => x.id === shareEvent)!} game={game} onClose={() => setShareEvent(null)} />}
       {noteFor && <StateNoteSheet historyId={noteFor} onClose={() => setNoteFor(null)} />}

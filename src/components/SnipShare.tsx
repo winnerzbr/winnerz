@@ -13,7 +13,7 @@ import { track } from '../lib/track';
 import { useMyHandle } from './Moderation';
 
 const W = 1080, H = 1350;
-export const SNIP_KICKER: Record<string, string> = { momento: 'Momento', marco: 'Momento', inicio: 'Começo', sessao: 'Sessão', ponto: 'Ponto para voltar' };
+export const SNIP_KICKER: Record<string, string> = { momento: 'Momento', marco: 'Momento', inicio: 'Começo', sessao: 'Sessão', ponto: 'Ponto para voltar', capitulo: 'Capítulo' };
 
 export interface SnipCardData { kind: string; title: string; at: string; precision?: TimelineEvent['precision'] | null; dateLabel?: string | null; quote?: string | null; text?: string | null; photo?: string | null; game: { title: string; cover?: string | null; backdrop?: string | null }; handle?: string | null }
 
@@ -153,6 +153,55 @@ export function SnipShareSheet({ event, game, onClose }: { event: TimelineEvent;
               </>
             )}
             {err && <p className="awards__error" role="alert">{err}</p>}
+          </div>
+          <p className="faint">Só o que aparece aqui sai do site. Nada do seu perfil, coleção ou outras Jornadas.</p>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+
+/** Compartilhar um capítulo inteiro como imagem: o nome, as datas, o resumo e a capa. Só a imagem sai do site. */
+export function ChapterShareSheet({ chapter, game, onClose }: { chapter: { n: number; name: string; from: string; range: string; summary: string; image?: string }; game: Game; onClose: () => void }) {
+  const bg = useBackdrop(game);
+  const hasPhoto = !!chapter.image;
+  const [withPhoto, setWithPhoto] = useState(hasPhoto);
+  const [withText, setWithText] = useState(true);
+  const [url, setUrl] = useState('');
+  const canvas = useRef<HTMLCanvasElement | null>(null);
+  const blob = useRef<Blob | null>(null);
+  const handle = useMyHandle() ?? null;
+  useEffect(() => {
+    let alive = true;
+    const t = setTimeout(async () => {
+      const c = canvas.current ?? (canvas.current = document.createElement('canvas'));
+      await drawSnip(c, { kind: 'capitulo', title: chapter.name, at: chapter.from, dateLabel: chapter.range, text: withText ? chapter.summary : null, photo: withPhoto ? chapter.image : null, game: { title: game.title, cover: game.cover, backdrop: bg ?? game.backdrop }, handle });
+      const b = await new Promise<Blob | null>((ok) => { try { c.toBlob(ok, 'image/png'); } catch { ok(null); } });
+      if (!alive) return;
+      blob.current = b;
+      setUrl((old) => { if (old) URL.revokeObjectURL(old); return b ? URL.createObjectURL(b) : ''; });
+    }, 200);
+    return () => { alive = false; clearTimeout(t); };
+  }, [withPhoto, withText, bg, handle]); // eslint-disable-line react-hooks/exhaustive-deps
+  const fileName = `winnerz-${game.slug}-capitulo-${chapter.n}.png`;
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const share = async () => {
+    if (!blob.current) return;
+    const file = new File([blob.current], fileName, { type: 'image/png' });
+    track('jornada.capitulo.cartao');
+    if (navigator.canShare?.({ files: [file] })) { try { await navigator.share({ files: [file], text: `${chapter.name} · ${game.title}` }); } catch { /* cancelado */ } }
+    else { const a = document.createElement('a'); a.href = url; a.download = fileName; a.click(); }
+  };
+  return (
+    <Sheet title="Compartilhar este capítulo" onClose={onClose} labelId="cap-share" wide>
+      <div className="share-card">
+        <div className="share-card__preview">{url ? <img src={url} alt={`Cartão do capítulo ${chapter.name}`} /> : <div className="share-card__wait">Montando o cartão…</div>}</div>
+        <div className="share-card__opts">
+          {hasPhoto && <label className="share-card__check"><input type="checkbox" checked={withPhoto} onChange={(e) => setWithPhoto(e.target.checked)} /> Com a foto de capa</label>}
+          <label className="share-card__check"><input type="checkbox" checked={withText} onChange={(e) => setWithText(e.target.checked)} /> Com o resumo</label>
+          <div className="sheet__actions">
+            <button className="btn primary lg" disabled={!url} onClick={() => void share()}>{canShare ? 'Compartilhar imagem' : 'Baixar imagem'}</button>
+            {url && canShare && <a className="btn ghost" href={url} download={fileName}>Baixar</a>}
           </div>
           <p className="faint">Só o que aparece aqui sai do site. Nada do seu perfil, coleção ou outras Jornadas.</p>
         </div>

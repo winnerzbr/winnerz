@@ -11,6 +11,7 @@ import { actions } from '../data/store';
 import type { TLItem, ChapterItem } from '../lib/chapters';
 import { chapterOf, durText, compareLines, partPositions } from '../lib/chapters';
 import type { OutlinePart } from '../lib/outline';
+import type { TimelineEvent } from '../data/types';
 import { whenLabel } from '../lib/dates';
 import { awayLabel } from '../lib/recap';
 import { Icon, Compass } from './Icon';
@@ -48,6 +49,7 @@ function itemDate(it: TLItem): string {
   if (it.type === 'event') return it.e.at;
   if (it.type === 'silence') return it.from;
   if (it.type === 'memory') return it.e.at;
+  if ((it as { type: string }).type === 'antes') return (it as unknown as { b: { at: string } }).b.at;
   if (it.type === 'echo') return '';
   if (it.type === 'talk') return it.talk.at;
   if (it.type === 'gpart' && it.at && it.state !== 'frente') return it.at;
@@ -86,7 +88,11 @@ function juntarDias(list: TLItem[]): TLItem[] {
   return out;
 }
 
-export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters, blade = false, autoTour = 0, startId }: {
+export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters, blade = false, autoTour = 0, startId, covers, onShareChapter }: {
+  /** A capa que a pessoa escolheu para cada capítulo, e como trocar (vazio volta à automática). */
+  covers?: { saved: Record<string, string>; set: (c: ChapterItem, image: string) => void };
+  /** Compartilhar um capítulo inteiro como imagem. */
+  onShareChapter?: (c: ChapterItem, image: string, range: string, summary: string) => void;
   /** Abre nesta cena (id do registro), em vez de abrir no "Hoje". */
   startId?: string;
   /** Linha em cenas: uma cena por vez no centro, com o corte em lâmina na troca (aprovado em 10/11/2026). */
@@ -121,7 +127,35 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
   // Na linha em cenas, sessão vazia não vira cena; a maior sessão fica sempre e ganha o selo.
   const base = useMemo(() => (blade ? juntarDias(itemsIn) : itemsIn), [itemsIn, blade]);
   const maior = useMemo(() => { let id = '', m = 29; for (const it of base) if (it.type === 'event' && it.e.kind === 'sessao' && (it.session?.minutes ?? 0) > m) { m = it.session!.minutes!; id = it.id; } return id; }, [base]);
-  const items = useMemo(() => (blade ? base.filter((it) => !sessaoVazia(it) || it.id === maior) : base), [base, blade, maior]);
+  const items = useMemo(() => {
+    if (!blade) return base;
+    const list = base.filter((it) => !sessaoVazia(it) || it.id === maior);
+    // "Antes e depois": a primeira e a última foto, lado a lado, logo antes do "Hoje".
+    const fotos = list.filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image);
+    if (!parts && fotos.length >= 2 && diaDe(fotos[0].e.at) !== diaDe(fotos[fotos.length - 1].e.at)) {
+      const ad = { type: 'antes', id: 'antes-depois', a: fotos[0].e, b: fotos[fotos.length - 1].e } as unknown as TLItem;
+      const t = list.findIndex((x) => x.type === 'today');
+      if (t >= 0) list.splice(t, 0, ad); else list.push(ad);
+    }
+    return list;
+  }, [base, blade, maior, parts]);
+  // Selos automáticos: a volta depois de um silêncio e a primeira foto.
+  const selos = useMemo(() => {
+    const m = new Map<string, string>();
+    if (!blade) return m;
+    let volta = 0, foto = false;
+    for (const it of items) {
+      if (it.type === 'silence') { volta = it.days; continue; }
+      if (it.type !== 'event') continue;
+      if (volta >= 7) { m.set(it.id, `Voltou depois de ${volta} dias`); }
+      volta = 0;
+      if (it.e.image && !foto) { foto = true; if (!m.has(it.id)) m.set(it.id, 'Sua primeira foto'); }
+    }
+    if (maior) m.set(maior, base.find((x) => x.id === maior && x.type === 'event' && /^\d+ sessões$/.test(x.e.title)) ? 'O dia em que você mais jogou' : 'Sua maior sessão');
+    return m;
+  }, [items, blade, maior, base]);
+  const [legenda, setLegenda] = useState<{ id: string; text: string } | null>(null);
+  const [capaDe, setCapaDe] = useState<string | null>(null);
   const [was, setWas] = useState(-1);
   const lastWheel = useRef(0);
   const touch = useRef<number | null>(null);
@@ -338,7 +372,7 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
   }, [reduced, light, ambients.length]);
   const ambient = ambients[amb % Math.max(1, ambients.length)] ?? bg;
   /** A imagem de cada capítulo: uma imagem do jogo diferente por capítulo. */
-  const chapImage = (c: ChapterItem) => (ambients.length > 1 ? ambients[(c.n - 1) % ambients.length] : c.image ?? bg);
+  const chapImage = (c: ChapterItem) => covers?.saved[c.id] ?? (ambients.length > 1 ? ambients[(c.n - 1) % ambients.length] : c.image ?? bg);
 
   // Régua: cada painel avança um passo, mais um pouco pelo tempo que passou (raiz dos dias, para as pausas
   // longas aparecerem sem esmagar o resto). O "Hoje" fica no fim.
@@ -381,6 +415,19 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
     const on = i === focus;
     const ref = (el: HTMLElement | null) => { els.current[i] = el; };
     const common = { ref, onClick: () => click(i), 'data-on': on || undefined } as const;
+    if ((it as { type: string }).type === 'antes') {
+      const ad = it as unknown as { id: string; a: TimelineEvent; b: TimelineEvent };
+      return (
+        <article key={ad.id} {...common} className="fx-pn fx-antes" aria-label="Antes e depois">
+          <span className="fx-k">Antes e depois</span>
+          <div className="fx-antes__par">
+            <figure><img src={ad.a.image} alt="" loading="lazy" /><figcaption><b>O primeiro dia</b><small>{shortDay(ad.a.at)}</small></figcaption></figure>
+            <span className="fx-antes__seta" aria-hidden="true">→</span>
+            <figure><img src={ad.b.image} alt="" loading="lazy" /><figcaption><b>A foto mais recente</b><small>{shortDay(ad.b.at)}</small></figcaption></figure>
+          </div>
+        </article>
+      );
+    }
     if (it.type === 'chapter') return (
       <article key={it.id} {...common} className="fx-pn fx-chap" aria-label={`Capítulo ${it.n}: ${it.name}`}>
         <div className="fx-bg" style={{ backgroundImage: `url(${chapImage(it)})` }} /><div className="fx-sh" />
@@ -405,6 +452,23 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
         ) : (
           <>
             <p className="fx-p">{it.summary}</p>
+            {on && blade && !full && capaDe === it.id && covers && (() => {
+              const fim = items.findIndex((x, k) => k > i && x.type === 'chapter');
+              const doCap = items.slice(i + 1, fim < 0 ? undefined : fim).filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image);
+              const lista = (doCap.length ? doCap : photos).slice(0, 8);
+              return (
+                <div className="fx-capas" onClick={(ev) => ev.stopPropagation()}>
+                  {lista.map((x) => <button key={x.id} type="button" className={covers.saved[it.id] === x.e.image ? 'is-on' : undefined} onClick={() => { covers.set(it, x.e.image!); setCapaDe(null); }} aria-label={`Usar como capa: ${x.e.title}`}><img src={x.e.image} alt="" loading="lazy" /></button>)}
+                  {covers.saved[it.id] && <button type="button" className="fx-capas__auto" onClick={() => { covers.set(it, ''); setCapaDe(null); }}>Voltar à automática</button>}
+                </div>
+              );
+            })()}
+            {on && blade && !full && (covers || onShareChapter) && (
+              <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
+                {covers && photos.length > 0 && <button className="btn quiet sm" onClick={() => setCapaDe(capaDe === it.id ? null : it.id)}><Icon name="camera" size={13} />{capaDe === it.id ? 'Fechar' : 'Trocar a capa'}</button>}
+                {onShareChapter && <button className="btn quiet sm" onClick={() => onShareChapter(it, chapImage(it), range(it), narrate?.saved[it.id] ?? it.summary)}><Icon name="link" size={13} />Compartilhar o capítulo</button>}
+              </div>
+            )}
             {on && narrate && !full && FEATURES.narracaoIA && (
               <div className="fx-actions">
                 <button className="btn ghost sm fx-btn" disabled={asking === it.id || narrate.left <= 0} onClick={(ev) => { ev.stopPropagation(); askAi(it); }}>
@@ -550,9 +614,17 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
         {!e.image && (e.kind === 'inicio' ? <span className="fx-mark"><BrandMark width={40} /></span> : e.kind === 'marco' ? <span className="fx-mark"><Compass size={34} color="#E2BE84" /></span> : <span className={`fx-ic${e.kind === 'ponto' ? ' fx-ic--now' : ''}`}><Icon name={e.kind === 'ponto' ? 'pin' : e.kind === 'carta' ? 'carta' : e.kind === 'momento' ? 'camera' : 'relogio'} size={16} /></span>)}
         <span className={`fx-k${back ? ' fx-k--now' : ''}`}>{KIND[e.kind] ?? e.kind} · {e.dateLabel ?? whenLabel(e.at, e.precision, { short: true })}</span>
         <h3 className="fx-h fx-h--sm">{head}</h3>
-        {it.id === maior && blade && <span className="fx-selo"><span>Sua maior sessão</span></span>}
+        {selos.get(it.id) && <span className="fx-selo"><span>{selos.get(it.id)}</span></span>}
         {e.kind === 'sessao' && head !== e.title && <span className="fx-sub">{fala && x?.minutes ? `${durText(x.minutes)} · ` : ''}{e.title}{x?.whereStopped && !fala.startsWith('Parou') ? ` · parou em ${x.whereStopped.replace(/^Fez:\s*/i, '')}` : ''}</span>}
         {sub && <p className="fx-p">{sub.length > 140 ? sub.slice(0, 138) + '…' : sub}</p>}
+        {on && blade && !full && e.image && !e.text && !e.quote && e.kind !== 'sessao' && (
+          legenda?.id === e.id ? (
+            <form className="fx-leg" onClick={(ev) => ev.stopPropagation()} onSubmit={(ev) => { ev.preventDefault(); const t = legenda.text.trim(); if (t) actions.updateEvent(e.id, { text: t.slice(0, 280) }); setLegenda(null); }}>
+              <input className="field" autoFocus value={legenda.text} maxLength={280} onChange={(ev) => setLegenda({ id: e.id, text: ev.target.value })} onKeyDown={(ev) => ev.stopPropagation()} placeholder="O que estava acontecendo aqui?" aria-label="Legenda da foto" />
+              <button className="btn primary sm" type="submit">Guardar</button>
+            </form>
+          ) : <button type="button" className="fx-leg__ask" onClick={(ev) => { ev.stopPropagation(); setLegenda({ id: e.id, text: '' }); }}>O que estava acontecendo aqui? <b>Escrever a legenda</b></button>
+        )}
         {on && (
           <div className="fx-actions">
             {back && <button className="btn now sm" onClick={(ev) => { ev.stopPropagation(); actions.resolveWaypoint(e.id); }}>Resolver</button>}

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: linha do tempo, rodada 3 (antes e depois, selos, capa do capítulo, legenda depois, compartilhar capítulo)
+- **Antes e depois:** cena nova, logo antes do "Hoje", com a primeira e a última foto lado a lado (precisa de 2 fotos em dias diferentes; só na linha por data).
+- **Selos automáticos** nas cenas: "Sua maior sessão" ou "O dia em que você mais jogou", "Voltou depois de N dias" (depois de 7 dias ou mais sem jogar) e "Sua primeira foto".
+- **Capa do capítulo:** na cartela do capítulo, "Trocar a capa" mostra as fotos daquele capítulo para escolher; dá para voltar à automática. A escolha fica guardada junto das narrações do capítulo (chave `capa:<capítulo>` em `histories.narrations`), sem coluna nova no banco.
+- **Legenda depois:** foto sem legenda mostra "O que estava acontecendo aqui? Escrever a legenda", com campo na própria cena.
+- **Compartilhar o capítulo:** botão na cartela do capítulo; gera uma imagem com o nome, as datas, o resumo e a capa (pode tirar a foto ou o resumo). Só a imagem sai do site.
+- Arquivos: `src/components/Faixa.tsx`, `src/components/SnipShare.tsx` (`ChapterShareSheet`), `src/data/store.ts` (`setChapterCover`), `src/pages/Journey.tsx`, fim de `src/styles/jornada.css`.
+- **Da lista aprovada falta só** o redesign de "Por região" (sugestões no canvas primeiro).
+
 ## 10/11/2026: Lobby dos Bugs, estudo do estilo gráfico (no repositório do jogo)
 - O dono pediu gráficos mais definidos e exemplos de vários estilos. No repositório `winnerzbr/lobby-dos-bugs` há agora a "Prévia: estilos" (menu de teste): hoje (16 pontos), 16 caprichado, 32 pontos e 3D estilo PS2, na mesma sala e câmera. Decisão do estilo: EM ABERTO (aguarda o dono jogar).
 - Resumo atualizado em `docs/memoria/lobby-dos-bugs.md`.

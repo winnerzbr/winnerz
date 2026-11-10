@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: "Por região" no site com o Trilho lateral (proposta S aprovada)
+- O dono aprovou a proposta **S · Trilho lateral** do canvas. Aplicado no `RegionView` (aparece em "Por região" na página da linha do tempo dos jogos de mundo aberto, como o Elden Ring).
+- Lista de regiões à esquerda: marcador inclinado (cheio quando já tem algo feito, âmbar na região atual), selecionada com contorno branco, atual com contorno âmbar, coberta (spoiler) tracejada. Setas ↑/↓ no teclado trocam de região.
+- A região escolhida entra à direita com o **corte em lâmina**: a anterior fica por baixo e escurece, o fio aceso atravessa, fecham as faixas pretas, a foto aproxima devagar e o texto chega com as cores separadas. Barra de andamento da região sob o nome. Com "reduzir movimento", sem animação.
+- Com isso, **a lista aprovada da linha do tempo está completa**.
+- Arquivos: `src/components/RegionView.tsx`, fim de `src/styles/jornada.css`.
+
 ## 10/11/2026: "Por região", quatro propostas no canvas (aguardando escolha)
 - Página nova "Por região" no canvas da linha do tempo (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM), quatro quadros que funcionam no Play, com as regiões do Elden Ring:
   - R · Em cenas, com o corte em lâmina (igual à linha do tempo aprovada);

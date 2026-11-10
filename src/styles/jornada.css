@@ -625,3 +625,51 @@ aside .lemb .lemb__go { padding: 0 18px 14px; }
 .fx-leg__ask b { color: #FFB25B; font-weight: 700; margin-left: 4px; }
 .fx-leg__ask:hover, .fx-leg__ask:focus-visible { border-color: #FFB25B; outline: none; }
 @media (max-width: 640px) { .fx-antes__par { grid-template-columns: minmax(0, 1fr); } .fx-antes__seta { display: none; } .fx-antes figure { aspect-ratio: 16 / 8; } }
+
+/* ==== "Por região" · Trilho lateral (aprovado em 10/11/2026): lista à esquerda, cena à direita com o corte em lâmina ==== */
+.rv__stage { position: relative; flex: 1; min-width: 0; display: flex; isolation: isolate; container-type: inline-size; }
+.rv__stage > .rv__main { flex: 1; z-index: 2; animation: rv-wipe .85s cubic-bezier(.7, 0, .2, 1) both; padding-top: 52px; padding-bottom: 52px; }
+@keyframes rv-wipe { from { clip-path: polygon(0 0, 0 0, -40% 100%, -40% 100%); } to { clip-path: polygon(0 0, 140% 0, 100% 100%, -40% 100%); } }
+.rv__was { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: #0b0c0e; display: flex; align-items: center; padding: 0 28px; animation: rv-out .9s ease-out forwards; pointer-events: none; }
+.rv__was .rv__bg { z-index: 0; }
+.rv__was .rv__name { position: relative; margin: 0; color: #E6E9ED; }
+@keyframes rv-out { 88% { opacity: 1; filter: brightness(.35) saturate(.4); transform: translateX(-22px); } 100% { opacity: 0; filter: brightness(.35) saturate(.4); transform: translateX(-22px); } }
+/* faixas pretas de cinema e o fio da lâmina */
+.rv__stage > .rv__main::before, .rv__stage > .rv__main::after { content: ''; position: absolute; left: 0; right: 0; height: 0; background: #000; z-index: 3; pointer-events: none; animation: rv-bars .7s .2s cubic-bezier(.2, .7, .2, 1) forwards; }
+.rv__stage > .rv__main::before { top: 0; } .rv__stage > .rv__main::after { bottom: 0; }
+@keyframes rv-bars { to { height: 26px; } }
+.rv__edge { position: absolute; left: -14px; top: 0; width: 7px; height: 100%; z-index: 8; background: #FFD9A3; box-shadow: 0 0 18px 6px rgba(255, 178, 91, .75), 0 0 60px 18px rgba(255, 150, 60, .35); opacity: 0; pointer-events: none; transform-origin: top; animation: rv-edge .85s cubic-bezier(.7, 0, .2, 1) both; }
+@keyframes rv-edge { 0% { opacity: 1; transform: translateX(0) skewX(-22deg); } 92% { opacity: 1; } 100% { opacity: 0; transform: translateX(calc(100cqw + 60cqh + 14px)) skewX(-22deg); } }
+.rv__stage > .rv__main .rv__bg { animation: rv-zoom 9s cubic-bezier(.2, .5, .3, 1) forwards; transform-origin: 62% 38%; }
+@keyframes rv-zoom { from { transform: scale(1.03); } to { transform: scale(1.14); } }
+.rv__stage > .rv__main > :is(.rv__head, .rv__block, .rv__cover) { animation: fx-rgb .8s .6s backwards; }
+.rv__stage > .rv__main > .rv__block { animation-delay: .78s; }
+.rv__stage > .rv__main > .rv__block ~ .rv__block { animation-delay: .9s; }
+.rv__name { font-size: clamp(30px, 5cqw, 52px); }
+.rv__pg { display: block; width: min(360px, 100%); height: 4px; margin-top: 12px; background: rgba(255, 255, 255, .14); }
+.rv__pg i { display: block; height: 100%; background: #F2F4F6; transition: width .6s; }
+.rv__k.is-now ~ .rv__pg i { background: #FFB25B; box-shadow: 0 0 10px rgba(255, 178, 91, .5); }
+/* o trilho */
+.rv__list { gap: 6px; }
+.rv__reg { position: relative; padding: 13px 16px 13px 40px; outline: 1px solid var(--line); outline-offset: -1px; background: var(--surface); transition: background .2s, outline-color .2s, color .2s; cursor: pointer; }
+.rv__reg::before { content: ''; position: absolute; left: 16px; top: 18px; width: 10px; height: 10px; border: 1.5px solid var(--muted); background: transparent; transform: skewX(-22deg); transition: all .25s; }
+.rv__reg.has-done::before { background: var(--ink); border-color: var(--ink); }
+.rv__reg.is-now::before { background: var(--now); border-color: var(--now); box-shadow: 0 0 12px 2px rgba(255, 178, 91, .55); }
+.rv__reg:hover, .rv__reg:focus-visible { outline-color: var(--ink); color: var(--ink); }
+.rv__reg:focus-visible { outline-width: 2px; }
+.rv__reg.is-sel { background: var(--surface-2); outline: 2px solid var(--ink); outline-offset: -2px; }
+.rv__reg.is-now { box-shadow: none; background: var(--surface); outline-color: var(--now); }
+.rv__reg.is-now.is-sel { background: var(--now-bg); outline: 2px solid var(--now); }
+.rv__reg.is-covered { outline-style: dashed; }
+@media (prefers-reduced-motion: reduce) {
+  .rv__stage > .rv__main, .rv__stage > .rv__main::before, .rv__stage > .rv__main::after, .rv__edge, .rv__stage > .rv__main .rv__bg, .rv__stage > .rv__main > * { animation: none !important; }
+  .rv__stage > .rv__main::before, .rv__stage > .rv__main::after { height: 26px; }
+  .rv__was { display: none; }
+}
+@media (max-width: 860px) {
+  .rv__stage { flex: none; }
+  .rv__stage > .rv__main { padding-top: 40px; padding-bottom: 40px; }
+  @keyframes rv-bars { to { height: 18px; } }
+  .rv__reg { padding-left: 34px; }
+  .rv__reg::before { left: 12px; top: 15px; }
+}

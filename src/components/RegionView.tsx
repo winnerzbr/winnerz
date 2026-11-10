@@ -2,8 +2,10 @@
  * S3 · Jogo aberto "Por região" (Elden Ring e outros divididos em etapas, áreas ou chefes): as regiões do jogo com o
  * andamento de cada uma na linha do horizonte, e a região escolhida com o que tem nela (feito, o próximo, o resto e o
  * que tem spoiler, coberto) e as suas sessões ali. Regiões ainda longe ficam com o nome escondido.
+ * Desenho "Trilho lateral" (aprovado em 10/11/2026): a lista de regiões à esquerda e a região escolhida à direita,
+ * que entra com o corte em lâmina (diagonal de 22°, fio aceso, faixas pretas, texto com as cores separadas).
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { History, Session } from '../data/types';
 import type { GameOutline, OutlinePart } from '../lib/outline';
 import { partAt } from '../lib/outline';
@@ -57,9 +59,20 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
   const isOpen = (r: Region, i: number) => i <= lastSeen || revealed.has(r.key);
   const named = regions.slice(0, lastSeen + 2);
   const hidden = regions.length - named.length;
-  const [sel, setSel] = useState<string | undefined>(undefined);
+  const [sel, setSelRaw] = useState<string | undefined>(undefined);
   const region = regions.find((r) => r.key === (sel ?? curKey)) ?? regions[0];
   const ri = regions.indexOf(region);
+  // A região que estava na tela: fica por baixo enquanto a nova entra cortando.
+  const [was, setWas] = useState<number>(-1);
+  const setSel = (k: string) => { if (k !== region?.key) { setWas(ri); setSelRaw(k); } };
+  const nav = useRef<HTMLElement>(null);
+  const onNavKey = (e: React.KeyboardEvent) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const btns = [...(nav.current?.querySelectorAll<HTMLButtonElement>('.rv__reg') ?? [])];
+    const at = btns.indexOf(document.activeElement as HTMLButtonElement);
+    const to = btns[Math.max(0, Math.min(btns.length - 1, (at < 0 ? ri : at) + (e.key === 'ArrowDown' ? 1 : -1)))];
+    if (to) { e.preventDefault(); to.focus(); to.click(); }
+  };
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
   const box = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -74,7 +87,9 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
   if (!region) return null;
   const next = region.items.find((p) => !doneAt.has(p.id));
   const isCur = region.key === curKey;
-  const img = images.length ? images[ri % images.length] : undefined;
+  const imgOf = (i: number) => (images.length && i >= 0 ? images[i % images.length] : undefined);
+  const img = imgOf(ri);
+  const wasRegion = was >= 0 && was !== ri ? regions[was] : undefined;
   const kinds = (r: Region) => {
     const by = new Map<string, [number, number]>();
     for (const p of r.items) if (p.kind && p.kind !== 'opcional') { const k = by.get(p.kind) ?? [0, 0]; k[1]++; if (doneAt.has(p.id)) k[0]++; by.set(p.kind, k); }
@@ -91,7 +106,7 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
           <button className="btn ghost sm" onClick={onExitFull}><Icon name="sairTela" size={16} />Sair da tela cheia</button>
         </div>
       )}
-      <nav className="rv__list" aria-label="Regiões">
+      <nav ref={nav} className="rv__list" aria-label="Regiões" onKeyDown={onNavKey}>
         {named.map((r, i) => {
           if (!isOpen(r, i)) return (
             <button key={r.key} type="button" className={`rv__reg is-far is-covered${r === region ? ' is-sel' : ''}`} onClick={() => { setRevealed(new Set([...revealed, r.key])); setSel(r.key); }}>
@@ -102,7 +117,7 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
           const pct = r.items.length ? (r.done / r.items.length) * 100 : 0;
           const here = r.key === curKey, full = r.done === r.items.length && r.done > 0;
           return (
-            <button key={r.key} type="button" className={`rv__reg${here ? ' is-now' : ''}${r === region ? ' is-sel' : ''}${!r.done && !r.sessions.length && !here ? ' is-far' : ''}`} aria-current={r === region ? 'true' : undefined} onClick={() => setSel(r.key)}>
+            <button key={r.key} type="button" className={`rv__reg${here ? ' is-now' : ''}${r.done ? ' has-done' : ''}${r === region ? ' is-sel' : ''}${!r.done && !r.sessions.length && !here ? ' is-far' : ''}`} aria-current={r === region ? 'true' : undefined} onClick={() => setSel(r.key)}>
               <span className="rv__reg-top"><b>{r.name}</b><span className="mono">{r.done} de {r.items.length}{full ? ' ✓' : here ? ' · aqui' : ''}</span></span>
               <span className={`rv__hz${full ? ' is-full' : here ? ' is-now' : ''}`} aria-hidden="true"><i style={{ width: `${pct}%` }} />{here && <em style={{ left: `${pct}%` }} />}</span>
               <small>{r.done || r.sessions.length ? [kinds(r), r.from ? (r.to && day(r.to) !== day(r.from) ? `${day(r.from)} – ${day(r.to)}` : day(r.from)) : ''].filter(Boolean).join(' · ') : i > lastSeen ? 'Ainda não foi' : kinds(r)}</small>
@@ -112,18 +127,29 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
         {hidden > 0 && <p className="rv__more">Mais regiões à frente · escondidas até você chegar</p>}
       </nav>
 
+      <div className="rv__stage">
+      {wasRegion && (
+        <div key={`was-${was}-${ri}`} className="rv__was" aria-hidden="true">
+          {imgOf(was) && isOpen(wasRegion, was) && <div className="rv__bg" style={{ backgroundImage: `url(${imgOf(was)})` }} />}
+          <span className="rv__name">{isOpen(wasRegion, was) ? wasRegion.name : `Região ${was + 1}`}</span>
+        </div>
+      )}
+
       {!isOpen(region, ri) ? (
-      <section className="rv__main" aria-label={`Região ${ri + 1}`}>
+      <section key={region.key} className="rv__main" aria-label={`Região ${ri + 1}`}>
+        <i className="rv__edge" aria-hidden="true" />
         <div className="rv__head"><div><span className="rv__k">Região {ri + 1}</span><h3 className="rv__name">Ainda não apareceu para você</h3></div></div>
         <button type="button" className="rv__cover" onClick={() => setRevealed(new Set([...revealed, region.key]))}>Com spoiler · tocar para ver</button>
       </section>
       ) : (
-      <section className="rv__main" aria-label={region.name}>
+      <section key={region.key} className="rv__main" aria-label={region.name}>
+        <i className="rv__edge" aria-hidden="true" />
         {img && <div className="rv__bg" style={{ backgroundImage: `url(${img})` }} aria-hidden="true" />}
         <div className="rv__head">
           <div>
             <span className={`rv__k${isCur ? ' is-now' : ''}`}>Região {ri + 1}{isCur ? ' · você está aqui' : ''}</span>
             <h3 className="rv__name">{region.name}</h3>
+            <span className="rv__pg" aria-hidden="true"><i style={{ width: `${region.items.length ? (region.done / region.items.length) * 100 : 0}%` }} /></span>
             <p className="rv__facts">{[region.from ? (isCur ? `Desde ${day(region.from)}` : day(region.from)) : 'Ainda sem sessões aqui', region.sessions.length ? plural(region.sessions.length, 'sessão', 'sessões') : '', region.minutes ? durText(region.minutes) : ''].filter(Boolean).join(' · ')}</p>
           </div>
           {isCur && !today?.open && <button className={`btn sm ${play.now ? 'now' : 'primary'}`} onClick={play.onClick}><Icon name="play" size={13} />{play.label}</button>}
@@ -175,6 +201,7 @@ export function RegionView({ outline, history, sessions, images, play, today, vi
         </div>
       </section>
       )}
+      </div>
     </div>
   );
 }

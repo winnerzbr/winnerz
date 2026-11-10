@@ -452,23 +452,6 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
         ) : (
           <>
             <p className="fx-p">{it.summary}</p>
-            {on && blade && !full && capaDe === it.id && covers && (() => {
-              const fim = items.findIndex((x, k) => k > i && x.type === 'chapter');
-              const doCap = items.slice(i + 1, fim < 0 ? undefined : fim).filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image);
-              const lista = (doCap.length ? doCap : photos).slice(0, 8);
-              return (
-                <div className="fx-capas" onClick={(ev) => ev.stopPropagation()}>
-                  {lista.map((x) => <button key={x.id} type="button" className={covers.saved[it.id] === x.e.image ? 'is-on' : undefined} onClick={() => { covers.set(it, x.e.image!); setCapaDe(null); }} aria-label={`Usar como capa: ${x.e.title}`}><img src={x.e.image} alt="" loading="lazy" /></button>)}
-                  {covers.saved[it.id] && <button type="button" className="fx-capas__auto" onClick={() => { covers.set(it, ''); setCapaDe(null); }}>Voltar à automática</button>}
-                </div>
-              );
-            })()}
-            {on && blade && !full && (covers || onShareChapter) && (
-              <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
-                {covers && photos.length > 0 && <button className="btn quiet sm" onClick={() => setCapaDe(capaDe === it.id ? null : it.id)}><Icon name="camera" size={13} />{capaDe === it.id ? 'Fechar' : 'Trocar a capa'}</button>}
-                {onShareChapter && <button className="btn quiet sm" onClick={() => onShareChapter(it, chapImage(it), range(it), narrate?.saved[it.id] ?? it.summary)}><Icon name="link" size={13} />Compartilhar o capítulo</button>}
-              </div>
-            )}
             {on && narrate && !full && FEATURES.narracaoIA && (
               <div className="fx-actions">
                 <button className="btn ghost sm fx-btn" disabled={asking === it.id || narrate.left <= 0} onClick={(ev) => { ev.stopPropagation(); askAi(it); }}>
@@ -479,6 +462,23 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
             )}
             {aiErr?.id === it.id && <small className="fx-src fx-err" role="alert">{aiErr.text}</small>}
           </>
+        )}
+        {on && blade && !full && capaDe === it.id && covers && (() => {
+          const fim = items.findIndex((x, k) => k > i && x.type === 'chapter');
+          const doCap = items.slice(i + 1, fim < 0 ? undefined : fim).filter((x): x is Extract<TLItem, { type: 'event' }> => x.type === 'event' && !!x.e.image);
+          const lista = (doCap.length ? doCap : photos).slice(0, 8);
+          return (
+            <div className="fx-capas" onClick={(ev) => ev.stopPropagation()}>
+              {lista.map((x) => <button key={x.id} type="button" className={covers.saved[it.id] === x.e.image ? 'is-on' : undefined} onClick={() => { covers.set(it, x.e.image!); setCapaDe(null); }} aria-label={`Usar como capa: ${x.e.title}`}><img src={x.e.image} alt="" loading="lazy" /></button>)}
+              {covers.saved[it.id] && <button type="button" className="fx-capas__auto" onClick={() => { covers.set(it, ''); setCapaDe(null); }}>Voltar à automática</button>}
+            </div>
+          );
+        })()}
+        {on && blade && !full && (covers || onShareChapter) && (
+          <div className="fx-actions" onClick={(ev) => ev.stopPropagation()}>
+            {covers && photos.length > 0 && <button className="btn quiet sm" onClick={() => setCapaDe(capaDe === it.id ? null : it.id)}><Icon name="camera" size={13} />{capaDe === it.id ? 'Fechar' : 'Trocar a capa'}</button>}
+            {onShareChapter && <button className="btn quiet sm" onClick={() => onShareChapter(it, chapImage(it), range(it), narrate?.saved[it.id] ?? it.summary)}><Icon name="link" size={13} />Compartilhar o capítulo</button>}
+          </div>
         )}
       </article>
     );

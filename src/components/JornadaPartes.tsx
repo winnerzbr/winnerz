@@ -193,16 +193,18 @@ export function Registros({ sessions, events, onEdit, onPhoto }: { sessions: Ses
 }
 
 /* ---- Trilha: o progresso da campanha no alto da página ------------------------------------------------------------ */
-type TrilhaRow = { part: { id: string; name: string; spoiler?: boolean }; n: number; total: number; state: 'passou' | 'atual' | 'frente' };
+type TrilhaRow = { part: { id: string; name: string; spoiler?: boolean; group?: string }; n: number; total: number; state: 'passou' | 'atual' | 'frente' };
 export function Trilha({ progress, rows, done, unit, onOpen, onAdjust }: { progress: number; rows: TrilhaRow[]; done?: Set<string>; unit: string; onOpen: () => void; onAdjust: () => void }) {
   const pct = Math.max(0, Math.min(100, Math.round(progress)));
   const cur = rows.find((r) => r.state === 'atual');
   const feitos = done ? rows.filter((r) => done.has(r.part.id)).length : 0;
   const temLista = rows.length > 1;
+  // Nada de spoiler no alto da página: em jogo aberto vale a região; item marcado como spoiler nunca aparece pelo nome.
+  const lugar = cur ? (done && cur.part.group ? cur.part.group : cur.part.spoiler ? cur.part.group ?? '' : cur.part.name) : '';
   return (
     <section className="jtrilha" aria-label="Progresso da campanha">
       <div className="jtrilha__top">
-        <span className="jtrilha__k">{temLista && cur ? <>Você está em <b>{cur.part.name}</b></> : pct > 0 ? 'Seu progresso' : 'Ainda no começo'}</span>
+        <span className="jtrilha__k">{temLista && lugar ? <>Você está em <b>{lugar}</b></> : pct > 0 ? 'Seu progresso' : 'Ainda no começo'}</span>
         <span className="jtrilha__n">
           {temLista && <span>{done ? `${feitos} de ${rows.length} feitos` : cur ? `${unit || 'parte'} ${cur.n} de ${cur.total}` : `${rows.length} ${rows.length === 1 ? 'parte' : 'partes'}`}</span>}
           <button type="button" className="jtrilha__pct" onClick={onAdjust} aria-label={`Progresso: ${pct} por cento. Ajustar`}>{pct}%</button>

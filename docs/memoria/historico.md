@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: revisão da Jornada (só sugestões, nada mudou no site)
+O dono pediu uma revisão da Jornada. Sugestões entregues na conversa, aguardando ele escolher:
+- **Simplificar:** separar "Na fila" (começou, sem sessão) de "Em andamento"; linhas da lista mostrarem onde parou e o progresso em vez de "Sem recado"; juntar sessões do mesmo dia e não contar sessões de 1 ou 2 min; fim de sessão com uma pergunta só (onde parou) e o resto em "contar mais"; um botão principal na página do jogo; ajustes de pontes e lembrete saírem da lateral depois de vistos; menos nomes (juntar Momento e Marco).
+- **Ideias novas:** "Anteriormente em…" automático ao voltar depois de dias; palpites lacrados que abrem no fim; curva de emoções da campanha; recados de amizades que destravam por região; previsão "no seu ritmo" (opcional); live da Twitch virar sessão sozinha, com clipes como momentos; figurinha por região concluída.
+- **Organização e progressão:** trilha de regiões e o progresso no topo da página do jogo; juntar as abas Registros e Regiões numa só "História"; um bloco por dia nos registros; barra fina de progresso em cada linha do índice; tirar o aviso repetido de registro automático.
+- **Defeito visto:** em tela de largura média (uns 800 px), o topo da página do jogo espreme o título e os dados numa coluna estreita. Ainda não corrigido.
+
 ## 10/11/2026: tela Escrever da comunidade reorganizada
 - Caixa "Onde": só uma setinha (a do navegador saiu) e a lista aberta agora usa as cores do site (antes ficava texto claro em fundo claro). Vale para todas as listas de escolha.
 - "Que tipo de postagem?": só o nome do tipo, sem explicação, em botões numa fileira (no celular, dois por linha).

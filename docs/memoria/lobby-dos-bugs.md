@@ -63,3 +63,6 @@ Jogo próprio a partir do minijogo Lobby dos Bugs do Arcade do IAmiguinho, para 
 - Tela de 640 × 360 pixels (o dobro do Arcade), ampliada em números inteiros; quadradinhos de 16 px; o IAmiguinho é o do Arcade (14 × 16).
 - O dono joga pelo GitHub Desktop (Fetch origin → Pull origin) e abre no Godot 4.7.2.
 - Etapa 1 do plano (protótipo de uma fase completa) começou em 07/11/2026.
+
+## 10/11/2026: caderno de ideias
+O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadilhas, salas de sobrevivência, salas 2D de plataforma, cerca de 200 inimigos e 50 chefões, armas, melhorias, identidade das salas, satisfação de arma nova, easter eggs, documentos). Estão anotadas, com sugestões, em `docs/memoria/ideias.md` do repositório do jogo e na página "Lobby dos Bugs: caderno de ideias" no Claude (https://claude.ai/artifact/EJrAtEjDqAdLrgYk9tfEkP). Nada mudou no jogo. Falta o documento com tudo do jogo.

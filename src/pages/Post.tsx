@@ -624,11 +624,31 @@ function PostEditor({ place: startPlace, orig, startGame, startKind, fixedPlace 
               {kinds.map((k) => (
                 <label key={k.k} className={`cm-kinds__o${kind === k.k ? ' is-on' : ''}`}>
                   <input type="radio" name="kind" checked={kind === k.k} onChange={() => setKind(k.k)} />
-                  <b>{k.label}</b><small>{k.hint}</small>
+                  <b>{k.label}</b>
                 </label>
               ))}
             </div>
           </fieldset>
+
+          <div className="cm-form__f"><span className="kicker">{kind === 'aquisicao' ? 'Que jogo chegou?' : 'Sobre algum jogo?'}</span>
+            <GameSearchPick value={game} onChange={(g) => { setGame(g); if (!g) setSpoiler(null); }} label="Jogo da postagem" />
+            <small className="faint">Ligada a um jogo, a postagem aparece também na ficha dele.</small>
+          </div>
+          {game && kind !== 'aquisicao' && (
+            <fieldset className="cm-form__f cm-spoil">
+              <legend className="kicker">Tem spoiler de {game.title}?</legend>
+              <label className={`cm-spoil__o${!spoiler ? ' is-on' : ''}`}><input type="radio" name="sp" checked={!spoiler} onChange={() => setSpoiler(null)} /><b>Não tem</b></label>
+              {SPOILERS.map((s) => (
+                <label key={s.k} className={`cm-spoil__o${spoiler === s.k ? ' is-on' : ''}`}><input type="radio" name="sp" checked={spoiler === s.k} onChange={() => setSpoiler(s.k)} /><b>Spoiler {s.label.toLowerCase()}</b><small>{s.hint}</small></label>
+              ))}
+              {spoiler && (
+                <label className="cm-spoil__note"><span className="kicker">Spoiler de quê? (opcional)</span>
+                  <input className="field" value={spoilerNote} maxLength={80} onChange={(e) => setSpoilerNote(e.target.value)} placeholder="Ex.: a luta com a Malenia, o final da Ranni" />
+                </label>
+              )}
+              <small className="faint">O texto fica coberto para todo mundo até a pessoa tocar. A Jornada de quem lê só avisa se ela já passou dessa parte.</small>
+            </fieldset>
+          )}
 
           <label className="cm-form__f"><span className="kicker">Título <small className="faint">(opcional)</small></span>
             <input className="field cm-editor__title" value={title} maxLength={140} onChange={(e) => setTitle(e.target.value)}
@@ -686,32 +706,13 @@ function PostEditor({ place: startPlace, orig, startGame, startKind, fixedPlace 
               <input ref={file} type="file" accept="image/*" multiple hidden onChange={(e) => { void addFiles(e.target.files); e.target.value = ''; }} />
             </div>
           </div>
-        </div>
 
-        <aside className="cm-editor__side">
-          <div className="cm-form__f"><span className="kicker">{kind === 'aquisicao' ? 'Que jogo chegou?' : 'Sobre algum jogo?'}</span>
-            <GameSearchPick value={game} onChange={(g) => { setGame(g); if (!g) setSpoiler(null); }} label="Jogo da postagem" />
-            <small className="faint">Ligada a um jogo, a postagem aparece também na ficha dele.</small>
+          <div className="cm-editor__send">
+            {err && <p className="awards__error" role="alert">{err}</p>}
+            <button className="btn primary cm-editor__go" disabled={!ready || busy} onClick={() => void submit()}>{busy ? 'Publicando…' : orig ? 'Salvar' : 'Publicar'}</button>
+            <p className="faint cm-editor__rules">Valem as <Link to="/regras">regras do WinnerZ</Link>{place?.rules ? ' e os combinados desta comunidade' : ''}.</p>
           </div>
-          {game && kind !== 'aquisicao' && (
-            <fieldset className="cm-form__f cm-spoil">
-              <legend className="kicker">Tem spoiler de {game.title}?</legend>
-              <label className={`cm-spoil__o${!spoiler ? ' is-on' : ''}`}><input type="radio" name="sp" checked={!spoiler} onChange={() => setSpoiler(null)} /><b>Não tem</b></label>
-              {SPOILERS.map((s) => (
-                <label key={s.k} className={`cm-spoil__o${spoiler === s.k ? ' is-on' : ''}`}><input type="radio" name="sp" checked={spoiler === s.k} onChange={() => setSpoiler(s.k)} /><b>Spoiler {s.label.toLowerCase()}</b><small>{s.hint}</small></label>
-              ))}
-              {spoiler && (
-                <label className="cm-spoil__note"><span className="kicker">Spoiler de quê? (opcional)</span>
-                  <input className="field" value={spoilerNote} maxLength={80} onChange={(e) => setSpoilerNote(e.target.value)} placeholder="Ex.: a luta com a Malenia, o final da Ranni" />
-                </label>
-              )}
-              <small className="faint">O texto fica coberto para todo mundo até a pessoa tocar. A Jornada de quem lê só avisa se ela já passou dessa parte.</small>
-            </fieldset>
-          )}
-          {err && <p className="awards__error" role="alert">{err}</p>}
-          <button className="btn primary cm-editor__go" disabled={!ready || busy} onClick={() => void submit()}>{busy ? 'Publicando…' : orig ? 'Salvar' : 'Publicar'}</button>
-          <p className="faint cm-editor__rules">Valem as <Link to="/regras">regras do WinnerZ</Link>{place?.rules ? ' e os combinados desta comunidade' : ''}.</p>
-        </aside>
+        </div>
       </div>
     </main>
   );

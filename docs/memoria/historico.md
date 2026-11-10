@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: tela Escrever da comunidade reorganizada
+- Caixa "Onde": só uma setinha (a do navegador saiu) e a lista aberta agora usa as cores do site (antes ficava texto claro em fundo claro). Vale para todas as listas de escolha.
+- "Que tipo de postagem?": só o nome do tipo, sem explicação, em botões numa fileira (no celular, dois por linha).
+- A tela virou uma coluna só: tipo → "Sobre algum jogo?/Que jogo chegou?" (e o spoiler) → título → texto → imagens → Publicar e o aviso das regras. A coluna da direita saiu.
+- Arquivos: `src/pages/Post.tsx`, fim de `src/styles/fresta.css`, `select.field` em `src/styles/carga.css`.
+
 ## 10/11/2026: Lobby dos Bugs, caderno de ideias
 - O dono trouxe 15 ideias depois de jogar; ficaram anotadas com sugestões em `docs/memoria/ideias.md` do repositório do jogo e na página "Lobby dos Bugs: caderno de ideias" no Claude. Nada mudou no jogo. Detalhes em `lobby-dos-bugs.md`.
 

@@ -195,6 +195,7 @@
 .vc-campos select.field {
   --vc-acc: linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 24px) 50% / 6px 6px no-repeat, linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 18px) 50% / 6px 6px no-repeat;
   padding-left: 16px !important; padding-right: 42px !important;
+  appearance: none; -webkit-appearance: none; /* só a nossa setinha (antes apareciam duas) */
 }
 .vc-campos .switch:checked { outline-color: var(--vi-ring); }
 .vc-campos .cfilters .switch { margin-right: 8px !important; }

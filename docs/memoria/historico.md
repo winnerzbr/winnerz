@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: linha do tempo nova, modelo no canvas (aguardando aprovação)
+- O dono aprovou **todas** as sugestões da revisão da linha do tempo, mas quer **ver antes num artefato**.
+- **Decisão dele:** a linha do tempo perdeu destaque nas reorganizações; ela ganha **página própria dentro da Jornada do jogo**, com **botão em destaque** no topo.
+- Modelo publicado: canvas "WinnerZ · Linha do tempo nova (modelo)", https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM, com 4 quadros no visual Carga escuro:
+  - A: página do jogo com o botão "Linha do tempo" no topo e um cartão grande de entrada;
+  - B: a página própria (um cartão por dia, três tamanhos, capítulos com nome da região, selos, legenda depois, antes e depois, "Neste dia", "Rever a jornada");
+  - C: a linha geral por mês e por jogo, com "Zerou" em cartão grande e filtro "Só momentos";
+  - D: a página própria no celular.
+- Gerador: `prototipos/redesign-elementos/tl.py` (usa o `gen.py` e os temas do canvas anterior).
+- **Nada mudou no site ainda.** Só aplicar depois de ele aprovar o modelo.
+
 ## 10/11/2026: revisão da linha do tempo (só sugestões, nada mudou)
 O dono pediu uma revisão da linha do tempo (a geral, em Jornada → Linha do tempo, e a do jogo). Aguardando ele escolher.
 - **O que foi visto:** a geral é uma lista de quase 10 mil px em que quase tudo é "Sessão N · jogo · Sessão", sem foto e com o mesmo peso para sessão vazia e para "Zerou". A do jogo tem base bonita (fundo, capítulos com resumo, Passeio, régua), mas 45 painéis altos e quase vazios com "1 min" como título.

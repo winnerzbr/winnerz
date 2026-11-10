@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: modelo da linha do tempo, versão cinematográfica e carrossel
+- Pedido do dono: a linha do tempo deve ser **cinematográfica, com efeitos especiais**, e ele quer ver também um exemplo **em carrossel**, como a de hoje.
+- No mesmo canvas (https://claude.ai/artifact/AXzLN4kvBJx6fkeSaomofM):
+  - quadro B refeito: abertura como título de filme, cartela de título por capítulo, faixas pretas, grão de filme e vinheta nas fotos; ao passar o mouse, zoom lento e um risco de luz;
+  - quadro E novo, que funciona no Play: carrossel com setas, régua clicável e "Passeio"; a cena do centro ganha faixas pretas, zoom lento, risco de luz e texto subindo.
+- Os efeitos tocam uma vez por cena ou no mouse, sem repetição infinita (regra do dono).
+- Falta ele escolher entre a página que rola para baixo (B) e o carrossel (E), ou os dois (B como página, E como "Rever a jornada"). Nada mudou no site.
+
 ## 10/11/2026: linha do tempo nova, modelo no canvas (aguardando aprovação)
 - O dono aprovou **todas** as sugestões da revisão da linha do tempo, mas quer **ver antes num artefato**.
 - **Decisão dele:** a linha do tempo perdeu destaque nas reorganizações; ela ganha **página própria dentro da Jornada do jogo**, com **botão em destaque** no topo.

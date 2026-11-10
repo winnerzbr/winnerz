@@ -1,3 +1,4 @@
+import { NesteDia, LembraDisso } from '../components/Lembrancas';
 import { featBadge, sortFeats } from '../lib/feats';
 import { PastSessionButton } from '../components/PastSession';
 import { Buddy, useBuddy } from '../components/Buddy';
@@ -125,6 +126,8 @@ export function JourneyIndex() {
             )}
           </div>
           <aside className="jindex__aside">
+            {!light && <NesteDia />}
+            {!light && <LembraDisso />}
             {!light && <MonthCard s={s} />}
             <ReviewCard />
             <Link to="/preferencias#jornada-pref" className="arrow-link jindex__today">Registro automático e lembretes →</Link>

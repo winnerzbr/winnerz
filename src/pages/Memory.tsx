@@ -1,3 +1,4 @@
+import { NesteDia } from '../components/Lembrancas';
 import { SuasNotas } from '../components/SuasNotas';
 import { useEffect, useMemo, useState } from 'react';
 import { PactList } from '../components/Pacts';
@@ -68,11 +69,13 @@ export function AnniversaryCard() {
 export function GlobalTimelinePage() {
   const s = useStore((x) => x);
   const all = useMemo(() => globalTimeline(s), [s]);
-  const [kind, setKind] = useState<'tudo' | 'jornada' | 'colecao'>('tudo');
+  const [kind, setKind] = useState<'tudo' | 'momentos' | 'jornada' | 'colecao'>('tudo');
   const [limit, setLimit] = useState(80);
   const [goTo, setGoTo] = useState<number | null>(null);
   useEffect(() => { track('jornada.linha-geral'); }, []);
-  const list = all.filter((x) => kind === 'tudo' || x.kind === kind);
+  const ehMomento = (x: GlobalItem) => x.kind === 'jornada' && (x.ev === 'momento' || x.ev === 'marco' || x.ev === 'inicio' || !!x.image);
+  const ehZerou = (x: GlobalItem) => x.ev === 'marco' && /^zerou/i.test(x.title);
+  const list = all.filter((x) => kind === 'tudo' || (kind === 'momentos' ? ehMomento(x) : x.kind === kind));
   const shown = list.slice(0, limit);
   const yearOf = (it: GlobalItem) => (it.precision === 'desconhecida' ? null : new Date(it.at).getFullYear());
   const groups: { key: string; year: number | null; items: GlobalItem[] }[] = [];
@@ -101,14 +104,15 @@ export function GlobalTimelinePage() {
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Linha do tempo</h1>
-          <p className="muted lead">Tudo o que você viveu jogando e o que chegou à coleção, do mais recente ao primeiro.</p>
+          <p className="muted lead">Tudo o que você viveu jogando, mês a mês e jogo a jogo.</p>
         </div>
         <SubNav pillar="jornada" />
       </header>
       <div className="gtl__cols">
         <div className="gtl__main">
+          <NesteDia />
           <div className="chips gtl__filter" role="group" aria-label="Mostrar">
-            {([['tudo', 'Tudo'], ['jornada', 'Jornadas'], ['colecao', 'Coleção']] as const).map(([k, l]) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => { setKind(k); setLimit(80); }}>{l}</button>)}
+            {([['tudo', 'Tudo'], ['momentos', 'Só momentos'], ['jornada', 'Jornadas'], ['colecao', 'Coleção']] as const).map(([k, l]) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => { setKind(k); setLimit(80); }}>{l}</button>)}
           </div>
           {!list.length && <div className="card tl-empty"><p className="muted">Nada por aqui ainda. Comece uma Jornada ou adicione um jogo à estante.</p></div>}
           {list.length > 0 && (
@@ -118,8 +122,8 @@ export function GlobalTimelinePage() {
                 return (
                   <section key={gr.key} className="gtl__month" aria-label={gr.key} id={first ? `ano-${gr.year ?? 'sem'}` : undefined}>
                     <div className={`gtl__mo${gi === 0 && gr.key === nowKey ? ' is-now' : ''}`}><h2 className="t">{gr.key}</h2>{gi === 0 && gr.key === nowKey && <span className="kicker kicker--now">Agora</span>}</div>
-                    <ol className="gtl__list">
-                      {gr.items.map((it) => (
+                    {(() => {
+                      const row = (it: GlobalItem) => (
                         <li key={it.id}>
                           <Link to={it.to ?? '#'} className={`gev${cls(it) ? ` gev--${cls(it)}` : ''}`}>
                             <span className="mono gev__d">{dateOf(it)}</span>
@@ -131,8 +135,54 @@ export function GlobalTimelinePage() {
                             <span className="mono gev__k">{it.label}</span>
                           </Link>
                         </li>
-                      ))}
-                    </ol>
+                      );
+                      const jogos: { game: NonNullable<GlobalItem['game']>; items: GlobalItem[] }[] = [];
+                      const soltos: GlobalItem[] = [];
+                      for (const it of gr.items) {
+                        if (it.kind !== 'jornada' || !it.game) { soltos.push(it); continue; }
+                        const g = jogos.find((x) => x.game.id === it.game!.id);
+                        if (g) g.items.push(it); else jogos.push({ game: it.game, items: [it] });
+                      }
+                      const dia = (it: GlobalItem) => it.at.slice(0, 10);
+                      return (
+                        <>
+                          {gr.items.filter(ehZerou).map((it) => (
+                            <Link key={`z-${it.id}`} to={it.game ? `/jornada/${it.game.slug}/linha-do-tempo` : '#'} className="gz">
+                              {(it.image ?? it.game?.backdrop ?? it.game?.cover) && <img className="gz__bg" src={it.image ?? it.game?.backdrop ?? it.game?.cover} alt="" loading="lazy" />}
+                              <span className="gz__b"><span className="kicker kicker--now">Zerou · {dateOf(it)}</span><strong className="t gz__t">{it.game?.title ?? it.title}</strong>{it.text && <span className="gz__q">{it.text}</span>}</span>
+                            </Link>
+                          ))}
+                          {jogos.map(({ game, items }) => {
+                            const sess = items.filter((x) => x.ev === 'sessao');
+                            const dias = new Set((sess.length ? sess : items).map(dia)).size;
+                            const mom = items.filter((x) => ehMomento(x) && x.ev !== 'inicio').length;
+                            const ini = items.find((x) => x.ev === 'inicio');
+                            const fala = items.find((x) => x.text && (x.ev === 'sessao' || x.ev === 'momento'))?.text;
+                            const fotos = items.filter((x) => x.image).slice(0, 4);
+                            const linhas = items.filter((x) => x.ev !== 'sessao' || x.text);
+                            const url = `/jornada/${game.slug}/linha-do-tempo`;
+                            return (
+                              <article key={game.id} className="gjg">
+                                <Link to={url} className="gjg__cover" aria-label={`Abrir a linha do tempo de ${game.title}`}><CoverArt game={game} /></Link>
+                                <div className="gjg__b">
+                                  <div className="gjg__h"><h3 className="t">{game.title}</h3><Link to={url} className="arrow-link">Abrir a linha do jogo →</Link></div>
+                                  <span className="muted gjg__m">{[plural(dias, 'dia de jogo', 'dias de jogo'), mom ? plural(mom, 'momento', 'momentos') : '', ini ? `começou em ${dateOf(ini)}` : ''].filter(Boolean).join(' · ')}</span>
+                                  {fala && <p className="gjg__q">“{fala.length > 160 ? `${fala.slice(0, 158)}…` : fala}”</p>}
+                                  {fotos.length > 0 && <div className="gjg__th">{fotos.map((x) => <Link key={x.id} to={`${url}?cena=${encodeURIComponent(x.id)}`} aria-label={`Ver na linha do tempo: ${x.title}`}><img src={x.image} alt="" loading="lazy" /></Link>)}</div>}
+                                  {linhas.length > 0 && (
+                                    <details className="gjg__all" open={kind === 'momentos' || undefined}>
+                                      <summary>{linhas.length === 1 ? 'Ver o registro' : `Ver os ${linhas.length} registros`}</summary>
+                                      <ol className="gtl__list">{linhas.map(row)}</ol>
+                                    </details>
+                                  )}
+                                </div>
+                              </article>
+                            );
+                          })}
+                          {soltos.length > 0 && <ol className="gtl__list gtl__list--col">{soltos.map(row)}</ol>}
+                        </>
+                      );
+                    })()}
                   </section>
                 );
               })}

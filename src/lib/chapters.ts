@@ -103,6 +103,16 @@ export function meanwhile(all: TimelineEvent[], journeyId: ID, from: string, to:
   return out;
 }
 
+const NOME_FRACO = /^(momento guardado|momento|ponto para voltar|quero voltar aqui|sess[ãa]o \d+|primeira vez|teste)$/i;
+/** "Começo de novembro", "Meados de outubro", "Fim de março": a época em que o capítulo começou. */
+export function epoca(iso: string): string {
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return 'Outro capítulo';
+  const dia = Number(d.toLocaleDateString('pt-BR', { day: 'numeric', timeZone: 'America/Sao_Paulo' }));
+  const mes = d.toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' });
+  return `${dia <= 10 ? 'Começo' : dia <= 20 ? 'Meados' : 'Fim'} de ${mes}`;
+}
+
 /** Monta a faixa: capítulos, registros, silêncios, lembranças e o "Hoje". */
 export function buildTimeline(inp: BuildInput): TLItem[] {
   const now = inp.now ?? Date.now();
@@ -118,7 +128,12 @@ export function buildTimeline(inp: BuildInput): TLItem[] {
     chapter.item.summary = sm.text;
     chapter.item.sessions = sm.sessions;
     chapter.item.minutes = sm.minutes;
-    chapter.item.name = sm.where ?? firstMoment ?? (chapter.item.n === 1 ? 'O começo' : chapter.evs[0]?.title ?? `Capítulo ${chapter.item.n}`);
+    // Nome do capítulo: onde você parou, senão o primeiro momento com nome de verdade, senão a época ("Fim de outubro").
+    // Títulos automáticos ("Momento guardado", "Sessão 25") não servem de nome.
+    const limpo = (t?: string) => { const x = (t ?? '').replace(/^(Fez|Hoje|Parou em):\s*/i, '').trim(); return x && !NOME_FRACO.test(x) ? x : undefined; };
+    const momento = chapter.evs.filter((e) => e.kind === 'momento' || e.kind === 'marco').map((e) => limpo(e.title)).find(Boolean);
+    void firstMoment;
+    chapter.item.name = limpo(sm.where) ?? momento ?? (chapter.item.n === 1 ? 'O começo' : limpo(chapter.evs[0]?.title) ?? epoca(chapter.item.from));
     chapter.item.to = chapter.evs.at(-1)?.at ?? chapter.item.from;
     chapter.item.image = [...chapter.evs].reverse().find((e) => e.image)?.image;
   };

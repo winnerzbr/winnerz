@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: linha do tempo, rodada 2 (linha geral, lembranças, sessões do dia, nomes dos capítulos)
+Itens 1, 2, 6 e 7 da lista aprovada:
+- **Linha geral** (Jornada → Linha do tempo) agrupada por mês e, dentro do mês, por jogo: capa, dias de jogo, momentos, a frase mais recente, até 4 fotos (cada uma abre a cena certa) e "Ver os registros". "Zerou" ganha cartão grande. O que chegou à coleção fica em linhas discretas. Filtro novo **"Só momentos"**.
+- **"Neste dia"**: cartão que só aparece quando há um momento ou foto neste mesmo dia há 1, 2, 3 ou 6 meses, ou há anos. Fica no Início (abaixo do horizonte), na Jornada, na linha geral e na linha do jogo.
+- **"Lembra disso?"**: uma foto com mais de 14 dias, trocada uma vez por dia, na lateral da Jornada.
+- Os dois abrem a linha do jogo já na cena certa (`?cena=<id do registro>`).
+- **Sessões do mesmo dia viram uma cena só** na linha em cenas (o tempo soma, os recados se juntam).
+- **Nomes dos capítulos:** não usam mais títulos automáticos ("Momento guardado", "Sessão 25", "Teste"); tiram o "Fez:" e o "Hoje:"; sem nome bom, o capítulo se chama pela época ("Fim de outubro").
+- Arquivos: `src/pages/Memory.tsx`, `src/lib/memory.ts` (`nesteDia`, `lembraDisso`), `src/components/Lembrancas.tsx`, `src/lib/chapters.ts` (`epoca`), `src/components/Faixa.tsx` (`juntarDias`, `startId`), `src/pages/Home.tsx`, `src/pages/JourneyIndex.tsx`, fim de `src/styles/jornada.css`.
+- **Falta:** antes e depois e mais selos; capa do capítulo e legenda depois; compartilhar um capítulo inteiro; redesign de "Por região" (sugestões no canvas primeiro).
+
 ## 10/11/2026: lista aprovada da linha do tempo, dois itens novos
 O dono pediu para acrescentar à lista de tarefas aprovadas da linha do tempo:
 - **Redesign da parte "Por região"** (a tela dos jogos de mundo aberto, `RegionView`, que ficou com o visual antigo). Fazer **do mesmo jeito da linha em carrossel**: primeiro várias sugestões num artefato (canvas), ele escolhe, só então aplicar no site.

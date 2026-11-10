@@ -63,7 +63,32 @@ function letterLine(l?: { ready: boolean; text?: string }) {
 /** Sessão sem nada escrito nem foto: não vira cena na linha em cenas (o tempo dela segue nos resumos). */
 const sessaoVazia = (it: TLItem) => it.type === 'event' && it.e.kind === 'sessao' && !it.e.image && !(it.session?.note || it.session?.whereStopped || it.session?.feeling || it.session?.goal);
 
-export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters, blade = false, autoTour = 0 }: {
+const diaDe = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { timeZone: TZ });
+/** Linha em cenas: sessões seguidas do mesmo dia viram uma cena só (o tempo soma; os recados se juntam). */
+function juntarDias(list: TLItem[]): TLItem[] {
+  const out: TLItem[] = [];
+  const quantas = new Map<string, number>();
+  for (const it of list) {
+    const prev = out[out.length - 1];
+    if (it.type === 'event' && it.e.kind === 'sessao' && it.session && prev?.type === 'event' && prev.e.kind === 'sessao' && prev.session && diaDe(prev.e.at) === diaDe(it.e.at)) {
+      const a = prev.session, b = it.session, n = (quantas.get(prev.id) ?? 1) + 1;
+      quantas.set(prev.id, n);
+      const notas = [...new Set([a.note, b.note].filter(Boolean))].join(' / ');
+      out[out.length - 1] = {
+        ...prev,
+        e: { ...prev.e, title: `${n} sessões`, image: prev.e.image ?? it.e.image },
+        session: { ...a, minutes: (a.minutes ?? 0) + (b.minutes ?? 0) || undefined, note: notas || undefined, whereStopped: b.whereStopped ?? a.whereStopped, feeling: b.feeling ?? a.feeling, goal: a.goal ?? b.goal, goalDone: a.goal ? a.goalDone : b.goalDone, companions: [...new Set([...(a.companions ?? []), ...(b.companions ?? [])])] },
+      };
+      continue;
+    }
+    out.push(it);
+  }
+  return out;
+}
+
+export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onEdit, onShare, full, onExitFull, reduced, light, narrate, unit = { one: 'Capítulo', many: 'capítulos' }, parts, video, onPickPart, onOpenList, letters, blade = false, autoTour = 0, startId }: {
+  /** Abre nesta cena (id do registro), em vez de abrir no "Hoje". */
+  startId?: string;
   /** Linha em cenas: uma cena por vez no centro, com o corte em lâmina na troca (aprovado em 10/11/2026). */
   blade?: boolean;
   /** Muda de valor para começar o Passeio do início ("Rever a jornada"). */
@@ -94,8 +119,9 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
     setAsking(null);
   };
   // Na linha em cenas, sessão vazia não vira cena; a maior sessão fica sempre e ganha o selo.
-  const maior = useMemo(() => { let id = '', m = 29; for (const it of itemsIn) if (it.type === 'event' && it.e.kind === 'sessao' && (it.session?.minutes ?? 0) > m) { m = it.session!.minutes!; id = it.id; } return id; }, [itemsIn]);
-  const items = useMemo(() => (blade ? itemsIn.filter((it) => !sessaoVazia(it) || it.id === maior) : itemsIn), [itemsIn, blade, maior]);
+  const base = useMemo(() => (blade ? juntarDias(itemsIn) : itemsIn), [itemsIn, blade]);
+  const maior = useMemo(() => { let id = '', m = 29; for (const it of base) if (it.type === 'event' && it.e.kind === 'sessao' && (it.session?.minutes ?? 0) > m) { m = it.session!.minutes!; id = it.id; } return id; }, [base]);
+  const items = useMemo(() => (blade ? base.filter((it) => !sessaoVazia(it) || it.id === maior) : base), [base, blade, maior]);
   const [was, setWas] = useState(-1);
   const lastWheel = useRef(0);
   const touch = useRef<number | null>(null);
@@ -106,7 +132,7 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
   const els = useRef<(HTMLElement | null)[]>([]);
   // Onde a linha abre: no "Hoje" (os capítulos à frente ficam depois dele), ou no último registro.
   const home = (() => { const t = items.findIndex((x) => x.type === 'today'); return t >= 0 ? t : items.length - 1; })();
-  const [focus, setFocus] = useState(home);
+  const [focus, setFocus] = useState(() => { const i = startId ? items.findIndex((x) => x.type === 'event' && x.e.id === startId) : -1; return i >= 0 ? i : home; });
   const [vertRaw, setVertical] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
   const vertical = vertRaw && !blade;
   const [viewer, setViewer] = useState<number | null>(null);
@@ -199,7 +225,7 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
     const first = !opened.current;
     opened.current = true;
     // Na primeira vez, abre no "Hoje". Depois, o mesmo painel fica no mesmo lugar da tela.
-    if (i >= 0) center(i, false, lastDelta.current); else if (first || !id) center(home, false);
+    if (i >= 0) center(i, false, lastDelta.current); else if (first || !id) center(first ? focusRef.current : home, false);
     update();
   }, [items, vertical, full]); // eslint-disable-line react-hooks/exhaustive-deps
 

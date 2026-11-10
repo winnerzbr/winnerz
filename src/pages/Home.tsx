@@ -1,3 +1,4 @@
+import { NesteDia } from '../components/Lembrancas';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, navigate } from '../lib/router';
 import { actions, useStore, getState, currentHistory, lastNote, activeWaypoints, sessionsOf, focusJourney } from '../data/store';
@@ -116,6 +117,7 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
     );
   });
   return (
+    <>
     <section className="page hz" aria-label="Seu horizonte">
       <div className="hz__legend"><span>← Passado</span><span>Próximo →</span></div>
       <div className="hz__track">
@@ -142,6 +144,8 @@ function Horizon({ s, upcoming, focusGame, nextSession }: { s: State; upcoming: 
         {slots[3] ?? <span className="hz__item hz__item--far" />}
       </div>
     </section>
+    <div className="page hz-lemb"><NesteDia /></div>
+    </>
   );
 }
 

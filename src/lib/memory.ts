@@ -201,3 +201,39 @@ export function globalTimeline(s: State): GlobalItem[] {
   const undated = (x: GlobalItem) => x.precision === 'desconhecida';
   return items.sort((a, b) => Number(undated(a)) - Number(undated(b)) || b.at.localeCompare(a.at));
 }
+
+/* ---- Lembranças: "Neste dia" e "Lembra disso?" -------------------------------------------- */
+export type Lembranca = { id: string; quando: string; title: string; text?: string; image?: string; game: Game; at: string; to: string };
+const ymd = (iso: string) => { const [y, m, d] = new Date(iso).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }).split('-').map(Number); return { y, m, d }; };
+const lembravel = (e: TimelineEvent) => (e.kind === 'momento' || e.kind === 'marco' || e.kind === 'inicio' || !!e.image) && (!e.precision || e.precision === 'dia');
+const cenaUrl = (g: Game, e: TimelineEvent) => `/jornada/${g.slug}/linha-do-tempo?cena=${encodeURIComponent(e.id)}`;
+/** O que aconteceu neste mesmo dia: há 1, 2, 3 ou 6 meses, ou há anos. O mais antigo ganha; com foto ganha de sem foto. */
+export function nesteDia(s: State, now = Date.now(), journeyId?: ID): Lembranca | null {
+  const hoje = ymd(new Date(now).toISOString());
+  let best: { l: Lembranca; peso: number } | null = null;
+  for (const e of s.events as TimelineEvent[]) {
+    if (!lembravel(e) || (journeyId && e.journeyId !== journeyId)) continue;
+    const p = ymd(e.at);
+    if (p.d !== hoje.d) continue;
+    const meses = (hoje.y - p.y) * 12 + (hoje.m - p.m);
+    if (meses <= 0 || !(meses % 12 === 0 || [1, 2, 3, 6].includes(meses))) continue;
+    const g = gameOfJourney(s, e.journeyId);
+    if (!g) continue;
+    const anos = meses / 12;
+    const quando = meses % 12 === 0 ? (anos === 1 ? 'Há 1 ano' : `Há ${anos} anos`) : meses === 1 ? 'Há 1 mês' : `Há ${meses} meses`;
+    const peso = meses + (e.image ? 1000 : 0);
+    if (!best || peso > best.peso) best = { l: { id: e.id, quando, title: e.title, text: e.quote ?? e.text, image: e.image, game: g, at: e.at, to: cenaUrl(g, e) }, peso };
+  }
+  return best?.l ?? null;
+}
+/** Uma foto antiga (mais de 14 dias), sorteada uma vez por dia. */
+export function lembraDisso(s: State, now = Date.now()): Lembranca | null {
+  const fotos = (s.events as TimelineEvent[]).filter((e) => e.image && now - Date.parse(e.at) > 14 * DAY).sort((a, b) => a.id.localeCompare(b.id));
+  if (!fotos.length) return null;
+  const e = fotos[Math.floor(now / DAY) % fotos.length];
+  const g = gameOfJourney(s, e.journeyId);
+  if (!g) return null;
+  const dias = Math.floor((now - Date.parse(e.at)) / DAY);
+  const quando = dias >= 365 ? (dias >= 730 ? `Há ${Math.floor(dias / 365)} anos` : 'Há 1 ano') : dias >= 60 ? `Há ${Math.floor(dias / 30)} meses` : dias >= 30 ? 'Há 1 mês' : `Há ${dias} dias`;
+  return { id: e.id, quando, title: e.title, text: e.quote ?? e.text, image: e.image, game: g, at: e.at, to: cenaUrl(g, e) };
+}

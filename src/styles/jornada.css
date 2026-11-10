@@ -551,3 +551,53 @@
   .fx.is-blade .fx-ruler { left: 84px; right: 84px; bottom: 20px; }
   .fx.is-blade .fx-ruler__lb { display: none; }
 }
+
+/* ==== Lembranças ("Neste dia", "Lembra disso?") e a linha geral por mês e por jogo (10/11/2026) ==== */
+.lemb { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 18px; background: var(--surface); outline: 1px solid var(--now); color: var(--ink); text-decoration: none; min-height: 96px; }
+.lemb.has-img { grid-template-columns: 168px minmax(0, 1fr) auto; }
+.lemb__foto { align-self: stretch; overflow: hidden; display: block; min-height: 96px; }
+.lemb__foto img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s cubic-bezier(.2, .6, .2, 1); }
+.lemb:hover .lemb__foto img, .lemb:focus-visible .lemb__foto img { transform: scale(1.07); }
+.lemb__b { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px; min-width: 0; }
+.lemb.has-img .lemb__b { padding-left: 2px; }
+.lemb__t { font-size: clamp(18px, 2vw, 24px); line-height: 1.15; font-weight: 700; text-wrap: balance; }
+.lemb__m { font-size: 13px; color: var(--faint); }
+.lemb__go { padding-right: 20px; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.lemb:hover .lemb__go, .lemb:focus-visible .lemb__go { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+.jside-col .lemb, .jindex__side .lemb, aside .lemb { grid-template-columns: minmax(0, 1fr); margin-bottom: 14px; }
+aside .lemb.has-img .lemb__foto { height: 150px; }
+aside .lemb.has-img .lemb__b { padding: 14px 18px 4px; }
+aside .lemb .lemb__go { padding: 0 18px 14px; }
+.hz-lemb:empty { display: none; }
+.hz-lemb { margin-top: 18px; }
+.gtl__main > .lemb { margin-bottom: 18px; }
+@media (max-width: 640px) {
+  .lemb, .lemb.has-img { grid-template-columns: minmax(0, 1fr); }
+  .lemb.has-img .lemb__foto { height: 150px; }
+  .lemb.has-img .lemb__b { padding: 14px 18px 4px; }
+  .lemb__go { padding: 0 18px 14px; }
+}
+/* Linha geral */
+.gz { position: relative; display: block; min-height: 220px; margin: 0 0 14px; overflow: hidden; background: #000; color: #fff; text-decoration: none; }
+.gz__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .7; transition: transform 2.4s cubic-bezier(.2, .6, .2, 1), opacity .3s; }
+.gz:hover .gz__bg, .gz:focus-visible .gz__bg { transform: scale(1.08); opacity: .85; }
+.gz::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, .1) 20%, rgba(0, 0, 0, .9)); }
+.gz__b { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; display: flex; flex-direction: column; gap: 8px; padding: 22px 24px; }
+.gz__t { font-size: clamp(26px, 4vw, 44px); line-height: .92; margin: 0; color: #fff; }
+.gz__q { font-size: 14.5px; color: #d5d9de; }
+.gjg { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 22px; align-items: start; padding: 20px 0; border-top: 1px solid var(--line); }
+.gjg__cover { display: block; }
+.gjg__b { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.gjg__h { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 18px; flex-wrap: wrap; }
+.gjg__h h3 { margin: 0; font-size: clamp(20px, 2.4vw, 28px); line-height: 1; }
+.gjg__m { font-size: 13.5px; }
+.gjg__q { margin: 0; font-size: clamp(17px, 1.9vw, 21px); line-height: 1.3; font-weight: 600; color: var(--ink); text-wrap: pretty; }
+.gjg__th { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.gjg__th a { display: block; aspect-ratio: 16 / 9; overflow: hidden; background: var(--surface); }
+.gjg__th img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.9) brightness(.88); transition: transform .5s, filter .25s; }
+.gjg__th a:hover img, .gjg__th a:focus-visible img { transform: scale(1.06); filter: none; }
+.gjg__all > summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--ink-2); padding: 4px 0; width: fit-content; }
+.gjg__all > summary:hover { color: var(--ink); }
+.gjg__all[open] > summary { margin-bottom: 10px; }
+.gtl__list--col { margin-top: 14px; opacity: .85; }
+@media (max-width: 640px) { .gjg { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; } .gjg__th { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

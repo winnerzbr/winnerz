@@ -43,6 +43,7 @@ import { echoApi, type Echoes, type AiStatus } from '../data/echoApi';
 import { durLabel } from '../lib/format';
 import { shortPlatform } from '../lib/platforms';
 import { MoreActions, type MoreItem } from '../components/MoreActions';
+import { NesteDia } from '../components/Lembrancas';
 import { PastSessionSheet } from '../components/PastSession';
 import { Retomar, Registros, DiasJogados, BlocoCampanha, Trilha, diasDeJogo, Previsao, CurvaEmocoes } from '../components/JornadaPartes';
 
@@ -298,6 +299,8 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
   const tabs: [Aba, string][] = [['registros', 'Diário'], ['detalhes', 'Detalhes']];
   const linhaUrl = `/jornada/${game.slug}/linha-do-tempo`;
   const [rever, setRever] = useState(0);
+  const [cena] = useState(() => { try { return view === 'linha' ? new URLSearchParams(window.location.search).get('cena') ?? undefined : undefined; } catch { return undefined; } });
+  useEffect(() => { if (cena && org !== 'data') setOrg('data'); }, [cena]); // eslint-disable-line react-hooks/exhaustive-deps
   const reverJornada = () => { if (org !== 'data') setOrg('data'); setFilter('tudo'); setFull(true); setRever((n) => n + 1); };
   useEffect(() => { if (view === 'linha' && /[?&]rever=1/.test(window.location.search)) { window.history.replaceState(null, '', window.location.pathname); setTimeout(reverJornada, 300); } }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
   const fotos = events.filter((e) => e.image).map((e) => e.image!).slice(-4).reverse();
@@ -314,7 +317,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
                   ) : byStructure ? (
                     <Faixa blade autoTour={rever} items={structItems} parts={{ list: outline!.parts, now: current.progress ?? null }} video={videoOf} onPickPart={showToday ? pickPart : undefined} onOpenList={showToday ? () => setListOpen(true) : undefined} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} unit={u} letters={letters} />
                   ) : (
-                    <Faixa blade autoTour={rever} items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
+                    <Faixa blade autoTour={rever} startId={cena} items={visible} bg={bg ?? game.cover} images={[game.backdrop, ...(game.artworks ?? []), ...(game.screenshots ?? [])].filter((x): x is string => !!x)} title={game.title} play={playCta} today={todayInfo} onEdit={setEditEvent} onShare={setShareEvent} full={full} onExitFull={() => setFull(false)} reduced={reduced} light={light} narrate={narrate} unit={unitOf(outline)} letters={letters} />
                   )}
     </>
   );
@@ -347,6 +350,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
               </div>
             )}
           </div>
+          <NesteDia journeyId={journeyId} />
           {linhaTl}
           {captures && <CaptureImportSheet journeyId={journeyId} gameTitle={game.title} onClose={() => setCaptures(false)} />}
         </section>

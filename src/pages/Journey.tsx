@@ -265,7 +265,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
   };
   const videoOf = (p: OutlinePart, label: string) => <PartVideoButton gameId={game.id} gameTitle={game.title} part={p} label={label} videos={vids} onDark />;
   const u = unitOf(outline);
-  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [], part: curPart ? { n: curPart.n, total: curPart.total, name: curPart.part.name } : undefined } : null;
+  const todayInfo: FaixaToday | null = showToday ? { where, note: note?.note, away, slug: game.slug, open: !!openHere, friends: echoes?.friends ?? [], part: curPart ? { n: curPart.n, total: curPart.total, name: openWorld && curPart.part.group ? curPart.part.group : curPart.part.spoiler ? curPart.part.group ?? '' : curPart.part.name } : undefined } : null;
 
   // Etapa 2 da revisão: o topo diz só plataforma, campanha, estado e tempo; o resto mora nas abas e na lateral.
   const copy = s.copies.find((c) => c.gameId === game.id);

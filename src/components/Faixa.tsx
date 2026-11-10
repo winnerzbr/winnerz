@@ -360,7 +360,7 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
         <div className="fx-bg" style={{ backgroundImage: `url(${chapImage(it)})` }} /><div className="fx-sh" />
         <span className="fx-num">{ROMAN[it.n - 1] ?? it.n}</span>
         <span className="fx-k">Capítulo {it.n} · {range(it)}</span>
-        <h3 className="fx-h">{blade ? it.name.replace(/^Fez:\s*/i, '') : it.name}</h3>
+        <h3 className="fx-h">{blade ? (/^sess[ãa]o \d+$/i.test(it.name) ? range(it) : it.name.replace(/^Fez:\s*/i, '')) : it.name}</h3>
         {draft?.id === it.id ? (
           <div className="fx-ai" onClick={(ev) => ev.stopPropagation()}>
             <p className="fx-p fx-ai__text">{draft.text}</p>
@@ -502,7 +502,7 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
       <article key={it.id} {...common} className="fx-pn fx-today" aria-label="Hoje">
         <span className="fx-k fx-k--now">Hoje{today?.away != null && today.away > 0 ? ` · última vez ${awayLabel(today.away)}` : ''}</span>
         <h3 className="fx-h">{today?.open ? 'Sessão aberta agora' : today?.where ? <>Você parou em {today.where}</> : 'O próximo instante'}</h3>
-        {today?.part && <span className="fx-sub">{unit.one} {today.part.n} de {today.part.total} · {today.part.name}</span>}
+        {today?.part && <span className="fx-sub">{unit.one} {today.part.n} de {today.part.total}{today.part.name ? ` · ${today.part.name}` : ''}</span>}
         {today?.note && !today.open && <p className="fx-p">“{today.note}”</p>}
         {!!today?.friends?.length && <p className="fx-sub fx-friends"><Icon name="pessoas" size={14} /> {friendsLine(today.friends)}</p>}
         <div className="fx-actions">
@@ -514,9 +514,9 @@ export function Faixa({ items: itemsIn, bg, images = [], title, play, today, onE
     const e = it.e, x = it.session;
     const back = e.kind === 'ponto' && !e.resolved;
     const sub = e.kind === 'sessao' && x
-      ? [x.source ? (x.source === 'steam' ? 'Pela Steam' : x.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements') : null, x.goal ? `${x.goalDone === 'sim' ? '✓' : x.goalDone === 'quase' ? '≈' : '○'} ${x.goal}` : null, x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
+      ? [x.source ? (x.source === 'steam' ? 'Pela Steam' : x.source === 'playnite' ? 'Pelo Playnite' : 'Pelo RetroAchievements') : null, x.goal ? (blade && !x.note && !x.whereStopped ? (x.goalDone === 'sim' ? 'Objetivo cumprido' : x.goalDone === 'quase' ? 'Objetivo quase cumprido' : 'Objetivo da sessão') : `${x.goalDone === 'sim' ? '✓' : x.goalDone === 'quase' ? '≈' : '○'} ${x.goal}`) : null, x.startedAt ? periodOf(x.startedAt) : null, x.companions?.length ? `com ${x.companions.join(', ')}` : null, x.feeling && !(blade && !x.note && !x.whereStopped && !x.goal) ? `“${x.feeling}”` : null].filter(Boolean).join(' · ')
       : e.kind === 'carta' ? letterLine(letters?.[e.historyId]) : e.quote ? `“${e.quote}”` : e.text ?? '';
-    const fala = blade && e.kind === 'sessao' && x ? (x.note ? `“${x.note}”` : x.whereStopped ? `Parou em ${x.whereStopped.replace(/^Fez:\s*/i, '')}` : x.feeling ? `“${x.feeling}”` : '') : '';
+    const fala = blade && e.kind === 'sessao' && x ? (x.note ? `“${x.note}”` : x.whereStopped ? `Parou em ${x.whereStopped.replace(/^Fez:\s*/i, '')}` : x.goal ? x.goal : x.feeling ? `“${x.feeling}”` : '') : '';
     const head = fala || (e.kind === 'sessao' && x?.minutes ? durText(x.minutes) : e.title);
     return (
       <article key={it.id} {...common} className={`fx-pn fx-ev fx-${e.kind}${e.image ? ' has-img' : ''}${back ? ' is-back' : ''}`}>

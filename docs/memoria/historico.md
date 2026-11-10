@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026: revisão da linha do tempo (só sugestões, nada mudou)
+O dono pediu uma revisão da linha do tempo (a geral, em Jornada → Linha do tempo, e a do jogo). Aguardando ele escolher.
+- **O que foi visto:** a geral é uma lista de quase 10 mil px em que quase tudo é "Sessão N · jogo · Sessão", sem foto e com o mesmo peso para sessão vazia e para "Zerou". A do jogo tem base bonita (fundo, capítulos com resumo, Passeio, régua), mas 45 painéis altos e quase vazios com "1 min" como título.
+- **Layout e organização:** um cartão por dia (mesma regra do Diário); três tamanhos de cartão (grande: zerou, começou, momento com foto; médio: dia com recado; pequeno: só um traço na régua); foto ocupando o painel inteiro; sem foto, a frase do recado em letra grande no lugar da duração; na geral, agrupar por jogo dentro do mês, com capa grande; filtro "Só momentos"; nome da região como título do capítulo.
+- **Ideias para trazer a pessoa de volta:** "Neste dia" (há 1 mês, há 1 ano) no Início e no topo da linha; "Lembra disso?" com uma foto antiga na Jornada; botão "Rever a jornada" (o Passeio) em destaque e ao zerar; antes e depois (primeira e última foto); a pessoa escolher a foto de capa de cada capítulo; convite para legendar uma foto sem legenda por visita; selos automáticos ("sua maior sessão", "voltou depois de 20 dias"); compartilhar um capítulo inteiro como imagem.
+- **Para conferir:** o painel "O próximo instante" mostra "Etapa 23 de 23 · Fera Elden" (nome de item que pode ser spoiler); o cabeçalho da linha do jogo ainda diz "30 sessões".
+
 ## 10/11/2026: Jornada, rodada 3 (lives da Twitch e do YouTube viram sessão)
 - **Frases iguais:** em Detalhes a frase agora conta dias, como o topo ("Você jogou 8 dias (4 h 05)").
 - **Duas pontes novas** em Preferências → Pontes, ao lado da Steam, RetroAchievements e Playnite:

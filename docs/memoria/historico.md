@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: ao votar, a tela centraliza no carrossel
+
+- Pedido do dono: quando a pessoa clica no jogo para votar, a tela deve centralizar no carrossel.
+- Ao votar (ou tirar o voto), a página desliza até a cena daquela categoria ficar no meio da área livre da tela, abaixo do menu e das abas. Se a cena for mais alta que a área livre, o topo dela encosta logo abaixo das abas. Com "reduzir movimento" ligado, a tela pula direto, sem deslizar.
+- Código: `centralizarCena` em `src/pages/Awards.tsx`.
+
 ## 11/11/2026 — Awards: só a abertura e o carrossel em largura total; carrossel não encolhe ao votar
 
 - O dono corrigiu o pedido anterior: **só o título (abertura) e o carrossel dos indicados** ocupam a tela de ponta a ponta. Abas, títulos de seção, lista de categorias, aba do troféu e Como funciona voltaram para a coluna central (1320 px).

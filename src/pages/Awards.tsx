@@ -166,6 +166,22 @@ export function EventsIndex() {
   );
 }
 
+/** Ao votar, a tela desliza até o carrossel da categoria ficar no meio da área livre (abaixo do menu e das abas).
+ *  No computador a cena cresce 160px quando ganha as faixas de cinema; a conta já usa a altura final. */
+function centralizarCena(catId: string, comVoto: boolean) {
+  const cena = document.getElementById(`slot-${catId}`)?.querySelector<HTMLElement>('.scene');
+  if (!cena) return;
+  const r = cena.getBoundingClientRect();
+  const cresce = window.innerWidth > 760 ? 160 : 0;
+  const altura = r.height - (cena.classList.contains('has') ? cresce : 0) + (comVoto ? cresce : 0);
+  const topo = document.querySelector('.aw2tabs')?.getBoundingClientRect().bottom ?? 0;
+  const livre = window.innerHeight - topo;
+  // Se a cena não cabe inteira, encosta o topo dela logo abaixo das abas.
+  const alvo = window.scrollY + r.top - topo - Math.max(0, (livre - altura) / 2);
+  const calmo = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) || document.documentElement.dataset.motion === 'reduzidas';
+  window.scrollTo({ top: Math.max(0, alvo), behavior: calmo ? 'auto' : 'smooth' });
+}
+
 /** A contagem regressiva dentro da cena de abertura (dias, horas e minutos; atualiza sozinha). */
 function ContaCena({ to, rotulo }: { to: string; rotulo: string }) {
   const [now, setNow] = useState(() => Date.now());
@@ -225,6 +241,7 @@ export function AwardsPage() {
     if (!voting) return;
     const next = full.myVotes[c.id] === nomineeId ? null : nomineeId;
     setSaving(c.id); setError('');
+    centralizarCena(c.id, !!next);
     const mv = { ...full.myVotes };
     if (next) mv[c.id] = next; else delete mv[c.id];
     setFull({ ...full, myVotes: mv });

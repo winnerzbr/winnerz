@@ -301,78 +301,73 @@ function paint(c){const sc=$(`#slot-${c} .scene`);if(!sc)return;const v=voted[c]
 $('#como').innerHTML=`<div class="scene scene--steps has" style="margin-top:0"><div class="scene__row">`+[['Você escolhe','Em cada categoria, toque na arte do jogo que merece. A cena abre e o voto fica gravado. Dá para mudar até o fim.',4],['O resultado fica lacrado','Ninguém vê parciais: nem você, nem a administração. O resultado só existe na hora da revelação.',9],['A revelação','Na data marcada, cada categoria abre com o vencedor em tela larga, e o Zênite ganha dono.',15]].map((s,i)=>`<div class="scene__p on"><span class="scene__img" style="background:${art(s[2])}"></span><span class="scene__shade"></span><span class="num">0${i+1}</span><span class="scene__name"><b>${s[0]}</b><p>${s[1]}</p></span></div>`).join('')+`</div><span class="scene__grain"></span><span class="scene__flare"></span><span class="scene__lb scene__lb--t" style="height:14px"></span><span class="scene__lb scene__lb--b" style="height:14px"></span></div>`;
 
 /* ---- Zênite ---- */
-const ZP=[['A figura',0,[.1,2.3,0],6.6,'Uma figura humana lapidada em ouro, com um braço erguido. É quem joga: você, no momento em que chega lá.','radial-gradient(ellipse at 40% 30%,#F6E2B0,#B98A3E 40%,#3a2a10 80%)'],['O mastro',1,[.85,4.4,0],5.8,'O mastro de cobre que a figura levanta. Cobre é o metal que conduz: liga quem faz o jogo a quem joga.','radial-gradient(ellipse at 50% 30%,#f0a070,#C8763A 40%,#3a1a0a 80%)'],['A bandeira',2,[1.5,4.9,0],4.8,'A bandeira leva a estrela de oito pontas e solta um rastro de pixels, a marca de que tudo isso nasceu dos videogames.','radial-gradient(ellipse at 60% 40%,#fff3d6,#E2BE84 36%,#4a3413 80%)'],['A base',3,[0,.3,0],4.8,'A base de mármore negro, cortada por veios de cobre. É o chão de onde a subida começa.','linear-gradient(120deg,#0c0c0e 40%,#C8763A 41%,#0c0c0e 43%,#0c0c0e 62%,#8a4a22 63%,#0c0c0e 64%)']];
-const Z={ang:.5,el:.1,va:.2,dist:10.4,cd:10.4,tg:[.35,2.8,0],ct:[.35,2.8,0],part:-1,drag:false,lx:0,ly:0};
+const ZP=[['A figura',0,[0,3.2,0],7.4,'A figura em ouro, de braço erguido para o alto, com a bandeira e o manto ao vento. É quem joga, no momento em que chega lá.','radial-gradient(ellipse at 40% 30%,#F6E2B0,#B98A3E 40%,#3a2a10 80%)'],['O símbolo',1,[-1.2,4.75,.3],2.6,'Na bandeira, em prata polida, o símbolo da Jornada: a marca de cada história vivida dentro de um jogo.','radial-gradient(ellipse at 50% 30%,#ffffff,#AEB6C2 40%,#22262c 80%)'],['A base',2,[-.35,.15,.35],5.2,'A base de diamante, transparente e lapidada. É o chão de onde a subida começa.','linear-gradient(120deg,#0c1016 30%,#9fc4ff 41%,#0c1016 46%,#0c1016 60%,#ffe2b0 64%,#0c1016 70%)'],['O logo',3,[-.73,.12,.85],2.8,'O logo WinnerZ em ouro, em relevo na frente da base.','radial-gradient(ellipse at 60% 40%,#fff3d6,#E2BE84 36%,#4a3413 80%)']];
+const Z={ang:.25,el:.08,va:.2,dist:13.2,cd:13.2,tg:[0,2.75,0],ct:[0,2.75,0],part:-1,drag:false,lx:0,ly:0};
 function zTtl(){const z=ZP[Z.part];return `<span class="scene__ttl"><span class="scene__tag${z?'':' ghosty'}">${z?'Parte '+(Z.part+1)+' de 4':'O troféu do WinnerZ Awards'}</span><span class="scene__nm">${z?z[0]:'Zênite'}</span><span class="scene__hint">${z?z[4]:'Arraste o troféu para girar. Toque numa das tiras à direita para ver cada parte de perto.'}</span></span>`}
-$('#zen').innerHTML=`<div class="scene zen has" id="zsc"><div class="scene__row"><div class="scene__p on" id="zmain"><span class="zen__bg"></span><canvas id="tz"></canvas><span class="scene__shade"></span><span class="scene__leak"></span>${zTtl()}</div>`+ZP.map((z,i)=>`<button class="scene__p" data-z="${i}" aria-label="${z[0]}"><span class="scene__img" style="background:${z[5]}"></span><span class="scene__shade"></span><span class="scene__vt">0${i+1} · ${z[0]}</span></button>`).join('')+`</div><span class="scene__grain"></span>${FX}<span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span><div class="scene__top"><div class="scene__head"><h2 class="t">Troféu Zênite</h2></div><span class="kicker">Arraste para girar</span></div><div class="scene__bottom"><span class="scene__desc">Ouro, cobre e mármore negro</span><button class="kicker scene__next" id="zall">Ver o troféu inteiro</button></div></div>`;
-function zSel(i){Z.part=Z.part===i?-1:i;const z=ZP[Z.part];Z.tg=z?z[2]:[.35,2.8,0];Z.dist=z?z[3]:10.4;const m=$('#zmain');m.querySelector('.scene__ttl').remove();m.insertAdjacentHTML('beforeend',zTtl());refire($('#zsc'));$$('#zsc [data-z]').forEach((b,k)=>b.querySelector('.scene__img').style.filter=k===Z.part?'none':'')}
+$('#zen').innerHTML=`<div class="scene zen has" id="zsc"><div class="scene__row"><div class="scene__p on" id="zmain"><span class="zen__bg"></span><canvas id="tz"></canvas><span class="scene__shade"></span><span class="scene__leak"></span>${zTtl()}</div>`+ZP.map((z,i)=>`<button class="scene__p" data-z="${i}" aria-label="${z[0]}"><span class="scene__img" style="background:${z[5]}"></span><span class="scene__shade"></span><span class="scene__vt">0${i+1} · ${z[0]}</span></button>`).join('')+`</div><span class="scene__grain"></span>${FX}<span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span><div class="scene__top"><div class="scene__head"><h2 class="t">Troféu Zênite</h2></div><span class="kicker">Arraste para girar</span></div><div class="scene__bottom"><span class="scene__desc">Ouro, prata e diamante</span><button class="kicker scene__next" id="zall">Ver o troféu inteiro</button></div></div>`;
+function zSel(i){Z.part=Z.part===i?-1:i;const z=ZP[Z.part];Z.tg=z?z[2]:[0,2.75,0];Z.dist=z?z[3]:13.2;if(Z.part===3)Z.ang=0;const m=$('#zmain');m.querySelector('.scene__ttl').remove();m.insertAdjacentHTML('beforeend',zTtl());refire($('#zsc'));$$('#zsc [data-z]').forEach((b,k)=>b.querySelector('.scene__img').style.filter=k===Z.part?'none':'')}
 $$('#zsc [data-z]').forEach(b=>b.onclick=()=>zSel(+b.dataset.z));$('#zall').onclick=()=>{if(Z.part>=0)zSel(Z.part)};
 const zm=$('#zmain');zm.addEventListener('pointerdown',e=>{Z.drag=true;Z.lx=e.clientX;Z.ly=e.clientY;try{zm.setPointerCapture(e.pointerId)}catch(_){}});
 zm.addEventListener('pointermove',e=>{if(!Z.drag)return;const dx=e.clientX-Z.lx;Z.ang-=dx*.008;Z.va=-dx*.5;Z.el=Math.max(-.25,Math.min(.7,Z.el+(e.clientY-Z.ly)*.004));Z.lx=e.clientX;Z.ly=e.clientY});
 addEventListener('pointerup',()=>{Z.drag=false});
 function showErr(m){console.warn(m)}
-const MV=`attribute vec3 aP;attribute vec3 aN;attribute float aM;attribute vec2 aU;uniform mat4 uVP;uniform float uT;
-varying vec3 vN;varying vec3 vW;varying float vM;varying vec2 vU;varying vec3 vO;
-void main(){vec3 p=aP;vec3 n=aN;
-if(aM>1.5&&aM<2.5){float k=aU.x;float ph=aU.x*7.-uT*3.2+aU.y*1.5;p.z+=sin(ph)*.17*k;p.y+=cos(ph*.7)*.04*k;float dz=cos(ph)*.9*k;n=normalize(vec3(-dz,0.,1.));}
-vO=aP;vW=p;vN=n;vM=aM;vU=aU;gl_Position=uVP*vec4(p,1.);}`;
-const MF=`precision highp float;varying vec3 vN;varying vec3 vW;varying float vM;varying vec2 vU;varying vec3 vO;uniform vec3 uCam;uniform float uT;uniform float uSel;uniform float uLit;uniform float uFill;
-float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
-float ns(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}
-float fbm(vec2 p){float a=.5;float s=0.;for(int i=0;i<4;i++){s+=a*ns(p);p=p*2.03+vec2(11.7,5.3);a*=.5;}return s;}
-vec3 env(vec3 r){float y=r.y;vec3 c=mix(vec3(.03,.02,.012),vec3(.95,.72,.4),smoothstep(-.3,.9,y));
-c+=vec3(1.,.96,.88)*pow(max(dot(r,normalize(vec3(.5,.7,.4))),0.),22.)*2.6;
-c+=vec3(.5,.62,.95)*pow(max(dot(r,normalize(vec3(-.7,.2,-.5))),0.),7.)*.7;
-c+=vec3(1.,.82,.5)*smoothstep(.86,1.,sin(r.x*9.+r.y*3.+uT*.2))*.3;return c;}
-void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);if(dot(n,v)<0.)n=-n;vec3 r=reflect(-v,n);float fr=pow(1.-max(dot(n,v),0.),4.);
+const MV=`attribute vec4 aA;attribute vec4 aB;uniform mat4 uVP;uniform float uT;
+varying vec3 vN;varying vec3 vW;varying float vM;varying float vC;
+const vec3 WD=vec3(.938,0.,-.346);const vec3 DD=vec3(.346,0.,.938);
+void main(){vec3 p=aA.xyz*6.;float w=aA.w;vec3 n=normalize(aB.xyz);
+float ph=dot(p,WD)*4.2-uT*3.+p.y*1.3;float g=.72+.28*sin(uT*.6+p.y*.4);
+float d=w*g*(sin(ph)*.11+sin(ph*2.3+1.7)*.035);float sl=w*g*(cos(ph)*.46+cos(ph*2.3+1.7)*.34);
+p+=DD*d;p.y+=w*g*cos(ph*.5)*.03;n=normalize(n-WD*sl*dot(n,DD));
+vW=p;vN=n;vM=aB.w*127.;vC=w;gl_Position=uVP*vec4(p,1.);}`;
+const MF=`precision highp float;varying vec3 vN;varying vec3 vW;varying float vM;varying float vC;uniform vec3 uCam;uniform float uT;uniform float uSel;uniform float uLit;uniform float uFill;
+vec3 env(vec3 r){float y=r.y;vec3 c=mix(vec3(.035,.022,.012),vec3(.95,.74,.44),smoothstep(-.35,.95,y));
+c+=vec3(1.,.96,.88)*pow(max(dot(r,normalize(vec3(.5,.7,.4))),0.),26.)*3.2;
+c+=vec3(1.,.9,.75)*pow(max(dot(r,normalize(vec3(-.3,.5,.8))),0.),60.)*2.2;
+c+=vec3(.5,.62,.95)*pow(max(dot(r,normalize(vec3(-.7,.2,-.5))),0.),7.)*.8;
+c+=vec3(1.,.82,.5)*smoothstep(.8,1.,sin(r.x*7.+r.y*3.+r.z*2.))*.28;
+c+=vec3(.9,.7,.45)*smoothstep(.1,0.,abs(y+.05))*.25;return c;}
+void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);if(dot(n,v)<0.)n=-n;vec3 r=reflect(-v,n);float nv=max(dot(n,v),0.);float fr=pow(1.-nv,4.);
 vec3 col;
-if(vM>2.5){float vn=fbm(vO.xy*5.+vec2(vO.z*3.)+fbm(vO.zy*4.)*2.);float vein=smoothstep(.022,0.,abs(vn-.5));col=vec3(.022,.022,.026)+env(r)*(.07+fr*.5)+vec3(.95,.48,.2)*vein*.95;}
-else{vec3 base=vM<.5?vec3(1.,.78,.36):(vM<1.5?vec3(.9,.46,.22):vec3(1.,.8,.4));col=base*(env(r)*1.2+uFill)+fr*vec3(1.,.95,.9)*.35;}
-if(vM>1.5&&vM<2.5){vec2 u=vU-vec2(.45,.5);u.x*=1.7;float a=atan(u.y,u.x);float rr=length(u);float s=.1+.2*pow(abs(cos(a*2.)),8.)+.08*pow(abs(sin(a*2.)),8.);col=mix(col,vec3(1.6,1.5,1.3),smoothstep(.012,-.012,rr-s));}
-if(uSel>-.5&&abs(vM-uSel)>.5)col*=.16;
+if(vM>1.5&&vM<2.5){vec3 t=refract(-v,n,.42);vec3 e1=env(normalize(t+vec3(.06,0.,0.)));vec3 e2=env(t);vec3 e3=env(normalize(t-vec3(.06,0.,0.)));
+ col=vec3(e1.r,e2.g,e3.b)*vec3(.75,.85,1.05)*.55+env(r)*(.22+fr*1.5)+vec3(.55,.7,1.)*pow(nv,6.)*.06;col*=1.7;}
+else{vec3 base=vM<.5?vec3(1.,.7,.3):(vM<1.5?vec3(.93,.95,.99):vec3(1.,.72,.32));
+ col=base*(env(r)*1.25+uFill)+fr*vec3(1.,.95,.9)*.4;col*=.82+.18*smoothstep(0.,.5,nv);}
+if(uSel>-.5&&abs(vM-uSel)>.5)col*=.14;
 col*=uLit;gl_FragColor=vec4(col,1.);}`;
 function mkSh(gl,t,s){const o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)){showErr(gl.getShaderInfoLog(o));return null}return o}
 function mkPr(gl,v,f){const a=mkSh(gl,gl.VERTEX_SHADER,v),b=mkSh(gl,gl.FRAGMENT_SHADER,f);if(!a||!b)return null;const p=gl.createProgram();gl.attachShader(p,a);gl.attachShader(p,b);gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS)){showErr(gl.getProgramInfoLog(p));return null}return p}
 const v3={sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],mul:(a,s)=>[a[0]*s,a[1]*s,a[2]*s],dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],norm:a=>{const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l]}};
-function buildMesh(){const out=[];
- const tri=(a,b,c,m,ctr)=>{let n=v3.norm(v3.cross(v3.sub(b,a),v3.sub(c,a)));const g=v3.mul(v3.add(v3.add(a,b),c),1/3);if(v3.dot(n,v3.sub(g,ctr))<0){const t=b;b=c;c=t;n=v3.mul(n,-1)}for(const p of[a,b,c])out.push(p[0],p[1],p[2],n[0],n[1],n[2],m,0,0)};
- const fr=(a,b,r1,r2,sides,m,rot=0,sq=1)=>{const d=v3.norm(v3.sub(b,a));const up=Math.abs(d[1])>.9?[0,0,1]:[0,1,0];const u=v3.norm(v3.cross(up,d)),w=v3.cross(d,u);const ctr=v3.mul(v3.add(a,b),.5);const ra=[],rb=[];
-  for(let i=0;i<sides;i++){const an=rot+i/sides*Math.PI*2;const o=v3.add(v3.mul(u,Math.cos(an)),v3.mul(w,Math.sin(an)*sq));ra.push(v3.add(a,v3.mul(o,r1)));rb.push(v3.add(b,v3.mul(o,r2)))}
-  for(let i=0;i<sides;i++){const j=(i+1)%sides;tri(ra[i],ra[j],rb[j],m,ctr);tri(ra[i],rb[j],rb[i],m,ctr);tri(a,ra[i],ra[j],m,ctr);tri(b,rb[i],rb[j],m,ctr)}};
- const q=Math.PI/4;
- fr([0,0,0],[0,.36,0],1.0,.84,4,3,q);fr([0,.36,0],[0,.52,0],.62,.56,4,3,q);
- fr([-.13,.52,0],[-.09,1.72,0],.13,.17,5,0,.3);fr([.13,.52,0],[.09,1.72,0],.13,.17,5,0,1.1);
- fr([0,1.66,0],[0,2.2,0],.24,.2,6,0,.2,.8);fr([0,2.2,0],[0,2.78,0],.2,.36,6,0,.5,.72);
- fr([0,2.78,0],[0,2.92,0],.1,.09,5,0);fr([0,2.9,0],[0,3.12,0],.12,.18,5,0,.4);fr([0,3.12,0],[0,3.32,0],.18,.09,5,0,.4);
- fr([-.37,2.7,0],[-.5,2.2,.05],.1,.085,4,0);fr([-.5,2.2,.05],[-.46,1.72,.12],.085,.06,4,0);
- fr([.36,2.7,0],[.62,3.15,0],.1,.085,4,0);fr([.62,3.15,0],[.82,3.62,0],.085,.07,4,0);
- fr([.8,3.45,0],[.95,5.4,0],.032,.028,6,1);fr([.95,5.4,0],[.96,5.5,0],.06,.0,6,1);
- const fw=1.35,fh=.78,nx=18,ny=8,ox=.94,oy=5.32;const P=(i,j)=>[ox+i/nx*fw,oy-j/ny*fh-(i/nx)*.06,0];
- for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){const a=P(i,j),b=P(i+1,j),c=P(i+1,j+1),d=P(i,j+1);const U=(i,j)=>[i/nx,j/ny];
-  for(const[p,uv]of[[a,U(i,j)],[b,U(i+1,j)],[c,U(i+1,j+1)],[a,U(i,j)],[c,U(i+1,j+1)],[d,U(i,j+1)]])out.push(p[0],p[1],p[2],0,0,1,2,uv[0],uv[1])}
- return new Float32Array(out)}
 const M4={persp(f,a,n,r){const t=1/Math.tan(f/2);return[t/a,0,0,0,0,t,0,0,0,0,(r+n)/(n-r),-1,0,0,2*r*n/(n-r),0]},
  look(e,c,u){const z=v3.norm(v3.sub(e,c)),x=v3.norm(v3.cross(u,z)),y=v3.cross(z,x);return[x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-v3.dot(x,e),-v3.dot(y,e),-v3.dot(z,e),1]},
  mul(a,b){const o=new Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+r]*b[c*4+k];o[c*4+r]=s}return o},
  proj(m,p){const x=m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],y=m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13],w=m[3]*p[0]+m[7]*p[1]+m[11]*p[2]+m[15];return[x/w,y/w,w]}};
 
-let T=0,last=performance.now();const MESH=buildMesh(),meshN=MESH.length/9;
+let T=0,last=performance.now(),MODEL=null;
 function mkR(c){let gl=null;try{gl=c.getContext('webgl',{antialias:true,alpha:true,premultipliedAlpha:false})}catch(e){}if(!gl)return null;
- try{const P=mkPr(gl,MV,MF);if(!P)return null;const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,MESH,gl.STATIC_DRAW);return{c,gl,P,b}}catch(e){return null}}
-function drawR(R,eye,ct,x0,wf,sel,lit=1,fill=0){const{c,gl,P,b}=R;const r=c.getBoundingClientRect(),dp=Math.min(devicePixelRatio||1,1.5),w=Math.max(2,Math.round(r.width*dp)),h=Math.max(2,Math.round(r.height*dp));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
+ if(!gl.getExtension('OES_element_index_uint'))return null;
+ try{const P=mkPr(gl,MV,MF);if(!P)return null;return{c,gl,P,ok:false}}catch(e){return null}}
+function feed(R){if(!R||!MODEL||R.ok)return;const gl=R.gl;R.a=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,R.a);gl.bufferData(gl.ARRAY_BUFFER,MODEL.A,gl.STATIC_DRAW);
+ R.b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,R.b);gl.bufferData(gl.ARRAY_BUFFER,MODEL.B,gl.STATIC_DRAW);
+ R.i=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.i);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,MODEL.I,gl.STATIC_DRAW);R.n=MODEL.I.length;R.ok=true}
+function drawR(R,eye,ct,x0,wf,sel,lit=1,fill=0){if(!R.ok)return;const{c,gl,P}=R;const r=c.getBoundingClientRect(),dp=Math.min(devicePixelRatio||1,1.5),w=Math.max(2,Math.round(r.width*dp)),h=Math.max(2,Math.round(r.height*dp));if(c.width!==w||c.height!==h){c.width=w;c.height=h}
  const vw=Math.round(w*wf);gl.viewport(Math.round(w*x0),0,vw,h);gl.clearColor(0,0,0,0);gl.enable(gl.DEPTH_TEST);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
  const vp=M4.mul(M4.persp(.6,vw/h,.1,60),M4.look(eye,ct,[0,1,0]));
- gl.useProgram(P);gl.bindBuffer(gl.ARRAY_BUFFER,b);for(const[n,k,o]of[['aP',3,0],['aN',3,12],['aM',1,24],['aU',2,28]]){const l=gl.getAttribLocation(P,n);if(l>=0){gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,k,gl.FLOAT,false,36,o)}}
+ gl.useProgram(P);const la=gl.getAttribLocation(P,'aA'),lb=gl.getAttribLocation(P,'aB');
+ gl.bindBuffer(gl.ARRAY_BUFFER,R.a);gl.enableVertexAttribArray(la);gl.vertexAttribPointer(la,4,gl.SHORT,true,8,0);
+ gl.bindBuffer(gl.ARRAY_BUFFER,R.b);gl.enableVertexAttribArray(lb);gl.vertexAttribPointer(lb,4,gl.BYTE,true,4,0);
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.i);
  gl.uniformMatrix4fv(gl.getUniformLocation(P,'uVP'),false,new Float32Array(vp));gl.uniform1f(gl.getUniformLocation(P,'uT'),T);gl.uniform3f(gl.getUniformLocation(P,'uCam'),eye[0],eye[1],eye[2]);gl.uniform1f(gl.getUniformLocation(P,'uSel'),sel);gl.uniform1f(gl.getUniformLocation(P,'uLit'),lit);gl.uniform1f(gl.getUniformLocation(P,'uFill'),fill);
- gl.drawArrays(gl.TRIANGLES,0,meshN)}
+ gl.drawElements(gl.TRIANGLES,R.n,gl.UNSIGNED_INT,0)}
 const RZ=mkR($('#tz')),RO=mkR(TO),CALM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+fetch('zenite.bin').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()}).catch(()=>fetch('zenite.js').then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{const s=atob(t.slice(2,-2)),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer})).then(b=>{const h=new Uint32Array(b,0,3),nv=h[1],ni=h[2];
+ MODEL={A:new Int16Array(b,12,nv*4),B:new Int8Array(b,12+nv*8,nv*4),I:new Uint32Array(b.slice(12+nv*12),0,ni)};feed(RZ);feed(RO);document.documentElement.classList.add('tz-ok')}).catch(()=>document.documentElement.classList.add('tz-no'));
 function zFrame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!CALM)T+=dt;requestAnimationFrame(zFrame);
  if(RZ&&$('#tab-zenite').classList.contains('on')){
   if(!Z.drag){Z.va+=(.2-Z.va)*.02;Z.ang+=Z.va*dt}const k=1-Math.exp(-dt*3);Z.cd+=(Z.dist-Z.cd)*k;for(let i=0;i<3;i++)Z.ct[i]+=(Z.tg[i]-Z.ct[i])*k;
   const eye=[Z.ct[0]+Math.sin(Z.ang)*Math.cos(Z.el)*Z.cd,Z.ct[1]+Math.sin(Z.el)*Z.cd,Z.ct[2]+Math.cos(Z.ang)*Math.cos(Z.el)*Z.cd];
-  drawR(RZ,eye,Z.ct,0,.62,Z.part>=0?ZP[Z.part][1]:-1)}
+  drawR(RZ,eye,Z.ct,0,.62,Z.part>=0?ZP[Z.part][1]:-1,Z.part>=2?1.9:1.15,.12)}
  if(RO&&TO.isConnected&&$('#tab-votacao').classList.contains('on')){const r=TO.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.width>2){
-  const slim=r.width<r.height*1.15,a=.42+Math.sin(T*.16)*(slim?.22:.34),el=-.1,d=slim?10.7:8.6,ct=slim?[.9,2.4,0]:[.75,3.55,0];
+  const slim=r.width<r.height*1.15,a=.12+Math.sin(T*.16)*(slim?.2:.3),el=-.08,d=slim?14.5:11,ct=slim?[0,1.3,0]:[0,3,0];
   const eye=[ct[0]+Math.sin(a)*Math.cos(el)*d,ct[1]+Math.sin(el)*d,ct[2]+Math.cos(a)*Math.cos(el)*d];
   drawR(RO,eye,ct,slim?0:.34,slim?1:.66,-1,1.45,.2)}}}
 requestAnimationFrame(zFrame);

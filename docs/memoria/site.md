@@ -79,7 +79,9 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - 19 categorias. O dono escolhe os indicados.
 - Na primeira edição, quem acabou de se cadastrar já pode votar.
 - O troféu se chama **Zênite**.
-- **O Zênite em 3D (a versão mais fiel):** a página "Troféu WinnerZ Awards", https://claude.ai/artifact/Moh8mrJHKZAWyP4LVadHdT (21/10/2026; girar e aproximar; o título ainda diz "O Troféu", de antes do nome). As prévias do Awards de 11/11 usam um modelo mais simples feito em código. A versão mais antiga "Confluência" (https://claude.ai/artifact/7wyVUZhSfoMSo7f8vLf9Sz, 04/10) é de outro conceito, antes do troféu oficial.
+  - Como ele é: figura esculpida em ouro, de braço erguido, com manto e bandeira ao vento (peça única em ouro); símbolo da Jornada em prata na bandeira; base de diamante transparente; logo WinnerZ em ouro na frente da base.
+  - Modelo 3D oficial: enviado pelo dono em 11/11/2026 (`.glb`, 10,5 MB, fora do repositório). A versão preparada para a web, com a bandeira em movimento, está em `prototipos/awards-cena/zenite.bin`.
+- **O Zênite em 3D (a versão mais fiel):** a página "Troféu WinnerZ Awards", https://claude.ai/artifact/Moh8mrJHKZAWyP4LVadHdT (21/10/2026; girar e aproximar; o título ainda diz "O Troféu", de antes do nome). As prévias do Awards de 11/11 usam um modelo mais simples feito em código. A versão mais antiga "Confluência" (https://claude.ai/artifact/7wyVUZhSfoMSo7f8vLf9Sz, 04/10) é de outro conceito, antes do troféu oficial. **Atualização (11/11, mais tarde):** o dono enviou o modelo `.glb` atual e a prévia do Awards passou a usar esse modelo de verdade.
 - O resultado nunca pode vazar antes da revelação.
 
 ## Áreas e ideias

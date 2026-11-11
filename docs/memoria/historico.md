@@ -4,6 +4,23 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: o troféu Zênite de verdade entrou na prévia, com a bandeira em movimento
+
+- O dono mandou o modelo 3D atual do troféu (`WinnerZ_Awards_Novo_Trofeu_Materiais.glb`, 10,5 MB) e perguntou se dá para fazer, por código, um modelo mais detalhado e com movimento na bandeira.
+- **Como o troféu é de verdade** (corrige descrições antigas de "figura lapidada, mastro de cobre e mármore negro"):
+  - figura esculpida em ouro, de braço erguido, com manto ao vento, segurando o mastro com a bandeira (tudo em ouro, numa peça só);
+  - na bandeira, o símbolo da Jornada em prata polida, dos dois lados;
+  - base de diamante transparente;
+  - logo WinnerZ em ouro, em relevo na frente da base.
+- **Resposta dada:** esculpir por código uma figura mais detalhada que essa não dá; o modelo dele já é muito mais detalhado do que qualquer coisa montada em código. O que o código faz bem: usar o modelo dele, dar movimento ao pano, cuidar de luz e reflexos, e refazer peças geométricas (base, mastro, logo).
+- **Feito na prévia** (`prototipos/awards-cena/`): a abertura e a aba Troféu Zênite usam o modelo real.
+  - A bandeira e as pontas do manto balançam ao vento. O corpo, o mastro e as mãos ficam parados. Com "reduzir movimento" ligado, tudo fica parado.
+  - Como o modelo é uma peça só, o pano foi separado por código: marca-se o que é fino (pano) e o movimento cresce conforme a distância de onde o pano encosta no corpo ou no mastro. Scripts em `prototipos/awards-cena/preparo/`.
+  - O modelo vai num arquivo próprio (`zenite.bin`, 8 MB), carregado pela página.
+  - As quatro partes da aba passaram a ser as reais: A figura, O símbolo, A base, O logo.
+- **Pendente antes de ir para o site:** deixar o arquivo do modelo mais leve (meta: 2 a 3 MB) para não pesar no celular nem no limite do Vercel; melhorar o brilho da base de diamante, que na prévia ainda parece vidro escuro; os textos das partes são sugestões e o dono pode trocar.
+- Nada disso foi aplicado no site ainda.
+
 ## 11/11/2026 — Awards: abertura escolhida (F · Uma imagem) com o troféu Zênite
 
 - O dono escolheu a abertura **F · Uma imagem**: uma imagem só, em tela cheia, com o título por cima. As outras cinco opções saíram da prévia.

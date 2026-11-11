@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: textos das faixas do carrossel na largura normal do site
+
+- O dono pediu o mesmo para o carrossel dos indicados: os textos da faixa de cima (nome da categoria, "1 de 2", "Toque numa arte para votar") e da faixa de baixo (descrição da categoria e o botão da próxima) agora se alinham com a coluna central do site. O carrossel continua de ponta a ponta. No celular nada muda.
+
 ## 11/11/2026 — Awards: textos das faixas da abertura na largura normal do site
 
 - O dono pediu que os textos das faixas pretas da abertura ("← Eventos", "Votação até…", a frase da fase e "Continuar votando →") fiquem na largura normal do site, e não nas pontas da tela.

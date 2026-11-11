@@ -82,6 +82,8 @@
 /* ao votar entram as faixas pretas de cinema (80px em cima e embaixo). A cena cresce o mesmo tanto,
    para a imagem dos indicados continuar com a mesma altura de antes do voto. */
 @media (min-width: 761px) {
+  /* os textos das faixas de cima e de baixo do carrossel seguem a coluna normal do site */
+  .aw2slot .scene__top, .aw2slot .scene__bottom { --col: max(clamp(14px, 3vw, 40px), calc(50% - 660px + clamp(14px, 3vw, 40px))); left: var(--col); right: var(--col); }
   .aw2slot .scene { transition: height .9s cubic-bezier(.2, .8, .2, 1); }
   .aw2slot .scene.has { height: calc(clamp(540px, 66vh, 680px) + 160px); }
 }

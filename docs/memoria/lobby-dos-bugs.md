@@ -74,3 +74,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - Ainda a responder pelo dono: a lore (ele vai pensar).
 
 **11/11/2026 (14h30):** diretriz geral do dono: caprichar nas sombras de TUDO. Objetos pequenos maiores e com volume (passo 1 feito); a seguir, objetos grandes no meio da sala e paredes com níveis de roundness; depois, variedade de tamanho nos inimigos e a revisão geral das sombras.
+
+**11/11/2026 (15h10), orientações do dono:** sem excesso de objetos nas salas (teto de 10% do chão, já no sorteio); ritmo frenético estilo Enter the Gungeon (IAmiguinho mais rápido, inimigos mais ativos, menos inimigos e mais perigosos) — ajuste ainda a fazer. Feitas as ilhas (objetos grandes no meio da sala) e a regra do objeto de pé com sombra colada.

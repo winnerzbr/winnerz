@@ -81,6 +81,28 @@ section.tab.on{display:block}
 .scene--open .scene__p{cursor:default}
 .cd{font:500 clamp(13px,1.3vw,17px) var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#fff}
 .cd b{color:var(--now);font-weight:600}
+/* ===== variações da abertura (prévia) ===== */
+.op-body{position:absolute;left:clamp(18px,3.4vw,48px);right:clamp(18px,3.4vw,48px);top:96px;bottom:96px;z-index:3;display:flex;flex-direction:column;justify-content:center;gap:16px;pointer-events:none}
+.op-fill{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 40%,#15120c,#030303 70%)}
+.opB__t{margin:0;display:flex;flex-direction:column;font-stretch:125%;font-weight:900;text-transform:uppercase;font-size:clamp(46px,13.2vw,220px);line-height:.8;letter-spacing:-.01em;-webkit-text-stroke:1.5px #5d636c;color:transparent;background:linear-gradient(100deg,#F2F4F6 0 46%,#FFD9A3 50%,transparent 54%) 100% 0/260% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:opB 1.9s cubic-bezier(.3,.6,.2,1) .2s forwards}
+@keyframes opB{to{background-position:0 0;-webkit-text-stroke-color:transparent}}
+.opC{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.opC__r{position:relative;overflow:hidden}
+.opC__r .scene__img{filter:none;animation:scene-kb 16s ease-in-out infinite alternate}
+.opC__v{position:absolute;left:50%;top:-10%;bottom:-10%;width:2px;z-index:5;background:linear-gradient(180deg,transparent 5%,rgba(120,170,255,.45) 30%,#FFF3E0 50%,rgba(255,178,91,.7) 68%,transparent 92%);box-shadow:0 0 18px rgba(255,210,150,.8),0 0 70px rgba(120,170,255,.4);animation:opCv 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes opCv{from{transform:scaleY(0);opacity:0}to{transform:scaleY(1);opacity:.85}}
+.op-body.half{right:52%}
+.op-body.half .scene__nm{font-size:clamp(28px,5.4vw,86px)}
+.opD{display:flex;gap:clamp(10px,2.6vw,40px);align-items:flex-start;flex-wrap:wrap}
+.opD div{display:flex;flex-direction:column;gap:8px;animation:scene-track 1.2s cubic-bezier(.2,.8,.2,1) both}
+.opD div:nth-child(2){animation-delay:.12s}.opD div:nth-child(3){animation-delay:.24s}.opD div:nth-child(4){animation-delay:.36s}
+.opD b{font-stretch:125%;font-weight:900;font-size:clamp(52px,12.5vw,200px);line-height:.8;color:#F2F4F6;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.opD div:last-child b{color:var(--now)}
+.opD small{font:500 11px var(--fm);letter-spacing:.3em;text-transform:uppercase;color:#9AA1AA}
+.opE{display:flex;flex-direction:column;gap:.08em;font-stretch:125%;font-weight:900;text-transform:uppercase;font-size:clamp(28px,6.6vw,108px);line-height:.9;color:#F2F4F6}
+.opE span{animation:scene-track 1.3s cubic-bezier(.2,.8,.2,1) both}
+.opE span:nth-child(2){animation-delay:.5s}.opE span:nth-child(3){animation-delay:1s;color:var(--now)}
+.op-one .scene__p{flex-grow:1!important}
 /* ===== categorias: cartelas de título (diferentes da cena de voto, para não confundir) ===== */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:3px}
 .card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:150px;padding:18px 20px;border:0;background:#0b0c0e;cursor:pointer;overflow:hidden;text-align:left;isolation:isolate}
@@ -216,6 +238,7 @@ section.tab.on{display:block}
 <div class="top"><b>WinnerZ Awards</b><button data-tab="votacao" class="on">Votação</button><button data-tab="zenite">Troféu Zênite</button><button data-tab="como">Como funciona</button></div>
 <div class="wrap">
 <section class="tab on" id="tab-votacao">
+  <div class="vsw" id="osw"><button data-o="A" class="on">A · Cena</button><button data-o="B">B · Título gigante</button><button data-o="C">C · Dividida</button><button data-o="D">D · Contagem</button><button data-o="E">E · Três linhas</button><button data-o="F">F · Uma imagem</button></div>
   <div id="open"></div>
   <div class="sec"><h2 class="t">Seus votos</h2><span class="kicker"><span id="nv">0</span> de 19 categorias</span></div>
   <div class="frames" id="frames"></div>
@@ -248,15 +271,26 @@ function refire(sc){sc.querySelectorAll(':scope>.scene__flare,:scope>.scene__gho
 /* ---- abertura ---- */
 let left=1068067;
 const cdText=()=>{const p=n=>String(n).padStart(2,'0');return `Votação aberta · fecha em <b>${p(Math.floor(left/86400))}d ${p(Math.floor(left%86400/3600))}h ${p(Math.floor(left%3600/60))}m ${p(left%60)}s</b>`};
+const p2=n=>String(n).padStart(2,'0');
+const GOLD='radial-gradient(ellipse at 62% 30%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)';
 function openTtl(){return `<span class="scene__ttl"><span class="scene__tag ghosty">Edição 2026</span><span class="scene__nm">WinnerZ<br>Awards</span><span class="scene__sub cd" id="cd">${cdText()}</span><span class="scene__hint">Dezenove categorias. Um troféu. Quem decide é você.</span></span>`}
-function buildOpen(){const P=[11,23,5,0,17,29,8];
- $('#open').innerHTML=`<div class="scene scene--open" id="opsc"><div class="scene__row">`+P.map((s,i)=>`<div class="scene__p${i===3?' on':''}"><span class="scene__img" style="background:${i===3?'radial-gradient(ellipse at 62% 30%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)':art(s+3)}"></span><span class="scene__shade"></span>${i===3?'<span class="scene__leak"></span>':''}<span class="scene__vt">${CATS[(i*3+1)%19]}</span></div>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
+let OV='A';
+const OPEN={
+ A:{shell:()=>`<div class="scene__row">`+[11,23,5,0,17,29,8].map((x,i)=>`<div class="scene__p${i===3?' on':''}"><span class="scene__img" style="background:${i===3?GOLD:art(x+3)}"></span><span class="scene__shade"></span>${i===3?'<span class="scene__leak"></span>':''}<span class="scene__vt">${CATS[(i*3+1)%19]}</span></div>`).join('')+`</div>`,late:sc=>sc.querySelector('.scene__p.on').insertAdjacentHTML('beforeend',openTtl())},
+ B:{shell:()=>`<div class="op-fill"></div><div class="op-body"></div>`,late:sc=>sc.querySelector('.op-body').innerHTML=`<span class="scene__tag ghosty">Edição 2026</span><h1 class="opB__t"><span>WinnerZ</span><span>Awards</span></h1><span class="scene__sub cd" id="cd">${cdText()}</span>`},
+ C:{shell:()=>`<div class="opC"><div></div><div class="opC__r"><span class="scene__img" style="background:${GOLD}"></span><span class="scene__leak"></span></div></div><div class="op-body half"></div>`,late:sc=>{sc.querySelector('.op-body').innerHTML=`<span class="scene__tag ghosty">Edição 2026</span><span class="scene__nm">WinnerZ<br>Awards</span><span class="scene__sub cd" id="cd">${cdText()}</span><span class="scene__hint">Dezenove categorias. Um troféu. Quem decide é você.</span>`;sc.querySelector('.opC').insertAdjacentHTML('beforeend','<i class="opC__v"></i>')},fx:'flash'},
+ D:{shell:()=>`<div class="op-fill"></div><div class="op-body"></div>`,late:sc=>sc.querySelector('.op-body').innerHTML=`<span class="scene__sub">WinnerZ Awards 2026 · a votação fecha em</span><div class="opD" id="cdbig">${cdBig()}</div><span class="scene__hint">Dezenove categorias. Um troféu. Quem decide é você.</span>`},
+ E:{shell:()=>`<div class="op-fill"></div><div class="op-body"></div>`,late:sc=>sc.querySelector('.op-body').innerHTML=`<span class="scene__tag ghosty">WinnerZ Awards 2026</span><div class="opE"><span>Dezenove categorias.</span><span>Um troféu.</span><span>Você decide.</span></div><span class="scene__sub cd" id="cd">${cdText()}</span>`},
+ F:{cls:' op-one',shell:()=>`<div class="scene__row"><div class="scene__p on"><span class="scene__img" style="background:${GOLD}"></span><span class="scene__shade"></span><span class="scene__leak"></span></div></div>`,late:sc=>sc.querySelector('.scene__p.on').insertAdjacentHTML('beforeend',openTtl())}};
+function cdBig(){const v=[Math.floor(left/86400),Math.floor(left%86400/3600),Math.floor(left%3600/60),left%60],l=['dias','horas','minutos','segundos'];return v.map((x,i)=>`<div><b>${p2(x)}</b><small>${l[i]}</small></div>`).join('')}
+function playOpen(){const o=OPEN[OV];
+ $('#open').innerHTML=`<div class="scene scene--open${o.cls||''}" id="opsc">${o.shell()}<span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
  <div class="scene__top"><div class="scene__head"><span class="kicker" style="color:#C9CED4">Onde jogos viram histórias</span></div><span class="kicker">2026</span></div>
  <div class="scene__bottom"><span class="scene__desc">Um voto por categoria. Dá para mudar até o fim da votação.</span><span style="display:flex;gap:22px"><button class="kicker scene__next" id="replay">Rever a abertura</button><button class="kicker scene__next" id="start">Começar a votar →</button></span></div></div>`;
- $('#replay').onclick=playOpen;$('#start').onclick=()=>openCat(0);setTimeout(playOpen,250)}
-function playOpen(){const sc=$('#opsc');sc.classList.remove('has');sc.querySelectorAll('.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());
- setTimeout(()=>{sc.classList.add('has');sc.querySelector('.scene__p.on').insertAdjacentHTML('beforeend',openTtl());refire(sc)},450)}
-setInterval(()=>{left=Math.max(0,left-1);const e=$('#cd');if(e)e.innerHTML=cdText()},1000);
+ $('#replay').onclick=playOpen;$('#start').onclick=()=>openCat(0);const sc=$('#opsc');
+ setTimeout(()=>{if(!sc.isConnected)return;sc.classList.add('has');o.late(sc);if(o.fx==='flash')sc.querySelector('.scene__grain').insertAdjacentHTML('afterend','<span class="scene__flash"></span>');else refire(sc)},450)}
+function buildOpen(){$$('#osw button').forEach(b=>b.onclick=()=>{$$('#osw button').forEach(x=>x.classList.toggle('on',x===b));OV=b.dataset.o;playOpen()});playOpen()}
+setInterval(()=>{left=Math.max(0,left-1);const e=$('#cd');if(e)e.innerHTML=cdText();const g=$('#cdbig');if(g){const v=[Math.floor(left/86400),Math.floor(left%86400/3600),Math.floor(left%3600/60),left%60];g.querySelectorAll('b').forEach((b,k)=>{b.textContent=p2(v[k])})}},1000);
 
 /* ---- categorias ---- */
 function buildRows(){$('#rows').innerHTML=CATS.map((c,i)=>`<div><button class="card" data-c="${i}" aria-expanded="false"><span class="card__bg"></span><span class="card__n">${String(i+1).padStart(2,'0')}</span><span class="t card__name">${c}</span><span class="card__st">Votar →</span></button><div class="slot" id="slot-${i}"><div></div></div></div>`).join('');

@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: seis opções de abertura na prévia
+
+- Pedido do dono: mais exemplos de abertura para a página do Awards.
+- A prévia (`prototipos/awards-cena/index.html`) ganhou um seletor acima da abertura com seis opções, todas na linguagem da cena de votação e sem "fantasia" temática:
+  - A · Cena (a atual: faixas, a do meio abre com o título);
+  - B · Título gigante (nome em contorno que se enche de luz);
+  - C · Dividida (texto de um lado, imagem do outro, risco de luz vertical no meio);
+  - D · Contagem (contagem regressiva enorme como protagonista);
+  - E · Três linhas (três frases que entram uma por vez);
+  - F · Uma imagem (uma imagem só, tela cheia, com o título).
+- Aguardando o dono escolher a abertura. Nada disso foi aplicado no site ainda.
+
 ## 11/11/2026: Awards, categorias: escolhida a "Lista grande" (B), com os indicados abrindo embaixo
 - O dono **escolheu a B · Lista grande** para as categorias do Awards: os 19 nomes empilhados, enormes, em contorno; no mouse (e depois de votar) o nome se enche de branco.
 - Pedido junto: ao clicar numa categoria, os indicados devem **abrir logo abaixo dela**, expandindo a página ali (não no topo).

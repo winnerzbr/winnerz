@@ -373,7 +373,7 @@ export function AwardsPage() {
                         <div id={`slot-${c.id}`} className={`aw2slot${aberta ? ' on' : ''}`}>
                           <div>
                             {(aberta || seen[c.id]) && (
-                              <div className={`scene${openId ? ' has' : ''}`}>
+                              <div className={`scene${openId ? ' has' : ''}`} style={{ ['--n' as string]: c.nominees.length }}>
                                 <div className="scene__row" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
                                   {c.nominees.map((n) => {
                                     const on = n.id === openId;

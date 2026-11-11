@@ -1,10 +1,9 @@
 /* WinnerZ Awards: a página na linguagem da cena de votação (aprovada na prévia de 11/11/2026).
    A cena de voto em si (.scene, em etapa2.css) NÃO muda. Aqui ficam só as peças novas:
    abas, abertura com o troféu, "Seus votos", lista grande de categorias, aba do troféu e "Como funciona". */
-.aw2 { background: #07080A; color: #E6E9ED; min-height: 100vh; padding-bottom: 80px; }
+.aw2 { background: #07080A; color: #E6E9ED; min-height: 100vh; padding-bottom: 80px; overflow-x: clip; }
 .aw2 .scene { border-radius: 0; }
-/* a página usa a largura toda da tela: títulos e cenas ganham espaço horizontal */
-.aw2__wrap { margin: 0 auto; padding: 0 clamp(14px, 4vw, 72px); }
+.aw2__wrap { max-width: 1320px; margin: 0 auto; padding: 0 clamp(14px, 3vw, 40px); }
 
 /* abas */
 .aw2tabs { position: sticky; top: var(--hdr, 71px); z-index: 20; background: rgba(7, 8, 10, .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid #1c1f24; }
@@ -72,6 +71,8 @@
 .aw2slot { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .9s cubic-bezier(.2, .8, .2, 1); }
 .aw2slot.on { grid-template-rows: 1fr; }
 .aw2slot > div { min-height: 0; overflow: hidden; }
+/* só a abertura e o carrossel dos indicados vão de ponta a ponta da tela; o resto fica na coluna */
+.aw2slot { width: 100vw; margin-left: calc(50% - 50vw); }
 .aw2slot .scene { margin: 10px 0 22px; }
 
 /* aba do troféu */
@@ -118,6 +119,9 @@
   .aw2 .scene--open .scene__bottom { flex-wrap: wrap; gap: 6px 18px; }
   .aw2 .scene--open .scene__head .kicker { display: inline; }
   .aw2frames button { height: 22px; }
+  /* no celular a cena de voto não encolhe depois do voto: a arte escolhida ocupa o espaço que as outras liberam */
+  .aw2slot .scene__row { min-height: calc(var(--n, 5) * 104px + 124px); }
+  .aw2slot .scene.has .scene__p.on { flex: 1 1 auto !important; height: auto; min-height: 320px; }
   .aw2cat { grid-template-columns: 34px minmax(0, 1fr); }
   .aw2cat__st { display: none; }
   .aw2 .zen .scene__p.on { height: auto; min-height: 500px; }

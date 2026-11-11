@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: abertura em largura total, só com o título
+
+- O dono viu no site que o título passava por cima do troféu e pediu mais espaço horizontal, só com o título.
+- A abertura agora ocupa a tela de ponta a ponta (saiu de dentro da coluna central). O título fica só na metade esquerda e o troféu na metade direita, sem se cruzarem.
+- Na cena ficaram só o selo da fase, o título e a contagem regressiva. A frase da fase desceu para a faixa de baixo da cena; o texto de apresentação da edição passou para logo abaixo da abertura.
+- No celular continua igual: troféu em cima, título embaixo.
+
 ## 11/11/2026 (15h30): Lobby dos Bugs — ritmo, 1ª rodada
 - Personagem mais rápido, inimigos mais ativos e em menor número (detalhes no repositório do jogo).
 

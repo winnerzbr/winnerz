@@ -273,44 +273,48 @@ export function AwardsPage() {
         </div>
       </div>
 
-      <div className="aw2__wrap">
-        {aba === 'votacao' && (
-          <section className="aw2tab">
-            <div className="scene scene--open has">
-              <div className="scene__row">
-                <div className="scene__p on">
-                  <span className="aw2op__bg" aria-hidden="true" />
-                  <span className="scene__shade" aria-hidden="true" />
-                  <TrofeuAbertura />
-                  <span className="aw2op__veil" aria-hidden="true" />
-                  <span className="scene__leak" aria-hidden="true" />
-                  <div className="scene__ttl">
-                    <span className="scene__tag">{PHASE_TAG[phase]}</span>
-                    <h1 className="scene__nm">{full.award.title}</h1>
-                    {conta && CONTA_ROTULO[phase] && <ContaCena to={conta} rotulo={CONTA_ROTULO[phase]!} />}
-                    {full.award.intro && <span className="scene__hint">{full.award.intro}</span>}
-                    <span className="scene__hint">{linha}</span>
-                  </div>
-                </div>
-              </div>
-              <span className="scene__grain" aria-hidden="true" />
-              <span className="scene__flare" aria-hidden="true" />
-              <span className="scene__ghost" aria-hidden="true" />
-              <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
-              <span className="scene__flash" aria-hidden="true" />
-              <span className="scene__lb scene__lb--t" aria-hidden="true" />
-              <span className="scene__lb scene__lb--b" aria-hidden="true" />
-              <div className="scene__top">
-                <div className="scene__head"><Link to="/eventos" className="kicker">← Eventos</Link></div>
-                {deadline && <span className="kicker">{deadline}</span>}
-              </div>
-              <div className="scene__bottom">
-                <span className="scene__desc">O troféu {TROFEU} · um para cada categoria</span>
-                {voting && primeira && <button className="kicker scene__next" onClick={() => goTo(primeira)}>{voted ? 'Continuar votando →' : 'Começar a votar →'}</button>}
-                {phase === 'aberta' && !logged && <Link className="kicker scene__next" to="/entrar">Entre para votar →</Link>}
+      {aba === 'votacao' && (
+        <div className="aw2open">
+        <div className="scene scene--open has">
+          <div className="scene__row">
+            <div className="scene__p on">
+              <span className="aw2op__bg" aria-hidden="true" />
+              <span className="scene__shade" aria-hidden="true" />
+              <TrofeuAbertura />
+              <span className="aw2op__veil" aria-hidden="true" />
+              <span className="scene__leak" aria-hidden="true" />
+              <div className="scene__ttl">
+                <span className="scene__tag">{PHASE_TAG[phase]}</span>
+                <h1 className="scene__nm">{full.award.title}</h1>
+                {conta && CONTA_ROTULO[phase] && <ContaCena to={conta} rotulo={CONTA_ROTULO[phase]!} />}
               </div>
             </div>
+          </div>
+          <span className="scene__grain" aria-hidden="true" />
+          <span className="scene__flare" aria-hidden="true" />
+          <span className="scene__ghost" aria-hidden="true" />
+          <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
+          <span className="scene__flash" aria-hidden="true" />
+          <span className="scene__lb scene__lb--t" aria-hidden="true" />
+          <span className="scene__lb scene__lb--b" aria-hidden="true" />
+          <div className="scene__top">
+            <div className="scene__head"><Link to="/eventos" className="kicker">← Eventos</Link></div>
+            {deadline && <span className="kicker">{deadline}</span>}
+          </div>
+          <div className="scene__bottom">
+            <span className="scene__desc">{linha}</span>
+            {voting && primeira && <button className="kicker scene__next" onClick={() => goTo(primeira)}>{voted ? 'Continuar votando →' : 'Começar a votar →'}</button>}
+            {phase === 'aberta' && !logged && <Link className="kicker scene__next" to="/entrar">Entre para votar →</Link>}
+          </div>
+        </div>
 
+        </div>
+      )}
+
+      <div className="aw2__wrap">
+        {aba === 'votacao' && (
+          <section className="aw2tab aw2tab--votos">
+            {full.award.intro && <p className="aw2__intro">{full.award.intro}</p>}
             {(error || phase === 'apurando' || (phase === 'aberta' && !logged) || canAdmin()) && (
               <div className="aw2__extra">
                 {error && <p className="awards__error" role="alert">{error}</p>}

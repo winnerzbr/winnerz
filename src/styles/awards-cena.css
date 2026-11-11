@@ -22,7 +22,14 @@
 .aw2__extra .awhero__only { margin: 0; }
 
 /* abertura: uma imagem só, com o troféu Zênite */
-.aw2 .scene--open .scene__nm { font-size: clamp(34px, 7.2vw, 112px); }
+.aw2open { padding-top: 26px; }
+.aw2tab--votos { padding-top: 14px; }
+.aw2__intro { margin: 0 0 4px; max-width: 70ch; font-size: 15px; line-height: 1.5; color: #C9CED4; }
+/* o título fica só na metade esquerda, para nunca passar por cima do troféu */
+.aw2 .scene--open .scene__ttl { left: clamp(18px, 4vw, 72px); right: auto; width: min(50%, 1000px); }
+.aw2 .scene--open .scene__top, .aw2 .scene--open .scene__bottom { left: clamp(16px, 4vw, 72px); right: clamp(16px, 4vw, 72px); }
+.aw2 .scene--open .scene__nm { font-size: clamp(34px, 5.4vw, 112px); overflow-wrap: normal; }
+.aw2 .scene--open .scene__desc { text-transform: none; letter-spacing: .04em; font-size: 12px; color: #C9CED4; }
 .aw2 .scene--open .scene__p { cursor: default; flex-grow: 1 !important; }
 .aw2 .scene--open .scene__p.on .scene__shade { background: linear-gradient(0deg, rgba(0, 0, 0, .7), transparent 40%); }
 .aw2 .scene--open .scene__ttl { pointer-events: auto; }
@@ -31,11 +38,11 @@
 .aw2 .scene--open .scene__bottom a:hover, .aw2 .scene--open .scene__top a:hover { color: #FFB25B; }
 .aw2 .scene--open .scene__hint { max-width: 62ch; }
 .aw2op__bg { position: absolute; inset: 0; background:
-  radial-gradient(ellipse 26% 70% at 66% 50%, rgba(255, 200, 125, .42), transparent 74%),
-  radial-gradient(ellipse 60% 90% at 70% 40%, rgba(150, 105, 45, .28), transparent 70%),
+  radial-gradient(ellipse 22% 70% at 76% 50%, rgba(255, 200, 125, .42), transparent 74%),
+  radial-gradient(ellipse 50% 90% at 78% 40%, rgba(150, 105, 45, .28), transparent 70%),
   linear-gradient(104deg, transparent 50%, rgba(255, 224, 170, .10) 57%, transparent 62%, rgba(255, 224, 170, .06) 70%, transparent 75%, rgba(140, 175, 255, .05) 82%, transparent 88%),
   linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }
-.aw2op__veil { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(3, 3, 3, .82) 0%, rgba(3, 3, 3, .5) 34%, transparent 58%); }
+.aw2op__veil { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(3, 3, 3, .82) 0%, rgba(3, 3, 3, .5) 40%, transparent 60%); }
 .aw2gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; }
 .aw2gl.is-on { animation: aw2-in 2.4s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes aw2-in { from { opacity: 0; transform: scale(1.1) translateY(3%); filter: brightness(2.4) blur(8px); } to { opacity: 1; transform: none; filter: none; } }
@@ -103,7 +110,10 @@
   .aw2 .scene--open .scene__p.on { height: auto; min-height: 560px; }
   .aw2op__bg { background: radial-gradient(ellipse 60% 50% at 52% 30%, rgba(255, 200, 125, .4), transparent 74%), linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }
   .aw2op__veil { background: linear-gradient(0deg, rgba(3, 3, 3, .92) 14%, rgba(3, 3, 3, .5) 44%, transparent 62%); }
-  .aw2 .scene--open .scene__ttl { left: 18px; right: 18px; bottom: 18px; gap: 10px; }
+  .aw2 .scene--open .scene__ttl { left: 18px; right: 18px; width: auto; bottom: 18px; gap: 10px; }
+  .aw2 .scene--open .scene__nm { font-size: clamp(30px, 9.6vw, 48px); }
+  .aw2 .scene--open .scene__top, .aw2 .scene--open .scene__bottom { left: 16px; right: 16px; }
+  .aw2 .scene--open .scene__desc { display: block; }
   .aw2 .scene--open .scene__bottom { flex-wrap: wrap; gap: 6px 18px; }
   .aw2 .scene--open .scene__head .kicker { display: inline; }
   .aw2frames button { height: 22px; }

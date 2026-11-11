@@ -17,6 +17,7 @@ import { awardsApi, phaseOf, publicAt, type Award } from '../data/awards';
 import { isNewcomer } from '../lib/welcome';
 import { chaptersLeft } from '../lib/arrival';
 import { StopLine, FitCard } from '../components/Comeback';
+import { AwardsBanner } from '../components/AwardsCena';
 
 const TZ = 'America/Sao_Paulo';
 /** "09 OUT", e o ano quando não é o ano corrente. */
@@ -164,19 +165,22 @@ function NextRelease({ u }: { u?: Upcoming }) {
   );
 }
 
+/** WinnerZ Awards no Início: banner em toda a largura da página, com o troféu Zênite girando conforme o mouse. */
 function AwardsNotice({ award }: { award: Award | null }) {
   if (!award) return null;
   const p = phaseOf(award);
   if (p !== 'aberta' && p !== 'apurando') return null;
   const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', timeZone: TZ }) : '');
   return (
-    <article className="card home-card home-card--now awards-notice">
-      <div>
-        <div className="kicker kicker--now">{award.title}</div>
-        <div className="awards-notice__line">{p === 'aberta' ? (award.votingCloses ? `Votação aberta até ${when(award.votingCloses)}.` : 'Votação aberta.') : `O resultado sai em ${when(publicAt(award))}.`}</div>
-      </div>
-      <Link to="/eventos/awards" className={`btn sm ${p === 'aberta' ? 'now' : 'ghost'}`}>{p === 'aberta' ? 'Votar' : 'Ver'}</Link>
-    </article>
+    <div className="page home-awards">
+      <AwardsBanner
+        kicker={p === 'aberta' ? 'Votação aberta' : 'Votação encerrada'}
+        title={award.title}
+        line={p === 'aberta' ? (award.votingCloses ? `Vote até ${when(award.votingCloses)}. Um voto por categoria.` : 'Um voto por categoria.') : `O resultado sai em ${when(publicAt(award))}.`}
+        cta={p === 'aberta' ? 'Votar' : 'Ver'}
+        ate={p === 'aberta' ? award.votingCloses : publicAt(award)}
+      />
+    </div>
   );
 }
 
@@ -314,7 +318,6 @@ function HomeDefault() {
           <h2 id="col-proximo" className="kicker home-col__head">Próximo</h2>
           <NextRelease u={upcoming.find((u) => u.kind === 'lancamento')} />
           <RadarNotice />
-          <AwardsNotice award={award} />
           {wish && !wishOnRadar && (
             <Link to={`/jogos/${wish.g.slug}`} className="card home-card aside-wish">
               <span className="aside-wish__cover"><CoverArt game={wish.g} /></span>
@@ -327,6 +330,7 @@ function HomeDefault() {
           )}
         </section>
       </div>
+      <AwardsNotice award={award} />
       <div className="page home-what"><WhatToPlay excludeJourneyId={j?.id} /></div>
     </main>
   );

@@ -154,3 +154,34 @@
 }
 @media (prefers-reduced-motion: reduce) { .aw2gl.is-on { animation: none; opacity: 1; } }
 :root[data-motion='reduzidas'] .aw2gl.is-on { opacity: 1; }
+
+/* Banner do Awards no Início: fundo escuro de ponta a ponta (sem borda), troféu à direita girando com o mouse */
+.home-awards { padding-top: 24px; }
+.awbn { position: relative; display: block; min-height: 300px; overflow: hidden; isolation: isolate; background: #07080a; color: #E6E9ED; touch-action: pan-y; }
+.awbn__link { position: absolute; inset: 0; z-index: 6; }
+.awbn__link:focus-visible { outline: 2px solid var(--now); outline-offset: -3px; }
+.awbn__bg { position: absolute; inset: 0; background:
+  radial-gradient(ellipse 20% 80% at 78% 50%, rgba(255, 200, 125, .4), transparent 74%),
+  radial-gradient(ellipse 46% 100% at 80% 40%, rgba(150, 105, 45, .26), transparent 70%),
+  linear-gradient(104deg, transparent 52%, rgba(255, 224, 170, .09) 60%, transparent 66%, rgba(140, 175, 255, .05) 80%, transparent 86%),
+  linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }
+.awbn .scene__flare { top: 50%; z-index: 0; }
+.awbn .scene__grain { z-index: 2; }
+.awbn__veil { position: absolute; inset: 0; z-index: 1; background: linear-gradient(90deg, rgba(3, 3, 3, .85) 0%, rgba(3, 3, 3, .45) 40%, transparent 60%); pointer-events: none; }
+.awbn .aw2gl { z-index: 0; pointer-events: none; }
+.awbn__txt { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px; min-height: 300px; max-width: 58%; padding: 30px clamp(22px, 3.4vw, 48px); pointer-events: none; }
+.awbn__tag { padding: 6px 12px; border-radius: 999px; background: rgba(7, 8, 10, .72); color: #FFE2B8; font: 600 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.awbn__title { font-size: clamp(30px, 4.6vw, 66px); line-height: .88; color: #F2F4F6; text-shadow: 0 6px 40px rgba(0, 0, 0, .7); }
+.awbn__line { font-size: 15px; line-height: 1.45; color: #C9CED4; max-width: 46ch; }
+.awbn__cd { font: 500 13px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: #fff; }
+.awbn__cd b { color: #FFB25B; font-weight: 600; }
+.awbn__cta { margin-top: 6px; }
+.awbn:hover .awbn__cta { filter: brightness(1.08); }
+@media (max-width: 760px) {
+  .awbn, .awbn__txt { min-height: 340px; }
+  .awbn__txt { max-width: 60%; padding: 22px 18px; justify-content: flex-end; }
+  .awbn__title { font-size: clamp(26px, 8vw, 38px); }
+  .awbn__line { font-size: 13px; }
+  .awbn__veil { background: linear-gradient(90deg, rgba(3, 3, 3, .88) 0%, rgba(3, 3, 3, .5) 50%, transparent 72%); }
+  .awbn__bg { background: radial-gradient(ellipse 40% 60% at 74% 46%, rgba(255, 200, 125, .38), transparent 74%), linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }
+}

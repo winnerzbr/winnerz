@@ -3,6 +3,7 @@
    A cena de voto em si continua em pages/Awards.tsx, sem mudança. Estilo em styles/awards-cena.css. */
 import { useEffect, useRef, useState } from 'react';
 import { mountZenite } from '../lib/zenite3d';
+import { Link } from '../lib/router';
 
 const calmo = () => (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) || document.documentElement.dataset.motion === 'reduzidas';
 
@@ -220,4 +221,80 @@ export function ComoFunciona({ artes = [] }: { artes?: string[] }) {
       <span className="scene__lb scene__lb--b" aria-hidden="true" />
     </div>
   );
+}
+
+/** Banner do WinnerZ Awards no Início: ocupa a largura da página, fundo escuro de ponta a ponta,
+ *  e o troféu Zênite gira acompanhando o mouse (no celular, arrastando o dedo no banner).
+ *  O troféu só carrega quando o banner aparece na tela. */
+export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string; title: string; line: string; cta: string; ate?: string }) {
+  const box = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [ver, setVer] = useState(false);
+  const [on, setOn] = useState(false);
+  const alvo = useRef({ ang: 0.15, el: -0.04, ultimo: 0, drag: false });
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') { setVer(true); return; }
+    const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { setVer(true); io.disconnect(); } }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!ver || !ref.current || !el) return;
+    const A = alvo.current;
+    const mira = (x: number, y: number) => {
+      const r = el.getBoundingClientRect();
+      const px = Math.max(-0.2, Math.min(1.2, (x - r.left) / r.width)), py = Math.max(0, Math.min(1, (y - r.top) / r.height));
+      A.ang = -1.1 + px * 2.2; A.el = -0.16 + py * 0.26; A.ultimo = performance.now();
+    };
+    const onMove = (e: PointerEvent) => { if (e.pointerType === 'mouse' || A.drag) mira(e.clientX, e.clientY); };
+    const onDown = (e: PointerEvent) => { if (e.pointerType !== 'mouse') { A.drag = true; mira(e.clientX, e.clientY); } };
+    const onUp = () => { A.drag = false; };
+    addEventListener('pointermove', onMove, { passive: true });
+    el.addEventListener('pointerdown', onDown); addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
+    const parado = calmo();
+    const cam = { ang: A.ang, el: A.el };
+    const off = mountZenite(ref.current, (dt, t, w, h) => {
+      // Sem mouse por um tempo, o troféu balança devagar sozinho.
+      const solto = !parado && performance.now() - A.ultimo > 2500;
+      const ta = solto ? 0.15 + Math.sin(t * 0.25) * 0.55 : A.ang, te = solto ? -0.04 : A.el;
+      const k = 1 - Math.exp(-dt * 5);
+      cam.ang += (ta - cam.ang) * k; cam.el += (te - cam.el) * k;
+      const cel = w < 700, ct = [0, 2.75, 0], d = cel ? 12.4 : 10.6;
+      const eye = [ct[0] + Math.sin(cam.ang) * Math.cos(cam.el) * d, ct[1] + Math.sin(cam.el) * d, ct[2] + Math.cos(cam.ang) * Math.cos(cam.el) * d];
+      return { eye, ct, x0: cel ? 0.44 : 0.6, wf: cel ? 0.56 : 0.36, sel: -1, lit: 1.45, fill: 0.2 };
+    }, () => setOn(true));
+    return () => { removeEventListener('pointermove', onMove); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
+  }, [ver]);
+
+  return (
+    <div ref={box} className="awbn on-photo">
+      <Link to="/eventos/awards" className="awbn__link" aria-label={`${title}: ${cta}`} />
+      <span className="awbn__bg" aria-hidden="true" />
+      <span className="scene__flare" aria-hidden="true" />
+      {ver && <canvas ref={ref} className={`aw2gl${on ? ' is-on' : ''}`} aria-hidden="true" />}
+      <span className="awbn__veil" aria-hidden="true" />
+      <span className="scene__grain" aria-hidden="true" />
+      <span className="awbn__txt" aria-hidden="true">
+        <span className="awbn__tag">{kicker}</span>
+        <span className="t awbn__title">{title}</span>
+        <span className="awbn__line">{line}</span>
+        {ate && <ContaBanner to={ate} />}
+        <span className="btn now awbn__cta" aria-hidden="true">{cta}</span>
+      </span>
+    </div>
+  );
+}
+
+function ContaBanner({ to }: { to: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
+  const left = Math.max(0, Date.parse(to) - now);
+  const d = Math.floor(left / 86400000), h = Math.floor((left % 86400000) / 3600000), m = Math.floor((left % 3600000) / 60000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return <span className="awbn__cd">Faltam <b>{d}d {pad(h)}h {pad(m)}m</b></span>;
 }

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Início: banner do WinnerZ Awards com o troféu girando conforme o mouse
+
+- Pedido do dono: o cartão do Awards no Início ocupa toda a largura normal do site, com um banner de fundo que cobre o cartão inteiro (bordas incluídas), interativo, com o troféu girando conforme o mouse.
+- Feito: o aviso saiu da coluna "Próximo" e virou um banner na largura da página, logo antes de "O que jogar". Fundo escuro de ponta a ponta (sem borda), luz dourada e risco de luz atrás, troféu Zênite 3D à direita.
+  - No computador o troféu gira para acompanhar o mouse (esquerda e direita giram, cima e baixo inclinam um pouco). Sem mouse por uns segundos, ele balança devagar sozinho. No celular, gira arrastando o dedo no banner (a rolagem da página continua).
+  - Texto: selo da fase, nome da edição, até quando vai a votação, contagem regressiva e o botão Votar (ou Ver, na apuração). O banner inteiro leva para a página do Awards.
+  - Aparece nas mesmas fases de antes (votação aberta e apuração). O troféu só carrega quando o banner aparece na tela.
+- Código: `AwardsBanner` em `src/components/AwardsCena.tsx`; `AwardsNotice` em `src/pages/Home.tsx`; estilo `.awbn` no fim de `src/styles/awards-cena.css`.
+
 ## 11/11/2026 — Jornada: cartão "Lembra disso?" corrigido na coluna lateral
 
 - O dono mostrou o cartão "Lembra disso?" desconfigurado na página da Jornada: foto à esquerda espremendo o texto em colunas de uma palavra e "Ver na linha do tempo" por cima do título.

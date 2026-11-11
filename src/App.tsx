@@ -247,6 +247,7 @@ export function App() {
   const siteClosed = useStore((s) => (s.siteOpen === undefined ? SITE_PRIVATE : !s.siteOpen));
   const profileId = useStore((s) => s.profile?.id);
   const tvMode = useTv();
+  useEffect(() => { if (ready && profileId) actions.limparColecaoDesejos(); }, [ready, profileId]);
   // Modo TV: os endereços /tv ligam o painel da tela grande (o /tv/parear é a página do celular, fora dele).
   const tvPath = MODO_TV && (path === '/tv' || path.startsWith('/tv?') || path.startsWith('/tv/estante'));
   useEffect(() => { if (tvPath && !tvOn()) setTv(true); }, [tvPath]);

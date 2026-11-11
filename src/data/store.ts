@@ -566,6 +566,17 @@ export const actions = {
     return value;
   },
 
+  /** Limpeza única: jogo que já está na coleção sai da lista de desejos e do Radar (regra de 11/11/2026).
+   *  Roda uma vez por conta; depois a própria regra do addCopy mantém tudo certo, e a pessoa ainda pode
+   *  pôr de propósito no Radar um jogo que já tem. */
+  limparColecaoDesejos() {
+    if (state.mode === 'demo' || !state.profile || state.prefs.limpezaColecao1) return;
+    const tem = new Set(state.copies.map((c) => c.gameId));
+    for (const w of state.wishes) if (tem.has(w.gameId)) dispatch({ type: 'wish', gameId: w.gameId, value: false });
+    for (const id of tem) if (myGame(state, id).onRadar) actions.setMyGame(id, { onRadar: undefined });
+    dispatch({ type: 'prefs', prefs: { limpezaColecao1: true } });
+  },
+
   toggleWish(gameId: ID) {
     const value = !state.wishes.some((w) => w.gameId === gameId);
     dispatch({ type: 'wish', gameId, value });

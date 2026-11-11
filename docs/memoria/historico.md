@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Limpeza: jogos da coleção saem dos desejos e do Radar; botões ligados com texto escuro
+
+- **Limpeza** (pedido do dono): os jogos que já estavam na coleção e continuavam na lista de desejos ou no Radar saem dos dois. Roda uma vez por conta, ao abrir o site com login (`actions.limparColecaoDesejos` em `src/data/store.ts`, marcada em `prefs.limpezaColecao1`). Depois disso, a regra do `addCopy` cuida; se a pessoa quiser, ainda pode pôr no Radar, de propósito, um jogo que já tem.
+- **Botões com texto branco em fundo branco:** no visual Carga, os botões ligados (No radar, favorito, os marcados) ficam com fundo claro; o "No radar" da ficha do jogo vinha com texto âmbar e outros com texto branco. Agora todo botão ligado ou principal de fundo claro tem texto escuro (`src/styles/carga.css`). O botão âmbar ("agora") não mudou.
+
 ## 11/11/2026 — Coleção: jogo adicionado sai dos desejos e do Radar
 
 - Pedido do dono: depois de adicionar um jogo à coleção, ele deve sair da lista de desejos e do Radar.

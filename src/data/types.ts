@@ -333,6 +333,8 @@ export interface Prefs {
   /** A pessoa dispensou o Início de boas-vindas (volta a ver o Início de sempre). */
   welcomeDone?: boolean;
   /** A Chegada (primeira visita em 15 telas): a tela onde parou, se terminou e o que ela precisa para continuar. */
+  /** Limpeza única (11/11/2026): jogos já na coleção saíram dos desejos e do Radar. */
+  limpezaColecao1?: boolean;
   chegada?: { passo: number; fim?: boolean; jogo?: ID | null; plataforma?: string | null; ups?: ID[]; at?: string };
   /** Plataformas que a pessoa marcou na Chegada (os botões, como "PS5" ou "Game Pass"). */
   plataformas?: string[];

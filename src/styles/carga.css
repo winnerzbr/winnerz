@@ -55,6 +55,8 @@
 .vc-botoes :is(.btn.primary, .btn[aria-pressed='true'], .btn.is-fav, .btn.is-radar):not(.quiet) {
   --cp: linear-gradient(180deg, var(--primary-hi), var(--primary)); --ck: linear-gradient(180deg, var(--primary-hi), var(--primary)); --ce: var(--muted);
 }
+/* fundo claro, texto escuro: o "No radar", o favorito e outros ligados ficavam com texto branco ou âmbar sobre o branco */
+.vc-botoes :is(.btn.primary, .btn[aria-pressed='true'], .btn.is-fav, .btn.is-radar):not(.quiet):not(.now) { color: var(--on-primary) !important; }
 .vc-botoes .btn.now { --cp: linear-gradient(var(--now), var(--now)); --ck: linear-gradient(var(--now), var(--now)); --ce: var(--vc-edgeN); --cring: #FFB25B; }
 .vc-botoes .btn.danger { --cring: var(--danger); }
 .vc-botoes .btn.danger-solid { --cp: linear-gradient(var(--danger), var(--danger)); --ck: linear-gradient(var(--danger), var(--danger)); }

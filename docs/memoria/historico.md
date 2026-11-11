@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Lobby dos Bugs: revisão geral das sombras (1ª rodada)
+
+- No repositório `winnerzbr/lobby-dos-bugs`: sombra nova em 32 pontos para tudo que se move (inclusive os tiros) e a sombra dos objetos do cenário com a forma de cada um. Detalhes no histórico do jogo.
+
 ## 11/11/2026 — Limpeza: jogos da coleção saem dos desejos e do Radar; botões ligados com texto escuro
 
 - **Limpeza** (pedido do dono): os jogos que já estavam na coleção e continuavam na lista de desejos ou no Radar saem dos dois. Roda uma vez por conta, ao abrir o site com login (`actions.limparColecaoDesejos` em `src/data/store.ts`, marcada em `prefs.limpezaColecao1`). Depois disso, a regra do `addCopy` cuida; se a pessoa quiser, ainda pode pôr no Radar, de propósito, um jogo que já tem.

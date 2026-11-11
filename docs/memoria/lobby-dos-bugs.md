@@ -88,3 +88,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (19h):** portas livres e regras de lugar dos objetos; objeto alto transparente com alguém atrás; penumbra nas salas não visitadas; 31 arenas próprias (2 por chefão, 3 do subchefe) com o meio livre; tiros únicos por inimigo (nenhum repetido).
 
 **11/11/2026 (18h30): onde ficam as diretrizes.** Todas as diretrizes e decisões do dono que valem para o jogo estão numeradas em `winnerzbr/lobby-dos-bugs`, `docs/memoria/diretrizes.md` (com data e a frase dele; diretriz mudada fica riscada, nunca some). Antes de entregar uma rodada: `bash ferramentas/conferir_tudo.sh`.
+
+**11/11/2026 (20h):** 1ª revisão geral das sombras (diretriz B3): sombra pintada em 32 pontos no IAmiguinho, bugs, chefões, baús, itens, cristais e agora também nos tiros; a sombra de cada objeto do cenário no chão tem a forma dele (embaixo e à direita). Falta: sombra dos móveis na parede e uns nos outros, paredes e efeitos. Próximo na fila: variedade de tamanho nos inimigos.

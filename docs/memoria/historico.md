@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: ao abrir uma categoria, a tela centraliza no carrossel
+
+- Pedido do dono: centralizar a tela no carrossel também quando a pessoa clica na categoria.
+- Vale para todo jeito de abrir uma categoria: tocar no nome dela, tocar num quadro de "Seus votos", o botão "Começar a votar" da abertura e o botão da próxima categoria dentro da cena.
+- Como a categoria aberta antes se fecha ao mesmo tempo, a conta já desconta a altura dela, para a tela parar no lugar certo de primeira.
+- Código: `abrir`, `centralizarCena` e `alturaAbertaAcima` em `src/pages/Awards.tsx`.
+
 ## 11/11/2026 — Awards: abertura em telas largas e linha de luz atrás
 
 - O dono mandou um print num monitor bem largo (2.535 px): o título ficava colado na esquerda e o troféu na direita. Pediu para aproximar os dois do centro, sem centralizar demais, e para a linha do horizonte (o risco de luz) ficar atrás de tudo.

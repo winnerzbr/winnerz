@@ -52,6 +52,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - **Abas:** agora as três dividem a largura do quadro; em telas estreitas (até 560 px) aparecem como "Nome", "Código" e "Foto" (para quem usa leitor de tela continua o nome inteiro). Código em `src/components/AddGameDialog.tsx` e `src/styles/carga.css`.
 - **Chave da IA:** a mensagem quer dizer que a chave da Anthropic cadastrada na Vercel (`ANTHROPIC_API_KEY`) foi recusada (apagada, expirada ou trocada). Só o dono resolve: criar uma chave nova em console.anthropic.com e colar direto na Vercel (Settings → Environment Variables), depois fazer um novo deploy. Nunca colar a chave na conversa. A mesma chave é usada pela leitura por foto, pela Retomada, pelo IAmiguinho e pelas pontes das lives; todas voltam a funcionar com a chave nova.
 - A tentativa que falhou não gasta leitura do mês (o servidor devolve o uso quando a IA recusa).
+- Provável causa: a chave antiga tinha prazo de validade. Ao criar a nova (nome `winnerz-site`, espaço de trabalho padrão), a recomendação foi escolher sem validade, ou a validade mais longa possível; com prazo, ela volta a parar sozinha no fim dele.
 
 ## 11/11/2026 — Início: banner do Awards só segue o mouse em cima dele; botão Votar com animação
 

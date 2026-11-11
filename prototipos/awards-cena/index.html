@@ -99,6 +99,60 @@ section.tab.on{display:block}
 .card.is-voted .card__bg{opacity:1}
 .card.is-voted .card__n,.card.is-voted .card__st{color:var(--now)}
 .card.is-voted .card__name{color:#fff}
+/* ---- seletor de jeitos de mostrar as categorias (só da prévia) ---- */
+.vsw{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.vsw button,.unav button{border:0;padding:10px 14px;background:#0b0c0e;outline:1px solid #2c3036;outline-offset:-1px;font:500 11px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#9AA1AA;cursor:pointer}
+.vsw button:hover,.unav button:hover{color:#fff;outline-color:#fff}
+.vsw button.on{background:#F2F4F6;color:#07080A;outline-color:#F2F4F6}
+.unav{display:none;justify-content:space-between;margin-top:8px}
+.unav.on{display:flex}
+/* B · créditos de filme */
+.cards.v-creditos{display:flex;flex-direction:column;gap:0;max-width:980px;margin:0 auto}
+.v-creditos .card{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:baseline;gap:clamp(12px,2vw,26px);min-height:0;padding:15px 8px;background:none!important;box-shadow:none!important;border-bottom:1px solid #14161a}
+.v-creditos .card__n{text-align:right}
+.v-creditos .card__name{font-size:clamp(20px,3vw,40px);text-align:center;transition:color .3s,letter-spacing .8s cubic-bezier(.2,.8,.2,1)}
+.v-creditos .card:hover .card__name,.v-creditos .card.open .card__name{letter-spacing:.07em}
+.v-creditos .card__st{text-align:left}
+.v-creditos .card::after{top:auto;bottom:-1px;transform-origin:center}
+.v-creditos .card__bg{display:none}
+/* C · rolo de película */
+.cards.v-rolo,.cards.v-uma{display:flex;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:#333 transparent;background:#000}
+.v-rolo .card{flex:0 0 clamp(200px,20vw,250px);min-height:280px;padding:52px 20px 50px;border-right:3px solid #000;scroll-snap-align:start;background:#0b0c0e}
+.v-rolo .card::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(90deg,#33363b 0 14px,transparent 14px 30px) 8px 10px/100% 12px no-repeat,repeating-linear-gradient(90deg,#33363b 0 14px,transparent 14px 30px) 8px calc(100% - 10px)/100% 12px no-repeat,linear-gradient(#000,#000) top/100% 32px no-repeat,linear-gradient(#000,#000) bottom/100% 32px no-repeat}
+.v-rolo .card::after{top:32px}
+.v-rolo .card__n{font:800 64px/.8 var(--ft);font-stretch:125%;letter-spacing:0;color:transparent;-webkit-text-stroke:1.5px #4a4f57}
+.v-rolo .card:hover .card__n,.v-rolo .card.is-voted .card__n{-webkit-text-stroke-color:var(--now);color:transparent}
+/* D · claquete (ordem do dia) */
+.cards.v-claquete{display:block;border:1px solid #2c3036}
+.cards.v-claquete::before{content:"";display:block;height:26px;background:repeating-linear-gradient(112deg,#F2F4F6 0 28px,#0b0c0e 28px 56px)}
+.v-claquete .card{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,300px);align-items:center;gap:18px;width:100%;min-height:54px;padding:0 18px;border-top:1px solid #1c1f24}
+.v-claquete .card__n::before{content:"CENA "}
+.v-claquete .card__name{font-size:clamp(14px,1.4vw,18px)}
+.v-claquete .card__st{text-align:right}
+.v-claquete .card::after{display:none}
+.v-claquete .card:hover{background:#16181b}
+.v-claquete .card__bg{display:none}
+/* E · ingressos */
+.cards.v-ingressos{grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:10px}
+.v-ingressos .card{display:grid;grid-template-columns:74px minmax(0,1fr);grid-template-rows:auto auto;align-content:center;column-gap:22px;row-gap:8px;min-height:112px;padding:16px 20px 16px 0;background:radial-gradient(circle at 74px 0,#07080A 9px,transparent 10px),radial-gradient(circle at 74px 100%,#07080A 9px,transparent 10px),#101215}
+.v-ingressos .card::before{content:"";position:absolute;left:74px;top:14px;bottom:14px;border-left:2px dashed #2c3036}
+.v-ingressos .card::after{display:none}
+.v-ingressos .card__n{grid-row:1/3;align-self:center;justify-self:center;font:800 26px var(--ft);font-stretch:125%;letter-spacing:0;color:#C9CED4}
+.v-ingressos .card:hover{background:radial-gradient(circle at 74px 0,#07080A 9px,transparent 10px),radial-gradient(circle at 74px 100%,#07080A 9px,transparent 10px),#17191c;transform:translateY(-2px)}
+.v-ingressos .card{transition:transform .25s}
+.v-ingressos .card__bg{z-index:2;opacity:1!important;background:none!important;pointer-events:none}
+.v-ingressos .card__bg::after{display:none}
+.v-ingressos .card__bg::before{content:"VOTADO";position:absolute;right:14px;top:50%;margin-top:-17px;padding:5px 12px;border:2.5px solid var(--now);color:var(--now);font:800 15px var(--ft);font-stretch:125%;letter-spacing:.12em;transform:rotate(-11deg);opacity:0}
+.v-ingressos .card.is-voted .card__bg::before{animation:stamp .4s cubic-bezier(.2,1.5,.4,1) forwards}
+@keyframes stamp{from{opacity:0;transform:rotate(-11deg) scale(2.2)}to{opacity:.95;transform:rotate(-11deg) scale(1)}}
+.v-ingressos .card.is-voted .card__st{padding-right:110px}
+/* F · uma por vez */
+.cards.v-uma{scrollbar-width:none}
+.cards.v-uma::-webkit-scrollbar{display:none}
+.v-uma .card{flex:0 0 100%;scroll-snap-align:center;min-height:clamp(300px,44vh,420px);justify-content:center;gap:14px;padding:30px clamp(20px,6vw,90px)}
+.v-uma .card__n{font:800 clamp(90px,17vw,230px)/.78 var(--ft);font-stretch:125%;letter-spacing:0;color:transparent;-webkit-text-stroke:2px var(--now);position:absolute;right:clamp(16px,5vw,70px);bottom:26px;opacity:.5}
+.v-uma .card__name{font-size:clamp(28px,5.4vw,72px);line-height:.9;max-width:14ch}
+.v-uma .card__st{font-size:13px}
 #stage:empty{display:none}
 #stage{margin-top:26px;scroll-margin-top:70px}
 #stage .scene{animation:rise .6s cubic-bezier(.2,.8,.2,1)}
@@ -156,7 +210,9 @@ section.tab.on{display:block}
   <div class="frames" id="frames"></div>
   <div id="stage"></div>
   <div class="sec"><h2 class="t">As 19 categorias</h2><span class="kicker">Toque numa categoria para votar</span></div>
+  <div class="vsw" id="vsw"><button data-v="cartelas" class="on">A · Cartelas</button><button data-v="creditos">B · Créditos de filme</button><button data-v="rolo">C · Rolo de película</button><button data-v="claquete">D · Claquete</button><button data-v="ingressos">E · Ingressos</button><button data-v="uma">F · Uma por vez</button></div>
   <div class="cards" id="rows"></div>
+  <div class="unav" id="unav"><button data-d="-1">‹ Anterior</button><button data-d="1">Próxima ›</button></div>
   <p class="note">Nesta prévia as artes dos jogos são manchas de cor: a página de teste não pode carregar as imagens de verdade. Só "Jogo do Ano" tem os nomes reais dos indicados; nas outras categorias são nomes de exemplo. A cena que abre ao tocar numa categoria é a mesma de hoje, sem mudança. As categorias agora são cartelas, sem as tiras de arte, para não parecerem a cena de voto.</p>
 </section>
 <section class="tab" id="tab-zenite">
@@ -291,6 +347,8 @@ requestAnimationFrame(zFrame);
 $$('.top button').forEach(b=>b.onclick=()=>{$$('.top button').forEach(x=>x.classList.toggle('on',x===b));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.tab));scrollTo({top:0});
  if(b.dataset.tab==='votacao')playOpen();if(b.dataset.tab==='zenite')refire($('#zsc'));if(b.dataset.tab==='como')refire($('#como .scene'))});
 buildOpen();buildRows();
+$$('#vsw button').forEach(b=>b.onclick=()=>{$$('#vsw button').forEach(x=>x.classList.toggle('on',x===b));const v=b.dataset.v,r=$('#rows');r.className='cards'+(v==='cartelas'?'':' v-'+v);r.scrollLeft=0;$('#unav').classList.toggle('on',v==='uma'||v==='rolo')});
+$$('#unav button').forEach(b=>b.onclick=()=>{const r=$('#rows');const c=r.querySelector('.card');r.scrollBy({left:+b.dataset.d*(r.classList.contains('v-uma')?r.clientWidth:c.offsetWidth*3),behavior:'smooth'})});
 </script>
 </body>
 </html>

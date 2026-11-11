@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: Awards, seis jeitos de mostrar as categorias (prévia, aguardando escolha)
+- O dono gostou das cartelas ("Bacana") e pediu mais sugestões de apresentação das categorias.
+- A prévia (`prototipos/awards-cena/index.html`, republicada) ganhou um seletor acima da lista, com seis opções que trocam na hora: A Cartelas; B Créditos de filme (lista centrada, nome grande); C Rolo de película (faixa de lado, com os furos do filme); D Claquete (tabela "Cena 01 · categoria · situação"); E Ingressos (canhoto com número e carimbo "VOTADO"); F Uma por vez (uma categoria grande por tela, com número gigante).
+- Em todas, tocar abre a cena de votação no palco único. Falta ele escolher.
+
 ## 11/11/2026: Awards, categorias viram cartelas (prévia)
 - O dono viu a prévia no estilo da votação e pediu: as categorias devem ser apresentadas de **forma diferente da cena de voto**, porque com o mesmo efeito (tiras de arte que abrem) confunde.
 - Na prévia (`prototipos/awards-cena/index.html`, republicada): a lista virou uma grade de **cartelas de título** só com número, nome e situação ("Votar →" ou "Seu voto: …"), sem tiras de arte. No mouse, só um fio de luz no alto da cartela. Tocar abre a cena de votação num palco único acima da grade. Cartela votada ganha o fundo da arte escolhida, escurecido, e fica em âmbar.

@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Troféu: lasca nas costas corrigida
+
+- O dono viu uma lasca saindo das costas do troféu.
+- Causa: na versão leve do modelo (a do site), ao juntar vértices vizinhos para diminuir o arquivo, alguns pontos do pano (que balança) foram juntados com pontos do corpo (que fica parado), perto do ombro de trás. Esses triângulos esticavam quando a bandeira se mexia.
+- Correção: o preparo do modelo (`prototipos/awards-cena/preparo/bake5.py`) não junta mais pontos com movimento diferente. Novo `public/modelos/zenite.bin`. Conferido com `preparo/stretch.py`, que simula o vento e procura triângulos que esticam: zero.
+
 ## 11/11/2026 — Adicionar à estante: abas sem texto cortado no celular; chave da IA recusada
 
 - O dono mandou print do celular: as abas "Código de barras" e "Foto das capas" apareciam cortadas, e a leitura por foto deu "A chave da IA no servidor foi recusada".

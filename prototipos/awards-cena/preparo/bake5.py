@@ -5,7 +5,9 @@ g=float(sys.argv[1]);out=sys.argv[2]
 d=np.load('zen/m0.npz');V0,N0,I0=d['V'],d['N'],d['I'];w0=np.load('zen/w.npz')['w']
 N0=N0/(np.linalg.norm(N0,axis=1,keepdims=True)+1e-9)
 cell=np.floor(V0/g).astype(np.int64);oc=(N0[:,0]>0)*1+(N0[:,1]>0)*2+(N0[:,2]>0)*4
-key=((cell[:,0]+2000)*4001+(cell[:,1]+2000))*4001+(cell[:,2]+2000);key=key*8+oc
+# a faixa do vento entra na chave: vértice do pano não se junta com vértice do corpo (senão vira lasca esticada)
+wb=np.round(w0*6).astype(np.int64)
+key=((cell[:,0]+2000)*4001+(cell[:,1]+2000))*4001+(cell[:,2]+2000);key=(key*8+oc)*8+wb
 u,inv=np.unique(key,return_inverse=True);inv=inv.ravel();n=len(u);cnt=np.bincount(inv,minlength=n)[:,None]
 V=np.zeros((n,3));np.add.at(V,inv,V0);V/=cnt;N=np.zeros((n,3));np.add.at(N,inv,N0);N/=(np.linalg.norm(N,axis=1,keepdims=True)+1e-9)
 W=np.zeros(n);np.add.at(W,inv,w0);W/=cnt[:,0]

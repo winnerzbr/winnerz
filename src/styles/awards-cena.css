@@ -134,6 +134,8 @@
 .aw2 .scene--steps .aw2steps__zen { z-index: 2; }
 /* a sombra de baixo fica por cima do troféu, para o texto da terceira faixa ler bem */
 .aw2 .scene--steps .scene__p .scene__shade { z-index: 3; }
+.aw2 .scene--steps .scene__p:nth-child(3) .scene__shade { background: linear-gradient(0deg, rgba(0, 0, 0, .96) 0%, rgba(0, 0, 0, .86) 30%, rgba(0, 0, 0, .35) 56%, transparent 72%); }
+.aw2 .scene--steps .scene__name { text-shadow: 0 1px 12px rgba(0, 0, 0, .9); }
 .aw2 .scene--steps .scene__name, .aw2 .scene--steps .aw2steps__num { z-index: 4; }
 
 @media (max-width: 760px) {

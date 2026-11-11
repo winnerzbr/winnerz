@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Troféu: toco nas costas tirado; banner do Início girando devagar; texto da faixa do Zênite legível
+
+- **Toco nas costas:** a "lasca" que continuava aparecendo era um pedaço da própria bandeira que ficou grudado nas costas depois do corte de hoje (uns 8 cm, parado, atravessado pela bandeira quando ela balança). Foi tirado e o furinho no corpo fechado (`prototipos/awards-cena/preparo/tirar_toco.py`). Novos `public/modelos/zenite.bin` (site) e `prototipos/awards-cena/zenite.bin` (prévia).
+- **Banner do Início:** o dono achou o giro rápido demais e de perfil. Agora vai só até um 3/4 leve (uns 20° para cada lado) e bem devagar (uns 20 s de um lado ao outro).
+- **Como funciona:** o texto da faixa "A revelação" estava difícil de ler por cima do troféu. O troféu foi um pouco para cima e para a direita, e a sombra de baixo ficou mais forte nessa faixa.
+
 ## 11/11/2026 (19h): Lobby dos Bugs — level design e inimigos únicos
 - Portas livres, regras de lugar, transparência dos objetos altos, penumbra, arenas próprias dos chefões, tiros únicos.
 

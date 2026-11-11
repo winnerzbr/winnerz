@@ -207,7 +207,7 @@ function TrofeuParado() {
   const [on, setOn] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const ct = [0.15, 3.85, 0], ang = 0.55, el = 0.02, d = 6.4;
+    const ct = [-0.35, 3.55, 0], ang = 0.45, el = 0.02, d = 6.6;
     const eye = [ct[0] + Math.sin(ang) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(ang) * Math.cos(el) * d];
     return mountZenite(ref.current, () => ({ eye, ct, x0: 0, wf: 1, sel: -1, lit: 1.1, fill: 0.08 }), () => setOn(true));
   }, []);
@@ -259,12 +259,13 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
   useEffect(() => {
     if (!ver || !ref.current) return;
     const parado = calmo();
-    const TRES_QUARTOS = 0.8; // uns 45 graus para cada lado
+    const TRES_QUARTOS = 0.36; // 3/4 leve: uns 20 graus para cada lado, sem chegar a ficar de perfil
     let ang = TRES_QUARTOS;
     return mountZenite(ref.current, (dt, t, w) => {
       // Vai de um 3/4 ao outro e segura um pouco em cada ponta (o seno "achatado" faz a pausa).
-      const alvo = parado ? TRES_QUARTOS : TRES_QUARTOS * Math.max(-1, Math.min(1, 1.5 * Math.sin(t * 0.32)));
-      ang += (alvo - ang) * (1 - Math.exp(-dt * 2.2));
+      // Bem devagar: uma ida de um lado ao outro leva uns 20 segundos.
+      const alvo = parado ? TRES_QUARTOS : TRES_QUARTOS * Math.max(-1, Math.min(1, 1.3 * Math.sin(t * 0.15)));
+      ang += (alvo - ang) * (1 - Math.exp(-dt * 1.2));
       const cel = w < 700, el = -0.06, ct = cel ? [0, 3.4, 0] : [0, 3.8, 0], d = cel ? 8.6 : 6.3;
       const eye = [ct[0] + Math.sin(ang) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(ang) * Math.cos(el) * d];
       return { eye, ct, x0: cel ? 0.42 : 0.5, wf: cel ? 0.58 : 0.5, sel: -1, lit: 1.12, fill: 0.08 };

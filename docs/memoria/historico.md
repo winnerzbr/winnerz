@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: bandeira solta da figura e logo nítido dentro da base (prévia)
+
+- Pedidos do dono: tirar a parte da bandeira que estava grudada na figura; diminuir o desvio da luz só na região do logo da base.
+- **Bandeira:** no modelo original a bandeira era colada nas costas da figura por um ponto pequeno (uns 2 cm na escala do modelo). Na versão preparada para a web esse ponto foi cortado e os dois furos foram fechados. Agora a bandeira só se prende no mastro e balança inteira, cada vez mais forte em direção às pontas. O arquivo `.glb` original do dono não foi alterado.
+  - Como é feito: o programa acha o caminho mais estreito que liga a bandeira ao corpo sem passar pelo mastro e corta ali (`prototipos/awards-cena/preparo/cut2.py`).
+  - Cuidado para o futuro: o modelo original já tem bordas abertas (2.536 arestas); só os furos criados pelo corte devem ser fechados. Fechar os outros estraga a bandeira.
+- **Logo:** o desvio e os brilhos das facetas diminuem perto do logo, que agora aparece nítido através do diamante.
+- Segue pendente: deixar o arquivo do modelo mais leve antes de ir para o site. Nada aplicado no site ainda.
+
 ## 11/11/2026 (14h30): Lobby dos Bugs — passo 1 dos objetos maiores e diretriz das sombras
 - Lixeiras, caixas, pilhas, pufes e mesinha maiores e com volume (commit 91b6e8f em `winnerzbr/lobby-dos-bugs`).
 - Diretriz geral nova do dono: caprichar nas sombras de tudo no jogo (em `CLAUDE.md` do jogo). Para depois: variedade de tamanho nos inimigos.

@@ -333,12 +333,12 @@ c+=vec3(.9,.7,.45)*smoothstep(.1,0.,abs(y+.05))*.25;return c;}
 void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);if(dot(n,v)<0.)n=-n;vec3 r=reflect(-v,n);float nv=max(dot(n,v),0.);float fr=pow(1.-nv,4.);
 float al=1.;vec3 col;
 if(vM>1.5&&vM<2.5){vec3 q=floor(n*23.+.5);vec3 hh=fract(sin(vec3(dot(q,vec3(12.9,78.2,37.7)),dot(q,vec3(39.3,11.1,83.2)),dot(q,vec3(73.2,52.2,9.4))))*43758.5);vec3 nr=normalize(n+.9*(hh-.5));
- vec2 uv=gl_FragCoord.xy/uRes;vec2 of=vec2(dot(n,uRt),dot(n,uUp))*vec2(uRes.y/uRes.x,1.)*.075+(hh.xy-.5)*.012;
+ vec2 uv=gl_FragCoord.xy/uRes;vec2 of=vec2(dot(n,uRt),dot(n,uUp))*vec2(uRes.y/uRes.x,1.)*.075+(hh.xy-.5)*.012;float lg=smoothstep(.3,.75,length((vW.xy-vec2(-.73,.38))*vec2(1.,1.5)))+smoothstep(.3,.0,vW.z);lg=clamp(lg,.12,1.);of*=lg;
  vec4 s1=texture2D(uScn,uv-of*.72),s2=texture2D(uScn,uv-of),s3=texture2D(uScn,uv-of*1.28);
  vec3 refr=vec3(s1.r*s1.a,s2.g*s2.a,s3.b*s3.a);float ra=max(s1.a,max(s2.a,s3.a));
  vec3 dr=reflect(refract(-v,n,.40),nr),dg=reflect(refract(-v,n,.415),nr),db=reflect(refract(-v,n,.43),nr);
  vec3 fire=vec3(dia(dr),dia(dg),dia(db));float sf=dia(r);
- float fl=smoothstep(.2,.0,abs(fract(dot(nr,v)*2.6+hh.z)-.5)-.12);vec3 hue=.5+.5*cos(6.283*(hh.y+dot(nr,v)*.8+vec3(0.,.33,.67)));
+ float fl=smoothstep(.2,.0,abs(fract(dot(nr,v)*2.6+hh.z)-.5)-.12);fl*=lg;vec3 hue=.5+.5*cos(6.283*(hh.y+dot(nr,v)*.8+vec3(0.,.33,.67)));
  vec3 gli=fire*.6+vec3(sf)*(.06+fr*1.1)+mix(vec3(1.),hue,.45)*fl*(.12+.4*hh.x)+vec3(.8,.9,1.)*(.05+.08*hh.z)+vec3(1.,.8,.5)*fr*.25;
  float gm=max(gli.r,max(gli.g,gli.b));
  col=refr*vec3(.96,.98,1.04)*(1.-.25*fl)+gli;al=clamp(max(ra*.97,.08+gm*.8+fr*.4),0.,1.);

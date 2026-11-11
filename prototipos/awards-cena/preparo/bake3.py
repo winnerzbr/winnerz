@@ -2,7 +2,7 @@ import numpy as np
 from scipy.spatial import cKDTree
 from scipy.sparse import coo_matrix
 from PIL import Image
-d=np.load('/home/claude/zen/m0.npz');V,N,I=d['V'],d['N'],d['I'];s=np.load('/home/claude/zen/seg.npz');mast=s['mast']
+d=np.load('/home/claude/zen/m0.npz');V,N,I=d['V'],d['N'],d['I'];s=np.load('/home/claude/zen/seg2.npz');mast=s['mast']
 n=len(V)
 T=V[I];fn=np.cross(T[:,1]-T[:,0],T[:,2]-T[:,0]);ar=np.linalg.norm(fn,axis=1)/2;fn/=(2*ar[:,None]+1e-12)
 print('area',ar.sum(),'edge len pct',np.percentile(np.linalg.norm(T[:,1]-T[:,0],axis=1),[50,90,99,99.9,100]))
@@ -24,14 +24,14 @@ from scipy.sparse.csgraph import dijkstra
 ln=np.linalg.norm(V[e[:,0]]-V[e[:,1]],axis=1)
 GA=coo_matrix((ln,(e[:,0],e[:,1])),shape=(n,n)).tocsr()
 dth=dijkstra(GA,directed=False,indices=np.where(thin)[0],min_only=True,limit=.05)
-thin=(dth<.03)&~mast
+thin=((dth<.03)|s['fside'])&~mast
 solid=~thin
 ke=(~solid)[e[:,0]]&(~solid)[e[:,1]];ln=np.linalg.norm(V[e[:,0]]-V[e[:,1]],axis=1)
 G=coo_matrix((ln[ke],(e[ke,0],e[ke,1])),shape=(n,n)).tocsr()
 src=np.where((~solid)&((A@solid.astype(float))>0))[0];print('src',len(src))
 geo=dijkstra(G,directed=False,indices=src,min_only=True);geo[~np.isfinite(geo)]=0
 print('geo pct',np.percentile(geo[~solid],[50,90,99,100]))
-w=np.clip((geo-.04)/(.34-.04),0,1);w=w*w*(3-2*w);w[solid]=0
+w=np.clip((geo-.04)/(.75-.04),0,1);w=w*w*(3-2*w);w[solid]=0
 for _ in range(10):w=.5*w+.5*(A@w)/deg
 w[mast]=0
 print('thin',thin.mean(),'w>0.05',(w>.05).mean(),'w max',w.max())

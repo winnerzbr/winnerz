@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: aba Troféu Zênite no celular com o troféu à direita (prévia)
+
+- O dono viu no celular que o troféu ficava atrás do texto na aba Troféu Zênite e pediu para colocá-lo à direita.
+- No celular (telas até 760 px): o troféu ocupa a metade direita do painel e o texto fica embaixo, à esquerda, em coluna estreita; o painel ficou mais alto (500 px) e o troféu inteiro aparece um pouco mais afastado para a bandeira não cortar ao girar. No computador nada mudou.
+- Nada aplicado no site ainda.
+
 ## 11/11/2026 — Awards: "Por que Zênite" fica com o efeito A (o sol sobe), agora interativo (prévia)
 
 - O dono escolheu o efeito **A · O sol sobe** e pediu uma forma interativa. Os outros quatro efeitos saíram da prévia.

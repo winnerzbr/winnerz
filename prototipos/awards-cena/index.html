@@ -217,7 +217,7 @@ section.tab.on{display:block}
  .scene__p{flex:none!important;height:96px}.scene.has .scene__p{height:50px}.scene.has .scene__p.on{height:330px}
  .scene__name{bottom:14px;left:16px}.scene__vt{writing-mode:horizontal-tb;transform:translateY(50%);left:16px;right:16px;bottom:50%;max-height:none}
  .scene__lb{height:52px}.scene__head .kicker,.scene__desc{display:none}.scene__ttl{left:18px;right:18px;bottom:18px;gap:10px}.scene__flare{top:50%}
- .zen .scene__ttl{width:auto;left:18px}
+ .zen .scene__ttl{width:auto;left:18px;right:50%;bottom:22px}.zen .scene__nm{font-size:clamp(22px,7.4vw,34px)}.zen .scene__hint{font-size:13px}.zen #zmain{min-height:500px}.zen #zmain .scene__shade{background:linear-gradient(90deg,rgba(0,0,0,.8) 0%,rgba(0,0,0,.5) 42%,transparent 62%)}.zen .scene__tag{white-space:normal;line-height:1.3}
  .awrow{grid-template-columns:minmax(0,1fr) 90px;height:64px}.awrow__covers{display:none}.awrow:hover,.awrow.open{height:84px}
  .frames i{height:22px}.ped{grid-template-columns:repeat(2,minmax(0,1fr))}
  .scene--steps .scene__p{height:150px}.scene--steps .scene__name{bottom:14px}
@@ -386,7 +386,7 @@ function zFrame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!CALM)T+
  if(RZ&&$('#tab-zenite').classList.contains('on')){
   if(!Z.drag){Z.va+=(.2-Z.va)*.02;Z.ang+=Z.va*dt}const k=1-Math.exp(-dt*3);Z.cd+=(Z.dist-Z.cd)*k;for(let i=0;i<3;i++)Z.ct[i]+=(Z.tg[i]-Z.ct[i])*k;
   const eye=[Z.ct[0]+Math.sin(Z.ang)*Math.cos(Z.el)*Z.cd,Z.ct[1]+Math.sin(Z.el)*Z.cd,Z.ct[2]+Math.cos(Z.ang)*Math.cos(Z.el)*Z.cd];
-  drawR(RZ,eye,Z.ct,0,.62,Z.part>=0?ZP[Z.part][1]:-1,Z.part>=2?1.45:1.15,.12)}
+  const zs=innerWidth<=760,zc=zs&&Z.part<0?[Z.ct[0],Z.ct[1]-.5,Z.ct[2]]:Z.ct;if(zs&&Z.part<0){for(let i=0;i<3;i++)eye[i]=Z.ct[i]+(eye[i]-Z.ct[i])*1.16;eye[1]-=.5}drawR(RZ,eye,zc,zs?.46:0,zs?.54:.62,Z.part>=0?ZP[Z.part][1]:-1,Z.part>=2?1.45:1.15,.12)}
  if(RO&&TO.isConnected&&$('#tab-votacao').classList.contains('on')){const r=TO.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight&&r.width>2){
   const slim=r.width<r.height*1.15,a=.12+Math.sin(T*.16)*(slim?.2:.3),el=-.08,d=slim?14.5:12.4,ct=slim?[0,1.3,0]:[0,2.72,0];
   const eye=[ct[0]+Math.sin(a)*Math.cos(el)*d,ct[1]+Math.sin(el)*d,ct[2]+Math.cos(a)*Math.cos(el)*d];

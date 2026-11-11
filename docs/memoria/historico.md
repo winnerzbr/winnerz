@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (tarde): Lobby dos Bugs, coesão e móveis sorteados
+- Regras do dono: coesão das paredes dentro da sala e tudo o que for criado entra no sistema de variedade. Feito: neons em 9 formas, 17 móveis sorteados encostados na parede e 4 tapetes. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 11/11/2026: prévias do Awards com VFX, ajuste de tela
 - O dono mandou uma captura: os fundos em WebGL funcionam, mas o título saía cortado (grande demais, quebrando em várias linhas e passando por baixo do menu).
 - Corrigido em `prototipos/awards-vfx/index.html` e republicado: título menor, cada linha sem quebra, e um ajuste automático que encolhe o título até caber na largura e abaixo do menu, em qualquer tamanho de janela.

@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: Awards, categorias viram cartelas (prévia)
+- O dono viu a prévia no estilo da votação e pediu: as categorias devem ser apresentadas de **forma diferente da cena de voto**, porque com o mesmo efeito (tiras de arte que abrem) confunde.
+- Na prévia (`prototipos/awards-cena/index.html`, republicada): a lista virou uma grade de **cartelas de título** só com número, nome e situação ("Votar →" ou "Seu voto: …"), sem tiras de arte. No mouse, só um fio de luz no alto da cartela. Tocar abre a cena de votação num palco único acima da grade. Cartela votada ganha o fundo da arte escolhida, escurecido, e fica em âmbar.
+- Regra: o efeito de tiras que abrem em tela larga fica reservado para o voto (e para a abertura e o troféu); listas e menus do Awards usam cartelas.
+
 ## 11/11/2026: Awards, nova direção: a página inteira no estilo da cena de votação
 - O dono **não gostou de nenhuma** das cinco direções com VFX (Cerimônia, Ascensão, Forja, Constelação, Contagem). Quer efeitos **parecidos com os de quando se vota num candidato**.
 - Regra para o Awards daqui em diante: usar a linguagem da cena de votação (tiras de arte em preto e branco, a escolhida abre em tela larga e ganha cor, zoom lento, risco de lente azul/branco/âmbar, luz âmbar vazando, granulado, faixas pretas, clarão, título que chega com as letras se juntando, rótulos em mono). Nada de partículas, fumaça ou fundos de outro estilo.

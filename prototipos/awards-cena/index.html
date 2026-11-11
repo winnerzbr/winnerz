@@ -81,27 +81,27 @@ section.tab.on{display:block}
 .scene--open .scene__p{cursor:default}
 .cd{font:500 clamp(13px,1.3vw,17px) var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#fff}
 .cd b{color:var(--now);font-weight:600}
-/* ===== lista de categorias: cada linha é uma tira de filme que abre ===== */
-.rows{display:flex;flex-direction:column;gap:3px}
-.awrow{position:relative;display:grid;grid-template-columns:minmax(200px,.9fr) minmax(0,1.7fr) 150px;align-items:center;gap:20px;width:100%;height:78px;padding:0 0 0 22px;border:0;background:#0b0c0e;cursor:pointer;overflow:hidden;text-align:left;isolation:isolate;transition:height .8s cubic-bezier(.2,.8,.2,1),background .4s}
-.awrow__name{font-size:clamp(15px,1.7vw,22px);line-height:1;color:#C9CED4;transition:color .4s,letter-spacing .9s cubic-bezier(.2,.8,.2,1)}
-.awrow__covers{display:flex;gap:3px;height:100%;overflow:hidden}
-.awrow__art{flex:1 1 0;background-size:cover;filter:grayscale(.9) brightness(.45);transition:filter .8s,transform 1.6s cubic-bezier(.2,.8,.2,1),flex-grow 1.1s cubic-bezier(.2,.8,.2,1)}
-.awrow__go{justify-self:end;padding-right:22px;white-space:nowrap}
-.awrow::before,.awrow::after{content:"";position:absolute;left:0;right:0;height:0;background:#000;z-index:3;transition:height .7s cubic-bezier(.2,.8,.2,1);pointer-events:none}
-.awrow::before{top:0}.awrow::after{bottom:0}
-.awrow i.fl{position:absolute;left:-10%;right:-10%;top:50%;height:2px;z-index:4;pointer-events:none;opacity:0;transform:scaleX(0);background:linear-gradient(90deg,transparent 5%,rgba(120,170,255,.45) 30%,#FFF3E0 50%,rgba(255,178,91,.7) 68%,transparent 92%);box-shadow:0 0 18px rgba(255,210,150,.8),0 0 70px rgba(120,170,255,.4);transition:transform 1s cubic-bezier(.2,.8,.2,1),opacity .5s}
-.awrow:hover,.awrow:focus-visible,.awrow.open{height:150px;background:#000;outline:none}
-.awrow:hover::before,.awrow:hover::after,.awrow:focus-visible::before,.awrow:focus-visible::after,.awrow.open::before,.awrow.open::after{height:14px}
-.awrow:hover .awrow__art,.awrow:focus-visible .awrow__art,.awrow.open .awrow__art{filter:grayscale(.15) brightness(.8);transform:scale(1.08)}
-.awrow:hover .awrow__art:hover{flex-grow:2.4;filter:none}
-.awrow:hover .awrow__name,.awrow:focus-visible .awrow__name,.awrow.open .awrow__name{color:#fff;letter-spacing:.05em}
-.awrow:hover i.fl,.awrow:focus-visible i.fl,.awrow.open i.fl{opacity:.8;transform:scaleX(1)}
-.awrow.is-voted .awrow__go{color:var(--now)}
-.awrow.is-voted .awrow__name{color:#fff}
-.slot{overflow:hidden}
-.slot .scene{animation:slot-in .9s cubic-bezier(.2,.8,.2,1)}
-@keyframes slot-in{from{height:150px;opacity:.4}to{opacity:1}}
+/* ===== categorias: cartelas de título (diferentes da cena de voto, para não confundir) ===== */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:3px}
+.card{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:18px;min-height:150px;padding:18px 20px;border:0;background:#0b0c0e;cursor:pointer;overflow:hidden;text-align:left;isolation:isolate}
+.card__n{font:500 12px var(--fm);letter-spacing:.2em;color:#6d747d;transition:color .3s}
+.card__name{font-size:clamp(17px,1.5vw,21px);line-height:1.02;color:#C9CED4;text-wrap:balance;transition:color .3s}
+.card__st{font:500 11px var(--fm);letter-spacing:.14em;text-transform:uppercase;color:#9AA1AA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card__bg{position:absolute;inset:0;z-index:-1;background-size:cover;opacity:0;transition:opacity .6s}
+.card__bg::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.9),rgba(0,0,0,.45))}
+.card::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(120,170,255,.5) 25%,#FFF3E0 50%,rgba(255,178,91,.8) 72%,transparent);transform:scaleX(0);transform-origin:left;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.card:hover,.card:focus-visible{background:#111316;outline:none}
+.card:hover::after,.card:focus-visible::after,.card.open::after{transform:scaleX(1)}
+.card:hover .card__name,.card:focus-visible .card__name{color:#fff}
+.card:hover .card__n{color:var(--now)}
+.card.open{background:#17191c;box-shadow:inset 0 0 0 2px #F2F4F6}
+.card.open .card__name{color:#fff}
+.card.is-voted .card__bg{opacity:1}
+.card.is-voted .card__n,.card.is-voted .card__st{color:var(--now)}
+.card.is-voted .card__name{color:#fff}
+#stage:empty{display:none}
+#stage{margin-top:26px;scroll-margin-top:70px}
+#stage .scene{animation:rise .6s cubic-bezier(.2,.8,.2,1)}
 /* contador de votos: 19 quadros de filme */
 .frames{display:grid;grid-template-columns:repeat(19,minmax(0,1fr));gap:3px}
 .frames i{position:relative;display:block;height:34px;background:#0e1013;overflow:hidden}
@@ -154,9 +154,10 @@ section.tab.on{display:block}
   <div id="open"></div>
   <div class="sec"><h2 class="t">Seus votos</h2><span class="kicker"><span id="nv">0</span> de 19 categorias</span></div>
   <div class="frames" id="frames"></div>
-  <div class="sec"><h2 class="t">As 19 categorias</h2><span class="kicker">Passe o mouse · toque para abrir a cena</span></div>
-  <div class="rows" id="rows"></div>
-  <p class="note">Nesta prévia as artes dos jogos são manchas de cor: a página de teste não pode carregar as imagens de verdade. Só "Jogo do Ano" tem os nomes reais dos indicados; nas outras categorias são nomes de exemplo. A cena que abre ao tocar numa categoria é a mesma de hoje, sem mudança.</p>
+  <div id="stage"></div>
+  <div class="sec"><h2 class="t">As 19 categorias</h2><span class="kicker">Toque numa categoria para votar</span></div>
+  <div class="cards" id="rows"></div>
+  <p class="note">Nesta prévia as artes dos jogos são manchas de cor: a página de teste não pode carregar as imagens de verdade. Só "Jogo do Ano" tem os nomes reais dos indicados; nas outras categorias são nomes de exemplo. A cena que abre ao tocar numa categoria é a mesma de hoje, sem mudança. As categorias agora são cartelas, sem as tiras de arte, para não parecerem a cena de voto.</p>
 </section>
 <section class="tab" id="tab-zenite">
   <div id="zen"></div>
@@ -188,25 +189,27 @@ function buildOpen(){const P=[11,23,5,0,17,29,8];
  $('#open').innerHTML=`<div class="scene scene--open" id="opsc"><div class="scene__row">`+P.map((s,i)=>`<div class="scene__p${i===3?' on':''}"><span class="scene__img" style="background:${i===3?'radial-gradient(ellipse at 62% 30%,#c9a45a 0%,#6d5326 20%,#2a2213 48%,#0c0b09 80%)':art(s+3)}"></span><span class="scene__shade"></span>${i===3?'<span class="scene__leak"></span>':''}<span class="scene__vt">${CATS[(i*3+1)%19]}</span></div>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
  <div class="scene__top"><div class="scene__head"><span class="kicker" style="color:#C9CED4">Onde jogos viram histórias</span></div><span class="kicker">2026</span></div>
  <div class="scene__bottom"><span class="scene__desc">Um voto por categoria. Dá para mudar até o fim da votação.</span><span style="display:flex;gap:22px"><button class="kicker scene__next" id="replay">Rever a abertura</button><button class="kicker scene__next" id="start">Começar a votar →</button></span></div></div>`;
- $('#replay').onclick=playOpen;$('#start').onclick=()=>{const r=$('#rows .awrow');r.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(()=>openCat(0),500)};setTimeout(playOpen,250)}
+ $('#replay').onclick=playOpen;$('#start').onclick=()=>openCat(0);setTimeout(playOpen,250)}
 function playOpen(){const sc=$('#opsc');sc.classList.remove('has');sc.querySelectorAll('.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());
  setTimeout(()=>{sc.classList.add('has');sc.querySelector('.scene__p.on').insertAdjacentHTML('beforeend',openTtl());refire(sc)},450)}
 setInterval(()=>{left=Math.max(0,left-1);const e=$('#cd');if(e)e.innerHTML=cdText()},1000);
 
 /* ---- categorias ---- */
-function buildRows(){$('#rows').innerHTML=CATS.map((c,i)=>`<div><button class="awrow" data-c="${i}"><span class="t awrow__name">${c}</span><span class="awrow__covers" aria-hidden="true">${noms(i).slice(0,6).map((n,j)=>`<span class="awrow__art" style="background:${art(i*7+j+1)}"></span>`).join('')}</span><span class="kicker awrow__go">Votar →</span><i class="fl"></i></button><div class="slot" id="slot-${i}"></div></div>`).join('');
+function buildRows(){$('#rows').innerHTML=CATS.map((c,i)=>`<button class="card" data-c="${i}"><span class="card__bg"></span><span class="card__n">${String(i+1).padStart(2,'0')}</span><span class="t card__name">${c}</span><span class="card__st">Votar →</span></button>`).join('');
  $('#frames').innerHTML=CATS.map(()=>'<i></i>').join('');
- $('#rows').addEventListener('click',e=>{const r=e.target.closest('.awrow');if(r){openCat(+r.dataset.c,true);return}const nx=e.target.closest('[data-next]');if(nx){const k=+nx.dataset.next;if(CATS[k]){openCat(k);$(`.awrow[data-c="${k}"]`).scrollIntoView({behavior:'smooth',block:'start'})}return}const p=e.target.closest('.scene__p');if(p)vote(+p.closest('.scene').dataset.c,+p.dataset.n)})}
+ $('#rows').addEventListener('click',e=>{const r=e.target.closest('.card');if(r)openCat(+r.dataset.c)});
+ $('#stage').addEventListener('click',e=>{const nx=e.target.closest('[data-next]');if(nx){const k=+nx.dataset.next;if(CATS[k])openCat(k);return}const p=e.target.closest('.scene__p');if(p)vote(+p.closest('.scene').dataset.c,+p.dataset.n)})}
 let openC=-1;
-function openCat(i,toggle){if(openC>=0){$('#slot-'+openC).innerHTML='';$(`.awrow[data-c="${openC}"]`).classList.remove('open')}if(toggle&&openC===i){openC=-1;return}openC=i;$(`.awrow[data-c="${i}"]`).classList.add('open');
- $('#slot-'+i).innerHTML=`<div class="scene" data-c="${i}"><div class="scene__row" role="radiogroup">`+noms(i).map((n,j)=>`<button class="scene__p" role="radio" aria-checked="false" aria-label="${n}" data-n="${j}"><span class="scene__img" style="background:${art(i*7+j+1)}"></span><span class="scene__shade"></span><span class="scene__name"><b>${n}</b><span>Estúdio · 2026</span></span><span class="scene__vt">${n}</span></button>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
+function openCat(i){if(openC>=0)$(`.card[data-c="${openC}"]`).classList.remove('open');openC=i;$(`.card[data-c="${i}"]`).classList.add('open');
+ $('#stage').innerHTML=`<div class="scene" data-c="${i}"><div class="scene__row" role="radiogroup">`+noms(i).map((n,j)=>`<button class="scene__p" role="radio" aria-checked="false" aria-label="${n}" data-n="${j}"><span class="scene__img" style="background:${art(i*7+j+1)}"></span><span class="scene__shade"></span><span class="scene__name"><b>${n}</b><span>Estúdio · 2026</span></span><span class="scene__vt">${n}</span></button>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
  <div class="scene__top"><div class="scene__head"><h2 class="t">${CATS[i]}</h2><span class="kicker">${i+1} de 19</span></div><span class="kicker" data-st>Toque numa arte para votar</span></div>
  <div class="scene__bottom"><span class="scene__desc">Um voto por categoria. Dá para mudar até o fim da votação.</span><button class="kicker scene__next" data-next="${i+1}">${CATS[i+1]?CATS[i+1]+' →':''}</button></div></div>`;
+ $('#stage').scrollIntoView({behavior:'smooth',block:'start'});
  if(voted[i]!=null)setTimeout(()=>paint(i),60)}
 function vote(c,n){if(voted[c]===n)delete voted[c];else voted[c]=n;paint(c);
  const nv=Object.keys(voted).length;$('#nv').textContent=nv;$$('#frames i').forEach((f,k)=>f.classList.toggle('ok',voted[k]!=null));
- const r=$(`.awrow[data-c="${c}"]`);r.classList.toggle('is-voted',voted[c]!=null);r.querySelector('.awrow__go').textContent=voted[c]!=null?'Seu voto: '+noms(c)[voted[c]]:'Votar →'}
-function paint(c){const sc=$(`#slot-${c} .scene`);if(!sc)return;const v=voted[c],has=v!=null;sc.classList.toggle('has',has);sc.querySelectorAll('.scene__leak,.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());sc.querySelector('[data-st]').textContent=has?'':'Toque numa arte para votar';
+ const r=$(`.card[data-c="${c}"]`),has=voted[c]!=null;r.classList.toggle('is-voted',has);r.querySelector('.card__st').textContent=has?'Seu voto: '+noms(c)[voted[c]]:'Votar →';r.querySelector('.card__bg').style.backgroundImage=has?art(c*7+voted[c]+1):''}
+function paint(c){const sc=$(`#stage .scene[data-c="${c}"]`);if(!sc)return;const v=voted[c],has=v!=null;sc.classList.toggle('has',has);sc.querySelectorAll('.scene__leak,.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());sc.querySelector('[data-st]').textContent=has?'':'Toque numa arte para votar';
  sc.querySelectorAll('.scene__p').forEach((p,j)=>{const on=j===v;p.classList.toggle('on',on);p.setAttribute('aria-checked',on);if(on){const n=noms(c)[j];p.querySelector('.scene__shade').insertAdjacentHTML('afterend','<span class="scene__leak"></span>');p.insertAdjacentHTML('beforeend',`<span class="scene__ttl"><span class="scene__tag">${CHECK}Seu voto<span class="scene__tagcat"> · ${CATS[c]}</span></span><span class="scene__nm">${n}</span><span class="scene__sub">Estúdio · 2026</span><span class="scene__hint">Toque de novo para tirar o voto</span></span>`)}});
  if(has)refire(sc)}
 

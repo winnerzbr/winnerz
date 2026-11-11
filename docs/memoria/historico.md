@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: Awards, categorias: saem as opções temáticas, entram formas sem tema (prévia)
+- O dono mandou tirar todas as opções menos a A (Cartelas) e criar novas **sem tema** (nada de rolo de película, claquete, ingresso etc.): quer só formas bonitas e estilosas.
+- Regra: no Awards, não dar "fantasia" temática aos elementos; o estilo vem de tipografia, proporção e movimento.
+- Prévia (`prototipos/awards-cena/index.html`, republicada) com seis opções: A Cartelas; B Lista grande (nomes enormes em contorno que se enchem); C Mosaico (blocos de tamanhos diferentes, Jogo do Ano maior); D Índice com destaque (lista de um lado; do outro, a categoria em foco com número gigante); E Degraus (barras inclinadas em escada, que invertem para branco); F Números (grade de números grandes). Falta ele escolher.
+
 ## 11/11/2026: Awards, seis jeitos de mostrar as categorias (prévia, aguardando escolha)
 - O dono gostou das cartelas ("Bacana") e pediu mais sugestões de apresentação das categorias.
 - A prévia (`prototipos/awards-cena/index.html`, republicada) ganhou um seletor acima da lista, com seis opções que trocam na hora: A Cartelas; B Créditos de filme (lista centrada, nome grande); C Rolo de película (faixa de lado, com os furos do filme); D Claquete (tabela "Cena 01 · categoria · situação"); E Ingressos (canhoto com número e carimbo "VOTADO"); F Uma por vez (uma categoria grande por tela, com número gigante).

@@ -79,6 +79,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 - 19 categorias. O dono escolhe os indicados.
 - Na primeira edição, quem acabou de se cadastrar já pode votar.
 - O troféu se chama **Zênite**.
+- **O Zênite em 3D (a versão mais fiel):** a página "Troféu WinnerZ Awards", https://claude.ai/artifact/Moh8mrJHKZAWyP4LVadHdT (21/10/2026; girar e aproximar; o título ainda diz "O Troféu", de antes do nome). As prévias do Awards de 11/11 usam um modelo mais simples feito em código. A versão mais antiga "Confluência" (https://claude.ai/artifact/7wyVUZhSfoMSo7f8vLf9Sz, 04/10) é de outro conceito, antes do troféu oficial.
 - O resultado nunca pode vazar antes da revelação.
 
 ## Áreas e ideias

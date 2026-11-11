@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (tarde, 2ª rodada): Lobby dos Bugs, sala vitrine com paredes grossas
+- O dono achou a 1ª versão ainda aquém (paredes "de papel"). 2ª rodada: paredes com grossura e volume no jogo todo, chão com placas de tamanhos diferentes, detalhes e uma sala de formato único. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 11/11/2026 (tarde): Lobby dos Bugs, sala vitrine
 - O dono achou o visual básico perto do Enter the Gungeon. Os lotes pararam; o salão foi refeito como sala vitrine (luz, paredes, chão, bug). Se ele aprovar, vira a régua do resto. Resumo em `docs/memoria/lobby-dos-bugs.md`.
 

@@ -9,6 +9,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - Pedido do dono: centralizar a tela no carrossel também quando a pessoa clica na categoria.
 - Vale para todo jeito de abrir uma categoria: tocar no nome dela, tocar num quadro de "Seus votos", o botão "Começar a votar" da abertura e o botão da próxima categoria dentro da cena.
 - Como a categoria aberta antes se fecha ao mesmo tempo, a conta já desconta a altura dela, para a tela parar no lugar certo de primeira.
+- O deslize é feito quadro a quadro (`deslizar`), em 0,9 s, porque a página ainda está crescendo enquanto o carrossel abre; o deslize comum do navegador parava antes da hora nas últimas categorias. Se a pessoa rolar a página no meio do caminho, o deslize para.
 - Código: `abrir`, `centralizarCena` e `alturaAbertaAcima` em `src/pages/Awards.tsx`.
 
 ## 11/11/2026 — Awards: abertura em telas largas e linha de luz atrás

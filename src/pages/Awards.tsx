@@ -166,6 +166,24 @@ export function EventsIndex() {
   );
 }
 
+/** Desliza a página até `alvo` em 0,9 s, no mesmo ritmo em que o carrossel abre. É feito quadro a quadro porque a
+ *  página ainda está crescendo enquanto o carrossel abre (um deslize comum pararia antes, no fim antigo da página).
+ *  Se a pessoa rolar por conta própria no meio do caminho, o deslize para. */
+let deslize = 0;
+function deslizar(alvo: number, direto: boolean) {
+  cancelAnimationFrame(deslize);
+  if (direto) { window.scrollTo(0, alvo); setTimeout(() => window.scrollTo(0, alvo), 120); return; }
+  const de = window.scrollY, t0 = performance.now();
+  const parar = () => { cancelAnimationFrame(deslize); removeEventListener('wheel', parar); removeEventListener('touchstart', parar); };
+  addEventListener('wheel', parar, { passive: true }); addEventListener('touchstart', parar, { passive: true });
+  const passo = (agora: number) => {
+    const p = Math.min(1, (agora - t0) / 900), e = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, de + (alvo - de) * e);
+    if (p < 1) deslize = requestAnimationFrame(passo); else parar();
+  };
+  deslize = requestAnimationFrame(passo);
+}
+
 /** A tela desliza até o carrossel da categoria ficar no meio da área livre (abaixo do menu e das abas).
  *  - `comVoto`: ao votar. No computador a cena cresce 160px quando ganha as faixas de cinema; a conta usa a altura final.
  *  - `descontar`: ao abrir uma categoria, a altura do carrossel que estava aberto acima dela e vai se fechar. */
@@ -180,7 +198,7 @@ function centralizarCena(catId: string, o: { comVoto?: boolean; descontar?: numb
   // Se a cena não cabe inteira, encosta o topo dela logo abaixo das abas.
   const alvo = window.scrollY + r.top - (o.descontar ?? 0) - topo - Math.max(0, (livre - altura) / 2);
   const calmo = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) || document.documentElement.dataset.motion === 'reduzidas';
-  window.scrollTo({ top: Math.max(0, alvo), behavior: calmo ? 'auto' : 'smooth' });
+  deslizar(Math.max(0, alvo), calmo);
 }
 /** Quanto os carrosséis abertos acima desta categoria ocupam agora (eles se fecham quando ela abre). */
 function alturaAbertaAcima(catId: string): number {

@@ -11,7 +11,7 @@ import { Agenda } from '../components/Agenda';
 import { AwardsNominate, AwardsStickerCard } from './AwardsPlus';
 import type { AgendaItem } from '../data/eventsApi';
 import { CameoJornada } from '../components/IAmiguinho';
-import { TrofeuAbertura, ZeniteCena, SolZenite, ComoFunciona } from '../components/AwardsCena';
+import { TrofeuAbertura, ZeniteCena, SolZenite, ComoFunciona, Particulas } from '../components/AwardsCena';
 
 const tz = 'America/Sao_Paulo';
 export const fmtWhen = (iso?: string, withTime = false) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'long', ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}), timeZone: tz }) : '');
@@ -320,6 +320,7 @@ export function AwardsPage() {
           <div className="scene__row">
             <div className="scene__p on">
               <span className="aw2op__bg" aria-hidden="true" />
+              <Particulas />
               {/* a linha de luz fica atrás do troféu e do título */}
               <span className="scene__flare" aria-hidden="true" />
               <span className="scene__ghost" aria-hidden="true" />

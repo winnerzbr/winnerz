@@ -18,7 +18,7 @@ export function TrofeuAbertura() {
       const eye = [ct[0] + Math.sin(a) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(a) * Math.cos(el) * d];
       // Em telas bem largas o troféu vem um pouco para o centro (a mesma conta está em --tc, no estilo).
       const cx = Math.max(0.66 * w, Math.min(0.76 * w, 0.76 * w - (w - 1600) * 0.26)) / w;
-      return { eye, ct, x0: slim ? 0 : cx - 0.24, wf: slim ? 1 : 0.48, sel: -1, lit: 1.45, fill: 0.2 };
+      return { eye, ct, x0: slim ? 0 : cx - 0.24, wf: slim ? 1 : 0.48, sel: -1, lit: 1.12, fill: 0.08 };
     }, () => setOn(true));
   }, []);
   return <canvas ref={ref} className={`aw2gl${on ? ' is-on' : ''}`} aria-hidden="true" />;
@@ -268,7 +268,7 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
       cam.ang += (ta - cam.ang) * k; cam.el += (te - cam.el) * k;
       const cel = w < 700, ct = [0, 2.75, 0], d = cel ? 12.4 : 10.6;
       const eye = [ct[0] + Math.sin(cam.ang) * Math.cos(cam.el) * d, ct[1] + Math.sin(cam.el) * d, ct[2] + Math.cos(cam.ang) * Math.cos(cam.el) * d];
-      return { eye, ct, x0: cel ? 0.44 : 0.6, wf: cel ? 0.56 : 0.36, sel: -1, lit: 1.45, fill: 0.2 };
+      return { eye, ct, x0: cel ? 0.44 : 0.6, wf: cel ? 0.56 : 0.36, sel: -1, lit: 1.12, fill: 0.08 };
     }, () => setOn(true));
     return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
   }, [ver]);
@@ -277,6 +277,7 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
     <div ref={box} className="awbn on-photo">
       <Link to="/eventos/awards" className="awbn__link" aria-label={`${title}: ${cta}`} />
       <span className="awbn__bg" aria-hidden="true" />
+      <Particulas foco={0.78} n={60} />
       <span className="scene__flare" aria-hidden="true" />
       {ver && <canvas ref={ref} className={`aw2gl${on ? ' is-on' : ''}`} aria-hidden="true" />}
       <span className="awbn__veil" aria-hidden="true" />
@@ -299,4 +300,52 @@ function ContaBanner({ to }: { to: string }) {
   const d = Math.floor(left / 86400000), h = Math.floor((left % 86400000) / 3600000), m = Math.floor((left % 3600000) / 60000);
   const pad = (n: number) => String(n).padStart(2, '0');
   return <span className="awbn__cd">Faltam <b>{d}d {pad(h)}h {pad(m)}m</b></span>;
+}
+
+/** Partículas de poeira dourada no fundo da abertura e do banner: sobem devagar, com brilho suave.
+ *  Mais densas perto do troféu (`foco`, de 0 a 1 na largura). Com "reduzir movimento", ficam paradas.
+ *  O desenho pausa quando sai da tela ou a aba fica escondida. */
+export function Particulas({ foco = 0.76, n = 90 }: { foco?: number; n?: number }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const C = ref.current, X = C?.getContext('2d');
+    if (!C || !X) return;
+    const parado = calmo();
+    const rnd = (() => { let s = 7; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; })();
+    const P = Array.from({ length: n }, (_, i) => {
+      const perto = i % 3 !== 0;
+      return {
+        x: perto ? foco + (rnd() - 0.5) * 0.42 : rnd(), y: rnd(),
+        r: rnd() < 0.12 ? 2.4 + rnd() * 3.2 : 0.6 + rnd() * 1.3,
+        v: 0.006 + rnd() * 0.018, sw: rnd() * 6.28, sa: 0.004 + rnd() * 0.01,
+        a: 0.25 + rnd() * 0.6, tw: rnd() * 6.28, cor: rnd() < 0.7 ? '255,206,140' : rnd() < 0.5 ? '255,240,220' : '170,195,255',
+      };
+    });
+    let raf = 0, vis = true, last = performance.now(), t = 0;
+    const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver((es) => { vis = es.some((e) => e.isIntersecting); }) : null;
+    io?.observe(C);
+    const draw = (now: number) => {
+      raf = requestAnimationFrame(draw);
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (!vis || document.hidden) return;
+      const r = C.getBoundingClientRect(), dp = Math.min(devicePixelRatio || 1, 2), W = r.width, H = r.height;
+      if (W < 2) return;
+      if (C.width !== Math.round(W * dp)) { C.width = Math.round(W * dp); C.height = Math.round(H * dp); }
+      if (!parado) t += dt;
+      X.setTransform(dp, 0, 0, dp, 0, 0); X.clearRect(0, 0, W, H);
+      X.globalCompositeOperation = 'lighter';
+      for (const p of P) {
+        if (!parado) { p.y -= p.v * dt; if (p.y < -0.05) { p.y = 1.05; } }
+        const x = (p.x + Math.sin(t * 0.4 + p.sw) * p.sa) * W, y = p.y * H;
+        const a = p.a * (0.55 + 0.45 * Math.sin(t * 1.3 + p.tw)) * Math.min(1, p.y * 3, (1 - p.y) * 4 + 0.2);
+        if (p.r > 2) { const g = X.createRadialGradient(x, y, 0, x, y, p.r * 3); g.addColorStop(0, `rgba(${p.cor},${a * 0.35})`); g.addColorStop(1, `rgba(${p.cor},0)`); X.fillStyle = g; X.fillRect(x - p.r * 3, y - p.r * 3, p.r * 6, p.r * 6); }
+        else { X.fillStyle = `rgba(${p.cor},${a})`; X.beginPath(); X.arc(x, y, p.r, 0, 6.283); X.fill(); }
+      }
+      X.globalCompositeOperation = 'source-over';
+      if (parado) { cancelAnimationFrame(raf); }
+    };
+    raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); io?.disconnect(); };
+  }, [foco, n]);
+  return <canvas ref={ref} className="aw2pt" aria-hidden="true" />;
 }

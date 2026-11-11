@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: abertura com brilho menor, fundo grafite e partículas
+
+- Pedido do dono: no banner do título do Awards o brilho estava estourado e o fundo simples demais (todo preto). Pediu brilho menor, partículas no fundo e um fundo mais grafite atrás da figura.
+- Feito na abertura da página do Awards e, do mesmo jeito, no banner do Awards no Início:
+  - troféu menos estourado (luz do ouro reduzida);
+  - atrás da figura, uma mancha grafite (cinza-escuro) com um toque dourado bem fraco, no lugar do clarão dourado forte;
+  - partículas de poeira dourada (algumas brancas e azuladas, poucas maiores e desfocadas) subindo devagar, mais concentradas em volta do troféu. Com "reduzir movimento", ficam paradas; o desenho pausa fora da tela.
+- As partículas são um movimento contínuo de fundo, aberto como exceção a pedido do dono, só no Awards (como os efeitos da cena de voto).
+- Código: `Particulas` em `src/components/AwardsCena.tsx`; fundos `.aw2op__bg` e `.awbn__bg` em `src/styles/awards-cena.css`.
+
 ## 11/11/2026 — Troféu: lasca nas costas corrigida
 
 - O dono viu uma lasca saindo das costas do troféu.

@@ -74,6 +74,12 @@
 /* só a abertura e o carrossel dos indicados vão de ponta a ponta da tela; o resto fica na coluna */
 .aw2slot { width: 100vw; margin-left: calc(50% - 50vw); }
 .aw2slot .scene { margin: 10px 0 22px; }
+/* ao votar entram as faixas pretas de cinema (80px em cima e embaixo). A cena cresce o mesmo tanto,
+   para a imagem dos indicados continuar com a mesma altura de antes do voto. */
+@media (min-width: 761px) {
+  .aw2slot .scene { transition: height .9s cubic-bezier(.2, .8, .2, 1); }
+  .aw2slot .scene.has { height: calc(clamp(540px, 66vh, 680px) + 160px); }
+}
 
 /* aba do troféu */
 .aw2 .zen .scene__p.on { cursor: grab; touch-action: pan-y; }

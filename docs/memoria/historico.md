@@ -8,7 +8,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 - O dono corrigiu o pedido anterior: **só o título (abertura) e o carrossel dos indicados** ocupam a tela de ponta a ponta. Abas, títulos de seção, lista de categorias, aba do troféu e Como funciona voltaram para a coluna central (1320 px).
 - **Carrossel não encolhe ao votar (celular):** no celular a cena ficava mais baixa depois do voto, porque as artes não escolhidas encolhem. Agora a cena guarda a altura de antes e a arte escolhida ocupa o espaço liberado. Vale só para a cena dentro da lista do Awards (`.aw2slot`); o estilo geral da cena não mudou.
-- No computador a cena de voto já tem altura fixa; o que muda ao votar são as faixas pretas de cinema, que são do efeito original.
+- **No computador:** a cena tinha altura fixa, mas ao votar entram as faixas pretas de cinema (80 px em cima e embaixo) e a imagem dos indicados ficava 160 px mais baixa. Agora, dentro da lista do Awards, a cena cresce esses 160 px junto com as faixas, e a imagem continua da mesma altura. As faixas e os outros efeitos continuam iguais.
 
 ## 11/11/2026 — Awards: abertura em largura total, só com o título
 

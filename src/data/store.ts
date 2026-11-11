@@ -990,6 +990,9 @@ export const actions = {
   addCopy(copy: Omit<Copy, 'id'>) {
     const full = { ...copy, id: uid(), createdAt: nowIso() };
     dispatch({ type: 'copy.add', copy: full });
+    // Chegou à coleção: sai da lista de desejos e do Radar (já não é mais um jogo esperado).
+    if (state.wishes.some((w) => w.gameId === copy.gameId)) dispatch({ type: 'wish', gameId: copy.gameId, value: false });
+    if (myGame(state, copy.gameId).onRadar) actions.setMyGame(copy.gameId, { onRadar: undefined });
     return full;
   },
   updateCopy(copyId: ID, patch: Partial<Omit<Copy, 'id' | 'gameId'>>) {

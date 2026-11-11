@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Coleção: jogo adicionado sai dos desejos e do Radar
+
+- Pedido do dono: depois de adicionar um jogo à coleção, ele deve sair da lista de desejos e do Radar.
+- Feito em `actions.addCopy` (`src/data/store.ts`), que é por onde passam todas as formas de adicionar no site: pelo nome, código de barras, foto, Chegada e estatísticas da coleção. Ao entrar o primeiro (ou outro) exemplar, o jogo sai dos desejos e deixa de ser acompanhado no Radar.
+- Não mexi nos jogos que já estavam na coleção e nos desejos/Radar antes desta mudança; dá para fazer uma limpeza única se o dono quiser.
+
 ## 11/11/2026 — Adicionar à estante pela foto: ajustes no celular
 
 - A chave nova da IA funcionou (leitura feita). O dono apontou, no celular: o quadro ficava "solto" e escorregava para os lados ao arrastar; arrastar em cima da foto não rolava a tela; botões desorganizados; e, depois da leitura, nada avisava, os resultados ficavam lá embaixo.

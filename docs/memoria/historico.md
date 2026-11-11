@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (manhã): Lobby dos Bugs, lotes de 32 pontos e a regra "pintar do zero"
+- No repositório `winnerzbr/lobby-dos-bugs`: o cenário do andar 1 está todo em 32 pontos (lotes 1 a 4) e o jogo ocupa a janela inteira em qualquer resolução, incluindo ultrawide.
+- Decisão do dono: os desenhos que eram só "refinados" do de 16 pontos foram refeitos do zero (94). Daqui em diante, todo desenho de 32 pontos é pintado do zero.
+- Falta: bugs, chefões, armas, itens, peças da tela e efeitos. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 10/11/2026 (22h50): Lobby dos Bugs, o dono escolheu o estilo de 32 pontos
 - Decisão: o jogo é em pixel art de 32 pontos. No repositório `winnerzbr/lobby-dos-bugs`, virou o padrão do jogo e do Ateliê. Próximo: refazer os desenhos por lotes. Resumo em `docs/memoria/lobby-dos-bugs.md`.
 

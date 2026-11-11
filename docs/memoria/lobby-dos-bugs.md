@@ -78,3 +78,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (15h10), orientações do dono:** sem excesso de objetos nas salas (teto de 10% do chão, já no sorteio); ritmo frenético estilo Enter the Gungeon (IAmiguinho mais rápido, inimigos mais ativos, menos inimigos e mais perigosos) — ajuste ainda a fazer. Feitas as ilhas (objetos grandes no meio da sala) e a regra do objeto de pé com sombra colada.
 
 **11/11/2026 (15h30): ritmo, 1ª rodada.** IAmiguinho mais rápido (74 → 112), dash mais curto de recarga; inimigos atacam logo e mais vezes, com menos deles na sala (metade por onda; ondas de horda às vezes); o bug comum com 3 jeitos (afoito, cercador, saltador). Números em `nucleo/ritmo.gd`. Falta o dono jogar e o ajuste fino.
+
+**11/11/2026 (16h30): preparo do ataque.** Regra do dono: nada de "!" piscando; o corpo do inimigo prepara o ataque, com tempo e jeito próprios de cada um (fracos devagar, outros rápidos, outros longos com golpe mais forte). Feito nos 10 inimigos comuns.

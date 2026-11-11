@@ -208,6 +208,7 @@ export function PhotoRead({ online, onGames }: { online: boolean; onGames: (game
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [prev, setPrev] = useState<string | null>(null);
+  const [lidos, setLidos] = useState<number | null>(null);
   const shoot = useRef<HTMLInputElement>(null);
   const gallery = useRef<HTMLInputElement>(null);
 
@@ -219,7 +220,7 @@ export function PhotoRead({ online, onGames }: { online: boolean; onGames: (game
 
   const send = async (f?: File) => {
     if (!f) return;
-    setErr(''); setBusy(true);
+    setErr(''); setBusy(true); setLidos(null);
     try {
       const blob = await shrink(f, 1600);
       setPrev(URL.createObjectURL(blob));
@@ -227,7 +228,7 @@ export function PhotoRead({ online, onGames }: { online: boolean; onGames: (game
       setAi((a) => (a ? { ...a, used: j.used, limit: j.limit } : a));
       track('camera.foto');
       if (!j.games?.length) setErr(`Não reconheci nenhum jogo nessa foto.${j.seen ? ` (${j.seen})` : ''} Tente com as capas mais de frente e sem reflexo.`);
-      else onGames(j.games, j.seen ?? '');
+      else { setLidos(j.games.length); onGames(j.games, j.seen ?? ''); }
     } catch (e) { setErr(e instanceof Error ? e.message : 'Não deu certo agora.'); }
     setBusy(false);
   };
@@ -242,15 +243,16 @@ export function PhotoRead({ online, onGames }: { online: boolean; onGames: (game
   return (
     <div className="cphoto">
       <div className={`cphoto__view${prev ? ' has-img' : ''}`}>
-        {prev ? <img src={prev} alt="A foto enviada" /> : (
+        {prev ? <img src={prev} alt="A foto enviada" draggable={false} /> : (
           <span className="cphoto__stack" aria-hidden="true"><i /><i /><i /></span>
         )}
         {busy && <span className="cphoto__busy" role="status"><span className="cphoto__scan" aria-hidden="true" />Lendo as capas…</span>}
+        {!busy && lidos != null && <span className="cphoto__ok" role="status">{lidos === 1 ? 'Li 1 jogo' : `Li ${lidos} jogos`} · confira abaixo ↓</span>}
       </div>
       <p className="muted cphoto__how">Fotografe uma capa, ou várias lado a lado (as lombadas na estante também valem). A IA diz quais jogos viu e você confirma cada um.</p>
-      <div className="cscan__acts">
-        <button type="button" className="btn primary" onClick={() => shoot.current?.click()} disabled={busy || left === 0}><Icon name="camera" size={16} />{prev ? 'Outra foto' : 'Tirar uma foto'}</button>
-        <button type="button" className="btn ghost" onClick={() => gallery.current?.click()} disabled={busy || left === 0}>Escolher da galeria</button>
+      <div className="cscan__acts cphoto__acts">
+        <button type="button" className="btn primary" onClick={() => shoot.current?.click()} disabled={busy || left === 0}><Icon name="camera" size={16} />{prev ? 'Outra foto' : 'Tirar foto'}</button>
+        <button type="button" className="btn ghost" onClick={() => gallery.current?.click()} disabled={busy || left === 0}>Da galeria</button>
       </div>
       {left != null && <small className="faint">{left === 0 ? 'As leituras da IA deste mês acabaram. O código de barras e o nome continuam funcionando.' : `${left} de ${ai!.limit} leituras da IA neste mês. A foto não fica guardada.`}</small>}
       <input ref={shoot} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { send(e.target.files?.[0]); e.target.value = ''; }} />

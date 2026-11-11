@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Adicionar à estante pela foto: ajustes no celular
+
+- A chave nova da IA funcionou (leitura feita). O dono apontou, no celular: o quadro ficava "solto" e escorregava para os lados ao arrastar; arrastar em cima da foto não rolava a tela; botões desorganizados; e, depois da leitura, nada avisava, os resultados ficavam lá embaixo.
+- Feito:
+  - o quadro não escorrega mais para os lados (só rola para cima e para baixo);
+  - a foto não segura mais o dedo: arrastar em cima dela rola a tela; no celular ela ficou mais baixa (até um terço da tela);
+  - os dois botões dividem a largura lado a lado: "Tirar foto" (ou "Outra foto") e "Da galeria";
+  - depois da leitura aparece "Li 1 jogo · confira abaixo ↓" em cima da foto e a tela desce sozinha até "Confira antes de adicionar".
+- Código: `PhotoRead` em `src/components/CameraAdd.tsx`, `onGames` em `src/components/AddGameDialog.tsx`, estilo no fim de `src/styles/etapa2.css`.
+
 ## 11/11/2026 — Chave da IA: servidor limpa a chave e mensagem mais clara
 
 - Depois de trocar a chave, o dono ainda viu "A chave da IA no servidor foi recusada". O último deploy de produção tinha sido às 18h08, antes de a chave nova ser criada (18h14): a Vercel só passa a usar uma variável nova depois de um deploy novo.

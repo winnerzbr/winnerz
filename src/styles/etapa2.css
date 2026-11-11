@@ -6466,3 +6466,17 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
   .jamb { height: 380px; }
   .jamb__shade { background: linear-gradient(180deg, rgba(var(--bg-rgb), 0.7) 0%, rgba(var(--bg-rgb), 0.82) 45%, var(--bg) 100%); }
 }
+
+/* Adicionar à estante, no celular (11/11/2026): o quadro não escorrega para os lados, a foto não "segura" o dedo,
+   os botões da foto dividem a largura e um aviso diz quantos jogos foram lidos. */
+.modal-back { overflow-x: hidden; overscroll-behavior: contain; touch-action: pan-y; }
+.modal { min-width: 0; max-width: min(640px, 100%); overflow-x: clip; }
+.modal--wide { max-width: min(860px, 100%); }
+.cphoto__view img { -webkit-user-drag: none; user-select: none; -webkit-touch-callout: none; pointer-events: none; }
+.cphoto__acts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 460px; }
+.cphoto__acts .btn { width: 100%; justify-content: center; margin: 0; }
+.cphoto__ok { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 8px 14px; background: rgba(7, 8, 10, .82); color: #fff; font-weight: 600; font-size: 14px; white-space: nowrap; animation: wz-fade-up .3s both; }
+@media (max-width: 640px) {
+  .cphoto__view img { max-height: 34vh; }
+  .cphoto__how { font-size: 13px; }
+}

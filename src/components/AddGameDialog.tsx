@@ -117,6 +117,8 @@ export function AddGameDialog({ onClose, initial, mode: startMode = 'nome' }: { 
     const fs = list.map(foundFromPhoto);
     setFound((l) => [...fs, ...l]);
     resolveAll(fs, Object.values(games), online, upd);
+    // Leu: a tela desce até a lista para conferir (antes ela aparecia lá embaixo, sem aviso).
+    setTimeout(() => document.querySelector('.modal .cfound')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
   };
   const wide = mode !== 'nome' && !pick;
 

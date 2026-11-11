@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: página adaptada ao modo claro
+
+- Pedido do dono: adaptar a página do Awards ao modo claro.
+- No modo claro a página fica clara (fundo, abas, "Seus votos", títulos de seção, lista de categorias com contorno cinza, botões da organização). As cenas continuam escuras, como fotos: abertura com o troféu, carrossel dos indicados, troféu 3D, sol do "Por que Zênite" e Como funciona (classe `on-photo` em cada cena, não mais na página inteira).
+- No modo escuro nada muda.
+
 ## 11/11/2026 — Awards: textos das faixas do carrossel na largura normal do site
 
 - O dono pediu o mesmo para o carrossel dos indicados: os textos da faixa de cima (nome da categoria, "1 de 2", "Toque numa arte para votar") e da faixa de baixo (descrição da categoria e o botão da próxima) agora se alinham com a coluna central do site. O carrossel continua de ponta a ponta. No celular nada muda.

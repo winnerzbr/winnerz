@@ -69,7 +69,7 @@ export function ZeniteCena() {
   const p = PARTES[part];
 
   return (
-    <div className="scene zen has">
+    <div className="scene zen has on-photo">
       <div className="scene__row">
         <div
           className="scene__p on"
@@ -182,7 +182,7 @@ export function SolZenite() {
     return () => { cancelAnimationFrame(raf); io?.disconnect(); A.removeEventListener('pointerdown', onDown); A.removeEventListener('pointermove', onMove); A.removeEventListener('pointercancel', onUp); A.removeEventListener('keydown', onKey); removeEventListener('pointerup', onUp); removeEventListener('resize', onResize); };
   }, []);
   return (
-    <div ref={box} className="aw2arc" tabIndex={0} role="slider" aria-label="Altura do sol no céu, em graus" aria-valuemin={0} aria-valuemax={90} aria-valuenow={0}>
+    <div ref={box} className="aw2arc on-photo" tabIndex={0} role="slider" aria-label="Altura do sol no céu, em graus" aria-valuemin={0} aria-valuemax={90} aria-valuenow={0}>
       <canvas ref={cv} aria-hidden="true" />
       <span className="scene__grain" aria-hidden="true" />
       <div className="aw2arc__cp">
@@ -203,7 +203,7 @@ const PASSOS: [string, string, string][] = [
 /** Aba "Como funciona": três faixas. `artes` são imagens de indicados (não revelam nada); sem elas, ficam as cores. */
 export function ComoFunciona({ artes = [] }: { artes?: string[] }) {
   return (
-    <div className="scene scene--steps has">
+    <div className="scene scene--steps has on-photo">
       <div className="scene__row">
         {PASSOS.map((s, i) => (
           <div key={s[0]} className="scene__p on">

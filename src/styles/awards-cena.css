@@ -1,17 +1,17 @@
 /* WinnerZ Awards: a página na linguagem da cena de votação (aprovada na prévia de 11/11/2026).
    A cena de voto em si (.scene, em etapa2.css) NÃO muda. Aqui ficam só as peças novas:
    abas, abertura com o troféu, "Seus votos", lista grande de categorias, aba do troféu e "Como funciona". */
-.aw2 { background: #07080A; color: #E6E9ED; min-height: 100vh; padding-bottom: 80px; overflow-x: clip; }
+.aw2 { background: var(--bg); color: var(--ink); min-height: 100vh; padding-bottom: 80px; overflow-x: clip; }
 .aw2 .scene { border-radius: 0; }
 .aw2__wrap { max-width: 1320px; margin: 0 auto; padding: 0 clamp(14px, 3vw, 40px); }
 
 /* abas */
-.aw2tabs { position: sticky; top: var(--hdr, 71px); z-index: 20; background: rgba(7, 8, 10, .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid #1c1f24; }
+.aw2tabs { position: sticky; top: var(--hdr, 71px); z-index: 20; background: rgba(var(--bg-rgb), .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .aw2tabs__row { display: flex; align-items: center; gap: clamp(12px, 3vw, 34px); overflow-x: auto; scrollbar-width: none; }
 .aw2tabs__row::-webkit-scrollbar { display: none; }
 .aw2tabs b { font-family: var(--font-title); font-weight: 900; font-stretch: 125%; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
-.aw2tabs button { position: relative; border: 0; background: none; padding: 20px 0 18px; font: 500 12px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: #9AA1AA; cursor: pointer; white-space: nowrap; }
-.aw2tabs button:hover, .aw2tabs button.on { color: #fff; }
+.aw2tabs button { position: relative; border: 0; background: none; padding: 20px 0 18px; font: 500 12px var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.aw2tabs button:hover, .aw2tabs button.on { color: var(--ink); }
 .aw2tabs button:focus-visible { outline: 2px solid var(--now); outline-offset: -4px; }
 .aw2tabs button.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: linear-gradient(90deg, transparent, rgba(120, 170, 255, .6) 25%, #FFF3E0 50%, rgba(255, 178, 91, .8) 72%, transparent); box-shadow: 0 0 14px rgba(255, 210, 150, .8); }
 .aw2tab { padding-top: 26px; }
@@ -21,10 +21,16 @@
 .aw2__extra { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 14px; }
 .aw2__extra .awhero__only { margin: 0; }
 
+/* modo claro: a página fica clara; as cenas (abertura, carrossel, troféu, sol, como funciona) continuam escuras, como fotos */
+:root[data-theme='claro'] .aw2 { --aw2-stroke: #8a9099; }
+:root[data-theme='claro'] .aw2tabs button.on::after { background: linear-gradient(90deg, transparent, var(--now) 30%, var(--now) 70%, transparent); box-shadow: none; }
+:root[data-theme='claro'] .aw2frames button.ok { box-shadow: 0 0 0 1px var(--now-line); }
+.aw2 .awhero__note { color: var(--muted); }
+
 /* abertura: uma imagem só, com o troféu Zênite */
 .aw2open { padding-top: 26px; }
 .aw2tab--votos { padding-top: 14px; }
-.aw2__intro { margin: 0 0 4px; max-width: 70ch; font-size: 15px; line-height: 1.5; color: #C9CED4; }
+.aw2__intro { margin: 0 0 4px; max-width: 70ch; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
 /* o título fica só na metade esquerda, para nunca passar por cima do troféu */
 /* em telas bem largas, título e troféu vêm um pouco para o centro (sem centralizar de vez) */
 .aw2 .scene--open { --tc: clamp(66vw, calc(76vw - (100vw - 1600px) * .26), 76vw); }
@@ -56,8 +62,8 @@
 
 /* "Seus votos": um quadro por categoria */
 .aw2frames { display: grid; grid-template-columns: repeat(var(--n, 19), minmax(0, 1fr)); gap: 3px; }
-.aw2frames button { position: relative; display: block; height: 34px; border: 0; padding: 0; background: #0e1013; overflow: hidden; cursor: pointer; }
-.aw2frames button:hover { background: #1a1d21; }
+.aw2frames button { position: relative; display: block; height: 34px; border: 0; padding: 0; background: var(--surface-2); overflow: hidden; cursor: pointer; }
+.aw2frames button:hover { background: var(--line-2); }
 .aw2frames button:focus-visible { outline: 2px solid var(--now); outline-offset: 1px; }
 .aw2frames button::after { content: ""; position: absolute; inset: 0; background: #FFF3E0; opacity: 0; }
 .aw2frames button.ok { background: linear-gradient(160deg, #FFB25B, #a8610f); box-shadow: 0 0 18px rgba(255, 178, 91, .4); }
@@ -65,13 +71,13 @@
 
 /* categorias: lista grande, nomes em contorno que se enchem; os indicados abrem logo abaixo */
 .aw2list { display: flex; flex-direction: column; }
-.aw2cat { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: baseline; gap: 16px; width: 100%; padding: 12px 0; border: 0; border-bottom: 1px solid #1c1f24; background: none; color: inherit; cursor: pointer; text-align: left; scroll-margin-top: calc(var(--hdr, 71px) + 64px); transition: padding-left .5s cubic-bezier(.2, .8, .2, 1); }
-.aw2cat__n { font: 500 12px var(--font-mono); letter-spacing: .2em; color: #6d747d; transition: color .3s; }
-.aw2cat__name { font-size: clamp(26px, 5vw, 72px); line-height: .94; color: transparent; -webkit-text-stroke: 1px #5d636c; text-wrap: balance; transition: color .35s, -webkit-text-stroke-color .35s; }
-.aw2cat__st { font: 500 11px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: #9AA1AA; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34ch; }
+.aw2cat { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: baseline; gap: 16px; width: 100%; padding: 12px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: inherit; cursor: pointer; text-align: left; scroll-margin-top: calc(var(--hdr, 71px) + 64px); transition: padding-left .5s cubic-bezier(.2, .8, .2, 1); }
+.aw2cat__n { font: 500 12px var(--font-mono); letter-spacing: .2em; color: var(--faint); transition: color .3s; }
+.aw2cat__name { font-size: clamp(26px, 5vw, 72px); line-height: .94; color: transparent; -webkit-text-stroke: 1px var(--aw2-stroke, #5d636c); text-wrap: balance; transition: color .35s, -webkit-text-stroke-color .35s; }
+.aw2cat__st { font: 500 11px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 34ch; }
 .aw2cat:hover, .aw2cat:focus-visible, .aw2cat.open { padding-left: 18px; outline: none; }
 .aw2cat:focus-visible .aw2cat__n { color: var(--now); }
-.aw2cat:hover .aw2cat__name, .aw2cat:focus-visible .aw2cat__name, .aw2cat.open .aw2cat__name, .aw2cat.is-voted .aw2cat__name { color: #F2F4F6; -webkit-text-stroke-color: transparent; }
+.aw2cat:hover .aw2cat__name, .aw2cat:focus-visible .aw2cat__name, .aw2cat.open .aw2cat__name, .aw2cat.is-voted .aw2cat__name { color: var(--ink); -webkit-text-stroke-color: transparent; }
 .aw2cat:hover .aw2cat__n, .aw2cat.is-voted .aw2cat__n, .aw2cat.is-voted .aw2cat__st, .aw2cat.open .aw2cat__st { color: var(--now); }
 .aw2slot { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .9s cubic-bezier(.2, .8, .2, 1); }
 .aw2slot.on { grid-template-rows: 1fr; }

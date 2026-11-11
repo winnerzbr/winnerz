@@ -305,7 +305,7 @@ export function AwardsPage() {
   const artes = withNominees.slice(0, 3).map((c) => nomineeArt(c.nominees[0]));
 
   return (
-    <main className="awards aw2 on-photo">
+    <main className="awards aw2">
       {votou && <CameoJornada motivo="awards" escopo={full.award.id} fatos={{}} atraso={900} />}
       <div className="aw2tabs">
         <div className="aw2__wrap aw2tabs__row" role="tablist" aria-label="WinnerZ Awards">
@@ -316,7 +316,7 @@ export function AwardsPage() {
 
       {aba === 'votacao' && (
         <div className="aw2open">
-        <div className="scene scene--open has">
+        <div className="scene scene--open has on-photo">
           <div className="scene__row">
             <div className="scene__p on">
               <span className="aw2op__bg" aria-hidden="true" />
@@ -415,7 +415,7 @@ export function AwardsPage() {
                         <div id={`slot-${c.id}`} className={`aw2slot${aberta ? ' on' : ''}`}>
                           <div>
                             {(aberta || seen[c.id]) && (
-                              <div className={`scene${openId ? ' has' : ''}`} style={{ ['--n' as string]: c.nominees.length }}>
+                              <div className={`scene on-photo${openId ? ' has' : ''}`} style={{ ['--n' as string]: c.nominees.length }}>
                                 <div className="scene__row" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
                                   {c.nominees.map((n) => {
                                     const on = n.id === openId;

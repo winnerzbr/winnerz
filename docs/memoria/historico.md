@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: página do Awards para a estreia (só sugestões, nada mudou)
+- Pedido do dono: para a estreia do site, uma página do Awards bem bonita, com partículas, movimento e VFX. **Mantém igual** o efeito visual da apresentação dos candidatos (votação); remodelar só o restante. Quer também uma **aba dedicada ao troféu Zênite**.
+- Sugestões entregues na conversa (aguardando ele escolher; depois, modelo no canvas antes de aplicar):
+  - páginas: 1 Cerimônia (palco com holofotes), 2 Ascensão (subida até o zênite), 3 Forja (o troféu sendo feito, faíscas de cobre e ouro), 4 Constelação (19 categorias como estrelas de 8 pontas), 5 Contagem (o tempo como protagonista);
+  - aba Zênite: troféu em destaque girando com o ponteiro, "anatomia" com as partes explicadas, o significado do nome, a bandeira ao vento com rastro de pixels, galeria de vencedores (vazia até a revelação), modo "ver de perto".
+- Cuidados: nada de resultado antes da data de revelação; efeitos da votação intocados; dourado com parcimônia; animação contínua só onde ele abrir exceção (regra geral: só em hover/foco).
+
 ## 11/11/2026 (tarde, 2ª rodada): Lobby dos Bugs, sala vitrine com paredes grossas
 - O dono achou a 1ª versão ainda aquém (paredes "de papel"). 2ª rodada: paredes com grossura e volume no jogo todo, chão com placas de tamanhos diferentes, detalhes e uma sala de formato único. Resumo em `docs/memoria/lobby-dos-bugs.md`.
 

@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: prévias do Awards refeitas com VFX sofisticado (aguardando escolha)
+- O dono achou os efeitos das primeiras prévias (canvas) **simples demais**; quer VFX bem sofisticado.
+- Página nova em tela cheia, "WinnerZ Awards · prévias com VFX": https://claude.ai/artifact/42BioQTPUvhkTzz6Rcndrr. Fonte em `prototipos/awards-vfx/index.html`. Usa WebGL (fundos calculados na placa de vídeo) e partículas com física:
+  - 1 Cerimônia: holofotes volumétricos na fumaça (um segue o mouse), poeira com profundidade, chuva de brilho ao clicar, troféu 3D no palco;
+  - 2 Ascensão: subida contínua (rolar ou "Subir") por nuvens e raios de luz, com riscos de velocidade; o troféu 3D desce no topo;
+  - 3 Forja: metal derretido que escorre e reage ao mouse; o título é uma janela para o metal; clicar bate o martelo (onda de choque, faíscas que quicam, clarão, tremor);
+  - 4 Constelação: nebulosa, estrelas com brilho em oito pontas, pulsos de pixel nas linhas, rastro de poeira no mouse, estrelas cadentes;
+  - 5 Contagem: relógio feito de milhares de partículas; só o número que muda se desfaz e se refaz; o mouse espalha;
+  - Troféu Zênite: troféu **em 3D de verdade** (malha low-poly com reflexos de ouro e cobre, bandeira ao vento, mármore com veios), arrastar para girar, partes com destaque e aproximação, rastro de pixels saindo da bandeira.
+- O troféu 3D é uma malha simples feita por mim a partir da descrição; no site entra o modelo ou a imagem oficial.
+- **Não foi testado num navegador** (só a lógica, fora dele). Se algum fundo não aparecer, a página mostra o erro em vermelho no canto.
+- O canvas anterior (https://claude.ai/artifact/RHdw18im8BZR5nHSacDJQb) fica como registro das versões simples.
+
 ## 11/11/2026 (tarde): Lobby dos Bugs, variedade por partida no salão
 - Paredes, móveis e bug do salão aprovados pelo dono, com ajustes. Novo pedido: muita variedade para a mesma sala a cada partida. Feito no salão: temas sorteados (10 estilos de parede, 7 neons, 46 coisas penduradas, carpetes, mesas e cadeiras em várias cores). Resumo em `docs/memoria/lobby-dos-bugs.md`.
 

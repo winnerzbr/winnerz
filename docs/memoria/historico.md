@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: Awards, nova direção: a página inteira no estilo da cena de votação
+- O dono **não gostou de nenhuma** das cinco direções com VFX (Cerimônia, Ascensão, Forja, Constelação, Contagem). Quer efeitos **parecidos com os de quando se vota num candidato**.
+- Regra para o Awards daqui em diante: usar a linguagem da cena de votação (tiras de arte em preto e branco, a escolhida abre em tela larga e ganha cor, zoom lento, risco de lente azul/branco/âmbar, luz âmbar vazando, granulado, faixas pretas, clarão, título que chega com as letras se juntando, rótulos em mono). Nada de partículas, fumaça ou fundos de outro estilo.
+- Prévia nova: "WinnerZ Awards · página no estilo da votação", https://claude.ai/artifact/V9Vfrk9tXUxLtKqWCYh1TN. Fonte em `prototipos/awards-cena/index.html`. O CSS da cena foi copiado de `src/styles/etapa2.css` (`.scene…`).
+  - Abertura: a mesma cena, com o título "WinnerZ Awards" e a contagem no lugar do voto; "Rever a abertura".
+  - Seus votos: 19 quadros de filme que acendem com o clarão.
+  - Categorias: cada linha é uma tira que abre no mouse (faixas pretas, cor, risco de lente); tocar abre embaixo a cena de votação de hoje, sem mudança.
+  - Aba Troféu Zênite: a mesma cena com o troféu 3D no painel aberto e as quatro partes como tiras; "Por que Zênite" com o risco de lente subindo; pedestais lacrados.
+  - Aba Como funciona: três tiras.
+- Não testado em navegador. Aguardando a opinião dele.
+
 ## 11/11/2026 (tarde): Lobby dos Bugs, coesão e móveis sorteados
 - Regras do dono: coesão das paredes dentro da sala e tudo o que for criado entra no sistema de variedade. Feito: neons em 9 formas, 17 móveis sorteados encostados na parede e 4 tapetes. Resumo em `docs/memoria/lobby-dos-bugs.md`.
 

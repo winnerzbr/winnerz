@@ -15,7 +15,9 @@ export function TrofeuAbertura() {
     return mountZenite(ref.current, (_dt, t, w, h) => {
       const slim = w < h * 1.15, a = 0.12 + Math.sin(t * 0.16) * (slim ? 0.2 : 0.3), el = -0.08, d = slim ? 14.5 : 12.4, ct = slim ? [0, 1.3, 0] : [0, 2.72, 0];
       const eye = [ct[0] + Math.sin(a) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(a) * Math.cos(el) * d];
-      return { eye, ct, x0: slim ? 0 : 0.52, wf: slim ? 1 : 0.48, sel: -1, lit: 1.45, fill: 0.2 };
+      // Em telas bem largas o troféu vem um pouco para o centro (a mesma conta está em --tc, no estilo).
+      const cx = Math.max(0.66 * w, Math.min(0.76 * w, 0.76 * w - (w - 1600) * 0.26)) / w;
+      return { eye, ct, x0: slim ? 0 : cx - 0.24, wf: slim ? 1 : 0.48, sel: -1, lit: 1.45, fill: 0.2 };
     }, () => setOn(true));
   }, []);
   return <canvas ref={ref} className={`aw2gl${on ? ' is-on' : ''}`} aria-hidden="true" />;

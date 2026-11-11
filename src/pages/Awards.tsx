@@ -296,6 +296,10 @@ export function AwardsPage() {
           <div className="scene__row">
             <div className="scene__p on">
               <span className="aw2op__bg" aria-hidden="true" />
+              {/* a linha de luz fica atrás do troféu e do título */}
+              <span className="scene__flare" aria-hidden="true" />
+              <span className="scene__ghost" aria-hidden="true" />
+              <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
               <span className="scene__shade" aria-hidden="true" />
               <TrofeuAbertura />
               <span className="aw2op__veil" aria-hidden="true" />
@@ -308,9 +312,6 @@ export function AwardsPage() {
             </div>
           </div>
           <span className="scene__grain" aria-hidden="true" />
-          <span className="scene__flare" aria-hidden="true" />
-          <span className="scene__ghost" aria-hidden="true" />
-          <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
           <span className="scene__flash" aria-hidden="true" />
           <span className="scene__lb scene__lb--t" aria-hidden="true" />
           <span className="scene__lb scene__lb--b" aria-hidden="true" />

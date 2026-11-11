@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: abertura em telas largas e linha de luz atrás
+
+- O dono mandou um print num monitor bem largo (2.535 px): o título ficava colado na esquerda e o troféu na direita. Pediu para aproximar os dois do centro, sem centralizar demais, e para a linha do horizonte (o risco de luz) ficar atrás de tudo.
+- **Telas largas:** acima de 1.600 px de largura, o título vem para a direita e o troféu para a esquerda, aos poucos, conforme a tela alarga (em 2.535 px: título a uns 350 px da borda, troféu a uns 66% da largura). Até 1.600 px nada muda. A luz dourada do fundo acompanha o troféu.
+- **Linha de luz:** na abertura ela e os reflexos passaram para trás do troféu e do título. Na cena de voto continua na frente, como sempre.
+
 ## 11/11/2026 — Awards: ao votar, a tela centraliza no carrossel
 
 - Pedido do dono: quando a pessoa clica no jogo para votar, a tela deve centralizar no carrossel.

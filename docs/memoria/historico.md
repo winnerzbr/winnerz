@@ -4,6 +4,17 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: "Por que Zênite" fica com o efeito A (o sol sobe), agora interativo (prévia)
+
+- O dono escolheu o efeito **A · O sol sobe** e pediu uma forma interativa. Os outros quatro efeitos saíram da prévia.
+- **Como funciona:** a pessoa leva o sol pelo arco do céu.
+  - No computador o sol segue o mouse; no celular, arrasta-se com o dedo (rolar a página para cima e para baixo continua funcionando); no teclado, setas, Home e End.
+  - O número de graus acompanha o sol (0° no horizonte, 90° no topo) e há uma régua à direita. Conforme o sol sobe, o céu clareia e as estrelas somem. Passando do topo, o sol desce do outro lado.
+  - Perto do topo o sol "encaixa" no ponto mais alto: acende o risco de luz da votação, aparece "ZÊNITE · O PONTO MAIS ALTO" e o título do texto ganha brilho dourado.
+  - Quando o bloco aparece, o sol sobe sozinho até uns dois terços, como convite. Não há animação em repetição: tudo para quando o sol para.
+- Texto do bloco: o mesmo da entrada anterior.
+- Nada aplicado no site ainda.
+
 ## 11/11/2026 — Awards: "Por que Zênite" com texto novo e cinco efeitos para escolher (prévia)
 
 - Pedido do dono: melhorar a explicação (zênite é o ponto mais alto do céu; o troféu tem esse nome porque é o ponto mais alto que o jogo chega ao ganhar) e criar exemplos de efeitos que demonstrem o zênite.

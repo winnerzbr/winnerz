@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (15h): Lobby dos Bugs — perspectiva dos objetos e ilhas no meio da sala
+- Regra nova do dono: objeto de pé, com o pé no chão (base reta, sombra colada).
+- Passo 2 feito: 5 objetos grandes no meio das salas do salão (sinuca, hóquei de ar, ilha de PCs, pódio, mesa de tabuleiro). Próximo: paredes com níveis de arredondamento.
+
 ## 11/11/2026 — Awards: bandeira solta da figura e logo nítido dentro da base (prévia)
 
 - Pedidos do dono: tirar a parte da bandeira que estava grudada na figura; diminuir o desvio da luz só na região do logo da base.

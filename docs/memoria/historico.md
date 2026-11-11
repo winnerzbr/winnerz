@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (18h30): Lobby dos Bugs — memória reorganizada
+- Diretrizes numeradas em `docs/memoria/diretrizes.md` (repositório do jogo), instruções enxutas e conferência automática de tudo.
+
 ## 11/11/2026 — Troféu: toco nas costas tirado; banner do Início girando devagar; texto da faixa do Zênite legível
 
 - **Toco nas costas:** a "lasca" que continuava aparecendo era um pedaço da própria bandeira que ficou grudado nas costas depois do corte de hoje (uns 8 cm, parado, atravessado pela bandeira quando ela balança). Foi tirado e o furinho no corpo fechado (`prototipos/awards-cena/preparo/tirar_toco.py`). Novos `public/modelos/zenite.bin` (site) e `prototipos/awards-cena/zenite.bin` (prévia).

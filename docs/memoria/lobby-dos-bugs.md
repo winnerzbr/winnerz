@@ -94,3 +94,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (20h30):** pedidos do dono: penumbra cobrindo a sala não visitada inteira, com as bordas difusas; cada inimigo com os sons dele (diretriz D7: "o bug solta uma gosma, então deve ser som de inseto soltando gosma, não de tiro"; 100 sons novos, um para cada golpe); cadeiras sólidas e andar por trás dos monitores (diretriz C9).
 
 **11/11/2026 (22h):** IAmiguinho chibi em teste (opção na pausa, ligada por padrão); diretriz D8 (VFX e animação o mais sofisticados possível): 1ª rodada feita (estouros em camadas, tiros com rastro e efeitos na cor deles, corpo que estica e amassa no IAmiguinho e nos bugs).
+
+**11/11/2026 (21h30):** decisão do dono: a arte continua feita pelo Claude, por código (nada de ChatGPT nos desenhos; diretriz B12). Feita a régua do visual (`docs/regua.md` no repositório do jogo; diretriz B13), com as medidas do Enter the Gungeon, e a sala vitrine nela: contorno de 1 pixel nos personagens, chão calmo, escuro mais fechado.

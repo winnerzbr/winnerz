@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Lobby dos Bugs: a régua do visual
+
+- No repositório `winnerzbr/lobby-dos-bugs`: diretrizes B12 (a arte continua feita pelo Claude, sem ChatGPT nos desenhos) e B13 (a régua do visual, `docs/regua.md`); a sala vitrine refeita nela.
+
 ## 11/11/2026 — Lobby dos Bugs: chibi (teste), VFX e corpo vivo
 
 - No repositório `winnerzbr/lobby-dos-bugs` (detalhes no histórico do jogo). Diretriz nova D8: VFX e animação o mais sofisticados possível.

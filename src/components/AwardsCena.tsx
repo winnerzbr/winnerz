@@ -201,6 +201,19 @@ const PASSOS: [string, string, string][] = [
   ['A revelação', 'Na data marcada, cada categoria abre com o vencedor em tela larga, e o Zênite ganha dono.', 'radial-gradient(ellipse at 50% 30%,#c9a45a,#4a3413 40%,transparent 70%),linear-gradient(160deg,#1a1207,#07080a)'],
 ];
 
+/** O troféu de perto e parado (só a bandeira balança), para a faixa "A revelação". Carrega quando aparece na tela. */
+function TrofeuParado() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const ct = [0.15, 3.85, 0], ang = 0.55, el = 0.02, d = 6.4;
+    const eye = [ct[0] + Math.sin(ang) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(ang) * Math.cos(el) * d];
+    return mountZenite(ref.current, () => ({ eye, ct, x0: 0, wf: 1, sel: -1, lit: 1.1, fill: 0.08 }), () => setOn(true));
+  }, []);
+  return <canvas ref={ref} className={`aw2gl aw2steps__zen${on ? ' is-on' : ''}`} aria-hidden="true" />;
+}
+
 /** Aba "Como funciona": três faixas. `artes` são imagens de indicados (não revelam nada); sem elas, ficam as cores. */
 export function ComoFunciona({ artes = [] }: { artes?: string[] }) {
   return (
@@ -208,7 +221,9 @@ export function ComoFunciona({ artes = [] }: { artes?: string[] }) {
       <div className="scene__row">
         {PASSOS.map((s, i) => (
           <div key={s[0]} className="scene__p on">
-            {artes[i] ? <img className="scene__img" src={artes[i]} alt="" loading="lazy" /> : <span className="aw2steps__art" style={{ background: s[2] }} aria-hidden="true" />}
+            {i === 2
+              ? <><span className="aw2steps__art aw2steps__art--zen" aria-hidden="true" /><TrofeuParado /></>
+              : artes[i] ? <img className="scene__img" src={artes[i]} alt="" loading="lazy" /> : <span className="aw2steps__art" style={{ background: s[2] }} aria-hidden="true" />}
             <span className="scene__shade" aria-hidden="true" />
             <span className="aw2steps__num">0{i + 1}</span>
             <span className="scene__name"><b>{s[0]}</b><span className="aw2steps__p">{s[1]}</span></span>

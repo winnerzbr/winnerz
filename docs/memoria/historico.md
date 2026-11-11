@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards, Como funciona: Zênite na terceira faixa e linha de luz atrás
+
+- Pedido do dono: na aba Como funciona, pôr o Zênite na terceira imagem ("A revelação"), estático e com zoom, e a linha do horizonte atrás de tudo.
+- A terceira faixa mostra o troféu de perto (da cintura para cima, com a bandeira), sobre fundo grafite. A câmera fica parada; só a bandeira balança. Carrega quando a aba abre.
+- A linha de luz agora passa por trás dos textos e do troféu (continua por cima das artes dos jogos, para seguir visível).
+
 ## 11/11/2026 — Início: troféu do banner maior e girando sozinho entre os dois 3/4
 
 - Pedido do dono: no banner do Início, troféu com zoom maior (ocupando mais o banner) e sem seguir o mouse; ele gira sozinho até ficar em 3/4, volta e fica em 3/4 do outro lado, e assim por diante.

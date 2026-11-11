@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: Awards, categorias: escolhida a "Lista grande" (B), com os indicados abrindo embaixo
+- O dono **escolheu a B · Lista grande** para as categorias do Awards: os 19 nomes empilhados, enormes, em contorno; no mouse (e depois de votar) o nome se enche de branco.
+- Pedido junto: ao clicar numa categoria, os indicados devem **abrir logo abaixo dela**, expandindo a página ali (não no topo).
+- Prévia atualizada (`prototipos/awards-cena/index.html`, republicada): só a Lista grande, sem seletor; a cena de votação abre embaixo da categoria tocada, com a página se expandindo; tocar de novo fecha; abrir outra fecha a anterior; "próxima categoria →" abre a seguinte.
+- **Ainda não aplicado no site.** Falta ele confirmar o conjunto (abertura, lista, aba Zênite, Como funciona) e mandar o modelo ou a imagem oficial do troféu.
+
 ## 11/11/2026: Awards, categorias: saem as opções temáticas, entram formas sem tema (prévia)
 - O dono mandou tirar todas as opções menos a A (Cartelas) e criar novas **sem tema** (nada de rolo de película, claquete, ingresso etc.): quer só formas bonitas e estilosas.
 - Regra: no Awards, não dar "fantasia" temática aos elementos; o estilo vem de tipografia, proporção e movimento.

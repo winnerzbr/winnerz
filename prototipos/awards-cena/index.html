@@ -158,6 +158,12 @@ section.tab.on{display:block}
  .v-degraus .card,.v-degraus .card:nth-child(n){width:100%;margin-left:0;transform:skewX(-8deg)}.v-degraus .card>span{transform:skewX(8deg)}
  .v-lista .card{grid-template-columns:34px minmax(0,1fr)}.v-lista .card__st{display:none}
 }
+.slot{display:grid;grid-template-rows:0fr;transition:grid-template-rows .9s cubic-bezier(.2,.8,.2,1)}
+.slot.on{grid-template-rows:1fr}
+.slot>div{min-height:0;overflow:hidden}
+.slot .scene{margin:10px 0 22px}
+.v-lista .card{width:100%;scroll-margin-top:64px}
+.v-lista .card.open .card__st{color:var(--now)}
 #stage:empty{display:none}
 #stage{margin-top:26px;scroll-margin-top:70px}
 #stage .scene{animation:rise .6s cubic-bezier(.2,.8,.2,1)}
@@ -213,12 +219,9 @@ section.tab.on{display:block}
   <div id="open"></div>
   <div class="sec"><h2 class="t">Seus votos</h2><span class="kicker"><span id="nv">0</span> de 19 categorias</span></div>
   <div class="frames" id="frames"></div>
-  <div id="stage"></div>
-  <div class="sec"><h2 class="t">As 19 categorias</h2><span class="kicker">Toque numa categoria para votar</span></div>
-  <div class="vsw" id="vsw"><button data-v="cartelas" class="on">A · Cartelas</button><button data-v="lista">B · Lista grande</button><button data-v="mosaico">C · Mosaico</button><button data-v="indice">D · Índice com destaque</button><button data-v="degraus">E · Degraus</button><button data-v="numeros">F · Números</button></div>
-  <div class="cards" id="rows"></div>
-  <div class="unav" id="unav"><button data-d="-1">‹ Anterior</button><button data-d="1">Próxima ›</button></div>
-  <p class="note">Nesta prévia as artes dos jogos são manchas de cor: a página de teste não pode carregar as imagens de verdade. Só "Jogo do Ano" tem os nomes reais dos indicados; nas outras categorias são nomes de exemplo. A cena que abre ao tocar numa categoria é a mesma de hoje, sem mudança. As categorias agora são cartelas, sem as tiras de arte, para não parecerem a cena de voto.</p>
+  <div class="sec"><h2 class="t">As 19 categorias</h2><span class="kicker">Toque numa categoria: os indicados abrem logo abaixo</span></div>
+  <div class="cards v-lista" id="rows"></div>
+  <p class="note">Nesta prévia as artes dos jogos são manchas de cor: a página de teste não pode carregar as imagens de verdade. Só "Jogo do Ano" tem os nomes reais dos indicados; nas outras categorias são nomes de exemplo. A cena que abre ao tocar numa categoria é a mesma de hoje, sem mudança. As categorias são a "Lista grande": os indicados abrem logo abaixo da categoria tocada.</p>
 </section>
 <section class="tab" id="tab-zenite">
   <div id="zen"></div>
@@ -256,23 +259,24 @@ function playOpen(){const sc=$('#opsc');sc.classList.remove('has');sc.querySelec
 setInterval(()=>{left=Math.max(0,left-1);const e=$('#cd');if(e)e.innerHTML=cdText()},1000);
 
 /* ---- categorias ---- */
-function buildRows(){$('#rows').innerHTML='<div class="lead" id="lead"><span class="lead__n">01</span><span class="t lead__name">Jogo do Ano</span><span class="kicker lead__st">Votar →</span></div>'+CATS.map((c,i)=>`<button class="card" data-c="${i}"><span class="card__bg"></span><span class="card__n">${String(i+1).padStart(2,'0')}</span><span class="t card__name">${c}</span><span class="card__st">Votar →</span></button>`).join('');
+function buildRows(){$('#rows').innerHTML=CATS.map((c,i)=>`<div><button class="card" data-c="${i}" aria-expanded="false"><span class="card__bg"></span><span class="card__n">${String(i+1).padStart(2,'0')}</span><span class="t card__name">${c}</span><span class="card__st">Votar →</span></button><div class="slot" id="slot-${i}"><div></div></div></div>`).join('');
  $('#frames').innerHTML=CATS.map(()=>'<i></i>').join('');
- const lead=c=>{const i=+c.dataset.c,L=$('#lead');if(L.dataset.i===String(i))return;L.dataset.i=i;L.querySelector('.lead__n').textContent=String(i+1).padStart(2,'0');L.querySelector('.lead__name').textContent=CATS[i];L.querySelector('.lead__st').textContent=c.querySelector('.card__st').textContent;L.classList.remove('in');void L.offsetWidth;L.classList.add('in')};
- $('#rows').addEventListener('mouseover',e=>{const c=e.target.closest('.card');if(c)lead(c)});$('#rows').addEventListener('focusin',e=>{const c=e.target.closest('.card');if(c)lead(c)});
- $('#rows').addEventListener('click',e=>{const r=e.target.closest('.card');if(r)openCat(+r.dataset.c)});
- $('#stage').addEventListener('click',e=>{const nx=e.target.closest('[data-next]');if(nx){const k=+nx.dataset.next;if(CATS[k])openCat(k);return}const p=e.target.closest('.scene__p');if(p)vote(+p.closest('.scene').dataset.c,+p.dataset.n)})}
+ $('#rows').addEventListener('click',e=>{const r=e.target.closest('.card');if(r){openCat(+r.dataset.c,true);return}const nx=e.target.closest('[data-next]');if(nx){const k=+nx.dataset.next;if(CATS[k])openCat(k);return}const p=e.target.closest('.scene__p');if(p)vote(+p.closest('.scene').dataset.c,+p.dataset.n)})}
 let openC=-1;
-function openCat(i){if(openC>=0)$(`.card[data-c="${openC}"]`).classList.remove('open');openC=i;$(`.card[data-c="${i}"]`).classList.add('open');
- $('#stage').innerHTML=`<div class="scene" data-c="${i}"><div class="scene__row" role="radiogroup">`+noms(i).map((n,j)=>`<button class="scene__p" role="radio" aria-checked="false" aria-label="${n}" data-n="${j}"><span class="scene__img" style="background:${art(i*7+j+1)}"></span><span class="scene__shade"></span><span class="scene__name"><b>${n}</b><span>Estúdio · 2026</span></span><span class="scene__vt">${n}</span></button>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
+function closeCat(i){const sl=$('#slot-'+i),c=$(`.card[data-c="${i}"]`);sl.classList.remove('on');c.classList.remove('open');c.setAttribute('aria-expanded','false');setTimeout(()=>{if(openC!==i)sl.firstElementChild.innerHTML=''},900)}
+function openCat(i,toggle){const was=openC;if(was>=0){openC=-1;closeCat(was);if(toggle&&was===i)return}
+ openC=i;const c=$(`.card[data-c="${i}"]`),sl=$('#slot-'+i);c.classList.add('open');c.setAttribute('aria-expanded','true');
+ sl.firstElementChild.innerHTML=`<div class="scene" data-c="${i}"><div class="scene__row" role="radiogroup">`+noms(i).map((n,j)=>`<button class="scene__p" role="radio" aria-checked="false" aria-label="${n}" data-n="${j}"><span class="scene__img" style="background:${art(i*7+j+1)}"></span><span class="scene__shade"></span><span class="scene__name"><b>${n}</b><span>Estúdio · 2026</span></span><span class="scene__vt">${n}</span></button>`).join('')+`</div><span class="scene__grain"></span><span class="scene__lb scene__lb--t"></span><span class="scene__lb scene__lb--b"></span>
  <div class="scene__top"><div class="scene__head"><h2 class="t">${CATS[i]}</h2><span class="kicker">${i+1} de 19</span></div><span class="kicker" data-st>Toque numa arte para votar</span></div>
  <div class="scene__bottom"><span class="scene__desc">Um voto por categoria. Dá para mudar até o fim da votação.</span><button class="kicker scene__next" data-next="${i+1}">${CATS[i+1]?CATS[i+1]+' →':''}</button></div></div>`;
- $('#stage').scrollIntoView({behavior:'smooth',block:'start'});
- if(voted[i]!=null)setTimeout(()=>paint(i),60)}
+ void sl.offsetHeight;sl.classList.add('on');
+ // espera a categoria de cima fechar para a página não pular, e leva a categoria aberta para o alto da tela
+ setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'start'}),was>=0&&was<i?920:120);
+ if(voted[i]!=null)setTimeout(()=>paint(i),160)}
 function vote(c,n){if(voted[c]===n)delete voted[c];else voted[c]=n;paint(c);
  const nv=Object.keys(voted).length;$('#nv').textContent=nv;$$('#frames i').forEach((f,k)=>f.classList.toggle('ok',voted[k]!=null));
  const r=$(`.card[data-c="${c}"]`),has=voted[c]!=null;r.classList.toggle('is-voted',has);r.querySelector('.card__st').textContent=has?'Seu voto: '+noms(c)[voted[c]]:'Votar →';r.querySelector('.card__bg').style.backgroundImage=has?art(c*7+voted[c]+1):''}
-function paint(c){const sc=$(`#stage .scene[data-c="${c}"]`);if(!sc)return;const v=voted[c],has=v!=null;sc.classList.toggle('has',has);sc.querySelectorAll('.scene__leak,.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());sc.querySelector('[data-st]').textContent=has?'':'Toque numa arte para votar';
+function paint(c){const sc=$(`#slot-${c} .scene`);if(!sc)return;const v=voted[c],has=v!=null;sc.classList.toggle('has',has);sc.querySelectorAll('.scene__leak,.scene__ttl,:scope>.scene__flare,:scope>.scene__ghost,:scope>.scene__flash').forEach(e=>e.remove());sc.querySelector('[data-st]').textContent=has?'':'Toque numa arte para votar';
  sc.querySelectorAll('.scene__p').forEach((p,j)=>{const on=j===v;p.classList.toggle('on',on);p.setAttribute('aria-checked',on);if(on){const n=noms(c)[j];p.querySelector('.scene__shade').insertAdjacentHTML('afterend','<span class="scene__leak"></span>');p.insertAdjacentHTML('beforeend',`<span class="scene__ttl"><span class="scene__tag">${CHECK}Seu voto<span class="scene__tagcat"> · ${CATS[c]}</span></span><span class="scene__nm">${n}</span><span class="scene__sub">Estúdio · 2026</span><span class="scene__hint">Toque de novo para tirar o voto</span></span>`)}});
  if(has)refire(sc)}
 
@@ -354,8 +358,7 @@ requestAnimationFrame(zFrame);
 $$('.top button').forEach(b=>b.onclick=()=>{$$('.top button').forEach(x=>x.classList.toggle('on',x===b));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.tab));scrollTo({top:0});
  if(b.dataset.tab==='votacao')playOpen();if(b.dataset.tab==='zenite')refire($('#zsc'));if(b.dataset.tab==='como')refire($('#como .scene'))});
 buildOpen();buildRows();
-$$('#vsw button').forEach(b=>b.onclick=()=>{$$('#vsw button').forEach(x=>x.classList.toggle('on',x===b));const v=b.dataset.v,r=$('#rows');r.className='cards'+(v==='cartelas'?'':' v-'+v);r.scrollLeft=0;$('#unav').classList.remove('on')});
-$$('#unav button').forEach(b=>b.onclick=()=>{const r=$('#rows');const c=r.querySelector('.card');r.scrollBy({left:+b.dataset.d*(r.classList.contains('v-uma')?r.clientWidth:c.offsetWidth*3),behavior:'smooth'})});
+
 </script>
 </body>
 </html>

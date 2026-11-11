@@ -31,7 +31,8 @@
 .aw2 .scene--open .scene__ttl { left: max(clamp(18px, 4vw, 72px), calc((100vw - 1600px) * .3 + 72px)); right: auto; width: min(50%, 1000px); }
 /* a linha de luz (e os reflexos) ficam atrás do troféu e do título */
 .aw2 .scene--open .scene__p .scene__flare, .aw2 .scene--open .scene__p .scene__ghost { z-index: 0; }
-.aw2 .scene--open .scene__top, .aw2 .scene--open .scene__bottom { left: clamp(16px, 4vw, 72px); right: clamp(16px, 4vw, 72px); }
+/* os textos das faixas de cima e de baixo seguem a coluna normal do site (a mesma de .aw2__wrap) */
+.aw2 .scene--open .scene__top, .aw2 .scene--open .scene__bottom { --col: max(clamp(14px, 3vw, 40px), calc(50% - 660px + clamp(14px, 3vw, 40px))); left: var(--col); right: var(--col); }
 .aw2 .scene--open .scene__nm { font-size: clamp(34px, 5.4vw, 112px); overflow-wrap: normal; }
 .aw2 .scene--open .scene__desc { text-transform: none; letter-spacing: .04em; font-size: 12px; color: #C9CED4; }
 .aw2 .scene--open .scene__p { cursor: default; flex-grow: 1 !important; }

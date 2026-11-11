@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: textos das faixas da abertura na largura normal do site
+
+- O dono pediu que os textos das faixas pretas da abertura ("← Eventos", "Votação até…", a frase da fase e "Continuar votando →") fiquem na largura normal do site, e não nas pontas da tela.
+- Eles agora se alinham com a coluna central (a mesma das abas e da lista). A abertura continua de ponta a ponta; só esses textos mudaram de lugar.
+
 ## 11/11/2026 — Awards: ao abrir uma categoria, a tela centraliza no carrossel
 
 - Pedido do dono: centralizar a tela no carrossel também quando a pessoa clica na categoria.

@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026 (noite): Lobby dos Bugs, os 4 estilos gráficos no jogo inteiro
+- No repositório `winnerzbr/lobby-dos-bugs`: os 4 estilos (hoje, 16 caprichado, 32 pontos, 3D estilo PS2) valem no andar inteiro (menu → "Estilo", ou F2). A pedido do dono, o 3D não tem mais desenho chapado (tudo o que não tem modelo vira peça com volume) e o vírus foi refeito em 32 pontos.
+- Em aberto: a escolha do estilo. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 10/11/2026: "Por região" no site com o Trilho lateral (proposta S aprovada)
 - O dono aprovou a proposta **S · Trilho lateral** do canvas. Aplicado no `RegionView` (aparece em "Por região" na página da linha do tempo dos jogos de mundo aberto, como o Elden Ring).
 - Lista de regiões à esquerda: marcador inclinado (cheio quando já tem algo feito, âmbar na região atual), selecionada com contorno branco, atual com contorno âmbar, coberta (spoiler) tracejada. Setas ↑/↓ no teclado trocam de região.

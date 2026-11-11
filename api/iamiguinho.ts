@@ -1,3 +1,7 @@
+
+
+/** A chave da IA como foi cadastrada na Vercel, sem espaços, quebras de linha ou aspas coladas por engano. Nunca vai para logs. */
+function chaveIA(): string { return (process.env.ANTHROPIC_API_KEY ?? '').trim().replace(/^['"]+|['"]+$/g, '').trim(); }
 /**
  * IAmiguinho, Fase 2 (M4): a fala dos cameos da Jornada (jogo zerado e Retomada).
  *
@@ -310,7 +314,7 @@ async function pedirIa(motivo: Motivo, fatos: Fatos, recentes: string[], epoca?:
   ].filter(Boolean).join('\n');
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({ model: MODEL(), max_tokens: 700, system: `${vozIam(await contextoIam(), 'site')}\n${REGRAS_BALAO}`, tools: [FALAR_TOOL], tool_choice: { type: 'tool', name: 'falar' }, messages: [{ role: 'user', content: linhas }] }),
     signal: AbortSignal.timeout(9000),
   });
@@ -671,7 +675,7 @@ async function iaConversa(corpo: Record<string, unknown>, diag: string[]): Promi
     const pedido = pensa ? { ...corpo, model, tool_choice: { type: 'auto' }, max_tokens: 4000, output_config: { effort: 'low' } } : { ...corpo, model };
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify(pedido),
       signal: AbortSignal.timeout(i === 0 ? 20000 : 10000),
     }).catch((e: unknown) => { diag.push(`ia_${e instanceof Error && e.name === 'TimeoutError' ? 'demorou' : 'sem_resposta'}_${i + 1}`); return null; });
@@ -882,7 +886,7 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
     if (!falas.length) return res.status(200).json({ resumo: '', parou: '' });
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: MODEL(), max_tokens: 600, system: `${vozConversa(await contextoIam())}\nA live acabou. Escreva o resumo da sessão a partir das cenas e falas que você teve, sem inventar nada além delas. Responda chamando a ferramenta resumo.`, tools: [RESUMO_TOOL], tool_choice: { type: 'tool', name: 'resumo' },
         messages: [{ role: 'user', content: [`Jogo: ${jogo ?? 'não informado'}.`, Number.isFinite(minutos) && minutos > 0 ? `Duração: ${Math.round(minutos)} minutos.` : '', `Cenas e falas, em ordem:\n- ${falas.join('\n- ')}`].filter(Boolean).join('\n') }] }),
       signal: AbortSignal.timeout(15000),
@@ -921,7 +925,7 @@ async function sofa(user: string, body: Record<string, unknown>, res: Res) {
 
   const r = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify({ model: MODEL(), max_tokens: 700, system: `${vozConversa(await contextoIam())}\n${REGRAS_SOFA}`, tools: [SOFA_TOOL], tool_choice: { type: 'tool', name: 'sofa' },
       messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: tipo, data: image } }, { type: 'text', text: texto }] }] }),
     signal: AbortSignal.timeout(14000),

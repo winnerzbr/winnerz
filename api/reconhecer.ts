@@ -1,3 +1,7 @@
+
+
+/** A chave da IA como foi cadastrada na Vercel, sem espaços, quebras de linha ou aspas coladas por engano. Nunca vai para logs. */
+function chaveIA(): string { return (process.env.ANTHROPIC_API_KEY ?? '').trim().replace(/^['"]+|['"]+$/g, '').trim(); }
 /**
  * Adicionar pela câmera (Etapa 5, entrega 6). Tudo com login; nada vai para a coleção daqui:
  * o site só mostra candidatos, e a pessoa confirma cada um.
@@ -110,7 +114,7 @@ function aiError(status: number, detail: string): string {
   let type = '', msg = '';
   try { const j = JSON.parse(detail) as { error?: { type?: string; message?: string } }; type = j.error?.type ?? ''; msg = j.error?.message ?? ''; } catch { /* sem corpo */ }
   if (status === 429 || status === 529 || type === 'overloaded_error' || type === 'rate_limit_error') return 'A IA está ocupada agora. Tente de novo em instantes.';
-  if (status === 401 || type === 'authentication_error') return 'A chave da IA no servidor foi recusada. Confira a ANTHROPIC_API_KEY na Vercel.';
+  if (status === 401 || type === 'authentication_error') return (chaveIA().startsWith('sk-ant-') ? 'A chave da IA no servidor foi recusada (vencida, apagada ou ainda não ativa). Crie outra em console.anthropic.com, troque a ANTHROPIC_API_KEY na Vercel e faça um novo deploy.' : 'A ANTHROPIC_API_KEY na Vercel não parece uma chave da Anthropic (ela começa com sk-ant-). Cole de novo, sem espaços nem aspas, e faça um novo deploy.');
   if (status === 403 || type === 'permission_error') return 'A chave da IA no servidor não tem permissão para este modelo.';
   if (status === 404 || type === 'not_found_error') return 'O modelo de IA configurado não existe. Confira a ANTHROPIC_MODEL na Vercel (ou apague para usar o padrão).';
   if (/credit balance|billing|purchase credits/i.test(msg)) return 'A conta da IA está sem créditos. Recarregue em console.anthropic.com.';
@@ -261,7 +265,7 @@ async function partFromPhoto(user: string, body: Record<string, unknown>, res: R
   try {
     r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model: MODEL(), max_tokens: 1024, system: PART_SYSTEM, tools: [PART_TOOL], tool_choice: { type: 'tool', name: PART_TOOL.name },
         messages: [{ role: 'user', content: [
@@ -336,7 +340,7 @@ export default async function handler(req: Req, res: Res) {
     try {
       r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
           model: MODEL(), max_tokens: 2000, system: SYSTEM, tools: [GAMES_TOOL], tool_choice: { type: 'tool', name: GAMES_TOOL.name },
           messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: imageType, data: image } }, { type: 'text', text: 'Quais jogos aparecem nesta foto?' }] }],

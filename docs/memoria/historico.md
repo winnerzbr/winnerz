@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Chave da IA: servidor limpa a chave e mensagem mais clara
+
+- Depois de trocar a chave, o dono ainda viu "A chave da IA no servidor foi recusada". O último deploy de produção tinha sido às 18h08, antes de a chave nova ser criada (18h14): a Vercel só passa a usar uma variável nova depois de um deploy novo.
+- Este envio já gera um deploy novo, que lê a chave atual.
+- O servidor passou a limpar a chave antes de usar (tira espaços, quebras de linha e aspas coladas por engano), em `reconhecer`, `retomada`, `iamiguinho` e `pontes` (função `chaveIA`).
+- A mensagem de erro agora diz qual é o caso: chave com formato errado (não começa com `sk-ant-`) ou chave recusada (vencida, apagada ou ainda não ativa), sempre com o passo seguinte. A chave nunca aparece em mensagens nem em logs.
+
 ## 11/11/2026 (18h30): Lobby dos Bugs — memória reorganizada
 - Diretrizes numeradas em `docs/memoria/diretrizes.md` (repositório do jogo), instruções enxutas e conferência automática de tudo.
 

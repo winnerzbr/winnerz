@@ -1,3 +1,7 @@
+
+
+/** A chave da IA como foi cadastrada na Vercel, sem espaços, quebras de linha ou aspas coladas por engano. Nunca vai para logs. */
+function chaveIA(): string { return (process.env.ANTHROPIC_API_KEY ?? '').trim().replace(/^['"]+|['"]+$/g, '').trim(); }
 /**
  * Retomada Inteligente (R1): a pessoa manda uma foto da tela e, se quiser, uma nota curta.
  * Um modelo de visão lê a tela e sugere a Cápsula de Retomada. A sugestão volta como "Inferido";
@@ -135,7 +139,7 @@ function aiError(status: number, detail: string): string {
   let type = '', msg = '';
   try { const j = JSON.parse(detail) as { error?: { type?: string; message?: string } }; type = j.error?.type ?? ''; msg = j.error?.message ?? ''; } catch { /* sem corpo */ }
   if (status === 429 || status === 529 || type === 'overloaded_error' || type === 'rate_limit_error') return 'A IA está ocupada agora. Tente de novo em instantes.';
-  if (status === 401 || type === 'authentication_error') return 'A chave da IA no servidor foi recusada. Confira a ANTHROPIC_API_KEY na Vercel.';
+  if (status === 401 || type === 'authentication_error') return (chaveIA().startsWith('sk-ant-') ? 'A chave da IA no servidor foi recusada (vencida, apagada ou ainda não ativa). Crie outra em console.anthropic.com, troque a ANTHROPIC_API_KEY na Vercel e faça um novo deploy.' : 'A ANTHROPIC_API_KEY na Vercel não parece uma chave da Anthropic (ela começa com sk-ant-). Cole de novo, sem espaços nem aspas, e faça um novo deploy.');
   if (status === 403 || type === 'permission_error') return 'A chave da IA no servidor não tem permissão para este modelo.';
   if (status === 404 || type === 'not_found_error') return 'O modelo de IA configurado não existe. Confira a ANTHROPIC_MODEL na Vercel (ou apague para usar o padrão).';
   if (/credit balance|billing|purchase credits/i.test(msg)) return 'A conta da IA está sem créditos. Recarregue em console.anthropic.com.';
@@ -197,7 +201,7 @@ async function narrate(user: string, body: Record<string, unknown>, res: Res) {
   try {
     r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: MODEL(), max_tokens: 1500, system: NARRATE, messages: [{ role: 'user', content: text }] }),
     });
   } catch { await refund(user); return res.status(502).json({ error: 'Não consegui falar com a IA agora (conexão). Tente de novo.' }); }
@@ -261,7 +265,7 @@ async function vibes(user: string, body: Record<string, unknown>, res: Res) {
   const text = `Jogos:\n${todo.map((g) => `- id=${g.id} | ${g.title}${g.year ? ` (${g.year})` : ''}${g.platforms?.length ? ` | ${g.platforms.join(', ')}` : ''}${g.genres ? ` | gêneros IGDB: ${g.genres}` : ''}`).join('\n')}`;
   const ai = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01' },
+    headers: { 'content-type': 'application/json', 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01' },
     body: JSON.stringify({ model: MODEL(), max_tokens: 2500, system: VIBES_SYSTEM, messages: [{ role: 'user', content: text }] }),
   });
   if (!ai.ok) { await siteGiveBack(); return res.status(502).json({ error: aiError(ai.status, await ai.text()) }); }
@@ -352,7 +356,7 @@ async function askOutline(prompt: string, deadline: number, only?: 'link'): Prom
     if (left < 6000) return { text, searches, fetches, stop: 'tempo', error: 'A pesquisa demorou demais.' };
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-fetch-2025-09-10' },
+      headers: { 'content-type': 'application/json', 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'anthropic-beta': 'web-fetch-2025-09-10' },
       body: JSON.stringify({ model: OUTLINE_MODEL(), max_tokens: 12000, system: OUTLINE_SYSTEM, ...(tools.length ? { tools } : {}), messages }),
       signal: AbortSignal.timeout(left - 2000),
     });
@@ -812,7 +816,7 @@ async function videos(user: string, body: Record<string, unknown>, res: Res) {
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({ model: MODEL(), max_tokens: 8000, system: VIDEO_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
         signal: AbortSignal.timeout(Math.max(10_000, 100_000 - (Date.now() - t0))),
       });
@@ -950,7 +954,7 @@ async function translate(user: string, body: Record<string, unknown>, res: Res) 
   try {
     r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({
         model, max_tokens: mode === 'longo' || mode === 'estudo' ? 4000 : 2500, system: TR_SYSTEM, tools: [TR_TOOL], tool_choice: { type: 'tool', name: TR_TOOL.name },
         messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: imageType, data: image } }, { type: 'text', text }] }],
@@ -1028,7 +1032,7 @@ export default async function handler(req: Req, res: Res) {
     try {
       r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
         body: JSON.stringify({
           model: MODEL(), max_tokens: 1500, system: SYSTEM, tools: [CAPSULE_TOOL], tool_choice: { type: 'tool', name: CAPSULE_TOOL.name },
           messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: imageType, data: image } }, { type: 'text', text }] }],

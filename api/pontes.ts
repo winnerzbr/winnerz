@@ -1,3 +1,7 @@
+
+
+/** A chave da IA como foi cadastrada na Vercel, sem espaços, quebras de linha ou aspas coladas por engano. Nunca vai para logs. */
+function chaveIA(): string { return (process.env.ANTHROPIC_API_KEY ?? '').trim().replace(/^['"]+|['"]+$/g, '').trim(); }
 /**
  * Pontes (Jornada 2, J4): sessões inferidas pela Steam e pelo RetroAchievements.
  *
@@ -461,7 +465,7 @@ async function linkGame(gameId: string, provider: 'steam' | 'ra', ext: string, c
     const title = grow[0] ? `${grow[0].title}${grow[0].year ? ` (${grow[0].year})` : ''}` : gameId;
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      headers: { 'x-api-key': chaveIA(), 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
       body: JSON.stringify({ model: AI_MODEL(), max_tokens: 3000, system: ACH_SYSTEM, tools: [ACH_TOOL], tool_choice: { type: 'tool', name: ACH_TOOL.name }, messages: [{ role: 'user', content: achPrompt(title, parts, achs) }] }),
       signal: AbortSignal.timeout(30_000),
     });

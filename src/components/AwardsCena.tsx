@@ -250,7 +250,7 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
       // Vai de um 3/4 ao outro e segura um pouco em cada ponta (o seno "achatado" faz a pausa).
       const alvo = parado ? TRES_QUARTOS : TRES_QUARTOS * Math.max(-1, Math.min(1, 1.5 * Math.sin(t * 0.32)));
       ang += (alvo - ang) * (1 - Math.exp(-dt * 2.2));
-      const cel = w < 700, el = -0.06, ct = cel ? [0, 2.75, 0] : [0, 3.0, 0], d = cel ? 11.2 : 8.2;
+      const cel = w < 700, el = -0.06, ct = cel ? [0, 2.75, 0] : [0, 3.05, 0], d = cel ? 11.2 : 8.9;
       const eye = [ct[0] + Math.sin(ang) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(ang) * Math.cos(el) * d];
       return { eye, ct, x0: cel ? 0.42 : 0.5, wf: cel ? 0.58 : 0.5, sel: -1, lit: 1.12, fill: 0.08 };
     }, () => setOn(true));

@@ -10,6 +10,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - A abertura agora ocupa a tela de ponta a ponta (saiu de dentro da coluna central). O título fica só na metade esquerda e o troféu na metade direita, sem se cruzarem.
 - Na cena ficaram só o selo da fase, o título e a contagem regressiva. A frase da fase desceu para a faixa de baixo da cena; o texto de apresentação da edição passou para logo abaixo da abertura.
 - No celular continua igual: troféu em cima, título embaixo.
+- Logo depois o dono pediu o mesmo para o resto: **toda a página do Awards usa a largura inteira da tela** (abas, títulos, lista de categorias, a cena com os indicados para votar, a aba do troféu e Como funciona). Só sobra uma margem lateral pequena. Os efeitos da cena de voto são os mesmos; ela só ficou mais larga.
 
 ## 11/11/2026 (15h30): Lobby dos Bugs — ritmo, 1ª rodada
 - Personagem mais rápido, inimigos mais ativos e em menor número (detalhes no repositório do jogo).

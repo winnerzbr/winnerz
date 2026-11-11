@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (tarde): Lobby dos Bugs, sala vitrine
+- O dono achou o visual básico perto do Enter the Gungeon. Os lotes pararam; o salão foi refeito como sala vitrine (luz, paredes, chão, bug). Se ele aprovar, vira a régua do resto. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 11/11/2026 (manhã): Lobby dos Bugs, lotes de 32 pontos e a regra "pintar do zero"
 - No repositório `winnerzbr/lobby-dos-bugs`: o cenário do andar 1 está todo em 32 pontos (lotes 1 a 4) e o jogo ocupa a janela inteira em qualquer resolução, incluindo ultrawide.
 - Decisão do dono: os desenhos que eram só "refinados" do de 16 pontos foram refeitos do zero (94). Daqui em diante, todo desenho de 32 pontos é pintado do zero.

@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (15h30): Lobby dos Bugs — ritmo, 1ª rodada
+- Personagem mais rápido, inimigos mais ativos e em menor número (detalhes no repositório do jogo).
+
 ## 11/11/2026 — Awards: página nova aplicada no site (para o dono testar)
 
 - Pedido do dono: aplicar no site o que foi aprovado na prévia, para ele ir testando.

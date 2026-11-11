@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Adicionar à estante: abas sem texto cortado no celular; chave da IA recusada
+
+- O dono mandou print do celular: as abas "Código de barras" e "Foto das capas" apareciam cortadas, e a leitura por foto deu "A chave da IA no servidor foi recusada".
+- **Abas:** agora as três dividem a largura do quadro; em telas estreitas (até 560 px) aparecem como "Nome", "Código" e "Foto" (para quem usa leitor de tela continua o nome inteiro). Código em `src/components/AddGameDialog.tsx` e `src/styles/carga.css`.
+- **Chave da IA:** a mensagem quer dizer que a chave da Anthropic cadastrada na Vercel (`ANTHROPIC_API_KEY`) foi recusada (apagada, expirada ou trocada). Só o dono resolve: criar uma chave nova em console.anthropic.com e colar direto na Vercel (Settings → Environment Variables), depois fazer um novo deploy. Nunca colar a chave na conversa. A mesma chave é usada pela leitura por foto, pela Retomada, pelo IAmiguinho e pelas pontes das lives; todas voltam a funcionar com a chave nova.
+- A tentativa que falhou não gasta leitura do mês (o servidor devolve o uso quando a IA recusa).
+
 ## 11/11/2026 — Início: banner do Awards só segue o mouse em cima dele; botão Votar com animação
 
 - O dono notou: o troféu girava mesmo com o mouse fora do banner, e o botão Votar não tinha a animação de passar o mouse.

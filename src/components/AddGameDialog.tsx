@@ -126,8 +126,8 @@ export function AddGameDialog({ onClose, initial, mode: startMode = 'nome' }: { 
         <div className="modal__head"><h2 id="add-title" className="t" style={{ fontSize: 40 }}>{initial ? 'Adicionar à coleção' : 'Adicionar à estante'}</h2><button className="icon-btn" aria-label="Fechar" onClick={onClose}><Icon name="fechar" /></button></div>
         {!pick && !initial && (
           <div className="seg addmode" role="tablist" aria-label="Como adicionar">
-            {([['nome', 'Pelo nome', 'buscar'], ['codigo', 'Código de barras', 'camera'], ['foto', 'Foto das capas', 'camera']] as const).map(([k, l]) => (
-              <button key={k} role="tab" aria-selected={mode === k} aria-pressed={mode === k} onClick={() => setMode(k)}>{l}</button>
+            {([['nome', 'Pelo nome', 'Nome'], ['codigo', 'Código de barras', 'Código'], ['foto', 'Foto das capas', 'Foto']] as const).map(([k, l, curto]) => (
+              <button key={k} role="tab" aria-selected={mode === k} aria-pressed={mode === k} aria-label={l} onClick={() => setMode(k)}><span className="addmode__l">{l}</span><span className="addmode__c" aria-hidden="true">{curto}</span></button>
             ))}
           </div>
         )}

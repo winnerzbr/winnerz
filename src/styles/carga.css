@@ -129,6 +129,15 @@
 .vc-abas .cfilters .seg { gap: 4px !important; padding-left: 6px !important; overflow: visible; }
 .vc-abas .cfilters .seg button { flex: 1 1 0; min-width: 0; padding: 0 6px !important; letter-spacing: 0.03em; font-stretch: 100% !important; }
 
+/* Adicionar à estante: as três abas dividem a largura; em tela estreita viram "Nome", "Código" e "Foto" (o texto inteiro não cabia e cortava). */
+.addmode { display: flex !important; width: 100%; overflow: visible !important; }
+.addmode button { flex: 1 1 0; min-width: 0; justify-content: center; text-align: center; }
+.addmode__c { display: none; }
+@media (max-width: 560px) {
+  .addmode__l { display: none; }
+  .addmode__c { display: inline; }
+}
+
 /* ---- filtros: o mesmo contorno, menor ---------------------------------------------------------------------- */
 .vc-filtros .chip { min-height: 38px; }
 .vc-filtros .chip::before {

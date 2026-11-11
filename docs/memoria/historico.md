@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: abertura escolhida (F · Uma imagem) com o troféu Zênite
+
+- O dono escolheu a abertura **F · Uma imagem**: uma imagem só, em tela cheia, com o título por cima. As outras cinco opções saíram da prévia.
+- Decisão: a imagem de fundo da abertura é o **troféu Zênite**, numa imagem bonita e estilosa.
+- Na prévia (`prototipos/awards-cena/index.html`) o fundo já mostra o troféu: enquadramento de baixo para cima, dos joelhos até a bandeira, à direita do título (no celular fica em cima e o título embaixo), com luz dourada atrás. A bandeira balança e a câmera se move devagar; com "reduzir movimento" ligado, fica parado.
+- O troféu da prévia é o modelo 3D simplificado feito em código, não a arte oficial. Falta a imagem ou o modelo oficial do Zênite para a versão final.
+- Nada disso foi aplicado no site ainda.
+
 ## 11/11/2026 — Awards: seis opções de abertura na prévia
 
 - Pedido do dono: mais exemplos de abertura para a página do Awards.

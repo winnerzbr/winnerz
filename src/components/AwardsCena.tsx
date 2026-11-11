@@ -251,16 +251,18 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
       const px = Math.max(-0.2, Math.min(1.2, (x - r.left) / r.width)), py = Math.max(0, Math.min(1, (y - r.top) / r.height));
       A.ang = -1.1 + px * 2.2; A.el = -0.16 + py * 0.26; A.ultimo = performance.now();
     };
+    // O troféu só segue o mouse enquanto ele está em cima do banner; ao sair, volta a balançar sozinho.
     const onMove = (e: PointerEvent) => { if (e.pointerType === 'mouse' || A.drag) mira(e.clientX, e.clientY); };
+    const onLeave = (e: PointerEvent) => { if (e.pointerType === 'mouse') A.ultimo = 0; };
     const onDown = (e: PointerEvent) => { if (e.pointerType !== 'mouse') { A.drag = true; mira(e.clientX, e.clientY); } };
     const onUp = () => { A.drag = false; };
-    addEventListener('pointermove', onMove, { passive: true });
+    el.addEventListener('pointermove', onMove, { passive: true }); el.addEventListener('pointerleave', onLeave);
     el.addEventListener('pointerdown', onDown); addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
     const parado = calmo();
     const cam = { ang: A.ang, el: A.el };
     const off = mountZenite(ref.current, (dt, t, w, h) => {
       // Sem mouse por um tempo, o troféu balança devagar sozinho.
-      const solto = !parado && performance.now() - A.ultimo > 2500;
+      const solto = !parado && performance.now() - A.ultimo > 1200;
       const ta = solto ? 0.15 + Math.sin(t * 0.25) * 0.55 : A.ang, te = solto ? -0.04 : A.el;
       const k = 1 - Math.exp(-dt * 5);
       cam.ang += (ta - cam.ang) * k; cam.el += (te - cam.el) * k;
@@ -268,7 +270,7 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
       const eye = [ct[0] + Math.sin(cam.ang) * Math.cos(cam.el) * d, ct[1] + Math.sin(cam.el) * d, ct[2] + Math.cos(cam.ang) * Math.cos(cam.el) * d];
       return { eye, ct, x0: cel ? 0.44 : 0.6, wf: cel ? 0.56 : 0.36, sel: -1, lit: 1.45, fill: 0.2 };
     }, () => setOn(true));
-    return () => { removeEventListener('pointermove', onMove); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
+    return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
   }, [ver]);
 
   return (
@@ -284,7 +286,7 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
         <span className="t awbn__title">{title}</span>
         <span className="awbn__line">{line}</span>
         {ate && <ContaBanner to={ate} />}
-        <span className="btn now awbn__cta" aria-hidden="true">{cta}</span>
+        <Link to="/eventos/awards" className="btn now awbn__cta" tabIndex={-1} aria-hidden="true">{cta}</Link>
       </span>
     </div>
   );

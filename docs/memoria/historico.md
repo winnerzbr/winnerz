@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Início: banner do Awards só segue o mouse em cima dele; botão Votar com animação
+
+- O dono notou: o troféu girava mesmo com o mouse fora do banner, e o botão Votar não tinha a animação de passar o mouse.
+- Agora o troféu só segue o mouse enquanto ele está sobre o banner; ao sair, volta a balançar sozinho em pouco mais de um segundo.
+- O botão Votar virou um botão de verdade por cima do banner (antes ficava atrás do link invisível que cobre o banner e não recebia o mouse), então a animação de sempre funciona.
+
 ## 11/11/2026 — Início: banner do WinnerZ Awards com o troféu girando conforme o mouse
 
 - Pedido do dono: o cartão do Awards no Início ocupa toda a largura normal do site, com um banner de fundo que cobre o cartão inteiro (bordas incluídas), interativo, com o troféu girando conforme o mouse.

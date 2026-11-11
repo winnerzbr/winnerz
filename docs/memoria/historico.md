@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: "Por que Zênite" com texto novo e cinco efeitos para escolher (prévia)
+
+- Pedido do dono: melhorar a explicação (zênite é o ponto mais alto do céu; o troféu tem esse nome porque é o ponto mais alto que o jogo chega ao ganhar) e criar exemplos de efeitos que demonstrem o zênite.
+- **Texto novo:** "O mais alto que um jogo chega. Zênite é o ponto mais alto do céu: aquele que fica bem acima da sua cabeça. O troféu tem esse nome porque é o ponto mais alto que um jogo alcança no WinnerZ Awards. Quem leva o troféu chegou ao zênite."
+- **Cinco efeitos** no bloco "Por que Zênite" da aba do troféu, com seletor (cada um toca uma vez; tocar na cena repete; com "reduzir movimento" aparece só o quadro final):
+  - A · O sol sobe: a luz sobe em arco do horizonte até 90°, com a marcação dos graus;
+  - B · Reto para cima: do ponto "você", a luz sobe em linha reta contando os graus até 90°;
+  - C · Coluna de luz: um feixe com faíscas sobe do chão até o topo;
+  - D · Olhando para o alto: rastros de estrelas girando em volta de um ponto fixo, o zênite;
+  - E · Só um chega lá: nove luzes sobem, só uma alcança a linha do zênite (sem nomes, não revela nada).
+- Em todos, a chegada ao zênite acende o mesmo risco de luz da votação.
+- Aguardando o dono escolher o efeito. Nada aplicado no site ainda.
+
 ## 11/11/2026 (15h): Lobby dos Bugs — perspectiva dos objetos e ilhas no meio da sala
 - Regra nova do dono: objeto de pé, com o pé no chão (base reta, sombra colada).
 - Passo 2 feito: 5 objetos grandes no meio das salas do salão (sinuca, hóquei de ar, ilha de PCs, pódio, mesa de tabuleiro). Próximo: paredes com níveis de arredondamento.

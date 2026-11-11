@@ -196,13 +196,12 @@ section.tab.on{display:block}
 .ped div{position:relative;height:170px;background:#0b0c0e;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:16px}
 .ped div::before{content:"";position:absolute;left:50%;top:22px;width:50px;height:84px;margin-left:-25px;background:#16181b;clip-path:polygon(40% 0,60% 0,66% 62%,100% 100%,0 100%,34% 62%)}
 .ped b{font-size:14px;font-stretch:112%}
-.arc{position:relative;height:300px;overflow:hidden;background:linear-gradient(180deg,#05060c,#110d07 70%,#1d1407);isolation:isolate}
-.arc .scene__flare{top:auto;bottom:8%;animation:none;opacity:.5;transition:bottom 2.6s cubic-bezier(.4,0,.2,1),opacity 1.2s}
-.arc .sun{position:absolute;left:50%;bottom:8%;width:26px;height:26px;margin:0 0 -13px -13px;border-radius:50%;background:#fff;box-shadow:0 0 30px 10px rgba(255,226,170,.8),0 0 120px 44px rgba(255,178,91,.35);z-index:5;transition:bottom 2.6s cubic-bezier(.4,0,.2,1)}
-.arc:hover .scene__flare,.arc.up .scene__flare{bottom:80%;opacity:.95}
-.arc:hover .sun,.arc.up .sun{bottom:80%}
+.arc{position:relative;height:clamp(340px,46vh,440px);overflow:hidden;background:linear-gradient(180deg,#04050a,#0d0a07 72%,#1a1207);isolation:isolate;cursor:pointer}
+.arc canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.arc::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;background:linear-gradient(0deg,rgba(3,3,4,.92) 18%,rgba(3,3,4,.55) 55%,transparent);z-index:2;pointer-events:none}
 .arc .cp{position:absolute;left:clamp(18px,3vw,40px);right:clamp(18px,3vw,40px);bottom:26px;z-index:8;display:flex;flex-direction:column;gap:8px;max-width:60ch}
 .arc .cp p{margin:0;font-size:15px;line-height:1.5;color:#d5d9de}
+.arc .cp b{font-stretch:125%;font-weight:900;text-transform:uppercase;font-size:clamp(20px,2.6vw,34px);line-height:1;color:#F2F4F6}
 /* ===== como funciona ===== */
 .scene--steps{height:clamp(380px,48vh,460px)}
 .scene.scene--steps .scene__p.on:hover{flex-grow:9}
@@ -237,8 +236,9 @@ section.tab.on{display:block}
 </section>
 <section class="tab" id="tab-zenite">
   <div id="zen"></div>
-  <div class="sec"><h2 class="t">Por que Zênite</h2><span class="kicker">Passe o mouse</span></div>
-  <div class="arc" id="arc"><span class="scene__grain"></span><span class="scene__flare"></span><i class="sun"></i><div class="cp"><span class="kicker" style="color:#FFE2B8">O ponto mais alto do céu</span><p>Zênite é o ponto bem acima da sua cabeça. A luz da página sobe até lá, como a mesma lente que cruza a cena quando você vota.</p></div></div>
+  <div class="sec"><h2 class="t">Por que Zênite</h2><span class="kicker">Toque na cena para rever</span></div>
+  <div class="vsw" id="asw"><button data-a="A" class="on">A · O sol sobe</button><button data-a="B">B · Reto para cima</button><button data-a="C">C · Coluna de luz</button><button data-a="D">D · Olhando para o alto</button><button data-a="E">E · Só um chega lá</button></div>
+  <div class="arc" id="arc"><canvas id="arcc"></canvas><span class="scene__grain"></span><div class="cp"><span class="kicker" style="color:#FFE2B8">O ponto mais alto do céu</span><b>O mais alto que um jogo chega</b><p>Zênite é o ponto mais alto do céu: aquele que fica bem acima da sua cabeça. O troféu tem esse nome porque é o ponto mais alto que um jogo alcança no WinnerZ Awards. Quem leva o troféu chegou ao zênite.</p></div></div>
   <div class="sec"><h2 class="t">Quem já levou</h2><span class="kicker">Os pedestais acendem na revelação</span></div>
   <div class="ped"><div><b>Jogo do Ano 2026</b><span class="kicker">Lacrado até a revelação</span></div><div><b>Jogo Brasileiro 2026</b><span class="kicker">Lacrado até a revelação</span></div><div><b>Criador de Conteúdo 2026</b><span class="kicker">Lacrado até a revelação</span></div><div><b>Edição 2027</b><span class="kicker">Ainda por vir</span></div></div>
   <p class="note">O troféu aqui é um modelo 3D simples que montei pela descrição, só para mostrar o efeito. No site entra o modelo ou a imagem oficial do Zênite.</p>
@@ -392,9 +392,52 @@ function zFrame(now){const dt=Math.min(.05,(now-last)/1000);last=now;if(!CALM)T+
   drawR(RO,eye,ct,slim?0:.34,slim?1:.66,-1,1.45,.2)}}}
 requestAnimationFrame(zFrame);
 
+/* ---- Por que Zênite: efeitos (tocam uma vez; tocar na cena repete) ---- */
+const AC=$('#arcc'),AX=AC.getContext('2d');let AV='A',A0=0,ARAF=0;
+const ez=t=>t<0?0:t>1?1:1-Math.pow(1-t,3),lerp=(a,b,t)=>a+(b-a)*t,rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function aGlow(x,y,r,c,a){const g=AX.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(${c},${a})`);g.addColorStop(1,`rgba(${c},0)`);AX.fillStyle=g;AX.fillRect(x-r,y-r,r*2,r*2)}
+function aFlare(x,y,len,a){if(a<=0)return;const g=AX.createLinearGradient(x-len,0,x+len,0);g.addColorStop(0,'rgba(120,170,255,0)');g.addColorStop(.3,`rgba(120,170,255,${.45*a})`);g.addColorStop(.5,`rgba(255,243,224,${a})`);g.addColorStop(.68,`rgba(255,178,91,${.7*a})`);g.addColorStop(1,'rgba(255,178,91,0)');
+ AX.fillStyle=g;AX.fillRect(x-len,y-1,len*2,2);AX.globalAlpha=.35*a;AX.fillRect(x-len,y-4,len*2,8);AX.globalAlpha=1;aGlow(x,y,90*a+10,'255,214,150',.5*a)}
+function aSun(x,y,k){aGlow(x,y,120*k,'255,178,91',.28);aGlow(x,y,46*k,'255,226,170',.8);AX.fillStyle='#fff';AX.beginPath();AX.arc(x,y,9*k,0,7);AX.fill()}
+function aTxt(t,x,y,a,al='left',c='255,226,184'){AX.font='500 11px "IBM Plex Mono",ui-monospace,monospace';AX.textAlign=al;AX.fillStyle=`rgba(${c},${a})`;try{AX.letterSpacing='2px'}catch(e){}AX.fillText(t,x,y)}
+function aLine(x1,y1,x2,y2,c,w=1,dash){AX.strokeStyle=c;AX.lineWidth=w;AX.setLineDash(dash||[]);AX.beginPath();AX.moveTo(x1,y1);AX.lineTo(x2,y2);AX.stroke();AX.setLineDash([])}
+const ARC={
+ A(W,H,t){const hy=H*.52,top=H*.16,x0=W*.14,x1=W*.5,u=ez(t/.8),P=v=>[lerp(x0,x1,v),hy-(hy-top)*(1-(1-v)*(1-v))];
+  aLine(0,hy,W,hy,'rgba(255,214,150,.22)');AX.strokeStyle='rgba(255,255,255,.1)';AX.setLineDash([3,7]);AX.beginPath();for(let v=0;v<=2.001;v+=.02){const q=v<=1?P(v):[W-P(2-v)[0],P(2-v)[1]];v?AX.lineTo(q[0],q[1]):AX.moveTo(q[0],q[1])}AX.stroke();AX.setLineDash([]);
+  for(const[d,l]of[[0,'0° · horizonte'],[.5,'45°'],[1,'90°']]){const y=lerp(hy,top,d);aLine(W-64,y,W-28,y,'rgba(255,255,255,.28)');aTxt(l,W-72,y+4,.5,'right','201,206,212')}
+  const g=AX.createLinearGradient(x0,0,x1,0);g.addColorStop(0,'rgba(255,178,91,0)');g.addColorStop(1,'rgba(255,226,170,.9)');AX.strokeStyle=g;AX.lineWidth=2;AX.beginPath();for(let v=0;v<=u;v+=.01){const q=P(v);v?AX.lineTo(q[0],q[1]):AX.moveTo(q[0],q[1])}AX.stroke();
+  const p=P(u),f=ez((t-.78)/.22);aSun(p[0],p[1],.7+.5*u+.25*f);aFlare(p[0],p[1],W*.46*f,f);aTxt('ZÊNITE',p[0]+26,p[1]-18,f)},
+ B(W,H,t){const hy=H*.52,top=H*.13,cx=W*.5,u=ez(t/.8),R=hy-top;
+  aLine(0,hy,W,hy,'rgba(255,214,150,.22)');for(const k of[.34,.67,1]){AX.strokeStyle=`rgba(255,255,255,${.06+.05*k})`;AX.lineWidth=1;AX.beginPath();AX.ellipse(cx,hy,R*k*1.9,R*k,0,Math.PI,2*Math.PI);AX.stroke()}
+  aLine(cx,hy,cx,top,'rgba(255,255,255,.14)',1,[3,7]);AX.fillStyle='#C9CED4';AX.beginPath();AX.arc(cx,hy,3.5,0,7);AX.fill();aTxt('VOCÊ',cx+14,hy-8,.55,'left','201,206,212');
+  const y=lerp(hy,top,u),g=AX.createLinearGradient(0,hy,0,y);g.addColorStop(0,'rgba(255,178,91,0)');g.addColorStop(1,'rgba(255,236,200,.95)');aLine(cx,hy,cx,y,g,2);
+  const f=ez((t-.78)/.22);aSun(cx,y,.6+.3*u+.4*f);aTxt(Math.round(u*90)+'°',cx+26,y+4,.9);aFlare(cx,y,W*.46*f,f);aTxt('ZÊNITE · BEM ACIMA DA SUA CABEÇA',cx+26,y-16,f)},
+ C(W,H,t){const hy=H*.56,top=H*.12,cx=W*.5,u=ez(t/.75),y=lerp(hy,top,u),bw=10+26*u;
+  aLine(0,hy,W,hy,'rgba(255,214,150,.2)');const g=AX.createLinearGradient(0,hy,0,y);g.addColorStop(0,'rgba(255,178,91,.05)');g.addColorStop(.6,'rgba(255,214,150,.5)');g.addColorStop(1,'rgba(255,246,228,.95)');
+  for(let k=0;k<=26;k++){const yy=lerp(hy,y,k/26),a=.05+.16*(k/26);aGlow(cx,yy,bw*2.6,'255,196,120',a*.6);aGlow(cx,yy,bw*.9,'255,232,196',a)}aLine(cx,hy,cx,y,g,3);
+  for(let i=0;i<70;i++){const sp=.5+rnd(i)*1.1,ph=(t*sp+rnd(i+90))%1,px=cx+(rnd(i+7)-.5)*(60+140*rnd(i+31))*(1-ph*.6),py=lerp(hy,y,ph);if(py<y)continue;AX.fillStyle=`rgba(255,${200+Math.round(40*rnd(i+3))},160,${(.15+.6*rnd(i+5))*u*(1-ph)})`;AX.fillRect(px,py,1.6,2+5*sp)}
+  const f=ez((t-.72)/.28);aGlow(cx,hy,130,'255,178,91',.2*u);aSun(cx,y,.5+.5*u+.5*f);aFlare(cx,y,W*.46*f,f);aTxt('ZÊNITE',cx+60,y+4,f)},
+ D(W,H,t){const cx=W*.5,cy=H*.34,u=ez(t/.9),n=90;
+  for(let i=0;i<n;i++){const r=14+Math.pow(rnd(i),.7)*Math.max(W,H)*.62,a0=rnd(i+50)*6.283,len=(.25+1.15*u)*(.5+.5*rnd(i+9)),al=(.12+.5*rnd(i+17))*(.3+.7*u);
+   const c=rnd(i+3)<.25?'150,185,255':rnd(i+3)<.55?'255,226,170':'240,244,248';AX.strokeStyle=`rgba(${c},${al})`;AX.lineWidth=.6+rnd(i+23)*1.2;AX.beginPath();AX.arc(cx,cy,r,a0,a0+len);AX.stroke();
+   AX.fillStyle=`rgba(${c},${Math.min(1,al*1.8)})`;AX.beginPath();AX.arc(cx+Math.cos(a0+len)*r,cy+Math.sin(a0+len)*r,1.1,0,7);AX.fill()}
+  const f=ez((t-.6)/.4);aLine(cx-16,cy,cx-6,cy,`rgba(255,255,255,${.5*f})`);aLine(cx+6,cy,cx+16,cy,`rgba(255,255,255,${.5*f})`);aLine(cx,cy-16,cx,cy-6,`rgba(255,255,255,${.5*f})`);aLine(cx,cy+6,cx,cy+16,`rgba(255,255,255,${.5*f})`);
+  aSun(cx,cy,.25+.45*f);aFlare(cx,cy,W*.4*f,f*.9);aTxt('ZÊNITE · O CÉU GIRA EM VOLTA DELE',cx+30,cy-22,f)},
+ E(W,H,t){const hy=H*.56,top=H*.14,n=9,win=5,f=ez((t-.8)/.2);
+  aLine(0,hy,W,hy,'rgba(255,214,150,.2)');aLine(W*.08,top,W*.92,top,`rgba(255,255,255,${.14+.2*f})`,1,[3,7]);aTxt('ZÊNITE',W*.08,top-10,.55+.45*f);
+  for(let i=0;i<n;i++){const x=lerp(W*.18,W*.82,i/(n-1)),w=i===win,tg=w?1:.28+.5*rnd(i+4),u=ez(t/(w?.82:.45+.3*rnd(i+12))),y=lerp(hy,lerp(hy,top,tg),u),dim=w?1:1-.55*f;
+   const g=AX.createLinearGradient(0,hy,0,y);g.addColorStop(0,'rgba(255,178,91,0)');g.addColorStop(1,w?'rgba(255,240,214,.95)':`rgba(201,206,212,${.55*dim})`);aLine(x,hy,x,y,g,w?2.5:1.5);
+   if(w){aSun(x,y,.45+.3*u+.45*f);aFlare(x,y,W*.44*f,f)}else{aGlow(x,y,16,'201,206,212',.35*dim);AX.fillStyle=`rgba(230,233,237,${.85*dim})`;AX.beginPath();AX.arc(x,y,3,0,7);AX.fill()}}}};
+function arcDraw(now){const r=AC.getBoundingClientRect(),dp=Math.min(devicePixelRatio||1,2),W=r.width,H=r.height;if(W<2){ARAF=0;return}if(AC.width!==Math.round(W*dp)||AC.height!==Math.round(H*dp)){AC.width=Math.round(W*dp);AC.height=Math.round(H*dp)}
+ const t=CALM?1:Math.min(1,(now-A0)/3600);AX.setTransform(dp,0,0,dp,0,0);AX.clearRect(0,0,W,H);ARC[AV](W,H,t);ARAF=t<1?requestAnimationFrame(arcDraw):0}
+function arcPlay(){A0=performance.now();if(!ARAF)ARAF=requestAnimationFrame(arcDraw)}
+let ASEEN=false;try{new IntersectionObserver(es=>{for(const e of es){if(e.isIntersecting&&!ASEEN){ASEEN=true;arcPlay()}}},{threshold:.5}).observe($('#arc'))}catch(e){}
+$('#arc').onclick=arcPlay;$('#arc').onmouseenter=()=>{if(!ARAF)arcPlay()};addEventListener('resize',()=>{if(!ARAF){A0=performance.now()-4000;ARAF=requestAnimationFrame(arcDraw)}});
+$$('#asw button').forEach(b=>b.onclick=()=>{$$('#asw button').forEach(x=>x.classList.toggle('on',x===b));AV=b.dataset.a;arcPlay()});
+
 /* ---- abas: a troca usa o mesmo clarão da votação ---- */
 $$('.top button').forEach(b=>b.onclick=()=>{$$('.top button').forEach(x=>x.classList.toggle('on',x===b));$$('section.tab').forEach(s=>s.classList.toggle('on',s.id==='tab-'+b.dataset.tab));scrollTo({top:0});
- if(b.dataset.tab==='votacao')playOpen();if(b.dataset.tab==='zenite')refire($('#zsc'));if(b.dataset.tab==='como')refire($('#como .scene'))});
+ if(b.dataset.tab==='votacao')playOpen();if(b.dataset.tab==='zenite'){refire($('#zsc'));ASEEN=false}if(b.dataset.tab==='como')refire($('#como .scene'))});
 buildOpen();buildRows();
 
 </script>

@@ -224,14 +224,13 @@ export function ComoFunciona({ artes = [] }: { artes?: string[] }) {
 }
 
 /** Banner do WinnerZ Awards no Início: ocupa a largura da página, fundo escuro de ponta a ponta,
- *  e o troféu Zênite gira acompanhando o mouse (no celular, arrastando o dedo no banner).
- *  O troféu só carrega quando o banner aparece na tela. */
+ *  troféu Zênite grande à direita, girando sozinho de um lado a outro: para em 3/4 de um lado,
+ *  volta e para em 3/4 do outro. Não segue o mouse. O troféu só carrega quando o banner aparece na tela. */
 export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string; title: string; line: string; cta: string; ate?: string }) {
   const box = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLCanvasElement>(null);
   const [ver, setVer] = useState(false);
   const [on, setOn] = useState(false);
-  const alvo = useRef({ ang: 0.15, el: -0.04, ultimo: 0, drag: false });
 
   useEffect(() => {
     const el = box.current;
@@ -243,42 +242,25 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
   }, []);
 
   useEffect(() => {
-    const el = box.current;
-    if (!ver || !ref.current || !el) return;
-    const A = alvo.current;
-    const mira = (x: number, y: number) => {
-      const r = el.getBoundingClientRect();
-      const px = Math.max(-0.2, Math.min(1.2, (x - r.left) / r.width)), py = Math.max(0, Math.min(1, (y - r.top) / r.height));
-      A.ang = -1.1 + px * 2.2; A.el = -0.16 + py * 0.26; A.ultimo = performance.now();
-    };
-    // O troféu só segue o mouse enquanto ele está em cima do banner; ao sair, volta a balançar sozinho.
-    const onMove = (e: PointerEvent) => { if (e.pointerType === 'mouse' || A.drag) mira(e.clientX, e.clientY); };
-    const onLeave = (e: PointerEvent) => { if (e.pointerType === 'mouse') A.ultimo = 0; };
-    const onDown = (e: PointerEvent) => { if (e.pointerType !== 'mouse') { A.drag = true; mira(e.clientX, e.clientY); } };
-    const onUp = () => { A.drag = false; };
-    el.addEventListener('pointermove', onMove, { passive: true }); el.addEventListener('pointerleave', onLeave);
-    el.addEventListener('pointerdown', onDown); addEventListener('pointerup', onUp); addEventListener('pointercancel', onUp);
+    if (!ver || !ref.current) return;
     const parado = calmo();
-    const cam = { ang: A.ang, el: A.el };
-    const off = mountZenite(ref.current, (dt, t, w, h) => {
-      // Sem mouse por um tempo, o troféu balança devagar sozinho.
-      const solto = !parado && performance.now() - A.ultimo > 1200;
-      const ta = solto ? 0.15 + Math.sin(t * 0.25) * 0.55 : A.ang, te = solto ? -0.04 : A.el;
-      const k = 1 - Math.exp(-dt * 5);
-      cam.ang += (ta - cam.ang) * k; cam.el += (te - cam.el) * k;
-      // Troféu em close: dos joelhos até a ponta da bandeira, ocupando a altura do banner.
-      const cel = w < 700, ct = cel ? [0.1, 3.1, 0] : [0.15, 3.45, 0], d = cel ? 8.6 : 6.6;
-      const eye = [ct[0] + Math.sin(cam.ang) * Math.cos(cam.el) * d, ct[1] + Math.sin(cam.el) * d, ct[2] + Math.cos(cam.ang) * Math.cos(cam.el) * d];
-      return { eye, ct, x0: cel ? 0.4 : 0.5, wf: cel ? 0.6 : 0.5, sel: -1, lit: 1.12, fill: 0.08 };
+    const TRES_QUARTOS = 0.8; // uns 45 graus para cada lado
+    let ang = TRES_QUARTOS;
+    return mountZenite(ref.current, (dt, t, w) => {
+      // Vai de um 3/4 ao outro e segura um pouco em cada ponta (o seno "achatado" faz a pausa).
+      const alvo = parado ? TRES_QUARTOS : TRES_QUARTOS * Math.max(-1, Math.min(1, 1.5 * Math.sin(t * 0.32)));
+      ang += (alvo - ang) * (1 - Math.exp(-dt * 2.2));
+      const cel = w < 700, el = -0.06, ct = cel ? [0, 2.75, 0] : [0, 3.0, 0], d = cel ? 11.2 : 8.2;
+      const eye = [ct[0] + Math.sin(ang) * Math.cos(el) * d, ct[1] + Math.sin(el) * d, ct[2] + Math.cos(ang) * Math.cos(el) * d];
+      return { eye, ct, x0: cel ? 0.42 : 0.5, wf: cel ? 0.58 : 0.5, sel: -1, lit: 1.12, fill: 0.08 };
     }, () => setOn(true));
-    return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
   }, [ver]);
 
   return (
     <div ref={box} className="awbn on-photo">
       <Link to="/eventos/awards" className="awbn__link" aria-label={`${title}: ${cta}`} />
       <span className="awbn__bg" aria-hidden="true" />
-      <Particulas foco={0.78} n={60} />
+      <Particulas foco={0.75} n={60} />
       <span className="scene__flare" aria-hidden="true" />
       {ver && <canvas ref={ref} className={`aw2gl${on ? ' is-on' : ''}`} aria-hidden="true" />}
       <span className="awbn__veil" aria-hidden="true" />

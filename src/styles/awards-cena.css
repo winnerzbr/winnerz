@@ -163,8 +163,8 @@
 .awbn__link { position: absolute; inset: 0; z-index: 6; }
 .awbn__link:focus-visible { outline: 2px solid var(--now); outline-offset: -3px; }
 .awbn__bg { position: absolute; inset: 0; background:
-  radial-gradient(ellipse 16% 60% at 78% 46%, rgba(255, 200, 125, .16), transparent 74%),
-  radial-gradient(ellipse 30% 100% at 78% 50%, #33353a 0%, #222428 38%, rgba(20, 21, 24, .6) 62%, transparent 82%),
+  radial-gradient(ellipse 16% 60% at 75% 46%, rgba(255, 200, 125, .16), transparent 74%),
+  radial-gradient(ellipse 30% 100% at 75% 50%, #33353a 0%, #222428 38%, rgba(20, 21, 24, .6) 62%, transparent 82%),
   radial-gradient(ellipse 56% 100% at 80% 60%, rgba(120, 86, 40, .14), transparent 72%),
   linear-gradient(104deg, transparent 52%, rgba(255, 224, 170, .09) 60%, transparent 66%, rgba(140, 175, 255, .05) 80%, transparent 86%),
   linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }

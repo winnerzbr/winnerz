@@ -266,9 +266,10 @@ export function AwardsBanner({ kicker, title, line, cta, ate }: { kicker: string
       const ta = solto ? 0.15 + Math.sin(t * 0.25) * 0.55 : A.ang, te = solto ? -0.04 : A.el;
       const k = 1 - Math.exp(-dt * 5);
       cam.ang += (ta - cam.ang) * k; cam.el += (te - cam.el) * k;
-      const cel = w < 700, ct = [0, 2.75, 0], d = cel ? 12.4 : 10.6;
+      // Troféu em close: dos joelhos até a ponta da bandeira, ocupando a altura do banner.
+      const cel = w < 700, ct = cel ? [0.1, 3.1, 0] : [0.15, 3.45, 0], d = cel ? 8.6 : 6.6;
       const eye = [ct[0] + Math.sin(cam.ang) * Math.cos(cam.el) * d, ct[1] + Math.sin(cam.el) * d, ct[2] + Math.cos(cam.ang) * Math.cos(cam.el) * d];
-      return { eye, ct, x0: cel ? 0.44 : 0.6, wf: cel ? 0.56 : 0.36, sel: -1, lit: 1.12, fill: 0.08 };
+      return { eye, ct, x0: cel ? 0.4 : 0.5, wf: cel ? 0.6 : 0.5, sel: -1, lit: 1.12, fill: 0.08 };
     }, () => setOn(true));
     return () => { el.removeEventListener('pointermove', onMove); el.removeEventListener('pointerleave', onLeave); el.removeEventListener('pointerdown', onDown); removeEventListener('pointerup', onUp); removeEventListener('pointercancel', onUp); off(); };
   }, [ver]);

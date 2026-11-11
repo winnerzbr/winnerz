@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Início: troféu do banner em close
+
+- Pedido do dono: no banner do Awards no Início, dar mais zoom no troféu para ele ocupar mais o banner.
+- A câmera chegou perto: o troféu aparece dos joelhos até a ponta da bandeira, ocupando a altura do banner, na metade direita. Continua girando com o mouse.
+
 ## 11/11/2026 — Awards: abertura com brilho menor, fundo grafite e partículas
 
 - Pedido do dono: no banner do título do Awards o brilho estava estourado e o fundo simples demais (todo preto). Pediu brilho menor, partículas no fundo e um fundo mais grafite atrás da figura.

@@ -10,7 +10,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - Feito:
   - o quadro não escorrega mais para os lados (só rola para cima e para baixo);
   - a foto não segura mais o dedo: arrastar em cima dela rola a tela; no celular ela ficou mais baixa (até um terço da tela);
-  - os dois botões dividem a largura lado a lado: "Tirar foto" (ou "Outra foto") e "Da galeria";
+  - os dois botões ocupam a largura toda: lado a lado em telas médias, um embaixo do outro em celular estreito (até 440 px): "Tirar foto" (ou "Outra foto") e "Da galeria";
   - depois da leitura aparece "Li 1 jogo · confira abaixo ↓" em cima da foto e a tela desce sozinha até "Confira antes de adicionar".
 - Código: `PhotoRead` em `src/components/CameraAdd.tsx`, `onGames` em `src/components/AddGameDialog.tsx`, estilo no fim de `src/styles/etapa2.css`.
 

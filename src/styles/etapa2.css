@@ -6478,5 +6478,8 @@ button.club-chip { cursor: pointer; height: 32px; padding: 0 14px; font-size: 13
 .cphoto__ok { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 8px 14px; background: rgba(7, 8, 10, .82); color: #fff; font-weight: 600; font-size: 14px; white-space: nowrap; animation: wz-fade-up .3s both; }
 @media (max-width: 640px) {
   .cphoto__view img { max-height: 34vh; }
+}
+@media (max-width: 440px) {
+  .cphoto__acts { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .cphoto__how { font-size: 13px; }
 }

@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (19h): Lobby dos Bugs — level design e inimigos únicos
+- Portas livres, regras de lugar, transparência dos objetos altos, penumbra, arenas próprias dos chefões, tiros únicos.
+
 ## 11/11/2026 — Awards, Como funciona: Zênite na terceira faixa e linha de luz atrás
 
 - Pedido do dono: na aba Como funciona, pôr o Zênite na terceira imagem ("A revelação"), estático e com zoom, e a linha do horizonte atrás de tudo.

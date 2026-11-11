@@ -84,3 +84,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (17h):** regra do dono: cada inimigo é único em todos os sentidos; o preparo do ataque de cada um tem movimento do corpo e efeito próprios (nenhum repete outro).
 
 **11/11/2026 (17h30):** ideia do dono feita: a parte de cima dos objetos altos (poste, fliperama, geladeira, plantas...) deixa passar e cobre o IAmiguinho quando ele passa atrás.
+
+**11/11/2026 (19h):** portas livres e regras de lugar dos objetos; objeto alto transparente com alguém atrás; penumbra nas salas não visitadas; 31 arenas próprias (2 por chefão, 3 do subchefe) com o meio livre; tiros únicos por inimigo (nenhum repetido).

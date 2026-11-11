@@ -4,6 +4,7 @@ Minigames de praia inspirados em California Games. Roda no navegador. Está no s
 
 ## Decisões em vigor
 - **Onde o jogo continua (02/11/2026, 15h30):** no repositório próprio `winnerzbr/iamiguinho-jogos-de-verao` (privado), com o `CLAUDE.md` e a memória dele em `docs/memoria/` (`jogo.md`, `historico.md` e a cópia desta memória em `navegador.md`). Trabalho novo no jogo vai lá. Esta memória fica como registro da versão do navegador.
+- **As diretrizes do jogo (11/11/2026):** todas as decisões do dono que valem ficam no repositório do jogo, em `docs/memoria/diretrizes.md` (numeradas, com a data, a frase dele e o que confere cada uma); antes de entregar, `bash ferramentas/conferir_tudo.sh` lá.
 - **Plataforma (decisão do dono em 02/11/2026, 13h22):** o jogo vai ser lançado no **Steam** e passa a ser feito no **Godot**. A versão do navegador não recebe mais mudanças.
   - Motivo: o jogo está ficando melhor do que ele esperava e não vai ficar de graça no site.
   - Escolhas dele:

@@ -4,6 +4,22 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: página nova aplicada no site (para o dono testar)
+
+- Pedido do dono: aplicar no site o que foi aprovado na prévia, para ele ir testando.
+- **O que entrou em `/eventos/awards`:**
+  - três abas que grudam abaixo do menu: Votação, Troféu Zênite e Como funciona (endereços `#trofeu` e `#como`);
+  - abertura em cena única com o troféu Zênite em 3D no fundo, título da edição, contagem regressiva, frase da fase e os botões de sempre (entrar para votar, começar ou continuar a votar, links da organização);
+  - "Seus votos": um quadro por categoria, que acende quando há voto (tocar no quadro leva à categoria);
+  - categorias em "Lista grande": tocar numa categoria abre os indicados logo abaixo dela. Fora do resultado, só uma fica aberta por vez; no resultado, todas começam abertas;
+  - aba Troféu Zênite: o troféu para girar, as quatro partes (figura, símbolo, base, logo) e "Por que Zênite" com o sol interativo;
+  - aba Como funciona: três faixas, com artes de indicados ao fundo.
+- **A cena de voto não mudou:** o mesmo código e o mesmo estilo de antes, só passou a morar dentro da lista.
+- **Ficou de fora por enquanto:** "Quem já levou" (os pedestais), para não haver risco nenhum de mostrar resultado antes da hora.
+- **Arquivos:** `src/pages/Awards.tsx` (página), `src/components/AwardsCena.tsx` (troféu, sol, como funciona), `src/lib/zenite3d.js` (desenho 3D), `src/styles/awards-cena.css`, `public/modelos/zenite.bin` (modelo leve, 3,5 MB; a prévia usa o de 8 MB). O modelo leve é feito por `prototipos/awards-cena/preparo/bake5.py`, que junta vértices vizinhos sem misturar os dois lados do pano.
+- O estilo antigo do topo (`awhero`, `awbar`, `awrow`) continua em `etapa2.css` sem uso na página; pode sair numa limpeza futura.
+- **Não deu para testar aqui antes de publicar** (o ambiente não monta o site); a conferência é no site no ar.
+
 ## 11/11/2026 — Awards: aba Troféu Zênite no celular com o troféu à direita (prévia)
 
 - O dono viu no celular que o troféu ficava atrás do texto na aba Troféu Zênite e pediu para colocá-lo à direita.

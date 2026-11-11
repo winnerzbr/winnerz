@@ -24,6 +24,7 @@ import './styles/jornada.css';
 import './styles/impacto.css';
 // Visual Carga: terceira camada, por cima da Impacto + Ímã. Liga e desliga em src/lib/visual.ts.
 import './styles/carga.css';
+import './styles/awards-cena.css';
 
 
 async function boot() {

@@ -11,6 +11,7 @@ import { Agenda } from '../components/Agenda';
 import { AwardsNominate, AwardsStickerCard } from './AwardsPlus';
 import type { AgendaItem } from '../data/eventsApi';
 import { CameoJornada } from '../components/IAmiguinho';
+import { TrofeuAbertura, ZeniteCena, SolZenite, ComoFunciona } from '../components/AwardsCena';
 
 const tz = 'America/Sao_Paulo';
 export const fmtWhen = (iso?: string, withTime = false) => (iso ? new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'long', ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}), timeZone: tz }) : '');
@@ -165,8 +166,19 @@ export function EventsIndex() {
   );
 }
 
-/** Quantas categorias aparecem abertas antes das demais virarem linhas compactas. */
-const OPEN_FIRST = 3;
+/** A contagem regressiva dentro da cena de abertura (dias, horas e minutos; atualiza sozinha). */
+function ContaCena({ to, rotulo }: { to: string; rotulo: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 15000); return () => clearInterval(t); }, []);
+  const left = Math.max(0, Date.parse(to) - now);
+  const d = Math.floor(left / 86400000), h = Math.floor((left % 86400000) / 3600000), m = Math.floor((left % 3600000) / 60000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return <span className="aw2cd" role="timer" aria-label={`${rotulo} ${d} ${d === 1 ? 'dia' : 'dias'}, ${h} horas e ${m} minutos`}>{rotulo} <b>{d}d {pad(h)}h {pad(m)}m</b></span>;
+}
+const CONTA_ROTULO: Partial<Record<Phase, string>> = { indicacoes: 'Indicações fecham em', antes: 'Abre em', aberta: 'Fecha em', apurando: 'Revelação em' };
+
+type Aba = 'votacao' | 'trofeu' | 'como';
+const ABAS: [Aba, string][] = [['votacao', 'Votação'], ['trofeu', 'Troféu Zênite'], ['como', 'Como funciona']];
 
 export function AwardsPage() {
   const award = useLatestAward();
@@ -175,10 +187,13 @@ export function AwardsPage() {
   const [saving, setSaving] = useState<string | null>(null);
   /** Depois do primeiro voto da edição, o IAmiguinho conta que também tentou votar (uma vez por edição). */
   const [votou, setVotou] = useState(false);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const bg = useAwardBg(full);
+  const [aba, setAba] = useState<Aba>(() => (location.hash === '#trofeu' ? 'trofeu' : location.hash === '#como' ? 'como' : 'votacao'));
+  /** Categorias abertas. `null` = ainda no padrão (no resultado, todas; fora dele, nenhuma). */
+  const [open, setOpen] = useState<Record<string, boolean> | null>(null);
+  /** As que já abriram ficam montadas, para o fechar também ter animação. */
+  const [seen, setSeen] = useState<Record<string, boolean>>({});
   useEffect(() => { track('eventos.awards'); }, []);
-  // A barra de categorias gruda logo abaixo do menu, que muda de altura conforme a largura da tela.
+  // As abas grudam logo abaixo do menu, que muda de altura conforme a largura da tela.
   useEffect(() => {
     const h = document.querySelector<HTMLElement>('.site-header');
     if (!h || typeof ResizeObserver === 'undefined') return;
@@ -204,9 +219,7 @@ export function AwardsPage() {
   const voted = withNominees.filter((c) => full.myVotes[c.id]).length;
   const res = full.results;
   const showResult = !!res && phase === 'resultado';
-  const compact = phase === 'aberta' && withNominees.length > OPEN_FIRST + 1;
-  const isOpen = (c: Category, k: number) => !compact || k < OPEN_FIRST || !!expanded[c.id];
-  const collapsedCount = withNominees.filter((c, k) => !isOpen(c, k)).length;
+  const isOpen = (c: Category) => (open ? !!open[c.id] : showResult);
 
   const vote = async (c: Category, nomineeId: string) => {
     if (!voting) return;
@@ -220,162 +233,225 @@ export function AwardsPage() {
     finally { setSaving(null); }
   };
 
+  /** Abre ou fecha uma categoria. Fora do resultado, só uma fica aberta por vez. */
+  const setCat = (c: Category, on: boolean) => {
+    if (on) setSeen((x) => (x[c.id] ? x : { ...x, [c.id]: true }));
+    setOpen((o) => {
+      const base = showResult ? (o ?? Object.fromEntries(withNominees.map((x) => [x.id, true]))) : {};
+      return { ...base, [c.id]: on };
+    });
+  };
   const goTo = (c: Category) => {
-    setExpanded((x) => ({ ...x, [c.id]: true }));
-    requestAnimationFrame(() => document.getElementById(`cat-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    setAba('votacao');
+    setCat(c, true);
+    setTimeout(() => document.getElementById(`cat-${c.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  };
+  const trocarAba = (a: Aba) => {
+    setAba(a);
+    try { history.replaceState(null, '', a === 'votacao' ? location.pathname + location.search : `#${a}`); } catch { /* sem histórico */ }
+    window.scrollTo({ top: 0 });
   };
 
   const myTitle = (c: Category) => c.nominees.find((n) => n.id === full.myVotes[c.id])?.game.title;
   const deadline = phase === 'aberta' && full.award.votingCloses ? `Votação até ${fmtDay(full.award.votingCloses)}, ${fmtHour(full.award.votingCloses)}`
     : phase === 'antes' && full.award.votingOpens ? `Votação abre ${fmtDay(full.award.votingOpens)}, ${fmtHour(full.award.votingOpens)}`
     : phase === 'apurando' && publicAt(full.award) ? `Revelação ${fmtDay(publicAt(full.award)!)}, ${fmtHour(publicAt(full.award)!)}` : '';
-
-  let firstCollapsed = true;
+  const conta = countdownTarget(full.award, phase);
+  const pessoas = full.voters > 0 ? `${full.voters.toLocaleString('pt-BR')} ${full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}.` : '';
+  const linha = phase === 'aberta' ? `${pessoas ? `${pessoas} ` : ''}Um voto por categoria, e dá para mudar até o fim.`
+    : `${phaseLine(full.award, phase)}${pessoas && phase !== 'antes' && phase !== 'rascunho' && phase !== 'indicacoes' ? ` ${pessoas}` : ''}`;
+  const primeira = withNominees.find((c) => !full.myVotes[c.id]) ?? withNominees[0];
+  const artes = withNominees.slice(0, 3).map((c) => nomineeArt(c.nominees[0]));
 
   return (
-    <main className="awards">
+    <main className="awards aw2 on-photo">
       {votou && <CameoJornada motivo="awards" escopo={full.award.id} fatos={{}} atraso={900} />}
-      <section className="awhero on-photo">
-        {bg && <img className="awhero__bg" src={bg} alt="" />}
-        <div className="awhero__shade" aria-hidden="true" />
-        <div className="page awhero__row">
-          <div className="awhero__text">
-            <Link to="/eventos" className="back awhero__back">← Eventos</Link>
-            <div className="awhero__brand"><AwardsMark width={120} relief /><h1 className="t awhero__title" aria-label={full.award.title}>{shortTitle(full.award.title)}</h1></div>
-            {full.award.intro && <p className="awhero__intro">{full.award.intro}</p>}
-            <p className="awhero__zen"><span>O troféu</span> <b>{TROFEU}</b> <span>· um para cada categoria</span></p>
-            <p className="awhero__line">
-              {phase === 'aberta'
-                ? <>{full.voters > 0 && <><span className="mono awhero__num">{full.voters.toLocaleString('pt-BR')}</span> {full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}. </>}Um voto por categoria, e dá para mudar até o fim.</>
-                : <>{phaseLine(full.award, phase)}{full.voters > 0 && phase !== 'antes' && phase !== 'rascunho' && phase !== 'indicacoes' ? ` ${full.voters.toLocaleString('pt-BR')} ${full.voters === 1 ? 'pessoa votou' : 'pessoas votaram'}.` : ''}</>}
-            </p>
-            {phase === 'aberta' && !logged && <p className="awhero__login"><Link className="btn primary" to="/entrar">Entre para votar</Link> <span>Uma conta, um voto por categoria.</span></p>}
-            {phase === 'apurando' && <p className="awhero__note">Ninguém vê a contagem antes da revelação, nem a administração do site muda votos.</p>}
-            {error && <p className="awards__error" role="alert">{error}</p>}
-          </div>
-          <div className="awhero__side">
-            {deadline && <span className="awhero__deadline">{deadline}</span>}
-            {canAdmin() && (
-              <>
-                <div className="awhero__admin"><Link className="btn ghost sm" to="/eventos/awards/admin">Montar a edição</Link><Link className="btn ghost sm" to="/eventos/awards/revelar">Apresentação da revelação</Link></div>
-                <span className="awhero__only">Só para quem organiza</span>
-              </>
-            )}
-          </div>
+      <div className="aw2tabs">
+        <div className="aw2__wrap aw2tabs__row" role="tablist" aria-label="WinnerZ Awards">
+          <b>WinnerZ Awards</b>
+          {ABAS.map(([id, nome]) => <button key={id} role="tab" aria-selected={aba === id} className={aba === id ? 'on' : ''} onClick={() => trocarAba(id)}>{nome}</button>)}
         </div>
-      </section>
+      </div>
 
-      {withNominees.length > 0 && phase !== 'indicacoes' && (
-        <div className="awbar">
-          <div className="page awbar__row">
-            {voting && <div className="awbar__count"><span className="t">{voted}<span className="awbar__of">/{withNominees.length}</span></span><span>votos</span></div>}
-            <nav className="awbar__cats" aria-label="Categorias">
-              {withNominees.map((c) => {
-                const mine = !!full.myVotes[c.id];
-                return (
-                  <button key={c.id} className={`awbar__cat${mine ? ' is-voted' : ''}`} onClick={() => goTo(c)}>
-                    {voting && <span className={mine ? 'awbar__ok' : 'awbar__no'} aria-hidden="true" />}{c.name}
-                    {voting && <span className="sr-only">{mine ? ' (votado)' : ' (sem voto)'}</span>}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-          {voting && <div className="awbar__track" aria-hidden="true"><span style={{ width: `${(voted / withNominees.length) * 100}%` }} /></div>}
-        </div>
-      )}
-
-      <div className="page awards__body">
-        {phase === 'indicacoes' && <AwardsNominate full={full} />}
-        {phase !== 'indicacoes' && withNominees.length === 0 && <div className="card tl-empty"><p className="muted">Os indicados ainda vão ser anunciados.</p></div>}
-
-        {phase !== 'indicacoes' && withNominees.map((c, k) => {
-          if (!isOpen(c, k)) {
-            const head = firstCollapsed;
-            firstCollapsed = false;
-            const mine = myTitle(c);
-            return (
-              <div key={c.id} id={`cat-${c.id}`} className="awrow-wrap">
-                {head && <h2 className="t awrows__head">Mais {collapsedCount} {collapsedCount === 1 ? 'categoria' : 'categorias'}</h2>}
-                <button className={`awrow${mine ? ' is-voted' : ''}`} onClick={() => goTo(c)}>
-                  <span className="t awrow__name">{c.name}</span>
-                  <span className="awrow__covers" aria-hidden="true">{c.nominees.slice(0, 6).map((n) => <span key={n.id} className="awrow__art" style={{ backgroundImage: `url("${igdbSize(nomineeArt(n), 't_screenshot_med')}")`, backgroundPosition: n.focus || '50% 50%' }} />)}</span>
-                  <span className="kicker awrow__go">{mine ? `Seu voto: ${mine}` : 'Votar →'}</span>
-                </button>
+      <div className="aw2__wrap">
+        {aba === 'votacao' && (
+          <section className="aw2tab">
+            <div className="scene scene--open has">
+              <div className="scene__row">
+                <div className="scene__p on">
+                  <span className="aw2op__bg" aria-hidden="true" />
+                  <span className="scene__shade" aria-hidden="true" />
+                  <TrofeuAbertura />
+                  <span className="aw2op__veil" aria-hidden="true" />
+                  <span className="scene__leak" aria-hidden="true" />
+                  <div className="scene__ttl">
+                    <span className="scene__tag">{PHASE_TAG[phase]}</span>
+                    <h1 className="scene__nm">{full.award.title}</h1>
+                    {conta && CONTA_ROTULO[phase] && <ContaCena to={conta} rotulo={CONTA_ROTULO[phase]!} />}
+                    {full.award.intro && <span className="scene__hint">{full.award.intro}</span>}
+                    <span className="scene__hint">{linha}</span>
+                  </div>
+                </div>
               </div>
-            );
-          }
-          const total = res ? c.nominees.reduce((a, n) => a + (res[n.id] ?? 0), 0) : 0;
-          const top = showResult && total ? Math.max(...c.nominees.map((n) => res![n.id] ?? 0)) : -1;
-          const winners = top > 0 ? c.nominees.filter((n) => (res![n.id] ?? 0) === top) : [];
-          const mine = myTitle(c);
-          // A cena: a escolhida (seu voto ou, no resultado, o vencedor) se abre em widescreen.
-          const openId = showResult ? winners[0]?.id : full.myVotes[c.id];
-          const next = withNominees[k + 1];
-          const tag = showResult ? seloVencedor(winners.length) : 'Seu voto';
-          return (
-            <section key={c.id} id={`cat-${c.id}`} className="awcat" aria-labelledby={`cath-${c.id}`}>
-              <div className={`scene${openId ? ' has' : ''}`}>
-                <div className="scene__row" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
-                  {c.nominees.map((n) => {
-                    const on = n.id === openId;
-                    const isMine = full.myVotes[c.id] === n.id;
-                    const votes = res?.[n.id] ?? 0;
-                    const pct = total ? Math.round((votes / total) * 100) : 0;
-                    const sub = n.game.developer || (n.game.year ? String(n.game.year) : '');
-                    const body = (
-                      <>
-                        <img className="scene__img" src={nomineeArt(n)} alt="" loading="lazy" style={{ objectPosition: n.focus || '50% 50%' }} />
-                        <span className="scene__shade" aria-hidden="true" />
-                        {on && <span className="scene__leak" aria-hidden="true" />}
-                        <span className="scene__name">
-                          <b>{n.game.title}</b>
-                          {sub && <span>{sub}</span>}
-                          {!voting && isMine && !on && <em className="scene__mine">Seu voto</em>}
-                          {showResult && <span className="scene__bar" aria-label={`${votes} votos`}><i style={{ width: `${pct}%` }} /><em>{pct}%</em></span>}
-                        </span>
-                        <span className="scene__vt" aria-hidden="true">{showResult ? `${pct}% · ` : ''}{n.game.title}</span>
-                        {on && (
-                          <span className="scene__ttl" key={`${n.id}-${tag}`}>
-                            <span className="scene__tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>{tag}<span className="scene__tagcat"> · {c.name}</span></span>
-                            <span className="scene__nm">{n.game.title}</span>
-                            {(sub || showResult) && <span className="scene__sub">{[sub, showResult ? `${pct}% dos votos` : ''].filter(Boolean).join(' · ')}</span>}
-                            {!showResult && isMine && voting && <span className="scene__hint">Toque de novo para tirar o voto</span>}
-                          </span>
-                        )}
-                      </>
-                    );
-                    const cls = `scene__p${on ? ' on' : ''}`;
-                    return voting
-                      ? <button key={n.id} role="radio" aria-checked={isMine} aria-label={n.game.title} className={cls} onClick={() => vote(c, n.id)} disabled={saving === c.id}>{body}</button>
-                      : <Link key={n.id} to={`/jogos/${n.game.slug}`} aria-label={n.game.title} className={cls}>{body}</Link>;
+              <span className="scene__grain" aria-hidden="true" />
+              <span className="scene__flare" aria-hidden="true" />
+              <span className="scene__ghost" aria-hidden="true" />
+              <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
+              <span className="scene__flash" aria-hidden="true" />
+              <span className="scene__lb scene__lb--t" aria-hidden="true" />
+              <span className="scene__lb scene__lb--b" aria-hidden="true" />
+              <div className="scene__top">
+                <div className="scene__head"><Link to="/eventos" className="kicker">← Eventos</Link></div>
+                {deadline && <span className="kicker">{deadline}</span>}
+              </div>
+              <div className="scene__bottom">
+                <span className="scene__desc">O troféu {TROFEU} · um para cada categoria</span>
+                {voting && primeira && <button className="kicker scene__next" onClick={() => goTo(primeira)}>{voted ? 'Continuar votando →' : 'Começar a votar →'}</button>}
+                {phase === 'aberta' && !logged && <Link className="kicker scene__next" to="/entrar">Entre para votar →</Link>}
+              </div>
+            </div>
+
+            {(error || phase === 'apurando' || (phase === 'aberta' && !logged) || canAdmin()) && (
+              <div className="aw2__extra">
+                {error && <p className="awards__error" role="alert">{error}</p>}
+                {phase === 'aberta' && !logged && <><Link className="btn primary" to="/entrar">Entre para votar</Link><span className="muted">Uma conta, um voto por categoria.</span></>}
+                {phase === 'apurando' && <p className="awhero__note">Ninguém vê a contagem antes da revelação, nem a administração do site muda votos.</p>}
+                {canAdmin() && (
+                  <>
+                    <Link className="btn ghost sm" to="/eventos/awards/admin">Montar a edição</Link>
+                    <Link className="btn ghost sm" to="/eventos/awards/revelar">Apresentação da revelação</Link>
+                    <span className="awhero__only">Só para quem organiza</span>
+                  </>
+                )}
+              </div>
+            )}
+
+            {phase === 'indicacoes' && <AwardsNominate full={full} />}
+            {phase !== 'indicacoes' && withNominees.length === 0 && <div className="card tl-empty" style={{ marginTop: 26 }}><p className="muted">Os indicados ainda vão ser anunciados.</p></div>}
+
+            {voting && withNominees.length > 0 && (
+              <>
+                <div className="aw2sec"><h2 className="t">Seus votos</h2><span className="kicker">{voted} de {withNominees.length} categorias</span></div>
+                <div className="aw2frames" style={{ ['--n' as string]: withNominees.length }}>
+                  {withNominees.map((c) => {
+                    const mine = myTitle(c);
+                    return <button key={c.id} className={mine ? 'ok' : ''} onClick={() => goTo(c)} aria-label={`${c.name}: ${mine ? `seu voto é ${mine}` : 'sem voto'}`} title={c.name} />;
                   })}
                 </div>
-                <span className="scene__grain" aria-hidden="true" />
-                {openId && <>
-                  <span className="scene__flare" key={`f-${openId}`} aria-hidden="true" />
-                  <span className="scene__ghost" aria-hidden="true" />
-                  <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
-                  <span className="scene__flash" key={`x-${openId}`} aria-hidden="true" />
-                </>}
-                <span className="scene__lb scene__lb--t" aria-hidden="true" />
-                <span className="scene__lb scene__lb--b" aria-hidden="true" />
-                <div className="scene__top">
-                  <div className="scene__head"><h2 id={`cath-${c.id}`} className="t">{c.name}</h2><span className="kicker">{k + 1} de {withNominees.length}</span></div>
-                  <span className="kicker scene__status" role={saving === c.id ? 'status' : undefined}>
-                    {saving === c.id ? 'Gravando…' : winners.length ? '' : mine ? '' : voting ? 'Toque numa arte para votar' : ''}
-                  </span>
+              </>
+            )}
+
+            {phase !== 'indicacoes' && withNominees.length > 0 && (
+              <>
+                <div className="aw2sec">
+                  <h2 className="t">{withNominees.length === 1 ? 'A categoria' : `As ${withNominees.length} categorias`}</h2>
+                  <span className="kicker">Toque numa categoria: os indicados abrem logo abaixo</span>
                 </div>
-                <div className="scene__bottom">
-                  <span className="scene__desc">{c.description || (voting ? 'Um voto por categoria. Dá para mudar até o fim da votação.' : '')}</span>
-                  {next && <button className="kicker scene__next" onClick={() => goTo(next)}>{next.name} →</button>}
+                <div className="aw2list">
+                  {withNominees.map((c, k) => {
+                    const aberta = isOpen(c);
+                    const mine = myTitle(c);
+                    const st = aberta ? 'Fechar' : mine ? `Seu voto: ${mine}` : voting ? 'Votar →' : showResult ? 'Ver quem levou →' : 'Ver indicados →';
+                    const total = res ? c.nominees.reduce((a, n) => a + (res[n.id] ?? 0), 0) : 0;
+                    const top = showResult && total ? Math.max(...c.nominees.map((n) => res![n.id] ?? 0)) : -1;
+                    const winners = top > 0 ? c.nominees.filter((n) => (res![n.id] ?? 0) === top) : [];
+                    // A cena: a escolhida (seu voto ou, no resultado, o vencedor) se abre em widescreen.
+                    const openId = showResult ? winners[0]?.id : full.myVotes[c.id];
+                    const next = withNominees[k + 1];
+                    const tag = showResult ? seloVencedor(winners.length) : 'Seu voto';
+                    return (
+                      <div key={c.id}>
+                        <button id={`cat-${c.id}`} className={`aw2cat${aberta ? ' open' : ''}${mine ? ' is-voted' : ''}`} aria-expanded={aberta} aria-controls={`slot-${c.id}`} onClick={() => setCat(c, !aberta)}>
+                          <span className="aw2cat__n">{String(k + 1).padStart(2, '0')}</span>
+                          <span className="t aw2cat__name">{c.name}</span>
+                          <span className="aw2cat__st">{st}</span>
+                        </button>
+                        <div id={`slot-${c.id}`} className={`aw2slot${aberta ? ' on' : ''}`}>
+                          <div>
+                            {(aberta || seen[c.id]) && (
+                              <div className={`scene${openId ? ' has' : ''}`}>
+                                <div className="scene__row" role={voting ? 'radiogroup' : undefined} aria-labelledby={`cath-${c.id}`}>
+                                  {c.nominees.map((n) => {
+                                    const on = n.id === openId;
+                                    const isMine = full.myVotes[c.id] === n.id;
+                                    const votes = res?.[n.id] ?? 0;
+                                    const pct = total ? Math.round((votes / total) * 100) : 0;
+                                    const sub = n.game.developer || (n.game.year ? String(n.game.year) : '');
+                                    const body = (
+                                      <>
+                                        <img className="scene__img" src={nomineeArt(n)} alt="" loading="lazy" style={{ objectPosition: n.focus || '50% 50%' }} />
+                                        <span className="scene__shade" aria-hidden="true" />
+                                        {on && <span className="scene__leak" aria-hidden="true" />}
+                                        <span className="scene__name">
+                                          <b>{n.game.title}</b>
+                                          {sub && <span>{sub}</span>}
+                                          {!voting && isMine && !on && <em className="scene__mine">Seu voto</em>}
+                                          {showResult && <span className="scene__bar" aria-label={`${votes} votos`}><i style={{ width: `${pct}%` }} /><em>{pct}%</em></span>}
+                                        </span>
+                                        <span className="scene__vt" aria-hidden="true">{showResult ? `${pct}% · ` : ''}{n.game.title}</span>
+                                        {on && (
+                                          <span className="scene__ttl" key={`${n.id}-${tag}`}>
+                                            <span className="scene__tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>{tag}<span className="scene__tagcat"> · {c.name}</span></span>
+                                            <span className="scene__nm">{n.game.title}</span>
+                                            {(sub || showResult) && <span className="scene__sub">{[sub, showResult ? `${pct}% dos votos` : ''].filter(Boolean).join(' · ')}</span>}
+                                            {!showResult && isMine && voting && <span className="scene__hint">Toque de novo para tirar o voto</span>}
+                                          </span>
+                                        )}
+                                      </>
+                                    );
+                                    const cls = `scene__p${on ? ' on' : ''}`;
+                                    return voting
+                                      ? <button key={n.id} role="radio" aria-checked={isMine} aria-label={n.game.title} className={cls} onClick={() => vote(c, n.id)} disabled={saving === c.id} tabIndex={aberta ? undefined : -1}>{body}</button>
+                                      : <Link key={n.id} to={`/jogos/${n.game.slug}`} aria-label={n.game.title} className={cls}>{body}</Link>;
+                                  })}
+                                </div>
+                                <span className="scene__grain" aria-hidden="true" />
+                                {openId && <>
+                                  <span className="scene__flare" key={`f-${openId}`} aria-hidden="true" />
+                                  <span className="scene__ghost" aria-hidden="true" />
+                                  <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
+                                  <span className="scene__flash" key={`x-${openId}`} aria-hidden="true" />
+                                </>}
+                                <span className="scene__lb scene__lb--t" aria-hidden="true" />
+                                <span className="scene__lb scene__lb--b" aria-hidden="true" />
+                                <div className="scene__top">
+                                  <div className="scene__head"><h2 id={`cath-${c.id}`} className="t">{c.name}</h2><span className="kicker">{k + 1} de {withNominees.length}</span></div>
+                                  <span className="kicker scene__status" role={saving === c.id ? 'status' : undefined}>
+                                    {saving === c.id ? 'Gravando…' : winners.length ? '' : mine ? '' : voting ? 'Toque numa arte para votar' : ''}
+                                  </span>
+                                </div>
+                                <div className="scene__bottom">
+                                  <span className="scene__desc">{c.description || (voting ? 'Um voto por categoria. Dá para mudar até o fim da votação.' : '')}</span>
+                                  {next && <button className="kicker scene__next" onClick={() => goTo(next)}>{next.name} →</button>}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            </section>
-          );
-        })}
-        <AwardsStickerCard award={full.award} />
-        <p className="awards__more"><Link className="kicker" to="/eventos/awards/historico">Edições anteriores →</Link></p>
+              </>
+            )}
+            <AwardsStickerCard award={full.award} />
+            <p className="awards__more"><Link className="kicker" to="/eventos/awards/historico">Edições anteriores →</Link></p>
+          </section>
+        )}
+
+        {aba === 'trofeu' && (
+          <section className="aw2tab">
+            <ZeniteCena />
+            <div className="aw2sec"><h2 className="t">Por que {TROFEU}</h2><span className="kicker">Leve o sol até o ponto mais alto</span></div>
+            <SolZenite />
+          </section>
+        )}
+
+        {aba === 'como' && (
+          <section className="aw2tab">
+            <ComoFunciona artes={artes} />
+          </section>
+        )}
       </div>
     </main>
   );

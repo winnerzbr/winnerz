@@ -31,7 +31,7 @@ G=coo_matrix((ln[ke],(e[ke,0],e[ke,1])),shape=(n,n)).tocsr()
 src=np.where((~solid)&((A@solid.astype(float))>0))[0];print('src',len(src))
 geo=dijkstra(G,directed=False,indices=src,min_only=True);geo[~np.isfinite(geo)]=0
 print('geo pct',np.percentile(geo[~solid],[50,90,99,100]))
-w=np.clip((geo-.05)/(.5-.05),0,1);w=w*w*(3-2*w);w[solid]=0
+w=np.clip((geo-.04)/(.34-.04),0,1);w=w*w*(3-2*w);w[solid]=0
 for _ in range(10):w=.5*w+.5*(A@w)/deg
 w[mast]=0
 print('thin',thin.mean(),'w>0.05',(w>.05).mean(),'w max',w.max())

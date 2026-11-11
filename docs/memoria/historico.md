@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Awards: base de diamante transparente e mais vento na bandeira (prévia)
+
+- Pedido do dono: melhorar a base de diamante (principalmente transparência e refração da luz) e dar mais movimento à bandeira.
+- **Base:** agora é transparente de verdade. O que está atrás ou dentro dela (pés da figura, logo) aparece através do diamante, deslocado e com as bordas coloridas (a luz se separa em cores, como num prisma). As facetas acendem e apagam conforme a câmera gira. Onde não há nada atrás, a base deixa ver o fundo da página.
+  - Como é feito: o ouro é desenhado primeiro numa imagem guardada; o diamante é desenhado por cima, lendo essa imagem com desvio por faceta.
+- **Bandeira:** onda maior e mais rápida, com uma tremida fina nas pontas; a área que se mexe ficou maior (o movimento chega ao máximo mais perto do mastro).
+- **Abertura:** o enquadramento desceu um pouco para a base aparecer inteira.
+- Segue pendente: deixar o arquivo do modelo mais leve antes de ir para o site. Nada aplicado no site ainda.
+
 ## 11/11/2026 — Awards: o troféu Zênite de verdade entrou na prévia, com a bandeira em movimento
 
 - O dono mandou o modelo 3D atual do troféu (`WinnerZ_Awards_Novo_Trofeu_Materiais.glb`, 10,5 MB) e perguntou se dá para fazer, por código, um modelo mais detalhado e com movimento na bandeira.

@@ -4,6 +4,18 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: prévias interativas da página do Awards no canvas (aguardando escolha)
+- Canvas novo "WinnerZ Awards · página da estreia (prévias)": https://claude.ai/artifact/RHdw18im8BZR5nHSacDJQb. Seis quadros que funcionam no Play:
+  - 1 Cerimônia (holofotes, poeira, título que acende, categoria entra com o corte em lâmina);
+  - 2 Ascensão (botão "Subir" leva a página até o troféu no alto);
+  - 3 Forja (faíscas, ouro derretido, veios de cobre, categoria "cunhada");
+  - 4 Constelação (19 estrelas de oito pontas, céu que se move com o mouse);
+  - 5 Contagem (relógio que anda, barra de votos);
+  - Aba Troféu Zênite (troféu que gira com o mouse, as quatro partes explicadas, "Ver de perto", o significado do nome, pedestais lacrados até a revelação).
+- O troféu nos quadros é um desenho simplificado; no site entra a imagem ou o modelo 3D de verdade. A apresentação dos indicados não muda. Datas e relógio são de exemplo.
+- Gerador: `prototipos/redesign-elementos/awards.py`.
+- Falta o dono escolher a direção (ou mistura) e confirmar a exceção de movimento contínuo no Awards. Nada mudou no site.
+
 ## 11/11/2026: página do Awards para a estreia (só sugestões, nada mudou)
 - Pedido do dono: para a estreia do site, uma página do Awards bem bonita, com partículas, movimento e VFX. **Mantém igual** o efeito visual da apresentação dos candidatos (votação); remodelar só o restante. Quer também uma **aba dedicada ao troféu Zênite**.
 - Sugestões entregues na conversa (aguardando ele escolher; depois, modelo no canvas antes de aplicar):

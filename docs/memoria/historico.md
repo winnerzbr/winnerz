@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (tarde): Lobby dos Bugs, variedade por partida no salão
+- Paredes, móveis e bug do salão aprovados pelo dono, com ajustes. Novo pedido: muita variedade para a mesma sala a cada partida. Feito no salão: temas sorteados (10 estilos de parede, 7 neons, 46 coisas penduradas, carpetes, mesas e cadeiras em várias cores). Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 11/11/2026: prévias interativas da página do Awards no canvas (aguardando escolha)
 - Canvas novo "WinnerZ Awards · página da estreia (prévias)": https://claude.ai/artifact/RHdw18im8BZR5nHSacDJQb. Seis quadros que funcionam no Play:
   - 1 Cerimônia (holofotes, poeira, título que acende, categoria entra com o corte em lâmina);

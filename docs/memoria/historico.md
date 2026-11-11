@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 10/11/2026 (22h50): Lobby dos Bugs, o dono escolheu o estilo de 32 pontos
+- Decisão: o jogo é em pixel art de 32 pontos. No repositório `winnerzbr/lobby-dos-bugs`, virou o padrão do jogo e do Ateliê. Próximo: refazer os desenhos por lotes. Resumo em `docs/memoria/lobby-dos-bugs.md`.
+
 ## 10/11/2026 (noite): Lobby dos Bugs, os 4 estilos gráficos no jogo inteiro
 - No repositório `winnerzbr/lobby-dos-bugs`: os 4 estilos (hoje, 16 caprichado, 32 pontos, 3D estilo PS2) valem no andar inteiro (menu → "Estilo", ou F2). A pedido do dono, o 3D não tem mais desenho chapado (tudo o que não tem modelo vira peça com volume) e o vírus foi refeito em 32 pontos.
 - Em aberto: a escolha do estilo. Resumo em `docs/memoria/lobby-dos-bugs.md`.

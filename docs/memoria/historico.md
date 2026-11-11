@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 (14h30): Lobby dos Bugs — passo 1 dos objetos maiores e diretriz das sombras
+- Lixeiras, caixas, pilhas, pufes e mesinha maiores e com volume (commit 91b6e8f em `winnerzbr/lobby-dos-bugs`).
+- Diretriz geral nova do dono: caprichar nas sombras de tudo no jogo (em `CLAUDE.md` do jogo). Para depois: variedade de tamanho nos inimigos.
+
 ## 11/11/2026 — Awards: base de diamante transparente e mais vento na bandeira (prévia)
 
 - Pedido do dono: melhorar a base de diamante (principalmente transparência e refração da luz) e dar mais movimento à bandeira.

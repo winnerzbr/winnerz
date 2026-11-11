@@ -92,3 +92,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (20h):** 1ª revisão geral das sombras (diretriz B3): sombra pintada em 32 pontos no IAmiguinho, bugs, chefões, baús, itens, cristais e agora também nos tiros; a sombra de cada objeto do cenário no chão tem a forma dele (embaixo e à direita). Falta: sombra dos móveis na parede e uns nos outros, paredes e efeitos. Próximo na fila: variedade de tamanho nos inimigos.
 
 **11/11/2026 (20h30):** pedidos do dono: penumbra cobrindo a sala não visitada inteira, com as bordas difusas; cada inimigo com os sons dele (diretriz D7: "o bug solta uma gosma, então deve ser som de inseto soltando gosma, não de tiro"; 100 sons novos, um para cada golpe); cadeiras sólidas e andar por trás dos monitores (diretriz C9).
+
+**11/11/2026 (22h):** IAmiguinho chibi em teste (opção na pausa, ligada por padrão); diretriz D8 (VFX e animação o mais sofisticados possível): 1ª rodada feita (estouros em camadas, tiros com rastro e efeitos na cor deles, corpo que estica e amassa no IAmiguinho e nos bugs).

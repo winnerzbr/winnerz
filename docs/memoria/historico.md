@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Lobby dos Bugs: chibi (teste), VFX e corpo vivo
+
+- No repositório `winnerzbr/lobby-dos-bugs` (detalhes no histórico do jogo). Diretriz nova D8: VFX e animação o mais sofisticados possível.
+
 ## 11/11/2026 — Lobby dos Bugs: penumbra total, sons de cada inimigo, cadeiras sólidas
 
 - No repositório `winnerzbr/lobby-dos-bugs` (detalhes no histórico do jogo). Duas diretrizes novas do dono: D7 (cada inimigo com os sons dele) e C9 (não andar por cima de cadeira e móvel; andar por trás dos objetos altos).

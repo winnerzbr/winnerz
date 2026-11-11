@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Jornada: cartão "Lembra disso?" corrigido na coluna lateral
+
+- O dono mostrou o cartão "Lembra disso?" desconfigurado na página da Jornada: foto à esquerda espremendo o texto em colunas de uma palavra e "Ver na linha do tempo" por cima do título.
+- Causa: quando o cartão tem foto, a regra de três colunas (foto de 168 px, texto, link) vencia a regra da coluna lateral. Agora, na lateral, o cartão fica sempre em pé: foto em cima (150 px), texto embaixo e o link por último. Vale também para o "Neste dia". Em `src/styles/jornada.css`.
+
 ## 11/11/2026 — Awards: página adaptada ao modo claro
 
 - Pedido do dono: adaptar a página do Awards ao modo claro.

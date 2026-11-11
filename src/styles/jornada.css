@@ -564,9 +564,10 @@
 .lemb__m { font-size: 13px; color: var(--faint); }
 .lemb__go { padding-right: 20px; font-size: 13px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
 .lemb:hover .lemb__go, .lemb:focus-visible .lemb__go { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
-.jside-col .lemb, .jindex__side .lemb, aside .lemb { grid-template-columns: minmax(0, 1fr); margin-bottom: 14px; }
-aside .lemb.has-img .lemb__foto { height: 150px; }
-aside .lemb.has-img .lemb__b { padding: 14px 18px 4px; }
+/* na coluna lateral o cartão fica em pé (foto em cima, texto embaixo); o .has-img também, senão a foto de 168px espreme o texto */
+.jside-col .lemb, .jindex__side .lemb, aside .lemb, aside .lemb.has-img, .jside-col .lemb.has-img { grid-template-columns: minmax(0, 1fr); margin-bottom: 14px; }
+aside .lemb.has-img .lemb__foto, .jside-col .lemb.has-img .lemb__foto { height: 150px; }
+aside .lemb.has-img .lemb__b, .jside-col .lemb.has-img .lemb__b { padding: 14px 18px 4px; }
 aside .lemb .lemb__go { padding: 0 18px 14px; }
 .hz-lemb:empty { display: none; }
 .hz-lemb { margin-top: 18px; }

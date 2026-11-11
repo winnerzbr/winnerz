@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026: prévias do Awards com VFX, ajuste de tela
+- O dono mandou uma captura: os fundos em WebGL funcionam, mas o título saía cortado (grande demais, quebrando em várias linhas e passando por baixo do menu).
+- Corrigido em `prototipos/awards-vfx/index.html` e republicado: título menor, cada linha sem quebra, e um ajuste automático que encolhe o título até caber na largura e abaixo do menu, em qualquer tamanho de janela.
+
 ## 11/11/2026: prévias do Awards refeitas com VFX sofisticado (aguardando escolha)
 - O dono achou os efeitos das primeiras prévias (canvas) **simples demais**; quer VFX bem sofisticado.
 - Página nova em tela cheia, "WinnerZ Awards · prévias com VFX": https://claude.ai/artifact/42BioQTPUvhkTzz6Rcndrr. Fonte em `prototipos/awards-vfx/index.html`. Usa WebGL (fundos calculados na placa de vídeo) e partículas com física:

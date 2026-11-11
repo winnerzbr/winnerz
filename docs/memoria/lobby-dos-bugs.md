@@ -82,3 +82,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (16h30): preparo do ataque.** Regra do dono: nada de "!" piscando; o corpo do inimigo prepara o ataque, com tempo e jeito próprios de cada um (fracos devagar, outros rápidos, outros longos com golpe mais forte). Feito nos 10 inimigos comuns.
 
 **11/11/2026 (17h):** regra do dono: cada inimigo é único em todos os sentidos; o preparo do ataque de cada um tem movimento do corpo e efeito próprios (nenhum repete outro).
+
+**11/11/2026 (17h30):** ideia do dono feita: a parte de cima dos objetos altos (poste, fliperama, geladeira, plantas...) deixa passar e cobre o IAmiguinho quando ele passa atrás.

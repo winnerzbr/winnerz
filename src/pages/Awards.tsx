@@ -186,31 +186,25 @@ function deslizar(alvo: number, direto: boolean) {
 
 /** A tela desliza até o carrossel da categoria ficar no meio da área livre (abaixo do menu e das abas).
  *  - `comVoto`: ao votar. No computador a cena cresce 160px quando ganha as faixas de cinema; a conta usa a altura final.
- *  - `descontar`: ao abrir uma categoria, a altura do carrossel que estava aberto acima dela e vai se fechar. */
-function centralizarCena(catId: string, o: { comVoto?: boolean; descontar?: number } = {}) {
-  const cena = document.getElementById(`slot-${catId}`)?.querySelector<HTMLElement>('.scene');
-  if (!cena) return;
+ *  Se um carrossel acima está se fechando, a conta desconta a altura que ele ainda tem (ela vai a zero). */
+function centralizarCena(catId: string, o: { comVoto?: boolean } = {}) {
+  const slot = document.getElementById(`slot-${catId}`);
+  const cena = slot?.querySelector<HTMLElement>('.scene');
+  if (!slot || !cena) return;
+  let fechando = 0;
+  document.querySelectorAll<HTMLElement>('.aw2slot:not(.on)').forEach((el) => {
+    if (el.compareDocumentPosition(slot) & Node.DOCUMENT_POSITION_FOLLOWING) fechando += el.getBoundingClientRect().height;
+  });
   const r = cena.getBoundingClientRect();
   const cresce = window.innerWidth > 760 ? 160 : 0;
   const altura = o.comVoto === undefined ? r.height : r.height - (cena.classList.contains('has') ? cresce : 0) + (o.comVoto ? cresce : 0);
   const topo = document.querySelector('.aw2tabs')?.getBoundingClientRect().bottom ?? 0;
   const livre = window.innerHeight - topo;
   // Se a cena não cabe inteira, encosta o topo dela logo abaixo das abas.
-  const alvo = window.scrollY + r.top - (o.descontar ?? 0) - topo - Math.max(0, (livre - altura) / 2);
+  const alvo = window.scrollY + r.top - fechando - topo - Math.max(0, (livre - altura) / 2);
   const calmo = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches) || document.documentElement.dataset.motion === 'reduzidas';
   deslizar(Math.max(0, alvo), calmo);
 }
-/** Quanto os carrosséis abertos acima desta categoria ocupam agora (eles se fecham quando ela abre). */
-function alturaAbertaAcima(catId: string): number {
-  const alvo = document.getElementById(`slot-${catId}`);
-  if (!alvo) return 0;
-  let soma = 0;
-  document.querySelectorAll<HTMLElement>('.aw2slot.on').forEach((el) => {
-    if (el !== alvo && el.compareDocumentPosition(alvo) & Node.DOCUMENT_POSITION_FOLLOWING) soma += el.getBoundingClientRect().height;
-  });
-  return soma;
-}
-
 /** A contagem regressiva dentro da cena de abertura (dias, horas e minutos; atualiza sozinha). */
 function ContaCena({ to, rotulo }: { to: string; rotulo: string }) {
   const [now, setNow] = useState(() => Date.now());
@@ -289,10 +283,8 @@ export function AwardsPage() {
   };
   /** Abre a categoria e leva a tela até o carrossel dela ficar centralizado. */
   const abrir = (c: Category) => {
-    // Fora do resultado, o carrossel que estava aberto acima se fecha: a conta já desconta a altura dele.
-    const descontar = showResult ? 0 : alturaAbertaAcima(c.id);
     setCat(c, true);
-    setTimeout(() => centralizarCena(c.id, { descontar }), 80);
+    setTimeout(() => centralizarCena(c.id), 80);
   };
   const goTo = (c: Category) => { setAba('votacao'); abrir(c); };
   const trocarAba = (a: Aba) => {

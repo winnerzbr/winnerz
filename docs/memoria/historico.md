@@ -13,7 +13,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 ## 11/11/2026 — Início: troféu do banner maior e girando sozinho entre os dois 3/4
 
 - Pedido do dono: no banner do Início, troféu com zoom maior (ocupando mais o banner) e sem seguir o mouse; ele gira sozinho até ficar em 3/4, volta e fica em 3/4 do outro lado, e assim por diante.
-- Feito: câmera mais perto (o troféu ocupa quase toda a altura do banner; a ponta de baixo da base pode ficar cortada) e área do troféu maior (metade direita). O giro vai de uns 45° para um lado a uns 45° para o outro, segurando um pouco em cada ponta; uma ida leva uns 10 segundos. Com "reduzir movimento", fica parado em 3/4.
+- Feito: câmera bem mais perto: o troféu aparece cortado, dos joelhos para cima (mão erguida e bandeira inteiras; base e pés ficam fora), depois que o dono viu que ainda aparecia inteiro e área do troféu maior (metade direita). O giro vai de uns 45° para um lado a uns 45° para o outro, segurando um pouco em cada ponta; uma ida leva uns 10 segundos. Com "reduzir movimento", fica parado em 3/4.
 - O mouse não mexe mais no troféu do banner (na aba do troféu, na página do Awards, continua dando para girar arrastando).
 
 ## 11/11/2026 — Início: troféu do banner em close

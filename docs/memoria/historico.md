@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Folga entre botões vizinhos no site todo
+
+- Pedido do dono: botões lado a lado se sobrepunham na animação do hover ("Abrir a linha do tempo" e "Rever a jornada", e outros). Varredura: o mesmo acontecia no topo da página do jogo, no início, nos eventos, no álbum, nas Preferências e na linha do tempo.
+- Regra geral no fim de `carga.css`: todo botão seguido de outro botão ganha 18px de folga à direita (8px no celular). É uma regra fraca (`:where`), então quem define a própria margem continua valendo.
+- O cartão "Linha do tempo" com uma foto só voltou a preencher a metade direita (a foto estava solta no meio).
+
 ## 12/11/2026 — Títulos de cartão com o retângulo ao lado e barra de progresso padrão
 
 - Pedido do dono: todo título de cartão com o retângulo inclinado ao lado (muitos não tinham) e a barra de progresso da campanha igual à barra padrão do site.

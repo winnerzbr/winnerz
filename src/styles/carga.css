@@ -213,3 +213,15 @@
 
 /* Ficha de jogo que ainda não saiu: a data de lançamento no lugar de "Jogar agora" e "Já zerei". */
 .ghero__sai { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--now-line, rgba(255, 178, 91, .5)); color: #FFE2B8; font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; background: rgba(7, 8, 10, .55); }
+
+/* ---- Folga entre botões vizinhos (12/11/2026) ----------------------------------------------------------------
+   A moldura de cada botão passa um pouco da caixa dele à direita e, no hover, as peças se afastam 11px para cada lado.
+   Com botões colados, as molduras se encostavam na animação. Todo botão seguido de outro ganha uma folga à direita.
+   (:where deixa a regra fraca: quem define a própria margem continua mandando.) */
+@media (min-width: 761px) {
+  .vc-botoes :where(.btn:not(.quiet):not(.icon):has(+ .btn:not(.quiet)), .btn:not(.quiet):not(.icon):has(+ .more), .btn:not(.quiet):not(.icon):has(+ a.btn)) { margin-right: 18px; }
+  .vc-botoes :where(.more:has(> .btn:not(.quiet)):has(+ .btn:not(.quiet))) { margin-right: 18px; }
+}
+@media (max-width: 760px) {
+  .vc-botoes :where(.btn:not(.quiet):not(.icon):has(+ .btn:not(.quiet)), .btn:not(.quiet):not(.icon):has(+ .more)) { margin-right: 8px; }
+}

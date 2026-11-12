@@ -736,14 +736,13 @@ aside .lemb .lemb__go { padding: 0 18px 14px; }
 /* Cartão "Linha do tempo": altura fixa (uma foto em pé esticava o cartão inteiro). */
 .jtlcard__fotos { height: 220px; min-height: 0; overflow: hidden; }
 .jtlcard__fotos img { height: 100%; min-height: 0; }
-.jtlcard__fotos--1 { justify-content: end; grid-template-columns: minmax(0, 420px); }
-@media (max-width: 760px) { .jtlcard__fotos { height: 120px; } .jtlcard__fotos--1 { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .jtlcard__fotos { height: 120px; } }
 /* Abaixo do título: plataforma / campanha / estado numa linha; dias e tempo de jogo na linha de baixo, sem barra solta. */
 .jhero__meta .jhero__meta-n { flex-basis: 100%; margin-top: 2px; font-size: 14px; }
 .jhero__meta .jhero__meta-n i { display: none; }
 .jhero__meta > span:has(+ .jhero__meta-n) > i, .jhero__meta > span:last-child > i { display: none; }
 /* Botões do cabeçalho: folga para a ponta com a seta de cada botão não encostar no vizinho nas animações. */
-.jhero--compact .jhero__actions { gap: 12px 30px; padding-right: 26px; }
+.jhero--compact .jhero__actions { gap: 12px 14px; padding-right: 26px; }
 .jhero--compact .jhero__actions .more { margin-left: 0; }
 /* Com mais de uma História, as abas ficam numa linha só embaixo do título e os botões vão para a linha seguinte, à direita. */
 @media (min-width: 901px) {

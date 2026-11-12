@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Página do jogo: um cartão só para as notas, e a distribuição certa
+
+- Pedido do dono: a média da comunidade com uma nota 9,5 aparecia na barra "10"; e os três cartões (comunidade, sua nota, dar nota + análise) ocupavam espaço demais e repetiam coisas.
+- Agora é **um cartão só** (`.rate-card--uni`, `#analise`): à esquerda a comunidade (média, quantas notas, barras); à direita "Sua nota" com as barras para dar a nota na hora, o número em cima à direita e "Remover nota"; embaixo, o botão "Escrever análise" / "Ver sua análise", que abre a análise dentro do mesmo cartão. O "Escrever análise" do menu "…" abre essa parte. O cartão separado "Sua nota" saiu.
+- Distribuição: a barra "9" junta 9 e 9,5, a "10" é só nota 10 e a "1" junta tudo abaixo de 2 (nas estrelas: 4★ = 4 e 4,5; 5★ = só 5). Precisa da **migração 0099** (coluna `dist10b` na `review_stats`, o dono roda no SQL Editor); sem ela, o site continua com as barras antigas.
+- Depois de dar, mudar ou tirar a nota, a média da comunidade é buscada de novo. "análise(s)" virou "nota(s)" no contador, porque conta notas.
+
 ## 12/11/2026 — Página do jogo: a nota vale na hora, dá para tirar, e a análise vem embaixo
 
 - Pedido do dono: enquanto arrasta, a nota aparece à direita; ao clicar/definir, a nota já vale (sem escrever e salvar a análise); opção de remover a nota; no cartão, primeiro "Sua nota" e embaixo "Sua análise".

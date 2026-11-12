@@ -405,7 +405,7 @@ export interface State {
   sessions: Session[];
   events: TimelineEvent[];
   reviews: Review[];
-  reviewStats: Record<ID, { count: number; avg: number; dist10: number[] }>;
+  reviewStats: Record<ID, { count: number; avg: number; dist10: number[]; dist10b?: number[] }>;
   focusJourneyId?: ID;
   myGames: Record<ID, MyGame>;
   /** Consoles, portáteis e acessórios. */

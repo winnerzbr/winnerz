@@ -15,7 +15,7 @@ import { GameSwapOnPage } from '../components/GameSwap';
 import { CoverArt } from '../components/CoverArt';
 import type { Review } from '../data/types';
 import { FavoriteCover, FavoriteButton, useFavorite } from '../components/FavoriteCover';
-import { Stars, StarInput, Traces10 } from '../components/Stars';
+import { Stars, StarInput } from '../components/Stars';
 import { ScoreSlider, AnimatedScore } from '../components/ScoreInput';
 import { Icon } from '../components/Icon';
 import { formatScore, normalize, originalLabel, scaleMax, toScale, type Scale } from '../lib/rating';
@@ -88,6 +88,10 @@ function GameView({ gameId }: { gameId: string }) {
   const stats = s.reviewStats[gameId];
   const [revealed, setRevealed] = useState<string[]>([]);
   const [editing, setEditing] = useState(false);
+  // A parte da análise fica recolhida dentro do cartão das notas até a pessoa abrir.
+  const [analiseAberta, setAnaliseAberta] = useState(false);
+  useEffect(() => { setAnaliseAberta(false); setEditing(false); }, [gameId]);
+  const abrirAnalise = () => { setAnaliseAberta(true); requestAnimationFrame(() => document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })); };
   const progressOf = h && h.state !== 'concluida' ? h.progress : null;
   const mine2 = myGame(s, gameId);
   const today = localDay();
@@ -108,6 +112,20 @@ function GameView({ gameId }: { gameId: string }) {
       dispatch({ type: 'reviews.merge', gameId, reviews: r.reviews, stats: r.stats });
     });
   }, [gameId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Depois de dar, mudar ou tirar a sua nota, a média da comunidade é buscada de novo (no mesmo cartão).
+  const minhaNota = mine ? mine.rating.normalized : -1;
+  const primeira = useRef(true);
+  useEffect(() => {
+    if (primeira.current) { primeira.current = false; return; }
+    if (!SUPABASE_ON) return;
+    const t = window.setTimeout(() => {
+      import('../data/supabaseAdapter').then(async ({ fetchReviews }) => {
+        const r = await fetchReviews(gameId, s.profile?.id ?? null);
+        dispatch({ type: 'reviews.merge', gameId, reviews: r.reviews, stats: r.stats });
+      });
+    }, 1200);
+    return () => window.clearTimeout(t);
+  }, [minhaNota]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!g.igdbId || refreshed.has(gameId)) return;
@@ -129,8 +147,12 @@ function GameView({ gameId }: { gameId: string }) {
 
   const avg = stats?.avg ?? (reviews.length ? reviews.reduce((a, r) => a + r.rating.normalized, 0) / reviews.length : null);
   const count = stats?.count ?? reviews.length;
+  // Barras da distribuição: a barra "9" junta as notas de 9 a 9,5 e a "10" só as notas 10 (antes um 9,5 aparecia no 10).
+  // Usa dist10b (migração 0099); sem ela, o jeito antigo do banco. Nas estrelas: 4★ = 4 a 4,5, 5★ = só 5.
   const dist = useMemo(() => {
-    const d10 = stats?.dist10 ?? Array.from({ length: 10 }, (_, i) => reviews.filter((r) => Math.min(9, Math.floor(r.rating.normalized / 100)) === i).length);
+    const novo = stats ? stats.dist10b : Array.from({ length: 10 }, (_, i) => reviews.filter((r) => bucket10(r.rating.normalized) === i).length);
+    if (novo) return scale === 'TEN_POINT' ? novo : [novo[0] + novo[1] + novo[2], novo[3] + novo[4], novo[5] + novo[6], novo[7] + novo[8], novo[9]];
+    const d10 = stats!.dist10;
     return scale === 'TEN_POINT' ? d10 : [0, 1, 2, 3, 4].map((i) => d10[i * 2] + d10[i * 2 + 1]);
   }, [stats, reviews, scale]);
   const maxD = Math.max(1, ...dist);
@@ -182,7 +204,7 @@ function GameView({ gameId }: { gameId: string }) {
               )}
               <FavoriteButton fav={fav} burst={burst} onClick={toggle} className="btn ghost icon" iconOnly />
               <MoreActions className="btn ghost icon" label="Mais ações" align="left" items={[
-                { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { if (mine) setEditing(true); document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' }); } },
+                { key: 'analise', icon: 'caneta', label: mine ? 'Editar sua análise' : 'Escrever análise', onSelect: () => { if (mine) setEditing(true); abrirAnalise(); } },
                 ...(g.igdbId && !(upcoming || mine2.onRadar) ? [{ key: 'radar', icon: 'radar', label: 'Acompanhar no Radar', disabled: !canTrack, hint: canTrack ? undefined : setupNote('Disponível depois da migração 0006'), onSelect: () => { actions.toggleRadar(gameId); } }] : []),
                 ...(mine2.onRadar ? [{ key: 'verradar', icon: 'radar', label: 'Ver o Radar', onSelect: () => navigate('/jogos/radar') }] : []),
                 ...(!h || h.state !== 'ativa' ? [{ key: 'nao', icon: 'fechar', on: !!mine2.wontPlay, label: mine2.wontPlay ? 'Marcado: não vou jogar (desfazer)' : 'Não vou jogar', onSelect: () => { actions.toggleWontPlay(gameId); } }] : []),
@@ -196,74 +218,66 @@ function GameView({ gameId }: { gameId: string }) {
 
       <div className="page game-body">
         <div className="game-main">
-          <div className="rate-row" role="region" aria-label="Notas">
-            <article className="rate-card">
-              <div className="rate-card__head">
-                <h2 className="kicker">Comunidade WinnerZ</h2>
-                <div className="seg seg--sm" role="group" aria-label="Escala das notas">
-                  <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
-                  <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>0–5</button>
+          {/* Um cartão só: a nota da comunidade, a sua nota (vale na hora) e, aberta por um botão, a sua análise (12/11/2026). */}
+          <section id="analise" className="rate-card rate-card--uni" aria-label="Notas">
+            <div className="rate-uni">
+              <div className="rate-uni__com">
+                <div className="rate-card__head">
+                  <h2 className="kicker">Comunidade WinnerZ</h2>
+                  <div className="seg seg--sm" role="group" aria-label="Escala das notas">
+                    <button aria-pressed={scale === 'TEN_POINT'} onClick={() => setScale('TEN_POINT')}>0–10</button>
+                    <button aria-pressed={scale === 'FIVE_STAR'} onClick={() => setScale('FIVE_STAR')}>0–5</button>
+                  </div>
                 </div>
+                <div className="rate-card__body">
+                  <div className="rate-card__num">
+                    {avg != null ? (
+                      <>
+                        <div className="t rate-card__v">{formatScore(avg, scale, { average: true })}</div>
+                        {scale === 'FIVE_STAR' && <Stars normalized={avg} />}
+                        <div className="muted rate-card__n">{count.toLocaleString('pt-BR')} {count === 1 ? 'nota' : 'notas'}</div>
+                      </>
+                    ) : <div className="muted rate-card__n">Ainda sem notas.</div>}
+                  </div>
+                  {count > 0 && (
+                    <figure className="dist" aria-label={`Distribuição das ${count.toLocaleString('pt-BR')} notas`}>
+                      <div className="dist__bars" aria-hidden="true">
+                        {dist.map((v, i) => {
+                          const top = v === maxD && v > 0;
+                          const last = i === dist.length - 1;
+                          return <div key={i} className={`dist__col${top ? ' is-top' : ''}${last ? ' is-max' : ''}`}><div className="dist__bar" style={{ height: `${Math.max(2, Math.round((v / maxD) * 100))}%` }} /><span>{scale === 'TEN_POINT' ? i + 1 : `${i + 1}★`}</span></div>;
+                        })}
+                      </div>
+                    </figure>
+                  )}
+                </div>
+                {count > 0 && <p className="faint rate-card__note">As médias usam a nota original de cada pessoa, sem arredondar.</p>}
               </div>
-              <div className="rate-card__body">
-                <div className="rate-card__num">
-                  {avg != null ? (
-                    <>
-                      <div className="t rate-card__v">{formatScore(avg, scale, { average: true })}</div>
-                      {scale === 'FIVE_STAR' && <Stars normalized={avg} />}
-                      <div className="muted rate-card__n">{count.toLocaleString('pt-BR')} {count === 1 ? 'análise' : 'análises'}</div>
-                    </>
-                  ) : <div className="muted rate-card__n">Ainda sem análises.</div>}
-                </div>
-                {count > 0 && (
-                  <figure className="dist" aria-label={`Distribuição das ${count.toLocaleString('pt-BR')} notas`}>
-                    <div className="dist__bars" aria-hidden="true">
-                      {dist.map((v, i) => {
-                        const top = v === maxD && v > 0;
-                        const last = i === dist.length - 1;
-                        return <div key={i} className={`dist__col${top ? ' is-top' : ''}${last ? ' is-max' : ''}`}><div className="dist__bar" style={{ height: `${Math.max(2, Math.round((v / maxD) * 100))}%` }} /><span>{scale === 'TEN_POINT' ? i + 1 : `${i + 1}★`}</span></div>;
-                      })}
-                    </div>
-                  </figure>
+              <div className="rate-uni__mine">
+                <NotaEditor key={`n-${gameId}-${scale}`} gameId={gameId} existing={mine} scale={scale} />
+              </div>
+            </div>
+            <div className="rate-uni__foot">
+              <button type="button" className="btn ghost sm" aria-expanded={analiseAberta} onClick={() => (analiseAberta ? setAnaliseAberta(false) : abrirAnalise())}>
+                {analiseAberta ? 'Fechar a análise' : mine && (mine.title || mine.text) ? 'Ver sua análise' : 'Escrever análise'}
+              </button>
+            </div>
+            {analiseAberta && (
+              <div className="rate-uni__analise">
+                {mine && (mine.title || mine.text) && !editing ? (
+                  <>
+                    <div className="sec-head"><h2 id="sua" className="t my-review__title">Sua análise</h2><button className="btn quiet sm" onClick={() => setEditing(true)}>Editar</button></div>
+                    <blockquote className="my-review__quote">
+                      {mine.title && <p className="t my-review__title">“{mine.title}”</p>}
+                      {mine.text && <p className="my-review__text">{mine.text}</p>}
+                      <span className="mono my-review__meta">{[mine.author?.name, mineDate, mine.context].filter(Boolean).join(' · ')}</span>
+                    </blockquote>
+                  </>
+                ) : (
+                  <AnaliseEditor key={`a-${gameId}`} gameId={gameId} existing={mine} onDone={() => setEditing(false)} canCancel={editing} />
                 )}
               </div>
-              {count > 0 && <p className="faint rate-card__note">As médias usam a nota original de cada pessoa, sem arredondar.</p>}
-            </article>
-            <article className="rate-card rate-card--mine">
-              <h2 className="kicker">Sua nota</h2>
-              {mine ? (
-                <>
-                  <div className="t rate-card__v">{formatScore(mine.rating.normalized, scale)}</div>
-                  {scale === 'FIVE_STAR' ? <Stars normalized={mine.rating.normalized} /> : <Traces10 normalized={mine.rating.normalized} />}
-                  <span className="muted rate-card__n">{originalLabel(mine.rating, scale) ?? `Dada em ${mineDate}`}</span>
-                </>
-              ) : (
-                <>
-                  <p className="muted rate-card__n">Você ainda não avaliou.</p>
-                  <button className="btn ghost sm" onClick={() => document.getElementById('analise')?.scrollIntoView({ behavior: 'smooth' })}>Dar uma nota</button>
-                </>
-              )}
-            </article>
-          </div>
-
-          <section id="analise" className="my-review" aria-labelledby="sua-nota">
-            <div className="card my-review__edit">
-              {/* A nota vale assim que é dada (sem salvar). A análise é opcional e fica embaixo. */}
-              <NotaEditor key={`n-${gameId}-${scale}`} gameId={gameId} existing={mine} scale={scale} />
-              <div className="my-review__sep" />
-              {mine && (mine.title || mine.text) && !editing ? (
-                <>
-                  <div className="sec-head"><h2 id="sua" className="t my-review__title">Sua análise</h2><button className="btn quiet sm" onClick={() => setEditing(true)}>Editar</button></div>
-                  <blockquote className="my-review__quote">
-                    {mine.title && <p className="t my-review__title">“{mine.title}”</p>}
-                    {mine.text && <p className="my-review__text">{mine.text}</p>}
-                    <span className="mono my-review__meta">{[mine.author?.name, mineDate, mine.context].filter(Boolean).join(' · ')}</span>
-                  </blockquote>
-                </>
-              ) : (
-                <AnaliseEditor key={`a-${gameId}`} gameId={gameId} existing={mine} onDone={() => setEditing(false)} canCancel={editing} />
-              )}
-            </div>
+            )}
           </section>
 
           {/* Etapa 6 da revisão: primeiro o jogo (imagens e o que vem depois); a parte social vem junta e, vazia, recolhida. */}
@@ -387,6 +401,9 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
   );
 }
 
+/** Barra da distribuição (0 a 9) de uma nota 0..1000: 9 a 9,5 na barra "9", só 10 na "10", abaixo de 2 na "1". */
+function bucket10(n: number) { return n >= 1000 ? 9 : Math.max(0, Math.floor(n / 100) - 1); }
+
 /** Sua nota: vale assim que é dada (clique, toque, arraste ou teclado), sem precisar salvar a análise.
  *  O número ao lado acompanha o mouse/dedo enquanto se arrasta. Dá para tirar a nota (pedido do dono, 12/11/2026). */
 function NotaEditor({ gameId, existing, scale }: { gameId: string; existing: Review | null; scale: Scale }) {
@@ -433,17 +450,21 @@ function NotaEditor({ gameId, existing, scale }: { gameId: string; existing: Rev
 
   return (
     <div className="editor editor--nota">
-      <h2 id="sua-nota" className="t my-review__title">Sua nota</h2>
+      <div className="nota-head">
+        <h2 id="sua-nota" className="kicker">Sua nota</h2>
+        <div className="nota-head__v" aria-live="polite">
+          {mostra == null ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={mostra} max={max} />}
+        </div>
+      </div>
       {rounded && existing && (
         <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'De 0 a 5' : 'De 0 a 10'}, ela aparece arredondada para o meio ponto mais próximo; só muda se você mexer na nota.</p>
       )}
       <div className="editor__score">
         <span id="nota-label" className="sr-only">Nota</span>
-        <div className={scale === 'TEN_POINT' ? 'editor__ten' : 'editor__stars'}>
+        <div className={scale === 'TEN_POINT' ? 'editor__ten' : 'editor__stars'} data-reserva="0">
           {scale === 'TEN_POINT'
             ? <ScoreSlider id="nota" value={value} onChange={setValue} onPreview={setPreview} />
             : <StarInput value={value} onChange={setValue} labelledBy="nota-label" size={36} onPreview={setPreview} />}
-          {mostra == null ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={mostra} max={max} />}
         </div>
         <div className="editor__nota-foot">
           {scale === 'FIVE_STAR' && <span className="faint editor__hint">Dá para dar meio ponto.</span>}

@@ -959,3 +959,24 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .editor--analise .editor__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
 .editor--analise .editor__actions .editor__hint { margin: 0; }
 .editor__stars .score-num, .editor__ten .score-num { min-width: 4.6ch; }
+
+/* ---- Página do jogo: um cartão só para as notas (12/11/2026). À esquerda a comunidade, à direita a sua nota
+   (vale na hora); embaixo, o botão que abre a sua análise dentro do mesmo cartão. ---- */
+.rate-card.rate-card--uni { flex: none; width: 100%; gap: 0; }
+.rate-uni { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 32px; }
+.rate-uni__com { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.rate-uni__mine { min-width: 0; padding-left: 32px; border-left: 1px solid var(--line); }
+.rate-uni__foot { display: flex; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.rate-uni__analise { margin-top: 22px; }
+.rate-uni__analise .editor--analise > .my-review__title:first-child { margin-top: 0; }
+.nota-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-height: 52px; }
+.nota-head h2 { margin: 0; }
+.nota-head__v { text-align: right; }
+.nota-head__v .score-num { font-size: 44px; line-height: 1; min-width: 0; }
+.nota-head__v .editor__unset { display: block; max-width: 12em; white-space: normal; font-size: 13.5px; line-height: 1.35; }
+.editor--nota .editor__score { margin: 10px 0 0; }
+.editor--nota .editor__ten, .editor--nota .editor__stars { max-width: none; margin: 0; }
+@media (max-width: 760px) {
+  .rate-uni { grid-template-columns: 1fr; }
+  .rate-uni__mine { padding: 20px 0 0; margin-top: 20px; border-left: 0; border-top: 1px solid var(--line); }
+}

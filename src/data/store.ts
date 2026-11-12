@@ -187,7 +187,8 @@ function reduce(s: State, a: Action): State {
       return {
         ...s,
         reviews: [...s.reviews.filter((r) => r.gameId !== a.gameId || r.mine), ...a.reviews.filter((r) => !r.mine)],
-        reviewStats: a.stats ? { ...s.reviewStats, [a.gameId]: a.stats } : s.reviewStats,
+        // Sem linha de estatística no banco (ninguém deu nota): some a média antiga.
+        reviewStats: a.stats ? { ...s.reviewStats, [a.gameId]: a.stats } : Object.fromEntries(Object.entries(s.reviewStats).filter(([k]) => k !== a.gameId)),
       };
     case 'journey.update':
       return { ...s, journeys: s.journeys.map((j) => (j.id === a.journey.id ? a.journey : j)) };

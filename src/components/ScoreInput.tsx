@@ -68,7 +68,8 @@ export function ScoreSlider({ value, onChange, id, onPreview }: { value: number;
     // Mede o espaço disponível na linha da nota (as barras e o texto/número ao lado têm só a largura que precisam).
     const host = box.current?.closest<HTMLElement>('.editor__ten');
     const el = host ?? box.current?.parentElement; if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width - (host ? 170 : 0))); ro.observe(el);
+    const reserva = host ? Number(host.dataset.reserva ?? 170) : 0;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width - reserva)); ro.observe(el);
     return () => ro.disconnect();
   }, []);
   const live = dragging || hover !== null;

@@ -693,7 +693,7 @@ export async function fetchReviews(gameId: string, me: string | null) {
   ]);
   return {
     reviews: (list.data ?? []).map((r: any) => reviewFromRow(r, me)),
-    stats: stats.data ? { count: stats.data.count, avg: stats.data.avg, dist10: stats.data.dist10 } : undefined,
+    stats: stats.data ? { count: stats.data.count, avg: stats.data.avg, dist10: stats.data.dist10, dist10b: Array.isArray(stats.data.dist10b) ? stats.data.dist10b : undefined } : undefined,
   };
 }
 

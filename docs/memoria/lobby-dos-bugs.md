@@ -103,4 +103,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (01h):** penumbra de "sinal perdido" (glitch). A EVOLUÇÃO dos inimigos na luta (diretriz D9): evoluem com 12 s vivos, comendo os restos de um do mesmo tipo ou acertando o IAmiguinho 3 vezes; primeira leva: Besouro Bug, Janela de Anúncio, Lixeira de Spam, Vírus Mutante.
 
+**12/11/2026 (02h40):** a 2ª leva das evoluções (a partir dos conceitos do ChatGPT): Torre de Cookies, Servidor Touro, Cofre Cavaleiro, Grade do Captcha, Pescador Abissal, Aranha Câmera, Geleia de RAM, Power Bank Estufado, Torre Pirata e Tela Azul. Os 14 bugs comuns evoluem.
+
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

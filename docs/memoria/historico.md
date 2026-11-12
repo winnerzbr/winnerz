@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: a 2ª leva das evoluções
+
+- No repositório `winnerzbr/lobby-dos-bugs`: as 10 formas evoluídas que faltavam, desenhadas pelo Claude em 32 pontos a partir dos conceitos do ChatGPT mandados pelo dono, com golpes mais fortes e sons próprios. Os 14 bugs comuns agora evoluem (tarefa 2 do M1 pronta).
+
 ## 12/11/2026 — Lobby dos Bugs: o plano até a Steam
 
 - No repositório `winnerzbr/lobby-dos-bugs`: `docs/plano.md` (etapas e marcos) e os pedidos de conceito para o ChatGPT.

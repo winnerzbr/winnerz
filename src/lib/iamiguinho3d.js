@@ -120,7 +120,7 @@ const ANIM = {
     const over = t < 1.1 ? Math.sin(Math.max(0, t - 0.45) / 0.65 * Math.PI) * 0.035 : 0;
     P.y = mix(-0.66, 0, sobe) + over + fol * 0.008;
     // As mãos ficam na altura da borda: quanto mais baixo o corpo, mais para cima apontam os braços.
-    const alvo = 0.475 - P.y - 0.425, sn = Math.max(-0.95, Math.min(0.95, alvo / 0.2));
+    const alvo = 0.475 - P.y - 0.452, sn = Math.max(-0.95, Math.min(0.95, alvo / 0.2));
     const up = [0.36, sn, Math.sqrt(Math.max(0.05, 1 - sn * sn - 0.13))];
     // mãos em cima da borda, palma para baixo, dedos fechados por cima dela
     for (const s of [1, -1]) { braco(P, s, up, [0.12, up[1] - 0.05, up[2] + 0.3], { dedo: [-0.05, -0.25, 1], palma: [0, -1, -0.2] }); dedos(P, s, 1.05, 0.5); }
@@ -141,7 +141,7 @@ const ANIM = {
 /* Rosto: os rostos dos jogos (folha rostos_ia.png do Jogos de Verão, uma fileira em /modelos/iamiguinho-rostos.png).
    Colunas: 0 normal, 1 olhos fechados (piscar, sono), 2 feliz, 3 surpreso, 4 sem jeito, 5 decidido. */
 const ROSTO = {
-  normal: 0, 'sorriso-confiante': 0, pensando: 0, curioso: 3, feliz: 2, comemorando: 2, orgulhoso: 5, piscando: 2,
+  normal: 0, 'sorriso-confiante': 0, pensando: 0, curioso: 3, feliz: 2, comemorando: 2, orgulhoso: 2, piscando: 2,
   surpreso: 3, 'sem-jeito': 4, tonto: 4, perdido: 4, sonolento: 1, decidido: 5,
 };
 

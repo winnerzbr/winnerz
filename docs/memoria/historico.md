@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: ombro mais alto, sem pontinhos e rosto feliz no perfil
+
+- Pedidos do dono: a articulação do ombro fica mais para cima, quase na cabeça; tirar os pontinhos escuros do corpo; no perfil ele aparecia com cara de brabo.
+- Ombro: a junta subiu de (0,085; 0,425) para (0,076; 0,452); cotovelo e punho ficaram onde estavam.
+- Pontinhos: eram vértices que caíam numa emenda da textura e pegavam preto; agora recebem a cor dos vizinhos (no `prep.py`, antes de tudo).
+- Rosto: a expressão "orgulhoso" (a da foto do perfil) passou a usar o rosto feliz; o rosto "decidido" fica só para as reações desconfiado, bravinho e óculos das lives.
+- O GLB para os jogos foi gerado de novo com o ombro novo.
+
 ## 12/11/2026 — Cartões com faixa lateral (layout antigo) trocados pelo cartão atual
 
 - Pedido do dono: a lista de respostas e aparições no perfil do IAmiguinho usava o cartão antigo (faixa colorida na lateral); padronizar e varrer o resto do site.

@@ -5,6 +5,16 @@ from load import *
 from scipy.spatial import cKDTree
 V,N,UV,F,imgs,j=load(); C=np.load('out/C.npy').astype(np.float32)
 inv=np.load('out/inv.npy')
+# 0) pontinhos pretos: vértices que caem numa emenda da textura pegam preto; recebem a cor dos vizinhos
+bad=C.sum(1)<48
+for it in range(6):
+    if not bad.any(): break
+    acc_=np.zeros((len(V),3)); cnt_=np.zeros(len(V))
+    for a_,b_ in ((0,1),(1,2),(2,0),(1,0),(2,1),(0,2)):
+        src=F[:,a_]; dst=F[:,b_]; k=bad[dst]&~bad[src]
+        np.add.at(acc_,dst[k],C[src[k]]); np.add.at(cnt_,dst[k],1)
+    fix=bad&(cnt_>0); C[fix]=(acc_[fix]/cnt_[fix,None]).astype(np.float32); bad&=~fix
+print('pontinhos corrigidos; restam',int(bad.sum()))
 r,g,b=C[:,0],C[:,1],C[:,2]
 
 # 1) aba do boné: partes brancas viradas para baixo, cercadas de laranja -> laranja
@@ -75,11 +85,11 @@ V[leg,0]+=side[leg]*GAP*(1-ss(0.13,0.29,V[leg,1]))
 
 # 4) ossos
 Z=-0.048
-SH=np.array([0.085,0.425,-0.045]); AD=np.array([0.59,-0.77,0.24]); AD/=np.linalg.norm(AD)
+SH=np.array([0.076,0.452,-0.047]); AD=np.array([0.59,-0.77,0.24]); AD/=np.linalg.norm(AD)
 J={ 'quadril':[0,0.31,Z],'peito':[0,0.37,Z],'cabeca':[0,0.49,Z],'helice':PIV.tolist() }
 for s,nm in ((1,'E'),(-1,'D')):
     sh=SH*[s,1,1]; ad=AD*[s,1,1]
-    J['braco'+nm]=sh.tolist(); J['ante'+nm]=(sh+ad*0.07).tolist(); J['mao'+nm]=(sh+ad*0.14).tolist()
+    J['braco'+nm]=sh.tolist(); J['ante'+nm]=(sh+ad*0.098).tolist(); J['mao'+nm]=(sh+ad*0.168).tolist()
     J['coxa'+nm]=[s*0.050,0.285,-0.054]; J['canela'+nm]=[s*(0.060+GAP*0.6),0.215,-0.055]; J['pe'+nm]=[s*(0.066+GAP),0.145,-0.056]
 NAMES=['quadril','peito','cabeca','helice','bracoE','anteE','maoE','bracoD','anteD','maoD','coxaE','canelaE','peE','coxaD','canelaD','peD']
 PARENT=[-1,0,1,2,1,4,5,1,7,8,0,10,11,0,13,14]
@@ -104,10 +114,10 @@ for s,nm in ((1,'E'),(-1,'D')):
 for s,nm in ((1,'E'),(-1,'D')):
     sh=SH*[s,1,1]; ad=AD*[s,1,1]
     d=V-sh; t=d@ad; perp=np.linalg.norm(d-np.outer(t,ad),axis=1)
-    rad=np.interp(t,[0.045,0.1,0.125],[0.036,0.075,0.16])
-    inarm=ss(-0.03,0.012,t)*(1-ss(rad,rad+0.012,perp))*(side==s)*(y<0.47)*(~leg)*ss(0.09,0.107,np.abs(x))
+    rad=np.interp(t,[0.072,0.128,0.153],[0.038,0.075,0.16])
+    inarm=ss(-0.03,0.012,t)*(1-ss(rad,rad+0.012,perp))*(side==s)*(y<0.47)*(~leg)*np.maximum(ss(0.09,0.107,np.abs(x)),ss(0.425,0.445,y)*ss(0.07,0.09,np.abs(x)))
     i0=NAMES.index('braco'+nm)
-    we=ss(0.055,0.09,t); ww=ss(0.125,0.15,t)
+    we=ss(0.083,0.118,t); ww=ss(0.153,0.178,t)
     up=(1-we); fo=we*(1-ww); ha=ww
     W*= (1-inarm)[:,None]
     W[:,i0]+=inarm*up; W[:,i0+1]+=inarm*fo; W[:,i0+2]+=inarm*ha

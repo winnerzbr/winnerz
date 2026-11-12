@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Lobby dos Bugs: tamanho por tipo, chibi oficial, ideia da evolução
+
+- No repositório `winnerzbr/lobby-dos-bugs` (diretrizes D5 e B16; a evolução dos inimigos em `ideias.md`).
+
 ## 11/11/2026 — Lobby dos Bugs: 32 pontos confirmados, inimigos maiores, chão calmo
 
 - No repositório `winnerzbr/lobby-dos-bugs` (diretrizes B14, B15 e D5).

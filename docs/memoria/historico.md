@@ -15,6 +15,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - Cartão "Linha do tempo" (`.jtlcard`): com uma foto em pé o cartão ficava enorme; agora as fotos têm altura fixa (220px; 120px no celular) e a foto única fica à direita, recortada.
 - Abaixo do título: plataforma / campanha / estado numa linha, e "X dias de jogo · tempo" sempre na linha de baixo, sem barra solta no começo.
 - Botões do cabeçalho: mais folga entre eles (a ponta com a seta de um botão encostava no "Ações" nas animações). Quando o jogo tem mais de uma História, as abas ficam numa linha embaixo do título e os botões vão para a linha seguinte, à direita.
+- Depois: o título do jogo fica sempre numa linha só (os botões vão para a linha de baixo, à direita; título comprido diminui a letra e termina em "…").
 - Só CSS, no fim de `src/styles/jornada.css`.
 
 ## 12/11/2026 — IAmiguinho 3D no site: o modelo dos jogos, com ossos, e as aparições com balão

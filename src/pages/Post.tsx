@@ -440,7 +440,7 @@ function ReplyItem({ r, post, isAnswer, canAnswer, onAnswer, onReply, onQuote, o
 function MascoteItem({ m, onRemove }: { m: MascoteResposta; onRemove: () => void }) {
   const [confirm, setConfirm] = useState(false);
   return (
-    <div className="iam-resp" id={`iam-${m.id}`}>
+    <div className="iam-resp card" id={`iam-${m.id}`}>
       <img className="iam-resp__av" src="/brand/iamiguinho/icone-96.webp" alt="" width={32} height={32} />
       <div className="iam-resp__b">
         <div className="iam-resp__by">
@@ -458,7 +458,7 @@ function MascoteItem({ m, onRemove }: { m: MascoteResposta; onRemove: () => void
 }
 function MascotePensando() {
   return (
-    <div className="iam-resp iam-resp--pensando" role="status">
+    <div className="iam-resp iam-resp--pensando card" role="status">
       <img className="iam-resp__av" src="/brand/iamiguinho/cara-pensando.webp" alt="" width={32} height={32} />
       <p className="iam-resp__t faint">IAmiguinho está pensando<span className="iam-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i></span></p>
     </div>

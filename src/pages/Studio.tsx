@@ -195,7 +195,7 @@ function InvitesPanel({ open }: { open: boolean }) {
       </form>
       {err && <p className="awards__error" role="alert">{err}</p>}
       {fresh && (
-        <div className="invnew" role="status">
+        <div className="invnew card" role="status">
           <b>Convite criado.</b> Mande o link para a pessoa:
           <code className="invnew__link">{inviteLink(fresh)}</code>
           <div className="acct__row">

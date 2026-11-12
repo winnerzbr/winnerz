@@ -128,8 +128,9 @@ function Aparicoes() {
       <ul className="iam-aparicoes">
         {lista.map((a) => (
           <li key={a.id}>
-            <Link to={`/conversa/${a.postId}${a.anchor ? `#${a.anchor}` : ''}`}>
-              <small>{a.place} · “{a.title}” · {ago(a.createdAt)}</small>
+            <Link className="card" to={`/conversa/${a.postId}${a.anchor ? `#${a.anchor}` : ''}`}>
+              <small className="kicker">{a.place} · {ago(a.createdAt)}</small>
+              <small>“{a.title}”</small>
               <span>{a.body}</span>
             </Link>
           </li>

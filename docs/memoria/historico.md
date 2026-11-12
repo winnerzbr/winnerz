@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Cartões com faixa lateral (layout antigo) trocados pelo cartão atual
+
+- Pedido do dono: a lista de respostas e aparições no perfil do IAmiguinho usava o cartão antigo (faixa colorida na lateral); padronizar e varrer o resto do site.
+- Passaram para o cartão atual (`.card`, sem a faixa): as aparições públicas do perfil dele (com o lugar e a data num título pequeno), a resposta dele dentro das conversas (`.iam-resp`), o "Anteriormente…" (`.previously`) e o aviso de convite novo no Studio (`.invnew`).
+- Continuam com a linha lateral, de propósito, as citações e respostas encadeadas nas conversas e mensagens (ali a linha marca "isto é uma citação", não é cartão).
+
 ## 12/11/2026 — IAmiguinho 3D, segunda rodada: dedos, rostos dos jogos, balão novo e os lugares antigos
 
 - Pedidos do dono: mãos segurando a borda de verdade (com ossos nos dedos); os rostos iguais aos dos jogos; balão de diálogo estilizado (o cartão era "padrão de IA"); trocar os lugares que ainda usavam o desenho antigo; mãos em posição neutra ou expressiva (não espalmadas); tirar as pontas que saíam do lado do tronco.

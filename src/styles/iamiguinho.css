@@ -249,3 +249,12 @@ html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *
 @media (max-width: 760px) { .iam-tela__rabo { right: 66px; } .iam3--borda .iam3__balao .iam-tela__rabo { right: 92px; } }
 .iam-fig.iam-b3 { animation: none; }
 .iam-fala.iam-tela::before { left: 0; bottom: 0; width: auto; height: auto; }
+
+/* ---- Cartões no padrão atual (12/11/2026): sem a faixa colorida na lateral (era o layout antigo) ---------------- */
+.iam-aparicoes { gap: 18px; padding: 7px; }
+.iam-aparicoes a.card { border-left: 0; padding: 16px 20px; gap: 6px; background: var(--surface); }
+.iam-aparicoes a.card:hover { background: var(--surface); }
+.iam-aparicoes a.card .kicker { color: var(--iam); }
+.iam-aparicoes a.card span { font-size: 15px; line-height: 1.5; }
+.iam-resp.card { border-left: 0; background: var(--surface); padding: 14px 16px; margin: 7px; }
+.invnew.card, .previously { border-left: 0; }

@@ -1,5 +1,3 @@
-import { RetroPage } from './pages/Retro';
-import { SnipPage } from './pages/Snip';
 import { SearchPage } from './pages/Search';
 import { ListsPage, ListPage } from './pages/Lists';
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
@@ -20,14 +18,12 @@ import { SavedNoticeHost } from './components/SavedNotice';
 import { GlobalTimelinePage } from './pages/Memory';
 import { ReviewPage } from './pages/Review';
 import { TrailsPage, TrailPage } from './pages/Trails';
-import { OverlayPage } from './pages/Overlay';
 import { Header, TabBar } from './components/Header';
 import { SessionDock } from './components/SessionDock';
 import { ForgottenSession } from './components/ForgottenSession';
 import { PastSheetHost } from './components/PastPlay';
 import { UpdateBanner } from './components/UpdateBanner';
 import { CommandPalette } from './components/CommandPalette';
-import { RepairPage } from './pages/Repair';
 import { track } from './lib/track';
 import { pageEvent } from './lib/usageLabels';
 import { FEATURES } from './lib/features';
@@ -36,17 +32,13 @@ import { RulesPage } from './pages/Rules';
 import { PeoplePage } from './pages/People';
 import { MessagesPage } from './pages/Messages';
 import { CommunitiesIndexPage, CommunityEditPage, CommunityNewPage, CommunityView, ModHistoryPage } from './pages/Communities';
-import { StudioCommunitiesPage } from './pages/StudioCommunities';
 import { PostEditorPage, PostPage } from './pages/Post';
 import { ClubEditPage, ClubNewPage, ClubPage, ClubsIndexPage } from './pages/Clubs';
 import { JogatinaEditPage, JogatinaNewPage, JogatinaPage } from './pages/Jogatina';
 import { AvisosPage } from './pages/Avisos';
-import { StudioModerationPage } from './pages/StudioModeration';
 import { ModerationBanner, RulesHost } from './components/Moderation';
 import { JourneyIndex, ConcludedPage } from './pages/JourneyIndex';
 import { CollectionStats, Wishes } from './pages/CollectionStats';
-import { ImportPage } from './pages/Import';
-import { SteamImportPage } from './pages/SteamImport';
 import { JourneyPage } from './pages/Journey';
 import { Collection } from './pages/Collection';
 import { GamesIndex } from './pages/GamesIndex';
@@ -62,23 +54,13 @@ import { PrivacyPage } from './pages/Privacy';
 import { AboutPage } from './pages/About';
 import { PublicProfilePage } from './pages/PublicProfile';
 import { PublicJourneyPage } from './pages/PublicJourney';
-import { HardwarePage } from './pages/Hardware';
-import { TrashPage } from './pages/Trash';
-import { ShowcasePage } from './pages/Showcases';
-import { MuseumPage } from './pages/Museum';
-import { PublicMuseumPage } from './pages/PublicMuseum';
 import { DeletionBanner } from './components/AccountData';
 import { NickGate } from './components/NickGate';
 import { PrivateTeaser } from './pages/PrivateTeaser';
 import { SITE_PRIVATE } from './lib/env';
 import { EventsIndex, AwardsPage } from './pages/Awards';
-import { AwardsAdminPage } from './pages/AwardsAdmin';
-import { StudioFixesPage } from './pages/StudioFixes';
-import { StudioPage } from './pages/Studio';
 import { InvitePage } from './pages/Invite';
 import { invitesApi, pendingInvite, setPendingInvite } from './data/invitesApi';
-import { AwardsRevealPage } from './pages/AwardsReveal';
-import { AwardsHistoryPage } from './pages/AwardsPlus';
 
 const AlbumPage = lazy(() => import('./pages/Album').then((m) => ({ default: m.AlbumPage })));
 const ArrivalPage = lazy(() => import('./pages/Arrival').then((m) => ({ default: m.ArrivalPage })));
@@ -90,6 +72,33 @@ const StudioLivePage = lazy(() => import('./pages/StudioLive').then((m) => ({ de
 const JogosVeraoPage = lazy(() => import('./pages/JogosVerao').then((m) => ({ default: m.JogosVeraoPage })));
 const StudioIAmiguinhoPage = lazy(() => import('./pages/StudioIAmiguinho').then((m) => ({ default: m.StudioIAmiguinhoPage })));
 const lazyPage = (node: ReactNode) => <Suspense fallback={<Carregando />}>{node}</Suspense>;
+/** Página que só baixa quando alguém abre (Studio, lives, overlay, administração do Awards, museu, importação…):
+ *  deixa o arquivo principal do site mais leve. Usa-se igual a um componente comum. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function sobDemanda(carregar: () => Promise<any>, nome: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const L = lazy(() => carregar().then((m) => ({ default: m[nome] as (p: any) => ReactNode })));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function SobDemanda(props: any) { return <Suspense fallback={<Carregando />}><L {...props} /></Suspense>; };
+}
+const OverlayPage = sobDemanda(() => import('./pages/Overlay'), 'OverlayPage');
+const RepairPage = sobDemanda(() => import('./pages/Repair'), 'RepairPage');
+const StudioCommunitiesPage = sobDemanda(() => import('./pages/StudioCommunities'), 'StudioCommunitiesPage');
+const StudioModerationPage = sobDemanda(() => import('./pages/StudioModeration'), 'StudioModerationPage');
+const ImportPage = sobDemanda(() => import('./pages/Import'), 'ImportPage');
+const SteamImportPage = sobDemanda(() => import('./pages/SteamImport'), 'SteamImportPage');
+const HardwarePage = sobDemanda(() => import('./pages/Hardware'), 'HardwarePage');
+const TrashPage = sobDemanda(() => import('./pages/Trash'), 'TrashPage');
+const ShowcasePage = sobDemanda(() => import('./pages/Showcases'), 'ShowcasePage');
+const MuseumPage = sobDemanda(() => import('./pages/Museum'), 'MuseumPage');
+const PublicMuseumPage = sobDemanda(() => import('./pages/PublicMuseum'), 'PublicMuseumPage');
+const AwardsAdminPage = sobDemanda(() => import('./pages/AwardsAdmin'), 'AwardsAdminPage');
+const StudioFixesPage = sobDemanda(() => import('./pages/StudioFixes'), 'StudioFixesPage');
+const StudioPage = sobDemanda(() => import('./pages/Studio'), 'StudioPage');
+const AwardsRevealPage = sobDemanda(() => import('./pages/AwardsReveal'), 'AwardsRevealPage');
+const AwardsHistoryPage = sobDemanda(() => import('./pages/AwardsPlus'), 'AwardsHistoryPage');
+const RetroPage = sobDemanda(() => import('./pages/Retro'), 'RetroPage');
+const SnipPage = sobDemanda(() => import('./pages/Snip'), 'SnipPage');
 
 function Routes({ path }: { path: string }): ReactNode {
   let m: Record<string, string> | null;

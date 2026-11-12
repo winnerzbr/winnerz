@@ -333,21 +333,36 @@ export const supabaseAdapter: Adapter = {
     }
 
     loadIncomplete = false;
-    const probe = await sb.from('my_games').select('game_id').limit(1);
-    v4 = !probe.error;
-    v6 = v4 && !(await sb.from('my_games').select('not_now_until,on_radar').limit(1)).error;
-    v8 = !(await sb.from('histories').select('capsule').limit(1)).error && !(await sb.from('sessions').select('companions').limit(1)).error;
-    v37 = v8 && !(await sb.from('sessions').select('progress').limit(1)).error && !(await sb.from('histories').select('narrations').limit(1)).error;
-    v38 = v37 && !(await sb.from('sessions').select('goal,goal_done').limit(1)).error && !(await sb.from('histories').select('part').limit(1)).error;
-    v39 = v38 && !(await sb.from('sessions').select('source').limit(1)).error;
-    v58 = v38 && !(await sb.from('histories').select('part_log').limit(1)).error;
-    v73 = !(await sb.from('histories').select('feats').limit(1)).error;
-    v43 = v39 && !(await sb.from('sessions').select('intent,intent_met').limit(1)).error;
-    v61 = v43 && !(await sb.from('sessions').select('part_marks').limit(1)).error;
-    v95 = v61 && !(await sb.from('sessions').select('tags').limit(1)).error;
-    v96 = v6 && !(await sb.from('my_games').select('watched_at').limit(1)).error;
-    v14 = !(await sb.from('hardware').select('id').limit(1)).error && !(await sb.from('copies').select('deleted_at').limit(1)).error;
-    v15 = v14 && !(await sb.from('loans').select('id').limit(1)).error && !(await sb.from('museum_rooms').select('id').limit(1)).error;
+    // Quais migrações já rodaram: as perguntas vão todas ao mesmo tempo (antes, uma de cada vez, levavam ~2 s a cada abertura).
+    const tem = (t: string, cols: string) => Promise.resolve(sb.from(t).select(cols).limit(1)).then((r) => !r.error, () => false);
+    const [
+      mg, mgRadar, hCapsule, sComp, sProg, hNarr, sGoal, hPart, sSource, hPartLog, hFeats, sIntent, sMarks, sTags, mgWatched,
+      hw, cDel, loansT, roomsT, imgPath,
+    ] = await Promise.all([
+      tem('my_games', 'game_id'), tem('my_games', 'not_now_until,on_radar'),
+      tem('histories', 'capsule'), tem('sessions', 'companions'),
+      tem('sessions', 'progress'), tem('histories', 'narrations'),
+      tem('sessions', 'goal,goal_done'), tem('histories', 'part'),
+      tem('sessions', 'source'), tem('histories', 'part_log'), tem('histories', 'feats'),
+      tem('sessions', 'intent,intent_met'), tem('sessions', 'part_marks'), tem('sessions', 'tags'),
+      tem('my_games', 'watched_at'),
+      tem('hardware', 'id'), tem('copies', 'deleted_at'), tem('loans', 'id'), tem('museum_rooms', 'id'),
+      tem('timeline_events', 'image_path'),
+    ]);
+    v4 = mg;
+    v6 = v4 && mgRadar;
+    v8 = hCapsule && sComp;
+    v37 = v8 && sProg && hNarr;
+    v38 = v37 && sGoal && hPart;
+    v39 = v38 && sSource;
+    v58 = v38 && hPartLog;
+    v73 = hFeats;
+    v43 = v39 && sIntent;
+    v61 = v43 && sMarks;
+    v95 = v61 && sTags;
+    v96 = v6 && mgWatched;
+    v14 = hw && cDel;
+    v15 = v14 && loansT && roomsT;
     if (v14) {
       // Lixeira: o que passou de 30 dias sai de vez.
       const old = new Date(Date.now() - 30 * 86400000).toISOString();
@@ -391,7 +406,7 @@ export const supabaseAdapter: Adapter = {
     for (let i = 0; i < ids.length; i += 150) games.push(...(check(await sb.from('games').select('*').in('id', ids.slice(i, i + 150))) as any[]));
 
     // Fotos: confere se a migração 0003 rodou e gera os links temporários de uma vez só.
-    storageReady = !(await sb.from('timeline_events').select('image_path').limit(1)).error;
+    storageReady = imgPath;
     const evs = (events.data ?? []).map(eventFromRow);
     const roomPaths = museumRooms.flatMap((r) => r.pieces.flatMap((p) => (p.t === 'f' && p.path ? [p.path] : [])));
     const signed = await signPaths([...evs.filter((e) => e.imagePath).map((e) => e.imagePath!), ...roomPaths]);

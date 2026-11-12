@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Revisão: itens 1, 5 e 6 feitos (site mais rápido, mais leve; ficha de jogo não lançado)
+
+- O dono aprovou no documento da revisão ("faça") os três itens sem mudança visual.
+- **1. Abertura mais rápida:** as ~20 conferências de quais migrações já rodaram (`src/data/supabaseAdapter.ts`) agora vão todas ao mesmo tempo, em vez de uma de cada vez. Mesmo resultado, ~2 s a menos em toda abertura.
+- **5. Código mais leve:** 18 páginas pouco usadas passaram a baixar só quando alguém abre: Studio (e suas telas), overlay, administração e revelação do Awards, edições anteriores do Awards, museu e museu público, importar planilha e Steam, consoles, lixeira, vitrines, consertos, retrospectiva e recorte. Função `sobDemanda` em `src/App.tsx`.
+- **6. Ficha de jogo que ainda não saiu:** sem Jornada começada, "Jogar agora" e "Já zerei" dão lugar à data, por exemplo "Sai em 19 nov · faltam 7 dias" (só o ano, se não houver data exata). Radar, desejos e o resto continuam. `src/pages/Game.tsx`, estilo `.ghero__sai` em `carga.css`.
+
 ## 12/11/2026 — Revisão completa do site (documento)
 
 - Pedido do dono: revisão completa do site e o que melhorar. Feita no documento "WinnerZ: revisão completa do site" (https://claude.ai/artifact/HkMiRZcx4X2TaiVWkLafKy).

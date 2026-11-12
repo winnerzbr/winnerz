@@ -93,6 +93,12 @@ function GameView({ gameId }: { gameId: string }) {
   const today = localDay();
   const upcoming = g ? (g.releasedOn ? g.releasedOn > today : g.year == null || g.year >= Number(today.slice(0, 4))) : false;
   const canTrack = s.schemaV6 || s.mode === 'demo';
+  // Jogo que ainda não saiu (e sem Jornada começada): no lugar de "Jogar agora" e "Já zerei", a data de lançamento.
+  const naoSaiu = !!g && !j && (g.releasedOn ? g.releasedOn > today : g.year != null && g.year > Number(today.slice(0, 4)));
+  const faltam = g?.releasedOn && naoSaiu ? Math.round((Date.parse(`${g.releasedOn}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / 86400000) : null;
+  const saiEm = !naoSaiu || !g ? '' : g.releasedOn
+    ? `Sai em ${new Date(`${g.releasedOn}T12:00:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }).replace('.', '').replace(' de ', ' ')}${faltam != null ? ` · ${faltam === 1 ? 'falta 1 dia' : `faltam ${faltam} dias`}` : ''}`
+    : `Sai em ${g.year}`;
 
   // Análises públicas vêm do banco quando o Supabase está ligado.
   useEffect(() => {
@@ -160,8 +166,10 @@ function GameView({ gameId }: { gameId: string }) {
               </div>
             )}
             <div className="ghero__actions">
-              <button className="btn primary" onClick={play}><Icon name="play" size={14} />{playLabel}</button>
-              {h?.state !== 'concluida' && <PastButton gameId={gameId} className="btn ghost ghero__past" />}
+              {naoSaiu ? <span className="ghero__sai" role="status"><Icon name="radar" size={14} />{saiEm}</span> : <>
+                <button className="btn primary" onClick={play}><Icon name="play" size={14} />{playLabel}</button>
+                {h?.state !== 'concluida' && <PastButton gameId={gameId} className="btn ghost ghero__past" />}
+              </>}
               {owned.length ? (
                 <Link className="btn ghost" to="/colecao"><Icon name="check" size={15} />Na sua coleção</Link>
               ) : (

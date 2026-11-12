@@ -210,3 +210,6 @@
 }
 .vc-campos .switch:checked { outline-color: var(--vi-ring); }
 .vc-campos .cfilters .switch { margin-right: 8px !important; }
+
+/* Ficha de jogo que ainda não saiu: a data de lançamento no lugar de "Jogar agora" e "Já zerei". */
+.ghero__sai { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border: 1px solid var(--now-line, rgba(255, 178, 91, .5)); color: #FFE2B8; font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; background: rgba(7, 8, 10, .55); }

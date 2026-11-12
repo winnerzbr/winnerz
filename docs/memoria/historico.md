@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: os chefões do andar 1 e os ataques únicos
+- Robô de Spam repintado em 32 pontos e com golpes só dele; Troll do Chat com os golpes de fase dele (BAN HAMMER, RAID NO CHAT); o Servidor Touro com o tráfego; 6 bugs do andar 1 com golpes que deixaram de ser iguais. Detalhes no repositório do jogo (`docs/memoria/historico.md` e `ataques.md`).
+
 ## 12/11/2026 — Lobby dos Bugs: o andar 1 testado e o equilíbrio das armas
 
 - No repositório `winnerzbr/lobby-dos-bugs`: tarefa 1 do M1 feita (o piloto jogou o andar 1, sem erros); o CD limitado, o mouse melhorado, o Ping recarrega mais devagar e as outras secundárias mais rápido. O que o dono notou jogando (inimigos no estilo Gungeon, jeitos novos de inimigo, dificuldade dos chefões) foi para o caderno e o plano.

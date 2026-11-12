@@ -173,7 +173,7 @@ export function SeasonCard({ season, onClose }: { season: Season; onClose: () =>
         <div className="share-card__preview">{url ? <img src={url} alt={`Cartão de ${season.name}`} /> : <div className="share-card__wait">Montando o cartão…</div>}</div>
         <div className="share-card__opts">
           <p className="faint">Só o que aparece na imagem sai do site: as capas, os números e o jogo da temporada.</p>
-          <div className="sheet__actions"><button className="btn primary lg" disabled={!url} onClick={share}>{typeof navigator !== 'undefined' && typeof navigator.share === 'function' ? 'Compartilhar' : 'Baixar imagem'}</button></div>
+          <div className="sheet__actions"><button className="btn primary" disabled={!url} onClick={share}>{typeof navigator !== 'undefined' && typeof navigator.share === 'function' ? 'Compartilhar' : 'Baixar imagem'}</button></div>
         </div>
       </div>
     </Sheet>

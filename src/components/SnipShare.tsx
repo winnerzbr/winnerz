@@ -132,7 +132,7 @@ export function SnipShareSheet({ event, game, onClose }: { event: TimelineEvent;
           {hasPhoto && <label className="share-card__check"><input type="checkbox" checked={withPhoto} onChange={(e) => togglePhoto(e.target.checked)} /> Com a foto</label>}
           {hasNote && <label className="share-card__check"><input type="checkbox" checked={withNote} onChange={(e) => toggleNote(e.target.checked)} /> Com a sua nota</label>}
           <div className="sheet__actions">
-            <button className="btn primary lg" disabled={!url} onClick={() => void share()}>{canShare ? 'Compartilhar imagem' : 'Baixar imagem'}</button>
+            <button className="btn primary" disabled={!url} onClick={() => void share()}>{canShare ? 'Compartilhar imagem' : 'Baixar imagem'}</button>
             {url && canShare && <a className="btn ghost" href={url} download={fileName}>Baixar</a>}
           </div>
           <div className="snip-link">
@@ -200,7 +200,7 @@ export function ChapterShareSheet({ chapter, game, onClose }: { chapter: { n: nu
           {hasPhoto && <label className="share-card__check"><input type="checkbox" checked={withPhoto} onChange={(e) => setWithPhoto(e.target.checked)} /> Com a foto de capa</label>}
           <label className="share-card__check"><input type="checkbox" checked={withText} onChange={(e) => setWithText(e.target.checked)} /> Com o resumo</label>
           <div className="sheet__actions">
-            <button className="btn primary lg" disabled={!url} onClick={() => void share()}>{canShare ? 'Compartilhar imagem' : 'Baixar imagem'}</button>
+            <button className="btn primary" disabled={!url} onClick={() => void share()}>{canShare ? 'Compartilhar imagem' : 'Baixar imagem'}</button>
             {url && canShare && <a className="btn ghost" href={url} download={fileName}>Baixar</a>}
           </div>
           <p className="faint">Só o que aparece aqui sai do site. Nada do seu perfil, coleção ou outras Jornadas.</p>

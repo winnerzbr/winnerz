@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Botão Compartilhar dos cartões no tamanho normal
+
+- O dono achou o botão "Compartilhar" do Cartão da temporada grande demais, no computador e no celular.
+- Os botões de compartilhar dos cartões (temporada, cartão da Jornada e recortes/capítulos) deixaram de ser do tamanho grande e não esticam mais: `Seasons.tsx`, `ShareCard.tsx`, `SnipShare.tsx` e `.share-card__opts` em `etapa2.css`.
+
 ## 12/11/2026 — Início: mais espaço entre a linha do horizonte e o "Neste dia"
 
 - O dono achou o cartão "Neste dia · há 1 mês" colado na linha do tempo do Início. O espaço acima dele passou de 18 px para 30 a 48 px, conforme a largura da tela (`.page.hz-lemb` em `jornada.css`).

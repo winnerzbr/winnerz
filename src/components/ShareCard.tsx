@@ -140,7 +140,7 @@ function ShareCardSheet({ game, history, onClose }: { game: Game; history: Histo
           {review && <label className="share-card__check"><input type="checkbox" checked={withRating} onChange={(e) => setWithRating(e.target.checked)} /> Mostrar a sua nota</label>}
           <p className="faint">Só o que aparece na imagem sai do site. Nada do seu perfil, coleção ou outras Jornadas.</p>
           <div className="sheet__actions">
-            <button className="btn primary lg" disabled={!url} onClick={share}>{canShare ? 'Compartilhar' : 'Baixar imagem'}</button>
+            <button className="btn primary" disabled={!url} onClick={share}>{canShare ? 'Compartilhar' : 'Baixar imagem'}</button>
             {url && canShare && <a className="btn ghost" href={url} download={fileName}>Baixar</a>}
           </div>
         </div>

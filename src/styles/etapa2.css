@@ -630,6 +630,9 @@
 .share-card__preview img { width: 100%; border-radius: 10px; display: block; box-shadow: 0 16px 40px var(--shadow); }
 .share-card__wait { aspect-ratio: 4 / 5; display: grid; place-items: center; border-radius: 10px; background: var(--surface-2); color: var(--muted); }
 .share-card__opts { display: grid; gap: 8px; }
+/* o botão de compartilhar fica do tamanho normal, sem esticar (12/11/2026) */
+.share-card__opts .sheet__actions { justify-content: flex-start; }
+.share-card__opts .btn { width: auto; justify-self: start; }
 .share-card__check { display: flex; gap: 8px; align-items: center; }
 @media (max-width: 640px) { .share-card { grid-template-columns: 1fr; } .share-card__preview { max-width: 280px; margin: 0 auto; } }
 

@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: braço separado do tronco (cirurgia no modelo)
+
+- O dono mostrou no Blender que o braço vinha do Tripo com o começo fundido na lateral do corpo, e por isso a articulação parecia baixa. Ele ofereceu refazer o modelo em pose T (prancha no ChatGPT → Tripo); primeiro tentamos separar por código, e deu certo.
+- `prep.py`, passo 3b: acha a dobra entre o tubo do braço e o "ovo" do tronco (corte mínimo pelo comprimento das arestas), tira as faces da dobra, fecha os dois lados (remendo curvo no tronco, metade do tubo que faltava no braço), deita as rebarbas no ovo/no tubo e lixa a cicatriz. O braço vira uma peça solta da malha, e o peso dos ossos do braço vale para a peça inteira.
+- O ombro agora gira na junção com a cabeça (0,062 / 0,466 / -0,057). Cotovelo e punho continuam onde estavam.
+- A direção da mão (dedos, nós, palma) ficou fixa no `prep.py`; antes vinha de `out/mao.npz`, que podia ser regravado errado e desligar os dedos.
+- Cuidado para a próxima vez: a borda do corte tem que ser marcada pelos vértices soldados (mesma posição), senão sobram furos no remendo.
+- GLB dos jogos gerado de novo. Se um dia o remendo incomodar de perto, o caminho é o modelo novo em pose T.
+
 ## 12/11/2026 — IAmiguinho 3D: ombro inteiro acompanha o braço e fim dos risquinhos
 
 - O dono mostrou que um pedaço do braço ficava grudado no tronco. Antes o braço era separado do tronco por uma linha reta; agora o braço é tudo o que sai para fora do "ovo" do tronco (raio medido por altura), com a emenda misturando os dois.

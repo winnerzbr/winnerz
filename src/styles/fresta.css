@@ -967,10 +967,11 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .rate-uni { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0 32px; }
 .rate-uni__com { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .rate-uni__mine { min-width: 0; padding-left: 32px; border-left: 1px solid var(--line); }
-.rate-uni__foot { display: flex; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.rate-uni__foot { display: flex; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.editor__nota-foot:empty { display: none; }
 .rate-uni__analise { margin-top: 34px; }
 .rate-uni__analise .editor--analise > .my-review__title:first-child { margin-top: 0; }
-.nota-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-height: 52px; }
+.nota-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .nota-head h2 { margin: 0; }
 .nota-head__v { text-align: right; }
 .nota-head__v .score-num { font-size: 44px; line-height: 1; min-width: 0; }

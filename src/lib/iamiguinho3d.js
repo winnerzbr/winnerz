@@ -202,7 +202,7 @@ export function mountIAmiguinho(canvas, estado, onReady, onFail) {
     const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
     const im = new Image(); im.onload = () => { if (!vivo) return; gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); };
     im.src = '/modelos/iamiguinho-rostos.png'; gl.uniform1i(U.uFc, 0);
-    gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     const bones = new Float32Array(24 * 16), W = new Array(24);
     const t00 = performance.now() / 1000; let hel = 0, last = t00, pisca = 2 + Math.random() * 3, olhar = [0, 0], olharAlvo = [0, 0], olharEm = 0, pronto = false;
     const frame = () => {
@@ -258,7 +258,7 @@ export function mountIAmiguinho(canvas, estado, onReady, onFail) {
         // quadradinhos; perto do fim, o corpo aparece por baixo
         const a = 1 - ease((pix - 0.02) / 0.16);
         if (a > 0.01) { gl.uniform1f(U.uPt, 0); gl.uniform1f(U.uAl, a); gl.drawElements(gl.TRIANGLES, m.nI, IT, 0); }
-        gl.uniform1f(U.uPt, 1); gl.uniform1f(U.uAl, Math.min(1, pix * 9) * (1 - ease((pix - 0.9) / 0.1))); gl.disable(gl.CULL_FACE); gl.drawArrays(gl.POINTS, 0, m.nV); gl.enable(gl.CULL_FACE);
+        gl.uniform1f(U.uPt, 1); gl.uniform1f(U.uAl, Math.min(1, pix * 9) * (1 - ease((pix - 0.9) / 0.1))); gl.drawArrays(gl.POINTS, 0, m.nV);
       } else { gl.uniform1f(U.uPt, 0); gl.uniform1f(U.uAl, 1); gl.drawElements(gl.TRIANGLES, m.nI, IT, 0); }
       if (!pronto) { pronto = true; onReady && onReady(); }
     };

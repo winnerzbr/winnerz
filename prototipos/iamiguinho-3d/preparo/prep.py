@@ -14,7 +14,15 @@ for it in range(6):
         src=F[:,a_]; dst=F[:,b_]; k=bad[dst]&~bad[src]
         np.add.at(acc_,dst[k],C[src[k]]); np.add.at(cnt_,dst[k],1)
     fix=bad&(cnt_>0); C[fix]=(acc_[fix]/cnt_[fix,None]).astype(np.float32); bad&=~fix
-print('pontinhos corrigidos; restam',int(bad.sum()))
+# e os pontos escuros no meio de uma área clara (sobra da mesma emenda): duas passadas, comparando com os vizinhos
+for it in range(2):
+    acc_=np.zeros((len(V),3)); cnt_=np.zeros(len(V))
+    for a_,b_ in ((0,1),(1,2),(2,0),(1,0),(2,1),(0,2)):
+        np.add.at(acc_,F[:,b_],C[F[:,a_]]); np.add.at(cnt_,F[:,b_],1)
+    Cn=acc_/np.maximum(cnt_,1)[:,None]; lum=C@[0.3,0.59,0.11]; ln=Cn@[0.3,0.59,0.11]
+    esc=(lum<0.72*ln)&(ln>110)&(cnt_>0)
+    C[esc]=Cn[esc].astype(np.float32)
+    print('escuros corrigidos',int(esc.sum()))
 r,g,b=C[:,0],C[:,1],C[:,2]
 
 # 1) aba do boné: partes brancas viradas para baixo, cercadas de laranja -> laranja
@@ -115,7 +123,10 @@ for s,nm in ((1,'E'),(-1,'D')):
     sh=SH*[s,1,1]; ad=AD*[s,1,1]
     d=V-sh; t=d@ad; perp=np.linalg.norm(d-np.outer(t,ad),axis=1)
     rad=np.interp(t,[0.072,0.128,0.153],[0.038,0.075,0.16])
-    inarm=ss(-0.03,0.012,t)*(1-ss(rad,rad+0.012,perp))*(side==s)*(y<0.47)*(~leg)*np.maximum(ss(0.09,0.107,np.abs(x)),ss(0.425,0.445,y)*ss(0.07,0.09,np.abs(x)))
+    # braço = o que sai para fora do "ovo" do tronco (raio medido por altura); a emenda mistura os dois
+    Rt=np.interp(y,[0.30,0.32,0.34,0.36,0.40,0.42,0.44,0.46,0.49],[0.055,0.068,0.078,0.081,0.077,0.072,0.064,0.054,0.04])
+    e=np.sqrt((x/(1.12*Rt))**2+((V[:,2]+0.047)/Rt)**2)
+    inarm=ss(0.98,1.2,e)*(side==s)*(1-ss(0.462,0.478,y))*(~leg)*(np.abs(x)>0.05)*(t>-0.06)*(1-ss(0.05,0.065,perp)*(t<0.04))
     i0=NAMES.index('braco'+nm)
     we=ss(0.083,0.118,t); ww=ss(0.153,0.178,t)
     up=(1-we); fo=we*(1-ww); ha=ww

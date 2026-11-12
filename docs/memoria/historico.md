@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: ombro inteiro acompanha o braço e fim dos risquinhos
+
+- O dono mostrou que um pedaço do braço ficava grudado no tronco. Antes o braço era separado do tronco por uma linha reta; agora o braço é tudo o que sai para fora do "ovo" do tronco (raio medido por altura), com a emenda misturando os dois.
+- Os pontinhos que sobravam não eram cor: na versão leve alguns triângulos pequenos viram do avesso e o desenho descartava esses triângulos, deixando risquinhos escuros. O site agora desenha os dois lados das faces. Também entram duas passadas que clareiam pontos escuros isolados no meio de área clara.
+- GLB dos jogos gerado de novo com os pesos novos.
+
 ## 12/11/2026 — IAmiguinho 3D: ombro mais alto, sem pontinhos e rosto feliz no perfil
 
 - Pedidos do dono: a articulação do ombro fica mais para cima, quase na cabeça; tirar os pontinhos escuros do corpo; no perfil ele aparecia com cara de brabo.

@@ -100,3 +100,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (23h):** o dono ficou nos 32 pontos (o teste "como o Gungeon" não ficou). Inimigos maiores e de tamanhos variados (normal, grandão, miúdo) e chão calmo (menos cor e contraste no piso, níveis na pausa) para os inimigos se destacarem.
 
 **11/11/2026 (23h50):** cada tipo de inimigo com o seu tamanho fixo (miúdo, normal, grande, grandão); IAmiguinho chibi e chão "mais calmo" oficiais. Ideia nova do dono: inimigos que EVOLUEM na luta (outra forma, ataques mais fortes), a definir.
+
+**12/11/2026 (01h):** penumbra de "sinal perdido" (glitch). A EVOLUÇÃO dos inimigos na luta (diretriz D9): evoluem com 12 s vivos, comendo os restos de um do mesmo tipo ou acertando o IAmiguinho 3 vezes; primeira leva: Besouro Bug, Janela de Anúncio, Lixeira de Spam, Vírus Mutante.

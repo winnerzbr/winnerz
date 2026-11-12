@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: penumbra glitch e evolução dos inimigos
+
+- No repositório `winnerzbr/lobby-dos-bugs` (diretrizes C7 e D9).
+
 ## 11/11/2026 — Lobby dos Bugs: tamanho por tipo, chibi oficial, ideia da evolução
 
 - No repositório `winnerzbr/lobby-dos-bugs` (diretrizes D5 e B16; a evolução dos inimigos em `ideias.md`).

@@ -984,5 +984,5 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 }
 
 /* ---- Títulos de cartão (12/11/2026): todos com o retângulo inclinado ao lado, como os .kicker. ---- */
-:is(.jside__k, .ff1__k, .jx__k, .jdest__k, .jret__k2)::before { content: ''; display: inline-block; width: 4px; height: 0.95em; margin-right: 0.6em; background: currentColor; opacity: 0.5; transform: skewX(-22deg); vertical-align: -0.12em; }
-.vi-etiquetas :is(.jside__k, .ff1__k, .jx__k, .jdest__k, .jret__k2)::before { width: 7px; height: 12px; opacity: 1; background: var(--line-2); }
+:is(.jside__k, .ff1__k, .jx__k, .jret__k2)::before { content: ''; display: inline-block; width: 4px; height: 0.95em; margin-right: 0.6em; background: currentColor; opacity: 0.5; transform: skewX(-22deg); vertical-align: -0.12em; }
+.vi-etiquetas :is(.jside__k, .ff1__k, .jx__k, .jret__k2)::before { width: 7px; height: 12px; opacity: 1; background: var(--line-2); }

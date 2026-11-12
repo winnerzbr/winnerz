@@ -222,7 +222,9 @@
 }
 
 /* ---- A linha de luz do voto (12/11/2026): passa logo abaixo do nome do jogo escolhido, não mais no meio da arte.
-   A altura (--fy) é medida em Awards.tsx (alinharFlare). ---- */
-.aw2slot .scene.has .scene__flare { top: var(--fy, 46%); transition: top .45s cubic-bezier(.2, .8, .2, 1); }
-.aw2slot .scene.has .scene__ghost { top: calc(var(--fy, 46%) - 46px); }
-.aw2slot .scene.has .scene__ghost--2 { top: calc(var(--fy, 46%) + 10px); }
+   A distância do pé da cena (--fyb) é medida em Awards.tsx (alinharFlare). ---- */
+.aw2slot .scene.has .scene__flare { top: auto; bottom: var(--fyb, 54%); }
+.aw2slot .scene.has .scene__ghost { top: auto; bottom: calc(var(--fyb, 54%) - 44px); }
+.aw2slot .scene.has .scene__ghost--2 { top: auto; bottom: calc(var(--fyb, 54%) - 50px); }
+/* o que fica embaixo do nome é sempre uma linha só (a conta da linha de luz depende disso) */
+.aw2slot .scene__p.on .scene__ttl > :is(.scene__sub, .scene__hint) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }

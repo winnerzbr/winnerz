@@ -88,6 +88,7 @@ O site nasceu para mostrar de forma visual a planilha de coleção e backlog de 
 
 ## Áreas e ideias
 - **IAmiguinho:** é o mascote e o guia do site, com perfil próprio, @iamiguinho.
+  - **3D (12/11/2026):** as aparições (cameos) usam o modelo 3D dos jogos, animado, com balão de diálogo: `src/lib/iamiguinho3d.js`, `src/components/IAmiguinho3D.tsx`, modelo em `public/modelos/iamiguinho.bin`, preparo em `prototipos/iamiguinho-3d/`. Telas vazias, perfil e overlays das lives ainda usam as imagens 2D antigas.
 - **Museu:** a primeira versão é a visita guiada. O museu jogável vem depois, como novidade.
 - **Arcade do IAmiguinho e Fase da Semana:** aprovados. O Minigolfe saiu dos Jogos de Verão e vai entrar no Arcade, com os gráficos do Arcade.
   - **Arcade com 23 jogos** (07/11/2026): os 13 de antes, mais Jato de Refri, Ladeira do Rolimã, Fuga do Spoiler, Rumo à Loja, Torre do Backlog, Queda do Disco, Gancho do Cabo, Lobby dos Bugs, Defesa da Live e Derruba o Backlog, todos inspirados em mecânicas consagradas de celular. A página atual é o artefato "Arcade do IAmiguinho" a7133e84-99f5-4677-b39d-4b4b8fce46f9. O código fica em `jogos/arcade/` (novos jogos em `novos/`, juntar com `montar.py`, regras em `BRIEF.md`).

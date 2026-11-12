@@ -7,6 +7,8 @@ import { Link } from '../lib/router';
 import { useEffect, useState } from 'react';
 import { CUTUCAR, TONTO, sortear } from '../lib/iamiguinho';
 import { Figura } from '../components/IAmiguinho';
+import { Aparicao3D, type Entrada } from '../components/IAmiguinho3D';
+import { createPortal } from 'react-dom';
 import { iamiguinhoApi, type Aparicao } from '../data/iamiguinhoApi';
 import { ago } from '../components/Posts';
 
@@ -79,11 +81,38 @@ export function IAmiguinhoPage() {
         </ul>
       </section>
 
+      <Chamar />
+
       <section aria-labelledby="iam-aparicoes">
         <h2 id="iam-aparicoes" className="t">Aparições públicas</h2>
         <Aparicoes />
       </section>
     </main>
+  );
+}
+
+/** Chamar ele na tela, de cada um dos três jeitos (o mesmo modelo 3D e o mesmo balão dos momentos do site). */
+const CHEGADAS: { e: Entrada; nome: string; fala: string }[] = [
+  { e: 'borda', nome: 'Pela borda', fala: 'Opa. Só passei para ver se você estava jogando sem mim.' },
+  { e: 'andar', nome: 'Andando', fala: 'Cheguei. Atrasado, mas com estilo.' },
+  { e: 'pixels', nome: 'Em pixels', fala: 'Carregando IAmiguinho… 100%. De nada.' },
+];
+function Chamar() {
+  const [ap, setAp] = useState<{ e: Entrada; fala: string; n: number } | null>(null);
+  const [sem3d, setSem3d] = useState(false);
+  return (
+    <section aria-labelledby="iam-chamar" className="iam-perfil__chamar">
+      <h2 id="iam-chamar" className="t">Chamar o IAmiguinho</h2>
+      <p className="muted">Ele aparece assim nos momentos do site. Escolha por onde ele entra.</p>
+      <div className="chips" role="group" aria-label="Como ele entra">
+        {CHEGADAS.map((c, i) => <button key={c.e} type="button" className="chip" onClick={() => { setSem3d(false); setAp({ e: c.e, fala: c.fala, n: Date.now() + i }); }}>{c.nome}</button>)}
+      </div>
+      {sem3d && <p className="faint">Este aparelho não conseguiu mostrar o 3D.</p>}
+      {ap && typeof document !== 'undefined' && createPortal(
+        <Aparicao3D key={ap.n} entrada={ap.e} fala={ap.fala} rosto="feliz" onFechar={() => setAp(null)} onFalha={() => { setAp(null); setSem3d(true); }} onCutucar={(t) => setAp((a) => (a ? { ...a, fala: sortear(t ? TONTO : CUTUCAR) } : a))} />,
+        document.body,
+      )}
+    </section>
   );
 }
 

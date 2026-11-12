@@ -188,3 +188,39 @@ html[data-motion='reduzidas'] .iam-espia__pose, html[data-motion='reduzidas'] .i
 @keyframes iam-encolhe { 0%, 100% { transform: scale(1, 1); } 20%, 60% { transform: scale(1.08, 0.86) translateY(4px); } }
 @media (prefers-reduced-motion: reduce) { .iam-fig, .iam-fig *, .iam-fumaca i { animation: none !important; } }
 html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *, html[data-motion='reduzidas'] .iam-fumaca i { animation: none !important; }
+
+/* ---- Aparição em 3D (12/11/2026): o modelo animado e a fala num balão de diálogo ------------------------------- */
+.iam3 { position: fixed; z-index: 60; right: max(14px, env(safe-area-inset-right, 0px)); bottom: var(--tb, 0px); display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+.iam3__palco { position: relative; width: 190px; height: 262px; opacity: 0; }
+.iam3--borda .iam3__palco { width: 236px; height: 244px; margin-right: 6px; }
+.iam3.is-pronto .iam3__palco { opacity: 1; }
+.iam3__c { display: block; width: 100%; height: 100%; filter: drop-shadow(0 10px 16px rgba(0, 0, 0, .5)); }
+.iam3--borda .iam3__c { filter: drop-shadow(0 -2px 14px rgba(0, 0, 0, .45)); }
+.iam3__toque { position: absolute; left: 18%; right: 18%; top: 6%; bottom: 4%; border: 0; padding: 0; background: none; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.iam3__toque:focus-visible { outline: 2px solid var(--iam); outline-offset: 2px; }
+.iam3--andar.is-pronto .iam3__palco { animation: iam3-anda 1.5s linear both; }
+@keyframes iam3-anda { from { transform: translateX(calc(100% + 40px)); } to { transform: none; } }
+.iam3--borda.is-saindo .iam3__palco { transform: translateY(104%); transition: transform .5s cubic-bezier(.5, 0, .9, .4); }
+/* balão */
+.iam3__balao { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; width: min(320px, calc(100vw - 28px)); margin: 0 6px 12px 0; padding: 12px 6px 13px 16px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--iam); box-shadow: 0 18px 40px rgba(0, 0, 0, .45); pointer-events: auto; opacity: 0; transform: translateY(10px) scale(.96); transform-origin: 82% 100%; }
+.iam3__balao::after { content: ''; position: absolute; right: 84px; bottom: -11px; width: 20px; height: 11px; background: var(--surface); clip-path: polygon(0 0, 100% 0, 70% 100%); filter: drop-shadow(0 1px 0 var(--line)); }
+.iam3--borda .iam3__balao::after { right: 112px; }
+.iam3.is-pronto .iam3__balao { animation: iam3-fala .34s cubic-bezier(.2, .9, .3, 1.25) both; animation-delay: 1.25s; }
+.iam3--andar.is-pronto .iam3__balao { animation-delay: 1.8s; }
+.iam3--borda.is-pronto .iam3__balao { animation-delay: .95s; }
+@keyframes iam3-fala { to { opacity: 1; transform: none; } }
+.iam3.is-saindo .iam3__balao { animation: iam3-cala .2s ease-in both; }
+@keyframes iam3-cala { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.97); } }
+.iam3__txt { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink); }
+.iam3__x { align-self: start; width: 32px; height: 32px; margin-top: -6px; border: 0; background: none; color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.iam3__x:hover, .iam3__x:focus-visible { color: var(--ink); }
+.iam3.is-quieto .iam3__balao { animation: none; opacity: 1; transform: none; }
+.iam3.is-quieto .iam3__palco { animation: none; }
+@media (max-width: 760px) {
+  .iam3 { right: 6px; }
+  .iam3__palco { width: 150px; height: 207px; }
+  .iam3--borda .iam3__palco { width: 196px; height: 203px; }
+  .iam3__balao::after { right: 64px; }
+  .iam3--borda .iam3__balao::after { right: 92px; }
+}
+.iam-perfil__chamar .chips { margin-top: 10px; }

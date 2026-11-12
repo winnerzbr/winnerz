@@ -4,6 +4,16 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D no site: o modelo dos jogos, com ossos, e as aparições com balão
+
+- Pedido do dono: trocar o IAmiguinho do site pelo modelo 3D dos jogos (`IAmiguinho_3D_Final.glb`, feito no Tripo); pintar de laranja as partes brancas embaixo da aba do boné; separar os pés; pôr ossos (rig) para animar; a hélice girar; e trocar as aparições em cartão pelo próprio modelo animado, com a fala num balão de diálogo (ideias dele: subir segurando a borda de baixo da tela, entrar andando, surgir de pixels).
+- **Modelo** (scripts em `prototipos/iamiguinho-3d/preparo/`): aba pintada; hélice nivelada (veio inclinada 19°) e solta num osso próprio; emenda entre os pés cortada e pernas um pouco afastadas; 16 ossos (quadril, peito, cabeça, hélice, 3 por braço, 3 por perna) com pesos. A versão do site é leve (53 mil vértices, 1,7 MB, cores por vértice) em `public/modelos/iamiguinho.bin`.
+- **Motor** `src/lib/iamiguinho3d.js` (WebGL puro, como o Zênite): animações parado, acenar, andar, comemorar, borda, dormir e tonto; o rosto é desenhado na tela pelo sombreador (olhos e boca de luz, pisca, olha para os lados, 12 expressões); os anéis dos fones brilham; "pix" desmonta ele em quadradinhos.
+- **Aparição** `src/components/IAmiguinho3D.tsx` (`Aparicao3D`): três entradas sorteadas, "borda" (sobe pela borda de baixo até o peito, com as mãos na borda; no celular, em cima da barra de baixo), "andar" (vem de fora da tela pela direita e acena) e "pixels" (quadradinhos que se juntam). Balão de diálogo em cima dele, com × e Esc; some sozinho em uns 13 s; um toque assusta, cinco deixam tonto. Nos momentos de festa (zerou, página do álbum, voto no Awards) ele comemora. Com "reduzir movimento" aparece parado. Sem 3D no aparelho, cai no cartão antigo.
+- `CameoBalao` e `Espiando` (em `IAmiguinho.tsx`) passaram a usar a aparição 3D. Na página `/iamiguinho` há "Chamar o IAmiguinho", com um botão para cada entrada.
+- **Ainda no desenho antigo (2D):** as telas vazias (`MascoteVazio`), a página de perfil dele, as Preferências, a Chegada e os overlays das lives. Ficam para as próximas rodadas.
+- O GLB completo corrigido (para os jogos) ainda não foi exportado; os scripts já guardam a malha cheia com ossos em `out/full.npz`.
+
 ## 12/11/2026 — Cartão das notas: ajustes na análise
 
 - O aviso ao lado de "Salvar análise" ficava escondido embaixo da ponta inclinada do botão e apagado: agora tem distância do botão (a ponta com a seta do botão passa 44px da borda), letra um pouco maior e cor mais clara (no celular vai para a linha de baixo). Mais espaço entre "Fechar a análise" e o título "Sua análise". Sem nota da comunidade e sem nota sua, o cartão ficou mais baixo (sem a linha vazia embaixo das barras).

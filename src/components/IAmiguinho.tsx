@@ -13,6 +13,7 @@ import { HELICE } from '../lib/iamiguinhoHelice';
 import { MASCARA, PLACA, TELA } from '../lib/iamiguinhoTela';
 import { arrumarPlaca, dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
 import { PLACA_EPOCA, PLACA_MOMENTO } from '../lib/iamiguinhoFalas';
+import { Aparicao3D } from './IAmiguinho3D';
 
 const useModo = () => useStore((s) => s.prefs.iamiguinho ?? 'normal');
 
@@ -160,8 +161,29 @@ export function MascoteVazio({ momento, className = '' }: { momento: Interface; 
   );
 }
 
-/** Balão no canto: entra, fala uma linha e sai sozinho. Fecha no ×, com Esc, e para de contar com o mouse em cima. */
+/** Motivos de festa: ele comemora em vez de acenar. */
+const FESTA: Partial<Record<Cameo, true>> = { 'primeiro-zerado': true, zerado: true, pagina: true, awards: true };
+
+/**
+ * A aparição dele: o modelo 3D animado, com a fala num balão de diálogo (12/11/2026). Entra de um de três jeitos
+ * (segurando a borda de baixo, andando ou se formando de pixels), fala uma linha e sai sozinho. Fecha no ×, com Esc,
+ * e para de contar com o mouse em cima. Se o aparelho não tiver 3D, cai no cartão antigo.
+ */
 export function CameoBalao({ motivo, fala: falaInicial, onDone }: { motivo: Cameo; fala: string; onDone?: () => void }) {
+  const [vivo, setVivo] = useState(true);
+  const [fala, setFala] = useState(falaInicial);
+  const [sem3d, setSem3d] = useState(false);
+  if (!vivo || typeof document === 'undefined') return null;
+  const fechar = () => { setVivo(false); onDone?.(); };
+  if (sem3d) return <CameoCartao motivo={motivo} fala={fala} onDone={fechar} />;
+  return createPortal(
+    <Aparicao3D fala={fala} rosto={CARA[motivo]} festa={!!FESTA[motivo]} onFechar={fechar} onFalha={() => setSem3d(true)} onCutucar={(t) => setFala(falaDoToque(t))} />,
+    document.body,
+  );
+}
+
+/** O cartão antigo no canto (reserva para quando o 3D não funciona no aparelho). */
+function CameoCartao({ motivo, fala: falaInicial, onDone }: { motivo: Cameo; fala: string; onDone?: () => void }) {
   const [vivo, setVivo] = useState(true);
   const [fala, setFala] = useState(falaInicial);
   const pausa = useRef(false);
@@ -218,22 +240,12 @@ function useCameoPedido(motivo: Cameo, escopo: string, fatos: Fatos, atraso = 0)
 }
 
 /**
- * "IAmiguinho passou por aqui" (M5): um cartão pequeno, com ele espiando pela lateral de um card (por exemplo, numa
- * jogatina com vaga). Não cobre nada e fecha no ×. Segue o modo e os intervalos como qualquer cameo.
+ * "IAmiguinho passou por aqui" (M5): ele aparece (em 3D, como qualquer cameo) numa tela que pede um empurrãozinho, por
+ * exemplo numa jogatina com vaga. Segue o modo e os intervalos como qualquer cameo.
  */
 export function Espiando({ motivo, escopo = '', fatos = {} }: { motivo: Cameo; escopo?: string; fatos?: Fatos }) {
   const pedida = useCameoPedido(motivo, escopo, fatos, 400);
-  const [toque, setToque] = useState<string | null>(null);
-  const [fechado, setFechado] = useState(false);
-  const fala = toque ?? pedida;
-  if (!fala || fechado) return null;
-  return (
-    <aside className="iam-espia" aria-label="IAmiguinho passou por aqui">
-      <p className="iam-espia__t"><span className="iam-fala__quem">IAmiguinho passou por aqui <span className="iam-selo">Mascote</span></span>{fala}</p>
-      <Figura img="pose-espiando" placa={PLACA_MOMENTO.espiando} className="iam-espia__pose" width={120} height={116} enfeite={false} onCutucar={(t) => setToque(falaDoToque(t))} />
-      <button type="button" className="iam-espia__x" aria-label="Fechar o IAmiguinho" onClick={() => setFechado(true)}>×</button>
-    </aside>
-  );
+  return pedida ? <CameoBalao motivo={motivo} fala={pedida} /> : null;
 }
 
 /** Carregamento: depois de 1,5 s sem resposta, ele aparece planando. */

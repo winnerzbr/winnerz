@@ -986,3 +986,13 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 /* ---- Títulos de cartão (12/11/2026): todos com o retângulo inclinado ao lado, como os .kicker. ---- */
 :is(.jside__k, .ff1__k, .jx__k, .jret__k2)::before { content: ''; display: inline-block; width: 4px; height: 0.95em; margin-right: 0.6em; background: currentColor; opacity: 0.5; transform: skewX(-22deg); vertical-align: -0.12em; }
 .vi-etiquetas :is(.jside__k, .ff1__k, .jx__k, .jret__k2)::before { width: 7px; height: 12px; opacity: 1; background: var(--line-2); }
+
+/* ---- Busca da página Jogos em tela estreita (12/11/2026): a lupa fica dentro do campo (mesma célula da grade) e o
+   botão ganha distância do campo. ---- */
+@media (max-width: 760px) {
+  .ghub__search { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .ghub__search > svg, .ghub__search .field { grid-area: 1 / 1; }
+  .ghub__search > svg { position: relative; left: auto; top: auto; transform: none; justify-self: start; align-self: center; margin-left: 20px; }
+  .ghub__search .field { padding-left: 56px; }
+  .ghub__search .btn { position: static; grid-row: 2; width: auto; margin-top: 20px; }
+}

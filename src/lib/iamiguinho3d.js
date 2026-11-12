@@ -15,8 +15,10 @@ void main(){vec3 r=aP.xyz*uCS.w+uCS.xyz;vec4 p=vec4(r,1.);float w=aB.z;
  vR=r;vN=n;vC=aC.rgb;vM=aN.w*127.;vW=q.xyz;
  if(uPt>.5){vec3 h=fract(sin(vec3(dot(aP.xyz,vec3(12.9,78.2,37.7)),dot(aP.xyz,vec3(39.3,11.1,83.2)),dot(aP.xyz,vec3(73.2,52.2,9.4))))*43758.5);
   float k=clamp(uPix*1.35-h.z*.35,0.,1.);k=k*k;
-  q.xyz+=vec3((h.x-.5)*.95,(h.y-.35)*.9+.12*sin(uT*3.+h.z*9.),(h.z-.5)*.3)*k;
-  vec4 c=uVP*q;float s=mix(4.,7.,uPix)*uRes.y/300.;vec2 px=c.xy/c.w*uRes*.5;px=(floor(px/s)+.5)*s;c.xy=px/(uRes*.5)*c.w;gl_Position=c;gl_PointSize=s+.6;}
+  float an=h.x*6.2832,g=fract(h.x*7.31+h.z*3.17),rr=min(sqrt(-log(max(h.y,.003)))*.085,.2);
+  q.xyz+=vec3(cos(an)*rr,sin(an)*rr+.03*sin(uT*3.+h.z*9.),(h.z-.5)*.3)*k;
+  vec4 c=uVP*q;float s=mix(4.,6.5,uPix)*uRes.y/300.*mix(1.,.55+g*.6,k);vec2 px=c.xy/c.w*uRes*.5;px=(floor(px/s)+.5)*s;c.xy=px/(uRes*.5)*c.w;gl_Position=c;gl_PointSize=s+.6;
+  if(g>mix(1.02,.012,smoothstep(.3,1.,uPix))+(.2-rr)*.3*k)gl_Position=vec4(2.,2.,2.,1.);}
  else gl_Position=uVP*q;}`;
 const FS = `precision highp float;varying vec3 vN;varying vec3 vC;varying vec3 vR;varying float vM;varying vec3 vW;
 uniform vec3 uCam;uniform float uT;uniform float uPt;uniform vec4 uFa;uniform vec4 uFb;uniform float uAl;uniform sampler2D uFc;

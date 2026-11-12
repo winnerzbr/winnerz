@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: aparição por pixels começa difusa
+
+- O dono mostrou que, na entrada por pixels, os quadradinhos começavam como um bloco quadrado cheio (eles se espalhavam numa caixa maior que a área do desenho, e a borda cortava). Agora começam como uma nuvem rala em volta do corpo: poucos pontinhos no início, de tamanhos variados, que vão aumentando em número enquanto se juntam (`src/lib/iamiguinho3d.js`). A entrada também não fica mais parada no primeiro instante (`IAmiguinho3D.tsx`).
+
 ## 12/11/2026 — IAmiguinho 3D: braço levantado vem mais para frente
 
 - Pedido do dono: nas animações de braço levantado (acenar e comemorar), o braço ficava escondido atrás da cabeça. Agora ele sobe mais para frente do corpo, e o punho e a mão aparecem ao lado do rosto (`src/lib/iamiguinho3d.js`).

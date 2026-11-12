@@ -49,7 +49,7 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
         if (t < 1.5) { e.anim = 'andar'; e.yaw = -1.15; }
         else { const k = ease((t - 1.5) / 0.35); e.yaw = -1.15 + 1.15 * k; if (t < 1.85) e.anim = 'parado'; else if (t < 5.4) { e.anim = depois; e.t0 = 1.85; } else e.anim = 'parado'; }
       } else {
-        e.pix = t < 0.08 ? 1 : 1 - ease((t - 0.08) / 1.25);
+        e.pix = 1 - ease(t / 1.4);
         if (t < 1.35) e.anim = 'parado'; else if (t < 4.9) { e.anim = depois; e.t0 = 1.35; } else e.anim = 'parado';
       }
       const tq = toque.current;

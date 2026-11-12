@@ -45,6 +45,9 @@ export function Burst({ seed, left, big, k = 0.5 }: { seed: number; left: string
  * (preenche ao passar o mouse, o traço onde a nota parou pulsa, no 10 todos fazem a onda).
  * Para o teclado e o leitor de tela continua um campo de faixa normal (setas, Home, End).
  */
+/** Espaço entre as barras da nota, nas escalas até 10 e até 5 (12/11/2026). */
+export const GAP_NOTA = 14;
+
 export function ScoreSlider({ value, onChange, id }: { value: number; onChange: (v: number) => void; id?: string }) {
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -60,12 +63,14 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
   const [dir, setDir] = useState<1 | -1>(1);
   useEffect(() => { if (value !== prev.current) { setDir(value > prev.current ? 1 : -1); prev.current = value; } }, [value]);
   useEffect(() => {
-    const el = box.current; if (!el || typeof ResizeObserver === 'undefined') return;
+    // Mede o espaço disponível (a caixa das barras tem a largura das próprias barras).
+    const el = box.current?.parentElement; if (!el || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(([e]) => setW(e.contentRect.width)); ro.observe(el);
     return () => ro.disconnect();
   }, []);
   const live = dragging || hover !== null;
-  const size = Math.max(18, Math.min(36, Math.floor((w || 360) / 10)));
+  // Barras com o mesmo espaço entre elas nas duas escalas (GAP_NOTA, igual ao CSS .score-row e .editor__stars).
+  const size = Math.max(18, Math.min(36, Math.floor(((w || 420) - 9 * GAP_NOTA) / 4.2)));
 
   const fromX = (clientX: number, clientY: number) => {
     const b = pickBar(box.current!, clientX, clientY, 10);

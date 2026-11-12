@@ -411,15 +411,15 @@ function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: strin
         {scale === 'TEN_POINT' ? (
           <div className={`editor__ten${!existing && !touched ? ' is-unset' : ''}`}>
             <ScoreSlider id="nota" value={value} onChange={setValue} />
-            {!existing && !touched ? <span className="editor__unset">Arraste para dar a nota</span> : <AnimatedScore value={value} max={10} />}
+            {!existing && !touched ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={value} max={10} />}
           </div>
         ) : (
           <div className={`editor__stars${!existing && !touched ? " is-unset" : ""}`}>
-            <StarInput value={value} onChange={setValue} labelledBy="nota-label" />
-            {!existing && !touched ? <span className="editor__unset">Toque para dar a nota</span> : <AnimatedScore value={value} max={max} />}
+            <StarInput value={value} onChange={setValue} labelledBy="nota-label" size={36} />
+            {!existing && !touched ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={value} max={max} />}
           </div>
         )}
-        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Arraste sobre os traços ou clique. Dá para dar meio ponto.</p>}
+        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Dá para dar meio ponto.</p>}
       </div>
       <label htmlFor="rev-title" className="editor__label">Título (opcional)</label>
       <input id="rev-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Em uma frase, como foi?" />

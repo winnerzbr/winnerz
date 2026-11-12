@@ -942,3 +942,11 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 :root[data-motion='reduzidas'] .site-header__tilt { transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) { .site-header__tilt { transform: none; transition: none; } }
 :root[data-theme='claro'] .site-header__glare { background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .5), rgba(255, 255, 255, .12) 30%, rgba(255, 255, 255, 0) 58%); }
+
+/* ---- Nota na página do jogo (12/11/2026): as duas escalas com o mesmo espaço entre as barras (14px, um meio-termo
+   do espaço antigo da escala até 10) e a mesma distância até o número. ---- */
+.editor__ten .score-row.star-input { width: max-content; gap: 14px; }
+.editor__ten .score-row__cell { flex: none; }
+.editor__stars .star-input { gap: 14px !important; }
+.editor__stars { gap: 24px; }
+.editor__stars .t { margin-left: 0; }

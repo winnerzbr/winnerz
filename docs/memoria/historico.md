@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Nota na página do jogo: mesmo texto e mesmo espaço nas duas escalas
+
+- Pedido do dono: o texto da nota igual nas escalas até 10 e até 5 ("Arraste e clique para dar a nota") e o espaço entre as barras padronizado num meio-termo do espaço da escala até 10.
+- As duas escalas agora têm 14px entre as barras (antes: ~28px na até 10, que esticava as barras na largura toda, e ~5px na até 5, que deixava as barras grudadas) e barras da mesma altura (36px). A dica embaixo da escala até 5 virou só "Dá para dar meio ponto."
+- `GAP_NOTA` em `src/components/ScoreInput.tsx` (o tamanho das barras da escala até 10 é calculado com ele) e CSS no fim de `fresta.css`.
+
 ## 12/11/2026 — Awards: a linha de luz do voto passa abaixo do nome do jogo
 
 - Pedido do dono: a linha de luz que aparece no meio da arte quando se vota agora passa logo abaixo do nome do jogo escolhido (os reflexos redondos acompanham).

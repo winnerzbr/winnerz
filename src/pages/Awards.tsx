@@ -206,6 +206,20 @@ function centralizarCena(catId: string, o: { comVoto?: boolean } = {}) {
   deslizar(Math.max(0, alvo), calmo);
 }
 /** A contagem regressiva dentro da cena de abertura (dias, horas e minutos; atualiza sozinha). */
+/** A linha de luz do voto passa logo abaixo do nome do jogo escolhido (pedido do dono, 12/11/2026).
+ *  Mede sem contar as animações (offsetTop) e grava a altura em --fy na cena. */
+function alinharFlare(scene: Element | null) {
+  if (!(scene instanceof HTMLElement)) return;
+  const nm = scene.querySelector<HTMLElement>('.scene__p.on .scene__nm');
+  if (!nm) { scene.style.removeProperty('--fy'); return; }
+  let y = nm.offsetHeight, el: HTMLElement | null = nm;
+  while (el && el !== scene) { y += el.offsetTop; el = el.offsetParent as HTMLElement | null; }
+  if (el !== scene) return;
+  const gap = parseFloat(getComputedStyle(nm.parentElement!).rowGap) || 12;
+  scene.style.setProperty('--fy', `${Math.round(y + gap / 2)}px`);
+}
+const alinharFlares = () => document.querySelectorAll('.aw2slot .scene.has').forEach(alinharFlare);
+
 function ContaCena({ to, rotulo }: { to: string; rotulo: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 15000); return () => clearInterval(t); }, []);
@@ -220,6 +234,7 @@ type Aba = 'votacao' | 'trofeu' | 'como';
 const ABAS: [Aba, string][] = [['votacao', 'Votação'], ['trofeu', 'Troféu Zênite'], ['como', 'Como funciona']];
 
 export function AwardsPage() {
+  useEffect(() => { window.addEventListener('resize', alinharFlares); return () => window.removeEventListener('resize', alinharFlares); }, []);
   const award = useLatestAward();
   const s = useStore((x) => x);
   const { full, setFull, error, setError, reload } = useFull(award);
@@ -454,7 +469,7 @@ export function AwardsPage() {
                                 </div>
                                 <span className="scene__grain" aria-hidden="true" />
                                 {openId && <>
-                                  <span className="scene__flare" key={`f-${openId}`} aria-hidden="true" />
+                                  <span className="scene__flare" key={`f-${openId}`} aria-hidden="true" ref={(el) => { if (!el) return; const sc = el.closest('.scene'); alinharFlare(sc); setTimeout(() => alinharFlare(sc), 1100); }} />
                                   <span className="scene__ghost" aria-hidden="true" />
                                   <span className="scene__ghost scene__ghost--2" aria-hidden="true" />
                                   <span className="scene__flash" key={`x-${openId}`} aria-hidden="true" />

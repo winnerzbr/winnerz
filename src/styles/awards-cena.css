@@ -220,3 +220,9 @@
   .aw2 .scene .scene__next { font-size: 12.5px; padding: 5px 9px; }
   .aw2 .scene--open .scene__desc { font-size: 13px; }
 }
+
+/* ---- A linha de luz do voto (12/11/2026): passa logo abaixo do nome do jogo escolhido, não mais no meio da arte.
+   A altura (--fy) é medida em Awards.tsx (alinharFlare). ---- */
+.aw2slot .scene.has .scene__flare { top: var(--fy, 46%); transition: top .45s cubic-bezier(.2, .8, .2, 1); }
+.aw2slot .scene.has .scene__ghost { top: calc(var(--fy, 46%) - 46px); }
+.aw2slot .scene.has .scene__ghost--2 { top: calc(var(--fy, 46%) + 10px); }

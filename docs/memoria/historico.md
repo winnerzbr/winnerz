@@ -4,6 +4,11 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Awards: a linha de luz do voto passa abaixo do nome do jogo
+
+- Pedido do dono: a linha de luz que aparece no meio da arte quando se vota agora passa logo abaixo do nome do jogo escolhido (os reflexos redondos acompanham).
+- `alinharFlare` em `src/pages/Awards.tsx` mede onde termina o nome (sem contar as animações) e grava em `--fy` na cena; mede de novo depois que o painel termina de abrir e quando a janela muda de tamanho. CSS no fim de `awards-cena.css`. O resto do efeito do voto (barras pretas, flash, brilho) continua igual. A abertura e o banner da página inicial não mudaram.
+
 ## 12/11/2026 — Lobby dos Bugs: a opção do menu aprovada, no jogo
 
 - O dono escolheu o efeito da opção do menu num artefato com opções (a MIX·2g: letra Tiny5, pontinhos dos dois lados, o tranco dos botões do site WinnerZ, borda que engrossa, palavra laranja itálica e em negrito, pulso no tranco e pulso leve, seta chevron de luz azul) e pediu para aplicar. Feito no repositório `winnerzbr/lobby-dos-bugs` (diretriz E11). Detalhes em `lobby-dos-bugs.md`.

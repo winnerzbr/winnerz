@@ -6,6 +6,7 @@ import { Link } from '../lib/router';
 import { useStore } from '../data/store';
 import { SubNav } from '../components/SubNav';
 import { CoverArt } from '../components/CoverArt';
+import { LinhaMeses, meses } from '../components/LinhaMeses';
 import { weekSummary, anniversaries, rhythm, globalTimeline, type GlobalItem } from '../lib/memory';
 import { whenLabel } from '../lib/dates';
 import { track } from '../lib/track';
@@ -70,143 +71,48 @@ export function GlobalTimelinePage() {
   const s = useStore((x) => x);
   const all = useMemo(() => globalTimeline(s), [s]);
   const [kind, setKind] = useState<'tudo' | 'momentos' | 'jornada' | 'colecao'>('tudo');
-  const [limit, setLimit] = useState(80);
-  const [goTo, setGoTo] = useState<number | null>(null);
   useEffect(() => { track('jornada.linha-geral'); }, []);
   const ehMomento = (x: GlobalItem) => x.kind === 'jornada' && (x.ev === 'momento' || x.ev === 'marco' || x.ev === 'inicio' || !!x.image);
-  const ehZerou = (x: GlobalItem) => x.ev === 'marco' && /^zerou$/i.test(x.title.trim());
-  const list = all.filter((x) => kind === 'tudo' || (kind === 'momentos' ? ehMomento(x) : x.kind === kind));
-  const shown = list.slice(0, limit);
-  const yearOf = (it: GlobalItem) => (it.precision === 'desconhecida' ? null : new Date(it.at).getFullYear());
-  const groups: { key: string; year: number | null; items: GlobalItem[] }[] = [];
-  for (const it of shown) {
-    const d = new Date(it.at);
-    const raw = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' }).replace(' de ', ' ');
-    const key = it.precision === 'desconhecida' ? 'Sem data' : it.precision === 'ano' ? String(d.getFullYear()) : raw.charAt(0).toUpperCase() + raw.slice(1);
-    const last = groups.at(-1);
-    if (last?.key === key) last.items.push(it); else groups.push({ key, year: yearOf(it), items: [it] });
-  }
-  const nowKey = (() => { const raw = new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' }).replace(' de ', ' '); return raw.charAt(0).toUpperCase() + raw.slice(1); })();
-  const years: { year: number | null; n: number; last: number }[] = [];
-  list.forEach((it, i) => { const y = yearOf(it); const e = years.find((x) => x.year === y); if (e) { e.n++; e.last = i; } else years.push({ year: y, n: 1, last: i }); });
-  const seen = new Set<number | null>();
-  const jump = (y: { year: number | null; last: number }) => { if (y.last >= limit) setLimit(y.last + 40); setGoTo(y.year ?? -1); };
-  useEffect(() => {
-    if (goTo === null) return;
-    document.getElementById(`ano-${goTo === -1 ? 'sem' : goTo}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setGoTo(null);
-  }, [goTo, limit]);
-  const dateOf = (it: GlobalItem) => it.precision === 'desconhecida' ? '—' : it.precision === 'ano' ? String(new Date(it.at).getFullYear()) : it.precision === 'mes' ? new Date(it.at).toLocaleDateString('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' }).replace('.', '') : new Date(it.at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' }).replace('.', '').replace(' de ', ' ');
-  const cls = (it: GlobalItem) => it.kind === 'colecao' ? 'col' : it.ev === 'ponto' && !it.resolved ? 'back' : it.ev === 'marco' ? 'gold' : it.ev === 'inicio' ? 'mark' : '';
+  const list = useMemo(() => all.filter((x) => kind === 'tudo' || (kind === 'momentos' ? ehMomento(x) : x.kind === kind)), [all, kind]);
+  const porMes = useMemo(() => meses(list), [list]);
+  const semData = list.filter((x) => x.precision === 'desconhecida');
+  const light = !!s.prefs.light;
+  const reduced = s.prefs.motion === 'reduzidas' || (typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const nJogos = new Set(all.filter((x) => x.kind === 'jornada' && x.game).map((x) => x.game!.id)).size;
+  const nMomentos = all.filter(ehMomento).length;
 
   return (
     <main className="page pad gtl">
       <header className="page-head">
         <div className="page-head__text">
           <h1 className="t big">Linha do tempo</h1>
-          <p className="muted lead">Tudo o que você viveu jogando, mês a mês e jogo a jogo.</p>
+          <p className="muted lead">Tudo o que você viveu jogando, mês a mês.{nJogos ? ` ${plural(nJogos, 'jogo', 'jogos')} com Jornada` : ''}{nMomentos ? ` · ${plural(nMomentos, 'momento', 'momentos')}` : ''}{nJogos || nMomentos ? '.' : ''}</p>
         </div>
         <SubNav pillar="jornada" />
       </header>
-      <div className="gtl__cols">
-        <div className="gtl__main">
-          <NesteDia />
-          <div className="chips gtl__filter" role="group" aria-label="Mostrar">
-            {([['tudo', 'Tudo'], ['momentos', 'Só momentos'], ['jornada', 'Jornadas'], ['colecao', 'Coleção']] as const).map(([k, l]) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => { setKind(k); setLimit(80); }}>{l}</button>)}
-          </div>
-          {!list.length && <div className="card tl-empty"><p className="muted">Nada por aqui ainda. Comece uma Jornada ou adicione um jogo à estante.</p></div>}
-          {list.length > 0 && (
-            <div className="gtl__line">
-              {groups.map((gr, gi) => {
-                const first = !seen.has(gr.year); seen.add(gr.year);
-                return (
-                  <section key={gr.key} className="gtl__month" aria-label={gr.key} id={first ? `ano-${gr.year ?? 'sem'}` : undefined}>
-                    <div className={`gtl__mo${gi === 0 && gr.key === nowKey ? ' is-now' : ''}`}><h2 className="t">{gr.key}</h2>{gi === 0 && gr.key === nowKey && <span className="kicker kicker--now">Agora</span>}</div>
-                    {(() => {
-                      const row = (it: GlobalItem) => (
-                        <li key={it.id}>
-                          <Link to={it.to ?? '#'} className={`gev${cls(it) ? ` gev--${cls(it)}` : ''}`}>
-                            <span className="mono gev__d">{dateOf(it)}</span>
-                            {it.image ? <img className="gev__th" src={it.image} alt="" loading="lazy" /> : it.game ? <span className="gev__cover"><CoverArt game={it.game} /></span> : <span className="gev__none" aria-hidden="true" />}
-                            <span className="gev__b">
-                              <span className="gev__t">{it.title}</span>
-                              <span className="gev__g">{[it.kind === 'jornada' ? it.game?.title : null, it.text ? (it.kind === 'jornada' ? `“${it.text}”` : it.text) : null].filter(Boolean).join(' · ')}</span>
-                            </span>
-                            <span className="mono gev__k">{it.label}</span>
-                          </Link>
-                        </li>
-                      );
-                      const jogos: { game: NonNullable<GlobalItem['game']>; items: GlobalItem[] }[] = [];
-                      const soltos: GlobalItem[] = [];
-                      for (const it of gr.items) {
-                        if (it.kind !== 'jornada' || !it.game) { soltos.push(it); continue; }
-                        const g = jogos.find((x) => x.game.id === it.game!.id);
-                        if (g) g.items.push(it); else jogos.push({ game: it.game, items: [it] });
-                      }
-                      const dia = (it: GlobalItem) => it.at.slice(0, 10);
-                      return (
-                        <>
-                          {gr.items.filter(ehZerou).map((it) => (
-                            <Link key={`z-${it.id}`} to={it.game ? `/jornada/${it.game.slug}/linha-do-tempo` : '#'} className="gz">
-                              {(it.image ?? it.game?.backdrop ?? it.game?.cover) && <img className="gz__bg" src={it.image ?? it.game?.backdrop ?? it.game?.cover} alt="" loading="lazy" />}
-                              <span className="gz__b"><span className="kicker kicker--now">Zerou · {dateOf(it)}</span><strong className="t gz__t">{it.game?.title ?? it.title}</strong>{it.text && <span className="gz__q">{it.text}</span>}</span>
-                            </Link>
-                          ))}
-                          {jogos.map(({ game, items }) => {
-                            const sess = items.filter((x) => x.ev === 'sessao');
-                            const dias = new Set((sess.length ? sess : items).map(dia)).size;
-                            const mom = items.filter((x) => ehMomento(x) && x.ev !== 'inicio').length;
-                            const ini = items.find((x) => x.ev === 'inicio');
-                            const fala = items.find((x) => x.text && (x.ev === 'sessao' || x.ev === 'momento'))?.text;
-                            const fotos = items.filter((x) => x.image).slice(0, 4);
-                            const linhas = items.filter((x) => x.ev !== 'sessao' || x.text);
-                            const url = `/jornada/${game.slug}/linha-do-tempo`;
-                            return (
-                              <article key={game.id} className="gjg">
-                                <Link to={url} className="gjg__cover" aria-label={`Abrir a linha do tempo de ${game.title}`}><CoverArt game={game} /></Link>
-                                <div className="gjg__b">
-                                  <div className="gjg__h"><h3 className="t">{game.title}</h3><Link to={url} className="arrow-link">Abrir a linha do jogo →</Link></div>
-                                  <span className="muted gjg__m">{[plural(dias, 'dia de jogo', 'dias de jogo'), mom ? plural(mom, 'momento', 'momentos') : '', ini ? `começou em ${dateOf(ini)}` : ''].filter(Boolean).join(' · ')}</span>
-                                  {fala && <p className="gjg__q">“{fala.length > 160 ? `${fala.slice(0, 158)}…` : fala}”</p>}
-                                  {fotos.length > 0 && <div className="gjg__th">{fotos.map((x) => <Link key={x.id} to={`${url}?cena=${encodeURIComponent(x.id)}`} aria-label={`Ver na linha do tempo: ${x.title}`}><img src={x.image} alt="" loading="lazy" /></Link>)}</div>}
-                                  {linhas.length > 0 && (
-                                    <details className="gjg__all" open={kind === 'momentos' || undefined}>
-                                      <summary>{linhas.length === 1 ? 'Ver o registro' : `Ver os ${linhas.length} registros`}</summary>
-                                      <ol className="gtl__list">{linhas.map(row)}</ol>
-                                    </details>
-                                  )}
-                                </div>
-                              </article>
-                            );
-                          })}
-                          {soltos.length > 0 && <ol className="gtl__list gtl__list--col">{soltos.map(row)}</ol>}
-                        </>
-                      );
-                    })()}
-                  </section>
-                );
-              })}
-            </div>
-          )}
-          {limit < list.length && <button className="btn ghost gtl__more" onClick={() => setLimit(limit + 120)}>Mostrar mais ({list.length - limit})</button>}
-        </div>
-        {years.length > 0 && (
-          <aside className="gtl__aside">
-            <span className="kicker">Ir para</span>
-            <nav className="gtl__years" aria-label="Anos">
-              {years.map((y, i) => <button key={String(y.year)} className={i === 0 ? 'is-on' : ''} onClick={() => jump(y)}><span>{y.year ?? 'Sem data'}</span><span className="mono">{y.n}</span></button>)}
-            </nav>
-            <div className="card gtl__legend">
-              <span className="kicker">Legenda</span>
-              <span><i className="lgd lgd--dot" />Sessão ou momento</span>
-              <span><i className="lgd lgd--back" />Ponto para voltar</span>
-              <span><i className="lgd lgd--mark" />Início de História</span>
-              <span><i className="lgd lgd--gold" />Zerou (marco)</span>
-              <span><i className="lgd lgd--col" />Chegou à coleção</span>
-            </div>
-          </aside>
-        )}
+      <NesteDia />
+      <div className="chips gtl__filter" role="group" aria-label="Mostrar">
+        {([['tudo', 'Tudo'], ['momentos', 'Só momentos'], ['jornada', 'Jornadas'], ['colecao', 'Coleção']] as const).map(([k, l]) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>{l}</button>)}
       </div>
+      {!list.length && <div className="card tl-empty"><p className="muted">Nada por aqui ainda. Comece uma Jornada ou adicione um jogo à estante.</p></div>}
+      {porMes.length > 0 && <LinhaMeses key={kind} meses={porMes} reduced={reduced} light={light} />}
+      {semData.length > 0 && (
+        <details className="card gtl__sem">
+          <summary><span className="kicker">Sem data</span><span>{plural(semData.length, 'registro', 'registros')}</span></summary>
+          <ol className="gtl__list">
+            {semData.map((it) => (
+              <li key={it.id}>
+                <Link to={it.to ?? '#'} className="gev">
+                  <span className="mono gev__d">—</span>
+                  {it.image ? <img className="gev__th" src={it.image} alt="" loading="lazy" /> : it.game ? <span className="gev__cover"><CoverArt game={it.game} /></span> : <span className="gev__none" aria-hidden="true" />}
+                  <span className="gev__b"><span className="gev__t">{it.title}</span><span className="gev__g">{[it.kind === 'jornada' ? it.game?.title : null, it.text].filter(Boolean).join(' · ')}</span></span>
+                  <span className="mono gev__k">{it.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </main>
   );
 }

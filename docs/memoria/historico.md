@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Linha do tempo geral da Jornada em cenas, igual à do jogo (Lâmina)
+
+- O dono escolheu o efeito **A · Lâmina** e pediu que, em vez dos botões ←/→ de mês, ficasse embaixo do carrossel **a mesma régua da linha do tempo do jogo**, com **as capas dos jogos centradas na linha**. "Tudo igual à linha do tempo dos jogos."
+- Feito em `src/components/LinhaMeses.tsx` (usado por `GlobalTimelinePage` em `src/pages/Memory.tsx`), com as mesmas peças da Faixa em lâmina: cena por mês com o corte em lâmina, setas ‹ ›, "▶ Passeio", "Hoje", contador `08 / 09`, roda do mouse, arraste, deslizar no celular, setas do teclado, poeira dourada e fundo com a arte do mês.
+- Cena do mês: ano (e "agora"), nome do mês grande, resumo ("3 jogos · 11 sessões · zerou X") e as capas dos jogos do mês no centro; cada capa leva à linha do tempo daquele jogo (ou à página do jogo, se só chegou à coleção).
+- Régua: uma capa por mês centrada na linha (a do jogo principal do mês, com o número de jogos no canto); a do mês aberto fica maior e com borda dourada. Meses vazios no meio dão um espaço maior (raiz do tempo parado). Toca na capa ou na régua e vai ao mês. No celular a régua fica acima das setas, na largura toda.
+- Saíram a lista por mês, a coluna "Ir para" e a legenda. Ficam: "Neste dia", os filtros e a gaveta "Sem data" embaixo.
+- Estilos no fim de `src/styles/jornada.css` (`.lm`, `.lm-jg`, `.fx-ruler--capas`, `.lm-cap`).
+
 ## 12/11/2026 — Linha do tempo da Jornada (geral): prévia com nova organização e seis efeitos de carrossel
 
 - Pedido do dono: dar à linha do tempo geral (`/jornada/linha-do-tempo`, hoje em lista) o mesmo tratamento da linha do tempo de cada jogo, com sugestões de organização e carrosséis com VFX.

@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 11/11/2026 — Lobby dos Bugs: 32 pontos confirmados, inimigos maiores, chão calmo
+
+- No repositório `winnerzbr/lobby-dos-bugs` (diretrizes B14, B15 e D5).
+
 ## 11/11/2026 — Lobby dos Bugs: a régua do visual
 
 - No repositório `winnerzbr/lobby-dos-bugs`: diretrizes B12 (a arte continua feita pelo Claude, sem ChatGPT nos desenhos) e B13 (a régua do visual, `docs/regua.md`); a sala vitrine refeita nela.

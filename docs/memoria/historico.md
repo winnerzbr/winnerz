@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Awards: textos pequenos maiores e com mais contraste
+
+- Pedido do dono: dar mais visibilidade aos textos pequenos da página do Awards ("1 pessoa votou…", "Continuar votando", "Edições anteriores", "Seu voto: …", a descrição da categoria, o botão da próxima categoria, "Toque numa arte para votar" e o estúdio embaixo do nome do jogo).
+- Fontes de 10–12 px para 12–14 px e cores mais claras. Sobre as artes, cada texto pequeno ganhou uma placa escura translúcida atrás (com desfoque), para não sumir quando a arte tem a mesma cor do texto. O nome do estúdio ganhou uma sombra mais forte.
+- Só estilo, no fim de `src/styles/awards-cena.css`. Os efeitos da votação (barras pretas, flare, flash) não mudaram.
+
 ## 12/11/2026 — Logo do menu: dourado mais suave
 
 - O dono achou o dourado exagerado. As cores do degradê ficaram mais perto do dourado claro antigo (#E2BE84): escuro `#F2DAAA → #E2BA78 → #C4975C`; O brilho em volta ficou mais fraco.

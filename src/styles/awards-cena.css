@@ -197,3 +197,25 @@
   .awbn__veil { background: linear-gradient(90deg, rgba(3, 3, 3, .88) 0%, rgba(3, 3, 3, .5) 50%, transparent 72%); }
   .awbn__bg { background: radial-gradient(ellipse 30% 46% at 74% 46%, rgba(255, 200, 125, .15), transparent 74%), radial-gradient(ellipse 50% 80% at 74% 50%, #303237 0%, #212327 40%, transparent 80%), linear-gradient(180deg, #060608, #0e0b07 62%, #030303); }
 }
+
+/* ---- Leitura (12/11/2026): textos pequenos da página maiores e mais claros; sobre as artes, uma placa escura
+   atrás de cada um para não sumir quando a arte tem a mesma cor do texto. Os efeitos da votação não mudam. ---- */
+.aw2 .scene :is(.scene__desc, .scene__status:not(:empty), .scene__next, .scene__top .kicker, .scene__head .kicker) {
+  background: rgba(5, 6, 8, .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  padding: 6px 11px; box-decoration-break: clone; -webkit-box-decoration-break: clone; text-shadow: none;
+}
+.aw2 .scene .scene__head .kicker, .aw2 .scene .scene__top .kicker { font-size: 13px; letter-spacing: .1em; color: #E6E9ED; }
+.aw2 .scene .scene__status { font-size: 13px; letter-spacing: .1em; color: #F2F4F6; }
+.aw2 .scene .scene__desc, .aw2 .scene--open .scene__desc { font: 400 14px/1.45 var(--font-mono); letter-spacing: .04em; text-transform: none; color: #E6E9ED; max-width: 62ch; }
+.aw2 .scene .scene__next { font-size: 13.5px; letter-spacing: .1em; color: #F2F4F6; min-height: 0; }
+.aw2 .scene .scene__next:hover, .aw2 .scene .scene__next:focus-visible { color: #FFB25B; }
+.aw2 .scene--open .scene__bottom a.scene__next, .aw2 .scene--open .scene__top a { color: #E6E9ED; }
+.aw2 .scene__name > span { font-size: 12px; letter-spacing: .1em; color: #DCE0E4; text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 0 12px rgba(0, 0, 0, .9); }
+.aw2 .scene__mine { font-size: 12px; }
+.aw2cat__st { font-size: 13px; letter-spacing: .1em; max-width: 40ch; color: var(--ink-2); }
+.awards__more .kicker { font-size: 14px; color: var(--ink-2); }
+.awards__more .kicker:hover { color: var(--now); }
+@media (max-width: 760px) {
+  .aw2 .scene .scene__next { font-size: 12.5px; padding: 5px 9px; }
+  .aw2 .scene--open .scene__desc { font-size: 13px; }
+}

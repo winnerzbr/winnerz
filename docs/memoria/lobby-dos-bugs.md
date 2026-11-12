@@ -117,6 +117,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (05h):** o placar e os menus passam a ser feitos peça por peça com o dono (diretriz E8); a primeira, a opção do menu principal pelo rascunho dele (só a palavra; escolhida, o contorno chanfrado se forma com um pulso azul que ecoa e depois pulsa fraco).
 
+**12/11/2026 (12h):** o clima das salas bem mais forte (claras como a recepção, escuras como os servidores); a opção do menu refeita em luz lisa, com estouro forte e respirando; no plano: objetos no lugar certo, menos fendas e fendas criativas, paredes internas na medida.
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

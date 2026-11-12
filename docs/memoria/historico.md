@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Logo do menu maior, mais dourado e inclinando com o mouse
+
+- Pedido do dono: logo do menu principal um pouco maior e mais dourado, e no hover o mesmo efeito das capas dos jogos (muda de perspectiva conforme o mouse), mantendo a animação atual (o W e o Z se juntando).
+- Tamanho: 66 → 76 px no computador, 54 → 62 no notebook pequeno, 46 → 52 no celular.
+- Dourado de metal: `BrandMark` ganhou a opção `gold` (degradê do dourado claro em cima ao dourado fundo embaixo; cores em `--logo-g1/2/3`, mais escuras no tema claro). Só o menu usa.
+- Hover: o logo inclina seguindo o mouse (até 16° para cima/baixo e 22° para os lados) e um brilho corre por dentro da forma do logo. Só com mouse; com "reduzir movimento" não inclina. Código em `Header.tsx` (`inclinaLogo`/`soltaLogo`) e estilos no fim de `fresta.css`.
+
 ## 12/11/2026 — Linha do tempo geral: todos os jogos do mês cabem na cena
 
 - Pedido do dono: em outubro (13 jogos) o nome do mês ficava cortado no alto e sobrava um "+7"; todos os jogos têm que aparecer.

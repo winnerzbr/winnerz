@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement, type PointerEvent as RPointerEvent } from 'react';
 import { Link, usePath } from '../lib/router';
 import { Icon } from './Icon';
 import { actions, useStore, openSession } from '../data/store';
-import { BrandMark } from './Brand';
+import { BrandMark, BRAND_MASK } from './Brand';
 import { openSearch } from './CommandPalette';
 import { Sheet } from './Sheet';
 import { NotifBell } from './Notifications';
@@ -11,6 +11,25 @@ import { SITE_PRIVATE } from '../lib/env';
 
 /** Telas que fazem parte da Comunidade (para acender o pilar). */
 const inCommunity = (p: string) => ['/comunidade', '/w/', '/clube/', '/jogatina/', '/conversa/', '/escrever'].some((x) => p.startsWith(x));
+
+/** Logo do menu: inclina seguindo o mouse, como as capas dos jogos (só com mouse e sem "reduzir movimento"). */
+const semMovimento = () => document.documentElement.dataset.motion === 'reduzidas' || !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+function inclinaLogo(e: RPointerEvent<HTMLElement>) {
+  if (e.pointerType !== 'mouse' || semMovimento()) return;
+  const el = e.currentTarget, r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const px = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)), py = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+  el.classList.add('is-tilt');
+  el.style.setProperty('--rx', `${((0.5 - py) * 2 * 16).toFixed(2)}deg`);
+  el.style.setProperty('--ry', `${((px - 0.5) * 2 * 22).toFixed(2)}deg`);
+  el.style.setProperty('--gx', `${(px * 100).toFixed(1)}%`);
+  el.style.setProperty('--gy', `${(py * 100).toFixed(1)}%`);
+}
+function soltaLogo(e: RPointerEvent<HTMLElement>) {
+  const el = e.currentTarget;
+  el.classList.remove('is-tilt');
+  for (const k of ['--rx', '--ry', '--gx', '--gy']) el.style.removeProperty(k);
+}
 
 const PILLARS = [
   { to: '/colecao', label: 'Coleção', icon: 'colecao', match: '/colecao' },
@@ -54,7 +73,9 @@ export function Header() {
           </button>
           <nav className="pillars" aria-label="Pilares">{PILLARS.slice(0, 3).map(pillar)}</nav>
         </div>
-        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo"><BrandMark width={66} split /></Link>
+        <Link to="/" aria-label="WinnerZ, início" className="site-header__logo" onPointerMove={inclinaLogo} onPointerLeave={soltaLogo}>
+          <span className="site-header__tilt"><BrandMark width={76} split gold /><span className="site-header__glare" style={{ WebkitMaskImage: BRAND_MASK, maskImage: BRAND_MASK }} aria-hidden="true" /></span>
+        </Link>
         <div className="site-header__side site-header__side--r">
           <nav className="pillars" aria-label="Mais pilares">{PILLARS.slice(3).map(pillar)}</nav>
           <div className="site-header__tools">

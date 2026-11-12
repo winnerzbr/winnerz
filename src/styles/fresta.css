@@ -196,7 +196,7 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 .site-header__side--r { padding-left: 44px; }
 /* Tudo centralizado na altura do menu; só o fio da seção atual fica na linha de baixo. */
 .site-header__logo { align-self: center; padding: 0; display: flex; align-items: center; }
-.site-header__logo .brand-mark { width: 66px; height: auto; }
+.site-header__logo .brand-mark { width: 76px; height: auto; }
 .site-header .pillars { flex: none; flex-wrap: nowrap; gap: 34px; justify-content: flex-start; font-size: 15px; align-self: stretch; align-items: stretch; }
 .site-header .pillars a { display: flex; align-items: center; min-height: 0; padding: 0; color: var(--muted); white-space: nowrap; transition: color 0.2s; }
 .site-header .pillars a::after {
@@ -231,7 +231,7 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
   .site-header .pillars { gap: 16px; font-size: 13.5px; }
   .site-header__side--l { padding-right: 22px; }
   .site-header__side--r { padding-left: 22px; }
-  .site-header__logo .brand-mark { width: 54px; }
+  .site-header__logo .brand-mark { width: 62px; }
 }
 @media (max-width: 900px) and (min-width: 761px) {
   .site-header .dm-btn { display: none; }
@@ -242,7 +242,7 @@ a.avatar:hover { background: var(--fr-piece-hi); color: var(--ink); }
 @media (max-width: 760px) {
   .site-header__row { min-height: 60px; padding-top: env(safe-area-inset-top); padding-bottom: 0; }
   .site-header__side--l, .site-header__side--r { padding: 0; }
-  .site-header__logo .brand-mark { width: 46px; }
+  .site-header__logo .brand-mark { width: 52px; }
   .hdr-search svg { display: none; }
   .hdr-search__label { display: inline; font-size: 13.5px; }
   .hdr-search__more { display: none; }
@@ -924,3 +924,20 @@ body:has(.login__art) .site-footer__in > svg, body:has(.login__art) .site-footer
 }
 /* Listas de escolha: a lista aberta segue as cores do site (nada de texto claro em fundo claro) */
 select.field option, select.field optgroup { background-color: var(--surface); color: var(--ink); }
+
+/* ---- Logo do menu (12/11/2026): maior, dourado de metal e, no hover, inclina seguindo o mouse como as capas,
+   com um brilho que corre por dentro da forma. A animação de juntar o W e o Z continua. */
+.bm-g1 { stop-color: var(--logo-g1, #FFE6A8); }
+.bm-g2 { stop-color: var(--logo-g2, #F0B44C); }
+.bm-g3 { stop-color: var(--logo-g3, #B87A26); }
+:root[data-theme='claro'] { --logo-g1: #C9933F; --logo-g2: #A8701F; --logo-g3: #7A4E14; }
+.site-header__logo { perspective: 420px; }
+.site-header__tilt { position: relative; display: block; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2, .9, .2, 1); }
+.site-header__logo.is-tilt .site-header__tilt { transition: transform .12s linear; }
+.site-header__logo .brand-mark { filter: drop-shadow(0 2px 6px rgba(240, 180, 76, .18)); }
+.site-header__glare { position: absolute; inset: 0; pointer-events: none; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 250, 235, .85), rgba(255, 236, 190, .25) 32%, rgba(255, 236, 190, 0) 60%);
+  mix-blend-mode: overlay; opacity: 0; transition: opacity .3s; }
+.site-header__logo.is-tilt .site-header__glare { opacity: 1; transition: opacity .35s .55s; }
+:root[data-motion='reduzidas'] .site-header__tilt { transform: none; transition: none; }
+@media (prefers-reduced-motion: reduce) { .site-header__tilt { transform: none; transition: none; } }

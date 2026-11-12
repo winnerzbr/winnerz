@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: o plano até a Steam
+
+- No repositório `winnerzbr/lobby-dos-bugs`: `docs/plano.md` (etapas e marcos) e os pedidos de conceito para o ChatGPT.
+
 ## 12/11/2026 — Lobby dos Bugs: penumbra glitch e evolução dos inimigos
 
 - No repositório `winnerzbr/lobby-dos-bugs` (diretrizes C7 e D9).

@@ -102,3 +102,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **11/11/2026 (23h50):** cada tipo de inimigo com o seu tamanho fixo (miúdo, normal, grande, grandão); IAmiguinho chibi e chão "mais calmo" oficiais. Ideia nova do dono: inimigos que EVOLUEM na luta (outra forma, ataques mais fortes), a definir.
 
 **12/11/2026 (01h):** penumbra de "sinal perdido" (glitch). A EVOLUÇÃO dos inimigos na luta (diretriz D9): evoluem com 12 s vivos, comendo os restos de um do mesmo tipo ou acertando o IAmiguinho 3 vezes; primeira leva: Besouro Bug, Janela de Anúncio, Lixeira de Spam, Vírus Mutante.
+
+**12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

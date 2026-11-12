@@ -148,7 +148,7 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
     let acc = 0;
     const raw = lista.map((m, i) => { if (i) acc += 1 + Math.min(5, Math.sqrt(Math.max(0, m.idx - lista[i - 1].idx - 1)) * 0.7); return acc; });
     const max = acc || 1;
-    return raw.map((v) => (n === 1 ? 50 : 3 + (v / max) * 94));
+    return raw.map((v) => (n === 1 ? 50 : (v / max) * 100));
   }, [lista, n]);
   // Rótulos sem se encostar: o primeiro, o último e os do meio com folga.
   const labels = useMemo(() => {
@@ -158,12 +158,14 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
     if (n) out.push(n - 1);
     return out;
   }, [lista, pos, n]);
+  /** Na régua, as capas das pontas não passam da borda. */
+  const at = (p: number) => `calc(var(--cw) * .8 + (100% - var(--cw) * 1.6) * ${(p / 100).toFixed(4)})`;
   const curto = (m: Mes) => (m.key.length === 4 ? m.nome : `${m.nome.slice(0, 3).toLowerCase()} ${m.ano}`);
   const tam = n <= 10 ? 'g' : n <= 24 ? 'm' : 'p';
 
   const onRuler = (e: MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('button')) return;
-    const r = e.currentTarget.getBoundingClientRect(), p = ((e.clientX - r.left) / r.width) * 100;
+    const r = e.currentTarget.getBoundingClientRect(), cw = parseFloat(getComputedStyle(e.currentTarget).getPropertyValue('--cw')) || 30, p = ((e.clientX - r.left - cw * 0.8) / Math.max(1, r.width - cw * 1.6)) * 100;
     let best = 0, bd = Infinity;
     pos.forEach((x, i) => { const d = Math.abs(x - p); if (d < bd) { bd = d; best = i; } });
     setTour(false); center(best);
@@ -236,19 +238,19 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
       </div>
       <div className={`fx-ruler fx-ruler--capas is-${tam}`} onClick={onRuler} role="navigation" aria-label="Meses">
         <i className="lm-line" aria-hidden="true" />
-        <div className="fx-ruler__fill" style={{ width: `${pos[focus] ?? 0}%` }} />
-        {labels.map((i) => <span key={lista[i].key} className={`fx-ruler__lb${lista[i].agora ? ' fx-ruler__lb--now' : ''}`} style={{ left: `${pos[i]}%` }}>{lista[i].agora ? 'agora' : curto(lista[i])}</span>)}
+        <div className="fx-ruler__fill" style={{ width: at(pos[focus] ?? 0) }} />
+        {labels.map((i) => <span key={lista[i].key} className={`fx-ruler__lb${lista[i].agora ? ' fx-ruler__lb--now' : ''}`} style={{ left: at(pos[i]) }}>{lista[i].agora ? 'agora' : curto(lista[i])}</span>)}
         {lista.map((m, i) => {
           const g = m.jogos[0]?.game;
           return (
-            <button key={m.key} type="button" className={`lm-cap${i === focus ? ' is-on' : ''}`} style={{ left: `${pos[i]}%`, zIndex: i === focus ? 40 : 2 + i % 3 }}
+            <button key={m.key} type="button" className={`lm-cap${i === focus ? ' is-on' : ''}`} style={{ left: at(pos[i]), zIndex: i === focus ? 40 : 2 + i % 3 }}
               onClick={() => { setTour(false); center(i); }} aria-label={`${m.nome} de ${m.ano}${m.resumo ? `: ${m.resumo}` : ''}`} aria-current={i === focus ? 'date' : undefined} title={`${curto(m)}${g ? ` · ${g.title}` : ''}`}>
               {g ? <CoverArt game={g} /> : <span className="lm-cap__v" />}
               {m.jogos.length > 1 && <span className="lm-cap__n">{m.jogos.length}</span>}
             </button>
           );
         })}
-        <div className="fx-ruler__hd" style={{ left: `${pos[focus] ?? 0}%` }} />
+        <div className="fx-ruler__hd" style={{ left: at(pos[focus] ?? 0) }} />
       </div>
     </section>
   );

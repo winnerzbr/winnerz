@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: braço levantado vem mais para frente
+
+- Pedido do dono: nas animações de braço levantado (acenar e comemorar), o braço ficava escondido atrás da cabeça. Agora ele sobe mais para frente do corpo, e o punho e a mão aparecem ao lado do rosto (`src/lib/iamiguinho3d.js`).
+
 ## 12/11/2026 — IAmiguinho 3D: braço separado do tronco (cirurgia no modelo)
 
 - O dono mostrou no Blender que o braço vinha do Tripo com o começo fundido na lateral do corpo, e por isso a articulação parecia baixa. Ele ofereceu refazer o modelo em pose T (prancha no ChatGPT → Tripo); primeiro tentamos separar por código, e deu certo.

@@ -94,7 +94,7 @@ const ANIM = {
     ANIM.parado(t, P);
     const k = ease(t / 0.35);
     P[2] = mul3(rz(0.1 * k + Math.sin(t * 0.9) * 0.04), ry(0.08));
-    braco(P, 1, mixv([0.55, -0.8, 0.2], [0.72, 0.62, 0.25], k), mixv([0.5, -0.8, 0.34], [0.3 + Math.sin(t * 9) * 0.38, 0.9, 0.2], k), { dedo: [0.15 + Math.sin(t * 9 + 0.5) * 0.5, 1, 0.1], palma: [0, 0, 1] });
+    braco(P, 1, mixv([0.55, -0.8, 0.2], [0.82, 0.38, 0.6], k), mixv([0.5, -0.8, 0.34], [0.34 + Math.sin(t * 9) * 0.38, 0.9, 0.5], k), { dedo: [0.15 + Math.sin(t * 9 + 0.5) * 0.5, 1, 0.2], palma: [0, -0.15, 1] });
     P[1] = rz(-0.05 * k); dedos(P, 1, 0.04, -0.15);
   },
   andar(t, P) {
@@ -110,7 +110,7 @@ const ANIM = {
     const j = Math.abs(Math.sin(t * 5.2)), k = ease(t / 0.3);
     P.y = j * 0.05 * k; P[0] = rz(Math.sin(t * 5.2) * 0.05);
     P[2] = mul3(rx(-0.12 * k), rz(Math.sin(t * 5.2) * 0.08));
-    for (const s of [1, -1]) { const f = mixv([0.5, -0.8, 0.34], [0.6 + Math.sin(t * 10.4 + s) * 0.2, 0.8, 0.15], k); braco(P, s, mixv([0.55, -0.8, 0.2], [0.85, 0.5, 0.15], k), f, { dedo: f, palma: [-0.3, 0, 1] }); dedos(P, s, 0.2 + 1.0 * k, 0.8 * k); }
+    for (const s of [1, -1]) { const f = mixv([0.5, -0.8, 0.34], [0.6 + Math.sin(t * 10.4 + s) * 0.2, 0.8, 0.45], k); braco(P, s, mixv([0.55, -0.8, 0.2], [0.85, 0.36, 0.55], k), f, { dedo: f, palma: [-0.3, 0, 1] }); dedos(P, s, 0.2 + 1.0 * k, 0.8 * k); }
     const d = (1 - j) * 0.5 * k;
     P[10] = rz(0.12 * k); P[13] = rz(-0.12 * k); P[11] = rx(d); P[14] = rx(d); P[10] = mul3(P[10], rx(-d * 0.5)); P[13] = mul3(P[13], rx(-d * 0.5));
   },

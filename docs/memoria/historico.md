@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: capangas caem com o chefão; ataques únicos
+
+- No repositório `winnerzbr/lobby-dos-bugs`: os bugs que um chefão chama caem junto com ele; regra nova (D11): nenhum ataque reaproveitado entre inimigos e chefões, com a fila do que hoje se repete em `docs/memoria/ataques.md` e as tarefas no plano.
+
 ## 12/11/2026 — Lobby dos Bugs: o mapa do andar e os bugs que não ficam presos
 
 - No repositório `winnerzbr/lobby-dos-bugs`: o item de mapa (mostra o andar e os ícones das salas sem entrar; sai como prêmio de sala) e os bugs grandes não nascem mais em cantinhos (e saem sozinhos se ficarem presos).

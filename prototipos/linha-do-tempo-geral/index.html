@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WinnerZ · Linha do tempo da Jornada (prévia)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{--now:#FFB25B;--ft:Archivo,system-ui,sans-serif;--fm:"IBM Plex Mono",ui-monospace,monospace;--line:#1c1f24}
+*{box-sizing:border-box}
+body{margin:0;background:#07080A;color:#E6E9ED;font-family:var(--ft);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+.kicker{font:500 11px var(--fm);letter-spacing:.16em;text-transform:uppercase;color:#9AA1AA}
+.t{font-family:var(--ft);font-stretch:125%;font-weight:800;text-transform:uppercase;margin:0}
+.wrap{max-width:1320px;margin:0 auto;padding:0 clamp(14px,3vw,40px)}
+.note{margin:18px 0 0;padding:14px 16px;border:1px dashed #2a2e34;color:#C9CED4;font-size:14px;line-height:1.5}
+.note b{color:#FFE2B8}
+/* abas do site */
+.sub{display:flex;gap:6px;margin:26px 0 18px;flex-wrap:wrap}
+.sub span{padding:10px 16px;border:1px solid #2a2e34;font:700 11px var(--ft);font-stretch:125%;letter-spacing:.12em;text-transform:uppercase;color:#9AA1AA}
+.sub span.on{background:#F2F4F6;color:#07080A;border-color:#F2F4F6}
+/* topo */
+.hero{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.hero h1{font-size:clamp(40px,6vw,86px);line-height:.9}
+.stats{display:flex;gap:clamp(14px,3vw,36px)}
+.stats div{display:flex;flex-direction:column;gap:4px}
+.stats b{font:800 clamp(22px,2.6vw,34px)/1 var(--ft);font-stretch:125%}
+.stats b.now{color:var(--now)}
+/* rio do tempo: atividade por mês, também serve para navegar */
+.rio{position:relative;margin:26px 0 0;padding:12px 0 30px}
+.rio__bars{display:flex;align-items:flex-end;gap:3px;height:74px;border-bottom:1px solid #2a2e34}
+.rio__m{position:relative;flex:1 1 0;min-width:6px;height:100%;border:0;padding:0;background:none;cursor:pointer;display:flex;align-items:flex-end}
+.rio__m i{display:block;width:100%;background:#2b2f35;transition:background .3s,height .4s}
+.rio__m:hover i{background:#5d636c}
+.rio__m.on i{background:linear-gradient(180deg,#FFE2B8,var(--now));box-shadow:0 0 18px rgba(255,178,91,.6)}
+.rio__m.vazio i{background:#15171a}
+.rio__m:focus-visible{outline:2px solid var(--now);outline-offset:2px}
+.rio__y{position:absolute;bottom:-22px;left:0;font:500 10px var(--fm);letter-spacing:.14em;color:#6d747d;white-space:nowrap}
+.rio__dia{position:absolute;top:-4px;width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 12px 3px rgba(255,226,170,.8);transform:translateX(-50%)}
+.rio__pulse{position:absolute;bottom:29px;height:2px;width:120px;background:linear-gradient(90deg,transparent,#FFF3E0,transparent);box-shadow:0 0 14px rgba(255,210,150,.9);opacity:0;pointer-events:none}
+.rio__pulse.go{animation:pulse .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes pulse{from{opacity:1;left:var(--de)}to{opacity:0;left:var(--para)}}
+/* seletor de variações */
+.vsw{display:flex;flex-wrap:wrap;gap:6px;margin:30px 0 12px}
+.vsw button{border:1px solid #2a2e34;background:#0c0e11;padding:9px 13px;font:600 11px var(--fm);letter-spacing:.1em;text-transform:uppercase;color:#9AA1AA;cursor:pointer}
+.vsw button.on{background:var(--now);border-color:var(--now);color:#07080A}
+.vdesc{margin:0 0 14px;color:#C9CED4;font-size:14px;max-width:80ch;line-height:1.5}
+/* barra de filtros */
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips span{padding:8px 12px;border:1px solid #2a2e34;font:700 10px var(--ft);font-stretch:125%;letter-spacing:.12em;text-transform:uppercase;color:#9AA1AA}
+.chips span.on{background:#F2F4F6;color:#07080A}
+.nav{display:flex;gap:6px;align-items:center}
+.nav button{width:44px;height:44px;border:1px solid #2a2e34;background:#0c0e11;cursor:pointer;font-size:18px}
+.nav button:hover{border-color:var(--now);color:var(--now)}
+.nav span{min-width:120px;text-align:center}
+/* palco */
+.stage{position:relative;height:clamp(440px,64vh,600px);overflow:hidden;background:#000;isolation:isolate;touch-action:pan-y;user-select:none}
+.mes{position:absolute;inset:0;overflow:hidden}
+.mes__bg{position:absolute;inset:-4%;filter:saturate(.9) brightness(.55);animation:kb 18s ease-in-out infinite alternate}
+@keyframes kb{to{transform:scale(1.08) translate(-1.5%,1%)}}
+.mes__shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.88) 0%,rgba(0,0,0,.55) 40%,rgba(0,0,0,.15) 70%),linear-gradient(0deg,rgba(0,0,0,.8),transparent 45%)}
+.mes__head{position:absolute;left:clamp(18px,3.4vw,48px);top:clamp(42px,6vh,60px);display:flex;flex-direction:column;gap:8px;z-index:4;max-width:40%}
+.mes__nm{font-size:clamp(34px,5.2vw,78px);line-height:.88}
+.mes__ano{font:600 13px var(--fm);letter-spacing:.3em;color:var(--now)}
+.mes__resumo{font-size:15px;color:#C9CED4;max-width:44ch;line-height:1.45}
+.mes__resumo b{color:#fff}
+.jogos{position:absolute;right:clamp(14px,3vw,40px);bottom:46px;top:46px;display:flex;gap:8px;z-index:3;width:min(52%,680px)}
+.jg{position:relative;flex:1 1 0;min-width:0;overflow:hidden;border:0;padding:0;background:#000;cursor:pointer;transition:flex-grow .9s cubic-bezier(.2,.8,.2,1)}
+.jg:hover,.jg:focus-visible{flex-grow:2.4;outline:none}
+.jg__art{position:absolute;inset:0;filter:grayscale(.85) brightness(.7);transition:filter .6s}
+.jg:hover .jg__art,.jg:focus-visible .jg__art{filter:none}
+.jg__sh{position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.92),transparent 60%)}
+.jg__t{position:absolute;left:14px;right:14px;bottom:14px;display:flex;flex-direction:column;gap:5px;text-align:left}
+.jg__t b{font:800 clamp(14px,1.3vw,19px)/1.05 var(--ft);font-stretch:110%;text-transform:uppercase;color:#fff}
+.jg__t span{font:500 10px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:#C9CED4}
+.jg__vt{position:absolute;left:50%;bottom:16px;writing-mode:vertical-rl;transform:translateX(-50%) rotate(180deg);font:500 11px var(--fm);letter-spacing:.2em;text-transform:uppercase;color:#C9CED4;white-space:nowrap;transition:opacity .3s}
+.jg:hover .jg__vt,.jg:focus-visible .jg__vt{opacity:0}
+.jg:not(:hover):not(:focus-visible) .jg__t{opacity:0}
+.jg__t{transition:opacity .4s .15s}
+.jg__mk{position:absolute;top:12px;left:12px;padding:4px 8px;background:var(--now);color:#07080A;font:700 10px var(--fm);letter-spacing:.1em;text-transform:uppercase}
+.grain{position:absolute;inset:-50%;z-index:6;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");animation:grain 1.2s steps(6) infinite}
+@keyframes grain{0%{transform:translate(0,0)}33%{transform:translate(-4%,3%)}66%{transform:translate(3%,-2%)}100%{transform:translate(0,0)}}
+.flare{position:absolute;left:-10%;right:-10%;top:50%;height:2px;z-index:5;pointer-events:none;background:linear-gradient(90deg,transparent 4%,rgba(120,170,255,.5) 30%,#FFF3E0 50%,rgba(255,178,91,.7) 70%,transparent 96%);box-shadow:0 0 18px rgba(255,210,150,.8);opacity:0}
+.flare.go{animation:flare 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes flare{0%{opacity:0;transform:scaleX(.2)}30%{opacity:1}100%{opacity:0;transform:scaleX(1)}}
+.lb{position:absolute;left:0;right:0;height:34px;background:#000;z-index:7}
+.lb--t{top:0}.lb--b{bottom:0}
+/* ---------- efeitos de troca de mês ---------- */
+/* A · Lâmina (igual à linha do tempo do jogo) */
+.fx-A .mes.in{animation:A-in .95s cubic-bezier(.7,0,.2,1) both}
+@keyframes A-in{from{clip-path:polygon(110% 0,130% 0,110% 100%,90% 100%)}to{clip-path:polygon(-30% 0,130% 0,110% 100%,-50% 100%)}}
+.fx-A .mes.out{animation:A-out .95s cubic-bezier(.7,0,.2,1) both}
+@keyframes A-out{to{transform:translateX(-6%);filter:brightness(.4)}}
+.fx-A .edge{position:absolute;top:-10%;bottom:-10%;width:3px;z-index:8;background:#FFF3E0;box-shadow:0 0 22px 4px rgba(255,210,150,.9),0 0 60px rgba(120,170,255,.5);transform:skewX(-11deg);animation:A-edge .95s cubic-bezier(.7,0,.2,1) both}
+@keyframes A-edge{from{left:105%}to{left:-8%}}
+.back.fx-A .mes.in{animation-name:A-inb}
+@keyframes A-inb{from{clip-path:polygon(-50% 0,-30% 0,-10% 100%,-30% 100%)}to{clip-path:polygon(-30% 0,130% 0,150% 100%,-50% 100%)}}
+.back.fx-A .edge{animation-name:A-edgeb}
+@keyframes A-edgeb{from{left:-8%}to{left:105%}}
+/* B · Túnel: o mês atual vem para a frente e se desfaz, o próximo chega do fundo */
+.fx-B .mes.out{animation:B-out 1.1s cubic-bezier(.5,0,.2,1) both}
+@keyframes B-out{to{transform:scale(1.35);opacity:0;filter:blur(10px) brightness(1.6)}}
+.fx-B .mes.in{animation:B-in 1.1s cubic-bezier(.2,.8,.2,1) both}
+@keyframes B-in{from{transform:scale(.72);opacity:0;filter:blur(14px)}to{transform:none;opacity:1;filter:none}}
+.back.fx-B .mes.out{animation-name:B-outb}
+@keyframes B-outb{to{transform:scale(.7);opacity:0;filter:blur(10px)}}
+.back.fx-B .mes.in{animation-name:B-inb}
+@keyframes B-inb{from{transform:scale(1.35);opacity:0;filter:blur(14px)}to{transform:none;opacity:1;filter:none}}
+/* C · Rio de luz: um pulso corre pela linha do horizonte e o mês sobe dela */
+.fx-C .mes.out{animation:C-out .8s ease-in both}
+@keyframes C-out{to{opacity:0;transform:translateY(4%)}}
+.fx-C .mes.in{animation:C-in 1.2s cubic-bezier(.2,.8,.2,1) .25s both}
+@keyframes C-in{from{clip-path:inset(50% 0 50% 0);filter:brightness(2)}to{clip-path:inset(0 0 0 0);filter:none}}
+.fx-C .riscos{position:absolute;left:0;right:0;top:50%;height:2px;z-index:8;background:linear-gradient(90deg,transparent,#FFF3E0 50%,transparent);box-shadow:0 0 26px 6px rgba(255,200,130,.7);animation:C-line 1.3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes C-line{0%{transform:scaleX(0);opacity:1}40%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1) scaleY(.3);opacity:0}}
+/* D · Mosaico: o mês se parte em peças que viram e caem, revelando o próximo */
+.fx-D .mes.out{animation:none;opacity:0}
+.tiles{position:absolute;inset:0;z-index:8;display:grid;pointer-events:none}
+.tiles i{display:block;background-size:var(--W) var(--H);animation:D-tile .9s cubic-bezier(.6,0,.4,1) both;transform-origin:50% 50%}
+@keyframes D-tile{0%{transform:none;opacity:1}100%{transform:perspective(600px) rotateX(85deg) translateY(30%) scale(.6);opacity:0}}
+.spark{position:absolute;width:3px;height:3px;border-radius:50%;background:#FFE2B8;box-shadow:0 0 8px #FFB25B;z-index:9;pointer-events:none;animation:spark .9s ease-out forwards}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy));opacity:0}}
+/* E · Feixe: um feixe de luz vertical varre a tela, com as cores se separando na borda */
+.fx-E .mes.in{animation:E-in 1s cubic-bezier(.65,0,.25,1) both}
+@keyframes E-in{from{clip-path:inset(0 0 0 100%)}to{clip-path:inset(0 0 0 0)}}
+.fx-E .mes.out{animation:E-out 1s cubic-bezier(.65,0,.25,1) both}
+@keyframes E-out{to{filter:brightness(.3) saturate(0)}}
+.fx-E .feixe{position:absolute;top:0;bottom:0;width:140px;z-index:8;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(120,170,255,.25) 35%,rgba(255,245,230,.95) 50%,rgba(255,178,91,.35) 65%,transparent);mix-blend-mode:screen;animation:E-beam 1s cubic-bezier(.65,0,.25,1) both}
+@keyframes E-beam{from{left:100%}to{left:-140px}}
+.fx-E .mes.in .mes__head{animation:E-rgb 1s .55s both}
+@keyframes E-rgb{0%{text-shadow:-6px 0 rgba(255,60,60,.8),6px 0 rgba(60,140,255,.8)}100%{text-shadow:0 0 transparent,0 0 transparent}}
+.back.fx-E .mes.in{animation-name:E-inb}
+@keyframes E-inb{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.back.fx-E .feixe{animation-name:E-beamb}
+@keyframes E-beamb{from{left:-140px}to{left:100%}}
+/* F · Ano em título: virou o ano, entra um quadro com o ano em contorno que se enche; mês para mês, desliza com rastro */
+.fx-F .mes.out{animation:F-out .7s cubic-bezier(.6,0,.3,1) both}
+@keyframes F-out{to{transform:translateX(-18%);opacity:0;filter:blur(6px)}}
+.fx-F .mes.in{animation:F-in .9s cubic-bezier(.2,.8,.2,1) .1s both}
+@keyframes F-in{from{transform:translateX(18%);opacity:0;filter:blur(8px)}to{transform:none;opacity:1;filter:none}}
+.back.fx-F .mes.out{animation-name:F-outb}
+@keyframes F-outb{to{transform:translateX(18%);opacity:0;filter:blur(6px)}}
+.back.fx-F .mes.in{animation-name:F-inb}
+@keyframes F-inb{from{transform:translateX(-18%);opacity:0;filter:blur(8px)}to{transform:none;opacity:1;filter:none}}
+.cartao{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:#030304;pointer-events:none;animation:F-card 2s cubic-bezier(.4,0,.2,1) both}
+@keyframes F-card{0%{opacity:0}12%{opacity:1}72%{opacity:1}100%{opacity:0}}
+.cartao b{font:900 clamp(90px,22vw,320px)/.8 var(--ft);font-stretch:125%;color:transparent;-webkit-text-stroke:2px #5d636c;background:linear-gradient(100deg,#F2F4F6 0 46%,#FFD9A3 50%,transparent 54%) 100% 0/260% 100% no-repeat;-webkit-background-clip:text;background-clip:text;animation:F-fill 1.4s cubic-bezier(.3,.6,.2,1) .25s forwards}
+@keyframes F-fill{to{background-position:0 0;-webkit-text-stroke-color:transparent}}
+.cartao span{position:absolute;bottom:22%;font:500 12px var(--fm);letter-spacing:.4em;color:var(--now)}
+/* abaixo do palco */
+.baixo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:14px}
+.card{border:1px solid #2a2e34;background:#0c0e11;padding:18px;display:flex;gap:16px;align-items:center}
+.card__img{width:96px;height:72px;flex:none}
+.card .t{font-size:18px}
+.card p{margin:4px 0 0;color:#9AA1AA;font-size:13px}
+.card--dia{border-color:rgba(255,178,91,.5)}
+details.card{display:block}
+details.card summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.card ul{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+details.card li{padding:6px 10px;border:1px solid #2a2e34;font-size:13px;color:#C9CED4}
+.leg{position:relative}
+.leg__b{width:44px;height:44px;border:1px solid #2a2e34;background:#0c0e11;cursor:pointer;font:700 14px var(--fm)}
+.leg__p{position:absolute;right:0;top:50px;z-index:20;width:230px;padding:14px;background:#0c0e11;border:1px solid #2a2e34;display:none;flex-direction:column;gap:8px;font-size:13px;color:#C9CED4}
+.leg.on .leg__p{display:flex}
+.org{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:22px 0 0;padding:0;list-style:none;counter-reset:o}
+.org li{counter-increment:o;border:1px solid #1c1f24;padding:14px 14px 14px 46px;position:relative;font-size:14px;line-height:1.45;color:#C9CED4}
+.org li::before{content:counter(o,decimal-leading-zero);position:absolute;left:14px;top:14px;font:600 12px var(--fm);color:var(--now)}
+.org li b{display:block;color:#fff;margin-bottom:2px}
+footer{margin:40px 0 60px;color:#6d747d;font-size:13px}
+@media (max-width:760px){
+ .stage{height:auto;min-height:620px}
+ .jogos{left:12px;right:12px;width:auto;top:auto;height:250px;bottom:46px}
+ .mes__head{max-width:none;right:18px}
+ .mes__nm{font-size:clamp(34px,11vw,52px)}
+ .mes__shade{background:linear-gradient(0deg,rgba(0,0,0,.92) 30%,rgba(0,0,0,.4) 70%,rgba(0,0,0,.2))}
+ .jg__vt{font-size:10px}
+ .baixo{grid-template-columns:1fr}
+ .stats{width:100%;justify-content:space-between}
+ .nav span{min-width:80px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="sub"><span>Em andamento</span><span>Concluídas</span><span class="on">Linha do tempo</span><span>Retrospectivas</span></div>
+
+  <div class="hero">
+    <div>
+      <h1 class="t">Linha do tempo</h1>
+      <p class="kicker" style="margin:10px 0 0">Tudo o que você viveu jogando, mês a mês</p>
+    </div>
+    <div class="stats">
+      <div><b>94</b><span class="kicker">momentos</span></div>
+      <div><b>14</b><span class="kicker">jogos</span></div>
+      <div><b class="now">2005</b><span class="kicker">desde</span></div>
+    </div>
+  </div>
+
+  <div class="rio" id="rio" aria-label="Atividade por mês: toque num mês para ir até ele">
+    <div class="rio__bars" id="bars"></div>
+    <span class="rio__pulse" id="pulse"></span>
+  </div>
+
+  <div class="vsw" id="vsw" role="tablist" aria-label="Efeito ao trocar de mês"></div>
+  <p class="vdesc" id="vdesc"></p>
+
+  <div class="bar">
+    <div class="chips"><span class="on">Tudo</span><span>Só momentos</span><span>Jornadas</span><span>Coleção</span></div>
+    <div class="nav">
+      <button id="prev" aria-label="Mês mais antigo">←</button>
+      <span class="kicker" id="pos"></span>
+      <button id="next" aria-label="Mês mais recente">→</button>
+      <div class="leg" id="leg"><button class="leg__b" aria-label="Legenda" aria-expanded="false">?</button>
+        <div class="leg__p"><span>○ Sessão ou momento</span><span style="color:#FFB25B">○ Ponto para voltar</span><span>◇ Início de História</span><span style="color:#FFB25B">◇ Zerou (marco)</span><span>● Chegou à coleção</span></div></div>
+    </div>
+  </div>
+
+  <div class="stage fx-A" id="stage" tabindex="0" aria-roledescription="carrossel" aria-label="Meses da sua linha do tempo">
+    <span class="flare" id="flare"></span>
+    <span class="grain"></span>
+    <span class="lb lb--t"></span><span class="lb lb--b"></span>
+  </div>
+
+  <div class="baixo">
+    <div class="card card--dia">
+      <span class="card__img" id="diaimg"></span>
+      <div><span class="kicker" style="color:#FFB25B">Neste dia · há 1 mês</span><div class="t">Rayman Legends: Definitive Edition</div><p>12 out 2026 · chegou à coleção</p></div>
+    </div>
+    <details class="card"><summary><span><span class="kicker">Sem data</span><div class="t">19 registros</div></span><span class="kicker">Abrir ▾</span></summary>
+      <ul><li>Shox</li><li>ATV Quad Power Racing</li><li>Back to the Future</li><li>Astral Chain</li><li>e mais 15</li></ul></details>
+  </div>
+
+  <div class="note"><b>Prévia.</b> As artes dos jogos são cores no lugar das capas (a página de prévia não carrega imagens de fora). Use as setas, arraste no palco, as setas do teclado ou toque num mês do "rio" lá em cima. Troque o efeito nos botões A a F.</div>
+
+  <h2 class="t" style="font-size:22px;margin:40px 0 0">Como a página fica organizada</h2>
+  <ol class="org">
+    <li><b>Topo com números</b>Momentos, jogos e desde quando. Some a coluna "Ir para" da direita.</li>
+    <li><b>Rio do tempo</b>Cada barrinha é um mês; a altura é quanto você jogou. Toca e vai direto ao mês. O ponto brilhante é o "Neste dia".</li>
+    <li><b>Um mês por cena</b>O carrossel mostra um mês de cada vez, grande, com o resumo ("3 jogos · 12 sessões · zerou Astro Bot") e os jogos do mês em faixas.</li>
+    <li><b>Faixas dos jogos</b>Em cinza; passar o mouse ou tocar abre a faixa, com a arte em cor. Tocar leva para a linha do tempo daquele jogo.</li>
+    <li><b>Filtros e legenda</b>Os filtros ficam numa barra só; a legenda vira um botão "?".</li>
+    <li><b>Embaixo</b>"Neste dia" menor e a gaveta "Sem data", fechada, com os registros sem dia.</li>
+  </ol>
+  <footer>WinnerZ · prévia da linha do tempo da Jornada · 12/11/2026</footer>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const rnd=i=>{const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const PAL=[['#3a1a12','#c2552e','#f0b45a'],['#0e2233','#2f6f9a','#9fd1e6'],['#1b1230','#6b3fa0','#e0a6ff'],['#13261a','#3f8a4f','#cfe8a0'],['#2b1d0c','#9a6a24','#ffd58a'],['#26121a','#a03256','#ffb0c4'],['#101820','#46607a','#e8eef4'],['#2a0e0e','#b02a2a','#ffcf6a']];
+function art(i){const p=PAL[i%PAL.length],a=Math.round(rnd(i)*360),x=Math.round(20+rnd(i+3)*60),y=Math.round(20+rnd(i+5)*50);
+ return `radial-gradient(ellipse 60% 70% at ${x}% ${y}%, ${p[2]}cc, transparent 60%),radial-gradient(ellipse 80% 60% at ${100-x}% ${100-y}%, ${p[1]}, transparent 70%),linear-gradient(${a}deg, ${p[0]}, ${p[1]} 60%, ${p[0]})`}
+const G={er:['Elden Ring',1],zo:['Zelda: Ocarina of Time',4],ry:['Rayman Legends',3],ab:['Astro Bot',6],ac:['Assassin\'s Creed Shadows',7],tl:['The Last of Us',0],sp:['Splatoon 3',2],sx:['Shox',5],ch:['Astral Chain',2],ms:['Metal Slug',7],ff:['Final Fantasy X',1]};
+const M=[ // do mais antigo ao mais recente
+ {m:'Março',y:2005,r:'1 jogo · chegou à coleção',j:[['ms','Chegou à coleção']]},
+ {m:'Julho',y:2020,r:'1 jogo · <b>zerou</b> Final Fantasy X',j:[['ff','Zerou','zerou']]},
+ {m:'Dezembro',y:2021,r:'1 jogo · 4 sessões',j:[['sp','4 sessões']]},
+ {m:'Junho',y:2026,r:'2 jogos · 9 sessões',j:[['sp','6 sessões'],['ch','3 sessões']]},
+ {m:'Julho',y:2026,r:'1 jogo · 5 sessões',j:[['ch','5 sessões']]},
+ {m:'Agosto',y:2026,r:'2 jogos · 7 sessões · <b>zerou</b> Astro Bot',j:[['ab','Zerou','zerou'],['sp','2 sessões']]},
+ {m:'Setembro',y:2026,r:'3 jogos · 11 sessões',j:[['ac','6 sessões'],['tl','4 sessões'],['sx','Chegou à coleção']]},
+ {m:'Outubro',y:2026,r:'4 jogos · 18 sessões · <b>começou</b> Elden Ring',j:[['er','14 sessões · começou'],['tl','3 sessões'],['ry','Chegou à coleção'],['ac','1 sessão']]},
+ {m:'Novembro',y:2026,r:'2 jogos · 16 sessões · agora',j:[['er','16 sessões'],['zo','Chegou à coleção']]},
+];
+const VAR={A:['Lâmina','O mesmo corte em lâmina da linha do tempo de cada jogo: uma borda de luz inclinada corta a tela e o mês novo entra por trás dela. Mantém as duas linhas do tempo com a mesma cara.'],
+ B:['Túnel','O mês atual vem para a frente e se desfaz em luz; o próximo chega lá do fundo, saindo do desfoque. Dá sensação de viajar no tempo.'],
+ C:['Rio de luz','Um risco de luz corre pela linha do horizonte e o mês novo se abre a partir dela, de dentro para fora. O "rio" lá em cima pulsa junto.'],
+ D:['Mosaico','O mês se parte em peças que viram e caem, soltando faíscas, e revelam o mês seguinte por baixo.'],
+ E:['Feixe','Um feixe de luz vertical varre a tela e deixa o mês novo para trás; as letras chegam com as cores separadas e se juntam.'],
+ F:['Ano em título','Entre meses, o palco desliza com rastro. Quando o ano muda, entra um quadro com o ano gigante em contorno, que se enche de luz.']};
+let I=M.length-1,V='A',busy=false;
+const stage=$('#stage');
+function mesHTML(k){const d=M[k];return `<div class="mes"><span class="mes__bg" style="background:${art(k*3+1)}"></span><span class="mes__shade"></span>
+ <div class="mes__head"><span class="mes__ano">${d.y}${k===M.length-1?' · agora':''}</span><span class="t mes__nm">${d.m}</span><span class="mes__resumo">${d.r}</span></div>
+ <div class="jogos">${d.j.map(([g,l,mk],n)=>`<button class="jg" aria-label="${G[g][0]}: ${l}"><span class="jg__art" style="background:${art(G[g][1]*7+n)}"></span><span class="jg__sh"></span>${mk?'<span class="jg__mk">Zerou</span>':''}<span class="jg__vt">${G[g][0]}</span><span class="jg__t"><b>${G[g][0]}</b><span>${l}</span></span></button>`).join('')}</div></div>`}
+function bars(){const b=$('#bars');let last=null;b.innerHTML='';
+ // meses de jan/2026 a nov/2026 + os antigos agrupados no começo
+ const vals={};M.forEach((d,k)=>vals[d.y+'-'+d.m]=k);
+ const order=[['Março',2005],['Julho',2020],['Dezembro',2021]];const NM=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro'];NM.forEach(m=>order.push([m,2026]));
+ order.forEach(([m,y],n)=>{const k=vals[y+'-'+m];const h=k==null?6:Math.min(100,18+M[k].j.length*16+rnd(n)*14);const el=document.createElement('button');el.className='rio__m'+(k==null?' vazio':'')+(k===I?' on':'');el.setAttribute('aria-label',`${m} de ${y}${k==null?', sem registros':''}`);el.innerHTML=`<i style="height:${h}%"></i>${y!==last?`<span class="rio__y">${y}</span>`:''}`;last=y;if(k!=null){el.dataset.k=k;el.onclick=()=>go(k)}else el.disabled=true;b.appendChild(el)});
+ const dia=b.children[order.length-2];if(dia){const s=document.createElement('span');s.className='rio__dia';s.style.left=(dia.offsetLeft+dia.offsetWidth/2)+'px';$('#rio').appendChild(s)}}
+function marca(){$$('.rio__m').forEach(e=>e.classList.toggle('on',+e.dataset.k===I&&e.dataset.k!==undefined));$('#pos').textContent=`${M[I].m.slice(0,3)} ${M[I].y}`;$('#prev').disabled=I===0;$('#next').disabled=I===M.length-1}
+function pulso(de,para){const a=$(`.rio__m[data-k="${de}"]`),b=$(`.rio__m[data-k="${para}"]`),p=$('#pulse');if(!a||!b)return;p.style.setProperty('--de',(a.offsetLeft-50)+'px');p.style.setProperty('--para',(b.offsetLeft-50)+'px');p.classList.remove('go');void p.offsetWidth;p.classList.add('go')}
+function go(k){if(k===I||k<0||k>=M.length||busy)return;busy=true;const back=k<I,old=stage.querySelector('.mes'),anoMudou=M[k].y!==M[I].y;pulso(I,k);I=k;marca();
+ stage.classList.toggle('back',back);
+ stage.insertAdjacentHTML('beforeend',mesHTML(k));const neu=stage.querySelectorAll('.mes');const nw=neu[neu.length-1];
+ old.classList.add('out');nw.classList.add('in');
+ const f=$('#flare');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');
+ let dur=1250;
+ if(V==='A'){stage.insertAdjacentHTML('beforeend','<span class="edge"></span>')}
+ if(V==='C'){stage.insertAdjacentHTML('beforeend','<span class="riscos"></span>');dur=1500}
+ if(V==='E'){stage.insertAdjacentHTML('beforeend','<span class="feixe"></span>')}
+ if(V==='D'){const r=stage.getBoundingClientRect(),cols=8,rows=5,bg=old.querySelector('.mes__bg').style.background;const t=document.createElement('div');t.className='tiles';t.style.gridTemplateColumns=`repeat(${cols},1fr)`;t.style.setProperty('--W',r.width+'px');t.style.setProperty('--H',r.height+'px');
+  for(let y=0;y<rows;y++)for(let x=0;x<cols;x++){const i=document.createElement('i');i.style.background=bg;i.style.backgroundSize=`${r.width}px ${r.height}px`;i.style.backgroundPosition=`${-x*r.width/cols}px ${-y*r.height/rows}px`;i.style.filter='brightness(.5)';i.style.animationDelay=((back?cols-1-x:x)*45+y*35)+'ms';t.appendChild(i)}
+  stage.appendChild(t);for(let n=0;n<26;n++){const s=document.createElement('span');s.className='spark';s.style.left=(rnd(n+k)*100)+'%';s.style.top=(rnd(n*3+k)*100)+'%';s.style.setProperty('--dx',((rnd(n+9)-.5)*160)+'px');s.style.setProperty('--dy',(rnd(n+4)*140+40)+'px');s.style.animationDelay=(rnd(n+2)*400)+'ms';stage.appendChild(s)}dur=1400}
+ if(V==='F'&&anoMudou){stage.insertAdjacentHTML('beforeend',`<div class="cartao"><b>${M[k].y}</b><span>${M[k].m.toUpperCase()}</span></div>`);dur=2000}
+ setTimeout(()=>{old.remove();stage.querySelectorAll('.edge,.riscos,.feixe,.tiles,.spark,.cartao').forEach(e=>e.remove());nw.classList.remove('in');busy=false},dur)}
+function setV(v){V=v;stage.className='stage fx-'+v;$$('#vsw button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$('#vdesc').textContent=VAR[v][1]}
+Object.entries(VAR).forEach(([k,[n]])=>{const b=document.createElement('button');b.dataset.v=k;b.setAttribute('role','tab');b.textContent=`${k} · ${n}`;b.onclick=()=>{setV(k);go(I>0?I-1:I+1)};$('#vsw').appendChild(b)});
+stage.insertAdjacentHTML('beforeend',mesHTML(I));bars();marca();setV('A');
+$('#diaimg').style.background=art(G.ry[1]*7);
+$('#prev').onclick=()=>go(I-1);$('#next').onclick=()=>go(I+1);
+stage.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();go(I-1)}if(e.key==='ArrowRight'){e.preventDefault();go(I+1)}});
+let sx=null;stage.addEventListener('pointerdown',e=>{sx=e.clientX});addEventListener('pointerup',e=>{if(sx==null)return;const d=e.clientX-sx;sx=null;if(Math.abs(d)>50)go(d<0?I+1:I-1)});
+$('#leg').querySelector('button').onclick=e=>{const l=$('#leg');l.classList.toggle('on');e.currentTarget.setAttribute('aria-expanded',l.classList.contains('on'))};
+</script>
+</body>
+</html>

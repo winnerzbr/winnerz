@@ -4,6 +4,14 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Linha do tempo da Jornada (geral): prévia com nova organização e seis efeitos de carrossel
+
+- Pedido do dono: dar à linha do tempo geral (`/jornada/linha-do-tempo`, hoje em lista) o mesmo tratamento da linha do tempo de cada jogo, com sugestões de organização e carrosséis com VFX.
+- Prévia em `prototipos/linha-do-tempo-geral/index.html` (artefato https://claude.ai/artifact/APtkQCHJNib2YwsifsbKu2).
+- **Organização sugerida:** topo com números (momentos, jogos, desde quando) no lugar da coluna "Ir para"; "rio do tempo" (uma barrinha por mês, altura = quanto jogou, toca e vai ao mês; ponto brilhante = Neste dia); carrossel com um mês por cena (nome grande, resumo do mês e os jogos em faixas que abrem ao passar o mouse/tocar e levam à linha do tempo do jogo); filtros numa barra e legenda num botão "?"; embaixo, "Neste dia" menor e a gaveta "Sem data".
+- **Efeitos de troca de mês:** A · Lâmina (o mesmo da linha do tempo do jogo), B · Túnel, C · Rio de luz, D · Mosaico, E · Feixe, F · Ano em título (quadro com o ano gigante quando muda o ano).
+- Aguardando o dono escolher. Nada aplicado no site.
+
 ## 12/11/2026 — Botão Compartilhar dos cartões no tamanho normal
 
 - O dono achou o botão "Compartilhar" do Cartão da temporada grande demais, no computador e no celular.

@@ -129,6 +129,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (15h45):** M1 tarefa 4c feita: no máximo 1 sala com fenda no andar 1 (antes quase 2) e menos nos outros; duas salas novas e simples (o corte de cima a baixo e a cruz com 4 ilhas), com o corte atravessado e o anel.
 
+**12/11/2026 (16h20):** as fendas mais evidentes: entre 4 opções, o dono escolheu o abismo (sem os cabos de neon, beirada clara) com o fundo de chuvisco de tela (diretriz C13); já no jogo.
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

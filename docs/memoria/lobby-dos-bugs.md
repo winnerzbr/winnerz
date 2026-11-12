@@ -121,6 +121,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (13h45):** a opção do menu aprovada pelo dono num artefato com opções e aplicada no jogo (diretriz E11): letra Tiny5; escolhida, pontinhos dos dois lados formam a moldura azul inclinada, o tranco dos botões do site WinnerZ engrossa a borda e deixa a palavra laranja, itálica e em negrito, o pulso nasce no tranco e repete mais fraco; a seta é um chevron de luz azul.
 
+**12/11/2026 (14h20):** ideias do dono sobre as armas no plano (ideias 36 a 39; M1 tarefa 6c e M4): as letras do Teclado legíveis em movimento e formando palavras ("kkkk", "lmao") na forma evoluída; o tiro (e talvez o desenho) que muda nas formas evoluídas de todas as armas; o VFX do laser; o Firewall menos forte no nível 1 (recarga lenta ou resistência, a decidir) e os limites de cada arma que se upam.
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

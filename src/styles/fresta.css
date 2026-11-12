@@ -957,7 +957,7 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .editor__nota-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; min-height: 30px; }
 .editor__nota-foot .editor__hint { margin: 0; }
 .editor--analise .editor__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
-.editor--analise .editor__actions .editor__hint { margin: 0 0 0 22px; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+.editor--analise .editor__actions .editor__hint { margin: 0 0 0 58px; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
 @media (max-width: 520px) { .editor--analise .editor__actions .editor__hint { flex-basis: 100%; margin-left: 0; } }
 .editor__stars .score-num, .editor__ten .score-num { min-width: 4.6ch; }
 

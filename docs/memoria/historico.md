@@ -6,7 +6,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ## 12/11/2026 — Cartão das notas: ajustes na análise
 
-- O aviso ao lado de "Salvar análise" ficava escondido embaixo da ponta inclinada do botão e apagado: agora tem distância do botão, letra um pouco maior e cor mais clara (no celular vai para a linha de baixo). Mais espaço entre "Fechar a análise" e o título "Sua análise".
+- O aviso ao lado de "Salvar análise" ficava escondido embaixo da ponta inclinada do botão e apagado: agora tem distância do botão (a ponta com a seta do botão passa 44px da borda), letra um pouco maior e cor mais clara (no celular vai para a linha de baixo). Mais espaço entre "Fechar a análise" e o título "Sua análise".
 
 ## 12/11/2026 — Página do jogo: um cartão só para as notas, e a distribuição certa
 

@@ -3,7 +3,7 @@
  * Embaixo, a mesma régua da linha do jogo, mas com as capas dos jogos de cada mês centradas na linha.
  * Escolhido em 12/11/2026 (prévia "Lâmina").
  */
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react';
 import { Link } from '../lib/router';
 import { CoverArt } from './CoverArt';
 import type { GlobalItem } from '../lib/memory';
@@ -58,12 +58,26 @@ export function meses(list: GlobalItem[]): Mes[] {
     }
     mes.jogos.sort((a, b) => Number(b.zerou) - Number(a.zerou) || b.items.length - a.items.length);
     const nJogos = mes.jogos.length;
-    mes.resumo = [nJogos ? plural(nJogos, 'jogo', 'jogos') : '', sessoes ? plural(sessoes, 'sessão', 'sessões') : '', zerados.length ? `zerou ${zerados.join(' e ')}` : '', comecados.length && !zerados.length ? `começou ${comecados[0]}` : ''].filter(Boolean).join(' · ');
+    mes.resumo = [nJogos ? plural(nJogos, 'jogo', 'jogos') : '', sessoes ? plural(sessoes, 'sessão', 'sessões') : '', zerados.length ? (zerados.length <= 2 ? `zerou ${zerados.join(' e ')}` : `zerou ${zerados.length} jogos`) : '', comecados.length && !zerados.length ? `começou ${comecados[0]}` : ''].filter(Boolean).join(' · ');
     const foto = mes.items.find((x) => ehZerou(x) && x.image)?.image ?? mes.items.find((x) => x.image)?.image;
     const g = mes.jogos[0]?.game;
     mes.arte = foto ?? g?.backdrop ?? g?.artworks?.[0] ?? g?.cover;
   }
   return out;
+}
+
+type Lay = { w: number; rows: number; titles: boolean };
+/** Escolhe quantas fileiras e o tamanho das capas para caberem todas no espaço que sobra na cena. */
+function arrumar(n: number, W: number, H: number): Lay {
+  const gap = 12;
+  let best: Lay | null = null;
+  for (let r = 1; r <= Math.min(n, 4); r++) {
+    const cols = Math.ceil(n / r), titles = r === 1 && n <= 6;
+    const rowH = (H - (titles ? 0 : 30) - (r - 1) * 10) / r - (titles ? 58 : 0);
+    const w = Math.floor(Math.min(124, (W - (cols - 1) * gap) / cols, rowH * 0.75));
+    if (!best || w > best.w + (titles ? -6 : 0)) best = { w, rows: r, titles };
+  }
+  return best ?? { w: 40, rows: 1, titles: false };
 }
 
 export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; reduced: boolean; light: boolean }) {
@@ -72,6 +86,10 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
   const [focus, setFocus] = useState(home);
   const [was, setWas] = useState<number | null>(null);
   const [tour, setTour] = useState(false);
+  /** Tamanho das capas de cada mês, para todos os jogos caberem na cena (medido na tela). */
+  const [lay, setLay] = useState<Record<string, Lay>>({});
+  const [info, setInfo] = useState(0);
+  const pnRef = useRef<HTMLElement | null>(null);
   const focusRef = useRef(focus);
   focusRef.current = focus;
   const vp = useRef<HTMLDivElement>(null);
@@ -84,6 +102,30 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
     const k = Math.max(0, Math.min(n - 1, i));
     if (k !== focusRef.current) { setWas(focusRef.current); setFocus(k); }
   }, [n]);
+
+  // Mede o espaço que sobra embaixo do título do mês e arruma as capas nele.
+  const medir = useCallback(() => {
+    const pn = pnRef.current, grid = pn?.querySelector<HTMLElement>('.lm-jogos'), m = lista[focusRef.current];
+    if (!pn || !grid || !m) return;
+    const cs = getComputedStyle(pn), gap = parseFloat(cs.rowGap) || 12;
+    let used = 0, k = 0;
+    for (const ch of Array.from(pn.children) as HTMLElement[]) {
+      if (ch === grid || getComputedStyle(ch).position === 'absolute') continue;
+      used += ch.offsetHeight; k++;
+    }
+    const H = pn.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - used - gap * k - 8;
+    const W = pn.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const novo = arrumar(m.jogos.length + m.soltos.length, W, H);
+    setLay((o) => { const v = o[m.key]; return v && v.w === novo.w && v.rows === novo.rows && v.titles === novo.titles ? o : { ...o, [m.key]: novo }; });
+  }, [lista]);
+  useLayoutEffect(() => { setInfo(0); medir(); }, [focus, medir]);
+  useEffect(() => {
+    const v = vp.current;
+    if (!v || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => medir());
+    ro.observe(v);
+    return () => ro.disconnect();
+  }, [medir]);
 
   // Roda do mouse: um mês por vez; nas pontas, a página rola normalmente.
   useEffect(() => {
@@ -190,30 +232,29 @@ export function LinhaMeses({ meses: lista, reduced, light }: { meses: Mes[]; red
         <div className="fx-track">
           {lista.map((m, i) => {
             const on = i === focus;
-            const mostra = m.jogos.slice(0, 6);
+            const L = lay[m.key];
+            const todos = [...m.jogos.map((j) => ({ id: j.game.id, to: j.to, nome: j.game.title, label: j.zerou ? j.label.replace(/^Zerou( · )?/, '') || 'Zerou' : j.label, j, x: null as GlobalItem | null })), ...m.soltos.map((x) => ({ id: x.id, to: x.to ?? '#', nome: x.title, label: x.text ?? x.label, j: null as Jogo | null, x }))];
+            const sel = todos[Math.min(info, todos.length - 1)];
             return (
               <div key={m.key} className={`fx-sc${on ? ' is-on' : ''}${i === was && !on ? ' is-was' : ''}`} aria-hidden={!on || undefined}>
                 {(on || i === was) && (
-                  <article className="fx-pn lm-mes" data-on={on || undefined} aria-label={`${m.nome} de ${m.ano}`}>
+                  <article ref={on ? (el) => { pnRef.current = el; } : undefined} className="fx-pn lm-mes" data-on={on || undefined} aria-label={`${m.nome} de ${m.ano}`}>
                     {m.arte && <div className="fx-bg" style={{ backgroundImage: `url(${m.arte})` }} />}<div className="fx-sh" />
                     <span className={`fx-k${m.agora ? ' fx-k--now' : ''}`}>{m.key.length === 4 ? 'Ano sem mês certo' : m.ano}{m.agora ? ' · agora' : ''}</span>
                     <h2 className="fx-h">{m.nome}</h2>
                     {m.resumo && <p className="fx-p">{m.resumo}</p>}
-                    {(mostra.length > 0 || m.soltos.length > 0) && (
-                      <div className="lm-jogos">
-                        {mostra.map((j) => (
-                          <Link key={j.game.id} to={j.to} className="lm-jg" tabIndex={on ? undefined : -1} aria-label={`${j.game.title}: ${j.label}`}>
-                            <span className="lm-jg__c"><CoverArt game={j.game} />{j.zerou && <span className="lm-jg__z">Zerou</span>}</span>
-                            <b>{j.game.title}</b>
-                            <small>{j.zerou ? j.label.replace(/^Zerou( · )?/, '') || 'Zerou' : j.label}</small>
-                          </Link>
-                        ))}
-                        {m.jogos.length > mostra.length && <span className="lm-jg lm-jg--mais"><span className="lm-jg__c">+{m.jogos.length - mostra.length}</span><small>outros jogos</small></span>}
-                        {m.soltos.map((x) => (
-                          <Link key={x.id} to={x.to ?? '#'} className="lm-jg" tabIndex={on ? undefined : -1}>
-                            <span className="lm-jg__c lm-jg__c--solto">{x.label}</span><b>{x.title}</b>{x.text && <small>{x.text}</small>}
-                          </Link>
-                        ))}
+                    {todos.length > 0 && (
+                      <div className={`lm-jogos${L && !L.titles ? ' is-compacto' : ''}`} style={{ '--w': `${L?.w ?? 0}px`, '--cols': Math.ceil(todos.length / (L?.rows ?? 1)), visibility: L ? undefined : 'hidden' } as CSSProperties}>
+                        <div className="lm-jogos__grade">
+                          {todos.map((t, k) => (
+                            <Link key={t.id} to={t.to} className={`lm-jg${!L?.titles && k === info ? ' is-sel' : ''}`} tabIndex={on ? undefined : -1} aria-label={`${t.nome}: ${t.label}`}
+                              onMouseEnter={() => setInfo(k)} onFocus={() => setInfo(k)}>
+                              <span className={`lm-jg__c${t.j ? '' : ' lm-jg__c--solto'}`}>{t.j ? <CoverArt game={t.j.game} /> : t.x?.label}{t.j?.zerou && <span className="lm-jg__z">Zerou</span>}</span>
+                              {L?.titles && <><b>{t.nome}</b><small>{t.label}</small></>}
+                            </Link>
+                          ))}
+                        </div>
+                        {L && !L.titles && sel && <p className="lm-info" aria-hidden="true"><b>{sel.nome}</b>{sel.label ? ` · ${sel.label}` : ''}</p>}
                       </div>
                     )}
                   </article>

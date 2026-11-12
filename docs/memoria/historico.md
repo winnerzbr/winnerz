@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Linha do tempo geral: todos os jogos do mês cabem na cena
+
+- Pedido do dono: em outubro (13 jogos) o nome do mês ficava cortado no alto e sobrava um "+7"; todos os jogos têm que aparecer.
+- Agora a cena mede o espaço que sobra embaixo do título e arruma as capas nele: até 6 jogos, uma fileira com nome e resumo embaixo de cada capa; com mais, as capas diminuem e vão em 2 a 4 fileiras, e uma linha embaixo mostra o nome e o resumo da capa sob o mouse (ou com foco). Sem "+N".
+- O resumo do mês diz "zerou 4 jogos" quando são mais de dois, para não ocupar duas linhas.
+
 ## 12/11/2026 — Linha do tempo geral da Jornada em cenas, igual à do jogo (Lâmina)
 
 - O dono escolheu o efeito **A · Lâmina** e pediu que, em vez dos botões ←/→ de mês, ficasse embaixo do carrossel **a mesma régua da linha do tempo do jogo**, com **as capas dos jogos centradas na linha**. "Tudo igual à linha do tempo dos jogos."

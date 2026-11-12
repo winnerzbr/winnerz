@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: tiros nítidos e o mapa do Gungeon
+
+- No repositório `winnerzbr/lobby-dos-bugs`: o brilho dos tiros foi para baixo do desenho (o CD não parece mais uma bola de luz), os tiros do IAmiguinho redesenhados, o CD girando de verdade com ecos e quique de arco-íris; o mapa só mostra as salas visitadas (diretrizes D10 e C10).
+
 ## 12/11/2026 — Lobby dos Bugs: a 2ª leva das evoluções
 
 - No repositório `winnerzbr/lobby-dos-bugs`: as 10 formas evoluídas que faltavam, desenhadas pelo Claude em 32 pontos a partir dos conceitos do ChatGPT mandados pelo dono, com golpes mais fortes e sons próprios. Os 14 bugs comuns agora evoluem (tarefa 2 do M1 pronta).

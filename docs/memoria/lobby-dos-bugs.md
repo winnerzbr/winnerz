@@ -135,6 +135,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (17h10):** paredes internas mais variadas pelos 4 rascunhos do dono (as baias, o salão dividido, as paredes penduradas, a cruz solta), com poucos móveis e espaço para andar (não precisa ser o meio).
 
+**12/11/2026 (17h40):** salas de tamanhos variados (diretriz C14): pequenas, padrão, grandes e muito grandes, com o peso de cada tamanho por andar; 7 salas novas (banheiro, despensa e salinha técnica pequenas; salão e fliperama grandes; galpão e arena do campeonato muito grandes).
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

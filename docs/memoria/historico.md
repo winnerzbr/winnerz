@@ -6,7 +6,8 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ## 12/11/2026 — Logo do menu: dourado mais suave
 
-- O dono achou o dourado exagerado. As cores do degradê ficaram mais perto do dourado claro antigo (#E2BE84): escuro `#F2DAAA → #E2BA78 → #C4975C`; claro `#B98F55 → #9E733F → #80592E`. O brilho em volta ficou mais fraco. Tamanho e inclinação continuam iguais.
+- O dono achou o dourado exagerado. As cores do degradê ficaram mais perto do dourado claro antigo (#E2BE84): escuro `#F2DAAA → #E2BA78 → #C4975C`; O brilho em volta ficou mais fraco.
+- No tema claro, o logo do menu é **preto** (degradê `#33373E → #16181C → #050607`, com brilho branco no hover), a pedido do dono. Tamanho e inclinação continuam iguais.
 
 ## 12/11/2026 — Logo do menu maior, mais dourado e inclinando com o mouse
 

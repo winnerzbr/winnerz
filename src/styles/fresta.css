@@ -930,7 +930,7 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .bm-g1 { stop-color: var(--logo-g1, #F2DAAA); }
 .bm-g2 { stop-color: var(--logo-g2, #E2BA78); }
 .bm-g3 { stop-color: var(--logo-g3, #C4975C); }
-:root[data-theme='claro'] { --logo-g1: #B98F55; --logo-g2: #9E733F; --logo-g3: #80592E; }
+:root[data-theme='claro'] { --logo-g1: #33373E; --logo-g2: #16181C; --logo-g3: #050607; }
 .site-header__logo { perspective: 420px; }
 .site-header__tilt { position: relative; display: block; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2, .9, .2, 1); }
 .site-header__logo.is-tilt .site-header__tilt { transition: transform .12s linear; }
@@ -941,3 +941,4 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .site-header__logo.is-tilt .site-header__glare { opacity: 1; transition: opacity .35s .55s; }
 :root[data-motion='reduzidas'] .site-header__tilt { transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) { .site-header__tilt { transform: none; transition: none; } }
+:root[data-theme='claro'] .site-header__glare { background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, .5), rgba(255, 255, 255, .12) 30%, rgba(255, 255, 255, 0) 58%); }

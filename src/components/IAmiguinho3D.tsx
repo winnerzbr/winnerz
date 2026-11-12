@@ -4,7 +4,7 @@
  * fora da tela) e "pixels" (quadradinhos que se juntam e formam ele). Sai do mesmo jeito que entrou.
  * Um toque nele assusta; cinco deixam tonto. Com "reduzir movimento", aparece parado, sem entrada.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { Estado3D } from '../lib/iamiguinho3d';
 
 export type Entrada = 'borda' | 'andar' | 'pixels';
@@ -97,12 +97,28 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
     onCutucar?.(tonto);
   };
 
+  // A fala aparece letra por letra, depois que o balão abre (na hora, se ele já está aberto ou com "reduzir movimento").
+  const [letras, setLetras] = useState(quieto ? fala.length : 0);
+  const primeira = useRef(true);
+  useEffect(() => {
+    if (quieto) { setLetras(fala.length); return; }
+    if (!pronto) return;
+    setLetras(0);
+    const espera = primeira.current ? (modo === 'andar' ? 2000 : modo === 'borda' ? 1150 : 1450) : 0;
+    primeira.current = false;
+    let n = 0, iv: number | undefined;
+    const t = window.setTimeout(() => { iv = window.setInterval(() => { n += 2; setLetras(n); if (n >= fala.length) window.clearInterval(iv); }, 34); }, espera);
+    return () => { window.clearTimeout(t); window.clearInterval(iv); };
+  }, [fala, pronto]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <aside className={`iam3 iam3--${modo}${pronto ? ' is-pronto' : ''}${saindo ? ' is-saindo' : ''}${quieto ? ' is-quieto' : ''}`} role="status" aria-live="polite" aria-label="IAmiguinho"
       onMouseEnter={() => pausar(true)} onMouseLeave={() => pausar(false)} onFocus={() => pausar(true)} onBlur={() => pausar(false)}>
-      <div className="iam3__balao">
-        <p className="iam3__txt"><span className="iam-fala__quem">IAmiguinho <span className="iam-selo">Mascote</span></span>{fala}</p>
-        <button type="button" className="iam3__x" aria-label="Fechar o IAmiguinho" onClick={fechar}>×</button>
+      <div className="iam3__balao iam-tela">
+        <span className="iam-tela__nome" aria-hidden="true">IAmiguinho<i>mascote</i></span>
+        <p className="iam-tela__txt"><span className="sr-only">IAmiguinho, mascote: {fala}</span><span aria-hidden="true">{fala.slice(0, letras)}<span className="iam-tela__resto">{fala.slice(letras)}</span></span></p>
+        <button type="button" className="iam-tela__x" aria-label="Fechar o IAmiguinho" onClick={fechar}>×</button>
+        <span className="iam-tela__rabo" aria-hidden="true" />
       </div>
       <div className="iam3__palco">
         <canvas ref={canvas} className="iam3__c" aria-hidden="true" />
@@ -110,4 +126,54 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
       </div>
     </aside>
   );
+}
+
+/**
+ * Ele em 3D num lugar fixo da página (telas vazias, perfil, avisos das lives): só o boneco, sem balão.
+ * vista escolhe o enquadramento: 'corpo' inteiro ou 'cabeca'. Um toque assusta, cinco deixam tonto.
+ */
+export function Boneco3D({ anim = 'parado', rosto = 'normal', vista = 'corpo', yaw = 0, className = '', style, alt, onCutucar, onFalha }: {
+  anim?: string; rosto?: string; vista?: 'corpo' | 'cabeca' | 'busto'; yaw?: number; className?: string; style?: CSSProperties; alt?: string;
+  onCutucar?: (tonto: boolean) => void; onFalha?: () => void;
+}) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const [quieto] = useState(semMovimento);
+  const agora = useRef(0);
+  const toque = useRef<{ em: number; tonto: boolean } | null>(null);
+  const toques = useRef<number[]>([]);
+  const p = useRef({ anim, rosto, vista, yaw }); p.current = { anim, rosto, vista, yaw };
+  const falha = useRef(onFalha); falha.current = onFalha;
+  const [pronto, setPronto] = useState(false);
+  useEffect(() => {
+    const c = canvas.current;
+    if (!c) return;
+    let off: (() => void) | undefined, vivo = true;
+    const estado = (t: number): Estado3D => {
+      agora.current = t;
+      const q = p.current;
+      const e: Estado3D = { anim: q.anim, rosto: q.rosto, yaw: q.yaw, parado: quieto, t0: quieto ? 0 : undefined,
+        vista: q.vista === 'cabeca' ? [0.44, 1.02] : q.vista === 'busto' ? [0.37, 1.06] : q.anim === 'comemorar' ? [-0.03, 1.1] : [-0.03, 1.03] };
+      const tq = toque.current;
+      if (tq) { const d = t - tq.em; if (d > (tq.tonto ? 2.8 : 1.3)) toque.current = null; else { e.rosto = tq.tonto ? 'tonto' : 'surpreso'; if (tq.tonto) { e.anim = 'tonto'; e.t0 = tq.em; } e.helice = tq.tonto ? 0.2 : Math.min(1, d); } }
+      return e;
+    };
+    void import('../lib/iamiguinho3d').then(({ mountIAmiguinho }) => {
+      if (!vivo) return;
+      off = mountIAmiguinho(c, estado, () => { if (vivo) setPronto(true); }, () => { if (vivo) falha.current?.(); });
+    }).catch(() => { if (vivo) falha.current?.(); });
+    return () => { vivo = false; off?.(); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const cutucar = () => {
+    if (toque.current?.tonto) return;
+    const n = Date.now();
+    toques.current = [...toques.current.filter((x) => n - x < 4000), n];
+    const tonto = toques.current.length >= 5;
+    if (tonto) toques.current = [];
+    toque.current = { em: agora.current, tonto };
+    onCutucar?.(tonto);
+  };
+  const cls = `iam-b3${pronto ? ' is-pronto' : ''} ${className}`;
+  const c = <canvas ref={canvas} className="iam-b3__c" aria-hidden="true" />;
+  if (!onCutucar) return <span className={cls} style={style} role={alt ? 'img' : undefined} aria-label={alt || undefined} aria-hidden={alt ? undefined : true}>{c}</span>;
+  return <button type="button" className={`${cls} iam-b3--btn`} style={style} onClick={cutucar} aria-label={alt ? `${alt}. Toque para cutucar o IAmiguinho` : 'Cutucar o IAmiguinho'}>{c}</button>;
 }

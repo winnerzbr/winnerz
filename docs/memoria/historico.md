@@ -4,6 +4,15 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D, segunda rodada: dedos, rostos dos jogos, balão novo e os lugares antigos
+
+- Pedidos do dono: mãos segurando a borda de verdade (com ossos nos dedos); os rostos iguais aos dos jogos; balão de diálogo estilizado (o cartão era "padrão de IA"); trocar os lugares que ainda usavam o desenho antigo; mãos em posição neutra ou expressiva (não espalmadas); tirar as pontas que saíam do lado do tronco.
+- **Dedos:** 22 ossos agora. Em cada mão, os quatro dedos dobram juntos em dois ossos (base e meio) e o polegar tem o dele. Na borda, as mãos ficam de palma para baixo com os dedos fechados por cima dela. Parado, o braço fica solto com a palma virada para a perna e os dedos meio fechados; andando e comemorando, punhos; acenando, mão aberta de frente.
+- **Pontas no tronco:** eram vértices do lado da barriga puxados pelo braço; os pesos do braço agora só pegam o que está para fora do tronco.
+- **Rostos:** a folha `provas/volei/rostos_ia.png` do Jogos de Verão (uma fileira, em `public/modelos/iamiguinho-rostos.png`): normal, olhos fechados (pisca e sono), feliz, surpreso, sem jeito e decidido. As 12 expressões antigas e as reações das lives caem nesses seis.
+- **Balão** (`.iam-tela`, no fim de `iamiguinho.css`): a fala sai numa "tela" igual ao visor dele: vidro azul-escuro com cantos cortados, moldura de luz ciano, linhas de varredura, etiqueta "IAMIGUINHO mascote" presa no canto e um rabinho em raio. A fala aparece letra por letra. Vale para as aparições e para as telas vazias.
+- **Lugares antigos:** `Figura` (em `IAmiguinho.tsx`) agora desenha o modelo 3D (`Boneco3D`) a partir dos mesmos nomes de antes (pose-* e cara-*): telas vazias, página não encontrada, erro, carregando, perfil dele (foto e Momentos), Preferências, Chegada e os overlays das lives. As placas com texto e os enfeites de época das imagens antigas não existem no 3D (ficaram só na reserva sem 3D).
+
 ## 12/11/2026 — Folga entre botões vizinhos no site todo
 
 - Pedido do dono: botões lado a lado se sobrepunham na animação do hover ("Abrir a linha do tempo" e "Rever a jornada", e outros). Varredura: o mesmo acontecia no topo da página do jogo, no início, nos eventos, no álbum, nas Preferências e na linha do tempo.

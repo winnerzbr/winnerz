@@ -4,7 +4,7 @@ from load import *
 G=float(sys.argv[1]) if len(sys.argv)>1 else 0.0065
 d=np.load('out/full.npz'); sk=json.load(open('out/skel.json'))
 V,N,C,F,W,mat=d['V'],d['N'],d['C'],d['F'],d['W'],d['mat']
-grp=np.array([0,0,0,1,2,2,2,3,3,3,4,4,4,5,5,5]); part=grp[W.argmax(1)]
+grp=np.array([0,0,0,1,2,2,2,3,3,3,4,4,4,5,5,5,2,2,2,3,3,3]); part=grp[W.argmax(1)]
 an=np.abs(N); ax=an.argmax(1); nb=ax*2+(N[np.arange(len(N)),ax]>0)
 cell=np.floor(V/G).astype(np.int64); cell-=cell.min(0)
 key=((cell[:,0]*4096+cell[:,1])*4096+cell[:,2])*64+part*8+nb

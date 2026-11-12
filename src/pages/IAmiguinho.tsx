@@ -30,9 +30,9 @@ const LORE = [
 
 const MOMENTOS = [
   { pose: 'acenando', legenda: 'Recebendo quem chega' },
-  { pose: 'controle', legenda: 'Jogando. Mais ou menos.' },
+  { pose: 'trofeu', legenda: 'Comemorando antes da hora' },
   { pose: 'atrasado', legenda: 'Chegando ao evento' },
-  { pose: 'trofeu', legenda: 'Segurando um troféu que não é dele' },
+  { pose: 'dormindo', legenda: 'Economizando bateria' },
 ];
 
 export function IAmiguinhoPage() {
@@ -41,7 +41,7 @@ export function IAmiguinhoPage() {
     <main className="page pad iam-perfil">
       <section className="iam-perfil__hero">
         <div className="iam-perfil__foto">
-          <Figura img="pose-heroi" width={360} height={480} lazy={false} alt="O IAmiguinho em pose de herói, com a hélice soltando fumaça" onCutucar={(t) => setFala(sortear(t ? TONTO : CUTUCAR))} />
+          <Figura img="pose-heroi" width={360} height={480} lazy={false} alt="O IAmiguinho acenando, com a hélice girando" onCutucar={(t) => setFala(sortear(t ? TONTO : CUTUCAR))} />
           <p className="iam-perfil__toque" aria-live="polite">{fala ?? 'Toque nele. Com carinho.'}</p>
         </div>
         <div className="iam-perfil__id">

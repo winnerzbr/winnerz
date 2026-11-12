@@ -51,11 +51,11 @@ es=np.sort(e,1); u,idx,cnt=np.unique(es,axis=0,return_index=True,return_counts=T
 bd=idx[cnt==1]; be=eo[bd]
 nearcut=(np.abs(V[be[:,0],0])<0.004)&(np.abs(V[be[:,1],0])<0.004)&(V[be[:,0],1]<0.13)
 be=be[nearcut]; print('arestas de borda',len(be))
-newV=[];newN=[];newC=[];newF=[]
+newV=[];newN=[];newC=[];newF=[];rings=[]
 for s in (1,-1):
     k=side[be[:,0]]==s; e2=be[k]
     if not len(e2): continue
-    ring=np.unique(e2); ctr=V[ring].mean(0); ctr[0]=s*EPS
+    ring=np.unique(e2); rings.append(ring); ctr=V[ring].mean(0); ctr[0]=s*EPS
     ci=len(V)+len(newV); newV.append(ctr); newN.append([-s,0,0]); newC.append(np.median(C[ring],0))
     # orientação: normal da tampa aponta para -s (para dentro, entre os pés)
     a,b_=V[e2[:,0]],V[e2[:,1]]
@@ -65,7 +65,7 @@ for s in (1,-1):
     newF.append(f)
 nv0=len(V)
 V=np.r_[V,np.array(newV,np.float32)]; N=np.r_[N,np.array(newN,np.float32)]; C=np.r_[C,np.array(newC,np.float32)]; F=np.r_[F,np.concatenate(newF)]
-UV=np.r_[UV,np.zeros((len(newV),2),np.float32)]
+UV=np.r_[UV,UV[[e2r[0] for e2r in rings]]]
 side=np.sign(V[:,0]); side[side==0]=1
 # afasta as pernas (mais embaixo, nada no quadril)
 leg=((V[:,1]<0.30)&(np.abs(V[:,0])<0.125))|((V[:,1]<0.165)&(np.abs(V[:,0])<0.2))
@@ -105,12 +105,27 @@ for s,nm in ((1,'E'),(-1,'D')):
     sh=SH*[s,1,1]; ad=AD*[s,1,1]
     d=V-sh; t=d@ad; perp=np.linalg.norm(d-np.outer(t,ad),axis=1)
     rad=np.interp(t,[0.045,0.1,0.125],[0.036,0.075,0.16])
-    inarm=ss(-0.012,0.03,t)*(1-ss(rad,rad+0.012,perp))*(side==s)*(y<0.47)*(~leg)*ss(0.082,0.1,np.abs(x))
+    inarm=ss(-0.03,0.012,t)*(1-ss(rad,rad+0.012,perp))*(side==s)*(y<0.47)*(~leg)*ss(0.09,0.107,np.abs(x))
     i0=NAMES.index('braco'+nm)
     we=ss(0.055,0.09,t); ww=ss(0.125,0.15,t)
     up=(1-we); fo=we*(1-ww); ha=ww
     W*= (1-inarm)[:,None]
     W[:,i0]+=inarm*up; W[:,i0+1]+=inarm*fo; W[:,i0+2]+=inarm*ha
+# dedos: os quatro dedos juntos em dois ossos (base e meio) e o polegar, em cada mão
+MA=np.load('out/mao.npz'); AXh,LAh,NOh=MA['ax'],MA['la'],MA['no']
+NAMES+=['dedosE','dedos2E','polegarE','dedosD','dedos2D','polegarD']
+PARENT+=[6,16,6,9,19,9]
+W=np.c_[W,np.zeros((len(V),6),np.float32)]
+for s_,nm,ih in ((1,'E',6),(-1,'D',9)):
+    wr=np.array(J['mao'+nm]); axh=AXh*[s_,1,1]; lah=LAh*[s_,1,1]
+    q=V-wr; t=q@axh; l=q@lah
+    th_dir=np.array([0.40,0.92]); ts=(t-0.052)*th_dir[0]+(l-0.045)*th_dir[1]; tp=-(t-0.052)*th_dir[1]+(l-0.045)*th_dir[0]
+    isth=ss(0.006,0.03,ts)*(np.abs(tp)<0.032)*(l>0.048)
+    wA=ss(0.088,0.116,t)*(1-(isth>0)); wB=ss(0.132,0.152,t)*(wA>0)
+    base=W[:,ih].copy(); i0=NAMES.index('dedos'+nm)
+    W[:,i0]=base*wA*(1-wB); W[:,i0+1]=base*wA*wB; W[:,i0+2]=base*isth; W[:,ih]=base*(1-wA)*(1-isth)
+    J['dedos'+nm]=(wr+axh*0.102+lah*0.004).tolist(); J['dedos2'+nm]=(wr+axh*0.142+lah*0.004).tolist(); J['polegar'+nm]=(wr+axh*0.055+lah*0.05).tolist()
+nb=len(NAMES)
 # hélice
 W[propm]=0; W[propm,3]=1
 W/=W.sum(1,keepdims=True)
@@ -120,5 +135,5 @@ mat=np.zeros(len(V),np.uint8)
 mat[(y>0.5)&(y<0.72)&(V[:,2]>0.08)&(r<45)&(g<55)&(b<115)&(np.abs(x)<0.2)]=1
 mat[(g>170)&(b>190)&(r<110)&(y>0.5)]=2
 np.savez('out/full.npz',V=V,N=N,C=C,F=F,W=W,mat=mat,UV=UV,nv0=nv0)
-json.dump({'names':NAMES,'parent':PARENT,'joints':[J[n] for n in NAMES]},open('out/skel.json','w'))
+json.dump({'names':NAMES,'parent':PARENT,'joints':[J[n] for n in NAMES],'mao':{'ax':AXh.tolist(),'la':LAh.tolist(),'no':NOh.tolist()}},open('out/skel.json','w'))
 print('ok',V.shape,F.shape)

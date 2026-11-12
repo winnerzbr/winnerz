@@ -203,8 +203,6 @@ html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *
 .iam3--borda.is-saindo .iam3__palco { transform: translateY(104%); transition: transform .5s cubic-bezier(.5, 0, .9, .4); }
 /* balão */
 .iam3__balao { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; width: min(320px, calc(100vw - 28px)); margin: 0 6px 12px 0; padding: 12px 6px 13px 16px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--iam); box-shadow: 0 18px 40px rgba(0, 0, 0, .45); pointer-events: auto; opacity: 0; transform: translateY(10px) scale(.96); transform-origin: 82% 100%; }
-.iam3__balao::after { content: ''; position: absolute; right: 84px; bottom: -11px; width: 20px; height: 11px; background: var(--surface); clip-path: polygon(0 0, 100% 0, 70% 100%); filter: drop-shadow(0 1px 0 var(--line)); }
-.iam3--borda .iam3__balao::after { right: 112px; }
 .iam3.is-pronto .iam3__balao { animation: iam3-fala .34s cubic-bezier(.2, .9, .3, 1.25) both; animation-delay: 1.25s; }
 .iam3--andar.is-pronto .iam3__balao { animation-delay: 1.8s; }
 .iam3--borda.is-pronto .iam3__balao { animation-delay: .95s; }
@@ -220,7 +218,34 @@ html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *
   .iam3 { right: 6px; }
   .iam3__palco { width: 150px; height: 207px; }
   .iam3--borda .iam3__palco { width: 196px; height: 203px; }
-  .iam3__balao::after { right: 64px; }
-  .iam3--borda .iam3__balao::after { right: 92px; }
 }
 .iam-perfil__chamar .chips { margin-top: 10px; }
+
+/* ---- Boneco 3D num lugar da página -------------------------------------------------------------------------- */
+.iam-b3 { position: relative; display: inline-block; padding: 0; border: 0; background: none; vertical-align: bottom; line-height: 0; opacity: 0; transition: opacity .25s; }
+.iam-b3.is-pronto { opacity: 1; }
+.iam-b3__c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.iam-b3--btn { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.iam-b3--btn:focus-visible { outline: 2px solid var(--iam); outline-offset: 2px; }
+
+/* ---- Balão de diálogo do IAmiguinho (12/11/2026): a fala sai numa "tela" igual ao visor dele --------------------
+   Vidro azul-escuro inclinado, moldura de luz ciano com um vão, linhas de varredura, o nome numa etiqueta presa no
+   canto e um rabinho em raio apontando para ele. Vale no tema claro e no escuro (é a tela dele). */
+.iam-tela { --tl: #6fe6ff; --tv: #0a1530; position: relative; isolation: isolate; box-sizing: border-box; border: 0 !important; background: none !important; box-shadow: none !important; color: #eaf8ff; padding: 20px 40px 18px 30px; filter: drop-shadow(0 14px 22px rgba(0, 0, 0, .5)) drop-shadow(0 0 10px rgba(80, 220, 255, .22)); }
+.iam-tela::before { content: ''; position: absolute; inset: 0; z-index: -2; background: var(--tl); clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 16px) 100%, 0 100%, 0 14px); width: auto; height: auto; left: 0; bottom: 0; }
+.iam-tela::after { content: ''; position: absolute; inset: 2px; z-index: -1; clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 13px), calc(100% - 15px) 100%, 0 100%, 0 13px); width: auto; height: auto; right: 2px; bottom: 2px; filter: none;
+  background: repeating-linear-gradient(0deg, rgba(120, 220, 255, .045) 0 1px, transparent 1px 4px), radial-gradient(120% 90% at 20% 0%, #14285a 0%, var(--tv) 62%), var(--tv); }
+.iam-tela__nome { position: absolute; left: 20px; top: -11px; display: inline-flex; align-items: baseline; gap: 8px; padding: 4px 12px 4px 10px; background: var(--tl); color: #061022; font: 800 11.5px/1 var(--font-title); font-stretch: 125%; letter-spacing: .06em; text-transform: uppercase; transform: skewX(-14deg); }
+.iam-tela__nome i { font: 600 9.5px/1 var(--font-mono); letter-spacing: .14em; font-style: normal; opacity: .7; }
+.iam-tela__txt { display: block; margin: 0; font: 500 14.5px/1.5 var(--font-ui); color: #eaf8ff; text-shadow: 0 0 12px rgba(111, 230, 255, .35); }
+.iam-tela__resto { visibility: hidden; }
+.iam-tela__x { position: absolute; right: 6px; top: 6px; width: 30px; height: 30px; border: 0; background: none; color: #8fdcf2; font-size: 20px; line-height: 1; cursor: pointer; }
+.iam-tela__x:hover, .iam-tela__x:focus-visible { color: #fff; }
+.iam-tela__rabo { position: absolute; right: 86px; bottom: -17px; width: 26px; height: 19px; background: var(--tl); clip-path: polygon(0 0, 100% 0, 62% 44%, 84% 44%, 30% 100%, 44% 52%, 22% 52%); }
+.iam-tela__rabo--lado { right: auto; left: -18px; bottom: 16px; width: 20px; height: 22px; clip-path: polygon(100% 0, 100% 100%, 52% 70%, 58% 96%, 0 44%, 50% 52%, 44% 26%); }
+.iam3__balao.iam-tela { display: block; width: min(330px, calc(100vw - 28px)); margin: 0 4px 22px 0; padding: 22px 38px 18px 28px; }
+.iam3--borda .iam3__balao .iam-tela__rabo { right: 112px; }
+.iam-fala.iam-tela { margin: 0 0 22px 6px; padding: 20px 24px 16px 26px; max-width: 420px; }
+@media (max-width: 760px) { .iam-tela__rabo { right: 66px; } .iam3--borda .iam3__balao .iam-tela__rabo { right: 92px; } }
+.iam-fig.iam-b3 { animation: none; }
+.iam-fala.iam-tela::before { left: 0; bottom: 0; width: auto; height: auto; }

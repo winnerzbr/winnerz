@@ -7,7 +7,7 @@
      dela; o rosto é desenhado na tela pelo sombreador (olhos e boca de luz), pisca e muda de expressão.
    - "pix" (0..1) desmonta ele em quadradinhos (a entrada "pixels"). */
 const VS = `attribute vec4 aP;attribute vec4 aN;attribute vec4 aC;attribute vec4 aB;
-uniform mat4 uVP;uniform mat4 uBo[16];uniform vec4 uCS;uniform float uPix;uniform vec2 uRes;uniform float uT;uniform float uPt;
+uniform mat4 uVP;uniform mat4 uBo[24];uniform vec4 uCS;uniform float uPix;uniform vec2 uRes;uniform float uT;uniform float uPt;
 varying vec3 vN;varying vec3 vC;varying vec3 vR;varying float vM;varying vec3 vW;
 void main(){vec3 r=aP.xyz*uCS.w+uCS.xyz;vec4 p=vec4(r,1.);float w=aB.z;
  mat4 m0=uBo[int(aB.x+.5)],m1=uBo[int(aB.y+.5)];
@@ -19,22 +19,7 @@ void main(){vec3 r=aP.xyz*uCS.w+uCS.xyz;vec4 p=vec4(r,1.);float w=aB.z;
   vec4 c=uVP*q;float s=mix(4.,7.,uPix)*uRes.y/300.;vec2 px=c.xy/c.w*uRes*.5;px=(floor(px/s)+.5)*s;c.xy=px/(uRes*.5)*c.w;gl_Position=c;gl_PointSize=s+.6;}
  else gl_Position=uVP*q;}`;
 const FS = `precision highp float;varying vec3 vN;varying vec3 vC;varying vec3 vR;varying float vM;varying vec3 vW;
-uniform vec3 uCam;uniform float uT;uniform float uPt;uniform vec4 uFa;uniform vec4 uFb;uniform float uAl;
-float seg(vec2 p,vec2 a,vec2 b){vec2 pa=p-a,ba=b-a;return length(pa-ba*clamp(dot(pa,ba)/dot(ba,ba),0.,1.));}
-float arc(vec2 p,float r,float up){p.y*=up;float d=abs(length(p-vec2(0.,-r*.45))-r);return p.y>-r*.45+r*.42?d:min(length(p-vec2(-r*.91,-r*.03)),length(p-vec2(r*.91,-r*.03)));}
-float olho(vec2 p,float tp,float bl){float r=.024;
- if(tp<.5){return arc(p,r,1.)-.0075;}
- if(tp<1.5){p.y/=max(bl,.12);return length(p)-.013;}
- if(tp<2.5){return abs(length(p)-.021)-.0055;}
- if(tp<3.5){return seg(p,vec2(-.022,0.),vec2(.022,0.))-.007;}
- if(tp<4.5){return arc(p,r,-1.)-.0075;}
- float a=uT*5.;float c=cos(a),s=sin(a);p=vec2(c*p.x-s*p.y,s*p.x+c*p.y);return min(seg(p,vec2(-.02),vec2(.02)),seg(p,vec2(-.02,.02),vec2(.02,-.02)))-.006;}
-float boca(vec2 p,float tp){
- if(tp<.5){float d=length(p*vec2(1.,1.25)-vec2(0.,.012))-.04;return max(d,p.y-.006);}
- if(tp<1.5){return abs(length(p*vec2(1.,.8))-.012)-.005;}
- if(tp<2.5){return seg(p,vec2(-.022,0.),vec2(.022,0.))-.006;}
- if(tp<3.5){float d=length(p*vec2(.82,1.)-vec2(0.,.02))-.05;return max(d,p.y-.012);}
- return seg(p,vec2(-.03,-.004),vec2(.03,.008))-.0065;}
+uniform vec3 uCam;uniform float uT;uniform float uPt;uniform vec4 uFa;uniform vec4 uFb;uniform float uAl;uniform sampler2D uFc;
 void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);
  if(uPt>.5){vec3 c=floor(vC*6.+.5)/6.;gl_FragColor=vec4(c*uAl,uAl);return;}
  vec3 L=normalize(vec3(.35,.75,.6));float nl=dot(n,L);float li=smoothstep(-.25,.55,nl);float nv=max(dot(n,v),0.);
@@ -43,15 +28,13 @@ void main(){vec3 n=normalize(vN);vec3 v=normalize(uCam-vW);
  vec3 h=normalize(L+v);col+=pow(max(dot(n,h),0.),40.)*.14;
  if(vM>1.5){col=vC*1.05+vec3(.1,.25,.3)*(.5+.5*sin(uT*2.));}
  else if(vM>.5){
-  vec2 p=vec2(vR.x,vR.y-.612);float gl=0.;
-  vec2 lk=vec2(uFb.z,uFb.w);
-  vec2 e=vec2(abs(p.x-lk.x)-.074,p.y-.022-lk.y);float tpe=p.x-lk.x>0.?uFa.y:uFa.x;
-  float d=min(olho(e,tpe,uFb.x),boca(p-vec2(lk.x*.5,-.052),uFa.z));
-  gl=smoothstep(.004,-.004,d);float halo=smoothstep(.045,0.,d)*.22;
+  vec2 p=vec2(vR.x,vR.y-.606)-vec2(uFb.z,uFb.w);
+  vec2 f=vec2(p.x/.47+.5,.5-p.y/.3357);vec4 tx=vec4(0.);
+  if(f.x>0.&&f.x<1.&&f.y>0.&&f.y<1.)tx=texture2D(uFc,vec2((uFa.x+f.x)/6.,f.y));
   vec3 gls=vec3(.045,.085,.2)+pow(1.-nv,2.)*vec3(.12,.18,.3);
-  gls+=smoothstep(.06,.0,abs(p.x*.9-p.y*.6+.11))*.05*smoothstep(.2,.0,abs(p.x));
+  gls+=smoothstep(.06,.0,abs(vR.x*.9-(vR.y-.612)*.6+.11))*.05*smoothstep(.2,.0,abs(vR.x));
   float scan=.94+.06*sin(vR.y*900.);
-  col=gls+(vec3(.5,.93,1.)*gl+vec3(.25,.7,1.)*halo)*uFb.y*scan;col+=pow(max(dot(n,h),0.),90.)*.5;}
+  col=gls+tx.rgb*tx.a*1.15*uFb.y*scan;col+=pow(max(dot(n,h),0.),90.)*.5;}
  gl_FragColor=vec4(col*uAl,uAl);}`;
 
 /* ---- contas de 3×3 e 4×4 ---- */
@@ -69,6 +52,9 @@ function aim(a, b) {
   const k = 1 / (1 + c);
   return [v[0] * v[0] * k + c, v[0] * v[1] * k - v[2], v[0] * v[2] * k + v[1], v[1] * v[0] * k + v[2], v[1] * v[1] * k + c, v[1] * v[2] * k - v[0], v[2] * v[0] * k - v[1], v[2] * v[1] * k + v[0], v[2] * v[2] * k + c];
 }
+const rax = (ax, t) => { const [x, y, z] = nrm(ax), c = Math.cos(t), s = Math.sin(t), k = 1 - c; return [c + x * x * k, x * y * k - z * s, x * z * k + y * s, y * x * k + z * s, c + y * y * k, y * z * k - x * s, z * x * k - y * s, z * y * k + x * s, c + z * z * k]; };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const MAO_AX = [0.6348, -0.7403, 0.2212], MAO_LA = [0.7517, 0.658, 0.0451], MAO_PALMA = [-0.1789, 0.1377, 0.9742]; // mão esquerda dele em repouso: direção dos dedos, eixo dos nós, palma
 const AD = nrm([0.59, -0.77, 0.24]); // direção do braço em repouso (lado esquerdo dele, x > 0)
 const lado = (v, s) => [v[0] * s, v[1], v[2]];
 const ease = (t) => { t = Math.max(0, Math.min(1, t)); return t * t * (3 - 2 * t); };
@@ -80,8 +66,21 @@ const mixv = (a, b, t) => nrm([mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2],
 function braco(P, s, up, fore, mao) {
   const i = s > 0 ? 4 : 7, rest = lado(AD, s);
   const Ru = aim(rest, nrm(lado(up, s))), Rf = aim(rest, nrm(lado(fore || up, s)));
-  P[i] = Ru; P[i + 1] = mul3(tr3(Ru), Rf); if (mao) P[i + 2] = mao;
+  P[i] = Ru; P[i + 1] = mul3(tr3(Ru), Rf);
+  if (mao && mao.dedo) { // mão virada no espaço do corpo: para onde apontam os dedos e a palma
+    const base = (a, p) => { const c = nrm(cross(a, p)), p2 = cross(c, a); return [a[0], p2[0], c[0], a[1], p2[1], c[1], a[2], p2[2], c[2]]; };
+    const R = mul3(base(nrm(lado(mao.dedo, s)), nrm(lado(mao.palma, s))), tr3(base(nrm(lado(MAO_AX, s)), nrm(lado(MAO_PALMA, s)))));
+    P[i + 2] = mul3(tr3(Rf), R);
+  } else if (mao) P[i + 2] = mao;
 }
+/** Fecha os dedos (0 aberto, perto de 1,3 fechado) e o polegar de uma mão. */
+function dedos(P, s, fecha, polegar) {
+  const i = s > 0 ? 16 : 19, la = lado(MAO_LA, s);
+  P[i] = rax(la, -s * fecha); P[i + 1] = rax(la, -s * fecha * 0.9); P[i + 2] = rax(lado(MAO_AX, s), s * (polegar == null ? fecha * 0.5 : polegar));
+}
+
+/** Braço solto ao lado do corpo: palma virada para a perna, dedos meio fechados (a mão não fica espalmada). */
+function neutra(P, s, up, fore) { braco(P, s, up, fore, { dedo: fore, palma: [-1, 0.1, 0.35] }); dedos(P, s, 0.6, 0.35); }
 
 /** As animações: cada uma devolve a pose no tempo t (segundos desde que começou). */
 const ANIM = {
@@ -89,14 +88,14 @@ const ANIM = {
     P.y = Math.sin(t * 1.8) * 0.004;
     P[1] = rx(Math.sin(t * 1.8) * 0.02);
     P[2] = mul3(rz(Math.sin(t * 0.9) * 0.05), ry(Math.sin(t * 0.55) * 0.12));
-    for (const s of [1, -1]) braco(P, s, [0.55 + Math.sin(t * 1.8 + s) * 0.03, -0.8, 0.2], [0.5, -0.8, 0.34]);
+    for (const s of [1, -1]) neutra(P, s, [0.5 + Math.sin(t * 1.8 + s) * 0.03, -0.84, 0.16], [0.4, -0.84, 0.36]);
   },
   acenar(t, P) {
     ANIM.parado(t, P);
     const k = ease(t / 0.35);
     P[2] = mul3(rz(0.1 * k + Math.sin(t * 0.9) * 0.04), ry(0.08));
-    braco(P, 1, mixv([0.55, -0.8, 0.2], [0.72, 0.62, 0.25], k), mixv([0.5, -0.8, 0.34], [0.3 + Math.sin(t * 9) * 0.38, 0.9, 0.2], k), rz(Math.sin(t * 9 + 0.6) * 0.3 * k));
-    P[1] = rz(-0.05 * k);
+    braco(P, 1, mixv([0.55, -0.8, 0.2], [0.72, 0.62, 0.25], k), mixv([0.5, -0.8, 0.34], [0.3 + Math.sin(t * 9) * 0.38, 0.9, 0.2], k), { dedo: [0.15 + Math.sin(t * 9 + 0.5) * 0.5, 1, 0.1], palma: [0, 0, 1] });
+    P[1] = rz(-0.05 * k); dedos(P, 1, 0.04, -0.15);
   },
   andar(t, P) {
     const w = t * 9, a = Math.sin(w);
@@ -105,14 +104,13 @@ const ANIM = {
     P[2] = mul3(ry(a * 0.08), rz(Math.cos(w) * 0.03));
     P[10] = rx(-a * 0.62); P[11] = rx(Math.max(0, -Math.cos(w)) * 0.9 + 0.08); P[12] = rx(Math.max(0, Math.sin(w + 0.6)) * -0.3);
     P[13] = rx(a * 0.62); P[14] = rx(Math.max(0, Math.cos(w)) * 0.9 + 0.08); P[15] = rx(Math.max(0, -Math.sin(w + 0.6)) * -0.3);
-    braco(P, 1, [0.42, -0.86, 0.1 + a * 0.5], [0.4, -0.7, 0.35 + a * 0.6]);
-    braco(P, -1, [0.42, -0.86, 0.1 - a * 0.5], [0.4, -0.7, 0.35 - a * 0.6]);
+    for (const s of [1, -1]) { const f = [0.4, -0.7, 0.35 + s * a * 0.6]; braco(P, s, [0.42, -0.86, 0.1 + s * a * 0.5], f, { dedo: f, palma: [-1, 0, 0.2] }); dedos(P, s, 1.05, 0.7); }
   },
   comemorar(t, P) {
     const j = Math.abs(Math.sin(t * 5.2)), k = ease(t / 0.3);
     P.y = j * 0.05 * k; P[0] = rz(Math.sin(t * 5.2) * 0.05);
     P[2] = mul3(rx(-0.12 * k), rz(Math.sin(t * 5.2) * 0.08));
-    for (const s of [1, -1]) braco(P, s, mixv([0.55, -0.8, 0.2], [0.85, 0.5, 0.15], k), mixv([0.5, -0.8, 0.34], [0.6 + Math.sin(t * 10.4 + s) * 0.2, 0.8, 0.15], k));
+    for (const s of [1, -1]) { const f = mixv([0.5, -0.8, 0.34], [0.6 + Math.sin(t * 10.4 + s) * 0.2, 0.8, 0.15], k); braco(P, s, mixv([0.55, -0.8, 0.2], [0.85, 0.5, 0.15], k), f, { dedo: f, palma: [-0.3, 0, 1] }); dedos(P, s, 0.2 + 1.0 * k, 0.8 * k); }
     const d = (1 - j) * 0.5 * k;
     P[10] = rz(0.12 * k); P[13] = rz(-0.12 * k); P[11] = rx(d); P[14] = rx(d); P[10] = mul3(P[10], rx(-d * 0.5)); P[13] = mul3(P[13], rx(-d * 0.5));
   },
@@ -124,13 +122,14 @@ const ANIM = {
     // As mãos ficam na altura da borda: quanto mais baixo o corpo, mais para cima apontam os braços.
     const alvo = 0.405 - P.y - 0.425, sn = Math.max(-0.95, Math.min(0.95, alvo / 0.2));
     const up = [0.2, sn, Math.sqrt(Math.max(0.05, 1 - sn * sn - 0.04))];
-    for (const s of [1, -1]) braco(P, s, up, [-0.1, up[1] + 0.1, up[2] + 0.3], mul3(rx(-0.9), rz(s * 0.5)));
+    // mãos em cima da borda, palma para baixo, dedos fechados por cima dela
+    for (const s of [1, -1]) { braco(P, s, up, [-0.05, up[1] - 0.05, up[2] + 0.3], { dedo: [-0.12, -0.25, 1], palma: [0, -1, -0.2] }); dedos(P, s, 1.05, 0.5); }
     P[2] = mul3(rx(0.1 * sobe + fol * 0.02), mul3(rz(Math.sin(t * 0.8) * 0.06 * sobe), ry(Math.sin(t * 0.6) * 0.16 * sobe)));
     P[1] = rx(0.12);
   },
   dormir(t, P) {
     P[2] = mul3(rx(0.28 + Math.sin(t * 1.1) * 0.04), rz(0.12)); P[1] = rx(0.1 + Math.sin(t * 1.1) * 0.02);
-    for (const s of [1, -1]) braco(P, s, [0.4, -0.9, 0.15], [0.35, -0.9, 0.25]);
+    for (const s of [1, -1]) neutra(P, s, [0.4, -0.9, 0.15], [0.35, -0.9, 0.25]);
     P.hel = 0.12;
   },
   tonto(t, P) {
@@ -139,11 +138,11 @@ const ANIM = {
     P.hel = 0.25;
   },
 };
-/* Rosto: [olho esquerdo na tela, olho direito na tela, boca]. Olhos: 0 arco feliz, 1 ponto (pisca), 2 anel, 3 traço,
-   4 arco para baixo, 5 xis girando. Boca: 0 meia-lua, 1 "o", 2 traço, 3 meia-lua grande, 4 traço torto. */
+/* Rosto: os rostos dos jogos (folha rostos_ia.png do Jogos de Verão, uma fileira em /modelos/iamiguinho-rostos.png).
+   Colunas: 0 normal, 1 olhos fechados (piscar, sono), 2 feliz, 3 surpreso, 4 sem jeito, 5 decidido. */
 const ROSTO = {
-  'sorriso-confiante': [0, 0, 0], feliz: [0, 0, 3], comemorando: [0, 0, 3], orgulhoso: [0, 0, 4], curioso: [2, 1, 1], pensando: [1, 1, 2],
-  surpreso: [2, 2, 1], 'sem-jeito': [4, 4, 2], tonto: [5, 5, 2], perdido: [1, 1, 2], sonolento: [3, 3, 1], piscando: [0, 1, 0], normal: [1, 1, 0],
+  normal: 0, 'sorriso-confiante': 0, pensando: 0, curioso: 3, feliz: 2, comemorando: 2, orgulhoso: 5, piscando: 2,
+  surpreso: 3, 'sem-jeito': 4, tonto: 4, perdido: 4, sonolento: 1, decidido: 5,
 };
 
 let modeloP = null;
@@ -181,7 +180,7 @@ export function mountIAmiguinho(canvas, estado, onReady, onFail) {
     pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
     if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr) || 'link');
   } catch (e) { console.warn('IAmiguinho 3D:', e); fail(); return () => {}; }
-  for (const n of ['uVP', 'uBo', 'uCS', 'uPix', 'uRes', 'uT', 'uPt', 'uCam', 'uFa', 'uFb', 'uAl']) U[n] = gl.getUniformLocation(pr, n);
+  for (const n of ['uVP', 'uBo', 'uCS', 'uPix', 'uRes', 'uT', 'uPt', 'uCam', 'uFa', 'uFb', 'uAl', 'uFc']) U[n] = gl.getUniformLocation(pr, n);
   const io = typeof IntersectionObserver !== 'undefined' ? new IntersectionObserver((e) => { visivel = e[0].isIntersecting; }) : null;
   io?.observe(canvas);
   const perdeu = (e) => { e.preventDefault(); cancelAnimationFrame(raf); fail(); };
@@ -198,9 +197,13 @@ export function mountIAmiguinho(canvas, estado, onReady, onFail) {
     if (m.nV > 65535 && !gl.getExtension('OES_element_index_uint')) { fail(); return; }
     const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, m.idx, gl.STATIC_DRAW);
     const IT = m.nV > 65535 ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT;
-    gl.uniform4f(U.uCS, m.cs[0], m.cs[1], m.cs[2], m.cs[3] );
+    gl.uniform4f(U.uCS, m.cs[0], m.cs[1], m.cs[2], m.cs[3]);
+    // folha de rostos (até carregar, a tela fica apagada)
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(4));
+    const im = new Image(); im.onload = () => { if (!vivo) return; gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); };
+    im.src = '/modelos/iamiguinho-rostos.png'; gl.uniform1i(U.uFc, 0);
     gl.enable(gl.DEPTH_TEST); gl.enable(gl.CULL_FACE); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    const bones = new Float32Array(16 * 16), W = new Array(16);
+    const bones = new Float32Array(24 * 16), W = new Array(24);
     const t00 = performance.now() / 1000; let hel = 0, last = t00, pisca = 2 + Math.random() * 3, olhar = [0, 0], olharAlvo = [0, 0], olharEm = 0, pronto = false;
     const frame = () => {
       if (!vivo) return;
@@ -242,12 +245,13 @@ export function mountIAmiguinho(canvas, estado, onReady, onFail) {
       gl.uniformMatrix4fv(U.uVP, false, VP); gl.uniformMatrix4fv(U.uBo, false, bones);
       gl.uniform2f(U.uRes, cw, ch); gl.uniform1f(U.uT, now - t00); gl.uniform3f(U.uCam, eye[0], eye[1], eye[2]);
       // rosto
-      const rs = ROSTO[E.rosto] || ROSTO.normal;
+      let rs = ROSTO[E.rosto] ?? 0;
       pisca -= dt; let bl = 1; if (pisca < 0.14) bl = Math.abs(pisca - 0.07) / 0.07; if (pisca < 0) pisca = 2.2 + Math.random() * 3.5;
       if (now > olharEm) { olharEm = now + 1.6 + Math.random() * 2.8; olharAlvo = Math.random() < 0.45 ? [0, 0] : [(Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.016]; }
       olhar[0] += (olharAlvo[0] - olhar[0]) * Math.min(1, dt * 7); olhar[1] += (olharAlvo[1] - olhar[1]) * Math.min(1, dt * 7);
       if (E.parado) { bl = 1; olhar = [0, 0]; }
-      gl.uniform4f(U.uFa, rs[0], rs[1], rs[2], 0); gl.uniform4f(U.uFb, bl, E.tela == null ? 1 : E.tela, olhar[0], olhar[1]);
+      if (bl < 0.55 && rs === 0) rs = 1;
+      gl.uniform4f(U.uFa, rs, 0, 0, 0); gl.uniform4f(U.uFb, bl, E.tela == null ? 1 : E.tela, olhar[0], olhar[1]);
       const pix = Math.max(0, Math.min(1, E.pix || 0));
       gl.uniform1f(U.uPix, pix);
       if (pix > 0.001) {

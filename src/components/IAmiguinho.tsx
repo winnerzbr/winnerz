@@ -13,7 +13,7 @@ import { HELICE } from '../lib/iamiguinhoHelice';
 import { MASCARA, PLACA, TELA } from '../lib/iamiguinhoTela';
 import { arrumarPlaca, dePassagem, expressaoDe, rosto, type Expressao } from '../lib/iamiguinhoRosto';
 import { PLACA_EPOCA, PLACA_MOMENTO } from '../lib/iamiguinhoFalas';
-import { Aparicao3D } from './IAmiguinho3D';
+import { Aparicao3D, Boneco3D } from './IAmiguinho3D';
 
 const useModo = () => useStore((s) => s.prefs.iamiguinho ?? 'normal');
 
@@ -30,7 +30,7 @@ const movimentoReduzido = () => {
  * expressao troca a cara de repouso da imagem. Nas poses com placa, placa é o texto escrito nela (numa época de festa,
  * a placa fala da época).
  */
-export function Figura({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '', expressao, placa }: {
+function FiguraAntiga({ img, className = '', width, height, parada = false, enfeite = true, onCutucar, lazy = true, alt = '', expressao, placa }: {
   img: string; className?: string; width: number; height: number; parada?: boolean; enfeite?: boolean;
   onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string; expressao?: Expressao; placa?: string;
 }) {
@@ -110,6 +110,37 @@ export function Figura({ img, className = '', width, height, parada = false, enf
   return <button type="button" className={`${cls} iam-fig--btn`} onClick={tap} {...olhar} aria-label={alt ? `${alt}. Toque para cutucar o IAmiguinho` : 'Cutucar o IAmiguinho'}>{conteudo}</button>;
 }
 
+/** Cada pose antiga vira uma animação e um rosto do modelo 3D. */
+const POSE3D: Record<string, { anim: string; rosto?: string }> = {
+  acenando: { anim: 'acenar', rosto: 'feliz' }, placa: { anim: 'acenar' }, planando: { anim: 'parado' }, dormindo: { anim: 'dormir', rosto: 'sonolento' },
+  mapa: { anim: 'parado', rosto: 'perdido' }, cabo: { anim: 'parado', rosto: 'sem-jeito' }, heroi: { anim: 'acenar', rosto: 'orgulhoso' },
+  controle: { anim: 'parado', rosto: 'feliz' }, atrasado: { anim: 'andar', rosto: 'surpreso' }, trofeu: { anim: 'comemorar', rosto: 'comemorando' }, espiando: { anim: 'borda', rosto: 'curioso' },
+};
+/** As reações da live nos rostos dos jogos. */
+const REACAO3D: Record<string, string> = {
+  rindo: 'feliz', 'chorando-de-rir': 'feliz', zoando: 'feliz', apaixonado: 'feliz', desconfiado: 'decidido', bravinho: 'decidido', oculos: 'decidido',
+  'game-over': 'sem-jeito', careta: 'sem-jeito', berrando: 'surpreso',
+};
+/**
+ * O IAmiguinho num lugar da página (12/11/2026): o modelo 3D dos jogos, animado, no lugar das imagens antigas.
+ * Recebe os mesmos nomes de antes (pose-* ou cara-*) e escolhe a animação, o rosto e o enquadramento.
+ * Se o aparelho não tiver 3D, mostra a imagem antiga.
+ */
+export function Figura(props: {
+  img: string; className?: string; width: number; height: number; parada?: boolean; enfeite?: boolean;
+  onCutucar?: (tonto: boolean) => void; lazy?: boolean; alt?: string; expressao?: Expressao; placa?: string;
+}) {
+  const [sem3d, setSem3d] = useState(false);
+  if (sem3d) return <FiguraAntiga {...props} />;
+  const { img, className = '', width, height, expressao, alt, onCutucar } = props;
+  const cara = img.startsWith('cara-');
+  const nome = img.replace(/^(cara|pose)-/, '');
+  const pose = POSE3D[nome];
+  const rosto = REACAO3D[expressao ?? ''] ?? expressao ?? (cara ? nome : pose?.rosto ?? 'normal');
+  return <Boneco3D className={`iam-fig ${className}`} style={{ aspectRatio: `${width} / ${height}` }} anim={cara ? 'parado' : pose?.anim ?? 'parado'} rosto={rosto}
+    vista={cara ? 'cabeca' : nome === 'espiando' ? 'busto' : 'corpo'} alt={alt} onCutucar={onCutucar} onFalha={() => setSem3d(true)} />;
+}
+
 /** O enfeite da época, desenhado ao lado dele (nunca por cima do rosto). */
 function Enfeite({ epoca }: { epoca: Epoca }) {
   const svg: Record<Epoca, ReactNode> = {
@@ -156,7 +187,7 @@ export function MascoteVazio({ momento, className = '' }: { momento: Interface; 
   return (
     <div className={`iam-vazio ${className}`}>
       <Figura img={`pose-${pose}`} placa={PLACA_MOMENTO[momento]} className="iam-vazio__pose" width={180} height={240} parada={pose === 'dormindo'} onCutucar={(t) => setFala(falaDoToque(t))} />
-      <p className="iam-fala" role="note" aria-live="polite"><span className="iam-fala__quem">IAmiguinho <span className="iam-selo">Mascote</span></span>{fala}</p>
+      <p className="iam-fala iam-tela" role="note" aria-live="polite"><span className="iam-tela__nome">IAmiguinho<i>mascote</i></span><span className="iam-tela__txt">{fala}</span><span className="iam-tela__rabo iam-tela__rabo--lado" aria-hidden="true" /></p>
     </div>
   );
 }

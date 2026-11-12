@@ -107,4 +107,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (00h50):** tiros nítidos (o brilho por baixo do desenho; o CD que gira, com ecos e quique de arco-íris; os tiros do IAmiguinho redesenhados) e o mapa como no Enter the Gungeon (sala não visitada não aparece; diretrizes D10 e C10).
 
+**12/11/2026 (01h20):** o item MAPA DO ANDAR (revela o andar e os ícones das salas; prêmio de sala, 1 por andar) e os bugs que não nascem nem ficam presos em cantinhos.
+
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: o mapa do andar e os bugs que não ficam presos
+
+- No repositório `winnerzbr/lobby-dos-bugs`: o item de mapa (mostra o andar e os ícones das salas sem entrar; sai como prêmio de sala) e os bugs grandes não nascem mais em cantinhos (e saem sozinhos se ficarem presos).
+
 ## 12/11/2026 — Lobby dos Bugs: tiros nítidos e o mapa do Gungeon
 
 - No repositório `winnerzbr/lobby-dos-bugs`: o brilho dos tiros foi para baixo do desenho (o CD não parece mais uma bola de luz), os tiros do IAmiguinho redesenhados, o CD girando de verdade com ecos e quique de arco-íris; o mapa só mostra as salas visitadas (diretrizes D10 e C10).

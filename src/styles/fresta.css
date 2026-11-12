@@ -951,3 +951,11 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 .editor__stars .star-input { gap: 14px !important; }
 .editor__stars { gap: 24px; }
 .editor__stars .t { margin-left: 0; }
+/* Sua nota (vale na hora) e Sua análise no mesmo cartão, separadas por uma linha (12/11/2026). */
+.my-review__sep { height: 1px; background: var(--line); margin: 24px 0 20px; }
+.editor--nota .editor__score { margin-bottom: 0; }
+.editor__nota-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; min-height: 30px; }
+.editor__nota-foot .editor__hint { margin: 0; }
+.editor--analise .editor__actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.editor--analise .editor__actions .editor__hint { margin: 0; }
+.editor__stars .score-num, .editor__ten .score-num { min-width: 4.6ch; }

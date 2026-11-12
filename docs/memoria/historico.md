@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Página do jogo: a nota vale na hora, dá para tirar, e a análise vem embaixo
+
+- Pedido do dono: enquanto arrasta, a nota aparece à direita; ao clicar/definir, a nota já vale (sem escrever e salvar a análise); opção de remover a nota; no cartão, primeiro "Sua nota" e embaixo "Sua análise".
+- `NotaEditor` (em `src/pages/Game.tsx`): começa vazio (sem nota), o número acompanha o mouse/dedo (`onPreview` em `ScoreSlider` e `StarInput`) e a nota é gravada meio segundo depois da última mudança (arrastando, só onde parou). "Remover nota" apaga a nota; se houver análise escrita, pede uma segunda confirmação ("Tirar a nota e a análise junto" / "Manter"), porque a análise fica presa à nota.
+- `AnaliseEditor`: título e texto opcionais com "Salvar análise"; só salva depois de ter nota. Com análise escrita, aparece a citação com "Editar".
+- Nova ação `actions.removeReview` (`review.delete`, apaga a linha em `reviews`; a regra de acesso do banco já deixa cada pessoa apagar a própria).
+
 ## 12/11/2026 — Nota na página do jogo: mesmo texto e mesmo espaço nas duas escalas
 
 - Pedido do dono: o texto da nota igual nas escalas até 10 e até 5 ("Arraste e clique para dar a nota") e o espaço entre as barras padronizado num meio-termo do espaço da escala até 10.

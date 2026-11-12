@@ -63,7 +63,7 @@ export function pickBar(box: HTMLElement, clientX: number, clientY: number, max:
  * Nota em estrelas para escrever: arraste ou passe o mouse e clique; no celular, deslize o dedo.
  * Meia estrela em meia estrela. Teclado: setas, Home e End.
  */
-export function StarInput({ value, onChange, size = 40, labelledBy }: { value: number; onChange: (v: number) => void; size?: number; labelledBy?: string }) {
+export function StarInput({ value, onChange, size = 40, labelledBy, onPreview }: { value: number; onChange: (v: number) => void; size?: number; labelledBy?: string; onPreview?: (v: number | null) => void }) {
   const box = useRef<HTMLDivElement>(null);
   const [hover, setHover] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -72,6 +72,7 @@ export function StarInput({ value, onChange, size = 40, labelledBy }: { value: n
   const [pulse, setPulse] = useState(0);
   const moved = useRef(false);
   const shown = hover ?? value;
+  useEffect(() => { onPreview?.(hover); }, [hover]); // eslint-disable-line react-hooks/exhaustive-deps
   // Subindo, as estrelas enchem da esquerda para a direita; descendo, esvaziam da direita para a esquerda.
   const prev = useRef(value);
   const [dir, setDir] = useState<1 | -1>(1);

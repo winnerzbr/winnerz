@@ -48,6 +48,7 @@ export type Action =
   | { type: 'history.complete'; history: History; event: TimelineEvent }
   | { type: 'history.letterOpen'; historyId: ID; at: string }
   | { type: 'review.save'; review: Review }
+  | { type: 'review.delete'; id: ID }
   | { type: 'games.merge'; games: Game[] }
   | { type: 'game.create'; game: Game }
   | { type: 'game.relink'; fromId: ID; to: Game; mergeFrom?: ID; mergeInto?: ID }
@@ -175,6 +176,8 @@ function reduce(s: State, a: Action): State {
       return { ...s, histories: s.histories.map((h) => (h.id === a.historyId && h.letter ? { ...h, letter: { ...h.letter, openedAt: a.at } } : h)) };
     case 'review.save':
       return { ...s, reviews: [...s.reviews.filter((r) => r.id !== a.review.id), a.review] };
+    case 'review.delete':
+      return { ...s, reviews: s.reviews.filter((r) => r.id !== a.id) };
     case 'games.merge':
       // Uma ficha que chega do IGDB (às vezes de um cache antigo) não desfaz as correções aceitas.
       return { ...s, games: { ...s.games, ...Object.fromEntries(a.games.map((g) => [g.id, keepFixes(s.games[g.id], g)])) } };
@@ -1157,6 +1160,11 @@ export const actions = {
       rating, title, text, writtenAt: nowIso(),
     };
     dispatch({ type: 'review.save', review });
+  },
+
+  /** Tira a nota (e a análise junto: a análise fica presa à nota). */
+  removeReview(id: ID) {
+    dispatch({ type: 'review.delete', id });
   },
 };
 

@@ -1,7 +1,7 @@
 import { AssistiField } from '../components/Assisti';
 import { GameJourneyStats } from '../components/GameJourneyStats';
 import { AddToList, GameLists } from './Lists';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FixSheet } from '../components/FixSheet';
 import { fixedFields, fixLabel } from '../lib/fixes';
 import { Link, navigate } from '../lib/router';
@@ -246,19 +246,24 @@ function GameView({ gameId }: { gameId: string }) {
             </article>
           </div>
 
-          <section id="analise" className="my-review" aria-labelledby="sua">
-            {mine && !editing ? (
-              <>
-                <div className="sec-head"><h2 id="sua" className="t sec-title">Sua análise</h2><button className="btn quiet sm" onClick={() => setEditing(true)}>Editar</button></div>
-                <blockquote className="my-review__quote">
-                  <p className="t my-review__title">“{mine.title || 'Sem título'}”</p>
-                  {mine.text && <p className="my-review__text">{mine.text}</p>}
-                  <span className="mono my-review__meta">{[mine.author?.name, mineDate, mine.context].filter(Boolean).join(' · ')}</span>
-                </blockquote>
-              </>
-            ) : (
-              <div className="card my-review__edit"><ReviewEditor gameId={gameId} existing={mine} viewerScale={scale} onDone={() => setEditing(false)} /></div>
-            )}
+          <section id="analise" className="my-review" aria-labelledby="sua-nota">
+            <div className="card my-review__edit">
+              {/* A nota vale assim que é dada (sem salvar). A análise é opcional e fica embaixo. */}
+              <NotaEditor key={`n-${gameId}-${scale}`} gameId={gameId} existing={mine} scale={scale} />
+              <div className="my-review__sep" />
+              {mine && (mine.title || mine.text) && !editing ? (
+                <>
+                  <div className="sec-head"><h2 id="sua" className="t my-review__title">Sua análise</h2><button className="btn quiet sm" onClick={() => setEditing(true)}>Editar</button></div>
+                  <blockquote className="my-review__quote">
+                    {mine.title && <p className="t my-review__title">“{mine.title}”</p>}
+                    {mine.text && <p className="my-review__text">{mine.text}</p>}
+                    <span className="mono my-review__meta">{[mine.author?.name, mineDate, mine.context].filter(Boolean).join(' · ')}</span>
+                  </blockquote>
+                </>
+              ) : (
+                <AnaliseEditor key={`a-${gameId}`} gameId={gameId} existing={mine} onDone={() => setEditing(false)} canCancel={editing} />
+              )}
+            </div>
           </section>
 
           {/* Etapa 6 da revisão: primeiro o jogo (imagens e o que vem depois); a parte social vem junta e, vazia, recolhida. */}
@@ -382,50 +387,99 @@ function ReviewItem({ r, scale, locked, reveal, progress }: { r: Review; scale: 
   );
 }
 
-/** Editor de análise. Respeita a escala: a nota é dada na escala de quem escreve. */
-function ReviewEditor({ gameId, existing, viewerScale, onDone }: { gameId: string; existing: Review | null; viewerScale: Scale; onDone: () => void }) {
-  // A nota é dada na escala escolhida no cartão das notas (0 a 10 ou estrelas), também ao editar.
-  const scale: Scale = viewerScale;
-  // A nota fica guardada em 0..1000 enquanto se escreve; trocar a escala no meio só muda a exibição.
-  const [norm, setNorm] = useState<number>(existing ? existing.rating.normalized : 800);
-  // Sem mexer na nota, a original fica como estava (trocar de escala não arredonda nada ao salvar).
-  const [touched, setTouched] = useState(false);
-  const step = scale === 'TEN_POINT' ? 50 : 100; // meio ponto ou meia estrela
-  const snapped = Math.round(norm / step) * step;
-  const value = toScale(snapped, scale);
-  const setValue = (v: number) => { setTouched(true); setNorm(normalize(v, scale).normalized); };
-  const [title, setTitle] = useState(existing?.title ?? '');
-  const [text, setText] = useState(existing?.text ?? '');
+/** Sua nota: vale assim que é dada (clique, toque, arraste ou teclado), sem precisar salvar a análise.
+ *  O número ao lado acompanha o mouse/dedo enquanto se arrasta. Dá para tirar a nota (pedido do dono, 12/11/2026). */
+function NotaEditor({ gameId, existing, scale }: { gameId: string; existing: Review | null; scale: Scale }) {
   const max = scaleMax(scale);
-  const save = () => { actions.saveReview(gameId, existing && !touched ? existing.rating : normalize(value, scale), title.trim(), text.trim(), existing?.id); onDone(); };
+  const step = scale === 'TEN_POINT' ? 50 : 100; // meio ponto ou meia estrela
+  // Sem mexer, a nota original fica como estava (trocar de escala só muda a exibição, não arredonda nada).
+  const [norm, setNorm] = useState<number | null>(existing ? existing.rating.normalized : null);
+  const [preview, setPreview] = useState<number | null>(null);
+  const [touched, setTouched] = useState(false);
+  const [tirar, setTirar] = useState(false);
+  useEffect(() => { if (!touched) setNorm(existing ? existing.rating.normalized : null); }, [existing, touched]);
+  const value = norm == null ? 0 : toScale(Math.round(norm / step) * step, scale);
+  // Grava um instante depois da última mudança (arrastando, só o ponto onde parou).
+  const latest = useRef(existing);
+  latest.current = existing;
+  const timer = useRef<number | undefined>(undefined);
+  const pend = useRef<number | null>(null);
+  const gravar = () => {
+    window.clearTimeout(timer.current);
+    const v = pend.current; pend.current = null;
+    if (v == null) return;
+    const e = latest.current;
+    actions.saveReview(gameId, normalize(v, scale), e?.title ?? '', e?.text ?? '', e?.id);
+  };
+  useEffect(() => () => gravar(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const setValue = (v: number) => {
+    setTouched(true); setTirar(false);
+    setNorm(normalize(v, scale).normalized);
+    pend.current = v;
+    window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(gravar, 450);
+  };
+  const remover = () => {
+    const e = latest.current;
+    if (!e) return;
+    if ((e.title || e.text) && !tirar) { setTirar(true); return; }
+    window.clearTimeout(timer.current); pend.current = null;
+    actions.removeReview(e.id);
+    setNorm(null); setTouched(false); setTirar(false);
+  };
+  const temNota = norm != null;
+  const mostra = preview ?? (temNota ? value : null);
   const rounded = !!existing && !touched && existing.rating.originalScale !== scale && normalize(value, scale).normalized !== existing.rating.normalized;
 
   return (
-    <div className="editor">
-      <h2 className="t my-review__title">{existing ? 'Editar sua análise' : 'Sua análise'}</h2>
+    <div className="editor editor--nota">
+      <h2 id="sua-nota" className="t my-review__title">Sua nota</h2>
       {rounded && existing && (
-        <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'De 0 a 5, ela aparece arredondada para o meio ponto mais próximo' : 'De 0 a 10, ela aparece arredondada para o meio ponto mais próximo'}; só muda se você mexer na nota.</p>
+        <p className="muted editor__note">Sua nota original foi {String(existing.rating.originalValue).replace('.', ',')}/{scaleMax(existing.rating.originalScale)}. {scale === 'FIVE_STAR' ? 'De 0 a 5' : 'De 0 a 10'}, ela aparece arredondada para o meio ponto mais próximo; só muda se você mexer na nota.</p>
       )}
       <div className="editor__score">
-        <label id="nota-label" htmlFor={scale === 'TEN_POINT' ? 'nota' : undefined}>Nota</label>
-        {scale === 'TEN_POINT' ? (
-          <div className={`editor__ten${!existing && !touched ? ' is-unset' : ''}`}>
-            <ScoreSlider id="nota" value={value} onChange={setValue} />
-            {!existing && !touched ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={value} max={10} />}
-          </div>
-        ) : (
-          <div className={`editor__stars${!existing && !touched ? " is-unset" : ""}`}>
-            <StarInput value={value} onChange={setValue} labelledBy="nota-label" size={36} />
-            {!existing && !touched ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={value} max={max} />}
-          </div>
-        )}
-        {scale === 'FIVE_STAR' && <p className="faint editor__hint">Dá para dar meio ponto.</p>}
+        <span id="nota-label" className="sr-only">Nota</span>
+        <div className={scale === 'TEN_POINT' ? 'editor__ten' : 'editor__stars'}>
+          {scale === 'TEN_POINT'
+            ? <ScoreSlider id="nota" value={value} onChange={setValue} onPreview={setPreview} />
+            : <StarInput value={value} onChange={setValue} labelledBy="nota-label" size={36} onPreview={setPreview} />}
+          {mostra == null ? <span className="editor__unset">Arraste e clique para dar a nota</span> : <AnimatedScore value={mostra} max={max} />}
+        </div>
+        <div className="editor__nota-foot">
+          {scale === 'FIVE_STAR' && <span className="faint editor__hint">Dá para dar meio ponto.</span>}
+          {existing && (
+            <button type="button" className="btn quiet sm editor__tirar" onClick={remover}>
+              {tirar ? 'Tirar a nota e a análise junto' : 'Remover nota'}
+            </button>
+          )}
+          {tirar && <button type="button" className="btn quiet sm" onClick={() => setTirar(false)}>Manter</button>}
+        </div>
       </div>
+    </div>
+  );
+}
+
+/** Sua análise: título e texto, opcionais, presos à nota. */
+function AnaliseEditor({ gameId, existing, onDone, canCancel }: { gameId: string; existing: Review | null; onDone: () => void; canCancel: boolean }) {
+  const [title, setTitle] = useState(existing?.title ?? '');
+  const [text, setText] = useState(existing?.text ?? '');
+  const save = () => {
+    if (!existing) return;
+    actions.saveReview(gameId, existing.rating, title.trim(), text.trim(), existing.id);
+    onDone();
+  };
+  return (
+    <div className="editor editor--analise">
+      <h2 id="sua" className="t my-review__title">Sua análise</h2>
       <label htmlFor="rev-title" className="editor__label">Título (opcional)</label>
       <input id="rev-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Em uma frase, como foi?" />
       <label htmlFor="rev-text" className="editor__label">Texto (opcional)</label>
       <textarea id="rev-text" className="field" rows={4} value={text} onChange={(e) => setText(e.target.value)} placeholder="Sem spoilers aqui fora, por favor." />
-      <div className="editor__actions"><button className="btn primary" onClick={save}>Salvar análise</button>{existing && <button className="btn quiet" onClick={onDone}>Cancelar</button>}</div>
+      <div className="editor__actions">
+        <button className="btn primary" onClick={save} disabled={!existing}>Salvar análise</button>
+        {canCancel && <button className="btn quiet" onClick={onDone}>Cancelar</button>}
+        {!existing && <span className="faint editor__hint">A análise vai junto com a nota: dê a nota acima.</span>}
+      </div>
     </div>
   );
 }

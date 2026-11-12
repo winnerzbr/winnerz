@@ -518,6 +518,9 @@ export const supabaseAdapter: Adapter = {
       case 'review.save':
         check(await sb.from('reviews').upsert(reviewToRow(a.review), { onConflict: 'user_id,game_id' }));
         return;
+      case 'review.delete':
+        check(await sb.from('reviews').delete().eq('id', a.id).eq('user_id', next.profile?.id ?? ''));
+        return;
       case 'copy.add':
         check(await sb.from('copies').insert(copyToRow(a.copy)));
         return;

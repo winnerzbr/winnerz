@@ -48,7 +48,7 @@ export function Burst({ seed, left, big, k = 0.5 }: { seed: number; left: string
 /** Espaço entre as barras da nota, nas escalas até 10 e até 5 (12/11/2026). */
 export const GAP_NOTA = 14;
 
-export function ScoreSlider({ value, onChange, id }: { value: number; onChange: (v: number) => void; id?: string }) {
+export function ScoreSlider({ value, onChange, id, onPreview }: { value: number; onChange: (v: number) => void; id?: string; onPreview?: (v: number | null) => void }) {
   const box = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const [hover, setHover] = useState<number | null>(null);
@@ -59,6 +59,8 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
   const moved = useRef(false);
   const [w, setW] = useState(0);
   const shown = hover ?? value;
+  // Avisa quem usa qual nota o mouse/dedo está mostrando (para o número ao lado acompanhar).
+  useEffect(() => { onPreview?.(hover); }, [hover]); // eslint-disable-line react-hooks/exhaustive-deps
   const prev = useRef(value);
   const [dir, setDir] = useState<1 | -1>(1);
   useEffect(() => { if (value !== prev.current) { setDir(value > prev.current ? 1 : -1); prev.current = value; } }, [value]);

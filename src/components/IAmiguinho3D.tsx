@@ -58,7 +58,13 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
         if (d > (tq.tonto ? 2.8 : 1.3)) toque.current = null;
         else { e.rosto = tq.tonto ? 'tonto' : 'surpreso'; if (tq.tonto && modo !== 'borda') { e.anim = 'tonto'; e.t0 = tq.em; } e.helice = tq.tonto ? 0.2 : Math.min(1, d); }
       }
-      if (sai.current != null && modo !== 'borda') e.pix = Math.max(e.pix ?? 0, ease((t - sai.current) / 0.5));
+      if (sai.current != null) {
+        const d = t - sai.current;
+        if (modo === 'borda') { e.anim = 'soltar'; e.t0 = sai.current; e.rosto = 'feliz'; }
+        else if (modo === 'andar') { // vira para o lado de onde veio e sai andando
+          const k = ease(d / 0.3); e.yaw = (e.yaw ?? 0) + (1.15 - (e.yaw ?? 0)) * k; e.anim = d < 0.3 ? 'parado' : 'andar'; e.t0 = undefined; e.helice = undefined;
+        } else e.pix = Math.max(e.pix ?? 0, ease(d / 0.5));
+      }
       return e;
     };
     void import('../lib/iamiguinho3d').then(({ mountIAmiguinho }) => {
@@ -72,7 +78,7 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
     if (saindo) return;
     if (quieto || !pronto) { onFechar(); return; }
     sai.current = agora.current; setSaindo(true);
-    window.setTimeout(onFechar, 560);
+    window.setTimeout(onFechar, modo === 'andar' ? 1850 : modo === 'borda' ? 1000 : 560);
   };
   const fecharRef = useRef(fechar); fecharRef.current = fechar;
   // Fecha sozinho (12 s depois de pronto; para de contar com o mouse em cima) e com Esc.

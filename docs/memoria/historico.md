@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — IAmiguinho 3D: cada aparição vai embora do jeito que chegou
+
+- Pedido do dono. Entrada andando: ao fechar, ele vira para o lado de onde veio e sai andando para fora da tela (antes se desfazia em pixels). Leva cerca de 1,8 s.
+- Entrada na borda: ao fechar, solta as mãos e levanta os braços (dando tchau) enquanto desce para fora da tela. Animação nova `soltar` em `src/lib/iamiguinho3d.js`.
+- A entrada por pixels continua saindo em pixels. Tempos e movimento do palco em `IAmiguinho3D.tsx` e `iamiguinho.css` (`iam3-volta`).
+
 ## 12/11/2026 — IAmiguinho 3D: aparição por pixels começa difusa
 
 - O dono mostrou que, na entrada por pixels, os quadradinhos começavam como um bloco quadrado cheio (eles se espalhavam numa caixa maior que a área do desenho, e a borda cortava). Agora começam como uma nuvem rala em volta do corpo: poucos pontinhos no início, de tamanhos variados, que vão aumentando em número enquanto se juntam (`src/lib/iamiguinho3d.js`). A entrada também não fica mais parada no primeiro instante (`IAmiguinho3D.tsx`).

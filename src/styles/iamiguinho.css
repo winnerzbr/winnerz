@@ -200,7 +200,9 @@ html[data-motion='reduzidas'] .iam-fig, html[data-motion='reduzidas'] .iam-fig *
 .iam3__toque:focus-visible { outline: 2px solid var(--iam); outline-offset: 2px; }
 .iam3--andar.is-pronto .iam3__palco { animation: iam3-anda 1.5s linear both; }
 @keyframes iam3-anda { from { transform: translateX(calc(100% + 40px)); } to { transform: none; } }
-.iam3--borda.is-saindo .iam3__palco { transform: translateY(104%); transition: transform .5s cubic-bezier(.5, 0, .9, .4); }
+.iam3--borda.is-saindo .iam3__palco { transform: translateY(104%); transition: transform .6s cubic-bezier(.5, 0, .9, .4) .36s; }
+.iam3--andar.is-saindo .iam3__palco { animation: iam3-volta 1.5s linear .3s both; }
+@keyframes iam3-volta { from { transform: none; } to { transform: translateX(calc(100% + 40px)); } }
 /* balão */
 .iam3__balao { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; width: min(320px, calc(100vw - 28px)); margin: 0 6px 12px 0; padding: 12px 6px 13px 16px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--iam); box-shadow: 0 18px 40px rgba(0, 0, 0, .45); pointer-events: auto; opacity: 0; transform: translateY(10px) scale(.96); transform-origin: 82% 100%; }
 .iam3.is-pronto .iam3__balao { animation: iam3-fala .34s cubic-bezier(.2, .9, .3, 1.25) both; animation-delay: 1.25s; }

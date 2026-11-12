@@ -3,7 +3,7 @@
    - Modelo: /modelos/iamiguinho.bin (formato IAM1), preparado a partir do .glb do dono (scripts em
      prototipos/iamiguinho-3d/preparo/): aba do boné pintada, pés separados, hélice nivelada, 16 ossos com pesos.
    - Cada vértice traz posição, normal, material (0 normal, 1 tela do rosto, 2 luz dos fones), cor e dois ossos.
-   - As animações são calculadas aqui (parado, acenar, andar, comemorar, borda, dormir, tonto); a hélice gira no osso
+   - As animações são calculadas aqui (parado, acenar, andar, comemorar, borda, soltar, dormir, tonto); a hélice gira no osso
      dela; o rosto é desenhado na tela pelo sombreador (olhos e boca de luz), pisca e muda de expressão.
    - "pix" (0..1) desmonta ele em quadradinhos (a entrada "pixels"). */
 const VS = `attribute vec4 aP;attribute vec4 aN;attribute vec4 aC;attribute vec4 aB;
@@ -128,6 +128,16 @@ const ANIM = {
     for (const s of [1, -1]) { braco(P, s, up, [0.12, up[1] - 0.05, up[2] + 0.3], { dedo: [-0.05, -0.25, 1], palma: [0, -1, -0.2] }); dedos(P, s, 1.05, 0.5); }
     P[2] = mul3(rx(0.1 * sobe + fol * 0.02), mul3(rz(Math.sin(t * 0.8) * 0.06 * sobe), ry(Math.sin(t * 0.6) * 0.16 * sobe)));
     P[1] = rx(0.12);
+  },
+  /* Indo embora da borda: solta as mãos e levanta os braços enquanto desce. */
+  soltar(t, P) {
+    ANIM.borda(2, P);
+    const k = ease(t / 0.42), w = Math.sin(t * 11) * 0.12 * k;
+    for (const s of [1, -1]) {
+      braco(P, s, mixv([0.36, 0.115, 0.926], [0.82, 0.42, 0.5], k), mixv([0.12, 0.065, 1.2], [0.5 + w, 0.86, 0.42], k), { dedo: mixv([-0.05, -0.25, 1], [0.1 + w, 1, 0.15], k), palma: mixv([0, -1, -0.2], [0, -0.1, 1], k) });
+      dedos(P, s, mix(1.05, 0.05, k), mix(0.5, -0.1, k));
+    }
+    P[2] = mul3(rx(0.1 - 0.2 * k), rz(0));
   },
   dormir(t, P) {
     P[2] = mul3(rx(0.28 + Math.sin(t * 1.1) * 0.04), rz(0.12)); P[1] = rx(0.1 + Math.sin(t * 1.1) * 0.02);

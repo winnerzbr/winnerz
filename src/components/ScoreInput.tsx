@@ -63,9 +63,10 @@ export function ScoreSlider({ value, onChange, id }: { value: number; onChange: 
   const [dir, setDir] = useState<1 | -1>(1);
   useEffect(() => { if (value !== prev.current) { setDir(value > prev.current ? 1 : -1); prev.current = value; } }, [value]);
   useEffect(() => {
-    // Mede o espaço disponível (a caixa das barras tem a largura das próprias barras).
-    const el = box.current?.parentElement; if (!el || typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width)); ro.observe(el);
+    // Mede o espaço disponível na linha da nota (as barras e o texto/número ao lado têm só a largura que precisam).
+    const host = box.current?.closest<HTMLElement>('.editor__ten');
+    const el = host ?? box.current?.parentElement; if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(([e]) => setW(e.contentRect.width - (host ? 170 : 0))); ro.observe(el);
     return () => ro.disconnect();
   }, []);
   const live = dragging || hover !== null;

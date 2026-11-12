@@ -947,6 +947,7 @@ select.field option, select.field optgroup { background-color: var(--surface); c
    do espaço antigo da escala até 10) e a mesma distância até o número. ---- */
 .editor__ten .score-row.star-input { width: max-content; gap: 14px; }
 .editor__ten .score-row__cell { flex: none; }
+.editor__ten .score-slider { flex: 0 1 auto; min-width: 0; }
 .editor__stars .star-input { gap: 14px !important; }
 .editor__stars { gap: 24px; }
 .editor__stars .t { margin-left: 0; }

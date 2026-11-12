@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: a opção do menu aprovada, no jogo
+
+- O dono escolheu o efeito da opção do menu num artefato com opções (a MIX·2g: letra Tiny5, pontinhos dos dois lados, o tranco dos botões do site WinnerZ, borda que engrossa, palavra laranja itálica e em negrito, pulso no tranco e pulso leve, seta chevron de luz azul) e pediu para aplicar. Feito no repositório `winnerzbr/lobby-dos-bugs` (diretriz E11). Detalhes em `lobby-dos-bugs.md`.
+
 ## 12/11/2026 — Awards: textos pequenos maiores e com mais contraste
 
 - Pedido do dono: dar mais visibilidade aos textos pequenos da página do Awards ("1 pessoa votou…", "Continuar votando", "Edições anteriores", "Seu voto: …", a descrição da categoria, o botão da próxima categoria, "Toque numa arte para votar" e o estúdio embaixo do nome do jogo).

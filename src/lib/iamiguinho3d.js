@@ -120,10 +120,10 @@ const ANIM = {
     const over = t < 1.1 ? Math.sin(Math.max(0, t - 0.45) / 0.65 * Math.PI) * 0.035 : 0;
     P.y = mix(-0.66, 0, sobe) + over + fol * 0.008;
     // As mãos ficam na altura da borda: quanto mais baixo o corpo, mais para cima apontam os braços.
-    const alvo = 0.405 - P.y - 0.425, sn = Math.max(-0.95, Math.min(0.95, alvo / 0.2));
-    const up = [0.2, sn, Math.sqrt(Math.max(0.05, 1 - sn * sn - 0.04))];
+    const alvo = 0.475 - P.y - 0.425, sn = Math.max(-0.95, Math.min(0.95, alvo / 0.2));
+    const up = [0.36, sn, Math.sqrt(Math.max(0.05, 1 - sn * sn - 0.13))];
     // mãos em cima da borda, palma para baixo, dedos fechados por cima dela
-    for (const s of [1, -1]) { braco(P, s, up, [-0.05, up[1] - 0.05, up[2] + 0.3], { dedo: [-0.12, -0.25, 1], palma: [0, -1, -0.2] }); dedos(P, s, 1.05, 0.5); }
+    for (const s of [1, -1]) { braco(P, s, up, [0.12, up[1] - 0.05, up[2] + 0.3], { dedo: [-0.05, -0.25, 1], palma: [0, -1, -0.2] }); dedos(P, s, 1.05, 0.5); }
     P[2] = mul3(rx(0.1 * sobe + fol * 0.02), mul3(rz(Math.sin(t * 0.8) * 0.06 * sobe), ry(Math.sin(t * 0.6) * 0.16 * sobe)));
     P[1] = rx(0.12);
   },

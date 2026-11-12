@@ -48,7 +48,7 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 - **Aparição** `src/components/IAmiguinho3D.tsx` (`Aparicao3D`): três entradas sorteadas, "borda" (sobe pela borda de baixo até o peito, com as mãos na borda; no celular, em cima da barra de baixo), "andar" (vem de fora da tela pela direita e acena) e "pixels" (quadradinhos que se juntam). Balão de diálogo em cima dele, com × e Esc; some sozinho em uns 13 s; um toque assusta, cinco deixam tonto. Nos momentos de festa (zerou, página do álbum, voto no Awards) ele comemora. Com "reduzir movimento" aparece parado. Sem 3D no aparelho, cai no cartão antigo.
 - `CameoBalao` e `Espiando` (em `IAmiguinho.tsx`) passaram a usar a aparição 3D. Na página `/iamiguinho` há "Chamar o IAmiguinho", com um botão para cada entrada.
 - **Ainda no desenho antigo (2D):** as telas vazias (`MascoteVazio`), a página de perfil dele, as Preferências, a Chegada e os overlays das lives. Ficam para as próximas rodadas.
-- O GLB completo corrigido (para os jogos) ainda não foi exportado; os scripts já guardam a malha cheia com ossos em `out/full.npz`.
+- O GLB completo corrigido para os jogos sai de `preparo/glb.py` (`IAmiguinho_3D_Rig.glb`, 35 MB, entregue ao dono na conversa; não fica no repositório): malha cheia, textura com a aba pintada, 22 ossos e a animação `helice_girando`. Ainda não foi aberto no Godot.
 
 ## 12/11/2026 — Cartão das notas: ajustes na análise
 

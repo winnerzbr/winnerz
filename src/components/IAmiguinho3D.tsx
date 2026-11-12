@@ -40,7 +40,7 @@ export function Aparicao3D({ fala, rosto, festa = false, entrada, onFechar, onCu
     let off: (() => void) | undefined, vivo = true;
     const estado = (t: number): Estado3D => {
       agora.current = t;
-      const vista: [number, number] = modo === 'borda' ? [0.37, 1.06] : [-0.03, 1.03];
+      const vista: [number, number] = modo === 'borda' ? [0.33, 1.07] : [-0.03, 1.03];
       if (quieto) return { anim: modo === 'borda' ? 'borda' : 'acenar', parado: true, rosto: rostoRef.current, vista, t0: 0 };
       const e: Estado3D = { rosto: rostoRef.current, vista };
       const depois = festa ? 'comemorar' : 'acenar';
@@ -152,7 +152,7 @@ export function Boneco3D({ anim = 'parado', rosto = 'normal', vista = 'corpo', y
       agora.current = t;
       const q = p.current;
       const e: Estado3D = { anim: q.anim, rosto: q.rosto, yaw: q.yaw, parado: quieto, t0: quieto ? 0 : undefined,
-        vista: q.vista === 'cabeca' ? [0.44, 1.02] : q.vista === 'busto' ? [0.37, 1.06] : q.anim === 'comemorar' ? [-0.03, 1.1] : [-0.03, 1.03] };
+        vista: q.vista === 'cabeca' ? [0.44, 1.02] : q.vista === 'busto' ? [0.33, 1.07] : q.anim === 'comemorar' ? [-0.03, 1.1] : [-0.03, 1.03] };
       const tq = toque.current;
       if (tq) { const d = t - tq.em; if (d > (tq.tonto ? 2.8 : 1.3)) toque.current = null; else { e.rosto = tq.tonto ? 'tonto' : 'surpreso'; if (tq.tonto) { e.anim = 'tonto'; e.t0 = tq.em; } e.helice = tq.tonto ? 0.2 : Math.min(1, d); } }
       return e;

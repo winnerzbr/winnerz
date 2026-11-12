@@ -4,6 +4,13 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Jornada do jogo: cartão da linha do tempo, linha abaixo do título e botões do cabeçalho
+
+- Cartão "Linha do tempo" (`.jtlcard`): com uma foto em pé o cartão ficava enorme; agora as fotos têm altura fixa (220px; 120px no celular) e a foto única fica à direita, recortada.
+- Abaixo do título: plataforma / campanha / estado numa linha, e "X dias de jogo · tempo" sempre na linha de baixo, sem barra solta no começo.
+- Botões do cabeçalho: mais folga entre eles (a ponta com a seta de um botão encostava no "Ações" nas animações). Quando o jogo tem mais de uma História, as abas ficam numa linha embaixo do título e os botões vão para a linha seguinte, à direita.
+- Só CSS, no fim de `src/styles/jornada.css`.
+
 ## 12/11/2026 — IAmiguinho 3D no site: o modelo dos jogos, com ossos, e as aparições com balão
 
 - Pedido do dono: trocar o IAmiguinho do site pelo modelo 3D dos jogos (`IAmiguinho_3D_Final.glb`, feito no Tripo); pintar de laranja as partes brancas embaixo da aba do boné; separar os pés; pôr ossos (rig) para animar; a hélice girar; e trocar as aparições em cartão pelo próprio modelo animado, com a fala num balão de diálogo (ideias dele: subir segurando a borda de baixo da tela, entrar andando, surgir de pixels).

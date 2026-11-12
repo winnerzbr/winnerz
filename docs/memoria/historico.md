@@ -4,6 +4,19 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Revisão completa do site (documento)
+
+- Pedido do dono: revisão completa do site e o que melhorar. Feita no documento "WinnerZ: revisão completa do site" (https://claude.ai/artifact/HkMiRZcx4X2TaiVWkLafKy).
+- Principais achados:
+  - **Velocidade:** o Início aparece em ~3 s; ~2,2 s disso são 20 conferências do banco feitas em fila (`supabaseAdapter.ts`, linhas ~336-351). 54 pedidos ao Supabase por abertura.
+  - **Peso:** código num arquivo só de 2,0 MB (68 páginas, só 9 sob demanda); estilo de 843 KB (etapa2.css com 557 KB e três visuais empilhados); pasta pública de 77 MB por versão, 68 MB do Jogos de Verão do navegador.
+  - **Ficha de jogo não lançado** (GTA VI) mostra "Jogar agora" e "Já zerei".
+  - **Modo claro:** Chegada nunca adaptada (40 cores claras fixas, nenhuma regra do modo claro).
+  - **Segurança:** em ordem no código; falta Security Advisor do Supabase e cópia semanal dos dados.
+  - **Pendências:** migração 0098 e teste das lives; teste do Awards com 19 categorias.
+- A volta pelo site com login parou no meio (o computador do dono saiu do ar).
+- Plano sugerido: agora (banco em paralelo, páginas sob demanda, ficha de não lançado, erro da IA em português simples, tirar Jogos de Verão da pasta se o dono concordar); antes da estreia (segurança, teste do Awards, lives, limpeza de estilos + modo claro); depois (cartão "Meus votos", QR na live, lembrete de voto, voto → Jornada, retrospectiva). Aguardando o dono.
+
 ## 12/11/2026 — Lobby dos Bugs: as salas do andar 1 na régua
 - Cada sala do andar 1 com o seu clima (cor do escuro e luzes do teto), contorno completo nos móveis e chão calmo em todos os pisos (M1 tarefa 4). Detalhes no repositório do jogo.
 

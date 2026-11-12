@@ -4,6 +4,12 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Títulos de cartão com o retângulo ao lado e barra de progresso padrão
+
+- Pedido do dono: todo título de cartão com o retângulo inclinado ao lado (muitos não tinham) e a barra de progresso da campanha igual à barra padrão do site.
+- Os títulos pequenos em letra de máquina que não usavam `.kicker` ganharam o mesmo retângulo: `.jside__k` (Progresso nesta campanha, Como foi dia a dia, Bloco da campanha…), `.jx__k`, `.ff1__k` (fim de sessão), `.jdest__k` e `.jret__k2`. Regra no fim de `fresta.css`; título novo de cartão deve usar `.kicker` ou entrar nessa lista.
+- A barra de progresso da campanha (aba Detalhes da Jornada) usa a classe padrão `.range` (linha laranja, marcador retangular) no lugar da bolinha de luz.
+
 ## 12/11/2026 — Jornada do jogo: cartão da linha do tempo, linha abaixo do título e botões do cabeçalho
 
 - Cartão "Linha do tempo" (`.jtlcard`): com uma foto em pé o cartão ficava enorme; agora as fotos têm altura fixa (220px; 120px no celular) e a foto única fica à direita, recortada.

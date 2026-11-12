@@ -751,3 +751,5 @@ aside .lemb .lemb__go { padding: 0 18px 14px; }
   .jhero--compact .jhero__row:has(.jhero__hists) .jhero__actions { grid-column: 1 / -1; justify-self: end; }
 }
 .jhero--compact .jhero__hists { flex-wrap: wrap; gap: 6px 4px; max-width: 100%; }
+/* Barra de progresso da campanha: a barra padrão do site (.range), ocupando a linha. */
+.jprog__range { flex: 1; min-width: 0; width: auto; }

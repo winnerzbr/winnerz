@@ -517,7 +517,7 @@ function JourneyView({ journeyId, view }: { journeyId: string; view?: 'linha' })
                     <section className="jdet__box" id="progresso" aria-labelledby="jdet-prog">
                       <h2 id="jdet-prog" className="jside__k">Progresso {current.ordinal > 1 ? `na ${current.title}` : 'nesta campanha'}</h2>
                       <div className="jhero__progrow">
-                        <input className="jhero__range" type="range" min={0} max={100} step={1} value={progress}
+                        <input className="range jprog__range" type="range" min={0} max={100} step={1} value={progress}
                           style={{ ['--p' as string]: `${progress}%` }}
                           aria-label={`Seu progresso ${current.ordinal > 1 ? `na ${current.title}` : 'nesta História'}`} aria-valuetext={`${progress} por cento`}
                           onChange={(e) => setProgress(Number(e.target.value))}

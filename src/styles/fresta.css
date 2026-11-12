@@ -927,14 +927,14 @@ select.field option, select.field optgroup { background-color: var(--surface); c
 
 /* ---- Logo do menu (12/11/2026): maior, dourado de metal e, no hover, inclina seguindo o mouse como as capas,
    com um brilho que corre por dentro da forma. A animação de juntar o W e o Z continua. */
-.bm-g1 { stop-color: var(--logo-g1, #FFE6A8); }
-.bm-g2 { stop-color: var(--logo-g2, #F0B44C); }
-.bm-g3 { stop-color: var(--logo-g3, #B87A26); }
-:root[data-theme='claro'] { --logo-g1: #C9933F; --logo-g2: #A8701F; --logo-g3: #7A4E14; }
+.bm-g1 { stop-color: var(--logo-g1, #F2DAAA); }
+.bm-g2 { stop-color: var(--logo-g2, #E2BA78); }
+.bm-g3 { stop-color: var(--logo-g3, #C4975C); }
+:root[data-theme='claro'] { --logo-g1: #B98F55; --logo-g2: #9E733F; --logo-g3: #80592E; }
 .site-header__logo { perspective: 420px; }
 .site-header__tilt { position: relative; display: block; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .5s cubic-bezier(.2, .9, .2, 1); }
 .site-header__logo.is-tilt .site-header__tilt { transition: transform .12s linear; }
-.site-header__logo .brand-mark { filter: drop-shadow(0 2px 6px rgba(240, 180, 76, .18)); }
+.site-header__logo .brand-mark { filter: drop-shadow(0 2px 6px rgba(226, 190, 132, .1)); }
 :root[data-theme='claro'] .site-header__logo .brand-mark { filter: none; }
 .site-header__glare { position: absolute; inset: 0; pointer-events: none; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 246, 222, .6), rgba(255, 226, 168, .18) 30%, rgba(255, 226, 168, 0) 58%); opacity: 0; transition: opacity .3s; }

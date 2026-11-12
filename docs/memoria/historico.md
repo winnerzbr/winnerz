@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Logo do menu: dourado mais suave
+
+- O dono achou o dourado exagerado. As cores do degradê ficaram mais perto do dourado claro antigo (#E2BE84): escuro `#F2DAAA → #E2BA78 → #C4975C`; claro `#B98F55 → #9E733F → #80592E`. O brilho em volta ficou mais fraco. Tamanho e inclinação continuam iguais.
+
 ## 12/11/2026 — Logo do menu maior, mais dourado e inclinando com o mouse
 
 - Pedido do dono: logo do menu principal um pouco maior e mais dourado, e no hover o mesmo efeito das capas dos jogos (muda de perspectiva conforme o mouse), mantendo a animação atual (o W e o Z se juntando).

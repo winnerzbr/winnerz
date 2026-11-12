@@ -111,7 +111,9 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (01h40):** os capangas caem com o chefão (D12); todos os ataques únicos, de inimigos e chefões (D11; a fila do que se repete em `docs/memoria/ataques.md` do jogo, no plano: M1 tarefa 3b e M3).
 
-**12/11/2026 (05h):** os chefões do andar 1 com golpes só deles (Robô de Spam repintado: corrente de e-mail que se divide, carimbo "SPAM", 99+ mensagens, espiral e cartinhas que quicam; Troll do Chat: BAN HAMMER em cruz e RAID NO CHAT) e os bugs do andar 1 sem golpes repetidos (catálogo em `docs/memoria/ataques.md` do jogo).
+**12/11/2026 (03h40):** os chefões do andar 1 com golpes só deles (Robô de Spam repintado: corrente de e-mail que se divide, carimbo "SPAM", 99+ mensagens, espiral e cartinhas que quicam; Troll do Chat: BAN HAMMER em cruz e RAID NO CHAT) e os bugs do andar 1 sem golpes repetidos (catálogo em `docs/memoria/ataques.md` do jogo).
+
+**12/11/2026 (04h):** todas as salas do andar 1 na régua: cada sala com o seu clima (a cor do escuro e as luzes do teto na cor da sala), o contorno completo nos móveis e o chão calmo em todos os pisos.
 
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 

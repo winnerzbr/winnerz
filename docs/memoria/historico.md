@@ -4,6 +4,9 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Lobby dos Bugs: as salas do andar 1 na régua
+- Cada sala do andar 1 com o seu clima (cor do escuro e luzes do teto), contorno completo nos móveis e chão calmo em todos os pisos (M1 tarefa 4). Detalhes no repositório do jogo.
+
 ## 12/11/2026 — Lobby dos Bugs: os chefões do andar 1 e os ataques únicos
 - Robô de Spam repintado em 32 pontos e com golpes só dele; Troll do Chat com os golpes de fase dele (BAN HAMMER, RAID NO CHAT); o Servidor Touro com o tráfego; 6 bugs do andar 1 com golpes que deixaram de ser iguais. Detalhes no repositório do jogo (`docs/memoria/historico.md` e `ataques.md`).
 

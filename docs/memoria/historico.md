@@ -4,6 +4,10 @@ A entrada mais nova fica em cima. Cada entrada traz o que foi feito, o que foi d
 
 ---
 
+## 12/11/2026 — Início: mais espaço entre a linha do horizonte e o "Neste dia"
+
+- O dono achou o cartão "Neste dia · há 1 mês" colado na linha do tempo do Início. O espaço acima dele passou de 18 px para 30 a 48 px, conforme a largura da tela (`.page.hz-lemb` em `jornada.css`).
+
 ## 12/11/2026 — Revisão: itens 1, 5 e 6 feitos (site mais rápido, mais leve; ficha de jogo não lançado)
 
 - O dono aprovou no documento da revisão ("faça") os três itens sem mudança visual.

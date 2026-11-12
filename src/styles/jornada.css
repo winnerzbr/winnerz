@@ -570,7 +570,8 @@ aside .lemb.has-img .lemb__foto, .jside-col .lemb.has-img .lemb__foto { height: 
 aside .lemb.has-img .lemb__b, .jside-col .lemb.has-img .lemb__b { padding: 14px 18px 4px; }
 aside .lemb .lemb__go { padding: 0 18px 14px; }
 .hz-lemb:empty { display: none; }
-.hz-lemb { margin-top: 18px; }
+/* respiro entre a linha do horizonte do Início e o cartão "Neste dia" / "Lembra disso?" */
+.page.hz-lemb { margin-top: clamp(30px, 3.6vw, 48px); }
 .gtl__main > .lemb { margin-bottom: 18px; }
 @media (max-width: 640px) {
   .lemb, .lemb.has-img { grid-template-columns: minmax(0, 1fr); }

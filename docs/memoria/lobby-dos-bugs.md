@@ -161,6 +161,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (12h45):** diretrizes novas D21 (VFX de alto padrão em todos os ataques, com neon e o brilho seguindo a forma) e D22 (a varredura geral dos ataques de todos os inimigos e chefões é agora, sem cópias nem parecidos; o Passe de Batalha primeiro). Feito: a Atualização inteira refeita (janela, estouro próprio, poça da tela azul), o Vazamento mais rápido e perigoso (arremessa bolhas de memória; mancha própria), o ácido próprio da Bateria, o brilho do Laser evoluído seguindo as fitas. Ideia 47: um inimigo que pula.
 
+**13/11/2026 (13h05):** o Passe de Batalha recriado inteiro (D22): moedas que rodam de pé pelo chão, passinhos de dança com pegadas numeradas, o tapete vermelho no aviso da skin, caixas descendo de paraquedas com o facho da raridade, fogos que desenham formas (estrela, coração, "GG") no chão, e nas fases a roleta de recompensas e a contagem regressiva de LED; 16 sons novos. Ajuste do dono na D21: nem todo efeito precisa ser neon e luz; cada ataque no material dele, sempre bem estilizado. Próximo da varredura: o Rage Quit.
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

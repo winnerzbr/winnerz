@@ -197,3 +197,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 13/11/2026 (19h10): o MODO DESENVOLVEDOR (F1 ou Pausa → Modo desenvolvedor, só na versão de desenvolvimento):
   invencível, ir para qualquer andar ou para o chefão, qualquer arma/acessório com nível e raridade, bugs por sala, criar
   qualquer bug ou chefão, limpar a sala, velocidade do jogo e a linha de desempenho (diretriz E12).
+- 13/11/2026 (22h00): a tarefa 6f do M1 está FEITA: as 8 armas fracas refeitas (cabo, ping, antivírus, CTRL+Z, café,
+  estabilizador, pop-up, overclock), cada quebrável quebra no material dele e pegar item tem efeito próprio. Próxima: 6g
+  (subchefe e chefão acima das salas, D17).

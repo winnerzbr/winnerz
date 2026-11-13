@@ -171,6 +171,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (16h50):** o D.L.C. recriado (D22): a fumaça do soco foguete, a fita de embalagem da investida, as caixas de papelão se montando, o estouro de papelão e isopor, e nas fases a ASSINATURA MENSAL (o calendário cobrando dia por dia) e o PACOTE DE EXPANSÃO (peças de quebra-cabeça gigantes). Golpes de fase repetidos: 9; avisos comuns: 14.
 
+**13/11/2026 (17h25):** o Patch do Dia 1 recriado (D22): a caixinha de dados dos pacotes, as listras de carregamento da barra, a poça de arquivo corrompido, os estouros de arquivos, e nas fases o HOTFIX (curativos gigantes grudando no chão) e o ROLLBACK (ele grava o seu caminho e o estoura de trás para a frente). Golpes de fase repetidos: 7; avisos comuns: 11.
+
 **13/11/2026 (15h55):** o Bugger recriado (D22): cada falha com o seu aviso (ampulheta, fita torcida, ecos atrasados, textura faltando em espiral), as fatias do teletransporte, os hexadecimais do crash, os estouros de erro, e nas fases o STACK OVERFLOW (colunas de blocos de memória despencando) e o REINICIANDO (a tela apaga e os pixels mortos vêm do escuro). Próximo: o Magnata.
 
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).

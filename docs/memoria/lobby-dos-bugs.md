@@ -153,6 +153,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (01h35):** a cidade ficou mais calma de perto (não disputa com a sala), com 20 quarteirões variados, os carros na faixa e a sombra de fora das paredes transparente; o dono está testando 4 estilos (32 pontos, 16 pontos, misteriosa, misteriosa em 16 pontos) pela opção "Cidade" da pausa ou pela tecla F3.
 
+**13/11/2026 (02h00):** o alerta de tiro vindo de fora da tela (seta vermelha piscando na beirada, D20); a cidade do andar 1 ficou mais calma (perspectiva menor, prédios altos longe do prédio do jogo, faixa escura em volta). Ideia nova anotada para o M4: itens consumíveis com melhorias temporárias, como o Suquinho de Pixels (mais velocidade por 1 minuto, na loja).
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

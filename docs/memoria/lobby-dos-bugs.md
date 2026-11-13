@@ -194,3 +194,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
   o tiro comum não empurra mais o chefão, o Ransomware (Cofre) mais fácil de rodear, as nuvens sem linhas e a cidade
   mais leve (só pinta onde aparece). Diretrizes novas: A7/A8 (prêmios no nível do IAmiguinho e muitos itens de suporte,
   para o M3), D23 (difícil mas justo), D24 (chefão não é empurrado), D25 (jogo sempre leve).
+- 13/11/2026 (19h10): o MODO DESENVOLVEDOR (F1 ou Pausa → Modo desenvolvedor, só na versão de desenvolvimento):
+  invencível, ir para qualquer andar ou para o chefão, qualquer arma/acessório com nível e raridade, bugs por sala, criar
+  qualquer bug ou chefão, limpar a sala, velocidade do jogo e a linha de desempenho (diretriz E12).

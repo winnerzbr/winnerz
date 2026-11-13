@@ -175,6 +175,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (17h55):** o Downgrade recriado (D22): o reflexo de lente na investida, o bokeh sextavado nos clarões, o clarão de efeito especial, e nas fases o CORTE DE ORÇAMENTO (cubos provisórios surgindo do nada) e o TRAVADO EM 30 QUADROS (orbes que andam aos trancos). Golpes de fase repetidos: 5; avisos comuns: 9.
 
+**13/11/2026 (16h55):** o Review Bomb recriado (D22): O Review Bomb recriado: o aviso da estrela de avaliação que enche, os estouros de comentários e dois golpes de fase só dele (o polegar para baixo gigante e a cobra de balões de resposta). Golpes de fase repetidos entre chefões: 3 (o limite baixou de 5 para 3); avisos comuns: 8 (de 9).
+
 **13/11/2026 (15h55):** o Bugger recriado (D22): cada falha com o seu aviso (ampulheta, fita torcida, ecos atrasados, textura faltando em espiral), as fatias do teletransporte, os hexadecimais do crash, os estouros de erro, e nas fases o STACK OVERFLOW (colunas de blocos de memória despencando) e o REINICIANDO (a tela apaga e os pixels mortos vêm do escuro). Próximo: o Magnata.
 
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).

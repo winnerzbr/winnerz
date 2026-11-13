@@ -157,6 +157,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (04h10):** a cidade em volta do prédio está decidida: o estilo de 32 pontos com as cores normais (os de teste saíram). A beirada de fora das paredes ganhou friso e sombra curta, sem a faixa escura, e as sombras dos prédios da cidade são desenhadas na hora.
 
+**13/11/2026 (11h00):** M1 tarefa 6e feita: cada golpe do andar 1 tem o SEU aviso no chão (o arco do pulo do Bug saltador, os pacotinhos do DDoS, a linha de pesca do Phishing, a mira de luneta do Spyware, a poça de ácido da Bateria, a janela de "instalando" da Atualização, a sombra com hélices do Drone, o buraco de glitch do Rootkit, as caixinhas do Captcha, a espiral de envelopes do Robô, as rachaduras do BAN, a sombra da letra do CAPS LOCK e o balão de chat do pulo do Troll), e a rajada do Bug cercador virou uma varredura em leque (D15 e D18, conferido sozinho).
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

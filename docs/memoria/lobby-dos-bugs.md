@@ -147,6 +147,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (22h30):** M1 tarefa 6d, 1ª parte: o IAmiguinho com o corpo refeito, as mãos à parte (uma segura a arma, a outra balança), andar com 8 quadros, esperas quando parado, rodopio no dash e expressões no visor. O dono jogou o andar 2: o Rootkit agora vem no máximo 1 por onda na sala pequena (D16); no plano, subchefe e chefão mais difíceis (D17), a revisão de todos os ataques parecidos (D18), os melhores efeitos em todos os ataques e armas ANTES do conteúdo novo (D19) e quebrar mais coisas, inclusive móveis com o dash (C15).
 
+**13/11/2026 (00h45):** o IAmiguinho continua o de sempre (o dono recusou o corpo e as mãos refeitos): só as mãos passaram para a posição neutra (uma segura a arma, a outra relaxada), com 8 esperas quando parado e rodopio no dash; regra: não refazer o desenho dele, só animar. Aprovada a cidade de noite em 3D estilizado no lugar do preto de fora, mais distante a cada andar (diretriz B18, tarefa 6k; ainda só estudo, fora do jogo). No plano: o Cabo USB-gancho na direção certa (6j).
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

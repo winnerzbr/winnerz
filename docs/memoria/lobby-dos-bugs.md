@@ -190,3 +190,7 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.
+- 13/11/2026 (18h30): dificuldade justa nos andares de cima (teto de bugs vivos por sala; pico de 21 para 9 no andar 5),
+  o tiro comum não empurra mais o chefão, o Ransomware (Cofre) mais fácil de rodear, as nuvens sem linhas e a cidade
+  mais leve (só pinta onde aparece). Diretrizes novas: A7/A8 (prêmios no nível do IAmiguinho e muitos itens de suporte,
+  para o M3), D23 (difícil mas justo), D24 (chefão não é empurrado), D25 (jogo sempre leve).

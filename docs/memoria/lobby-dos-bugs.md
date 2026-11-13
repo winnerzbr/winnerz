@@ -200,3 +200,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 13/11/2026 (22h00): a tarefa 6f do M1 está FEITA: as 8 armas fracas refeitas (cabo, ping, antivírus, CTRL+Z, café,
   estabilizador, pop-up, overclock), cada quebrável quebra no material dele e pegar item tem efeito próprio. Próxima: 6g
   (subchefe e chefão acima das salas, D17).
+- 13/11/2026 (22h40): a tarefa 6g do M1 está FEITA (D17): o Robô de Spam e o Troll do Chat ficaram mais fortes, com
+  golpes que vêm juntos, e todos os chefões ficaram mais rápidos e com menos descanso. O piloto agora perde na maioria das
+  lutas (antes, o subchefe caía em segundos). Próxima: 6h (quebrar mais coisas, C15).

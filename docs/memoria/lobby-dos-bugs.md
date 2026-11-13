@@ -143,6 +143,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **12/11/2026 (21h):** o dono jogou e achou fácil: bugs com velocidade por tipo e bem mais rápidos, preparo e espera mais curtos, chefões mais rápidos (D14 reforçada); o aviso no chão de cada golpe também é único (D15; o Cavalo de Troia ganhou as ferraduras; fila para os outros); no plano: os ritmos das armas (6c) e os efeitos visuais do que acontece no jogo (6f).
 
+**12/11/2026 (21h30):** M1 tarefa 6c feita (as armas): o Teclado com teclas grandes e legíveis e, na forma evoluída (nível 4 e 5), soltando palavras como "kkkk", "lmao", "gg!"; o Laser de DVD em camadas, com a cor andando e marca onde bate (evoluído, duas fitas trançadas); o Firewall com resistência (D13: aguenta 6 tiros no nível 1, racha e quebra), e o Ping, o Pop-up e o Antivírus também com limite; cada arma num ritmo (lenta e forte, média, rápida e fraca). Próxima: 6d (animações do IAmiguinho).
+
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).
 
 **12/11/2026 (01h30):** o PLANO até a Steam (`docs/plano.md` no repositório do jogo; página "Lobby dos Bugs: plano até a Steam" no Claude): estamos no M1 (fatia vertical: o andar 1 no nível final); depois a página da Steam cedo, Alfa (5 andares), Beta, polimento, lançamento. O ChatGPT entra em paralelo fazendo conceitos de referência; o Claude redesenha em 32 pontos.

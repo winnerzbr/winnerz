@@ -181,6 +181,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 
 **13/11/2026 (17h50):** o Ceifador de Mídia recriado (D22): O Ceifador de Mídia recriado: o aviso do risco de disco, os cacos furta-cor e dois golpes de fase só dele (a névoa com a ilha da nuvem que passeia e o cemitério de lápides que brotam). Golpes de fase repetidos entre chefões: 1; avisos comuns: 5.
 
+**13/11/2026 (18h15):** o Sempre Online recriado (D22): O Sempre Online recriado: dois golpes de fase só dele (o fantasma atrasado do IAmiguinho com a correção do servidor e as ampulhetas que estouram quando a areia acaba). Golpes de fase repetidos entre chefões: 0 (o limite agora é 0).
+
 **13/11/2026 (15h55):** o Bugger recriado (D22): cada falha com o seu aviso (ampulheta, fita torcida, ecos atrasados, textura faltando em espiral), as fatias do teletransporte, os hexadecimais do crash, os estouros de erro, e nas fases o STACK OVERFLOW (colunas de blocos de memória despencando) e o REINICIANDO (a tela apaga e os pixels mortos vêm do escuro). Próximo: o Magnata.
 
 **12/11/2026 (03h20):** tarefa 1 do M1 feita; o 1º equilíbrio das armas (CD, mouse, Ping e secundárias); no plano, a agressividade dos bugs (tarefa 6) e os jeitos novos de inimigo, como corpo a corpo, voador, teletransporte e escudo (tarefa 6b).

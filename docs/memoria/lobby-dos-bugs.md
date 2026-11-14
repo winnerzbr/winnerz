@@ -215,3 +215,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
   cristais que se juntam); o Vazamento de memória mais perigoso (os fragmentos que rastejam); o café com cara de café;
   todas as armas com diferença no nível alto (e som novo no Estabilizador em curto e no Roteador com lag); o Antivírus
   no nível alto sem tapar a visão.
+- 14/11/2026 (02h30): os tiros empurram menos os bugs comuns; os quebráveis sem a corrente e com mais tiros para
+  quebrar (os móveis das salas também quebram com tiro, rachando); os upgrades mais escassos (uns 3 níveis no andar 1, e
+  os projéteis a mais sobem devagar); a sala só se revela quando o IAmiguinho passa da porta.

@@ -203,3 +203,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 13/11/2026 (22h40): a tarefa 6g do M1 está FEITA (D17): o Robô de Spam e o Troll do Chat ficaram mais fortes, com
   golpes que vêm juntos, e todos os chefões ficaram mais rápidos e com menos descanso. O piloto agora perde na maioria das
   lutas (antes, o subchefe caía em segundos). Próxima: 6h (quebrar mais coisas, C15).
+- 13/11/2026 (23h10): a tarefa 6h do M1 está FEITA (C15): caixas, pilhas, paletes, carretéis, lixeiras, plantas,
+  cadeiras, mesinhas e mesas com PC quebram (no corredor com tiro ou dash; na sala só com o dash, abrindo o caminho);
+  algumas salas têm quebráveis que soltam prêmios. Próxima: 6j (o cabo gancho na direção certa).

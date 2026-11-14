@@ -210,3 +210,8 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
   atirando, e para a mira quando está atirando ou mirando.
 - 13/11/2026 (23h55): a 2ª parte da tarefa 6d (o IAmiguinho, com o desenho de sempre): comemorações de item, arma rara e
   subir de nível; os olhos do visor que mudam na hora certa; o susto antes de cair na fenda; a chegada no andar.
+- 14/11/2026 (01h30): os pedidos do dono das 23h34: a caixa e o cactus que voltavam depois de quebrados e os tiros do
+  pendrive saindo do mapa corrigidos; o jogo leve com 200 bugs (sem a espiral de lentidão, efeitos que se ajustam,
+  cristais que se juntam); o Vazamento de memória mais perigoso (os fragmentos que rastejam); o café com cara de café;
+  todas as armas com diferença no nível alto (e som novo no Estabilizador em curto e no Roteador com lag); o Antivírus
+  no nível alto sem tapar a visão.

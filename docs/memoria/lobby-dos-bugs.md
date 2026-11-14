@@ -218,3 +218,7 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 14/11/2026 (02h30): os tiros empurram menos os bugs comuns; os quebráveis sem a corrente e com mais tiros para
   quebrar (os móveis das salas também quebram com tiro, rachando); os upgrades mais escassos (uns 3 níveis no andar 1, e
   os projéteis a mais sobem devagar); a sala só se revela quando o IAmiguinho passa da porta.
+- 14/11/2026 (02h50): anotados no plano, para depois: o começo do andar 1 mais leve (M1 6n); as batalhas de chefão como
+  um show à parte, com introdução, mais golpes e vida, capangas exclusivos só em alguns, arena e música próprias (M1 6o
+  e M3); a cena de abertura com a lore, antes do menu (M4); cada andar começando numa sala com elevador e a loja longe
+  do começo do andar (M3).

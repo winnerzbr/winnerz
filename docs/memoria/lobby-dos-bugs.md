@@ -222,3 +222,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
   um show à parte, com introdução, mais golpes e vida, capangas exclusivos só em alguns, arena e música próprias (M1 6o
   e M3); a cena de abertura com a lore, antes do menu (M4); cada andar começando numa sala com elevador e a loja longe
   do começo do andar (M3).
+- 14/11/2026 (12h00): a análise da estrutura do jogo, a pedido do dono, com as 4 ideias dele (cartas estilo Hades, barra
+  de especial, 6º andar em outra dimensão, inimigos em 4 degraus) e as sugestões do Claude: documento no Claude
+  (https://claude.ai/artifact/XgG3RoXvwkwSsP4eSPh7eB). Aguardando as decisões do dono; o plano não mudou.

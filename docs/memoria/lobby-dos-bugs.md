@@ -206,3 +206,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 13/11/2026 (23h10): a tarefa 6h do M1 está FEITA (C15): caixas, pilhas, paletes, carretéis, lixeiras, plantas,
   cadeiras, mesinhas e mesas com PC quebram (no corredor com tiro ou dash; na sala só com o dash, abrindo o caminho);
   algumas salas têm quebráveis que soltam prêmios. Próxima: 6j (o cabo gancho na direção certa).
+- 13/11/2026 (23h30): a tarefa 6j do M1 está FEITA: o Cabo USB-gancho vai para onde o IAmiguinho anda quando não está
+  atirando, e para a mira quando está atirando ou mirando.

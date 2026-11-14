@@ -225,3 +225,6 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
 - 14/11/2026 (12h00): a análise da estrutura do jogo, a pedido do dono, com as 4 ideias dele (cartas estilo Hades, barra
   de especial, 6º andar em outra dimensão, inimigos em 4 degraus) e as sugestões do Claude: documento no Claude
   (https://claude.ai/artifact/XgG3RoXvwkwSsP4eSPh7eB). Aguardando as decisões do dono; o plano não mudou.
+- 14/11/2026 (12h20): o dono aceitou a análise. Marco novo no plano, antes dos andares 2 a 5: o sistema de build no
+  andar 1 (cartas estilo Hades, barra de especial, inimigos em 4 degraus com os ultra fortes sempre novos, chefões como
+  show). O 6º andar em outra dimensão fica por último. A primeira vitória deve custar várias tentativas.

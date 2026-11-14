@@ -208,3 +208,5 @@ O dono trouxe 15 ideias depois de jogar (corredores, objetos quebráveis, armadi
   algumas salas têm quebráveis que soltam prêmios. Próxima: 6j (o cabo gancho na direção certa).
 - 13/11/2026 (23h30): a tarefa 6j do M1 está FEITA: o Cabo USB-gancho vai para onde o IAmiguinho anda quando não está
   atirando, e para a mira quando está atirando ou mirando.
+- 13/11/2026 (23h55): a 2ª parte da tarefa 6d (o IAmiguinho, com o desenho de sempre): comemorações de item, arma rara e
+  subir de nível; os olhos do visor que mudam na hora certa; o susto antes de cair na fenda; a chegada no andar.
